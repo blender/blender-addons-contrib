@@ -21,7 +21,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    'name': '3d View: Manipulator Menu',
+    'name': '3D View: Manipulator Menu',
     'author': 'MichaelW',
     'version': '1',
     'blender': (2, 5, 3),
