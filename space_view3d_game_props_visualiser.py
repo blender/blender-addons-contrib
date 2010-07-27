@@ -61,7 +61,7 @@ def calc_callback(self, context):
     # get matrices
     view_mat = context.space_data.region_3d.perspective_matrix
 
-    ob_mat = context.active_object.matrix
+    ob_mat = context.active_object.matrix_world
     total_mat = view_mat*ob_mat
     
     # calculate location info
@@ -71,7 +71,7 @@ def calc_callback(self, context):
     #ob=context.active_object
     for ob in context.selected_objects:
         locs = []
-        ob_mat = ob.matrix
+        ob_mat = ob.matrix_world
         total_mat = view_mat*ob_mat
  
         for p in ob.game.properties:
