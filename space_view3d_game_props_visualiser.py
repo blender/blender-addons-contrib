@@ -32,9 +32,8 @@ bl_addon_info = {
         'Scripts/Index_Visualiser',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=21557&group_id=153&atid=468',
-    'doc': """\
+    'doc':"""\
 Displays game properties next to selected objects(under name)
-
 -how to use:
     just toggle the button 'Visualise game props' in the right side panel
 """}
