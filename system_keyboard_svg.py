@@ -209,7 +209,8 @@ class WM_OT_Keyboardlayout(bpy.types.Operator):
     bl_idname = "wm.keyboardlayout"
     bl_label = "Keyboard layout (SGV)"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         """
         export of the keyboard layout should always be possible.
         """
@@ -224,13 +225,10 @@ class WM_OT_Keyboardlayout(bpy.types.Operator):
         return {'FINISHED'}
 
 def register():
-    register = bpy.types.register
-    register(WM_OT_Keyboardlayout)
-
+    pass
 
 def unregister():
-    unregister = bpy.types.unregister
-    unregister(WM_OT_Keyboardlayout)
+    pass
 
 if __name__ == "__main__":
     register()

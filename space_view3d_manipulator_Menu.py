@@ -64,7 +64,8 @@ class VIEW3D_OT_disable_manipulator(bpy.types.Operator):
     bl_idname = "VIEW3D_OT_disable_manipulator"
     bl_label = "disable manipulator"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -106,8 +107,7 @@ class VIEW3D_MT_ManipulatorMenu(bpy.types.Menu):
 
             
 def register():
-    bpy.types.register(VIEW3D_OT_disable_manipulator)
-    bpy.types.register(VIEW3D_MT_ManipulatorMenu)
+
     km = bpy.context.manager.active_keyconfig.keymaps['3D View']
     for kmi in km.items:
         if kmi.idname == 'wm.context_toggle':
@@ -120,8 +120,7 @@ def register():
 
 
 def unregister():
-    bpy.types.unregister(VIEW3D_OT_disable_manipulator)
-    bpy.types.unregister(VIEW3D_MT_ManipulatorMenu)
+
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == "VIEW3D_MT_ManipulatorMenu":

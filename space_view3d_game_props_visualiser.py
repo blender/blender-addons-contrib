@@ -133,8 +133,8 @@ class GamePropertyVisualiser(bpy.types.Operator):
     bl_label = "Game Properties Visualiser"
     bl_description = "Toggle the visualisation of game properties"
     
-   
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.mode!='EDIT_MESH'
     
     def modal(self, context, event):
@@ -190,14 +190,10 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(GamePropertyVisualiser)
     bpy.types.VIEW3D_PT_view3d_display.prepend(menu_func)
 
-
 def unregister():
-    bpy.types.unregister(GamePropertyVisualiser)
     bpy.types.VIEW3D_PT_view3d_display.remove(menu_func)
-
 
 if __name__ == "__main__":
     register()
