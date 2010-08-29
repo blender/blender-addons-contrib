@@ -44,7 +44,7 @@ bl_addon_info = {
     "Scripts/Text_Editor/PasteAll",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
 	"func=detail&aid=23493&group_id=153&atid=468",
-    "category": "Text editor"}
+    "category": "Text Editor"}
 
 import bpy
 import urllib
