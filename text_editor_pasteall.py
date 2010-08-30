@@ -41,9 +41,9 @@ bl_addon_info = {
     "location": "text editor > properties panel",
     "description": "Send your selection or text to www.pasteall.org",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-    "Scripts/Text_Editor/PasteAll",
+        "Scripts/Text_Editor/PasteAll",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-	"func=detail&aid=23493&group_id=153&atid=468",
+        "func=detail&aid=23493&group_id=153&atid=468",
     "category": "Text Editor"}
 
 import bpy
