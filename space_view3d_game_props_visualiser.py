@@ -20,24 +20,26 @@
 
 
 bl_addon_info = {
-    'name': '3D View: Game Property Visualiser',
+    'name': 'Game Property Visualiser',
     'author': 'Bartius Crouch/Vilem Novak',
-    'version': '2.4 2010/06/07',
+    'version': (2,4),
     'blender': (2, 5, 3),
-    'category': '3D View',
-    'location': 'View3D > properties panel > display tab',
+    'api': 31667,
+    'location': 'View3D > Properties panel > Display tab',
     'description': 'Display the game properties next to selected objects '\
         'in the 3d-view',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/Index_Visualiser',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=21557&group_id=153&atid=468',
-    'doc':"""\
-Displays game properties next to selected objects(under name)
--how to use:
-    just toggle the button 'Visualise game props' in the right side panel
-"""}
+    'category': '3D View'}
 
+"""
+Displays game properties next to selected objects(under name)
+
+How to use:
+    just toggle the button 'Visualise game props' in the right side panel
+"""
 
 import bgl
 import blf
@@ -133,8 +135,8 @@ class GamePropertyVisualiser(bpy.types.Operator):
     bl_label = "Game Properties Visualiser"
     bl_description = "Toggle the visualisation of game properties"
     
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.mode!='EDIT_MESH'
     
     def modal(self, context, event):

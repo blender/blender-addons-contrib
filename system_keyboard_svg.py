@@ -4,12 +4,17 @@
 # first implementation done by jbakker
 
 bl_addon_info = {
-    'name': 'System: Keyboard Layout (svg)',
+    'name': 'Keyboard Layout (svg)',
     'author': 'Jbakker',
-    'version': '1',
+    'version': (1,),
     'blender': (2, 5, 3),
+    'api': 31667,
     'location': 'View3D > Ctrl Space',
-    'description': 'save the hotkeys as a .svg file (search: Keyboard)',
+    'description': 'Save the hotkeys as a .svg file (search: Keyboard)',
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
+        'Scripts/System/Keyboard Layout (svg)',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=21490&group_id=153&atid=468',
     'category': 'System'}
 
 

@@ -34,11 +34,12 @@
 # ########################################################
 
 bl_addon_info = {
-    "name": "Text Editor: PasteAll",
+    "name": "PasteAll",
     "author": "Dalai Felinto (dfelinto)",
-    "version": "0.5",
+    "version": (0,5),
     "blender": (2, 5, 3),
-    "location": "text editor > properties panel",
+    "api": 31525,
+    "location": "Text editor > Properties panel",
     "description": "Send your selection or text to www.pasteall.org",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Text_Editor/PasteAll",
