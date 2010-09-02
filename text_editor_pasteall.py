@@ -104,7 +104,7 @@ class PasteAllOperator(bpy.types.Operator):
             self.report('INFO', page)
 
         # store the link in the clipboard
-        bpy.context.manager.clipboard = page
+        bpy.context.window_manager.clipboard = page
 
         if context.scene.use_webbrowser:
             try:
