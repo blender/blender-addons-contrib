@@ -264,23 +264,18 @@ def read_lwob(file, filename, layers, surfs, tags, add_subd_mod):
 
 def read_lwostring(raw_name):
     '''Parse a zero-padded string.'''
-    i= -1
-    name= ''
-    for i in range(len(raw_name)):
-        if raw_name[i] == 0:
-            break
-        
+
+    i = raw_name.find(b'\0')
     name_len = i + 1
     if name_len % 2 == 1:   # Test for oddness.
         name_len += 1
         
     if i > 0:
         # Some plugins put non-text strings in the tags chunk.
-        try:
-            name= raw_name[0:i].decode()
-        except:
-            name= "BAD_STRING"
-    
+        name = raw_name[0:i].decode("utf-8", "ignore")
+    else:
+        name = ""
+
     return name, name_len
 
     
