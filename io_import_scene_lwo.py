@@ -958,7 +958,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
         mat_slot= 0
         for surf_key in layer_data.surf_tags:
             if object_tags[surf_key] in object_surfs:
-                me.materials.link(object_surfs[object_tags[surf_key]].bl_mat)
+                me.materials.append(object_surfs[object_tags[surf_key]].bl_mat)
                 
                 for fi in layer_data.surf_tags[surf_key]:
                     me.faces[fi].material_index= mat_slot
