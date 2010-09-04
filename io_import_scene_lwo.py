@@ -36,6 +36,9 @@
 # NGons, polygons with more than 4 points are supported, but are
 # added (as triangles) after the vertex maps have been applied. Thus they
 # won't contain all the vertex data that the original ngon had.
+# 
+# Blender is limited to only 8 UV Texture and 8 Vertex Color maps,
+# thus only the first 8 of each can be imported.
 
 
 bl_addon_info= {
@@ -43,11 +46,12 @@ bl_addon_info= {
     "author": "Ken Nign (Ken9)",
     "version": (1,0),
     "blender": (2, 5, 3),
-    "api": 31704,
+    "api": 31744,
     "location": "File > Import > LightWave Object (.lwo)",
     "description": "Imports a LWO file including any UV, Morph and Color maps. Can convert Skelegons to an Armature.",
     "warning": "",
-    "wiki_url": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/File_I-O/LightWave_Object",
     "tracker_url": "",
     "category": "Import/Export"}
 
@@ -924,6 +928,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
         ngons= {}   # To keep the FaceIdx consistant, handle NGons later.
         has_edges= False
         for fi in range(len(layer_data.pols)):
+            layer_data.pols[fi].reverse()   # Reversing gives correct normal directions
             # PointID 0 in the last element causes Blender to think it's un-used.
             if layer_data.pols[fi][-1] == 0:
                 layer_data.pols[fi].insert(0, layer_data.pols[fi][-1])
@@ -987,6 +992,8 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
             for cmap_key in layer_data.colmaps:
                 map_pack= create_mappack(layer_data, cmap_key, "COLOR")
                 vcol= me.vertex_colors.new(cmap_key)
+                if not vcol:
+                    break
                 for fi in map_pack:
                     if fi > len(vcol.data):
                         continue
@@ -1006,6 +1013,8 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
             for uvmap_key in layer_data.uvmaps:
                 map_pack= create_mappack(layer_data, uvmap_key, "UV")
                 uvm= me.uv_textures.new(uvmap_key)
+                if not uvm:
+                    break
                 for fi in map_pack:
                     if fi > len(uvm.data):
                         continue
