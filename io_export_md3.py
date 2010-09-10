@@ -28,19 +28,20 @@ Tooltip: 'Save a Quake Model 3 File'
 """
 
 bl_addon_info = {
-    'name': 'Quake Model 3 (.md3',
+    'name': 'Quake Model 3 (.md3)',
     'author': 'Xembie',
     'version': (0,7),
     'blender': (2, 5, 3),
     'api': 31667,
-    'location': 'File > Import',
-    'description': 'Import files in the Autocad DXF format (.dxf)',
+    'location': 'File > Export',
+    'description': 'Save a Quake Model 3 File)',
     'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
 	    'func=detail&aid=23160&group_id=153&atid=468',
     'category': 'Import/Export'}
+
 import bpy,struct,math,os
 
 MAX_QPATH = 64
