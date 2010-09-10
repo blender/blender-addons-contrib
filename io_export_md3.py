@@ -1,3 +1,20 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
 
 __author__ = ["Xembie"]
 __version__ = '0.7'
@@ -10,6 +27,20 @@ Group: 'Export'
 Tooltip: 'Save a Quake Model 3 File'
 """
 
+bl_addon_info = {
+    'name': 'Quake Model 3 (.md3',
+    'author': 'Xembie',
+    'version': (0,7),
+    'blender': (2, 5, 3),
+    'api': 31667,
+    'location': 'File > Import',
+    'description': 'Import files in the Autocad DXF format (.dxf)',
+    'warning': '', # used for warning icon and text in addons panel
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
+        'Scripts/',
+    'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
+	    'func=detail&aid=23160&group_id=153&atid=468',
+    'category': 'Import/Export'}
 import bpy,struct,math,os
 
 MAX_QPATH = 64
