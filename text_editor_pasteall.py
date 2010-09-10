@@ -37,8 +37,8 @@ bl_addon_info = {
     "name": "PasteAll",
     "author": "Dalai Felinto (dfelinto)",
     "version": (0,5),
-    "blender": (2, 5, 3),
-    "api": 31525,
+    "blender": (2, 5, 4),
+    "api": 31865,
     "location": "Text editor > Properties panel",
     "description": "Send your selection or text to www.pasteall.org",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
@@ -204,7 +204,7 @@ class PasteAllOperator(bpy.types.Operator):
         return extensions.get(type, '0')
 
 def register():
-    bpy.types.Scene.BoolProperty(attr='use_webbrowser',
+    bpy.types.Scene.use_webbrowser = bpy.props.BoolProperty(
         name='Launch Browser',
         description='Opens the page with the submitted text.',
         default=True)
@@ -214,3 +214,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
