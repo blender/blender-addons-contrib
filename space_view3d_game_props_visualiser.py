@@ -163,7 +163,7 @@ class GamePropertyVisualiser(bpy.types.Operator):
                 print('init')
                 # operator is called for the first time, start everything
                 context.scene.display_game_properties = 1
-                context.manager.add_modal_handler(self)
+                context.window_manager.add_modal_handler(self)
                 self.handle1 = context.region.callback_add(calc_callback,
                     (self, context), 'POST_VIEW')
                 self.handle2 = context.region.callback_add(draw_callback,
@@ -182,19 +182,17 @@ class GamePropertyVisualiser(bpy.types.Operator):
 
 # defining the panel
 def menu_func(self, context):
-    
-    sce=context.scene
-    sce.IntProperty(name = 'visualise game properties' ,attr="display_game_properties", default=0)
-
     col = self.layout.column(align=True)
     col.operator(GamePropertyVisualiser.bl_idname, text="Visualise game props")
     self.layout.separator()
 
 
 def register():
+    bpy.types.Scene.display_game_properties = bpy.props.IntProperty(name='Visualise Game Poperties')
     bpy.types.VIEW3D_PT_view3d_display.prepend(menu_func)
 
 def unregister():
+    del bpy.types.Scene.display_game_properties
     bpy.types.VIEW3D_PT_view3d_display.remove(menu_func)
 
 if __name__ == "__main__":
