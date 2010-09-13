@@ -214,13 +214,6 @@ class WM_OT_Keyboardlayout(bpy.types.Operator):
     bl_idname = "wm.keyboardlayout"
     bl_label = "Keyboard layout (SGV)"
 
-    @staticmethod
-    def poll(context):
-        """
-        export of the keyboard layout should always be possible.
-        """
-        return True
-
     def execute(self, context):
         """
         Iterate over all viewtypes to export the keyboard layout.

@@ -210,7 +210,7 @@ def register():
         default=True)
 
 def unregister():
-    bpy.types.Scene.RemoveProperty("use_webbrowser")
+    del bpy.types.Scene.use_webbrowser
 
 if __name__ == "__main__":
     register()

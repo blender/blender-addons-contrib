@@ -105,9 +105,9 @@ class VIEW3D_MT_ManipulatorMenu(bpy.types.Menu):
         layout.separator()
 
 
-            
+
 def register():
-    km = bpy.context.manager.keyconfigs.active.keymaps['3D View']
+    km = bpy.context.window_manager.keyconfigs.active.keymaps['3D View']
     for kmi in km.items:
         if kmi.idname == 'wm.context_toggle':
             if kmi.ctrl and not kmi.shift and not kmi.alt and kmi.value =="PRESS":
@@ -119,7 +119,7 @@ def register():
 
 
 def unregister():
-    km = bpy.context.manager.keyconfigs.active.keymaps['3D View']
+    km = bpy.context.window_manager.keyconfigs.active.keymaps['3D View']
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == "VIEW3D_MT_ManipulatorMenu":
