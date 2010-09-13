@@ -16,17 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__author__ = ["Xembie"]
-__version__ = '0.7'
-__url__ = ["www.blender.org"]
-
-"""
-Name: 'Quake Model 3 (.md3)...'
-Blender: 253
-Group: 'Export'
-Tooltip: 'Save a Quake Model 3 File'
-"""
-
 bl_addon_info = {
     'name': 'Quake Model 3 (.md3)',
     'author': 'Xembie',
@@ -38,9 +27,12 @@ bl_addon_info = {
     'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/',
-    'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
-	    'func=detail&aid=23160&group_id=153&atid=468',
+    'tracker_url': 'http://projects.blender.org/tracker/index.php?func=detail&aid=23160&group_id=153&atid=468',
     'category': 'Import/Export'}
+
+__author__ = ["Xembie"]
+__version__ = '0.7'
+__url__ = ["www.blender.org"]
 
 import bpy,struct,math,os
 
@@ -687,19 +679,18 @@ class ExportMD3(bpy.types.Operator):
     wm.add_fileselect(self)
     return {'RUNNING_MODAL'}
 
-  def poll(self, context):
-    return context.active_object != None
+  @classmethod
+  def poll(cls, context):
+    return context.active_object is not None
 
 def menu_func(self, context):
   newpath = os.path.splitext(bpy.context.main.filepath)[0] + ".md3"
   self.layout.operator(ExportMD3.bl_idname, text="Quake Model 3 (.md3)").filepath = newpath 
 
 def register():
-  bpy.types.register(ExportMD3)
   bpy.types.INFO_MT_file_export.append(menu_func)
 
 def unregister():
-  bpy.types.unregister(ExportMD3)
   bpy.types.INFO_MT_file_export.remove(menu_func)
 
 if __name__ == "__main__":
