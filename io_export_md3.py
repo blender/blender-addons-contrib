@@ -684,7 +684,7 @@ class ExportMD3(bpy.types.Operator):
     return context.active_object is not None
 
 def menu_func(self, context):
-  newpath = os.path.splitext(bpy.context.main.filepath)[0] + ".md3"
+  newpath = os.path.splitext(bpy.context.blend_data.filepath)[0] + ".md3"
   self.layout.operator(ExportMD3.bl_idname, text="Quake Model 3 (.md3)").filepath = newpath 
 
 def register():

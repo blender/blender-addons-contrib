@@ -82,7 +82,7 @@ class PasteAllOperator(bpy.types.Operator):
         # get the selected text
         text = self.get_selected_text(st.text)
         # if no text is selected send the whole file
-        if text == None: text = st.text.as_string()
+        if text is None: text = st.text.as_string()
 
         # get the file type based on the extension
         format = self.get_file_format(st.text)
@@ -90,14 +90,14 @@ class PasteAllOperator(bpy.types.Operator):
         # send the text and receive the returned page
         html = self.send_text(text, format)
 
-        if html == None:
+        if html is None:
             self.report('ERROR', "Error in sending the text to the server.")
             return {'CANCELLED'}
 
         # get the link of the posted page
         page = self.get_page(str(html))
         
-        if page == None or page == "":
+        if page is None or page == "":
             self.report('ERROR', "Error in retrieving the page.")
             return {'CANCELLED'}
         else:
