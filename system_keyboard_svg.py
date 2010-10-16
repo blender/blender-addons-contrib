@@ -1,22 +1,40 @@
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
 # this script creates Keyboard layout images of the current keyboard configuration.
 # the result will be writen to the blender default directory.
 
 # first implementation done by jbakker
 
 bl_addon_info = {
-    'name': 'Keyboard Layout (svg)',
-    'author': 'Jbakker',
-    'version': (1,),
-    'blender': (2, 5, 3),
-    'api': 31667,
-    'location': 'View3D > Ctrl Space',
-    'description': 'Save the hotkeys as a .svg file (search: Keyboard)',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
+    "name": "Keyboard Layout (svg)",
+    "author": "Jbakker",
+    "version": (0,1),
+    "blender": (2, 5, 4),
+    "api": 32411,
+    "location": "",
+    "description": "Save the hotkeys as a .svg file (search: Keyboard)",
+    "warning": "",
+    "wiki_url": 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/System/Keyboard Layout (svg)',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21490&group_id=153&atid=468',
-    'category': 'System'}
-
+    "tracker_url": "https://projects.blender.org/tracker/index.php?" \
+        "func==detail&aid=21490&group_id=153&atid=468",
+    "category": "System"}
 
 import bpy
 
