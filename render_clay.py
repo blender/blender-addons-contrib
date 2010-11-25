@@ -21,8 +21,9 @@
 bl_addon_info = {
     "name": "Clay Render",
     "author": "Fabio Russo <ruesp83@libero.it>",
-    "version": (0, 5),
+    "version": (0, 7),
     "blender": (2, 5, 5),
+    "api": 33112,
     "location": "Render > Clay Render",
     "description": "This script, applies a temporary material to all objects"\
         " of the scene.",
@@ -33,82 +34,76 @@ bl_addon_info = {
     "category": "Render"}
 
 import bpy
-
 from bpy.props import BoolProperty
 
 
-bpy.types.Scene.Clay = BoolProperty(
-    name='Clay Render',
-    description='Use Clay Render',
-    default=False)
-
-
-def search():
-    mats = bpy.data.materials
-    Find = False
-    id = None
-    for m in mats:
-        if m.name == "Clay_Render":
-            id = m
-            Find = True
-            break
+def create_mat():
+    id = bpy.data.materials.new("Clay_Render")
+    #diffuse
+    id.diffuse_shader = "OREN_NAYAR"
+    id.diffuse_color = 0.800, 0.741, 0.536
+    id.diffuse_intensity = 1
+    id.roughness = 0.909
+    #specular
+    id.specular_shader = "COOKTORR"
+    id.specular_color = 1, 1, 1
+    id.specular_hardness = 10
+    id.specular_intensity = 0.115
     return id
 
 
-def create_mat():
-    id = search()
-    if id == None:
-        id = bpy.data.materials.new("Clay_Render")
-        #diffuse
-        id.diffuse_shader = "OREN_NAYAR"
-        id.diffuse_color = 0.800, 0.741, 0.536
-        id.diffuse_intensity = 1
-        id.roughness = 0.909
-        #specular
-        id.specular_shader = "COOKTORR"
-        id.specular_color = 1, 1, 1
-        id.specular_hardness = 10
-        id.specular_intensity = 0.115
+class CheckClay(bpy.types.Operator):
+    bl_idname = "render.clay"
+    bl_label = "Clay Render"
+
+    def execute(self, context):
+        global im
+        if bpy.types.Scene.Clay:
+            context.scene.render.layers.active.material_override = im
+            bpy.types.Scene.Clay = False
+        else:
+            context.scene.render.layers.active.material_override = None
+            bpy.types.Scene.Clay = True
+        return {'FINISHED'}
 
 
 def draw_clay(self, context):
-        layout = self.layout
-        sd = context.scene
-        rnd = context.scene.render
-        rnl = rnd.layers.active
+    global im
+    ok_clay = not bpy.types.Scene.Clay
 
-        create_mat()
+    rnd = context.scene.render
+    rnl = rnd.layers.active
+    if im == None:
+        im = create_mat()
 
-        split = layout.split()
-        col = split.column()
-
-        col.prop(sd, "Clay",)
-
-        col = split.column()
-
-        id = search()
-        col.prop(id, "diffuse_color", text="")
-        self.layout.separator()
-        App_Clay = context.scene.Clay
-        if App_Clay:
-            rnl.material_override = id
-            col.active = True
-        else:
-            rnl.material_override = None
-            col.active = False
+    split = self.layout.split()
+    col = split.column()
+    col.operator(CheckClay.bl_idname, emboss=False, icon='CHECKBOX_HLT' \
+    if ok_clay else 'CHECKBOX_DEHLT')
+    col = split.column()
+    col.prop(im, "diffuse_color", text="")
+    self.layout.separator()
 
 
 def register():
+    global im
+    bpy.types.Scene.Clay = BoolProperty(
+    name='Clay Render',
+    description='Use Clay Render',
+    default=False)
+    im = None
     bpy.types.RENDER_PT_render.prepend(draw_clay)
-    pass
 
 
 def unregister():
+    global im
     rnd = bpy.context.scene.render
     rnl = rnd.layers.active
     rnl.material_override = None
+    bpy.data.materials.remove(im)
+    del bpy.types.Scene.Clay
     bpy.types.RENDER_PT_render.remove(draw_clay)
-    pass
+
 
 if __name__ == "__main__":
     register()
