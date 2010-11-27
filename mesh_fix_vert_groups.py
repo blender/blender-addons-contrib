@@ -33,8 +33,6 @@ You may want to use the mesh select/deselect all (keyboard A) operator to start.
 Once you have the right vertexes selected, you can use the standard vertex groups property editor to add them to or remove them from the desired vertex groups.
 """
 
-import bpy
-from bpy.props import *
 bl_addon_info = {
     'name': 'Fix Vertex Groups',
     'author': 'Martin Ellison',
@@ -42,12 +40,15 @@ bl_addon_info = {
     'blender': (2, 5, 4),
     'api': 32516,
     'location': 'Toolbox',
-    'description': 'Import files in the Autocad DXF format (.dxf)',
+    'description': 'finds all the vertex groups that chosen verts are in, & any verts that are not in any group',
     'warning': '', # used for warning icon and text in addons panel
     'wiki_url': '',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=22025&group_id=153&atid=468',
     'category': 'Mesh'}
+
+import bpy
+from bpy.props import *
 
 global use_selected_only, used_vertexes, the_mesh, vertex_usage
 use_selected_only = False
