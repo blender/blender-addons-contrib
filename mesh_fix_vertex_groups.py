@@ -36,11 +36,11 @@ Once you have the right vertexes selected, you can use the standard vertex group
 bl_addon_info = {
     'name': 'Fix Vertex Groups',
     'author': 'Martin Ellison',
-    'version': (1,0),
+    'version': (1, 0),
     'blender': (2, 5, 4),
     'api': 32516,
     'location': 'Toolbox',
-    'description': 'finds all the vertex groups that chosen verts are in, & any verts that are not in any group',
+    'description': 'Finds all the vertex groups that chosen verts are in, & any verts that are not in any group',
     'warning': '', # used for warning icon and text in addons panel
     'wiki_url': '',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
