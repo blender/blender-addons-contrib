@@ -73,7 +73,7 @@ def draw_clay(self, context):
 
     rnd = context.scene.render
     rnl = rnd.layers.active
-    if im == None:
+    if im is None:
         im = create_mat()
 
     split = self.layout.split()
@@ -100,7 +100,8 @@ def unregister():
     rnd = bpy.context.scene.render
     rnl = rnd.layers.active
     rnl.material_override = None
-    bpy.data.materials.remove(im)
+    if im is not None:
+        bpy.data.materials.remove(im)
     del bpy.types.Scene.Clay
     bpy.types.RENDER_PT_render.remove(draw_clay)
 

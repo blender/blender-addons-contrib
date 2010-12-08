@@ -163,7 +163,7 @@ class GamePropertyVisualiser(bpy.types.Operator):
                 print('init')
                 # operator is called for the first time, start everything
                 context.scene.display_game_properties = 1
-                context.window_manager.add_modal_handler(self)
+                context.window_manager.modal_handler_add(self)
                 self.handle1 = context.region.callback_add(calc_callback,
                     (self, context), 'POST_VIEW')
                 self.handle2 = context.region.callback_add(draw_callback,

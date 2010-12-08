@@ -676,7 +676,7 @@ class ExportMD3(bpy.types.Operator):
 
   def invoke(self, context, event):
     wm = context.window_manager
-    wm.add_fileselect(self)
+    wm.fileselect_add(self)
     return {'RUNNING_MODAL'}
 
   @classmethod
