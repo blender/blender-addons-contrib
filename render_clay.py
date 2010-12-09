@@ -21,9 +21,9 @@
 bl_addon_info = {
     "name": "Clay Render",
     "author": "Fabio Russo <ruesp83@libero.it>",
-    "version": (0, 7),
+    "version": (0, 8),
     "blender": (2, 5, 5),
-    "api": 33112,
+    "api": 33568,
     "location": "Render > Clay Render",
     "description": "This script, applies a temporary material to all objects"\
         " of the scene.",
@@ -37,7 +37,7 @@ import bpy
 from bpy.props import BoolProperty
 
 
-def create_mat():
+def Create_Mat():
     id = bpy.data.materials.new("Clay_Render")
     #diffuse
     id.diffuse_shader = "OREN_NAYAR"
@@ -49,7 +49,19 @@ def create_mat():
     id.specular_color = 1, 1, 1
     id.specular_hardness = 10
     id.specular_intensity = 0.115
-    return id
+
+
+def Get_Mat():
+    Mat = bpy.data.materials["Clay_Render"]
+    return Mat
+
+
+def Exist_Mat():
+    if bpy.data.materials.get("Clay_Render"):
+        return True
+
+    else:
+        return False
 
 
 class CheckClay(bpy.types.Operator):
@@ -57,9 +69,10 @@ class CheckClay(bpy.types.Operator):
     bl_label = "Clay Render"
 
     def execute(self, context):
-        global im
         if bpy.types.Scene.Clay:
-            context.scene.render.layers.active.material_override = im
+            if not Exist_Mat():
+                Create_Mat()
+            context.scene.render.layers.active.material_override = Get_Mat()
             bpy.types.Scene.Clay = False
         else:
             context.scene.render.layers.active.material_override = None
@@ -68,40 +81,36 @@ class CheckClay(bpy.types.Operator):
 
 
 def draw_clay(self, context):
-    global im
     ok_clay = not bpy.types.Scene.Clay
 
     rnd = context.scene.render
     rnl = rnd.layers.active
-    if im is None:
-        im = create_mat()
-
     split = self.layout.split()
     col = split.column()
+
     col.operator(CheckClay.bl_idname, emboss=False, icon='CHECKBOX_HLT' \
     if ok_clay else 'CHECKBOX_DEHLT')
     col = split.column()
-    col.prop(im, "diffuse_color", text="")
+    if Exist_Mat():
+        im = Get_Mat()
+        col.prop(im, "diffuse_color", text="")
     self.layout.separator()
 
 
 def register():
-    global im
     bpy.types.Scene.Clay = BoolProperty(
     name='Clay Render',
     description='Use Clay Render',
     default=False)
-    im = None
     bpy.types.RENDER_PT_render.prepend(draw_clay)
 
 
 def unregister():
-    global im
     rnd = bpy.context.scene.render
     rnl = rnd.layers.active
     rnl.material_override = None
-    if im is not None:
-        bpy.data.materials.remove(im)
+    if Exist_Mat():
+        bpy.data.materials.remove(Get_Mat())
     del bpy.types.Scene.Clay
     bpy.types.RENDER_PT_render.remove(draw_clay)
 
