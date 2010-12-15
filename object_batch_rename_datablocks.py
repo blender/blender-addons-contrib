@@ -25,9 +25,9 @@ bl_addon_info = {
     "location": "use the search :)",
     "description": "Batch renaming of datablocks (e.g. rename materials after objectnames)",
     "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
-    "category": "USER"}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Object/Batch_Rename_Datablocks",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25242&group_id=153&atid=468",
+    "category": "Object"}
 
 #######################################################################
 import bpy
@@ -56,7 +56,8 @@ def get_name(self, ob):
         return self.rename_custom
     
     
-def rename_datablocks_main(self, obs, context):
+def rename_datablocks_main(self, context):
+    obs = context.selected_editable_objects
     for ob in obs:
         name = get_name(self, ob)
         
@@ -100,7 +101,6 @@ class OBJECT_OT_batch_rename_datablocks(bpy.types.Operator):
                     ('Custom', 'Custom', 'Custom')
                     ]
     naming_base = EnumProperty(name='Name after:',
-                                default='',
                                 items=name_origins)
     rename_custom = StringProperty(name='Custom Name',
                                 default='New Name',
@@ -130,7 +130,7 @@ class OBJECT_OT_batch_rename_datablocks(bpy.types.Operator):
                                 default=True,
                                 description='Prefix Material Names')
 
-    dialog_width = 250
+    dialog_width = 260
 
     def draw(self, context):
         layout = self.layout
@@ -166,8 +166,7 @@ class OBJECT_OT_batch_rename_datablocks(bpy.types.Operator):
 
     def execute(self, context):
 
-        obs = context.selected_objects
-        rename_datablocks_main(self, obs, context)
+        rename_datablocks_main(self, context)
         
         return {'FINISHED'}
 
@@ -181,5 +180,5 @@ def register():
     pass
 def unregister():
     pass
-if __name__ = '__main__':
+if __name__ == '__main__':
     register()
