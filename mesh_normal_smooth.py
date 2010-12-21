@@ -24,7 +24,7 @@
 bl_addon_info = {
     "name": "Normal Smooth",
     "author": "Dolf Veenvliet",
-    "version": (7),
+    "version": (7,),
     "blender": (2, 5, 5),
     "api": 32738,
     "location": "View3D > Specials > Normal Smooth ",
