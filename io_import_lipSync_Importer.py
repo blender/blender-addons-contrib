@@ -19,7 +19,7 @@
 bl_addon_info = {
     "name": "LipSync Importer",
     "author": "Yousef Harfoush - bat3a ;)",
-    "version": (0,2,0),
+    "version": (0, 2, 0),
     "blender": (2, 5, 4),
     "api": 32077,
     "location": "3D window > Tool Shelf",
@@ -27,7 +27,7 @@ bl_addon_info = {
     "warning": "",
     "wiki_url": "",
     "tracker_url": "",
-    "category": "Import/Export"}
+    "category": "Import-Export"}
 
 
 import bpy, re

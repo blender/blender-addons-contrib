@@ -19,7 +19,7 @@
 bl_addon_info = {
     "name": "Import: Voodoo camera",
     "author": "Fazekas Laszlo",
-    "version": (0,4),
+    "version": (0, 4),
     "blender": (2, 5, 3),
     "api": 32516,
     "location": "File > Import ",
@@ -29,7 +29,7 @@ bl_addon_info = {
         "Scripts/",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=22510&group_id=153&atid=468",
-    "category": "Import/Export"}
+    "category": "Import-Export"}
 
 """
 This script loads a Blender Python script from the Voodoo camera
