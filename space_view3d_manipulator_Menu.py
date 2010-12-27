@@ -25,7 +25,7 @@ bl_addon_info = {
     'author': 'MichaelW',
     'version': (1,),
     'blender': (2, 5, 3),
-    'api': 31667,
+    'api': 33907,
     'location': 'View3D > Ctrl Space ',
     'description': 'Menu to change the manipulator type and/or disable it',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
@@ -37,7 +37,8 @@ bl_addon_info = {
 "Add manipulator menu  (Ctrl-space in 3d view)"
 
 """
-This adds a the Dynamic Menu in the 3DView.
+This adds a popup menu to change the manipulator mode.
+to move, rotate, scale or combo like in 2.49
 
 Usage:
 * Ctrl Space in the 3d view
@@ -48,35 +49,28 @@ Version history:
 V1(MichaelW) initial port form 2.49
 """
 
-
 import bpy
 
 def main(context):
-    bpy.context.space_data.show_manipulator = False
+    bpy.context.space_data.manipulator = False
 
-class VIEW3D_OT_disable_manipulator(bpy.types.Operator):
-    ''''''
-    bl_idname = "VIEW3D_OT_disable_manipulator"
-    bl_label = "disable manipulator"
-
-    @classmethod
-    def poll(cls, context):
-        return context.active_object != None
-
-    def execute(self, context):
-        main(context)
-        return {'FINISHED'}
-
+#class VIEW3D_OT_disable_manipulator(bpy.types.Operator):
+#    ''''''
+#    bl_idname = "VIEW3D_OT_disable_manipulator"
+#    bl_label = "disable manipulator"
+#
+#    def poll(self, context):
+#        return context.active_object != None
+#
+#    def execute(self, context):
+#        main(context)
+#        return {'FINISHED'}
+#
 
 
 class VIEW3D_MT_ManipulatorMenu(bpy.types.Menu):
-    ''''''
     bl_label = "ManipulatorType"
 
-    @classmethod
-    def poll(cls, context):
-        return context.space_data.type == 'VIEW_3D'
-        
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -99,27 +93,20 @@ class VIEW3D_MT_ManipulatorMenu(bpy.types.Menu):
         prop.translate = True
 
         layout.separator()
-        if not bpy.context.space_data.show_manipulator:
-            bpy.context.space_data.show_manipulator = True
-        layout.operator("view3d.disable_manipulator",text ='Disable', icon='MANIPUL')
-        layout.separator()
+
+        bpy.context.space_data.show_manipulator =True
+#        layout.operator("view3d.disable_manipulator",text ='Disable', icon='MANIPUL')
+#        layout.separator()
 
 
-
+            
 def register():
-    km = bpy.context.window_manager.keyconfigs.default.keymaps['3D View']
-    for kmi in km.items:
-        if kmi.idname == 'wm.context_toggle':
-            if kmi.ctrl and not kmi.shift and not kmi.alt and kmi.value =="PRESS":
-                if kmi.type =="SPACE":
-                    km.items.remove(kmi)
-                    break
+    km = bpy.context.window_manager.keyconfigs.default.keymaps['3D View Generic']
     kmi = km.items.new('wm.call_menu', 'SPACE', 'PRESS' , ctrl=True)
     kmi.properties.name = "VIEW3D_MT_ManipulatorMenu"
 
 
 def unregister():
-    km = bpy.context.window_manager.keyconfigs.default.keymaps['3D View']
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == "VIEW3D_MT_ManipulatorMenu":
