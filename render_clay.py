@@ -21,7 +21,7 @@
 bl_addon_info = {
     "name": "Clay Render",
     "author": "Fabio Russo <ruesp83@libero.it>",
-    "version": (1, 0),
+    "version": (1, 1),
     "blender": (2, 5, 5),
     "api": 33568,
     "location": "Render > Clay Render",
