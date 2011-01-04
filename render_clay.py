@@ -181,6 +181,11 @@ def draw_clay_options(self, context):
     layout.prop(cm, "Mat_Clay", text="Clay")
 
 
+def draw_clay_warning(self, context):
+    if not bpy.types.Scene.Clay:
+        self.layout.label("Render Clay Enabled", "ERROR")
+
+
 def register():
     bpy.types.Scene.Clay = BoolProperty(
     name='Clay Render',
@@ -199,6 +204,7 @@ def register():
 
     bpy.types.RENDER_PT_render.prepend(draw_clay_render)
     bpy.types.MATERIAL_PT_options.append(draw_clay_options)
+    bpy.types.INFO_HT_header.append(draw_clay_warning)
 
 
 def unregister():
@@ -210,6 +216,7 @@ def unregister():
     del bpy.types.Material.Mat_Clay
     bpy.types.RENDER_PT_render.remove(draw_clay_render)
     bpy.types.MATERIAL_PT_options.remove(draw_clay_options)
+    bpy.types.INFO_HT_header.remove(draw_clay_warning)
 
 
 if __name__ == "__main__":
