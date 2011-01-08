@@ -16,10 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy
-import math
-from bpy.props import *
-
 bl_addon_info = {
     'name': 'Render to Print',
     'author': 'Marco Crippa <thekrypt77@tiscali.it>',
@@ -30,8 +26,13 @@ bl_addon_info = {
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/Render/Render to Print',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=24219&group_id=153&atid=468',
+        'func=detail&aid=24219',
     'category': 'Render'}
+
+
+import bpy
+import math
+from bpy.props import *
 
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'

@@ -15,7 +15,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-#######################################################################
+
 bl_addon_info = {
     "name": "Batch Rename Datablocks",
     "author": "tstscr",
@@ -25,11 +25,13 @@ bl_addon_info = {
     "location": "use the search :)",
     "description": "Batch renaming of datablocks (e.g. rename materials after objectnames)",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Object/Batch_Rename_Datablocks",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25242&group_id=153&atid=468",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Object/Batch_Rename_Datablocks",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=25242",
     "category": "Object"}
 
-#######################################################################
+
 import bpy
 from bpy.props import *
 

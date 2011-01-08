@@ -31,7 +31,7 @@ bl_addon_info = {
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/Index_Visualiser',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21557&group_id=153&atid=468',
+        'func=detail&aid=21557',
     'category': '3D View'}
 
 """

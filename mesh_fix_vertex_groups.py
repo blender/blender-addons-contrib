@@ -16,6 +16,20 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    'name': 'Fix Vertex Groups',
+    'author': 'Martin Ellison',
+    'version': (1, 0),
+    'blender': (2, 5, 4),
+    'api': 32516,
+    'location': 'Toolbox',
+    'description': 'Finds all the vertex groups that chosen verts are in, & any verts that are not in any group',
+    'warning': '', # used for warning icon and text in addons panel
+    'wiki_url': '',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=22025',
+    'category': 'Mesh'}
+
 """
 This script finds all the vertex groups that chosen vertexes are in, and any vertexes that are not in any vertex group.
 
@@ -33,19 +47,6 @@ You may want to use the mesh select/deselect all (keyboard A) operator to start.
 Once you have the right vertexes selected, you can use the standard vertex groups property editor to add them to or remove them from the desired vertex groups.
 """
 
-bl_addon_info = {
-    'name': 'Fix Vertex Groups',
-    'author': 'Martin Ellison',
-    'version': (1, 0),
-    'blender': (2, 5, 4),
-    'api': 32516,
-    'location': 'Toolbox',
-    'description': 'Finds all the vertex groups that chosen verts are in, & any verts that are not in any group',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': '',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22025&group_id=153&atid=468',
-    'category': 'Mesh'}
 
 import bpy
 from bpy.props import *

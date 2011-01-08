@@ -16,6 +16,20 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    "name": "PasteAll",
+    "author": "Dalai Felinto (dfelinto)",
+    "version": (0,5),
+    "blender": (2, 5, 4),
+    "api": 31999,
+    "location": "Text editor > Properties panel",
+    "description": "Send your selection or text to www.pasteall.org",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Text_Editor/PasteAll",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=23493",
+    "category": "Text Editor"}
+
 # ########################################################
 # PasteAll.org Text Sender Script
 #
@@ -33,19 +47,6 @@
 #
 # ########################################################
 
-bl_addon_info = {
-    "name": "PasteAll",
-    "author": "Dalai Felinto (dfelinto)",
-    "version": (0,5),
-    "blender": (2, 5, 4),
-    "api": 31999,
-    "location": "Text editor > Properties panel",
-    "description": "Send your selection or text to www.pasteall.org",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Text_Editor/PasteAll",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=23493&group_id=153&atid=468",
-    "category": "Text Editor"}
 
 import bpy
 import urllib
