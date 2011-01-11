@@ -83,7 +83,7 @@ def calc_callback(self, context):
     
         for loc in locs:
     
-            vec = total_mat*loc[0] # order is important
+            vec = loc[0]*total_mat # order is important
             # dehomogenise
             vec = mathutils.Vector((vec[0]/vec[3],vec[1]/vec[3],vec[2]/vec[3]))
             x = int(mid_x + vec[0]*width/2.0)
