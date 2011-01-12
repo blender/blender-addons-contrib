@@ -19,17 +19,17 @@
 bl_addon_info = {
     "name": "Import: Voodoo camera",
     "author": "Fazekas Laszlo",
-    "version": (0, 4),
+    "version": (0, 5),
     "blender": (2, 5, 3),
     "api": 32516,
-    "location": "File > Import ",
+    "location": "File > Import > Voodoo camera",
     "description": "Imports a Blender (2.4x or 2.5x) Python script from the Voodoo camera tracker software.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-        "Scripts/",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/File_I-O/Voodoo_camera",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=22510",
-    "category": "Import-Export"}
+    "category": "Import/Export"}
 
 """
 This script loads a Blender Python script from the Voodoo camera
@@ -89,8 +89,8 @@ def voodoo_import(infile,ld_cam,ld_points):
         data = bpy.data.meshes.new('voodoo_FP3D_cloud')
         mesh = bpy.data.objects.new('voodoo_FP3D_cloud', data)
         mesh.location = (0.0, 0.0, 0.0)
-        mesh.rotation_euler = (0.0, 0.0, 0.0)
-        mesh.scale = (1.0, 1.0, 1.0)
+        mesh.rotation_euler = (3.141593/2, 0.0, 0.0)
+        mesh.scale = (5.0, 5.0, 5.0)
         scene.objects.link(mesh)
         mesh.parent = dummy
 
@@ -201,7 +201,6 @@ class ImportVoodooCamera(bpy.types.Operator):
     bl_label = "Import Voodoo camera"
     bl_description = "Load a Blender export" \
         " script from the Voodoo motion tracker."
-    bl_options = {'REGISTER', 'UNDO'}
 
     filepath = StringProperty(name="File Path",
         description="Filepath used for processing the script",
@@ -221,8 +220,8 @@ class ImportVoodooCamera(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = bpy.context.window_manager
-        wm.fileselect_add(self)
+        wm = context.window_manager
+        wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 
