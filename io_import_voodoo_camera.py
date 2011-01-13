@@ -26,10 +26,10 @@ bl_addon_info = {
     "description": "Imports a Blender (2.4x or 2.5x) Python script from the Voodoo camera tracker software.",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/File_I-O/Voodoo_camera",
+        "Scripts/Import-Export/Voodoo_camera",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=22510",
-    "category": "Import/Export"}
+    "category": "Import-Export"}
 
 """
 This script loads a Blender Python script from the Voodoo camera
