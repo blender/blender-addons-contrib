@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     'name': 'Quake Model 3 (.md3)',
     'author': 'Xembie',
     'version': (0, 7),

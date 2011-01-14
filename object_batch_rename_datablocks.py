@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Batch Rename Datablocks",
     "author": "tstscr",
     "version": (1, 0),

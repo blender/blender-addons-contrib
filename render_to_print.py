@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     'name': 'Render to Print',
     'author': 'Marco Crippa <thekrypt77@tiscali.it>',
     'version': (0,1),

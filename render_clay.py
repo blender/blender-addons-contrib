@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-bl_addon_info = {
+bl_info = {
     "name": "Clay Render",
     "author": "Fabio Russo <ruesp83@libero.it>",
     "version": (1, 1),

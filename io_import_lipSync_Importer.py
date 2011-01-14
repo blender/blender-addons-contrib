@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "LipSync Importer",
     "author": "Yousef Harfoush - bat3a ;)",
     "version": (0, 2, 0),

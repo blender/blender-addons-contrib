@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 
-bl_addon_info = {
+bl_info = {
     'name': 'Game Property Visualiser',
     'author': 'Bartius Crouch/Vilem Novak',
     'version': (2,5),

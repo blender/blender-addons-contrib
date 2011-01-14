@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "LRO Lola & MGS Mola img Importer",
     "author": "ValterVB",
     "version": (1, 1, 3),

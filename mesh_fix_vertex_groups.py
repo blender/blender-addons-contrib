@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     'name': 'Fix Vertex Groups',
     'author': 'Martin Ellison',
     'version': (1, 0),

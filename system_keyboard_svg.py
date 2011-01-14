@@ -21,7 +21,7 @@
 
 # first implementation done by jbakker
 
-bl_addon_info = {
+bl_info = {
     "name": "Keyboard Layout (svg)",
     "author": "Jbakker",
     "version": (0,1),

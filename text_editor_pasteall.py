@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "PasteAll",
     "author": "Dalai Felinto (dfelinto)",
     "version": (0,5),

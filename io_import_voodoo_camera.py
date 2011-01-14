@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Import: Voodoo camera",
     "author": "Fazekas Laszlo",
     "version": (0, 5),

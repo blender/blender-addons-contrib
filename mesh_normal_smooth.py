@@ -21,7 +21,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_addon_info = {
+bl_info = {
     "name": "Normal Smooth",
     "author": "Dolf Veenvliet",
     "version": (7,),
