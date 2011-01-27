@@ -20,8 +20,8 @@ bl_info = {
     "name": "PasteAll",
     "author": "Dalai Felinto (dfelinto)",
     "version": (0,5),
-    "blender": (2, 5, 4),
-    "api": 31999,
+    "blender": (2, 5, 6),
+    "api": 34529,
     "location": "Text editor > Properties panel",
     "description": "Send your selection or text to www.pasteall.org",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
@@ -60,12 +60,12 @@ class TEXT_PT_pasteall(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout        
-        layout.operator("text.PasteAll", icon='URL')
+        layout.operator("text.pasteall", icon='URL')
         layout.prop(context.scene, "use_webbrowser")
 
-class PasteAllOperator(bpy.types.Operator):
+class TEXT_OT_pasteall(bpy.types.Operator):
     ''''''
-    bl_idname = "text.PasteAll"
+    bl_idname = "text.pasteall"
     bl_label = "PasteAll.org"
     bl_description = "Send the current text or selection to www.pasteall.org"
 
@@ -215,4 +215,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
