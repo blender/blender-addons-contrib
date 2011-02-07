@@ -1,22 +1,22 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+'''
+BEGIN GPL LICENSE BLOCK
 
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software Foundation,
+Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+END GPL LICENCE BLOCK
+'''
 
 bl_info = {
     "name": "Edge tools : tinyCAD VTX",
@@ -34,16 +34,15 @@ bl_info = {
    }
 
 '''
-# parts based on Keith (Wahooney) Boshoff, cursor to intersection script and
-# Paul Bourke's Shortest Line Between 2 lines, and thanks to PKHG from BA.org
-# for attempting to explain things to me that i'm not familiar with.
-# TODO: [ ] allow multi selection ( > 2 ) for Slice/Weld intersection mode 
-# TODO: [ ] streamline this code ! 
-#
-# 1) Edge Extend To Edge ( T )
-# 2) Edge Slice Intersecting ( X )
-# 3) Edge Project Converging  ( V )
-#
+parts based on Keith (Wahooney) Boshoff, cursor to intersection script and
+Paul Bourke's Shortest Line Between 2 lines, and thanks to PKHG from BA.org
+for attempting to explain things to me that i'm not familiar with.
+TODO: [ ] allow multi selection ( > 2 ) for Slice/Weld intersection mode 
+TODO: [ ] streamline this code ! 
+
+1) Edge Extend To Edge ( T )
+2) Edge Slice Intersecting ( X )
+3) Edge Project Converging  ( V )
 
 '''
 
@@ -97,7 +96,7 @@ def checkEdges(Edge, obj):
     point = ((line[0] + line[1]) / 2) # or point = line[0]
     return point
 
-
+#   returns (object, number of verts, number of edges)
 def GetActiveObject():
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.delete(type='EDGE') # removes edges + verts
@@ -302,8 +301,8 @@ def initScriptX(context, self):
 
 class Edge_V(bpy.types.Operator):
     '''Finds projected intersection'''
-    bl_idname = "EdgeTestV"
-    bl_label = "Edge tools : tinyCAD VTX V"
+    bl_idname = 'mesh.edges_v_intersection'
+    bl_label = 'Edge tools : tinyCAD VTX V'
     # bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -317,8 +316,8 @@ class Edge_V(bpy.types.Operator):
 
 class Edge_T(bpy.types.Operator):
     '''Finds intersection on edge'''
-    bl_idname = "EdgeTestT"
-    bl_label = "Edge tools : tinyCAD VTX T"
+    bl_idname = 'mesh.edges_t_intersection'
+    bl_label = 'Edge tools : tinyCAD VTX T'
     # bl_options = {'REGISTER', 'UNDO'}
         
     @classmethod
@@ -332,8 +331,8 @@ class Edge_T(bpy.types.Operator):
         
 class Edge_X(bpy.types.Operator):
     '''Makes a weld/slice on intersecting edges'''
-    bl_idname = "EdgeTestX"
-    bl_label = "Edge tools : tinyCAD VTX X"
+    bl_idname = 'mesh.edges_x_intersection'
+    bl_label = 'Edge tools : tinyCAD VTX X'
     # bl_options = {'REGISTER', 'UNDO'}
         
     @classmethod
@@ -346,17 +345,14 @@ class Edge_X(bpy.types.Operator):
         return {'FINISHED'}
 
 
-menu_func = (lambda self,
-            context: self.layout.operator(Edge_V.bl_idname,
-            text="Edges V Intersection"))
-            
-menu_func2 = (lambda self,
-            context: self.layout.operator(Edge_T.bl_idname,
-            text="Edges T Intersection"))
-            
-menu_func3 = (lambda self,
-            context: self.layout.operator(Edge_X.bl_idname,
-            text="Edges X Intersection"))
+def menu_func(self, context):
+    self.layout.operator(Edge_V.bl_idname, text="Edges V Intersection")
+
+def menu_func2(self, context):
+    self.layout.operator(Edge_T.bl_idname, text="Edges T Intersection")
+
+def menu_func3(self, context):
+    self.layout.operator(Edge_X.bl_idname, text="Edges X Intersection")
 
 
 def register():
