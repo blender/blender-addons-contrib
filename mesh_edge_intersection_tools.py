@@ -23,7 +23,7 @@ bl_info = {
     "author": "zeffii",
     "version": (0,4,3),
     "blender": (2, 5, 6),
-    "api": 34360,
+    "api": 34647,
     "category": "Mesh",
     "location": "View3D > EditMode > (w) Specials",
     "warning": "Still under development, bug reports appreciated",
