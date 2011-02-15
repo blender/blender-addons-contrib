@@ -164,25 +164,16 @@ def ExtendEdge(vX, outer_points, count):
 #   ProjectGeometry is used to extend two edges to their intersection point.
 def ProjectGeometry(vX, opoint):
 
-    def closest_vert(X, A, B):
+    def return_distance_checked(X, A, B):
         dist1 = mDist(X, A)
         dist2 = mDist(X, B)
         point_choice = min(dist1, dist2)
-        if point_choice == dist1: return A
-        else: return B
-
-    def furthest_vert(X, A, B):
-        dist1 = mDist(X, A)
-        dist2 = mDist(X, B)
-        point_choice = max(dist1, dist2)
-        if point_choice == dist1: return A
-        else: return B
+        if point_choice == dist1: return A, B
+        else: return B, A
 
     (o, vert_count, edge_count) =  GetActiveObject()
-    vA = closest_vert(vX, Vector((opoint[0][0])),Vector((opoint[0][1])))    # A
-    vB = furthest_vert(vX, Vector((opoint[0][0])),Vector((opoint[0][1])))   # B
-    vC = closest_vert(vX, Vector((opoint[1][0])),Vector((opoint[1][1])))    # C
-    vD = furthest_vert(vX, Vector((opoint[1][0])),Vector((opoint[1][1])))   # D
+    vA, vB = return_distance_checked(vX, Vector((opoint[0][0])),Vector((opoint[0][1])))
+    vC, vD = return_distance_checked(vX, Vector((opoint[1][0])),Vector((opoint[1][1])))
     AddVertsToObject(vert_count, o, vX, vA, vB, vC, vD)
 
     oe = o.data.edges
