@@ -23,7 +23,7 @@ bl_info = {
     "author": "zeffii",
     "version": (0,4,3),
     "blender": (2, 5, 6),
-    "api": 34647,
+    "api": 34840,
     "category": "Mesh",
     "location": "View3D > EditMode > (w) Specials",
     "warning": "Still under development, bug reports appreciated",
@@ -96,7 +96,7 @@ def checkEdges(Edge, obj):
     point = ((line[0] + line[1]) / 2) # or point = line[0]
     return point
 
-#   returns (object, number of verts, number of edges)
+#   returns (object, number of verts, number of edges) && object mode == True
 def GetActiveObject():
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.delete(type='EDGE') # removes edges + verts
@@ -192,7 +192,6 @@ def ProjectGeometry(vX, opoint):
     oe[edge_count+2].vertices = [vert_count+1,vert_count+2]
     oe[edge_count+3].vertices = [vert_count+3,vert_count+4]
 
-## End business #########################################
 
 def getMeshMatrix(obj):
     is_editmode = (obj.mode == 'EDIT')
@@ -347,23 +346,20 @@ class Edge_X(bpy.types.Operator):
 
 def menu_func(self, context):
     self.layout.operator(Edge_V.bl_idname, text="Edges V Intersection")
-
-def menu_func2(self, context):
     self.layout.operator(Edge_T.bl_idname, text="Edges T Intersection")
-
-def menu_func3(self, context):
     self.layout.operator(Edge_X.bl_idname, text="Edges X Intersection")
 
-
 def register():
+    bpy.utils.register_class(Edge_V)
+    bpy.utils.register_class(Edge_T)
+    bpy.utils.register_class(Edge_X)
     bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_func) 
-    bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_func2)
-    bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_func3)
 
 def unregister():
+    bpy.utils.unregister_class(Edge_V)
+    bpy.utils.unregister_class(Edge_T)
+    bpy.utils.unregister_class(Edge_X)
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func) 
-    bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func2)
-    bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func3)
 
 if __name__ == "__main__":
     register()
