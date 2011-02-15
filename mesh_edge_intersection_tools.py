@@ -298,67 +298,44 @@ def initScriptX(context, self):
                 runCleanUp()
             
 
-class Edge_V(bpy.types.Operator):
-    '''Finds projected intersection'''
-    bl_idname = 'mesh.edges_v_intersection'
-    bl_label = 'Edge tools : tinyCAD VTX V'
-    # bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(self, context):
-        obj = context.active_object
-        return obj != None and obj.type == 'MESH'
-
-    def execute(self, context):
-        initScriptV(context, self)
-        return {'FINISHED'}
-
-class Edge_T(bpy.types.Operator):
-    '''Finds intersection on edge'''
-    bl_idname = 'mesh.edges_t_intersection'
-    bl_label = 'Edge tools : tinyCAD VTX T'
-    # bl_options = {'REGISTER', 'UNDO'}
-        
-    @classmethod
-    def poll(self, context):
-        obj = context.active_object
-        return obj != None and obj.type == 'MESH'
-
-    def execute(self, context):
-        initScriptT(context, self)
-        return {'FINISHED'}
-        
-class Edge_X(bpy.types.Operator):
+class EdgeIntersections(bpy.types.Operator):
     '''Makes a weld/slice on intersecting edges'''
-    bl_idname = 'mesh.edges_x_intersection'
+    bl_idname = 'mesh.intersections'
     bl_label = 'Edge tools : tinyCAD VTX X'
     # bl_options = {'REGISTER', 'UNDO'}
-        
+    
+    mode = bpy.props.IntProperty(name = "Mode",
+                    description = "switch between intersection modes",
+                    default = 2)
+
     @classmethod
     def poll(self, context):
         obj = context.active_object
         return obj != None and obj.type == 'MESH'
 
     def execute(self, context):
-        initScriptX(context, self)
+        if self.mode == -1:
+            initScriptV(context, self)
+        if self.mode == 0:
+            initScriptT(context, self)
+        if self.mode == 1:
+            initScriptX(context, self)
+        if self.mode == 2:
+            print("something undefined happened, send me a test case!")
         return {'FINISHED'}
 
 
 def menu_func(self, context):
-    self.layout.operator(Edge_V.bl_idname, text="Edges V Intersection")
-    self.layout.operator(Edge_T.bl_idname, text="Edges T Intersection")
-    self.layout.operator(Edge_X.bl_idname, text="Edges X Intersection")
+    self.layout.operator(EdgeIntersections.bl_idname, text="Edges V Intersection").mode = -1
+    self.layout.operator(EdgeIntersections.bl_idname, text="Edges T Intersection").mode = 0
+    self.layout.operator(EdgeIntersections.bl_idname, text="Edges X Intersection").mode = 1
 
 def register():
-    bpy.utils.register_class(Edge_V)
-    bpy.utils.register_class(Edge_T)
-    bpy.utils.register_class(Edge_X)
+    bpy.utils.register_class(EdgeIntersections)
     bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_func) 
 
 def unregister():
-    bpy.utils.unregister_class(Edge_V)
-    bpy.utils.unregister_class(Edge_T)
-    bpy.utils.unregister_class(Edge_X)
+    bpy.utils.unregister_class(EdgeIntersections)
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func) 
 
 if __name__ == "__main__":
