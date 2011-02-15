@@ -21,7 +21,7 @@ END GPL LICENCE BLOCK
 bl_info = {
     "name": "Edge tools : tinyCAD VTX",
     "author": "zeffii",
-    "version": (0,4,3),
+    "version": (0,5,1),
     "blender": (2, 5, 6),
     "api": 34840,
     "category": "Mesh",
@@ -299,9 +299,9 @@ def initScriptX(context, self):
             
 
 class EdgeIntersections(bpy.types.Operator):
-    '''Makes a weld/slice on intersecting edges'''
+    '''Makes a weld/slice/extend to intersecting edges/lines'''
     bl_idname = 'mesh.intersections'
-    bl_label = 'Edge tools : tinyCAD VTX X'
+    bl_label = 'Edge tools : tinyCAD VTX'
     # bl_options = {'REGISTER', 'UNDO'}
     
     mode = bpy.props.IntProperty(name = "Mode",
