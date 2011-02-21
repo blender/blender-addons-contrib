@@ -16,12 +16,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_info = {
-    "name": "Import: Voodoo camera",
+bl_addon_info = {
+    "name": "Import Voodoo camera",
     "author": "Fazekas Laszlo",
-    "version": (0, 5),
-    "blender": (2, 5, 3),
-    "api": 32516,
+    "version": (0, 6),
+    "blender": (2, 5, 6),
+    "api": 34074,
     "location": "File > Import > Voodoo camera",
     "description": "Imports a Blender (2.4x or 2.5x) Python script from the Voodoo camera tracker software.",
     "warning": "",
@@ -123,7 +123,8 @@ def voodoo_import(infile,ld_cam,ld_points):
                     if (pos != -1):
                         fr = int(lineSplit[0][1:pos],10)
                         scene.frame_set(fr)
-                        vcam.matrix_world = eval('mathutils.' + line.rstrip()[pos+21:-1])
+                        # from Michael (Meikel) Oetjen
+                        vcam.matrix_world = eval('mathutils.Matrix(' + line.rstrip()[pos+28:-2].replace('[','(',4).replace(']',')',4) + ')')
                         vcam.keyframe_insert('location')
                         vcam.keyframe_insert('scale')
                         vcam.keyframe_insert('rotation_euler')
@@ -163,7 +164,13 @@ def voodoo_import(infile,ld_cam,ld_points):
             pos= line.find('.Matrix')
 
             if (pos != -1):
-                vcam.matrix_world = eval('mathutils' + line[pos:])
+
+                if (line[pos+8] == '['):
+                    # from Michael (Meikel) Oetjen
+                    vcam.matrix_world = eval('mathutils.Matrix((' + line.rstrip()[pos+9:-1].replace('[','(',3).replace(']',')',4) + ')')
+                else:
+                    vcam.matrix_world = eval('mathutils' + line[pos:])
+
                 vcam.keyframe_insert('location')
                 vcam.keyframe_insert('scale')
                 vcam.keyframe_insert('rotation_euler')
@@ -199,14 +206,15 @@ class ImportVoodooCamera(bpy.types.Operator):
     ''''''
     bl_idname = "import.voodoo_camera"
     bl_label = "Import Voodoo camera"
-    bl_description = "Load a Blender export" \
-        " script from the Voodoo motion tracker."
+    bl_description = "Load a Blender export script from the Voodoo motion tracker"
+    bl_options = {'REGISTER', 'UNDO'}
 
     filepath = StringProperty(name="File Path",
         description="Filepath used for processing the script",
         maxlen= 1024,default= "")
-    filter_python = BoolProperty(name="Filter python",
-        description="",default=True,options={'HIDDEN'})
+
+#    filter_python = BoolProperty(name="Filter python",
+#    description="",default=True,options={'HIDDEN'})
 
     load_camera = BoolProperty(name="Load camera",
         description="Load the camera",
@@ -216,12 +224,12 @@ class ImportVoodooCamera(bpy.types.Operator):
         default=True)
 
     def execute(self, context):
-        voodoo_import(self.properties.filepath,self.load_camera,self.load_points)
+        voodoo_import(self.filepath,self.load_camera,self.load_points)
         return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
