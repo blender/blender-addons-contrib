@@ -21,9 +21,9 @@
 bl_info = {
     "name": "Clay Render",
     "author": "Fabio Russo <ruesp83@libero.it>",
-    "version": (1, 1),
-    "blender": (2, 5, 5),
-    "api": 33568,
+    "version": (1, 2),
+    "blender": (2, 5, 6),
+    "api": 35115,
     "location": "Render > Clay Render",
     "description": "This script, applies a temporary material to all objects"\
         " of the scene.",
@@ -202,6 +202,9 @@ def register():
         description='Use as Clay',
         default=False)
 
+    
+    bpy.utils.register_class(ClayPinned)
+    bpy.utils.register_class(CheckClay)
     bpy.types.RENDER_PT_render.prepend(draw_clay_render)
     bpy.types.MATERIAL_PT_options.append(draw_clay_options)
     bpy.types.INFO_HT_header.append(draw_clay_warning)
@@ -214,6 +217,8 @@ def unregister():
     del bpy.types.Scene.Clay
     del bpy.types.Scene.Clay_Pinned
     del bpy.types.Material.Mat_Clay
+    bpy.utils.unregister_class(ClayPinned)
+    bpy.utils.unregister_class(CheckClay)
     bpy.types.RENDER_PT_render.remove(draw_clay_render)
     bpy.types.MATERIAL_PT_options.remove(draw_clay_options)
     bpy.types.INFO_HT_header.remove(draw_clay_warning)
