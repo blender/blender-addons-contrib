@@ -19,9 +19,9 @@
 bl_info = {
     "name": "LRO Lola & MGS Mola img Importer",
     "author": "ValterVB",
-    "version": (1, 1, 4),
+    "version": (1, 1, 5),
     "blender": (2, 5, 6),
-    "api": 34473,
+    "api": 35196,
     "location": "3D window > Tool Shelf",
     "description": "Import DTM from LRO Lola and MGS Mola",
     "warning": "May consume a lot of memory",
@@ -51,6 +51,7 @@ bl_info = {
 #ver. 1.1.3: -Little fix for previous fix on upper/lower case
 #ver. 1.1.4: -Fix for recent API changes. Thanks to Filiciss.
 #            -Some code cleaning (PEP8)
+#ver. 1.1.5: -Fix for recent API changes. Thanks to Filiciss.
 #************************************************************************
 
 import bpy
@@ -462,7 +463,7 @@ class Img_Importer(bpy.types.Panel):
     bl_region_type = "TOOL_PROPS"
     bl_label = "LRO Lola & MGS Mola IMG Importer"
 
-    def __init__(self, context):
+    def __init__(self):
         LINES = LINE_SAMPLES = SAMPLE_BITS = MAP_RESOLUTION = 0
         MAXIMUM_LATITUDE = MINIMUM_LATITUDE = 0.0
         WESTERNMOST_LONGITUDE = EASTERNMOST_LONGITUDE = 0.0
@@ -547,7 +548,7 @@ class Img_Importer(bpy.types.Panel):
 
         col = layout.column()
         split = col.split(align=True)
-        split.prop(context.scene, "Scale", "Scale")
+        #split.prop(context.scene, "Scale", "Scale")   #TO DO
         split.prop(context.scene, "Exaggerate", "Magnify (x4)")
         if bpy.context.scene.fpath != "":
             col = layout.column()
@@ -584,10 +585,11 @@ class Img_Importer(bpy.types.Panel):
 
 # registering the script
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
     clear_properties()
 
 if __name__ == "__main__":
