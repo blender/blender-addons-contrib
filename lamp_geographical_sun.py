@@ -390,6 +390,57 @@ class OBJECT_OT_set_geographical_sun_pos(bpy.types.Operator):
 			return {'CANCELLED'}
 
 @GeoSunAddon.addon_register_class
+class OBJECT_OT_set_geographical_location_preset(bpy.types.Operator):
+	bl_idname = 'object.set_geographical_location_preset'
+	bl_label = 'Apply location preset'
+	
+	index = bpy.props.IntProperty()
+	
+	@classmethod
+	def poll(cls, context):
+		cl = context.lamp
+		return cl and cl.type == 'SUN'
+	
+	def execute(self, context):
+		GSP = context.lamp.GeoSunProperties
+		GSP.lat, GSP.long, GSP.tz = sun_calculator.location_data[self.properties.index]
+		return {'FINISHED'}
+
+# Dynamic submenu magic !
+
+def draw_generator(locations):
+	def draw(self, context):
+		sl = self.layout
+		for location in locations:
+			location_name, location_index = location
+			sl.operator('OBJECT_OT_set_geographical_location_preset', text=location_name).index = location_index
+	return draw
+
+submenus = []
+for label, locations in sun_calculator.location_list:
+	submenu_idname = 'OBJECT_MT_geo_sun_location_cat%d'%len(submenus)
+	submenu = type(
+		submenu_idname,
+		(bpy.types.Menu,),
+		{
+			'bl_idname': submenu_idname,
+			'bl_label': label,
+			'draw': draw_generator(locations)
+		}
+	)
+	GeoSunAddon.addon_register_class(submenu)
+	submenus.append(submenu)
+
+@GeoSunAddon.addon_register_class
+class OBJECT_MT_geo_sun_location(bpy.types.Menu):
+	bl_label = 'Location preset'
+	
+	def draw(self, context):
+		sl = self.layout
+		for sm in submenus:
+			sl.menu(sm.bl_idname)
+
+@GeoSunAddon.addon_register_class
 class GeoSunProperties(declarative_property_group):
 	ef_attach_to = ['Lamp']
 	
@@ -397,7 +448,9 @@ class GeoSunProperties(declarative_property_group):
 		['hour', 'minute'],
 		['day', 'month', 'year'],
 		['tz', 'dst'],
-		['lat', 'long']
+		'location_menu',
+		['lat', 'long'],
+		['set_time', 'set_posn'],
 	]
 	
 	properties = [
@@ -487,6 +540,25 @@ class GeoSunProperties(declarative_property_group):
 			'soft_max': 90.0,
 			'default': 0.0
 		},
+		
+		# draw operators and menus
+		{
+			'attr': 'location_menu',
+			'type': 'menu',
+			'menu': 'OBJECT_MT_geo_sun_location'
+		},
+		{
+			'attr': 'set_time',
+			'type': 'operator',
+			'operator': 'object.set_geographical_sun_now',
+			'icon': 'PREVIEW_RANGE'
+		},
+		{
+			'attr': 'set_posn',
+			'type': 'operator',
+			'operator': 'object.set_geographical_sun_pos',
+			'icon': 'WORLD_DATA'
+		},
 	]
 
 @GeoSunAddon.addon_register_class
@@ -504,12 +576,6 @@ class GeoSunPanel(property_group_renderer):
 	def poll(cls, context):
 		cl = context.lamp
 		return cl and cl.type == 'SUN'
-	
-	def draw(self, context):
-		super().draw(context)
-		row = self.layout.row()
-		row.operator('object.set_geographical_sun_now', icon='PREVIEW_RANGE')
-		row.operator('object.set_geographical_sun_pos', icon='WORLD_DATA')
 
 # Bootstrap the Addon
 #----------------------------------------------------------------------------- 
