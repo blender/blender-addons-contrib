@@ -18,10 +18,10 @@
 
 bl_info = {
     "name": "LRO Lola & MGS Mola img Importer",
-    "author": "ValterVB",
-    "version": (1, 1, 5),
+    "author": "Valter Battioli (ValterVB)",
+    "version": (1, 1, 6),
     "blender": (2, 5, 6),
-    "api": 35196,
+    "api": 35594,
     "location": "3D window > Tool Shelf",
     "description": "Import DTM from LRO Lola and MGS Mola",
     "warning": "May consume a lot of memory",
@@ -52,6 +52,7 @@ bl_info = {
 #ver. 1.1.4: -Fix for recent API changes. Thanks to Filiciss.
 #            -Some code cleaning (PEP8)
 #ver. 1.1.5: -Fix for recent API changes. Thanks to Filiciss.
+#ver. 1.1.6: -Fix for API changes, and restore Scale factor
 #************************************************************************
 
 import bpy
@@ -464,6 +465,8 @@ class Img_Importer(bpy.types.Panel):
     bl_label = "LRO Lola & MGS Mola IMG Importer"
 
     def __init__(self):
+        global MAXIMUM_LATITUDE, MINIMUM_LATITUDE
+        global WESTERNMOST_LONGITUDE, EASTERNMOST_LONGITUDE
         LINES = LINE_SAMPLES = SAMPLE_BITS = MAP_RESOLUTION = 0
         MAXIMUM_LATITUDE = MINIMUM_LATITUDE = 0.0
         WESTERNMOST_LONGITUDE = EASTERNMOST_LONGITUDE = 0.0
@@ -481,8 +484,6 @@ class Img_Importer(bpy.types.Panel):
             if not p in bpy.context.scene.keys():
                 bpy.context.scene[p] = num
 
-    def draw(self, context):
-        obj = context.object
         typ = bpy.types.Scene
         var = bpy.props
         typ.fpath = var.StringProperty(name="Import File ", description="Select your img file", subtype="FILE_PATH", default="")
@@ -495,6 +496,8 @@ class Img_Importer(bpy.types.Panel):
         typ.ToLong = var.FloatProperty(description="To Longitude", min=float(WESTERNMOST_LONGITUDE), max=float(EASTERNMOST_LONGITUDE), precision=3)
         typ.Scale = var.IntProperty(description="Scale", min=1, max=100, default=1)
         typ.Exaggerate = var.BoolProperty(description="Magnify", default=False)
+
+    def draw(self, context):
 
         layout = self.layout
         layout.prop(context.scene, "fpath")
@@ -548,7 +551,7 @@ class Img_Importer(bpy.types.Panel):
 
         col = layout.column()
         split = col.split(align=True)
-        #split.prop(context.scene, "Scale", "Scale")   #TO DO
+        split.prop(context.scene, "Scale", "Scale")
         split.prop(context.scene, "Exaggerate", "Magnify (x4)")
         if bpy.context.scene.fpath != "":
             col = layout.column()
