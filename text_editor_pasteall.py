@@ -19,9 +19,9 @@
 bl_info = {
     "name": "PasteAll",
     "author": "Dalai Felinto (dfelinto)",
-    "version": (0,5),
-    "blender": (2, 5, 6),
-    "api": 34529,
+    "version": (0,6),
+    "blender": (2, 5, 7),
+    "api": 36007,
     "location": "Text editor > Properties panel",
     "description": "Send your selection or text to www.pasteall.org",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
@@ -125,7 +125,7 @@ class TEXT_OT_pasteall(bpy.types.Operator):
                     'code' : text }
 
         try:
-            data = urllib.parse.urlencode(values)
+            data = urllib.parse.urlencode(values).encode()
             req = urllib.request.Request(url, data)
             response = urllib.request.urlopen(req)
             page_source = response.read()
@@ -210,8 +210,11 @@ def register():
         description='Opens the page with the submitted text.',
         default=True)
 
+    bpy.utils.register_module(__name__)
+
 def unregister():
     del bpy.types.Scene.use_webbrowser
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
