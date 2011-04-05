@@ -29,9 +29,9 @@ bl_info = {
     "api": 32411,
     "location": "",
     "description": "Save the hotkeys as a .svg file (search: Keyboard)",
-    "warning": "",
+    "warning": "may not work in recent svn",
     "wiki_url": 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/System/Keyboard Layout (svg)',
+        'Scripts/System/keymaps_to_svg',
     "tracker_url": "https://projects.blender.org/tracker/index.php?" \
         "func==detail&aid=21490",
     "category": "System"}
