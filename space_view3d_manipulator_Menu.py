@@ -1,31 +1,12 @@
 #re creating the functionality of the manipulator menu from 2.49
-#
-#ported by Michael Williamson
-#
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+
 
 bl_info = {
-    'name': 'Manipulator Menu',
+    'name': '3d View: Manipulator Menu',
     'author': 'MichaelW',
-    'version': (1,),
+    'version': '1',
     'blender': (2, 5, 3),
-    'api': 33907,
+    "api": 35324,
     'location': 'View3D > Ctrl Space ',
     'description': 'Menu to change the manipulator type and/or disable it',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
@@ -34,20 +15,10 @@ bl_info = {
         'func=detail&aid=22092',
     'category': '3D View'}
 
-"Add manipulator menu  (Ctrl-space in 3d view)"
 
-"""
-This adds a popup menu to change the manipulator mode.
-to move, rotate, scale or combo like in 2.49
 
-Usage:
-* Ctrl Space in the 3d view
 
-* Choose your function from the menu.
 
-Version history:
-V1(MichaelW) initial port form 2.49
-"""
 
 import bpy
 
@@ -101,12 +72,21 @@ class VIEW3D_MT_ManipulatorMenu(bpy.types.Menu):
 
             
 def register():
-    km = bpy.context.window_manager.keyconfigs.default.keymaps['3D View Generic']
+    bpy.utils.register_module(__name__)
+    kc = bpy.data.window_managers[0].keyconfigs.default
+    km = kc.keymaps.get('3D View Generic')
+    if km is None:
+        km = kc.keymaps.new(name="3D View Generic")
+
     kmi = km.keymap_items.new('wm.call_menu', 'SPACE', 'PRESS' , ctrl=True)
     kmi.properties.name = "VIEW3D_MT_ManipulatorMenu"
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+    kc = bpy.data.window_managers[0].keyconfigs.default
+    km = kc.keymaps["3D View Generic"]
+
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == "VIEW3D_MT_ManipulatorMenu":
