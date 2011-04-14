@@ -29,7 +29,7 @@ bl_info = {
     "api": 36147,
     "location": "View3D > Specials > Normal Smooth ",
     "description": "Smooth the vertex position based on the normals",
-    "warning": "Broken",
+    "warning": "",
     "wiki_url": "",
     "tracker_url": "",
     "category": "Mesh"}
@@ -95,10 +95,10 @@ def smoothVert(v1, v1in, me):
                         vLen *= 0.514
                         
                         # Get the normal rotated 90 degrees (pi * 0.5 = 90 degrees in radians) towards the original vert
-                        vNor = RotVtoV(v2.normal, vTov.normalize(), (math.pi * 0.5))
+                        vNor = RotVtoV(v2.normal, vTov.normalized(), (math.pi * 0.5))
                         
                         # Make the vector the correct length
-                        vNor = vNor.normalize() * vLen
+                        vNor = vNor.normalized() * vLen
                         
                         # Add the vector to the vert position to get the correct coord
                         vNor = v2co + vNor
