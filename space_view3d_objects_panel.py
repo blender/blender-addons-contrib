@@ -20,8 +20,8 @@ bl_info = {
     "name": "Add Objects Panel",
     "author": "Murat Egretli (Demohero)",
     "version": (1,1),
-    "blender": (2, 5, 4),
-    "api": 32516,
+    "blender": (2, 5, 7),
+    "api": 36147,
     "location": "View3D > Toolbar",
     "description": "add objects(mesh, curve etc.) from Toolbar",
     "warning": "",
@@ -59,11 +59,16 @@ class VIEW3D_PT_add_menu(View3DPanel,bpy.types.Panel):
         layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
       
-def register(): 
-    pass
-    
-def unregister(): 
-    pass
+# register the class
+def register():
+    bpy.utils.register_module(__name__)
+ 
+    pass 
 
-if __name__ == "__main__":
+def unregister():
+    bpy.utils.unregister_module(__name__)
+ 
+    pass 
+
+if __name__ == "__main__": 
     register()
