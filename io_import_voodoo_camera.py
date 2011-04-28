@@ -16,12 +16,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Import Voodoo camera",
     "author": "Fazekas Laszlo",
-    "version": (0, 6),
-    "blender": (2, 5, 6),
-    "api": 34074,
+    "version": (0, 7),
+    "blender": (2, 5, 7),
+    "api": 36339,
     "location": "File > Import > Voodoo camera",
     "description": "Imports a Blender (2.4x or 2.5x) Python script from the Voodoo camera tracker software.",
     "warning": "",
@@ -123,8 +123,12 @@ def voodoo_import(infile,ld_cam,ld_points):
                     if (pos != -1):
                         fr = int(lineSplit[0][1:pos],10)
                         scene.frame_set(fr)
-                        # from Michael (Meikel) Oetjen
-                        vcam.matrix_world = eval('mathutils.Matrix(' + line.rstrip()[pos+28:-2].replace('[','(',4).replace(']',')',4) + ')')
+                        # for up to 2.55
+                        # vcam.matrix_world = eval('mathutils.' + line.rstrip()[pos+21:-1])
+                        # for 2.56, from Michael (Meikel) Oetjen 
+                        # vcam.matrix_world = eval('mathutils.Matrix(' + line.rstrip()[pos+28:-2].replace('[','(',4).replace(']',')',4) + ')')
+                        # for 2.57
+                        vcam.matrix_world = eval('mathutils.Matrix([' + line.rstrip()[pos+28:-2] + '])')
                         vcam.keyframe_insert('location')
                         vcam.keyframe_insert('scale')
                         vcam.keyframe_insert('rotation_euler')
@@ -165,12 +169,18 @@ def voodoo_import(infile,ld_cam,ld_points):
 
             if (pos != -1):
 
-                if (line[pos+8] == '['):
-                    # from Michael (Meikel) Oetjen
-                    vcam.matrix_world = eval('mathutils.Matrix((' + line.rstrip()[pos+9:-1].replace('[','(',3).replace(']',')',4) + ')')
-                else:
-                    vcam.matrix_world = eval('mathutils' + line[pos:])
+                # for up to 2.55
+                # vcam.matrix_world = eval('mathutils' + line[pos:])
 
+                # for 2.56
+                # if (line[pos+8] == '['):
+                #   # from Michael (Meikel) Oetjen
+                #     vcam.matrix_world = eval('mathutils.Matrix((' + line.rstrip()[pos+9:-1].replace('[','(',3).replace(']',')',4) + ')')
+                # else:
+                #   vcam.matrix_world = eval('mathutils' + line[pos:])
+
+                # for 2.57
+                vcam.matrix_world = eval('mathutils.Matrix([' + line.rstrip()[pos+8:-1] + '])')
                 vcam.keyframe_insert('location')
                 vcam.keyframe_insert('scale')
                 vcam.keyframe_insert('rotation_euler')
@@ -239,10 +249,12 @@ def menu_func(self, context):
 
 
 def register():
+    bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func)
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 
