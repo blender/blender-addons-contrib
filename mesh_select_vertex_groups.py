@@ -17,11 +17,11 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    'name': 'Fix Vertex Groups',
+    'name': 'Select Vertex Groups',
     'author': 'Martin Ellison',
     'version': (1, 0),
     'blender': (2, 5, 4),
-    'api': 32516,
+    'api': 36710,
     'location': 'Toolbox',
     'description': 'Finds all the vertex groups that chosen verts are in, & any verts that are not in any group',
     'warning': '', # used for warning icon and text in addons panel
@@ -184,7 +184,7 @@ def found_verts(vertex_group):
 class VIEW3D_PT_FixVertexGroups(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label = "Fix Vertex Groups"
+    bl_label = "Select Vertex Groups"
 
     @classmethod
     def poll(self, context):
@@ -222,9 +222,11 @@ class VIEW3D_PT_FixVertexGroups(bpy.types.Panel):
 classes = [UseAll, UseSelected, SelectFound, DeselectFound]
 
 def register():
+    bpy.utils.register_module(__name__)
     pass
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
     pass
 
 if __name__ == "__main__":
