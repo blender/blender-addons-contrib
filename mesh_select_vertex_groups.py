@@ -25,7 +25,8 @@ bl_info = {
     'location': 'Toolbox',
     'description': 'Finds all the vertex groups that chosen verts are in, & any verts that are not in any group',
     'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': '',
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Modeling/Select_Vertex_Groups",
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=22025',
     'category': 'Mesh'}
