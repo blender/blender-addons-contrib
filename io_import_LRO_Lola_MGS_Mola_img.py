@@ -19,9 +19,9 @@
 bl_info = {
     "name": "LRO Lola & MGS Mola img Importer",
     "author": "Valter Battioli (ValterVB)",
-    "version": (1, 1, 6),
-    "blender": (2, 5, 7),
-    "api": 36147,
+    "version": (1, 1, 7),
+    "blender": (2, 5, 8),
+    "api": 37704,
     "location": "3D window > Tool Shelf",
     "description": "Import DTM from LRO Lola and MGS Mola",
     "warning": "May consume a lot of memory",
@@ -53,6 +53,7 @@ bl_info = {
 #            -Some code cleaning (PEP8)
 #ver. 1.1.5: -Fix for recent API changes. Thanks to Filiciss.
 #ver. 1.1.6: -Fix for API changes, and restore Scale factor
+#ver. 1.1.7: -Fix for API changes. Move some code out of draw
 #************************************************************************
 
 import bpy
@@ -183,6 +184,34 @@ def RealLong(Longitude):
 #**************************************************************************
 
 
+def MakeMaterialMars(obj):
+    #Copied from io_convert_image_to_mesh_img
+    mat = bpy.data.materials.new("Mars")
+    mat.diffuse_shader = 'MINNAERT'
+    mat.diffuse_color = (0.426, 0.213, 0.136)
+    mat.darkness = 0.8
+
+    mat.specular_shader = 'WARDISO'
+    mat.specular_color = (1.000, 0.242, 0.010)
+    mat.specular_intensity = 0.010
+    mat.specular_slope = 0.100
+    obj.data.materials.append(mat)
+
+
+def MakeMaterialMoon(obj):
+    #Same as Mars Material, but i have canged the color
+    mat = bpy.data.materials.new("Moon")
+    mat.diffuse_shader = 'MINNAERT'
+    mat.diffuse_color = (0.426, 0.426, 0.426)
+    mat.darkness = 0.8
+
+    mat.specular_shader = 'WARDISO'
+    mat.specular_color = (0.6, 0.6, 0.6)
+    mat.specular_intensity = 0.010
+    mat.specular_slope = 0.100
+    obj.data.materials.append(mat)
+
+
 #Read the LBL file
 def ReadLabel(FileName):
     global FileAndPath
@@ -192,12 +221,12 @@ def ReadLabel(FileName):
     global Message
 
     if FileName == '':
-        LINES = LINE_SAMPLES = SAMPLE_BITS = MAP_RESOLUTION = 0
-        MAXIMUM_LATITUDE = MINIMUM_LATITUDE = 0.0
-        WESTERNMOST_LONGITUDE = EASTERNMOST_LONGITUDE = 0.0
-        OFFSET = SCALING_FACTOR = 0.0
-        SAMPLE_TYPE = UNIT = TARGET_NAME = RadiusUM = Message = ""
         return
+    LINES = LINE_SAMPLES = SAMPLE_BITS = MAP_RESOLUTION = 0
+    MAXIMUM_LATITUDE = MINIMUM_LATITUDE = 0.0
+    WESTERNMOST_LONGITUDE = EASTERNMOST_LONGITUDE = 0.0
+    OFFSET = SCALING_FACTOR = 0.0
+    SAMPLE_TYPE = UNIT = TARGET_NAME = RadiusUM = Message = ""
 
     FileAndPath = FileName
     FileAndExt = os.path.splitext(FileAndPath)
@@ -302,51 +331,22 @@ def ReadLabel(FileName):
         SCALING_FACTOR = 1.0  # When isn'tavailable I set it to 1
 
 
-def MakeMaterialMars(obj):
-    #Copied from io_convert_image_to_mesh_img
-    mat = bpy.data.materials.new("Mars")
-    mat.diffuse_shader = 'MINNAERT'
-    mat.diffuse_color = (0.426, 0.213, 0.136)
-    mat.darkness = 0.8
-
-    mat.specular_shader = 'WARDISO'
-    mat.specular_color = (1.000, 0.242, 0.010)
-    mat.specular_intensity = 0.010
-    mat.specular_slope = 0.100
-    obj.data.materials.append(mat)
-
-
-def MakeMaterialMoon(obj):
-    #Same as Mars Material, but i have canged the color
-    mat = bpy.data.materials.new("Moon")
-    mat.diffuse_shader = 'MINNAERT'
-    mat.diffuse_color = (0.426, 0.426, 0.426)
-    mat.darkness = 0.8
-
-    mat.specular_shader = 'WARDISO'
-    mat.specular_color = (0.6, 0.6, 0.6)
-    mat.specular_intensity = 0.010
-    mat.specular_slope = 0.100
-    obj.data.materials.append(mat)
-
-
-def clear_properties():
-    # can happen on reload
-    if bpy.context.scene is None:
-        return
-
-    LINES = LINE_SAMPLES = SAMPLE_BITS = MAP_RESOLUTION = 0
-    MAXIMUM_LATITUDE = MINIMUM_LATITUDE = 0.0
-    WESTERNMOST_LONGITUDE = EASTERNMOST_LONGITUDE = 0.0
-    OFFSET = SCALING_FACTOR = 0.0
-    SAMPLE_TYPE = UNIT = TARGET_NAME = RadiusUM = Message = ""
-
-    props = ["FromLat", "ToLat", "FromLong", "ToLong", "Scale"]
-    for p in props:
-        if p in bpy.types.Scene.bl_rna.properties:
-            exec("del bpy.types.Scene." + p)
-        if p in bpy.context.scene:
-            del bpy.context.scene[p]
+def update_fpath(self, context):
+    global start_up
+    start_up=False
+    ReadLabel(bpy.context.scene.fpath)
+    if Message != "":
+        start_up=True
+    else:
+        typ = bpy.types.Scene
+        var = bpy.props
+        typ.FromLat = var.FloatProperty(description="From Latitude", min=float(MINIMUM_LATITUDE), max=float(MAXIMUM_LATITUDE), precision=3, default=0.0)
+        typ.ToLat = var.FloatProperty(description="To Latitude", min=float(MINIMUM_LATITUDE), max=float(MAXIMUM_LATITUDE), precision=3)
+        typ.FromLong = var.FloatProperty(description="From Longitude", min=float(WESTERNMOST_LONGITUDE), max=float(EASTERNMOST_LONGITUDE), precision=3)
+        typ.ToLong = var.FloatProperty(description="To Longitude", min=float(WESTERNMOST_LONGITUDE), max=float(EASTERNMOST_LONGITUDE), precision=3)
+        typ.Scale = var.IntProperty(description="Scale", min=1, max=100, default=1)
+        typ.Exaggerate = var.BoolProperty(description="Magnify", default=False)
+        start_up=False
 
 
 #Import the data and draw the planet
@@ -356,18 +356,18 @@ class Import(bpy.types.Operator):
     bl_description = 'Import the data'
 
     def execute(self, context):
-        From_Lat = RealLat(bpy.context.scene['FromLat'])
-        To_Lat = RealLat(bpy.context.scene['ToLat'])
-        From_Long = RealLong(bpy.context.scene['FromLong'])
-        To_Long = RealLong(bpy.context.scene['ToLong'])
-        BlenderScale = bpy.context.scene['Scale']
-        Exag = bpy.context.scene['Exaggerate']
+        From_Lat = RealLat(bpy.context.scene.FromLat)
+        To_Lat = RealLat(bpy.context.scene.ToLat)
+        From_Long = RealLong(bpy.context.scene.FromLong)
+        To_Long = RealLong(bpy.context.scene.ToLong)
+        BlenderScale = bpy.context.scene.Scale
+        Exag = bpy.context.scene.Exaggerate
         Vertex = []  # Vertex array
         Faces = []  # Faces arrays
         FirstRow = []
         SecondRow = []
         print('*** Start create vertex ***')
-        FileAndPath = bpy.context.scene['fpath']
+        FileAndPath = bpy.context.scene.fpath
         FileAndExt = os.path.splitext(FileAndPath)
         #Check for UNIX that is case sensitive
         #If the Ext of the file selected from user is Upper, than the second file is Upper and Viceversa
@@ -457,143 +457,128 @@ class Import(bpy.types.Operator):
         print('*** FINISHED ***')
         return {'FINISHED'}
 
-
-# drawing the user interface
+# User inteface
 class Img_Importer(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOL_PROPS"
     bl_label = "LRO Lola & MGS Mola IMG Importer"
-
+    
     def __init__(self):
-        global MAXIMUM_LATITUDE, MINIMUM_LATITUDE
-        global WESTERNMOST_LONGITUDE, EASTERNMOST_LONGITUDE
-        LINES = LINE_SAMPLES = SAMPLE_BITS = MAP_RESOLUTION = 0
-        MAXIMUM_LATITUDE = MINIMUM_LATITUDE = 0.0
-        WESTERNMOST_LONGITUDE = EASTERNMOST_LONGITUDE = 0.0
-        OFFSET = SCALING_FACTOR = 0.0
-        SAMPLE_TYPE = UNIT = TARGET_NAME = RadiusUM = Message = ""
-
-        # intializing variables
-        props = [("FromLat", 0.0),
-                 ("ToLat", 0.0),
-                 ("FromLong", 0.0),
-                 ("ToLong", 0.0),
-                 ("Scale", 1),
-                 ("Exaggerate", False)]
-        for p, num in props:
-            if not p in bpy.context.scene.keys():
-                bpy.context.scene[p] = num
-
         typ = bpy.types.Scene
         var = bpy.props
-        typ.fpath = var.StringProperty(name="Import File ", description="Select your img file", subtype="FILE_PATH", default="")
-
-        ReadLabel(bpy.context.scene.fpath)
-
-        typ.FromLat = var.FloatProperty(description="From Latitude", min=float(MINIMUM_LATITUDE), max=float(MAXIMUM_LATITUDE), precision=3)
-        typ.ToLat = var.FloatProperty(description="To Latitude", min=float(MINIMUM_LATITUDE), max=float(MAXIMUM_LATITUDE), precision=3)
-        typ.FromLong = var.FloatProperty(description="From Longitude", min=float(WESTERNMOST_LONGITUDE), max=float(EASTERNMOST_LONGITUDE), precision=3)
-        typ.ToLong = var.FloatProperty(description="To Longitude", min=float(WESTERNMOST_LONGITUDE), max=float(EASTERNMOST_LONGITUDE), precision=3)
-        typ.Scale = var.IntProperty(description="Scale", min=1, max=100, default=1)
-        typ.Exaggerate = var.BoolProperty(description="Magnify", default=False)
 
     def draw(self, context):
-
         layout = self.layout
-        layout.prop(context.scene, "fpath")
-
-        col = layout.column()
-        split = col.split(align=True)
-        split.label("Minimum Latitude: " + str(MINIMUM_LATITUDE) + " deg")
-        split.label("Maximum Latitude: " + str(MAXIMUM_LATITUDE) + " deg")
-
-        split = col.split(align=True)
-        split.label("Westernmost Longitude: " + str(WESTERNMOST_LONGITUDE) + " deg")
-        split.label("Easternmost Longitude: " + str(EASTERNMOST_LONGITUDE) + " deg")
-
-        split = col.split(align=True)
-        split.label("Lines: " + str(LINES))
-        split.label("Line samples: " + str(LINE_SAMPLES))
-
-        split = col.split(align=True)
-        split.label("Sample type: " + str(SAMPLE_TYPE))
-        split.label("Sample bits: " + str(SAMPLE_BITS))
-
-        split = col.split(align=True)
-        split.label("Unit: " + UNIT)
-        split.label("Map resolution: " + str(MAP_RESOLUTION) + " pix/deg")
-
-        split = col.split(align=True)
-        split.label("Radius: " + str(OFFSET) + " " + RadiusUM)
-        split.label("Scale: " + str(SCALING_FACTOR))
-
-        split = col.split(align=True)
-        split.label("Target: ")
-        split.label(TARGET_NAME)
-
-        col = layout.column()
-        split = col.split(align=True)
-        split.prop(context.scene, "FromLat", "Northernmost Lat.")
-        split.prop(context.scene, "ToLat", "Southernmost Lat.")
-        if bpy.context.scene['FromLat'] < bpy.context.scene['ToLat']:
+        if start_up:
+            layout.prop(context.scene, "fpath")
             col = layout.column()
             split = col.split(align=True)
-            split.label("Warning: Northernmost must be greater than Southernmost")
-
-        col = layout.column()
-        split = col.split(align=True)
-        split.prop(context.scene, "FromLong", "Westernmost Long.")
-        split.prop(context.scene, "ToLong", "Easternmost Long.")
-        if bpy.context.scene['FromLong'] > bpy.context.scene['ToLong']:
-            col = layout.column()
-            split = col.split(align=True)
-            split.label("Warning: Easternmost must be greater than Westernmost")
-
-        col = layout.column()
-        split = col.split(align=True)
-        split.prop(context.scene, "Scale", "Scale")
-        split.prop(context.scene, "Exaggerate", "Magnify (x4)")
-        if bpy.context.scene.fpath != "":
-            col = layout.column()
-            split = col.split(align=True)
-            split.label("1 Blender unit = " + str(bpy.context.scene['Scale']) + RadiusUM)
-
-        if Message != "":
-            col = layout.column()
-            split = col.split(align=True)
-            split.label("Message: " + Message)
-
-        if bpy.context.scene.fpath.upper().endswith("IMG") or bpy.context.scene.fpath.upper().endswith("LBL"):  # Check if is selected the correct file
-            VertNumbers = (((RealLat(bpy.context.scene['FromLat']) - RealLat(bpy.context.scene['ToLat'])) * MAP_RESOLUTION) + 1) * ((RealLong(bpy.context.scene['ToLong']) - RealLong(bpy.context.scene['FromLong'])) * MAP_RESOLUTION + 1)
+            if Message != "":
+                split.label("Message: " + Message)
         else:
-            VertNumbers = 0
-        #If I have 4 or plus vertex and at least 2 row and at least 2 point, I can import
-        if VertNumbers > 3 and (RealLat(bpy.context.scene['FromLat']) > RealLat(bpy.context.scene['ToLat'])) and (RealLong(bpy.context.scene['FromLong']) < RealLong(bpy.context.scene['ToLong'])):  # If I have 4 or plus vertex I can import
-            split = col.split(align=True)
-            split.label("Map resolution on the equator: ")
-            split.label(str(2 * math.pi * OFFSET / 360 / MAP_RESOLUTION) + " " + RadiusUM + "/pix")
             col = layout.column()
             split = col.split(align=True)
-            split.label("Real Northernmost Lat.: " + str(RealLat(bpy.context.scene['FromLat'])) + " deg")
-            split.label("Real Southernmost Long.: " + str(RealLat(bpy.context.scene['ToLat'])) + " deg")
+            split.label("Minimum Latitude: " + str(MINIMUM_LATITUDE) + " deg")
+            split.label("Maximum Latitude: " + str(MAXIMUM_LATITUDE) + " deg")
+
             split = col.split(align=True)
-            split.label("Real Westernmost Long.: " + str(RealLong(bpy.context.scene['FromLong'])) + " deg")
-            split.label("Real Easternmost Long.: " + str(RealLong(bpy.context.scene['ToLong'])) + "deg")
+            split.label("Westernmost Longitude: " + str(WESTERNMOST_LONGITUDE) + " deg")
+            split.label("Easternmost Longitude: " + str(EASTERNMOST_LONGITUDE) + " deg")
+
             split = col.split(align=True)
-            #VertNumbers = (((RealLat(bpy.context.scene['FromLat']) - RealLat(bpy.context.scene['ToLat'])) * MAP_RESOLUTION) + 1) * ((RealLong(bpy.context.scene['ToLong']) - RealLong(bpy.context.scene['FromLong'])) * MAP_RESOLUTION + 1)
-            split.label("Numbers of vertex to be imported: " + str(int(VertNumbers)))
-            col.separator()
-            col.operator('import.lro_and_mgs', text='Import')
+            split.label("Lines: " + str(LINES))
+            split.label("Line samples: " + str(LINE_SAMPLES))
+
+            split = col.split(align=True)
+            split.label("Sample type: " + str(SAMPLE_TYPE))
+            split.label("Sample bits: " + str(SAMPLE_BITS))
+
+            split = col.split(align=True)
+            split.label("Unit: " + UNIT)
+            split.label("Map resolution: " + str(MAP_RESOLUTION) + " pix/deg")
+
+            split = col.split(align=True)
+            split.label("Radius: " + str(OFFSET) + " " + RadiusUM)
+            split.label("Scale: " + str(SCALING_FACTOR))
+
+            split = col.split(align=True)
+            split.label("Target: ")
+            split.label(TARGET_NAME)
+
+            col = layout.column()
+            split = col.split(align=True)
+            split.prop(context.scene, "FromLat", "Northernmost Lat.")
+            split.prop(context.scene, "ToLat", "Southernmost Lat.")
+            if bpy.context.scene.FromLat < bpy.context.scene.ToLat:
+                col = layout.column()
+                split = col.split(align=True)
+                split.label("Warning: Northernmost must be greater than Southernmost")
+
+            col = layout.column()
+            split = col.split(align=True)
+            split.prop(context.scene, "FromLong", "Westernmost Long.")
+            split.prop(context.scene, "ToLong", "Easternmost Long.")
+            if bpy.context.scene.FromLong > bpy.context.scene.ToLong:
+                col = layout.column()
+                split = col.split(align=True)
+                split.label("Warning: Easternmost must be greater than Westernmost")
+
+            col = layout.column()
+            split = col.split(align=True)
+            split.prop(context.scene, "Scale", "Scale")
+            split.prop(context.scene, "Exaggerate", "Magnify (x4)")
+            if bpy.context.scene.fpath != "":
+                col = layout.column()
+                split = col.split(align=True)
+                split.label("1 Blender unit = " + str(bpy.context.scene.Scale) + RadiusUM)
+
+            if Message != "":
+                col = layout.column()
+                split = col.split(align=True)
+                split.label("Message: " + Message)
+
+            if bpy.context.scene.fpath.upper().endswith("IMG") or bpy.context.scene.fpath.upper().endswith("LBL"):  # Check if is selected the correct file
+                VertNumbers = (((RealLat(bpy.context.scene.FromLat) - RealLat(bpy.context.scene.ToLat)) * MAP_RESOLUTION) + 1) * ((RealLong(bpy.context.scene.ToLong) - RealLong(bpy.context.scene.FromLong)) * MAP_RESOLUTION + 1)
+            else:
+                VertNumbers = 0
+            #If I have 4 or plus vertex and at least 2 row and at least 2 point, I can import
+            if VertNumbers > 3 and (RealLat(bpy.context.scene.FromLat) > RealLat(bpy.context.scene.ToLat)) and (RealLong(bpy.context.scene.FromLong) < RealLong(bpy.context.scene.ToLong)):  # If I have 4 or plus vertex I can import
+                split = col.split(align=True)
+                split.label("Map resolution on the equator: ")
+                split.label(str(2 * math.pi * OFFSET / 360 / MAP_RESOLUTION) + " " + RadiusUM + "/pix")
+                col = layout.column()
+                split = col.split(align=True)
+                split.label("Real Northernmost Lat.: " + str(RealLat(bpy.context.scene.FromLat)) + " deg")
+                split.label("Real Southernmost Long.: " + str(RealLat(bpy.context.scene.ToLat)) + " deg")
+                split = col.split(align=True)
+                split.label("Real Westernmost Long.: " + str(RealLong(bpy.context.scene.FromLong)) + " deg")
+                split.label("Real Easternmost Long.: " + str(RealLong(bpy.context.scene.ToLong)) + "deg")
+                split = col.split(align=True)
+                split.label("Numbers of vertex to be imported: " + str(int(VertNumbers)))
+                col.separator()
+                col.operator('import.lro_and_mgs', text='Import')
 
 
+def initialize():
+    global start_up, Message
+    Message=""
+    start_up=True
+    bpy.types.Scene.fpath = bpy.props.StringProperty(
+        name="Import File ", 
+        description="Select your img file", 
+        subtype="FILE_PATH", 
+        default="", 
+        update=update_fpath)
+
+        
 # registering the script
 def register():
+    initialize()
     bpy.utils.register_module(__name__)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    clear_properties()
 
 if __name__ == "__main__":
     register()
