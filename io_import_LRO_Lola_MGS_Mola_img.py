@@ -19,9 +19,9 @@
 bl_info = {
     "name": "LRO Lola & MGS Mola img Importer",
     "author": "Valter Battioli (ValterVB)",
-    "version": (1, 1, 7),
+    "version": (1, 1, 8),
     "blender": (2, 5, 8),
-    "api": 37704,
+    "api": 37806,
     "location": "3D window > Tool Shelf",
     "description": "Import DTM from LRO Lola and MGS Mola",
     "warning": "May consume a lot of memory",
@@ -54,6 +54,7 @@ bl_info = {
 #ver. 1.1.5: -Fix for recent API changes. Thanks to Filiciss.
 #ver. 1.1.6: -Fix for API changes, and restore Scale factor
 #ver. 1.1.7: -Fix for API changes. Move some code out of draw
+#ver. 1.1.8: -Add a reset button
 #************************************************************************
 
 import bpy
@@ -345,8 +346,7 @@ def update_fpath(self, context):
         typ.FromLong = var.FloatProperty(description="From Longitude", min=float(WESTERNMOST_LONGITUDE), max=float(EASTERNMOST_LONGITUDE), precision=3)
         typ.ToLong = var.FloatProperty(description="To Longitude", min=float(WESTERNMOST_LONGITUDE), max=float(EASTERNMOST_LONGITUDE), precision=3)
         typ.Scale = var.IntProperty(description="Scale", min=1, max=100, default=1)
-        typ.Exaggerate = var.BoolProperty(description="Magnify", default=False)
-        start_up=False
+        typ.Magnify = var.BoolProperty(description="Magnify", default=False)
 
 
 #Import the data and draw the planet
@@ -361,7 +361,7 @@ class Import(bpy.types.Operator):
         From_Long = RealLong(bpy.context.scene.FromLong)
         To_Long = RealLong(bpy.context.scene.ToLong)
         BlenderScale = bpy.context.scene.Scale
-        Exag = bpy.context.scene.Exaggerate
+        Exag = bpy.context.scene.Magnify
         Vertex = []  # Vertex array
         Faces = []  # Faces arrays
         FirstRow = []
@@ -457,6 +457,7 @@ class Import(bpy.types.Operator):
         print('*** FINISHED ***')
         return {'FINISHED'}
 
+
 # User inteface
 class Img_Importer(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
@@ -526,7 +527,7 @@ class Img_Importer(bpy.types.Panel):
             col = layout.column()
             split = col.split(align=True)
             split.prop(context.scene, "Scale", "Scale")
-            split.prop(context.scene, "Exaggerate", "Magnify (x4)")
+            split.prop(context.scene, "Magnify", "Magnify (x4)")
             if bpy.context.scene.fpath != "":
                 col = layout.column()
                 split = col.split(align=True)
@@ -557,12 +558,35 @@ class Img_Importer(bpy.types.Panel):
                 split.label("Numbers of vertex to be imported: " + str(int(VertNumbers)))
                 col.separator()
                 col.operator('import.lro_and_mgs', text='Import')
+                col.separator()
+                col.operator('import.reset', text='Reset')
+
+
+#Reset the UI
+class Reset(bpy.types.Operator):
+    bl_idname = 'import.reset'
+    bl_label = 'Start Import'
+
+    def execute(self, context):
+        clear_properties()
+        return {'FINISHED'}
 
 
 def initialize():
-    global start_up, Message
-    Message=""
+    global MAXIMUM_LATITUDE, MINIMUM_LATITUDE
+    global WESTERNMOST_LONGITUDE, EASTERNMOST_LONGITUDE
+    global LINES, LINE_SAMPLES, SAMPLE_BITS, MAP_RESOLUTION
+    global OFFSET, SCALING_FACTOR
+    global SAMPLE_TYPE, UNIT, TARGET_NAME, RadiusUM, Message
+    global start_up
+
+    LINES = LINE_SAMPLES = SAMPLE_BITS = MAP_RESOLUTION = 0
+    MAXIMUM_LATITUDE = MINIMUM_LATITUDE = 0.0
+    WESTERNMOST_LONGITUDE = EASTERNMOST_LONGITUDE = 0.0
+    OFFSET = SCALING_FACTOR = 0.0
+    SAMPLE_TYPE = UNIT = TARGET_NAME = RadiusUM = Message = ""
     start_up=True
+            
     bpy.types.Scene.fpath = bpy.props.StringProperty(
         name="Import File ", 
         description="Select your img file", 
@@ -570,7 +594,38 @@ def initialize():
         default="", 
         update=update_fpath)
 
-        
+def clear_properties():
+    # can happen on reload
+    if bpy.context.scene is None:
+        return
+    global MAXIMUM_LATITUDE, MINIMUM_LATITUDE
+    global WESTERNMOST_LONGITUDE, EASTERNMOST_LONGITUDE
+    global LINES, LINE_SAMPLES, SAMPLE_BITS, MAP_RESOLUTION
+    global OFFSET, SCALING_FACTOR
+    global SAMPLE_TYPE, UNIT, TARGET_NAME, RadiusUM, Message
+    global start_up
+
+    LINES = LINE_SAMPLES = SAMPLE_BITS = MAP_RESOLUTION = 0
+    MAXIMUM_LATITUDE = MINIMUM_LATITUDE = 0.0
+    WESTERNMOST_LONGITUDE = EASTERNMOST_LONGITUDE = 0.0
+    OFFSET = SCALING_FACTOR = 0.0
+    SAMPLE_TYPE = UNIT = TARGET_NAME = RadiusUM = Message = ""
+    start_up=True
+
+    props = ["FromLat", "ToLat", "FromLong", "ToLong", "Scale", "Magnify", "fpath"]
+    for p in props:
+        if p in bpy.types.Scene.bl_rna.properties:
+            exec("del bpy.types.Scene." + p)
+        if p in bpy.context.scene:
+            del bpy.context.scene[p]
+    bpy.types.Scene.fpath = bpy.props.StringProperty(
+        name="Import File ", 
+        description="Select your img file", 
+        subtype="FILE_PATH", 
+        default="", 
+        update=update_fpath)
+
+
 # registering the script
 def register():
     initialize()
@@ -579,6 +634,8 @@ def register():
 
 def unregister():
     bpy.utils.unregister_module(__name__)
+    clear_properties()
+
 
 if __name__ == "__main__":
     register()
