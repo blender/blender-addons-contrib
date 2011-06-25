@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Add Wetted Mesh",
     "author": "freejack",
-    "version": (0, 2),
-    "blender": (2, 5, 7),
-    "api": 35853,
+    "version": (0, 2, 1),
+    "blender": (2, 5, 8),
+    "api": 37699,
     "location": "View3D > Tool Shelf > Wetted Mesh Panel",
     "description": "Adds separated fluid, dry and wetted mesh for selected pair.",
     "warning": "",
@@ -93,9 +93,7 @@ class AddWettedMesh(bpy.types.Operator):
         context.scene.objects.active = fluid
         bpy.ops.object.duplicate()
         bpy.ops.object.convert(target='MESH', keep_original=False)
-        bpy.ops.object.location_apply()
-        bpy.ops.object.rotation_apply()
-        bpy.ops.object.scale_apply()
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         fluidCopy = context.object
         
         # substract solid from fluidCopy
@@ -115,9 +113,7 @@ class AddWettedMesh(bpy.types.Operator):
         context.scene.objects.active = fluid
         bpy.ops.object.duplicate()
         bpy.ops.object.convert(target='MESH', keep_original=False)
-        bpy.ops.object.location_apply()
-        bpy.ops.object.rotation_apply()
-        bpy.ops.object.scale_apply()
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         fluidCopy = context.object
         
         # make union from fluidCopy and solid
