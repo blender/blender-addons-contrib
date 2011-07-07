@@ -1,3 +1,4 @@
+import bpy
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -16,11 +17,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+
 bl_info = {
     'name': 'Render to Print',
     'author': 'Marco Crippa <thekrypt77@tiscali.it>',
-    'version': (0,1),
-    'blender': (2, 5, 4),
+    'version': (0,2),
+    'blender': (2, 5, 8),
     'location': 'Render > Render to Print',
     'description': 'Set the size of the render for a print',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
@@ -34,15 +36,34 @@ import bpy
 import math
 from bpy.props import *
 
-class RenderButtonsPanel():
+
+# minor update by Dealga McArdle, Thu July 7 2011.
+
+class RENDER_PT_Print(bpy.types.Panel):
+    bl_label = "Render to Print"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'render'
-
-class RENDER_PT_Print(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Render to Print"
-
-    bpy.types.Scene.Preset = EnumProperty(
+    
+    bpy.types.Scene.MyFrom = bpy.props.EnumProperty(
+        name="Set from",
+        description="Set from",
+        items=(
+            ("Cm--->Pixel", "Cm--->Pixel", "Cm--->Pixel"),
+            ("Pixel--->Cm", "Pixel--->Cm", "Pixel--->Cm")
+        ),
+        default="Cm--->Pixel")
+    
+    bpy.types.Scene.MyOrientation = bpy.props.EnumProperty(
+        name="Set orientation", 
+        description="Set orientation", 
+        items=(
+            ("Portrait", "Portrait", "Portrait"),
+            ("Landscape", "Landscape", "Landscape")
+        ),
+        default="Portrait")
+    
+    bpy.types.Scene.MyPreset = bpy.props.EnumProperty(
         name="Select preset",
         description="Select from preset",
         items=(
@@ -88,86 +109,69 @@ class RENDER_PT_Print(RenderButtonsPanel, bpy.types.Panel):
             ("Legal junior_20.3_12.7", "Legal junior (20.3x12.7 cm)", ""),
             ("Ledger_43.2_27.9", "Ledger (43.2x27.9 cm)", ""),
             ("Tabloid_27.9_43.2", "Tabloid (27.9x43.2 cm)", ""),
+            
+            ("ANSI C_43.2_55.9", "ANSI C (43.2x55.9 cm)", ""),
+            ("ANSI D_55.9_86.4", "ANSI D (55.9x86.4 cm)", ""),
+            ("ANSI E_86.4_111.8", "ANSI E (86.4x111.8 cm)", ""),
 
-            ("ANSI C_43.2_55.9", "ANSI C (43.2×55.9 cm)", ""),
-            ("ANSI D_55.9_86.4", "ANSI D (55.9×86.4 cm)", ""),
-            ("ANSI E_86.4_111.8", "ANSI E (86.4×111.8 cm)", ""),
-
-            ("Arch A_22.9_30.5", "Arch A (22.9×30.5 cm)", ""),
-            ("Arch B_30.5_45.7", "Arch B (30.5×45.7 cm)", ""),
-            ("Arch C_45.7_61.0", "Arch C (45.7×61.0 cm)", ""),
-            ("Arch D_61.0_91.4", "Arch D (61.0×91.4 cm)", ""),
-            ("Arch E_91.4_121.9", "Arch E (91.4×121.9 cm)", ""),
-            ("Arch E1_76.2_106.7", "Arch E1 (76.2×106.7 cm)", ""),
+            ("Arch A_22.9_30.5", "Arch A (22.9x30.5 cm)", ""),
+            ("Arch B_30.5_45.7", "Arch B (30.5x45.7 cm)", ""),
+            ("Arch C_45.7_61.0", "Arch C (45.7x61.0 cm)", ""),
+            ("Arch D_61.0_91.4", "Arch D (61.0x91.4 cm)", ""),
+            ("Arch E_91.4_121.9", "Arch E (91.4x121.9 cm)", ""),
+            ("Arch E1_76.2_106.7", "Arch E1 (76.2x106.7 cm)", ""),
             ("Arch E2_66.0_96.5", "Arch E2 (66.0x96.5 cm)", ""),
             ("Arch E3_68.6_99.1", "Arch E3 (68.6x99.1 cm)", "")
         ),
         default="custom_1_1"
     )
-
-    bpy.types.Scene.Orientation = EnumProperty(
-        name="Set orientation", 
-        description="Set orientation", 
-        items=(
-            ("Portrait", "Portrait", "Portrait"),
-            ("Landscape", "Landscape", "Landscape")
-        ),
-        default="Portrait")
-
-    bpy.types.Scene.From = EnumProperty(
-        name="Set from",
-        description="Set from",
-        items=(
-            ("Cm--->Pixel", "Cm--->Pixel", "Cm--->Pixel"),
-            ("Pixel--->Cm", "Pixel--->Cm", "Pixel--->Cm")
-        ),
-        default="Cm--->Pixel")
-
-    bpy.types.Scene.Width = FloatProperty(
+    
+    
+    
+    bpy.types.Scene.MyDPI = bpy.props.IntProperty(    name="DPI", 
+                                        description="Dots per Inch", 
+                                        default=300, min=72, max=1800)
+          
+    bpy.types.Scene.MyWidth = bpy.props.FloatProperty(
         name = "Width",
         description = "Width",
         default = 5.0,
         min = 1.0,
         max = 100000.0)
-    bpy.types.Scene.Height = FloatProperty(
+    bpy.types.Scene.MyHeight = FloatProperty(
         name = "Height",
         description = "Height",
         default = 3.0,
         min = 1.0,
         max = 100000.0)
-
-    bpy.types.Scene.DPI = IntProperty(
-        name = "DPI",
-        description = "DPI",
-        default = 300,
-        min = 1,
-        max = 100000)
-
-    bpy.types.Scene.PWidth = IntProperty(
+    
+    bpy.types.Scene.MyPWidth = IntProperty(
         name = "Pixel Width",
         description = "Pixel Width",
         default = 900,
         min = 4,
         max = 10000)
-    bpy.types.Scene.PHeight = IntProperty(
+    bpy.types.Scene.MyPHeight = IntProperty(
         name = "Pixel Height",
         description = "Pixel Height",
         default = 600,
         min = 4,
         max = 10000)
 
-    bpy.types.Scene.WInch = StringProperty(
+    bpy.types.Scene.MyWInch = StringProperty(
         name = "Inch Width",
         description = "",
-        default = "AAA")
-    bpy.types.Scene.HInch = StringProperty(
+        default = "")
+    bpy.types.Scene.MyHInch = StringProperty(
         name = "Inch Height",
         description = "",
-        default = "AAA")
-
+        default = "")    
+    
+        
+    
     def draw(self, context):
+        
         layout = self.layout
-
         scn = context.scene
 
         row = layout.row(align=True)
@@ -179,34 +183,34 @@ class RENDER_PT_Print(RenderButtonsPanel, bpy.types.Panel):
         row6 = layout.row(align=True)
         row7 = layout.row(align=True)
         col = layout.column(align=True)
-
-        row.prop(scn, "From")
-        row1.prop(scn, "Orientation")
-        row2.prop(scn, "Preset")
+    
+        row.prop(scn, "MyFrom")
+        row1.prop(scn, "MyOrientation")
+        row2.prop(scn, "MyPreset")
 
         col.separator()
-        row3.prop(scn, "Width")
+        row3.prop(scn, "MyWidth")
         row3.separator()
-        row3.prop(scn, "Height")
+        row3.prop(scn, "MyHeight")
         col.separator()
-        row4.prop(scn, "DPI")
+        row4.prop(scn, "MyDPI")
         col.separator()
-        row5.prop(scn, "PWidth")
+        row5.prop(scn, "MyPWidth")
         row5.separator()
-        row5.prop(scn, "PHeight")
+        row5.prop(scn, "MyPHeight")
 
         col.separator()
-        row6.prop(scn, "WInch")
-        row6.prop(scn, "HInch")
+        row6.prop(scn, "MyWInch")
+        row6.prop(scn, "MyHInch")
         row6.active=False
         row6.enabled=False
         col.separator()
-
-        row7.operator("Do_P2R", text="SET RENDER!", icon="RENDER_STILL")
         
-        tipo,dim_w,dim_h=scn.Preset.split("_")
-
-        if scn.From == "Cm--->Pixel":
+        row7.operator("object.dop2r", text="SET !", icon="RENDER_STILL")
+        
+        #  this if else deals with hiding UI elements when logic demands it.
+        tipo,dim_w,dim_h = scn.MyPreset.split("_")
+        if scn.MyFrom == "Cm--->Pixel":
             row5.active=False
             row5.enabled=False
 
@@ -215,27 +219,16 @@ class RENDER_PT_Print(RenderButtonsPanel, bpy.types.Panel):
                 row3.enabled=True
                 row1.active=False
                 row1.enabled=False
-                dim_w=scn.Width
-                dim_h=scn.Height
-                scn.Width=float(dim_w)
-                scn.Height=float(dim_h)
-            elif tipo!="custom" and scn.Orientation=="Landscape":
+            elif tipo!="custom" and scn.MyOrientation=="Landscape":
                 row3.active=False
                 row3.enabled=False
                 row1.active=True
                 row1.enabled=True
-                scn.Width=float(dim_h)
-                scn.Height=float(dim_w)
-            elif tipo!="custom" and scn.Orientation=="Portrait":
+            elif tipo!="custom" and scn.MyOrientation=="Portrait":
                 row3.active=False
                 row3.enabled=False
                 row1.active=True
                 row1.enabled=True
-                scn.Width=float(dim_w)
-                scn.Height=float(dim_h)
-
-            scn.PWidth=math.ceil((scn.Width*scn.DPI)/2.54)
-            scn.PHeight=math.ceil((scn.Height*scn.DPI)/2.54)
         else:
             row3.active=False
             row3.enabled=False
@@ -243,53 +236,80 @@ class RENDER_PT_Print(RenderButtonsPanel, bpy.types.Panel):
             if tipo=="custom":
                 row1.active=False
                 row1.enabled=False
-            elif tipo!="custom" and scn.Orientation=="Landscape":
+            elif tipo!="custom" and scn.MyOrientation=="Landscape":
                 row1.active=True
                 row1.enabled=True
                 row5.active=False
                 row5.enabled=False
-                scn.Width=float(dim_h)
-                scn.Height=float(dim_w)
-                scn.PWidth=math.ceil((scn.Width*scn.DPI)/2.54)
-                scn.PHeight=math.ceil((scn.Height*scn.DPI)/2.54)
-            elif tipo!="custom" and scn.Orientation=="Portrait":
+            elif tipo!="custom" and scn.MyOrientation=="Portrait":
                 row1.active=True
                 row1.enabled=True
                 row5.active=False
                 row5.enabled=False
-                scn.Width=float(dim_w)
-                scn.Height=float(dim_h)
-                scn.PWidth=math.ceil((scn.Width*scn.DPI)/2.54)
-                scn.PHeight=math.ceil((scn.Height*scn.DPI)/2.54)
 
 
-            scn.Width=float(scn.PWidth/scn.DPI)*2.54
-            scn.Height=float(scn.PHeight/scn.DPI)*2.54
-
-        scn.WInch="%.2f" % (scn.Width/2.54)
-        scn.HInch="%.2f" % (scn.Height/2.54)
-
-
-class DoP2R(bpy.types.Operator):
-    bl_idname = "Do_P2R"
+class OBJECT_OT_DoP2R(bpy.types.Operator):
+    bl_idname = "object.dop2r"
     bl_label = "Run P2R"
     bl_description = "Set the render dimension"
+    
+    # COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def execute(self, context):
+       
         scn = context.scene
-        rnd = context.scene.render
+        rnd = bpy.context.scene.render
         #set render resolution
-        rnd.resolution_x=scn.PWidth
-        rnd.resolution_y=scn.PHeight
+        
+        tipo,dim_w,dim_h = scn.MyPreset.split("_")
+        if scn.MyFrom == "Cm--->Pixel":
+            if tipo=="custom":
+                dim_w=scn.MyWidth
+                dim_h=scn.MyHeight
+                scn.MyWidth=float(dim_w)
+                scn.MyHeight=float(dim_h)
+            elif tipo!="custom" and scn.MyOrientation=="Landscape":
+                scn.MyWidth=float(dim_h)
+                scn.MyHeight=float(dim_w)
+            elif tipo!="custom" and scn.MyOrientation=="Portrait":
+                scn.MyWidth=float(dim_w)
+                scn.MyHeight=float(dim_h)
 
+            scn.MyPWidth=math.ceil((scn.MyWidth*scn.MyDPI)/2.54)
+            scn.MyPHeight=math.ceil((scn.MyHeight*scn.MyDPI)/2.54)
+        else:
+            if tipo!="custom" and scn.MyOrientation=="Landscape":
+                scn.MyWidth=float(dim_h)
+                scn.MyHeight=float(dim_w)
+                scn.MyPWidth=math.ceil((scn.MyWidth*scn.MyDPI)/2.54)
+                scn.MyPHeight=math.ceil((scn.MyHeight*scn.MyDPI)/2.54)
+            elif tipo!="custom" and scn.MyOrientation=="Portrait":
+                scn.MyWidth=float(dim_w)
+                scn.MyHeight=float(dim_h)
+                scn.MyPWidth=math.ceil((scn.MyWidth*scn.MyDPI)/2.54)
+                scn.MyPHeight=math.ceil((scn.MyHeight*scn.MyDPI)/2.54)
+
+            scn.MyWidth=float(scn.MyPWidth/scn.MyDPI)*2.54
+            scn.MyHeight=float(scn.MyPHeight/scn.MyDPI)*2.54
+
+        scn.MyWInch="%.2f" % (scn.MyWidth/2.54)
+        scn.MyHInch="%.2f" % (scn.MyHeight/2.54)
+        rnd.resolution_x=scn.MyPWidth
+        rnd.resolution_y=scn.MyPHeight
+
+        # bpy.ops.render.render(scene="scn")
         return {'FINISHED'}
 
 
 def register():
-    pass
+    bpy.utils.register_class(OBJECT_OT_DoP2R)
+    bpy.utils.register_class(RENDER_PT_Print)
+
 
 def unregister():
-    pass
+    bpy.utils.unregister_class(OBJECT_OT_DoP2R)
+    bpy.utils.unregister_class(RENDER_PT_Print)
+
 
 if __name__ == "__main__":
     register()
