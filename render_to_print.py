@@ -206,15 +206,10 @@ class RENDER_PT_Print(bpy.types.Panel):
         row6.enabled=False
         col.separator()
         
-        row7.operator("object.dop2r", text="SET !", icon="RENDER_STILL")
+        row7.operator("object.dop2r", text="SET RENDER!", icon="RENDER_STILL")
         
         #  this if else deals with hiding UI elements when logic demands it.
         tipo,dim_w,dim_h = scn.MyPreset.split("_")
-
-        if tipo == "custom":
-            row.active=False
-            row.enabled=False
-
         if scn.MyFrom == "Cm--->Pixel":
             row5.active=False
             row5.enabled=False
