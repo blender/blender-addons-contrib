@@ -91,10 +91,8 @@ class VIEW3D_MT_ManipulatorMenu(bpy.types.Menu):
             
 def register():
     bpy.utils.register_module(__name__)
-    kc = bpy.data.window_managers[0].keyconfigs.default
-    km = kc.keymaps.get('3D View Generic')
-    if km is None:
-        km = kc.keymaps.new(name="3D View Generic")
+    kc = bpy.data.window_managers[0].keyconfigs.addon
+    km = kc.keymaps.new(name='3D View Generic', space_type='VIEW_3D')
 
     kmi = km.keymap_items.new('wm.call_menu', 'SPACE', 'PRESS' , ctrl=True)
     kmi.properties.name = "VIEW3D_MT_ManipulatorMenu"
@@ -102,7 +100,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    kc = bpy.data.window_managers[0].keyconfigs.default
+    kc = bpy.data.window_managers[0].keyconfigs.addon
     km = kc.keymaps["3D View Generic"]
 
     for kmi in km.items:
