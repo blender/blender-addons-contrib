@@ -26,7 +26,7 @@ bl_info = {
     "author": "Dolf Veenvliet",
     "version": (7,),
     "blender": (2, 5, 7),
-    "api": 36147,
+    "api": 39104,
     "location": "View3D > Specials > Normal Smooth ",
     "description": "Smooth the vertex position based on the normals",
     "warning": "",
@@ -52,7 +52,7 @@ from bpy.props import IntProperty
 def RotVtoV(vec1, vec2, rad):
     cross = vec1.cross(vec2)
     mat = mathutils.Matrix.Rotation(rad, 3, cross)
-    return (vec1 * mat)
+    return (mat * vec1)
 
 
 # Find the new coordinate for this verticle
