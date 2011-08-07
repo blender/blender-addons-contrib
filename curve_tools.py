@@ -20,8 +20,8 @@ bl_info = {
 	"name": "Curve Tools",
 	"author": "Zak",
 	"version": (0, 1, 5),
-	"blender": (2, 5, 8),
-	"api": 37702,
+	"blender": (2, 5, 9),
+	"api": 39104,
 	"location": "Properties > Object data",
 	"description": "Creates driven Lofts or Birails between curves",
 	"warning": "",
@@ -178,10 +178,10 @@ def cubic(p, t):
 #gets a bezier segment's control points on global coordinates
 def getbezpoints(spl, mt, seg=0):
 	points = spl.bezier_points
-	p0 = points[seg].co * mt
-	p1 = points[seg].handle_right * mt
-	p2 = points[seg+1].handle_left * mt
-	p3 = points[seg+1].co * mt	
+	p0 = mt * points[seg].co
+	p1 = mt * points[seg].handle_right
+	p2 = mt * points[seg+1].handle_left
+	p3 = mt * points[seg+1].co
 	return p0, p1, p2, p3
 
 #gets nurbs polygon control points on global coordinates
