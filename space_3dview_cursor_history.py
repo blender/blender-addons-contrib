@@ -28,7 +28,7 @@ bl_info = {
     'api': 36147,
     'location': 'View3D > Properties > Cursor',
     'description': 'Remembers the positions of the 3D-cursor and lets you navigate back and forth through the history.',
-    'warning': '', # used for warning icon and text in addons panel
+    'warning': 'This script is not working', # used for warning icon and text in addons panel
     'wiki_url': 'http://blenderpythonscripts.wordpress.com/',
     'tracker_url': '',
     'category': '3D View'}
