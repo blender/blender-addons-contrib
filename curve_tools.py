@@ -21,7 +21,7 @@ bl_info = {
 	"author": "Zak",
 	"version": (0, 1, 5),
 	"blender": (2, 5, 9),
-	"api": 39104,
+	"api": 39685,
 	"location": "Properties > Object data",
 	"description": "Creates driven Lofts or Birails between curves",
 	"warning": "",
