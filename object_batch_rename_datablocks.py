@@ -20,9 +20,9 @@ bl_info = {
     "name": "Batch Rename Datablocks",
     "author": "tstscr",
     "version": (1, 0),
-    "blender": (2, 5, 5),
-    "api": 33684,
-    "location": "use the search :)",
+    "blender": (2, 5, 9),
+    "api": 39685,
+    "location": "Search > (rename)",
     "description": "Batch renaming of datablocks (e.g. rename materials after objectnames)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
@@ -179,8 +179,10 @@ class OBJECT_OT_batch_rename_datablocks(bpy.types.Operator):
         
         
 def register():
+    bpy.utils.register_module(__name__)
     pass
 def unregister():
+    bpy.utils.unregister_module(__name__)
     pass
 if __name__ == '__main__':
     register()
