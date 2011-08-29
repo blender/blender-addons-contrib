@@ -22,9 +22,9 @@
 bl_info = {
     'name': '3d View: Manipulator Menu',
     'author': 'MichaelW',
-    'version': '1',
-    'blender': (2, 5, 3),
-    "api": 35324,
+    'version': '1,1',
+    'blender': (2, 5, 9),
+    "api": 39740,
     'location': 'View3D > Ctrl Space ',
     'description': 'Menu to change the manipulator type and/or disable it',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
@@ -83,9 +83,12 @@ class VIEW3D_MT_ManipulatorMenu(bpy.types.Menu):
 
         layout.separator()
 
-        bpy.context.space_data.show_manipulator =True
-#        layout.operator("view3d.disable_manipulator",text ='Disable', icon='MANIPUL')
-#        layout.separator()
+        prop = layout.operator("view3d.enable_manipulator",text ='Hide', icon='MAN_SCALE')
+        prop.scale = False
+        prop.rotate = False
+        prop.translate = False
+        
+        layout.separator()
 
 
             
