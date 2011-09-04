@@ -19,9 +19,9 @@
 bl_info = {
     "name": "LipSync Importer & Blinker",
     "author": "Yousef Harfoush - bat3a ;)",
-    "version": (0, 3, 0),
+    "version": (0, 3, 1),
     "blender": (2, 5, 9),
-    "api": 39300,
+    "api": 39800,
     "location": "3D window > Tool Shelf",
     "description": "Plot Papagayo's (or Jlipsync or Yolo) Moho file to frames and adds automatic blinking",
     "warning": "",
@@ -61,15 +61,15 @@ def blinker():
 
     if blinkphnm!=-1:
        
-        if scn.remnuTypes['enumBlinks'] == 0:
+        if scn.remnuTypes.enumBlinks == '0':
             modifier = 0
-        elif scn.remnuTypes['enumBlinks'] == 1:
-            modifier = scn['blinkMod']
+        elif scn.remnuTypes.enumBlinks == '1':
+            modifier = scn.blinkMod
         
         #creating keys with blinkNm count
-        for y in range(scn['blinkNm']):
+        for y in range(scn.blinkNm):
             
-            blinkfrm = y * scn['blinkSp'] + int(random()*modifier)
+            blinkfrm = y * scn.blinkSp + int(random()*modifier)
              
             crtkey(blinkphnm, blinkfrm)
 
@@ -149,17 +149,17 @@ def crtkey(phoneme, Skframe):
     #setting the active shape key to phonem
     obj.active_shape_key_index=phoneme
 
-    offst = scn['offset']     # offset value
-    skVlu = scn['skscale']    # shape key value
+    offst = scn.offset     # offset value
+    skVlu = scn.skscale    # shape key value
     
     #in case of Papagayo format
-    if scn.remnuTypes['enumFiles'] == 0 :
-        frmIn = scn['easeIn']     # ease in value
-        frmOut = scn['easeOut']   # ease out value
-        hldIn = scn['holdGap']    # holding time value
+    if scn.remnuTypes.enumFiles == '0' :
+        frmIn = scn.easeIn     # ease in value
+        frmOut = scn.easeOut   # ease out value
+        hldIn = scn.holdGap    # holding time value
         
     #in case of Jlipsync format or Yolo
-    elif scn.remnuTypes['enumFiles'] == 1 or scn.remnuTypes['enumFiles'] == 2:
+    elif scn.remnuTypes.enumFiles == '1' or scn.remnuTypes.enumFiles == '2':
         frmIn = 1
         frmOut = 1
         hldIn = 0
@@ -249,35 +249,21 @@ class LipSyncUI(bpy.types.Panel):
     var = bpy.props
     
     typ.mnuFunc = var.EnumProperty(name="Select Mode ", description="Select function",
-        items=(('0', 'Lipsyncer', ''), ('1', 'Blinker', '')), default='0')
+                                   items=(('0', 'Lipsyncer', ''), ('1', 'Blinker', '')), default='0')
         
     typ.fpath = var.StringProperty(name="Import File ", description="Select your voice file", subtype="FILE_PATH")
-    typ.skscale = var.FloatProperty(description="Smoothing shape key values", min=0.1, max=1.0)
-    typ.offset = var.IntProperty(description="Offset your frames")
+    typ.skscale = var.FloatProperty(description="Smoothing shape key values", min=0.1, max=1.0, default=0.8)
+    typ.offset = var.IntProperty(description="Offset your frames", default=0)
 
-    typ.easeIn = var.IntProperty(description="Smoothing In curve", min=1)
-    typ.easeOut = var.IntProperty(description="Smoothing Out curve", min=1)
-    typ.holdGap = var.IntProperty(description="Holding for slow keys", min=0)
+    typ.easeIn = var.IntProperty(description="Smoothing In curve", min=1, default=3)
+    typ.easeOut = var.IntProperty(description="Smoothing Out curve", min=1, default=3)
+    typ.holdGap = var.IntProperty(description="Holding for slow keys", min=0, default=0)
 
-    typ.blinkSp = var.IntProperty(description="Space between blinks", min=1)
-    typ.blinkNm = var.IntProperty(description="Number of blinks", min=1)
+    typ.blinkSp = var.IntProperty(description="Space between blinks", min=1, default=100)
+    typ.blinkNm = var.IntProperty(description="Number of blinks", min=1, default=10)
     
-    typ.blinkMod = var.IntProperty(description="Randomzing blinks keyframe placment", min=1)
-    
-    def __init__(self):
-        
-        scn = bpy.context.scene
-        
-        # intializing variables
-        props = [("offset", 0), ("skscale", 0.8), ("easeIn", 3), ("easeOut", 3), ("blinkSp", 100), 
-        ("blinkNm", 10), ("holdGap", 0),("blinkMod", 10)]
-        for p, num in props:
-            if not p in scn.keys():
-                bpy.context.scene[p] = num
-                scn.mnuFunc = '0'
-                scn.remnuTypes.enumFiles='0'
-                scn.remnuTypes.enumBlinks='0'
-                
+    typ.blinkMod = var.IntProperty(description="Randomzing blinks keyframe placment", min=1, default=10)
+               
     def draw(self, context):
         
         obj = bpy.context.object
@@ -301,11 +287,11 @@ class LipSyncUI(bpy.types.Panel):
         col.separator()
         
         #the lipsyncer panel
-        if bpy.context.scene['mnuFunc']==0:
+        if bpy.context.scene.mnuFunc == '0':
 
             col.row().prop(context.scene.remnuTypes, 'enumFiles', text = ' ', expand = True)
             
-            if scn.remnuTypes['enumFiles'] == 0:
+            if scn.remnuTypes.enumFiles == '0':
                 col.prop(context.scene, "fpath")
                 split = col.split(align=True)
                 split.label("Key Value :")
@@ -318,7 +304,7 @@ class LipSyncUI(bpy.types.Panel):
                 split.prop(context.scene, "holdGap", "Hold Gap")
                 split.prop(context.scene, "easeOut", "Ease Out")
                 
-            elif scn.remnuTypes['enumFiles'] == 1 or scn.remnuTypes['enumFiles'] == 2:
+            elif scn.remnuTypes.enumFiles == '1' or scn.remnuTypes.enumFiles == '2':
                 col.prop(context.scene, "fpath")
                 split = col.split(align=True)
                 split.label("Key Value :")
@@ -330,11 +316,11 @@ class LipSyncUI(bpy.types.Panel):
             col.operator('lipsync.go', text='Plote Keys PLEASE')
         
         #the blinker panel
-        if bpy.context.scene['mnuFunc']==1:
+        if bpy.context.scene.mnuFunc == '1':
             
             col.row().prop(context.scene.remnuTypes, 'enumBlinks', text = ' ', expand = True)
             
-            if scn.remnuTypes['enumBlinks'] == 0:
+            if scn.remnuTypes.enumBlinks == '0':
                 split = col.split(align=True)
                 split.label("Key Value :")
                 split.prop(context.scene, "skscale")
@@ -348,7 +334,7 @@ class LipSyncUI(bpy.types.Panel):
                 col.prop(context.scene, "blinkSp", "Spacing")
                 col.prop(context.scene, "blinkNm", "Times")
                 col.operator('blink.go', text='Blink Keys PLEASE')
-            elif scn.remnuTypes['enumBlinks'] == 1:
+            elif scn.remnuTypes.enumBlinks == '1':
                 split = col.split(align=True)
                 split.label("Key Value :")
                 split.prop(context.scene, "skscale")
@@ -366,8 +352,8 @@ class LipSyncUI(bpy.types.Panel):
                 col.operator('blink.go', text='Blink Keys PLEASE')
 
         col.separator()
-        col.label("Version 0.3")
-        col.label("Updated 15/08/2011")
+        col.label("Version 0.3.1")
+        col.label("Updated 05/09/2011")
         col.label("Yousef Harfoush")
 
 # clearing vars
@@ -391,7 +377,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    del bpy.context.scene['remnuTypes']
+    del bpy.context.scene.remnuTypes
 
     clear_properties()
 
