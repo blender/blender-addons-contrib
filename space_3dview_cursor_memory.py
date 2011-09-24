@@ -23,12 +23,12 @@
 bl_info = {
     'name': 'Cursor Memory',
     'author': 'Morgan Mörtsell (Seminumerical)',
-    'version': (0, 6, 0),
-    'blender': (2, 5, 7),
-    'api': 36147,
+    'version': (0, 6, 1),
+    'blender': (2, 5, 9),
+    'api': 39307,
     'location': 'View3D > Properties > Cursor',
     'description': '3D-cursor memory',
-    'warning': 'This script is not working', # used for warning icon and text in addons panel
+    'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://blenderpythonscripts.wordpress.com/',
     'tracker_url': '',
     'category': '3D View'}
@@ -59,7 +59,8 @@ bl_info = {
       QUESTIONS:
   
   
-  
+  --- 0.6.1 ---------------------------------------------------------------------------------------
+  2011-09-23 - Adaptations for the 2.59 API
   2011-05-10 - Refactoring: changes due to splitting of misc_utils.py...
   2011-05-08 - Refactoring: changes due to seminumerical.py renamed to misc_utils.py...
                    ...and moved bl_info

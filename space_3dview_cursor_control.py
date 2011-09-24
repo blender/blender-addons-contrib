@@ -23,12 +23,12 @@
 bl_info = {
     'name': 'Cursor Control',
     'author': 'Morgan Mörtsell (Seminumerical)',
-    'version': (0, 6, 0),
-    'blender': (2, 5, 7),
-    'api': 36147,
+    'version': (0, 6, 1),
+    'blender': (2, 5, 9),
+    'api': 39307,
     'location': 'View3D > Properties > Cursor',
     'description': 'Control the Cursor',
-    'warning': 'This script is not working', # used for warning icon and text in addons panel
+    'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://blenderpythonscripts.wordpress.com/',
     'tracker_url': '',
     'category': '3D View'}
@@ -58,6 +58,8 @@ bl_info = {
 
 
 
+  --- 0.6.1 ---------------------------------------------------------------------------------------
+  2011-09-23 - Adaptations for the 2.59 API
   2011-05-10 - Refactoring: changes due to splitting of misc_utils.py...
   2011-05-08 - Refactoring: changes due to seminumerical.py renamed to misc_utils.py...
                    ...and moved bl_info
@@ -323,17 +325,17 @@ class VIEW3D_OT_cursor_to_sl_mirror(bpy.types.Operator):
 
         if obj.data.total_vert_sel==1:
             sf = [f for f in obj.data.vertices if f.select == 1]
-            self.mirror(cc, Vector(sf[0].co)*mat)
+            self.mirror(cc, mat*Vector(sf[0].co))
             return {'FINISHED'}
 
         mati = mat.copy()
         mati.invert()
-        c = Vector(CursorAccess.getCursor())*mati
+        c = mati*Vector(CursorAccess.getCursor())
 
         if obj.data.total_vert_sel==2:
             sf = [f for f in obj.data.vertices if f.select == 1]
             p = G3.closestP2L(c, Vector(sf[0].co), Vector(sf[1].co))
-            self.mirror(cc, p*mat)
+            self.mirror(cc, mat*p)
             return {'FINISHED'}
             
         if obj.data.total_vert_sel==3:
@@ -344,7 +346,7 @@ class VIEW3D_OT_cursor_to_sl_mirror(bpy.types.Operator):
             normal = (v1-v0).cross(v2-v0)
             normal.normalize();            
             p = G3.closestP2S(c, v0, normal)
-            self.mirror(cc, p*mat)
+            self.mirror(cc, mat*p)
             return {'FINISHED'}
               
         if obj.data.total_face_sel==1:
@@ -355,7 +357,7 @@ class VIEW3D_OT_cursor_to_sl_mirror(bpy.types.Operator):
             normal = (v1-v0).cross(v2-v0)
             normal.normalize();            
             p = G3.closestP2S(c, v0, normal)
-            self.mirror(cc, p*mat)
+            self.mirror(cc, mat*p)
             return {'FINISHED'}
 
         return {'CANCELLED'}
@@ -379,7 +381,7 @@ class VIEW3D_OT_cursor_to_vertex(bpy.types.Operator):
         mati = mat.copy()
         mati.invert()
         vs = obj.data.vertices
-        c = Vector(CursorAccess.getCursor())*mati
+        c = mati*Vector(CursorAccess.getCursor())
         v = None
         d = -1
         for vv in vs:
@@ -392,7 +394,7 @@ class VIEW3D_OT_cursor_to_vertex(bpy.types.Operator):
                 d = dd
         if v==None:
             return
-        cc.setCursor(v*mat)
+        cc.setCursor(mat*v)
         return {'FINISHED'}
 
 
@@ -414,8 +416,8 @@ class VIEW3D_OT_cursor_to_line(bpy.types.Operator):
         if obj.data.total_vert_sel==2:
             sf = [f for f in obj.data.vertices if f.select == 1]
             p = CursorAccess.getCursor()
-            v0 = sf[0].co*mat
-            v1 = sf[1].co*mat
+            v0 = mat*sf[0].co
+            v1 = mat*sf[1].co
             q = G3.closestP2L(p, v0, v1)
             cc.setCursor(q)
             return {'FINISHED'}
@@ -423,7 +425,7 @@ class VIEW3D_OT_cursor_to_line(bpy.types.Operator):
             return {'CANCELLED'}
         mati = mat.copy()
         mati.invert()
-        c = Vector(CursorAccess.getCursor())*mati
+        c = mati*Vector(CursorAccess.getCursor())
         q = None
         d = -1
         for ee in obj.data.edges:
@@ -438,7 +440,7 @@ class VIEW3D_OT_cursor_to_line(bpy.types.Operator):
                 d = dd
         if q==None:
             return {'CANCELLED'}
-        cc.setCursor(q*mat)
+        cc.setCursor(mat*q)
         return {'FINISHED'}
 
 
@@ -460,8 +462,8 @@ class VIEW3D_OT_cursor_to_edge(bpy.types.Operator):
         if obj.data.total_vert_sel==2:
             sf = [f for f in obj.data.vertices if f.select == 1]
             p = CursorAccess.getCursor()
-            v0 = sf[0].co*mat
-            v1 = sf[1].co*mat
+            v0 = mat*sf[0].co
+            v1 = mat*sf[1].co
             q = G3.closestP2E(p, v0, v1)
             cc.setCursor(q)
             return {'FINISHED'}
@@ -469,7 +471,7 @@ class VIEW3D_OT_cursor_to_edge(bpy.types.Operator):
             return {'CANCELLED'}
         mati = mat.copy()
         mati.invert()
-        c = Vector(CursorAccess.getCursor())*mati
+        c = mati*Vector(CursorAccess.getCursor())
         q = None
         d = -1
         for ee in obj.data.edges:
@@ -484,7 +486,7 @@ class VIEW3D_OT_cursor_to_edge(bpy.types.Operator):
                 d = dd
         if q==None:
             return {'CANCELLED'}
-        cc.setCursor(q*mat)
+        cc.setCursor(mat*q)
         return {'FINISHED'}
 
 
@@ -512,8 +514,8 @@ class VIEW3D_OT_cursor_to_plane(bpy.types.Operator):
             normal = (v1-v0).cross(v2-v0)
             normal.normalize();
             p = CursorAccess.getCursor()
-            n = normal*mat-obj.location
-            v = v0*mat
+            n = mat*normal-obj.location
+            v = mat*v0
             k = - (p-v).dot(n) / n.dot(n)
             q = p+n*k
             cc.setCursor(q)
@@ -521,7 +523,7 @@ class VIEW3D_OT_cursor_to_plane(bpy.types.Operator):
 
         mati = mat.copy()
         mati.invert()
-        c = Vector(CursorAccess.getCursor())*mati
+        c = mati*Vector(CursorAccess.getCursor())
         q = None
         d = -1
         for ff in obj.data.faces:
@@ -534,7 +536,7 @@ class VIEW3D_OT_cursor_to_plane(bpy.types.Operator):
                 d = dd
         if q==None:
             return {'CANCELLED'}
-        cc.setCursor(q*mat)
+        cc.setCursor(mat*q)
         return {'FINISHED'}
 
 
@@ -556,7 +558,7 @@ class VIEW3D_OT_cursor_to_face(bpy.types.Operator):
         mat = obj.matrix_world
         mati = mat.copy()
         mati.invert()
-        c = Vector(CursorAccess.getCursor())*mati
+        c = mati*Vector(CursorAccess.getCursor())
         if obj.data.total_vert_sel==3:
             sf = [f for f in obj.data.vertices if f.select == 1]
             v0 = Vector(sf[0].co)
@@ -566,7 +568,7 @@ class VIEW3D_OT_cursor_to_face(bpy.types.Operator):
             normal = (v1-v0).cross(v2-v0)
             normal.normalize();
             q = G3.closestP2F(c, fv, normal)
-            cc.setCursor(q*mat)
+            cc.setCursor(mat*q)
             return {'FINISHED'}
 
         #visual = True
@@ -596,7 +598,7 @@ class VIEW3D_OT_cursor_to_face(bpy.types.Operator):
                 #qqi = MeshEditor.addVertex(qq)
                 #MeshEditor.addEdge(ci, qqi)
 
-        cc.setCursor(q*mat)
+        cc.setCursor(mat*q)
         return {'FINISHED'}
 
 
@@ -624,7 +626,7 @@ class VIEW3D_OT_cursor_to_vertex_median(bpy.types.Operator):
         if (n==0):
             return {'CANCELLED'}
         location = location / n
-        cc.setCursor(location*mat)
+        cc.setCursor(mat*location)
         return {'FINISHED'}
 
 
@@ -666,7 +668,7 @@ class VIEW3D_OT_cursor_to_linex(bpy.types.Operator):
 
         #q = geometry.intersect_line_line (e1v1, e1v2, e2v1, e2v2)[qc] * mat
         #i2 = geometry.intersect_line_line (e2v1, e2v2, e1v1, e1v2)[0] * mat
-        cc.setCursor(q*mat)
+        cc.setCursor(mat*q)
         return {'FINISHED'}
 
 
@@ -688,7 +690,7 @@ class VIEW3D_OT_cursor_to_cylinderaxis(bpy.types.Operator):
         mat = obj.matrix_world
         mati = mat.copy()
         mati.invert()
-        c = Vector(CursorAccess.getCursor())*mati
+        c = mati*Vector(CursorAccess.getCursor())
 
         sf = [f for f in obj.data.vertices if f.select == 1]
         v0 = Vector(sf[0].co)
@@ -698,7 +700,7 @@ class VIEW3D_OT_cursor_to_cylinderaxis(bpy.types.Operator):
         q = G3.closestP2CylinderAxis(c, fv)
         if(q==None):
             return {'CANCELLED'}
-        cc.setCursor(q*mat)
+        cc.setCursor(mat*q)
         return {'FINISHED'}     
 
 
@@ -720,7 +722,7 @@ class VIEW3D_OT_cursor_to_spherecenter(bpy.types.Operator):
         mat = obj.matrix_world
         mati = mat.copy()
         mati.invert()
-        c = Vector(CursorAccess.getCursor())*mati
+        c = mati*Vector(CursorAccess.getCursor())
 
         if obj.data.total_vert_sel==3:
             sf = [f for f in obj.data.vertices if f.select == 1]
@@ -732,7 +734,7 @@ class VIEW3D_OT_cursor_to_spherecenter(bpy.types.Operator):
             #q = G3.centerOfSphere(fv)
             if(q==None):
                 return {'CANCELLED'}
-            cc.setCursor(q*mat)
+            cc.setCursor(mat*q)
             return {'FINISHED'}
         if obj.data.total_vert_sel==4:
             sf = [f for f in obj.data.vertices if f.select == 1]
@@ -744,7 +746,7 @@ class VIEW3D_OT_cursor_to_spherecenter(bpy.types.Operator):
             q = G3.centerOfSphere(fv)
             if(q==None):
                 return {'CANCELLED'}
-            cc.setCursor(q*mat)
+            cc.setCursor(mat*q)
             return {'FINISHED'}
         return {'CANCELLED'}
 
@@ -768,7 +770,7 @@ class VIEW3D_OT_cursor_to_perimeter(bpy.types.Operator):
         mat = obj.matrix_world
         mati = mat.copy()
         mati.invert()
-        c = Vector(CursorAccess.getCursor())*mati
+        c = mati*Vector(CursorAccess.getCursor())
 
         if obj.data.total_vert_sel==3:
             sf = [f for f in obj.data.vertices if f.select == 1]
@@ -780,7 +782,7 @@ class VIEW3D_OT_cursor_to_perimeter(bpy.types.Operator):
             if(q==None):
                 return {'CANCELLED'}
             #q = G3.centerOfSphere(fv)
-            cc.setCursor(q*mat)
+            cc.setCursor(mat*q)
             return {'FINISHED'}
         if obj.data.total_vert_sel==4:
             sf = [f for f in obj.data.vertices if f.select == 1]
@@ -792,7 +794,7 @@ class VIEW3D_OT_cursor_to_perimeter(bpy.types.Operator):
             q = G3.closestP2Sphere(c, fv)
             if(q==None):
                 return {'CANCELLED'}
-            cc.setCursor(q*mat)
+            cc.setCursor(mat*q)
             return {'FINISHED'}
         return {'CANCELLED'}
 
@@ -816,7 +818,7 @@ class VIEW3D_OT_cursor_to_perimeter(bpy.types.Operator):
         #mat = obj.matrix_world
         #mati = mat.copy()
         #mati.invert()
-        #c = Vector(CursorAccess.getCursor())*mati
+        #c = mati*Vector(CursorAccess.getCursor())
 
         #if obj.data.total_vert_sel==3:
             #sf = [f for f in obj.data.vertices if f.select == 1]
@@ -888,7 +890,7 @@ class VIEW3D_OT_cursor_stepval_phi2(bpy.types.Operator):
 
     def execute(self, context):
         cc = context.scene.cursor_control
-        cc.stepLengthValue = PHI_SQ
+        cc.stepLengthValue = PHI_SQR
         BlenderFake.forceRedraw()
         return {'FINISHED'}
 
@@ -912,7 +914,7 @@ class VIEW3D_OT_cursor_stepval_vvdist(bpy.types.Operator):
         mat = obj.matrix_world
         mati = mat.copy()
         mati.invert()
-        c = Vector(CursorAccess.getCursor())*mati
+        c = mati*Vector(CursorAccess.getCursor())
 
         sf = [f for f in obj.data.vertices if f.select == 1]
         v0 = Vector(sf[0].co)
