@@ -55,7 +55,7 @@
 #   Remove all "bpy.ops" operations with "bpy.data" base operations.
 #   Remove material/texture cataloging with building a list of
 #       returned values from bpy.data.*.new() operations.
-#       *** Completed on 9/6/2011 *** 
+#       *** Completed on 9/6/2011 ***
 #   Search for places where list comprehensions can be used.
 #   Look for alternate methods
 #       - Possible alternate and more efficient data structures
@@ -108,7 +108,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy, math, time
+import (bpy,
+        math,
+        time)
 from add_mesh_rocks import (settings,
                             utils)
 from bpy_extras import object_utils
@@ -146,6 +148,7 @@ except:
 # Global variables:
 lastRock = 0
 
+
 # Creates a new mesh:
 #
 # param: verts - Vector of vertices for the mesh.
@@ -166,8 +169,7 @@ def create_mesh_object(context, verts, edges, faces, name):
     mesh.update()
 
     return object_utils.object_data_add(context, mesh, operator=None)
-##    import add_object_utils
-##    return add_object_utils.object_data_add(context, mesh, operator=None)
+
 
 # Set the values for a texture from parameters.
 #
@@ -176,7 +178,6 @@ def create_mesh_object(context, verts, edges, faces, name):
 #                   -> Below 10 is a displacment texture
 #                   -> Between 10 and 20 is a base material texture
 def randomizeTexture(texture, level=1):
-    
     noises = ['BLENDER_ORIGINAL', 'ORIGINAL_PERLIN', 'IMPROVED_PERLIN',
               'VORONOI_F1', 'VORONOI_F2', 'VORONOI_F3', 'VORONOI_F4',
               'VORONOI_F2_F1', 'VORONOI_CRACKLE']
@@ -193,46 +194,44 @@ def randomizeTexture(texture, level=1):
         texture.noise_depth = 8
 
         if level == 0:
-            texture.noise_scale = gauss(0.625, 1/24)
+            texture.noise_scale = gauss(0.625, 1 / 24)
         elif level == 2:
             texture.noise_scale = 0.15
         elif level == 11:
-            texture.noise_scale = gauss(0.5, 1/24)
-            
-            if texture.noise_basis in ['BLENDER_ORIGINAL','ORIGINAL_PERLIN',
+            texture.noise_scale = gauss(0.5, 1 / 24)
+
+            if texture.noise_basis in ['BLENDER_ORIGINAL', 'ORIGINAL_PERLIN',
                                        'IMPROVED_PERLIN', 'VORONOI_F1']:
-                texture.intensity = gauss(1, 1/6)
-                texture.contrast = gauss(4, 1/3)
+                texture.intensity = gauss(1, 1 / 6)
+                texture.contrast = gauss(4, 1 / 3)
             elif texture.noise_basis in ['VORONOI_F2', 'VORONOI_F3', 'VORONOI_F4']:
-                texture.intensity = gauss(0.25, 1/12)
-                texture.contrast = gauss(2, 1/6)
+                texture.intensity = gauss(0.25, 1 / 12)
+                texture.contrast = gauss(2, 1 / 6)
             elif texture.noise_basis == 'VORONOI_F2_F1':
-                texture.intensity = gauss(0.5, 1/6)
-                texture.contrast = gauss(2, 1/6)
+                texture.intensity = gauss(0.5, 1 / 6)
+                texture.contrast = gauss(2, 1 / 6)
             elif texture.noise_basis == 'VORONOI_CRACKLE':
-                texture.intensity = gauss(0.5, 1/6)
-                texture.contrast = gauss(2, 1/6)
+                texture.intensity = gauss(0.5, 1 / 6)
+                texture.contrast = gauss(2, 1 / 6)
     elif texture.type == 'MUSGRAVE':
         musgraveType = ['MULTIFRACTAL', 'RIDGED_MULTIFRACTAL',
                         'HYBRID_MULTIFRACTAL', 'FBM', 'HETERO_TERRAIN']
-##        tempInt = randint(0, 3)
-##        texture.musgrave_type = musgraveType[tempInt]
         texture.musgrave_type = 'MULTIFRACTAL'
         texture.dimension_max = abs(gauss(0, 0.6)) + 0.2
         texture.lacunarity = beta(3, 8) * 8.2 + 1.8
 
         if level == 0:
-            texture.noise_scale = gauss(0.625, 1/24)
+            texture.noise_scale = gauss(0.625, 1 / 24)
             texture.noise_intensity = 0.2
             texture.octaves = 1.0
         elif level == 2:
-            texture.intensity = gauss(1, 1/6)
+            texture.intensity = gauss(1, 1 / 6)
             texture.contrast = 0.2
             texture.noise_scale = 0.15
             texture.octaves = 8.0
         elif level == 10:
-            texture.intensity = gauss(0.25, 1/12)
-            texture.contrast = gauss(1.5, 1/6)
+            texture.intensity = gauss(0.25, 1 / 12)
+            texture.contrast = gauss(1.5, 1 / 6)
             texture.noise_scale = 0.5
             texture.octaves = 8.0
         elif level == 12:
@@ -240,7 +239,7 @@ def randomizeTexture(texture, level=1):
         elif level > 12:
             texture.octaves = uniform(2, 8)
         else:
-            texture.intensity = gauss(1, 1/6)
+            texture.intensity = gauss(1, 1 / 6)
             texture.contrast = 0.2
             texture.octaves = 8.0
     elif texture.type == 'DISTORTED_NOISE':
@@ -251,11 +250,11 @@ def randomizeTexture(texture, level=1):
         texture.distortion = skewedGauss(2.0, 2.6666, (0.0, 10.0), False)
 
         if level == 0:
-            texture.noise_scale = gauss(0.625, 1/24)
+            texture.noise_scale = gauss(0.625, 1 / 24)
         elif level == 2:
             texture.noise_scale = 0.15
         elif level >= 12:
-            texture.noise_scale = gauss(0.2, 1/48)
+            texture.noise_scale = gauss(0.2, 1 / 48)
     elif texture.type == 'STUCCI':
         stucciTypes = ['PLASTIC', 'WALL_IN', 'WALL_OUT']
         if randint(0, 1) == 0:
@@ -268,7 +267,7 @@ def randomizeTexture(texture, level=1):
         if level == 0:
             tempInt = randint(0, 6)
             texture.noise_basis = noises[tempInt]
-            texture.noise_scale = gauss(0.625, 1/24)
+            texture.noise_scale = gauss(0.625, 1 / 24)
         elif level == 2:
             tempInt = randint(0, 6)
             texture.noise_basis = noises[tempInt]
@@ -276,7 +275,7 @@ def randomizeTexture(texture, level=1):
         elif level >= 12:
             tempInt = randint(0, 6)
             texture.noise_basis = noises[tempInt]
-            texture.noise_scale = gauss(0.2, 1/30)
+            texture.noise_scale = gauss(0.2, 1 / 30)
         else:
             tempInt = randint(0, 6)
             texture.noise_basis = noises[tempInt]
@@ -287,7 +286,7 @@ def randomizeTexture(texture, level=1):
         if level == 0:
             tempInt = randint(0, 1)
             texture.distance_metric = metrics[tempInt]
-            texture.noise_scale = gauss(0.625, 1/24)
+            texture.noise_scale = gauss(0.625, 1 / 24)
             texture.contrast = 0.5
             texture.intensity = 0.7
         elif level == 2:
@@ -297,14 +296,15 @@ def randomizeTexture(texture, level=1):
         elif level >= 12:
             tempInt = randint(0, 1)
             texture.distance_metric = metrics[tempInt]
-            texture.noise_scale = gauss(0.125, 1/48)
+            texture.noise_scale = gauss(0.125, 1 / 48)
             texture.contrast = 0.5
             texture.intensity = 0.7
         else:
             tempInt = randint(0, 6)
             texture.distance_metric = metrics[tempInt]
-        
+
     return
+
 
 # Generates an object based on one of several different mesh types.
 # All meshes have exactly eight vertices, and may be built from either
@@ -333,7 +333,7 @@ def generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY, sigmaY,
     x = []
     y = []
     z = []
-    shape = randint(0,11)
+    shape = randint(0, 11)
 
     # Cube
     # Use parameters to re-scale cube:
@@ -505,7 +505,7 @@ def generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY, sigmaY,
                     z.append(skewedGauss(0, sigmaZ, scaleZ, upperSkewZ) / 6)
     elif shape == 5:
         for j in range(10):
-            if j== 0:
+            if j == 0:
                 if sigmaX == 0:
                     x.append(0)
                 else:
@@ -721,7 +721,7 @@ def generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY, sigmaY,
         averageZ = (sum(z) / len(z)) * scale_fac[2]
         for i in range(len(z)):
             z[i] /= averageZ
-    
+
     # Build vertex and face arrays:
     if shape == 1:
         verts = [(-x[0],-y[0],-z[0]),(x[1],-y[1],-z[1]),(x[2],-y[2],z[2]),
@@ -814,25 +814,25 @@ def generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY, sigmaY,
             #   *** Completed 7/15/2011: Changed second one ***
             mesh.edges[i].crease = gauss(0.125, 0.125)
     elif shape == 1:
-        for i in [0,2]:
+        for i in [0, 2]:
             mesh.edges[i].crease = gauss(0.5, 0.125)
-        for i in [6,9,11,12]:
+        for i in [6, 9, 11, 12]:
             mesh.edges[i].crease = gauss(0.25, 0.05)
-        for i in [5,7,15,16]:
+        for i in [5, 7, 15, 16]:
             mesh.edges[i].crease = gauss(0.125, 0.025)
     elif shape == 2:
         for i in range(18):
             mesh.edges[i].crease = gauss(0.125, 0.025)
     elif shape == 3:
-        for i in [0,1,6,10,13]:
+        for i in [0, 1, 6, 10, 13]:
             mesh.edges[i].crease = gauss(0.25, 0.05)
         mesh.edges[8].crease = gauss(0.5, 0.125)
     elif shape == 4:
-        for i in [5,6,7,10,14,16,19,21]:
+        for i in [5, 6, 7, 10, 14, 16, 19, 21]:
             mesh.edges[i].crease = gauss(0.5, 0.125)
     elif shape == 7:
         for i in range(18):
-            if i in [0,1,2,3,6,7,8,9,13,16]:
+            if i in [0, 1, 2, 3, 6, 7, 8, 9, 13, 16]:
                 mesh.edges[i].crease = gauss(0.5, 0.125)
             elif i in [11,17]:
                 mesh.edges[i].crease = gauss(0.25, 0.05)
@@ -840,7 +840,7 @@ def generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY, sigmaY,
                 mesh.edges[i].crease = gauss(0.125, 0.025)
     elif shape == 8:
         for i in range(12):
-            if i in [0,3,8,9,10]:
+            if i in [0, 3, 8, 9, 10]:
                 mesh.edges[i].crease = gauss(0.5, 0.125)
             elif i == 11:
                 mesh.edges[i].crease = gauss(0.25, 0.05)
@@ -848,26 +848,27 @@ def generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY, sigmaY,
                 mesh.edges[i].crease = gauss(0.125, 0.025)
     elif shape == 9:
         for i in range(12):
-            if i in [0,3,4,11]:
+            if i in [0, 3, 4, 11]:
                 mesh.edges[i].crease = gauss(0.5, 0.125)
             else:
                 mesh.edges[i].crease = gauss(0.25, 0.05)
     elif shape == 10:
         for i in range(12):
-            if i in [0,2,3,4,8,11]:
+            if i in [0, 2, 3, 4, 8, 11]:
                 mesh.edges[i].crease = gauss(0.5, 0.125)
-            elif i in [1,5,7]:
+            elif i in [1, 5, 7]:
                 mesh.edges[i].crease = gauss(0.25, 0.05)
             else:
                 mesh.edges[i].crease = gauss(0.125, 0.025)
     elif shape == 11:
         for i in range(11):
-            if i in [1,2,3,4,8,11]:
+            if i in [1, 2, 3, 4, 8, 11]:
                 mesh.edges[i].crease = gauss(0.25, 0.05)
             else:
                 mesh.edges[i].crease = gauss(0.125, 0.025)
 
     return name
+
 
 # Randomizes the given material given base values.
 #
@@ -879,7 +880,7 @@ def randomizeMaterial(material, color, dif_int, rough,
     lastUsedTex = 1
     numTex = 6
     baseColor = []
-    
+
     # Diffuse settings:
     material.diffuse_shader = 'OREN_NAYAR'
     if 0.5 > dif_int:
@@ -899,9 +900,10 @@ def randomizeMaterial(material, color, dif_int, rough,
 
     for i in range(3):
         if color[i] > 0.9 or color[i] < 0.1:
-            baseColor.append(skewedGauss(color[i], color[i]/30, (0, 1), color[i] > 0.9))
+            baseColor.append(skewedGauss(color[i], color[i] / 30,
+                                         (0, 1), color[i] > 0.9))
         else:
-            baseColor.append(gauss(color[i], color[i]/30))
+            baseColor.append(gauss(color[i], color[i] / 30))
     material.diffuse_color = baseColor
 
     # Specular settings:
@@ -912,14 +914,16 @@ def randomizeMaterial(material, color, dif_int, rough,
     else:
         variance = (1 - spec_int) / 3
         skew = True
-    material.specular_intensity = skewedGauss(spec_int, stddev, (0.0, 1.0), skew)
+    material.specular_intensity = skewedGauss(spec_int, stddev,
+                                              (0.0, 1.0), skew)
     if 256 > spec_hard:
         variance = (spec_hard - 1) / 3
         skew = False
     else:
         variance = (511 - spec_hard) / 3
         skew = True
-    material.specular_hardness = int(round(skewedGauss(spec_hard, stddev, (1.0, 511.0), skew)))
+    material.specular_hardness = int(round(skewedGauss(spec_hard, stddev,
+                                                       (1.0, 511.0), skew)))
     if 5.0 > spec_IOR:
         variance = spec_IOR / 3
         skew = False
@@ -933,7 +937,8 @@ def randomizeMaterial(material, color, dif_int, rough,
     #   bpy.data.textures[newTex[<index>]]
     #   *** Completed on 9/6/2011 ***
     # Create the four new textures:
-    textureTypes = ['MUSGRAVE', 'CLOUDS', 'DISTORTED_NOISE', 'STUCCI', 'VORONOI']
+    textureTypes = ['MUSGRAVE', 'CLOUDS', 'DISTORTED_NOISE',
+                    'STUCCI', 'VORONOI']
 
     for i in range(numTex):
         texColor = []
@@ -953,9 +958,10 @@ def randomizeMaterial(material, color, dif_int, rough,
             # Set the texture's color (RGB):
             for j in range(3):
                 if color[j] > 0.9 or color[j] < 0.1:
-                    texColor.append(skewedGauss(color[j], color[j]/30, (0, 1), color[j] > 0.9))
+                    texColor.append(skewedGauss(color[j], color[j] / 30,
+                                                (0, 1), color[j] > 0.9))
                 else:
-                    texColor.append(gauss(color[j], color[j]/30))
+                    texColor.append(gauss(color[j], color[j]/ 30))
             slot.color = texColor
             # Randomize the value (HSV):
             v = material.diffuse_color.v
@@ -971,19 +977,24 @@ def randomizeMaterial(material, color, dif_int, rough,
                 slot.scale = (gauss(5, 1), gauss(5, 1), gauss(5, 1))
                 slot.normal_factor = gauss(rough / 10, rough / 30)
             elif slot.texture.type == 'STUCCI':
-                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25), gauss(1.5, 0.25))
+                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
+                              gauss(1.5, 0.25))
                 slot.normal_factor = gauss(rough / 10, rough / 30)
             elif slot.texture.type == 'DISTORTED_NOISE':
-                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25), gauss(1.5, 0.25))
+                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
+                              gauss(1.5, 0.25))
                 slot.normal_factor = gauss(rough / 10, rough / 30)
             elif slot.texture.type == 'MUSGRAVE':
-                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25), gauss(1.5, 0.25))
+                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
+                              gauss(1.5, 0.25))
                 slot.normal_factor = gauss(rough, rough / 3)
             elif slot.texture.type == 'CLOUDS':
-                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25), gauss(1.5, 0.25))
+                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
+                              gauss(1.5, 0.25))
                 slot.normal_factor = gauss(rough, rough / 3)
 
-            # Set the color influence to 0.5.  This allows for the moss textures to show:
+            # Set the color influence to 0.5.
+            # This allows for the moss textures to show:
             slot.diffuse_color_factor = 0.5
             # Set additional influence booleans:
             slot.use_stencil = True
@@ -1026,6 +1037,7 @@ def randomizeMaterial(material, color, dif_int, rough,
         randomizeTexture(slot.texture, 10 + i)
     
     return
+
 
 # Artifically skews a normal (gaussian) distribution.  This will not create a continuous
 # distribution curve but instead acts as a piecewise finction.
@@ -1070,6 +1082,7 @@ def skewedGauss(mu, sigma, bounds, upperSkewed=True):
         out = raw
 
     return out
+
 
 # @todo create a def for generating an alpha and beta for a beta distribution given
 #   a mu, sigma, and an upper and lower bound.  This proved faster in profiling in
@@ -1418,14 +1431,6 @@ class rocks(bpy.types.Operator):
     mat_mossy = FloatProperty(name = "Mossiness",
                               description = "Amount of mossiness on the rocks",
                               min = 0.0, max = 1.0, default = defaults[21])
-    # *** Below will not be implemented ***
-##    mat_shape = IntProperty(name = "Shape",
-##                            description = "Shape of the distribution of generated textures.  0 is normal, 1 is uniform.",
-##                            min = 0, max = 100, default = 0)
-    # *** Below will not be implemented ***
-##    mat_var = FloatProperty(name = "Varience",
-##                            description = "Varience of generated textures",
-##                            min = 0.0, max = 100.0, default = 5)
 
     use_random_seed = BoolProperty(name = "Use a random seed",
                                   description = "Create a seed based on time. Causes user seed to be ignored.",
@@ -1433,6 +1438,7 @@ class rocks(bpy.types.Operator):
     user_seed = IntProperty(name = "User seed",
                             description = "Use a specific seed for the generator.",
                             min = 0, max = 1048576, default = defaults[23])
+
 
     def draw(self, context):
         layout = self.layout
@@ -1466,13 +1472,12 @@ class rocks(bpy.types.Operator):
             box.prop(self, 'mat_spec')
             box.prop(self, 'mat_hard')
             box.prop(self, 'mat_mossy')
-##            box.prop(self, 'mat_shape')
-##            box.prop(self, 'mat_var')
         box = layout.box()
         box.prop(self, 'use_random_seed')
         if not self.use_random_seed:
             box.prop(self, 'user_seed')
         box.prop(self, 'preset_values')
+
 
     def execute(self, context):
         # The following "if" block loads preset values:
@@ -1491,7 +1496,6 @@ class rocks(bpy.types.Operator):
             self.display_detail = int(self.presetsList[int(self.preset_values)][12])
             self.smooth_fac = float(self.presetsList[int(self.preset_values)][13])
             self.smooth_it = int(self.presetsList[int(self.preset_values)][14])
-##            self.mat_enable = bool(self.presetsList[int(self.preset_values)][15])
             self.mat_color = utils.toFloats(self.presetsList[int(self.preset_values)][16])
             self.mat_bright = float(self.presetsList[int(self.preset_values)][17])
             self.mat_rough = float(self.presetsList[int(self.preset_values)][18])
@@ -1527,8 +1531,6 @@ class rocks(bpy.types.Operator):
                       self.mat_spec,
                       self.mat_hard,
                       self.mat_mossy,
-##                      self.mat_shape,
-##                      self.mat_var,
                       self.num_of_rocks,
                       self.user_seed,
                       self.use_scale_dis,

@@ -20,19 +20,23 @@ presets = []
 
 #----- Gets and Sets -----#
 
+
 def getDefault():
     global default    
     return default
 
+
 def getPresetLists():
     global presets
     return presets
+
 
 def getPreset(ID = 0):
     global presets
     return presets[ID]
 
 #---------- Core ----------#
+
 
 def parse():
     global xmlDefault
@@ -46,20 +50,21 @@ def parse():
     # Parse preset values
     for setting in xmlPresets:
         presets.append(parseNode(setting))
-    
+
     return '{FINISHED}'
+
 
 # Takes a node and parses it for data.  Relies on that setting.xml has
 #   a valid format as specified by the DTD.
 # For some reason minidom places an empty child node for every other node.
 def parseNode(setting, title = True):
     loc = 1
-    
+
     if title:
         # Preset name (xmlPreset.childNodes[1]):
         title = setting.childNodes[loc].childNodes[0].data
         loc += 2
-        
+
     # Preset size values (xmlPreset.childNodes[3]):
     scaleX = [float(setting.childNodes[loc].childNodes[1].childNodes[3].childNodes[0].data),
               float(setting.childNodes[loc].childNodes[1].childNodes[5].childNodes[0].data)]
@@ -76,7 +81,7 @@ def parseNode(setting, title = True):
         use_scale_dis = True
     scale_fac = utils.toList(setting.childNodes[loc].childNodes[15].childNodes[0].data)
     loc += 2
-    
+
     # Presst shape values (xmlPreset.childNodes[5]):
     deform = float(setting.childNodes[loc].childNodes[1].childNodes[0].data)
     rough = float(setting.childNodes[loc].childNodes[3].childNodes[0].data)
@@ -85,7 +90,7 @@ def parseNode(setting, title = True):
     smooth_fac = float(setting.childNodes[loc].childNodes[9].childNodes[0].data)
     smooth_it = int(setting.childNodes[loc].childNodes[11].childNodes[0].data)
     loc += 2
-    
+
     # Preset material values (xmlPreset.childNodes[7]):
     if setting.childNodes[loc].childNodes[1].childNodes[0].data == 'False':
         mat_enable = False
@@ -107,20 +112,23 @@ def parseNode(setting, title = True):
     user_seed = int(setting.childNodes[loc].childNodes[3].childNodes[0].data)
 
     if title:
-        parsed = [title, scaleX, scaleY, scaleZ, skewX, skewY, skewZ, use_scale_dis, scale_fac,
-                  deform, rough, detail, display_detail, smooth_fac, smooth_it,
-                  mat_enable, mat_color, mat_bright, mat_rough, mat_spec, mat_hard,
-                  mat_mossy, use_random_seed, user_seed]
+        parsed = [title, scaleX, scaleY, scaleZ, skewX, skewY, skewZ,
+                  use_scale_dis, scale_fac, deform, rough, detail,
+                  display_detail, smooth_fac, smooth_it, mat_enable, mat_color,
+                  mat_bright, mat_rough, mat_spec, mat_hard, mat_mossy,
+                  use_random_seed, user_seed]
     else:
-        parsed = [scaleX, scaleY, scaleZ, skewX, skewY, skewZ, use_scale_dis, scale_fac,
-                  deform, rough, detail, display_detail, smooth_fac, smooth_it,
-                  mat_enable, mat_color, mat_bright, mat_rough, mat_spec, mat_hard,
-                  mat_mossy, use_random_seed, user_seed]
+        parsed = [scaleX, scaleY, scaleZ, skewX, skewY, skewZ, use_scale_dis,
+                  scale_fac, deform, rough, detail, display_detail, smooth_fac,
+                  smooth_it, mat_enable, mat_color, mat_bright, mat_rough,
+                  mat_spec, mat_hard, mat_mossy, use_random_seed, user_seed]
 
     return parsed
 
+
 def save():
     return '{FINISHED}'
+
 
 def _print():
     for i in presets:

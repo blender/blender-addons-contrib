@@ -72,7 +72,7 @@
 			<deform>5.0</deform>
 			<rough>2.5</rough>
 			<detail>3</detail>
-			<display_detail>3</display_detail>
+			<display_detail>2</display_detail>
 			<smooth_fac>0.0</smooth_fac>
 			<smooth_it>0</smooth_it>
 		</shape>

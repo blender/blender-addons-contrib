@@ -11,7 +11,8 @@
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
-#  The Blender Rock Creation tool is for rapid generation of mesh rocks in Blender.
+#  The Blender Rock Creation tool is for rapid generation of
+#  mesh rocks in Blender.
 #  Copyright (C) 2011  Paul Marshall
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -32,12 +33,13 @@
 bl_info = {
     "name": "Rock Generator",
     "author": "Paul Marshall (brikbot)",
-    "version": (1,3),
+    "version": (1, 3),
     "blender": (2, 5, 9),
     "api": 40246,
     "location": "View3D > Add > Rock Generator",
     "description": "Adds a mesh rock to the Add Mesh menu",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/Rock_Generator",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5"\
+        "/Py/Scripts/Add_Mesh/Rock_Generator",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=27314",
     "category": "Add Mesh"}
@@ -51,19 +53,24 @@ else:
 import bpy
 
 # Register:
-
 def menu_func_rocks(self, context):
-    self.layout.operator(rockgen.rocks.bl_idname, text="Rock Generator", icon = "PLUGIN")
+    self.layout.operator(rockgen.rocks.bl_idname,
+                         text = "Rock Generator",
+                         icon = "PLUGIN")
+
 
 def register():
     bpy.utils.register_module(__name__)
 
     bpy.types.INFO_MT_mesh_add.append(menu_func_rocks)
 
+
 def unregister():
     bpy.utils.unregister_module(__name__)
 
     bpy.types.INFO_MT_mesh_add.remove(menu_func_rocks)
 
+
 if __name__ == "__main__":
     register()
+
