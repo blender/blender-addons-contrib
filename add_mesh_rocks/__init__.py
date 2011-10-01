@@ -30,6 +30,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 bl_info = {
     "name": "Rock Generator",
     "author": "Paul Marshall (brikbot)",

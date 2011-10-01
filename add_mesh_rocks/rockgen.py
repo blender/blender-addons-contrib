@@ -108,9 +108,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import (bpy,
-        math,
-        time)
+# <pep8 compliant>
+
+import bpy
+import math
+import time
 from add_mesh_rocks import (settings,
                             utils)
 from bpy_extras import object_utils
@@ -155,7 +157,7 @@ lastRock = 0
 #        edges - Edges for the mesh.  Can be "[]".
 #        faces - Face tuples corresponding to vertices.
 #        name  - Name of the mesh.
-def create_mesh_object(context, verts, edges, faces, name):
+def createMeshObject(context, verts, edges, faces, name):
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
 
@@ -799,7 +801,7 @@ def generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY, sigmaY,
     name = "Rock." + str(base + shift).zfill(3)
 
     # Make object:
-    obj = create_mesh_object(context, verts, [], faces, name)
+    obj = createMeshObject(context, verts, [], faces, name)
 
     if scaleDisplace:
         bpy.data.objects[name].scale = Vector((averageX, averageY, averageZ))
@@ -961,7 +963,7 @@ def randomizeMaterial(material, color, dif_int, rough,
                     texColor.append(skewedGauss(color[j], color[j] / 30,
                                                 (0, 1), color[j] > 0.9))
                 else:
-                    texColor.append(gauss(color[j], color[j]/ 30))
+                    texColor.append(gauss(color[j], color[j] / 30))
             slot.color = texColor
             # Randomize the value (HSV):
             v = material.diffuse_color.v
@@ -1007,17 +1009,17 @@ def randomizeMaterial(material, color, dif_int, rough,
             slot.texture.type = textureTypes[i]
 
             # Set the mosses color (RGB):
-            texColor.append(gauss(0.5, 1/6))
+            texColor.append(gauss(0.5, 1 / 6))
             texColor.append(1)
             texColor.append(0)
             slot.color = texColor
             # Randomize the value (HSV):
-            slot.color.v = gauss(0.275, 1/24)
+            slot.color.v = gauss(0.275, 1 / 24)
 
             # Scale the texture size:
             slot.scale = (gauss(1.5, 0.25),
                           gauss(1.5, 0.25),
-                          gauss(1.5, 0.25))    
+                          gauss(1.5, 0.25))
 
             # Set the strength of the moss color:
             slot.diffuse_color_factor = mossiness
@@ -1035,12 +1037,12 @@ def randomizeMaterial(material, color, dif_int, rough,
                 slot.use = False
 
         randomizeTexture(slot.texture, 10 + i)
-    
+
     return
 
 
-# Artifically skews a normal (gaussian) distribution.  This will not create a continuous
-# distribution curve but instead acts as a piecewise finction.
+# Artifically skews a normal (gaussian) distribution.  This will not create
+# a continuous distribution curve but instead acts as a piecewise finction.
 # This linearly scales the output on one side to fit the bounds.
 #
 # Example output historgrams:
@@ -1053,7 +1055,7 @@ def randomizeMaterial(material, color, dif_int, rough,
 #  |                _██          |     ██
 #  |              _▄███_         |     ██ _
 #  |             ▄██████         |    ▄██▄█▄_
-#  |          _█▄███████         |    ███████  
+#  |          _█▄███████         |    ███████
 #  |         _██████████_        |   ████████▄▄█_ _
 #  |      _▄▄████████████        |   ████████████▄█_
 #  | _▄_ ▄███████████████▄_      | _▄███████████████▄▄_
@@ -1064,12 +1066,14 @@ def randomizeMaterial(material, color, dif_int, rough,
 #
 # param:  mu          - mu is the mean of the distribution.
 #         sigma       - sigma is the standard deviation of the distribution.
-#         bounds      - bounds[0] is the lower bound and bounds[1] is the upper bound.
+#         bounds      - bounds[0] is the lower bound and bounds[1]
+#                       is the upper bound.
 #         upperSkewed - if the distribution is upper skewed.
 # return: out         - Rondomly generated value from the skewed distribution.
 #
-# @todo: Because NumPy's random value generators are faster when called a bunch of times
-# at once, maybe allow this to generate and return multiple values at once?
+# @todo: Because NumPy's random value generators are faster when called
+#   a bunch of times at once, maybe allow this to generate and return
+#   multiple values at once?
 def skewedGauss(mu, sigma, bounds, upperSkewed=True):
     raw = gauss(mu, sigma)
 
@@ -1084,10 +1088,11 @@ def skewedGauss(mu, sigma, bounds, upperSkewed=True):
     return out
 
 
-# @todo create a def for generating an alpha and beta for a beta distribution given
-#   a mu, sigma, and an upper and lower bound.  This proved faster in profiling in
-#   addition to providing a much better distribution curve provided multiple
-#   iterations happen within this function; otherwise it was slower.
+# @todo create a def for generating an alpha and beta for a beta distribution
+#   given a mu, sigma, and an upper and lower bound.  This proved faster in
+#   profiling in addition to providing a much better distribution curve
+#   provided multiple iterations happen within this function; otherwise it was
+#   slower.
 #   This might be a scratch because of the bounds placed on mu and sigma:
 #
 #   For alpha > 1 and beta > 1:
@@ -1097,7 +1102,7 @@ def skewedGauss(mu, sigma, bounds, upperSkewed=True):
 #
 ##def generateBeta(mu, sigma, scale, repitions=1):
 ##    results = []
-##    
+##
 ##    return results
 
 # Creates rock objects:
@@ -1118,7 +1123,7 @@ def generateRocks(context, scaleX, skewX, scaleY, skewY, scaleZ, skewZ,
     shift = 0
     lastUsedTex = 1
     vertexScaling = []
-    
+
     # Seed the random Gaussian value generator:
     if randomSeed:
         seed(int(time.time()))
@@ -1127,8 +1132,10 @@ def generateRocks(context, scaleX, skewX, scaleY, skewY, scaleZ, skewZ,
 
     if mat_enable:
         # Calculate the number of materials to use.
-        #   If less than 10 rocks are being generated, generate one material per rock.
-        #   If more than 10 rocks are being generated, generate ceil[(1/9)n + (80/9)] materials.
+        #   If less than 10 rocks are being generated, generate one material
+        #       per rock.
+        #   If more than 10 rocks are being generated, generate
+        #       ceil[(1/9)n + (80/9)] materials.
         #       -> 100 rocks will result in 20 materials
         #       -> 1000 rocks will result in 120 materials.
         if numOfRocks < 10:
@@ -1170,7 +1177,8 @@ def generateRocks(context, scaleX, skewX, scaleY, skewY, scaleZ, skewZ,
     #   *** todo completed 4/22/2011 ***
     #   *** Code now generating "int not scriptable error" in Blender ***
     #
-    # Calculate mu and sigma for a Gaussian distributed random number generation:
+    # Calculate mu and sigma for a Gaussian distributed random number
+    #   generation:
     # If the lower and upper bounds are the same, skip the math.
     #
     # sigma is the standard deviation of the values.  The 95% interval is three
@@ -1225,14 +1233,16 @@ def generateRocks(context, scaleX, skewX, scaleY, skewY, scaleZ, skewZ,
         # todo Map what the two new textures will be:
         # This is not working.  It works on paper so . . . ???
         #   *** todo completed on 4/23/2011 ***
-        #   *** todo re-added as the first rock is getting 'Texture.001' twice. ***
+        #   *** todo re-added as the first rock is getting
+        #       'Texture.001' twice. ***
         #   *** todo completed on 4/25/2011 ***
         #   *** Script no longer needs to map new texture names 9/6/2011 ***
 
         # Create the four new textures:
         # todo Set displacement texture parameters:
         #   *** todo completed on 5/31/2011 ***
-        # Voronoi has been removed from being an option for the fine detail texture.
+        # Voronoi has been removed from being an option for the fine detail
+        #   texture.
         texTypes = ['CLOUDS', 'MUSGRAVE', 'DISTORTED_NOISE', 'STUCCI', 'VORONOI']
         newTex = []
         # The first texture is to give a more ranodm base shape appearance:
@@ -1265,8 +1275,8 @@ def generateRocks(context, scaleX, skewX, scaleY, skewY, scaleZ, skewZ,
         rock.modifiers.new(name = "Displace", type = 'DISPLACE')
         rock.modifiers.new(name = "Displace", type = 'DISPLACE')
 
-        # If smoothing is enabled, allow a little randomness into the smoothing factor.
-        # Then add the smoothing modifier.
+        # If smoothing is enabled, allow a little randomness into the
+        #   smoothing factor. Then add the smoothing modifier.
         if smooth_fac > 0.0 and smooth_it > 0:
             rock.modifiers.new(name = "Smooth", type='SMOOTH')
             rock.modifiers[6].factor = gauss(smooth_fac, (smooth_fac ** 0.5) / 12)
@@ -1287,15 +1297,15 @@ def generateRocks(context, scaleX, skewX, scaleY, skewY, scaleZ, skewZ,
         #   *** added third modifier on 4/28/2011 ***
         #   *** texture access changed on 9/6/2011 ***
         rock.modifiers[2].texture = newTex[0]
-        rock.modifiers[2].strength = gauss(deform / 100, (1/300) * deform)
+        rock.modifiers[2].strength = gauss(deform / 100, (1 / 300) * deform)
         rock.modifiers[2].mid_level = 0
         rock.modifiers[3].texture = newTex[1]
-        rock.modifiers[3].strength = gauss(deform, (1/3) * deform)
+        rock.modifiers[3].strength = gauss(deform, (1 / 3) * deform)
         rock.modifiers[3].mid_level = 0
         rock.modifiers[4].texture = newTex[2]
-        rock.modifiers[4].strength = gauss(rough * 2, (1/3) * rough)
+        rock.modifiers[4].strength = gauss(rough * 2, (1 / 3) * rough)
         rock.modifiers[5].texture = newTex[3]
-        rock.modifiers[5].strength = gauss(rough, (1/3) * rough)
+        rock.modifiers[5].strength = gauss(rough, (1 / 3) * rough)
 
         # Set mesh to be smooth and fix the normals:
         utils.smooth(bpy.data.meshes[name])
@@ -1314,7 +1324,7 @@ def generateRocks(context, scaleX, skewX, scaleY, skewY, scaleZ, skewZ,
     lastRock += shift + 1
 
     return
-        
+
 
 # Much of the code below is more-or-less imitation of other addons and as such
 # I have left it undocumented.
@@ -1505,7 +1515,7 @@ class rocks(bpy.types.Operator):
             self.use_random_seed = bool(self.presetsList[int(self.preset_values)][22])
             self.user_seed = int(self.presetsList[int(self.preset_values)][23])
             self.lastPreset = int(self.preset_values)
-            
+
         # todo Add deform, deform_Var, rough, and rough_Var:
         #   *** todo completed 4/23/2011 ***
         #   *** Eliminated "deform_Var" and "rough_Var" so the script is not
