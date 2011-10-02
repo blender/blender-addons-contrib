@@ -19,22 +19,6 @@
 
 
 
-# Blender Add-Ons menu registration (in User Prefs)
-bl_info = {
-    'name': 'Cursor History',
-    'author': 'Morgan Mörtsell (Seminumerical)',
-    'version': (0, 6, 1),
-    'blender': (2, 5, 9),
-    'api': 39307,
-    'location': 'View3D > Properties > Cursor',
-    'description': 'Remembers the positions of the 3D-cursor and lets you navigate back and forth through the history.',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://blenderpythonscripts.wordpress.com/',
-    'tracker_url': '',
-    'category': '3D View'}
-
-
-
 """
   TODO:
 
@@ -57,73 +41,6 @@ bl_info = {
 
 
 
-  --- 0.6.1 ---------------------------------------------------------------------------------------
-  2011-09-23 - Adaptations for the 2.59 API
-  2011-05-10 - Refactoring: changes due to splitting of misc_utils.py...
-  2011-05-08 - Refactoring: changes due to seminumerical.py renamed to misc_utils.py...
-                 ...and moved bl_info
-  --- 0.6.0 ---------------------------------------------------------------------------------------
-  2011-04-21 - Adaptations for the 2.57 API
-                  Updated registration procedures
-  --- pre 0.5.0 -----------------------------------------------------------------------------------
-  2011-01-29 - Refactoring: History addon separated from Cursor Control
-	       Refactoring: Changed some names to something more suitable
-  2011-01-16 - Small cleanup
-               Step length added to Control panel
-               Added move_to_SL to Control, and reworked SL_recall for Memory panel
-               More changes due to refactoring in the seminumerical module
-  2011-01-13 - Changes due to refactoring in the seminumerical module
-               Changes due to bugfix in seminumerical module
-               Bugfix: Mirror now correctly ignores additional vertices when a face is selected.
-               Improved history tracker with back and forward buttons.
-               Split addon into three panels (Control, Memory and History)
-  2011-01-12 - Some buttons are now hidden in edit mode.
-               Changed some icons
-               Changed some operator names
-               Refactored setCursor into the CursorControl class.
-               A working version of the move-to-with-offset feature
-               Changed the workings of move to center of cylinder and sphere.
-               Changed the workings of move to perimeter of cylinder and sphere.
-               Basic history tracker with undo working
-  --- pre 0.4.1 -----------------------------------------------------------------------------------
-  2011-01-09 - Support for Blender 2.56a
-  --- pre 0.4 -----------------------------------------------------------------------------------
-  2010-11-15 - Support for Blender 2.55b
-  2010-10-28 - Added Cursor Location to the panel
-  2010-10-10 - Refactored drawButton into utility class seminumerical.GUI
-  2010-10-06 - Desaturated color of SL-cursor
-  2010-10-02 - SL is now drawn as a dimmed replica of 3D-cursor 
-               Four point sphere.
-  2010-09-27 - Some cleanup and refactoring.
-               Gathered all properties in a single structure (CursorControlData).
-               Updates due to refactoring of the seminumerical module
-  2010-09-15 - Default value of view3d_cursor_linex_choice is now -1
-               Improved some operator descriptions.
-               Changed bl_addon_info.name
-  --- pre 0.3 -----------------------------------------------------------------------------------
-  2010-09-15 - Closest point on 3-point sphere
-               Fixed bug in cc_closestP2F. It now works as intended on quad faces.
-               Changed 'circum center' to the more generic 'closest point on cylinder axis'
-               SL is nolonger destroyed by cursor_to_linex
-               Changed some icons in the UI
-  --- pre 0.2.1 -----------------------------------------------------------------------------------
-  2010-09-14 - Support for Blender 2.54b
-  --- pre 0.2.0 -----------------------------------------------------------------------------------
-  2010-09-14 - Fixed bug in cursor_to_face
-  2010-09-13 - Triangle circumcenter (3-point circle center)
-               View now updates when enable/disable draw is clicked
-               Expand / contract SL properties.
-  2010-09-12 - Fixed enable/disable buttons
-               Move to closest vertex/line/edge/plane/face
-               UI redesigned
-  2010-09-11 - Local view now works like a charm
-  --- pre 0.1.0 -----------------------------------------------------------------------------------
-  2010-09-06 - Force update callback was interfering with undo.
-               Thankfully the verts, edge and face select-count updates as it should,
-               so I was able to read get the necessary information from there.
-               Forced update is now done inside the operators where mesh data is accessed.
-  2010-09-05 - Force update for edit mode is now working.
-               Thanks to Buerbaum Martin (Pontiac). I peeked a bit at his code for registering a callback...
 """
 
 
@@ -263,6 +180,8 @@ class VIEW3D_PT_cursor_history(bpy.types.Panel):
     @classmethod
     def poll(self, context):
         # Display in object or edit mode.
+        cc = context.scene.cursor_history
+        cc.addHistoryLocation(CursorAccess.getCursor())
         if (context.area.type == 'VIEW_3D' and
             (context.mode == 'EDIT_MESH'
             or context.mode == 'OBJECT')):
@@ -296,7 +215,6 @@ class VIEW3D_PT_cursor_history(bpy.types.Panel):
         col = row.column()
         col.prop(CursorAccess.findSpace(), "cursor_location")
 
-        cc.addHistoryLocation(CursorAccess.getCursor())
   
                 
 
@@ -368,18 +286,3 @@ def cursor_history_draw(cls,context):
             bgl.glVertex2f(ppp[0], ppp[1])
             ccc = ccc + 1
         bgl.glEnd()
-
-
-
-def register():
-    bpy.utils.register_module(__name__)
-    # Register Cursor Control Structure
-    bpy.types.Scene.cursor_history = bpy.props.PointerProperty(type=CursorHistoryData, name="")
-        
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-
-if __name__ == "__main__":
-    register()
