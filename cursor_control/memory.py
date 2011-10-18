@@ -69,9 +69,9 @@ class CursorMemoryData(bpy.types.PropertyGroup):
 
 
 class VIEW3D_OT_cursor_memory_save(bpy.types.Operator):
-    '''Save cursor location.'''
+    '''Save cursor location'''
     bl_idname = "view3d.cursor_memory_save"
-    bl_label = "Save cursor location."
+    bl_label = "Save cursor location"
     bl_options = {'REGISTER'}
 
     def modal(self, context, event):
@@ -86,9 +86,9 @@ class VIEW3D_OT_cursor_memory_save(bpy.types.Operator):
 
 
 class VIEW3D_OT_cursor_memory_swap(bpy.types.Operator):
-    '''Swap cursor location.'''
+    '''Swap cursor location'''
     bl_idname = "view3d.cursor_memory_swap"
-    bl_label = "Swap cursor location."
+    bl_label = "Swap cursor location"
     bl_options = {'REGISTER'}
 
     def modal(self, context, event):
@@ -104,9 +104,9 @@ class VIEW3D_OT_cursor_memory_swap(bpy.types.Operator):
 
 
 class VIEW3D_OT_cursor_memory_recall(bpy.types.Operator):
-    '''Recall cursor location.'''
+    '''Recall cursor location'''
     bl_idname = "view3d.cursor_memory_recall"
-    bl_label = "Recall cursor location."
+    bl_label = "Recall cursor location"
     bl_options = {'REGISTER'}
 
     def modal(self, context, event):
@@ -120,9 +120,9 @@ class VIEW3D_OT_cursor_memory_recall(bpy.types.Operator):
 
 
 class VIEW3D_OT_cursor_memory_show(bpy.types.Operator):
-    '''Show cursor memory.'''
+    '''Show cursor memory'''
     bl_idname = "view3d.cursor_memory_show"
-    bl_label = "Show cursor memory."
+    bl_label = "Show cursor memory"
     bl_options = {'REGISTER'}
 
     def modal(self, context, event):
@@ -137,9 +137,9 @@ class VIEW3D_OT_cursor_memory_show(bpy.types.Operator):
 
 
 class VIEW3D_OT_cursor_memory_hide(bpy.types.Operator):
-    '''Hide cursor memory.'''
+    '''Hide cursor memory'''
     bl_idname = "view3d.cursor_memory_hide"
-    bl_label = "Hide cursor memory."
+    bl_label = "Hide cursor memory"
     bl_options = {'REGISTER'}
 
     def modal(self, context, event):
