@@ -28,7 +28,7 @@ bl_info = {
     "tracker_url": "http://projects.blender.org/tracker/?func=detail&atid=467&aid=25349",
     "category": "Object"}
  
-import bpy
+import bpy , random
 from bpy.props import *
 import mathutils
 import math
@@ -84,6 +84,24 @@ def do_drop(context,tmpObj, ob):
         print('\nno hit')
         return    
 
+# compute randomisation based on the general or specific percentage chosen
+# if the specific percentage is zero then the general percentage is used
+def compute_percentage(min,max,value,percentage):
+        range = max-min
+        general_percentage = bpy.context.scene.general_percentage
+        
+        if percentage == 0:
+            percentage_random = ( value -((range*(general_percentage/100))/2) )+ (range * (general_percentage / 100) * random.random())
+        else:
+            percentage_random = ( value - ((range*(percentage/100))/2)) + (range * (percentage / 100) * random.random())
+             
+        if percentage_random > max:
+            percentage_random = max
+        if percentage_random < min:
+            percentage_random = min
+        
+        return percentage_random 
+
 def main(self, context):
 
     print('\n_______START__________')
@@ -104,6 +122,13 @@ def main(self, context):
     for ob in obs:
         bpy.ops.object.select_all(action='DESELECT')
         ob.select = True
+        if sc.random_loc :
+            print("randomising the location of object : ", ob.name)
+            print("current location :" + str(ob.location))
+            ob.location = (compute_percentage(0,100,ob.location[0],10),
+                           compute_percentage(0,100,ob.location[1],10),
+                           compute_percentage(0,100,ob.location[2],10))
+            print("randomised location : ", str(ob.location))
         do_drop(context, tmpObj, ob)
 
     bpy.ops.object.select_all(action='DESELECT')
@@ -128,6 +153,7 @@ class VIEW3D_PT_tools_drop_to_ground(bpy.types.Panel):
         col.operator("object.drop_to_ground", text="Drop")
         col.prop(context.scene, "align_object")
         col.prop(context.scene, "use_center")
+       # col.prop(context.scene, "random_loc")
         
         
 class OBJECT_OT_drop_to_ground(bpy.types.Operator):
@@ -155,11 +181,15 @@ def register():
         name="Use the center to drop",
         description="When dropping the object will be relocated on the basis of its senter",
         default=False)
+     bpy.types.Scene.random_loc = BoolProperty(
+        name="Random Location",
+        description="When dropping the object will be relocated randomly ",
+        default=False)
     
 def unregister():
     bpy.utils.unregister_module(__name__)
     del bpy.types.Scene.align_object
     del bpy.types.Scene.use_center
-
+    del bpy.types.Scene.random_loc
 if __name__ == '__main__':
     register()
