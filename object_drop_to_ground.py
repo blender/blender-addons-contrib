@@ -88,7 +88,7 @@ def do_drop(context,tmpObj, ob):
 # if the specific percentage is zero then the general percentage is used
 def compute_percentage(min,max,value,percentage):
         range = max-min
-        general_percentage = bpy.context.scene.general_percentage
+        general_percentage = 100
         
         if percentage == 0:
             percentage_random = ( value -((range*(general_percentage/100))/2) )+ (range * (general_percentage / 100) * random.random())
