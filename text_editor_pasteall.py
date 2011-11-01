@@ -19,9 +19,9 @@
 bl_info = {
     "name": "PasteAll",
     "author": "Dalai Felinto (dfelinto)",
-    "version": (0,6),
-    "blender": (2, 5, 7),
-    "api": 36007,
+    "version": (0,7),
+    "blender": (2, 6, 0),
+    "api": 41374,
     "location": "Text editor > Properties panel",
     "description": "Send your selection or text to www.pasteall.org",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
@@ -92,24 +92,23 @@ class TEXT_OT_pasteall(bpy.types.Operator):
         html = self.send_text(text, format)
 
         if html is None:
-            self.report('ERROR', "Error in sending the text to the server.")
+            self.report({'ERROR'}, "Error in sending the text to the server.")
             return {'CANCELLED'}
 
         # get the link of the posted page
         page = self.get_page(str(html))
         
         if page is None or page == "":
-            self.report('ERROR', "Error in retrieving the page.")
+            self.report({'ERROR'}, "Error in retrieving the page.")
             return {'CANCELLED'}
         else:
-            self.report('INFO', page)
+            self.report({'INFO'}, page)
 
         # store the link in the clipboard
         bpy.context.window_manager.clipboard = page
 
         if context.scene.use_webbrowser:
             try:
-                _webbrowser_bug_fix()
                 webbrowser.open_new_tab(page)
             except:
                 self.report('WARNING', "Error in opening the page %s." % (page))
@@ -220,65 +219,4 @@ def unregister():
 if __name__ == "__main__":
     register()
 
-def _webbrowser_bug_fix():
-    """hack copied from wm.py"""
-    # test for X11
-    import os
-
-    if os.environ.get("DISPLAY"):
-
-        # BSD licenced code copied from python, temp fix for bug
-        # http://bugs.python.org/issue11432, XXX == added code
-        def _invoke(self, args, remote, autoraise):
-            # XXX, added imports
-            import io
-            import subprocess
-            import time
-
-            raise_opt = []
-            if remote and self.raise_opts:
-                # use autoraise argument only for remote invocation
-                autoraise = int(autoraise)
-                opt = self.raise_opts[autoraise]
-                if opt:
-                    raise_opt = [opt]
-
-            cmdline = [self.name] + raise_opt + args
-
-            if remote or self.background:
-                inout = io.open(os.devnull, "r+")
-            else:
-                # for TTY browsers, we need stdin/out
-                inout = None
-            # if possible, put browser in separate process group, so
-            # keyboard interrupts don't affect browser as well as Python
-            setsid = getattr(os, 'setsid', None)
-            if not setsid:
-                setsid = getattr(os, 'setpgrp', None)
-
-            p = subprocess.Popen(cmdline, close_fds=True,  # XXX, stdin=inout,
-                                 stdout=(self.redirect_stdout and inout or None),
-                                 stderr=inout, preexec_fn=setsid)
-            if remote:
-                # wait five secons. If the subprocess is not finished, the
-                # remote invocation has (hopefully) started a new instance.
-                time.sleep(1)
-                rc = p.poll()
-                if rc is None:
-                    time.sleep(4)
-                    rc = p.poll()
-                    if rc is None:
-                        return True
-                # if remote call failed, open() will try direct invocation
-                return not rc
-            elif self.background:
-                if p.poll() is None:
-                    return True
-                else:
-                    return False
-            else:
-                return not p.wait()
-
-        import webbrowser
-        webbrowser.UnixBrowser._invoke = _invoke
 
