@@ -22,9 +22,9 @@
 bl_info = {
     'name': '3d View: Manipulator Menu',
     'author': 'MichaelW',
-    'version': '1,1',
-    'blender': (2, 5, 9),
-    "api": 39740,
+    'version': (1, 2 ,1),
+    'blender': (2, 6, 1),
+    "api": 41599,
     'location': 'View3D > Ctrl Space ',
     'description': 'Menu to change the manipulator type and/or disable it',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
@@ -94,19 +94,19 @@ class VIEW3D_MT_ManipulatorMenu(bpy.types.Menu):
             
 def register():
     bpy.utils.register_module(__name__)
-    kc = bpy.data.window_managers[0].keyconfigs.addon
-    km = kc.keymaps.new(name='3D View Generic', space_type='VIEW_3D')
 
-    kmi = km.keymap_items.new('wm.call_menu', 'SPACE', 'PRESS' , ctrl=True)
+    wm = bpy.context.window_manager
+    km = wm.keyconfigs.addon.keymaps.new(name='3D View Generic', space_type='VIEW_3D')
+    kmi = km.keymap_items.new('wm.call_menu', 'SPACE', 'PRESS', ctrl=True)
     kmi.properties.name = "VIEW3D_MT_ManipulatorMenu"
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    kc = bpy.data.window_managers[0].keyconfigs.addon
-    km = kc.keymaps["3D View Generic"]
 
-    for kmi in km.items:
+    wm = bpy.context.window_manager
+    km = wm.keyconfigs.addon.keymaps['3D View Generic']
+    for kmi in km.keymap_items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == "VIEW3D_MT_ManipulatorMenu":
                 km.keymap_items.remove(kmi)
