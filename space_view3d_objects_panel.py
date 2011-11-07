@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Add Objects Panel",
     "author": "Murat Egretli (Demohero)",
-    "version": (1,1),
-    "blender": (2, 5, 7),
-    "api": 36147,
+    "version": (1,2),
+    "blender": (2, 6, 1),
+    "api": 41599,
     "location": "View3D > Toolbar",
     "description": "add objects(mesh, curve etc.) from Toolbar",
     "warning": "",
@@ -56,6 +56,7 @@ class VIEW3D_PT_add_menu(View3DPanel,bpy.types.Panel):
         layout.operator_menu_enum("object.effector_add", "type", text="Force Field", icon='OUTLINER_OB_EMPTY')
         layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
         layout.operator("object.add", text="Empty", icon='OUTLINER_OB_EMPTY').type = 'EMPTY'
+        layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
         layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
       
