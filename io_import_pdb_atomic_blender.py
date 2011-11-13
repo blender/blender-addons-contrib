@@ -6,8 +6,8 @@ from math import *
 import mathutils, math
 from mathutils import Vector
 #
-PDBFILE   = "/media/Daten/Data/X -- 2011/Programming/Python/Blender/Load_PDB/PDB files/cyano-[5]-Helicene.pdb"
-DATAFILE  = "/media/Daten/Data/X -- 2011/Programming/Python/Blender/Load_PDB/Atomic_Blender_CB.dat"
+PDBFILE   = "PATH TO PDB FILE"
+DATAFILE  = "PATH TO DATA FILE"
 #
 #
 #
