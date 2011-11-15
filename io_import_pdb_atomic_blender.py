@@ -43,8 +43,8 @@ from mathutils import Vector
 PDBFILE   = "PATH TO PDB FILE"
 DATAFILE  = "PATH TO DATA FILE"
 
-Atomic_Blender_string     = "Atomic Blender 1.1 -- Dr. Clemens Barth -- November 2011\n======================================================="
-Atomic_Blender_panel_name = "Atomic Blender 1.1"
+Atomic_Blender_string     = "Atomic Blender 1.1 -- Dr. Clemens Barth -- November 2011\n========================================================"
+Atomic_Blender_panel_name = "PDB - Atomic Blender"
 
 
 class OBJECT_PDB_Panel(bpy.types.Panel):
@@ -57,101 +57,107 @@ class OBJECT_PDB_Panel(bpy.types.Panel):
         layout = self.layout
         scn    = bpy.context.scene
 
-
-        layout.operator( "fp.button_delete_all" )
-        row = layout.row()
-        layout.operator( "fp.button_delete_atoms" )
-        layout.operator( "fp.button_delete_camlamp" )
         row = layout.row()
         layout.prop(scn, "pdb_filepath")
         layout.prop(scn, "data_filepath")
         row = layout.row()
 
-        row.label("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
 
         row = layout.row()
         row.prop(scn, "entry_group_atoms_yesno")
-        row = layout.row()
         row.prop(scn, "entry_group_atoms_dn")
-        row = layout.row()
-
-        row.label("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-        row = layout.row()
-        
-        row.prop(scn, "entry_mesh_yesno")
-        row = layout.row()
-        row.prop(scn, "entry_sectors_azimuth")
-        row.prop(scn, "entry_sectors_zenith")
-        
-        row = layout.row()
-        row.label("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-        row = layout.row()
-
-        row.label(text="Scaling factors")
-        row = layout.row()
-        row.prop(scn, "entry_ball_radius")
-        row.prop(scn, "entry_distances")
 
         row = layout.row()
-        row.label("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-        row = layout.row()
-        
-        row.prop(scn, "entry_sticks_yesno")
-        row = layout.row()
-        row.prop(scn, "entry_sticks_sectors")
-        row.prop(scn, "entry_sticks_radius")
+        col = row.column(align=True)        
+        col.prop(scn, "entry_mesh_yesno")
+        col.prop(scn, "entry_sectors_azimuth")
+        col.prop(scn, "entry_sectors_zenith")        
+        col = row.column(align=True)        
+        col.label(text="Scaling factors")
+        col.prop(scn, "entry_ball_radius")
+        col.prop(scn, "entry_distances")
+        col = row.column(align=True) 
+        col.prop(scn, "entry_sticks_yesno")
+        col.prop(scn, "entry_sticks_sectors")
+        col.prop(scn, "entry_sticks_radius")
 
-        row = layout.row()
-        row.label("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-        row = layout.row()
+        row = layout.row()        
+        col = row.column(align=True)  
+        col.prop(scn, "entry_scene_x")
+        col.prop(scn, "entry_scene_y")
+        col.prop(scn, "entry_scene_z")
+        col = row.column()         
+        col.prop(scn, "entry_center_yesno")
+
+        row = layout.row(align=True)        
+        col = row.column()
+        col.prop(scn, "entry_cam_yesno")
+        col.prop(scn, "entry_lamp_yesno")        
+        col = row.column() 
+        col.operator( "fp.button_start" )
+        row2 = col.row()
+        row2.label(text="Number of atoms")
+        row2.prop(scn, "entry_start_number_atoms")
+
         
-        row.prop(scn, "entry_center_yesno")
-        row = layout.row()    
-        row = layout.row()
-        row.label(text="Now, use an offset for all objects")
-        row = layout.row()
-        row.prop(scn, "entry_scene_x")
-        row.prop(scn, "entry_scene_y")
-        row.prop(scn, "entry_scene_z")
-       
-        row = layout.row()
-        row.label("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-        row = layout.row()
-        
-        row.prop(scn, "entry_cam_yesno")
-        row.prop(scn, "entry_lamp_yesno")
-        row = layout.row()  
-        layout.operator( "fp.button_start" )
-        row = layout.row()  
-        row.label(text="No. of atoms: ")
-        row.prop(scn, "entry_start_number_atoms")
         
         if scn.entry_group_atoms_yesno == False:        
-            row = layout.row()       
-            row.label("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-            row = layout.row()
-            row.prop(scn, "entry_distance")
-            layout.operator( "fp.button_distance" )        
-            row = layout.row()       
-            row.label("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-            row = layout.row()
+
+            row = layout.row()             
+            row.operator( "fp.button_distance")
+            row.prop(scn, "entry_distance") 
+            
+            row = layout.row()                   
             row.label(text="Modification of the radii of one type of atom")
             row = layout.row()
-            row.prop(scn, "entry_mod_atomname")
-            row = layout.row()
-            row.prop(scn, "entry_mod_pm_yesno")
-            row.prop(scn, "entry_mod_pm_radius")
-            row = layout.row()
-            row.prop(scn, "entry_mod_rel_yesno")
-            row.prop(scn, "entry_mod_rel_radius")
-            layout.operator( "fp.button_modify" )
-            row = layout.row()
+            col = row.column()            
+            col.prop(scn, "entry_mod_pm_yesno")
+            col.prop(scn, "entry_mod_pm_radius")
+            col = row.column()  
+            col.prop(scn, "entry_mod_rel_yesno")
+            col.prop(scn, "entry_mod_rel_radius")
+            col = row.column()
+            col.prop(scn, "entry_mod_atomname")
+            col.operator( "fp.button_modify" )            
+
+            row = layout.row()            
             row.label(text="Modification of all atom radii")
             row = layout.row()
             row.prop(scn, "entry_mod_all_radii")
-            layout.operator( "fp.button_modify_2" )
+            row.operator( "fp.button_modify_2" )
+            row = layout.row()
+            row.prop(scn, "entry_mod_all_radii_inv")
+            row.operator( "fp.button_modify_3" )
 
 
+class Input_Output(bpy.types.PropertyGroup):
+    bpy.types.Scene.pdb_filepath              = bpy.props.StringProperty(name = "PDB  File", description="Path to the PDB file", maxlen = 256, default = PDBFILE, subtype='FILE_PATH', options={'HIDDEN'})
+    bpy.types.Scene.data_filepath             = bpy.props.StringProperty(name = "DATA File", description="Path to the dat file", maxlen = 256, default = DATAFILE, subtype='FILE_PATH')
+    bpy.types.Scene.entry_group_atoms_yesno   = bpy.props.BoolProperty  (name = "Group atoms", default=False, description = "Grouping same type of atoms speeds up the loading of large-atom-PDB files")    
+    bpy.types.Scene.entry_group_atoms_dn      = bpy.props.IntProperty   (name = "Delta N", default=200, min=0, description = "")
+    bpy.types.Scene.entry_mesh_yesno          = bpy.props.BoolProperty  (name = "Mesh balls", default=False, description = "Yes or no")    
+    bpy.types.Scene.entry_sectors_azimuth     = bpy.props.IntProperty   (name = "Azimuth", default=32, min=0, description = "")
+    bpy.types.Scene.entry_sectors_zenith      = bpy.props.IntProperty   (name = "Zenith", default=32, min=0, description = "")
+    bpy.types.Scene.entry_ball_radius         = bpy.props.FloatProperty (name = "Balls", default=1.0, min=0.0, description = "Ball radius")
+    bpy.types.Scene.entry_distances           = bpy.props.FloatProperty (name = "Distances", default=1.0, min=0.0, description = "All distances")
+    bpy.types.Scene.entry_center_yesno        = bpy.props.BoolProperty  (name = "Object to origin", default=True, description = "Yes or no")    
+    bpy.types.Scene.entry_scene_x             = bpy.props.FloatProperty (name = "X", default=0.0, description = "X coordinate")
+    bpy.types.Scene.entry_scene_y             = bpy.props.FloatProperty (name = "Y", default=0.0, description = "Y coordinate")
+    bpy.types.Scene.entry_scene_z             = bpy.props.FloatProperty (name = "Z", default=0.0, description = "Z coordinate")
+    bpy.types.Scene.entry_sticks_yesno        = bpy.props.BoolProperty  (name = "Use sticks", default=False, description = "Shall sticks connect the atoms?")    
+    bpy.types.Scene.entry_sticks_sectors      = bpy.props.IntProperty   (name = "Sector", default = 20, min=0,   description = "Number of sectors of a stick")        
+    bpy.types.Scene.entry_sticks_radius       = bpy.props.FloatProperty (name = "Radius", default =  0.1, min=0.0, description = "Radius of a stick")  
+    bpy.types.Scene.entry_cam_yesno           = bpy.props.BoolProperty  (name = "Camera", default=False, description = "Do you need a camera?")   
+    bpy.types.Scene.entry_lamp_yesno          = bpy.props.BoolProperty  (name = "Lamp", default=False, description = "Do you need a lamp?")
+    bpy.types.Scene.entry_start_number_atoms  = bpy.props.StringProperty(name = "", default="Number", description = "This output shows the number of atoms")
+    bpy.types.Scene.entry_distance            = bpy.props.StringProperty(name = "", default="Distance", description = "Distance of 2 objects in Angstrom")  
+    bpy.types.Scene.entry_mod_atomname        = bpy.props.StringProperty(name = "", default = "Name of atom", description="Put in the name of the atom (e.g. Hydrogen)")
+    bpy.types.Scene.entry_mod_pm_yesno        = bpy.props.BoolProperty  (name = "Radius (pm)", default=False, description = "Modify the absolute value for the radius in pm")
+    bpy.types.Scene.entry_mod_pm_radius       = bpy.props.FloatProperty (name = "", default = 100.0, min=0.0, description="Put in the radius of the atom (in pm)")
+    bpy.types.Scene.entry_mod_rel_yesno       = bpy.props.BoolProperty  (name = "Radius (scale)", default=False, description = "Scale the radius with a factor")
+    bpy.types.Scene.entry_mod_rel_radius      = bpy.props.FloatProperty (name = "", default = 1.0, min=0.0, description="Put in the scale factor")
+    bpy.types.Scene.entry_mod_all_radii       = bpy.props.FloatProperty (name = "Scale", default = 1.05, min=0.0, description="Put in the scale factor")
+    bpy.types.Scene.entry_mod_all_radii_inv   = bpy.props.FloatProperty (name = "Invert", default = 0.95, min=0.0, description="Inverted scale factor")
 
 
 class CLASS_Distance_Button(bpy.types.Operator):
@@ -170,30 +176,7 @@ class CLASS_Distance_Button(bpy.types.Operator):
         scn                = bpy.context.scene
         scn.entry_distance = dist
         return {'FINISHED'}
-
-class CLASS_Deleteall_Button(bpy.types.Operator):
-    bl_idname = "fp.button_delete_all"
-    bl_label = "Delete all in the scene ..."
-
-    def execute(self, context):
-        Delete_all_in_scene()
-        return {'FINISHED'}
-        
-class CLASS_Delete_atoms_Button(bpy.types.Operator):
-    bl_idname = "fp.button_delete_atoms"
-    bl_label = "Delete all atoms ..."
-
-    def execute(self, context):
-        Delete_atoms_in_scene()
-        return {'FINISHED'}      
-        
-class CLASS_Delete_camlamp_Button(bpy.types.Operator):
-    bl_idname = "fp.button_delete_camlamp"
-    bl_label = "Delete cameras and lamps ..."
-
-    def execute(self, context):
-        Delete_camlamp_in_scene()
-        return {'FINISHED'}   
+  
   
 class CLASS_Modify_Button(bpy.types.Operator):
     bl_idname = "fp.button_modify"
@@ -209,15 +192,29 @@ class CLASS_Modify_Button(bpy.types.Operator):
         Modify_atom_radii_scene(atomname, radius_pm, check_pm, radius_rel, check_rel)
         return {'FINISHED'}
 
+
 class CLASS_Modify_Button_2(bpy.types.Operator):
     bl_idname = "fp.button_modify_2"
     bl_label = "Modify ..."
 
     def execute(self, context):
-        scn = bpy.context.scene
+        scn     = bpy.context.scene
         scale   = scn.entry_mod_all_radii
+        scn.entry_mod_all_radii_inv = 1.0/scale
         Modify_atom_radii_scene_2(scale)
         return {'FINISHED'}
+
+
+class CLASS_Modify_Button_3(bpy.types.Operator):
+    bl_idname = "fp.button_modify_3"
+    bl_label = "Invert ..."
+
+    def execute(self, context):
+        scn     = bpy.context.scene
+        scale   = scn.entry_mod_all_radii_inv
+        Modify_atom_radii_scene_2(scale)
+        return {'FINISHED'}
+
 
 class CLASS_Start_Button(bpy.types.Operator):
     bl_idname = "fp.button_start"
@@ -258,54 +255,26 @@ class CLASS_Start_Button(bpy.types.Operator):
 
 def register():
     bpy.utils.register_class(OBJECT_PDB_Panel)
+    bpy.utils.register_class(Input_Output)
     bpy.utils.register_class(CLASS_Start_Button)
     bpy.utils.register_class(CLASS_Modify_Button)
     bpy.utils.register_class(CLASS_Modify_Button_2)
-    bpy.utils.register_class(CLASS_Deleteall_Button)
-    bpy.utils.register_class(CLASS_Delete_atoms_Button)
-    bpy.utils.register_class(CLASS_Delete_camlamp_Button)
+    bpy.utils.register_class(CLASS_Modify_Button_3)
     bpy.utils.register_class(CLASS_Distance_Button)
+
 
 def unregister():
     bpy.utils.unregister_class(OBJECT_PDB_Panel)
+    bpy.utils.unregister_class(Input_Output)
     bpy.utils.unregister_class(CLASS_Start_Button)
     bpy.utils.unregister_class(CLASS_Modify_Button)
     bpy.utils.unregister_class(CLASS_Modify_Button_2)
-    bpy.utils.unregister_class(CLASS_Deleteall_Button)
-    bpy.utils.unregister_class(CLASS_Delete_atoms_Button)
-    bpy.utils.unregister_class(CLASS_Delete_camlamp_Button)
+    bpy.utils.unregister_class(CLASS_Modify_Button_3)
     bpy.utils.unregister_class(CLASS_Distance_Button)    
         
 
 if __name__ == "__main__":
 
-    bpy.types.Scene.pdb_filepath              = bpy.props.StringProperty(name = "PDB  File", description="Path to the PDB file", maxlen = 256, default = PDBFILE, subtype='FILE_PATH', options={'HIDDEN'})
-    bpy.types.Scene.data_filepath             = bpy.props.StringProperty(name = "DATA File", description="Path to the dat file", maxlen = 256, default = DATAFILE, subtype='FILE_PATH')
-    bpy.types.Scene.entry_group_atoms_yesno   = bpy.props.BoolProperty  (name = "Group same type of atoms", default=False, description = "Grouping same type of atoms speeds up the loading of large-atom-PDB files")    
-    bpy.types.Scene.entry_group_atoms_dn      = bpy.props.IntProperty   (name = "Delta N", default=200, min=0, description = "")
-    bpy.types.Scene.entry_mesh_yesno          = bpy.props.BoolProperty  (name = "Mesh instead of NURBS", default=False, description = "Yes or no")    
-    bpy.types.Scene.entry_sectors_azimuth     = bpy.props.IntProperty   (name = "Azimuth", default=32, min=0, description = "")
-    bpy.types.Scene.entry_sectors_zenith      = bpy.props.IntProperty   (name = "Zenith", default=32, min=0, description = "")
-    bpy.types.Scene.entry_ball_radius         = bpy.props.FloatProperty (name = "Ball", default=1.0, min=0.0, description = "Ball radius")
-    bpy.types.Scene.entry_distances           = bpy.props.FloatProperty (name = "Distance", default=1.0, min=0.0, description = "All distances")
-    bpy.types.Scene.entry_center_yesno        = bpy.props.BoolProperty  (name = "Put to center", default=True, description = "Yes or no")    
-    bpy.types.Scene.entry_scene_x             = bpy.props.FloatProperty (name = "X", default=0.0, description = "X coordinate")
-    bpy.types.Scene.entry_scene_y             = bpy.props.FloatProperty (name = "Y", default=0.0, description = "Y coordinate")
-    bpy.types.Scene.entry_scene_z             = bpy.props.FloatProperty (name = "Z", default=0.0, description = "Z coordinate")
-    bpy.types.Scene.entry_sticks_yesno        = bpy.props.BoolProperty  (name = "Use sticks", default=False, description = "Shall sticks connect the atoms?")    
-    bpy.types.Scene.entry_sticks_sectors      = bpy.props.IntProperty   (name = "Sector", default = 20, min=0,   description = "Number of sectors of a stick")        
-    bpy.types.Scene.entry_sticks_radius       = bpy.props.FloatProperty (name = "Radius", default =  0.1, min=0.0, description = "Radius of a stick")  
-    bpy.types.Scene.entry_cam_yesno           = bpy.props.BoolProperty  (name = "Camera", default=False, description = "Do you need a camera?")   
-    bpy.types.Scene.entry_lamp_yesno          = bpy.props.BoolProperty  (name = "Lamp", default=False, description = "Do you need a lamp?")
-    bpy.types.Scene.entry_start_number_atoms  = bpy.props.StringProperty(name = "", default="Number", description = "This output shows the number of atoms")
-    bpy.types.Scene.entry_distance            = bpy.props.StringProperty(name = "", default="Distance", description = "Distance of 2 objects in Angstrom")  
-    bpy.types.Scene.entry_mod_atomname        = bpy.props.StringProperty(name = "", default = "Name of atom", description="Put in the name of the atom (e.g. Hydrogen)")
-    bpy.types.Scene.entry_mod_pm_yesno        = bpy.props.BoolProperty  (name = "Radius (pm)", default=False, description = "Modify the absolute value for the radius in pm")
-    bpy.types.Scene.entry_mod_pm_radius       = bpy.props.FloatProperty (name = "", default = 100.0, min=0.0, description="Put in the radius of the atom (in pm)")
-    bpy.types.Scene.entry_mod_rel_yesno       = bpy.props.BoolProperty  (name = "Radius (scale)", default=False, description = "Scale the radius with a factor")
-    bpy.types.Scene.entry_mod_rel_radius      = bpy.props.FloatProperty (name = "", default = 1.0, min=0.0, description="Put in the scale factor")
-    bpy.types.Scene.entry_mod_all_radii       = bpy.props.FloatProperty (name = "Radius (scale)", default = 1.0, min=0.0, description="Put in the scale factor")
-           
     register()
 
 
@@ -345,66 +314,6 @@ def Measure_distance_in_scene():
     return length 
 
 
-# This delets all what is in the scene.
-def Delete_all_in_scene():
-
-    bpy.ops.object.select_all(action='SELECT')
-    bpy.ops.object.delete()
-    
-    # This seems to be stupid. But it is not!
-    # The panel is in the 'physics' tab. If the user deletes all objects, the physics tab is
-    # not visible anymore. In order to have at least one object that can be chosen in the object list, 
-    # a cube is created at almost infinity.
-    bpy.ops.mesh.primitive_cube_add(view_align=False, enter_editmode=False, location=(100000.0, 100000.0, 100000.0), rotation=(0.0, 0.0, 0.0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
-    tmp_object = bpy.context.scene.objects[0]
-    
-    
-# This part is for deleting all existing atoms.
-def Delete_atoms_in_scene():
-  
-    # Deselect all objects
-    bpy.ops.object.select_all(action='DESELECT')
-
-    # Go through all objects
-    for obj in bpy.data.objects:
-
-        # If a camera or lamp is not found, select the object
-        if "camera" not in obj.name:
-            if "lamp" not in obj.name:
-                bpy.ops.object.select_name(name = obj.name, extend=True)
-               
-    #delete marked atoms
-    bpy.ops.object.delete()
-   
-    bpy.ops.mesh.primitive_cube_add(view_align=False, enter_editmode=False, location=(100000.0, 100000.0, 100000.0), rotation=(0.0, 0.0, 0.0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
-    tmp_object = bpy.context.scene.objects[0]   
-    bpy.ops.object.select_name(name = bpy.data.objects[0].name, extend=True)
-
-
-# This part is for deleting all existing cameras and lamps.
-def Delete_camlamp_in_scene():
-   
-    # Deselect all objects
-    bpy.ops.object.select_all(action='DESELECT')
-
-    # Go through all objects
-    for obj in bpy.data.objects:
-
-        # If a camera is found, select the camera
-        if "camera" in obj.name:
-            bpy.ops.object.select_name(name = obj.name, extend=True)
-
-        # If a lamp is found, select the camera
-        if "lamp" in obj.name:
-            bpy.ops.object.select_name(name = obj.name, extend=True)
-            
-    #delete marked objects
-    bpy.ops.object.delete()
-    bpy.ops.mesh.primitive_cube_add(view_align=False, enter_editmode=False, location=(100000.0, 100000.0, 100000.0), rotation=(0.0, 0.0, 0.0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
-    tmp_object = bpy.context.scene.objects[0]      
-    bpy.ops.object.select_name(name = bpy.data.objects[0].name, extend=True)
-
-
 # Routine to modify the radii of a specific type of atom
 def Modify_atom_radii_scene(atomname, radius_pm, check_pm, radius_rel, check_rel):
 
@@ -424,10 +333,11 @@ def Modify_atom_radii_scene_2(scale):
 
     for obj in bpy.data.objects:
 
-        if "SURFACE" in obj.type:
+        if obj.type == "SURFACE" or obj.type == "MESH":
 
-            radius = bpy.data.objects[obj.name].scale[0]
-            bpy.data.objects[obj.name].scale = (radius * scale,radius * scale,radius * scale)
+            if "Stick" not in obj.name:
+                radius = obj.scale[0]
+                obj.scale = (radius * scale,radius * scale,radius * scale)
 
 
 
@@ -603,26 +513,25 @@ def Draw_scene(FLAG_group_atoms,group_atoms_dn,mesh_yn,Ball_azimuth,Ball_zenith,
 
       if "Atom" in line:
 
-          line              = str(Data_file_p.readline())
- 
-          line              = str(Data_file_p.readline())
+          line              = Data_file_p.readline() 
+          line              = Data_file_p.readline()
           pos               = str.find(line, ":")
           Data_Number.append(line[pos+2:-1])
 
-          line              = str(Data_file_p.readline())
+          line              = Data_file_p.readline()
           pos               = str.find(line, ":")
           Data_Atomname.append(line[pos+2:-1])
 
-          line              = str(Data_file_p.readline())
+          line              = Data_file_p.readline()
           pos               = str.find(line, ":")
           Data_Shortname.append(line[pos+2:-1])
 
-          line              = str(Data_file_p.readline())
+          line              = Data_file_p.readline()
           pos               = str.find(line, ":")
           color_value       = line[pos+2:-1].split(',')
           Data_Color.append([float(color_value[0]),float(color_value[1]),float(color_value[2])]) 
 
-          line              = str(Data_file_p.readline())
+          line              = Data_file_p.readline()
           pos               = str.find(line, ":")
           Data_Radius.append(line[pos+2:-1])
 
@@ -1056,8 +965,6 @@ def Draw_scene(FLAG_group_atoms,group_atoms_dn,mesh_yn,Ball_azimuth,Ball_zenith,
     print()
     print()
     print(Atomic_Blender_string)
-    print()
-    print()
     print()
     print("Total number of atoms   : " + str(Number_of_total_atoms))
     print("Total number of sticks  : " + str(Number_of_sticks))
