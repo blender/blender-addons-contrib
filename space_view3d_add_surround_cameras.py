@@ -21,7 +21,7 @@ bl_info = {
     'author': "Cole Ingraham",
     'location': "View3D > Tool Shelf > Surround Projection panel",
     'description': "Setup cameras and create rendering scenes for n-screen surround projection.",
-    'wiki_url': "http://coleingraham.com/2011/11/14/using-the-surround-projection-tools-addon-for-blender-2-6/",
+    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D_interaction/Surround_Projection_Tools",
     'version': (0,1,1),
     'blender': (2, 6, 0),
     'api': 41769,
