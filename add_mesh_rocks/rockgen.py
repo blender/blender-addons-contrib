@@ -1445,7 +1445,7 @@ class rocks(bpy.types.Operator):
                               default = defaults[15])
     mat_color = FloatVectorProperty(name = "Color",
                                     description = "Base color settings (RGB)",
-                                    default = defaults[16], size = 3)
+                                    min = 0.0, max = 1.0, default = defaults[16], size = 3, subtype = 'COLOR')
     mat_bright = FloatProperty(name = "Brightness",
                                description = "Material brightness",
                                min = 0.0, max = 1.0, default = defaults[17])
