@@ -1,6 +1,6 @@
 # Paul "BrikBot" Marshall
 # Created: July 1, 2011
-# Last Modified: September 16, 2011
+# Last Modified: November 17, 2011
 # Homepage (blog): http://post.darkarsenic.com/
 #                       //blog.darkarsenic.com/
 # Thanks to Meta-Androco, RickyBlender, Ace Dragon, and PKHG for ideas
@@ -36,8 +36,8 @@ bl_info = {
     "name": "Rock Generator",
     "author": "Paul Marshall (brikbot)",
     "version": (1, 3),
-    "blender": (2, 5, 9),
-    "api": 40246,
+    "blender": (2, 6, 0),
+    "api": 41875,
     "location": "View3D > Add > Rock Generator",
     "description": "Adds a mesh rock to the Add Mesh menu",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5"\

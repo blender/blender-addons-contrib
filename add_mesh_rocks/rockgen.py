@@ -75,7 +75,7 @@
 #
 # Paul "BrikBot" Marshall
 # Created: April 17, 2011
-# Last Modified: September 18, 2011
+# Last Modified: November 17, 2011
 # Homepage (blog): http://post.darkarsenic.com/
 #                       //blog.darkarsenic.com/
 # Thanks to Meta-Androco, RickyBlender, Ace Dragon, and PKHG for ideas
@@ -304,6 +304,194 @@ def randomizeTexture(texture, level=1):
         else:
             tempInt = randint(0, 6)
             texture.distance_metric = metrics[tempInt]
+
+    return
+
+
+# Randomizes the given material given base values.
+#
+# param: Material to randomize
+def randomizeMaterial(material, color, dif_int, rough, spec_int, spec_hard,
+                      use_trans, alpha, cloudy, mat_IOR, mossiness, spec_IOR):
+    skew = False
+    stddev = 0.0
+    lastUsedTex = 1
+    numTex = 6
+    baseColor = []
+
+    # Diffuse settings:
+    material.diffuse_shader = 'OREN_NAYAR'
+    if 0.5 > dif_int:
+        stddev = dif_int / 3
+        skew = False
+    else:
+        stddev = (1 - dif_int) / 3
+        skew = True
+    material.diffuse_intensity = skewedGauss(dif_int, stddev, (0.0, 1.0), skew)
+    if 1.57 > rough:
+        stddev = rough / 3
+        skew = False
+    else:
+        stddev = (3.14 - rough) / 3
+        skew = True
+    material.roughness = skewedGauss(rough, stddev, (0.0, 3.14), skew)
+
+    for i in range(3):
+        if color[i] > 0.9 or color[i] < 0.1:
+            baseColor.append(skewedGauss(color[i], color[i] / 30,
+                                         (0, 1), color[i] > 0.9))
+        else:
+            baseColor.append(gauss(color[i], color[i] / 30))
+    material.diffuse_color = baseColor
+
+    # Specular settings:
+    material.specular_shader = 'BLINN'
+    if 0.5 > spec_int:
+        variance = spec_int / 3
+        skew = False
+    else:
+        variance = (1 - spec_int) / 3
+        skew = True
+    material.specular_intensity = skewedGauss(spec_int, stddev,
+                                              (0.0, 1.0), skew)
+    if 256 > spec_hard:
+        variance = (spec_hard - 1) / 3
+        skew = False
+    else:
+        variance = (511 - spec_hard) / 3
+        skew = True
+    material.specular_hardness = int(round(skewedGauss(spec_hard, stddev,
+                                                       (1.0, 511.0), skew)))
+    if 5.0 > spec_IOR:
+        variance = spec_IOR / 3
+        skew = False
+    else:
+        variance = (10.0 - spec_IOR) / 3
+        skew = True
+    material.specular_ior = skewedGauss(spec_IOR, stddev, (0.0, 10.0), skew)
+
+    # Raytrans settings:
+    #   *** Added on 11/17/2011 ***
+    material.use_transparency = use_trans
+    if use_trans:
+        trans = material.raytrace_transparency
+        # Fixed values:
+        material.transparency_method = 'RAYTRACE'
+        trans.depth = 24
+        trans.gloss_samples = 32
+        trans.falloff = 1.0
+        # Needs randomization:
+        material.alpha = -gauss(alpha, 0.05) + 1;
+        trans.gloss_factor = -gauss(cloudy, 0.05) + 1
+        trans.filter = gauss(cloudy, 0.1)
+        trans.ior = skewedGauss(mat_IOR, 0.01, [0.25, 4.0], mat_IOR > 2.125)
+
+    #Misc. settings:
+    material.use_transparent_shadows = True
+
+    # Rock textures:
+    # Now using slot.texture for texture access instead of
+    #   bpy.data.textures[newTex[<index>]]
+    #   *** Completed on 9/6/2011 ***
+    # Create the four new textures:
+    textureTypes = ['MUSGRAVE', 'CLOUDS', 'DISTORTED_NOISE',
+                    'STUCCI', 'VORONOI']
+
+    for i in range(numTex):
+        texColor = []
+
+        # Set the active material slot:
+        material.active_texture_index = i
+        # Assign a texture to the active material slot:
+        material.active_texture = bpy.data.textures.new(name = 'stone_tex',
+                                                        type = 'NONE')
+        # Store the slot to easy coding access:
+        slot = material.texture_slots[i]
+
+        # If the texture is not a moss texture:
+        if i > 1:
+            slot.texture.type = textureTypes[randint(0, 3)]
+
+            # Set the texture's color (RGB):
+            for j in range(3):
+                if color[j] > 0.9 or color[j] < 0.1:
+                    texColor.append(skewedGauss(color[j], color[j] / 30,
+                                                (0, 1), color[j] > 0.9))
+                else:
+                    texColor.append(gauss(color[j], color[j] / 30))
+            slot.color = texColor
+            # Randomize the value (HSV):
+            v = material.diffuse_color.v
+            if v == 0.5:
+                slot.color.v = gauss(v, v / 3)
+            elif v > 0.5:
+                slot.color.v = skewedGauss(v, v / 3, (0, 1), True)
+            else:
+                slot.color.v = skewedGauss(v, (1 - v) / 3, (0, 1), False)
+
+            # Adjust scale and normal based on texture type:
+            if slot.texture.type == 'VORONOI':
+                slot.scale = (gauss(5, 1), gauss(5, 1), gauss(5, 1))
+                slot.normal_factor = gauss(rough / 10, rough / 30)
+            elif slot.texture.type == 'STUCCI':
+                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
+                              gauss(1.5, 0.25))
+                slot.normal_factor = gauss(rough / 10, rough / 30)
+            elif slot.texture.type == 'DISTORTED_NOISE':
+                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
+                              gauss(1.5, 0.25))
+                slot.normal_factor = gauss(rough / 10, rough / 30)
+            elif slot.texture.type == 'MUSGRAVE':
+                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
+                              gauss(1.5, 0.25))
+                slot.normal_factor = gauss(rough, rough / 3)
+            elif slot.texture.type == 'CLOUDS':
+                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
+                              gauss(1.5, 0.25))
+                slot.normal_factor = gauss(rough, rough / 3)
+
+            # Set the color influence to 0.5.
+            # This allows for the moss textures to show:
+            slot.diffuse_color_factor = 0.5
+            # Set additional influence booleans:
+            slot.use_stencil = True
+            slot.use_map_specular = True
+            slot.use_map_color_spec = True
+            slot.use_map_hardness = True
+            slot.use_map_normal = True
+        # The following is for setting up the moss textures:
+        else:
+            slot.texture.type = textureTypes[i]
+
+            # Set the mosses color (RGB):
+            texColor.append(gauss(0.5, 1 / 6))
+            texColor.append(1)
+            texColor.append(0)
+            slot.color = texColor
+            # Randomize the value (HSV):
+            slot.color.v = gauss(0.275, 1 / 24)
+
+            # Scale the texture size:
+            slot.scale = (gauss(1.5, 0.25),
+                          gauss(1.5, 0.25),
+                          gauss(1.5, 0.25))
+
+            # Set the strength of the moss color:
+            slot.diffuse_color_factor = mossiness
+            # Have it influence spec and hardness:
+            slot.use_map_specular = True
+            slot.use_map_color_spec = True
+            slot.use_map_hardness = True
+
+            # If the texutre is a voronoi crackle clouds, use "Negative":
+            if slot.texture.type == 'CLOUDS':
+                if slot.texture.noise_basis == 'VORONOI_CRACKLE':
+                    slot.invert = True
+
+            if mossiness == 0:
+                slot.use = False
+
+        randomizeTexture(slot.texture, 10 + i)
 
     return
 
@@ -872,175 +1060,6 @@ def generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY, sigmaY,
     return name
 
 
-# Randomizes the given material given base values.
-#
-# param: Material to randomize
-def randomizeMaterial(material, color, dif_int, rough,
-                      spec_int, spec_hard, mossiness, spec_IOR):
-    skew = False
-    stddev = 0.0
-    lastUsedTex = 1
-    numTex = 6
-    baseColor = []
-
-    # Diffuse settings:
-    material.diffuse_shader = 'OREN_NAYAR'
-    if 0.5 > dif_int:
-        stddev = dif_int / 3
-        skew = False
-    else:
-        stddev = (1 - dif_int) / 3
-        skew = True
-    material.diffuse_intensity = skewedGauss(dif_int, stddev, (0.0, 1.0), skew)
-    if 1.57 > rough:
-        stddev = rough / 3
-        skew = False
-    else:
-        stddev = (3.14 - rough) / 3
-        skew = True
-    material.roughness = skewedGauss(rough, stddev, (0.0, 3.14), skew)
-
-    for i in range(3):
-        if color[i] > 0.9 or color[i] < 0.1:
-            baseColor.append(skewedGauss(color[i], color[i] / 30,
-                                         (0, 1), color[i] > 0.9))
-        else:
-            baseColor.append(gauss(color[i], color[i] / 30))
-    material.diffuse_color = baseColor
-
-    # Specular settings:
-    material.specular_shader = 'BLINN'
-    if 0.5 > spec_int:
-        variance = spec_int / 3
-        skew = False
-    else:
-        variance = (1 - spec_int) / 3
-        skew = True
-    material.specular_intensity = skewedGauss(spec_int, stddev,
-                                              (0.0, 1.0), skew)
-    if 256 > spec_hard:
-        variance = (spec_hard - 1) / 3
-        skew = False
-    else:
-        variance = (511 - spec_hard) / 3
-        skew = True
-    material.specular_hardness = int(round(skewedGauss(spec_hard, stddev,
-                                                       (1.0, 511.0), skew)))
-    if 5.0 > spec_IOR:
-        variance = spec_IOR / 3
-        skew = False
-    else:
-        variance = (10.0 - spec_IOR) / 3
-        skew = True
-    material.specular_ior = skewedGauss(spec_IOR, stddev, (0.0, 10.0), skew)
-
-    # Rock textures:
-    # Now using slot.texture for texture access instead of
-    #   bpy.data.textures[newTex[<index>]]
-    #   *** Completed on 9/6/2011 ***
-    # Create the four new textures:
-    textureTypes = ['MUSGRAVE', 'CLOUDS', 'DISTORTED_NOISE',
-                    'STUCCI', 'VORONOI']
-
-    for i in range(numTex):
-        texColor = []
-
-        # Set the active material slot:
-        material.active_texture_index = i
-        # Assign a texture to the active material slot:
-        material.active_texture = bpy.data.textures.new(name = 'stone_tex',
-                                                        type = 'NONE')
-        # Store the slot to easy coding access:
-        slot = material.texture_slots[i]
-
-        # If the texture is not a moss texture:
-        if i > 1:
-            slot.texture.type = textureTypes[randint(0, 3)]
-
-            # Set the texture's color (RGB):
-            for j in range(3):
-                if color[j] > 0.9 or color[j] < 0.1:
-                    texColor.append(skewedGauss(color[j], color[j] / 30,
-                                                (0, 1), color[j] > 0.9))
-                else:
-                    texColor.append(gauss(color[j], color[j] / 30))
-            slot.color = texColor
-            # Randomize the value (HSV):
-            v = material.diffuse_color.v
-            if v == 0.5:
-                slot.color.v = gauss(v, v / 3)
-            elif v > 0.5:
-                slot.color.v = skewedGauss(v, v / 3, (0, 1), True)
-            else:
-                slot.color.v = skewedGauss(v, (1 - v) / 3, (0, 1), False)
-
-            # Adjust scale and normal based on texture type:
-            if slot.texture.type == 'VORONOI':
-                slot.scale = (gauss(5, 1), gauss(5, 1), gauss(5, 1))
-                slot.normal_factor = gauss(rough / 10, rough / 30)
-            elif slot.texture.type == 'STUCCI':
-                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
-                              gauss(1.5, 0.25))
-                slot.normal_factor = gauss(rough / 10, rough / 30)
-            elif slot.texture.type == 'DISTORTED_NOISE':
-                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
-                              gauss(1.5, 0.25))
-                slot.normal_factor = gauss(rough / 10, rough / 30)
-            elif slot.texture.type == 'MUSGRAVE':
-                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
-                              gauss(1.5, 0.25))
-                slot.normal_factor = gauss(rough, rough / 3)
-            elif slot.texture.type == 'CLOUDS':
-                slot.scale = (gauss(1.5, 0.25), gauss(1.5, 0.25),
-                              gauss(1.5, 0.25))
-                slot.normal_factor = gauss(rough, rough / 3)
-
-            # Set the color influence to 0.5.
-            # This allows for the moss textures to show:
-            slot.diffuse_color_factor = 0.5
-            # Set additional influence booleans:
-            slot.use_stencil = True
-            slot.use_map_specular = True
-            slot.use_map_color_spec = True
-            slot.use_map_hardness = True
-            slot.use_map_normal = True
-        # The following is for setting up the moss textures:
-        else:
-            slot.texture.type = textureTypes[i]
-
-            # Set the mosses color (RGB):
-            texColor.append(gauss(0.5, 1 / 6))
-            texColor.append(1)
-            texColor.append(0)
-            slot.color = texColor
-            # Randomize the value (HSV):
-            slot.color.v = gauss(0.275, 1 / 24)
-
-            # Scale the texture size:
-            slot.scale = (gauss(1.5, 0.25),
-                          gauss(1.5, 0.25),
-                          gauss(1.5, 0.25))
-
-            # Set the strength of the moss color:
-            slot.diffuse_color_factor = mossiness
-            # Have it influence spec and hardness:
-            slot.use_map_specular = True
-            slot.use_map_color_spec = True
-            slot.use_map_hardness = True
-
-            # If the texutre is a voronoi crackle clouds, use "Negative":
-            if slot.texture.type == 'CLOUDS':
-                if slot.texture.noise_basis == 'VORONOI_CRACKLE':
-                    slot.invert = True
-
-            if mossiness == 0:
-                slot.use = False
-
-        randomizeTexture(slot.texture, 10 + i)
-
-    return
-
-
 # Artifically skews a normal (gaussian) distribution.  This will not create
 # a continuous distribution curve but instead acts as a piecewise finction.
 # This linearly scales the output on one side to fit the bounds.
@@ -1109,8 +1128,8 @@ def skewedGauss(mu, sigma, bounds, upperSkewed=True):
 def generateRocks(context, scaleX, skewX, scaleY, skewY, scaleZ, skewZ,
                   scale_fac, detail, display_detail, deform, rough,
                   smooth_fac, smooth_it, mat_enable, color, mat_bright,
-                  mat_rough, mat_spec, mat_hard, mat_mossy,
-                  numOfRocks=1, userSeed=1.0,
+                  mat_rough, mat_spec, mat_hard, mat_use_trans, mat_alpha,
+                  mat_cloudy, mat_IOR, mat_mossy, numOfRocks=1, userSeed=1.0,
                   scaleDisplace=False, randomSeed=True):
     global lastRock
     newMat = []
@@ -1150,15 +1169,16 @@ def generateRocks(context, scaleX, skewX, scaleY, skewY, scaleZ, skewZ,
         #   *** todo completed 5/25/2011 ***
         # Material roughness actual max = 3.14.  Needs scaling.
         mat_rough *= 0.628
-        mat_IOR = 1.875 * (mat_spec ** 2) + 7.125 * mat_spec + 1
+        spec_IOR = 1.875 * (mat_spec ** 2) + 7.125 * mat_spec + 1
 
         # Changed as material mapping is no longer needed.
         #   *** Complete 9/6/2011 ***
         for i in range(numOfMats):
             newMat.append(bpy.data.materials.new(name = 'stone'))
             randomizeMaterial(newMat[i], color, mat_bright,
-                              mat_rough, mat_spec, mat_hard, mat_mossy,
-                              mat_IOR)
+                              mat_rough, mat_spec, mat_hard, mat_use_trans,
+                              mat_alpha, mat_cloudy, mat_IOR, mat_mossy,
+                              spec_IOR)
 
     # These values need to be really small to look good.
     # So the user does not have to use such ridiculously small values:
@@ -1438,16 +1458,29 @@ class rocks(bpy.types.Operator):
     mat_hard = IntProperty(name = "Hardness",
                            description = "Material hardness",
                            min = 0, max = 511, default = defaults[20])
+    mat_use_trans = BoolProperty(name = "Use Transparency",
+                                 description = "Enables transparency in rocks (WARNING: SLOW RENDER TIMES)",
+                                 default = defaults[21])
+    mat_alpha = FloatProperty(name = "Alpha",
+                              description = "Transparency of the rocks",
+                              min = 0.0, max = 1.0, default = defaults[22])
+    mat_cloudy = FloatProperty(name = "Cloudy",
+                               description = "How cloudy the transparent rocks look",
+                               min = 0.0, max = 1.0, default = defaults[23])
+    mat_IOR = FloatProperty(name = "IoR",
+                            description = "Index of Refraction",
+                            min = 0.25, max = 4.0, soft_max = 2.5,
+                            default = defaults[24])
     mat_mossy = FloatProperty(name = "Mossiness",
                               description = "Amount of mossiness on the rocks",
-                              min = 0.0, max = 1.0, default = defaults[21])
+                              min = 0.0, max = 1.0, default = defaults[25])
 
     use_random_seed = BoolProperty(name = "Use a random seed",
                                   description = "Create a seed based on time. Causes user seed to be ignored.",
-                                  default = defaults[22])
+                                  default = defaults[26])
     user_seed = IntProperty(name = "User seed",
                             description = "Use a specific seed for the generator.",
-                            min = 0, max = 1048576, default = defaults[23])
+                            min = 0, max = 1048576, default = defaults[27])
 
 
     def draw(self, context):
@@ -1481,6 +1514,11 @@ class rocks(bpy.types.Operator):
             box.prop(self, 'mat_rough')
             box.prop(self, 'mat_spec')
             box.prop(self, 'mat_hard')
+            box.prop(self, 'mat_use_trans')
+            if self.mat_use_trans:
+                box.prop(self, 'mat_alpha')
+                box.prop(self, 'mat_cloudy')
+                box.prop(self, 'mat_IOR')
             box.prop(self, 'mat_mossy')
         box = layout.box()
         box.prop(self, 'use_random_seed')
@@ -1506,14 +1544,19 @@ class rocks(bpy.types.Operator):
             self.display_detail = int(self.presetsList[int(self.preset_values)][12])
             self.smooth_fac = float(self.presetsList[int(self.preset_values)][13])
             self.smooth_it = int(self.presetsList[int(self.preset_values)][14])
+            self.mat_enable = bool(self.presetsList[int(self.preset_values)][15])
             self.mat_color = utils.toFloats(self.presetsList[int(self.preset_values)][16])
             self.mat_bright = float(self.presetsList[int(self.preset_values)][17])
             self.mat_rough = float(self.presetsList[int(self.preset_values)][18])
             self.mat_spec = float(self.presetsList[int(self.preset_values)][19])
             self.mat_hard = int(self.presetsList[int(self.preset_values)][20])
-            self.mat_mossy = float(self.presetsList[int(self.preset_values)][21])
-            self.use_random_seed = bool(self.presetsList[int(self.preset_values)][22])
-            self.user_seed = int(self.presetsList[int(self.preset_values)][23])
+            self.mat_use_trans = bool(self.presetsList[int(self.preset_values)][21])
+            self.mat_alpha = float(self.presetsList[int(self.preset_values)][22])
+            self.mat_cloudy = float(self.presetsList[int(self.preset_values)][23])
+            self.mat_IOR = float(self.presetsList[int(self.preset_values)][24])
+            self.mat_mossy = float(self.presetsList[int(self.preset_values)][25])
+            self.use_random_seed = bool(self.presetsList[int(self.preset_values)][26])
+            self.user_seed = int(self.presetsList[int(self.preset_values)][27])
             self.lastPreset = int(self.preset_values)
 
         # todo Add deform, deform_Var, rough, and rough_Var:
@@ -1540,6 +1583,10 @@ class rocks(bpy.types.Operator):
                       self.mat_rough,
                       self.mat_spec,
                       self.mat_hard,
+                      self.mat_use_trans,
+                      self.mat_alpha,
+                      self.mat_cloudy,
+                      self.mat_IOR,
                       self.mat_mossy,
                       self.num_of_rocks,
                       self.user_seed,

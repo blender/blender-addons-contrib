@@ -1,6 +1,18 @@
+# Paul "BrikBot" Marshall
+# Created: July 1, 2011
+# Last Modified: November 17, 2011
+# Homepage (blog): http://post.darkarsenic.com/
+#                       //blog.darkarsenic.com/
+# Thanks to Meta-Androco, RickyBlender, Ace Dragon, and PKHG for ideas
+#   and testing.
+#
+# Coded in IDLE, tested in Blender 2.59.  NumPy Recommended.
+# Search for "@todo" to quickly find sections that need work.
+#
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
-#  The Blender Rock Creation tool is for rapid generation of mesh rocks.
+#  The Blender Rock Creation tool is for rapid generation of
+#  mesh rocks in Blender.
 #  Copyright (C) 2011  Paul Marshall
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -123,7 +135,14 @@ def parseNode(setting, title = True):
     mat_rough = float(setting.childNodes[loc].childNodes[7].childNodes[0].data)
     mat_spec = float(setting.childNodes[loc].childNodes[9].childNodes[0].data)
     mat_hard = int(setting.childNodes[loc].childNodes[11].childNodes[0].data)
-    mat_mossy = float(setting.childNodes[loc].childNodes[13].childNodes[0].data)
+    mat_use_trans = bool(setting.childNodes[loc].childNodes[13].childNodes[0].data)
+    mat_alpha = float(setting.childNodes[loc].childNodes[15].childNodes[0].data)
+    mat_cloudy = float(setting.childNodes[loc].childNodes[17].childNodes[0].data)
+    mat_IOR = float(setting.childNodes[loc].childNodes[19].childNodes[0].data)
+    #mat_use_mirror = float(setting.childNodes[loc].childNodes[21].childNodes[0].data)
+    #mat_mossy = float(setting.childNodes[loc].childNodes[23].childNodes[0].data)
+    #mat_mossy = float(setting.childNodes[loc].childNodes[25].childNodes[0].data)
+    mat_mossy = float(setting.childNodes[loc].childNodes[21].childNodes[0].data)
     loc += 2
 
     # Preset random values (xmlPreset.childNodes[9]):
@@ -137,13 +156,15 @@ def parseNode(setting, title = True):
         parsed = [title, scaleX, scaleY, scaleZ, skewX, skewY, skewZ,
                   use_scale_dis, scale_fac, deform, rough, detail,
                   display_detail, smooth_fac, smooth_it, mat_enable, mat_color,
-                  mat_bright, mat_rough, mat_spec, mat_hard, mat_mossy,
-                  use_random_seed, user_seed]
+                  mat_bright, mat_rough, mat_spec, mat_hard, mat_use_trans,
+                  mat_alpha, mat_cloudy, mat_IOR, mat_mossy, use_random_seed,
+                  user_seed]
     else:
         parsed = [scaleX, scaleY, scaleZ, skewX, skewY, skewZ, use_scale_dis,
                   scale_fac, deform, rough, detail, display_detail, smooth_fac,
                   smooth_it, mat_enable, mat_color, mat_bright, mat_rough,
-                  mat_spec, mat_hard, mat_mossy, use_random_seed, user_seed]
+                  mat_spec, mat_hard, mat_use_trans, mat_alpha, mat_cloudy,
+                  mat_IOR, mat_mossy, use_random_seed, user_seed]
 
     return parsed
 
