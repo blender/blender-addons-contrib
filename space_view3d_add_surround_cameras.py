@@ -148,22 +148,24 @@ class AddSurroundScenesOperator(bpy.types.Operator):
         return False
 
     def execute(self, context):
+        scene_base = context.scene
         numScreens = context.window_manager.previous_num_surround_screens
-        sceneName = context.scene.name
-        renderpath = context.scene.render.filepath
+        sceneName = scene_base.name
+        renderpath = scene_base.render.filepath
 
         for i in range(0, numScreens):
 
             thisScene = sceneName + "-Camera" + str(i)
 
             bpy.ops.scene.new(type='LINK_OBJECTS')
-            context.scene.name = thisScene
+            scene_new = context.scene
+            scene_new.name = thisScene
 
-            context.scene.camera = bpy.data.objects["Camera" + str(i)]
+            scene_new.camera = bpy.data.objects["Camera" + str(i)]
 
-            context.scene.render.filepath = renderpath + thisScene
+            scene_new.render.filepath = renderpath + thisScene
 
-        context.screen.scene = bpy.data.scenes[sceneName]
+        context.screen.scene = scene_base
         context.window_manager.surround_screens_init = True
         return {'FINISHED'}
 
