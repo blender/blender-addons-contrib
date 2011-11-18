@@ -1473,11 +1473,16 @@ def gather_particles(**kwargs):
             if active_object:
                 active_element = active_object.\
                     matrix_world.to_translation()
-        elif active_object and active_object.data and \
-		(context_mode in {
-		'EDIT_MESH', 'EDIT_METABALL',
-            	'EDIT_CURVE', 'EDIT_SURFACE',
-		'EDIT_ARMATURE', 'POSE'}):
+        
+        # On Undo/Redo scene hash value is changed ->
+        # -> the monitor tries to update the CSU ->
+        # -> object.mode_set seem to somehow conflict
+        # with Undo/Redo mechanisms.
+        elif False and active_object and active_object.data and \
+        (context_mode in {
+        'EDIT_MESH', 'EDIT_METABALL',
+        'EDIT_CURVE', 'EDIT_SURFACE',
+        'EDIT_ARMATURE', 'POSE'}):
             
             prev_mode = active_object.mode
             
