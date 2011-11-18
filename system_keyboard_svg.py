@@ -73,7 +73,7 @@ def createKeyboard(viewtype):
         map = {}
         for keymap in keyconfig.keymaps:
             if keymap.space_type in [viewtype]:
-                for key in keymap.items:
+                for key in keymap.keymap_items:
                     if key.map_type=='KEYBOARD':
                         test = 0
                         pre = []
@@ -241,10 +241,10 @@ class WM_OT_Keyboardlayout(bpy.types.Operator):
         return {'FINISHED'}
 
 def register():
-    pass
+    bpy.utils.register_module(__name__)
 
 def unregister():
-    pass
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
