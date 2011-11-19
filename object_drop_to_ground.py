@@ -87,20 +87,20 @@ def do_drop(context,tmpObj, ob):
 # compute randomisation based on the general or specific percentage chosen
 # if the specific percentage is zero then the general percentage is used
 def compute_percentage(min,max,value,percentage):
-        range = max-min
-        general_percentage = 100
-        
-        if percentage == 0:
-            percentage_random = ( value -((range*(general_percentage/100))/2) )+ (range * (general_percentage / 100) * random.random())
-        else:
-            percentage_random = ( value - ((range*(percentage/100))/2)) + (range * (percentage / 100) * random.random())
-             
-        if percentage_random > max:
-            percentage_random = max
-        if percentage_random < min:
-            percentage_random = min
-        
-        return percentage_random 
+    range = max-min
+    general_percentage = 100
+    
+    if percentage == 0:
+        percentage_random = ( value -((range*(general_percentage/100))/2) )+ (range * (general_percentage / 100) * random.random())
+    else:
+        percentage_random = ( value - ((range*(percentage/100))/2)) + (range * (percentage / 100) * random.random())
+         
+    if percentage_random > max:
+        percentage_random = max
+    if percentage_random < min:
+        percentage_random = min
+    
+    return percentage_random 
 
 def main(self, context):
 
@@ -192,27 +192,27 @@ class OBJECT_OT_drop_to_ground(bpy.types.Operator):
 #### REGISTER ####
 
 def register():
-     bpy.utils.register_module(__name__)
-     bpy.types.Scene.align_object = BoolProperty(
+    bpy.utils.register_module(__name__)
+    bpy.types.Scene.align_object = BoolProperty(
         name="Align object to ground",
         description="Aligns the object to the ground",
         default=True)
-     bpy.types.Scene.use_center = BoolProperty(
+    bpy.types.Scene.use_center = BoolProperty(
         name="Use the center to drop",
         description="When dropping the object will be relocated on the basis of its senter",
         default=False)
-     
-     #random location props
-     bpy.types.Scene.random_loc = BoolProperty(
+    
+    #random location props
+    bpy.types.Scene.random_loc = BoolProperty(
         name="Random Location",
         description="When dropping the object will be relocated randomly ",
         default=False)
-     bpy.types.Scene.rl_min_x =  IntProperty(name="min", description = " Minimum of location randomisation while droped to the ground for the x axis", default = 0)
-     bpy.types.Scene.rl_max_x =  IntProperty(name="max", description = " Maximum of location randomisation while droped to the ground for the x axis", default = 0)
-     bpy.types.Scene.rl_min_y =  IntProperty(name="min", description = " Minimum of location randomisation while droped to the ground for the y axis", default = 0)
-     bpy.types.Scene.rl_max_y =  IntProperty(name="max", description = " Maximum of location randomisation while droped to the ground for the y axis", default = 0)
-     bpy.types.Scene.rl_min_z =  IntProperty(name="min", description = " Minimum of location randomisation while droped to the ground for the z axis", default = 0)
-     bpy.types.Scene.rl_max_z =  IntProperty(name="max", description = " Maximum of location randomisation while droped to the ground for the z axis", default = 0)
+    bpy.types.Scene.rl_min_x =  IntProperty(name="min", description = " Minimum of location randomisation while droped to the ground for the x axis", default = 0)
+    bpy.types.Scene.rl_max_x =  IntProperty(name="max", description = " Maximum of location randomisation while droped to the ground for the x axis", default = 0)
+    bpy.types.Scene.rl_min_y =  IntProperty(name="min", description = " Minimum of location randomisation while droped to the ground for the y axis", default = 0)
+    bpy.types.Scene.rl_max_y =  IntProperty(name="max", description = " Maximum of location randomisation while droped to the ground for the y axis", default = 0)
+    bpy.types.Scene.rl_min_z =  IntProperty(name="min", description = " Minimum of location randomisation while droped to the ground for the z axis", default = 0)
+    bpy.types.Scene.rl_max_z =  IntProperty(name="max", description = " Maximum of location randomisation while droped to the ground for the z axis", default = 0)
      
 def unregister():
     bpy.utils.unregister_module(__name__)

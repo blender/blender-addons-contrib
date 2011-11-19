@@ -82,7 +82,7 @@ class PCDParser:
                     break
       
         if version == ".7" or version == "0.7": 
-             return PCDParser_v0_7(filepath, PointClass)
+            return PCDParser_v0_7(filepath, PointClass)
         else:
             return None
 
@@ -101,7 +101,7 @@ class PCDParser:
     
 
     def rmComment(self, line):
-       return line[:line.find('#')] 
+        return line[:line.find('#')] 
 
 
     def parseFile(self):

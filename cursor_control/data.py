@@ -104,17 +104,17 @@ class CursorControlData(bpy.types.PropertyGroup):
         return (tvs, tes, tfs, edit_mode)
 
     def invertDeltaVector(self):
-      self.deltaVector = Vector([0,0,0])-Vector(self.deltaVector)
+        self.deltaVector = Vector([0,0,0])-Vector(self.deltaVector)
 
     def normalizeDeltaVector(self):
-      q = Vector(self.deltaVector)
-      q.normalize()
-      self.deltaVector = q
+        q = Vector(self.deltaVector)
+        q.normalize()
+        self.deltaVector = q
 
     def addDeltaVectorToCursor(self):
-      c = CursorAccess.getCursor()
-      CursorAccess.setCursor(Vector(c)+Vector(self.deltaVector))
+        c = CursorAccess.getCursor()
+        CursorAccess.setCursor(Vector(c)+Vector(self.deltaVector))
 
     def subDeltaVectorToCursor(self):
-      c = CursorAccess.getCursor()
-      CursorAccess.setCursor(Vector(c)-Vector(self.deltaVector))
+        c = CursorAccess.getCursor()
+        CursorAccess.setCursor(Vector(c)-Vector(self.deltaVector))

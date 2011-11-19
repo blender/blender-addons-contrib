@@ -199,7 +199,7 @@ def voodoo_import(infile,ld_cam,ld_points):
     for line in file.readlines():
 
         if (b24 and (line.find('import') != -1) and (line.find('bpy') != -1)):
-                b24= False
+            b24= False
 
         process_line(line)
 

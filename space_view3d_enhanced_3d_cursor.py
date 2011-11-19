@@ -1193,7 +1193,7 @@ class EnhancedSetCursor(bpy.types.Operator):
             xyz_width = 0
             for i in range(3):
                 if i == self.current_axis:
-                   curr_axis_x_start = xyz_width
+                    curr_axis_x_start = xyz_width
                 
                 xyz_width += axis_cells[i].w
                 
@@ -1207,7 +1207,7 @@ class EnhancedSetCursor(bpy.types.Operator):
                 xyz_width += coord_cells[i].w
                 
                 if i == self.current_axis:
-                   curr_axis_x_end = xyz_width
+                    curr_axis_x_end = xyz_width
                 
                 xyz_width += xyz_margin
             
@@ -4178,11 +4178,11 @@ def round_step(x, s=1.0):
 
 twoPi = 2.0 * math.pi
 def clamp_angle(ang):
-	# Attention! In Python the behaviour is:
-	# -359.0 % 180.0 == 1.0
-	# -359.0 % -180.0 == -179.0
-	ang = (ang % twoPi)
-	return ((ang - twoPi) if (ang > math.pi) else ang)
+    # Attention! In Python the behaviour is:
+    # -359.0 % 180.0 == 1.0
+    # -359.0 % -180.0 == -179.0
+    ang = (ang % twoPi)
+    return ((ang - twoPi) if (ang > math.pi) else ang)
 
 def prepare_grid_mesh(nx=1, ny=1, sx=1.0, sy=1.0, z=0.0, xyz_indices=(0,1,2)):
     vertices = []

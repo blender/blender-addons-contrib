@@ -742,9 +742,8 @@ def arch(ra,rt,x,z, archStart, archEnd, bevel, bevAngle, vll):
         if side == 1: pointsToAffect = right
         else: pointsToAffect = left
         for num in pointsToAffect:
-                    offsets[num] = offsets[num][:]
-                    offsets[num][0] += -bevel * side
-        
+            offsets[num] = offsets[num][:]
+            offsets[num][0] += -bevel * side
 
     ArchInner = ra-rt/2
     ArchOuter = ra+rt/2-SetGrt + rndc()*SetGrtVar
@@ -884,8 +883,8 @@ def bevelBlockOffsets(offsets, bevel, side):
     if side == 1: pointsToAffect = (0,2) # right
     else: pointsToAffect = (4,6) # left
     for num in pointsToAffect:
-                offsets[num] = offsets[num][:]
-                offsets[num][0] += bevel * side
+        offsets[num] = offsets[num][:]
+        offsets[num][0] += bevel * side
 
 def rowProcessing(row, Thesketch, WallBoundaries):
     __doc__ = """\

@@ -248,12 +248,12 @@ class CLASS_Distance_Button(bpy.types.Operator):
         dist   = Measure_distance_in_scene()
 
         if dist != "-1.0":
-           # The string length is cut, 3 digits after the first 3 digits 
-           # after the '.'. Append also "Angstrom". 
-           # Remember: 1 Angstrom = 10^(-10) m 
-           pos    = str.find(dist, ".")
-           dist   = dist[:pos+4] 
-           dist   = dist + " Angstrom"
+            # The string length is cut, 3 digits after the first 3 digits 
+            # after the '.'. Append also "Angstrom". 
+            # Remember: 1 Angstrom = 10^(-10) m 
+            pos    = str.find(dist, ".")
+            dist   = dist[:pos+4] 
+            dist   = dist + " Angstrom"
 
         # Put the distance into the string of the output field.
         scn                = bpy.context.scene
@@ -709,31 +709,31 @@ def Draw_scene(FLAG_group_atoms,group_atoms_dn,mesh_yn,Ball_azimuth,Ball_zenith,
     i = 0
     for line in DATAFILEPATH_p:
 
-      if "Atom" in line:
+        if "Atom" in line:
 
-          line              = DATAFILEPATH_p.readline() 
-          line              = DATAFILEPATH_p.readline()
-          pos               = str.find(line, ":")
-          Data_Number.append(line[pos+2:-1])
+            line              = DATAFILEPATH_p.readline() 
+            line              = DATAFILEPATH_p.readline()
+            pos               = str.find(line, ":")
+            Data_Number.append(line[pos+2:-1])
 
-          line              = DATAFILEPATH_p.readline()
-          pos               = str.find(line, ":")
-          Data_Atomname.append(line[pos+2:-1])
+            line              = DATAFILEPATH_p.readline()
+            pos               = str.find(line, ":")
+            Data_Atomname.append(line[pos+2:-1])
 
-          line              = DATAFILEPATH_p.readline()
-          pos               = str.find(line, ":")
-          Data_Shortname.append(line[pos+2:-1])
+            line              = DATAFILEPATH_p.readline()
+            pos               = str.find(line, ":")
+            Data_Shortname.append(line[pos+2:-1])
 
-          line              = DATAFILEPATH_p.readline()
-          pos               = str.find(line, ":")
-          color_value       = line[pos+2:-1].split(',')
-          Data_Color.append([float(color_value[0]),float(color_value[1]),float(color_value[2])]) 
+            line              = DATAFILEPATH_p.readline()
+            pos               = str.find(line, ":")
+            color_value       = line[pos+2:-1].split(',')
+            Data_Color.append([float(color_value[0]),float(color_value[1]),float(color_value[2])]) 
 
-          line              = DATAFILEPATH_p.readline()
-          pos               = str.find(line, ":")
-          Data_Radius.append(line[pos+2:-1])
+            line              = DATAFILEPATH_p.readline()
+            pos               = str.find(line, ":")
+            Data_Radius.append(line[pos+2:-1])
 
-          i += 1
+            i += 1
 
     DATAFILEPATH_p.close()
     

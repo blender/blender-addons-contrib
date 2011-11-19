@@ -40,7 +40,7 @@ phnmlst="nothing"
 
 # truning off relative path - it causes an error if it was true
 if bpy.context.user_preferences.filepaths.use_relative_paths == True:
-   bpy.context.user_preferences.filepaths.use_relative_paths = False
+    bpy.context.user_preferences.filepaths.use_relative_paths = False
 
 # add blinking
 def blinker():

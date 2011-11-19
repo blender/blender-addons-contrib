@@ -49,15 +49,15 @@ class VIEW3D_PT_tools_WettedMesh(bpy.types.Panel):
         slcnt = len(context.selected_objects)
 
         if slcnt != 2:
-           col.label(text = 'Select two mesh objects')
-           col.label(text = 'to generate separated')
-           col.label(text = 'fluid, dry and wetted')
-           col.label(text = 'meshes.')
+            col.label(text = 'Select two mesh objects')
+            col.label(text = 'to generate separated')
+            col.label(text = 'fluid, dry and wetted')
+            col.label(text = 'meshes.')
         else:
-           (solid, fluid) = getSelectedPair(context)
-           col.label(text = 'solid = '+solid.name)
-           col.label(text = 'fluid = '+fluid.name)
-           col.operator('mesh.primitive_wetted_mesh_add', text='Generate Meshes')
+            (solid, fluid) = getSelectedPair(context)
+            col.label(text = 'solid = '+solid.name)
+            col.label(text = 'fluid = '+fluid.name)
+            col.operator('mesh.primitive_wetted_mesh_add', text='Generate Meshes')
 
 ### Operator ###
 class AddWettedMesh(bpy.types.Operator):
@@ -144,7 +144,7 @@ class AddWettedMesh(bpy.types.Operator):
         i = 0
         for f in fluidMinusSolid.data.faces:
             if i % 500 == 0:
-               print("      ", i, " / ", numFaces)
+                print("      ", i, " / ", numFaces)
             i += 1
             fuid = unifiedFaceId(kdtrees, f, fluidMinusSolid.data.vertices, \
                                  faceDict, vertDict, cacheDict)
@@ -157,7 +157,7 @@ class AddWettedMesh(bpy.types.Operator):
         i = 0
         for f in fluidUnionSolid.data.faces:
             if i % 500 == 0:
-               print("      ", i, " / ", numFaces)
+                print("      ", i, " / ", numFaces)
             i += 1
             fuid = unifiedFaceId(kdtrees, f, fluidUnionSolid.data.vertices, \
                                  faceDict, vertDict, cacheDict)
@@ -305,7 +305,7 @@ def getSelectedPair(context):
     objA = context.object
     objB = context.selected_objects[0]
     if objA == objB:
-       objB = context.selected_objects[1]
+        objB = context.selected_objects[1]
     return (objA, objB)
 
 # get a unified vertex id for given coordinates

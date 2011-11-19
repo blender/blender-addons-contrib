@@ -120,66 +120,66 @@ class DeselectFound(bpy.types.Operator):
         return {'FINISHED'}
 
 def set_used():
-        global use_selected_only, used_vertexes, the_mesh, vertex_usage
-        obj = bpy.context.active_object
-        used_vertexes = set()
-        if use_selected_only:
-                for v in obj.data.vertices:
-                        if v.select: used_vertexes.add(v.index)
-        else:
-                for v in obj.data.vertices: used_vertexes.add(v.index)
-        the_mesh = obj
-        vertex_usage = '%d vertexes used' % (len(used_vertexes))
+    global use_selected_only, used_vertexes, the_mesh, vertex_usage
+    obj = bpy.context.active_object
+    used_vertexes = set()
+    if use_selected_only:
+        for v in obj.data.vertices:
+            if v.select: used_vertexes.add(v.index)
+    else:
+        for v in obj.data.vertices: used_vertexes.add(v.index)
+    the_mesh = obj
+    vertex_usage = '%d vertexes used' % (len(used_vertexes))
 
 
 def make_groups(limit):
-        global used_vertexes
-        vgp = []
-        vgdict = {}
-        vgused = {}
-        obj = bpy.context.active_object
-        all_in_group = True
-        for vg in obj.vertex_groups:
-                vgdict[vg.index] = vg.name
-        for v in obj.data.vertices:
-                in_group = False
-                if v.index in used_vertexes:
-                        for g in v.groups:
-                                gr = g.group
-                                w = g.weight
-                                if w > limit:
-                                        if not gr in vgused: vgused[gr] = 0
-                                        vgused[gr] += 1
-                                        in_group = True
-                if not in_group: all_in_group = False
-        if not all_in_group:
-                vgp.append(("no group", "(No group)"))
-        for gn in vgused.keys():
-                name = vgdict[gn]
-                vgp.append((name, '%s has %d vertexes' % (name, vgused[gn]) ))
-        print("%d groups found\n" % len(vgp))
-        return vgp
+    global used_vertexes
+    vgp = []
+    vgdict = {}
+    vgused = {}
+    obj = bpy.context.active_object
+    all_in_group = True
+    for vg in obj.vertex_groups:
+        vgdict[vg.index] = vg.name
+    for v in obj.data.vertices:
+        in_group = False
+        if v.index in used_vertexes:
+            for g in v.groups:
+                gr = g.group
+                w = g.weight
+                if w > limit:
+                    if not gr in vgused: vgused[gr] = 0
+                    vgused[gr] += 1
+                    in_group = True
+        if not in_group: all_in_group = False
+    if not all_in_group:
+        vgp.append(("no group", "(No group)"))
+    for gn in vgused.keys():
+        name = vgdict[gn]
+        vgp.append((name, '%s has %d vertexes' % (name, vgused[gn]) ))
+    print("%d groups found\n" % len(vgp))
+    return vgp
 
 def found_verts(vertex_group):
-        global used_vertexes
-        vgfound = []
-        obj = bpy.context.active_object
-        if vertex_group == 'no group':
-                for v in obj.data.vertices:
-                        if v.index in used_vertexes and len(v.groups) == 0:
-                                vgfound.append(v)
-        else:
-                vgnum = -1
-                for vg in obj.vertex_groups:
-                        if vg.name == vertex_group: vgnum = vg.index
-                for v in obj.data.vertices:
-                        if v.index in used_vertexes:
-                                found = False
-                                for g in v.groups:
-                                        if g.group == vgnum: found = True
-                                if found: vgfound.append(v)
-        print('%d vertexes found for %s' % (len(vgfound), vertex_group))
-        return vgfound
+    global used_vertexes
+    vgfound = []
+    obj = bpy.context.active_object
+    if vertex_group == 'no group':
+        for v in obj.data.vertices:
+            if v.index in used_vertexes and len(v.groups) == 0:
+                gfound.append(v)
+    else:
+        vgnum = -1
+        for vg in obj.vertex_groups:
+            if vg.name == vertex_group: vgnum = vg.index
+        for v in obj.data.vertices:
+            if v.index in used_vertexes:
+                found = False
+                for g in v.groups:
+                        if g.group == vgnum: found = True
+                if found: vgfound.append(v)
+    print('%d vertexes found for %s' % (len(vgfound), vertex_group))
+    return vgfound
 
 
 class VIEW3D_PT_FixVertexGroups(bpy.types.Panel):
@@ -190,16 +190,16 @@ class VIEW3D_PT_FixVertexGroups(bpy.types.Panel):
     @classmethod
     def poll(self, context):
         if bpy.context.active_object:
-           obj = bpy.context.active_object
-           if obj.type == 'MESH' and obj.mode == 'EDIT': return True
+            obj = bpy.context.active_object
+            if obj.type == 'MESH' and obj.mode == 'EDIT': return True
         return False
 
     def draw(self, context):
         global use_selected_only, used_vertexes, the_mesh, vertex_usage
 
         if bpy.context.active_object:
-           obj = bpy.context.active_object
-           if obj.type == 'MESH' and obj.mode == 'EDIT':
+            obj = bpy.context.active_object
+            if obj.type == 'MESH' and obj.mode == 'EDIT':
                 layout = self.layout
                 use_all = layout.operator("mesh.primitive_fvg_useall", "Use all vertexes")
                 layout.operator("mesh.primitive_fvg_useselected", "Use selected vertexes")
@@ -213,12 +213,12 @@ class VIEW3D_PT_FixVertexGroups(bpy.types.Panel):
                 #groups = make_groups(use_all.limitval)
                 groups = make_groups(0.01)
                 for gp in groups:
-                        layout.label(text = gp[1])
-                        row = layout.row()
-                        sel_op = row.operator("mesh.primitive_fvg_selfound", "Select")
-                        sel_op.vertexgroup = gp[0]
-                        desel_op = row.operator("mesh.primitive_fvg_deselfound", "Deselect")
-                        desel_op.vertexgroup = gp[0]
+                    layout.label(text = gp[1])
+                    row = layout.row()
+                    sel_op = row.operator("mesh.primitive_fvg_selfound", "Select")
+                    sel_op.vertexgroup = gp[0]
+                    desel_op = row.operator("mesh.primitive_fvg_deselfound", "Deselect")
+                    desel_op.vertexgroup = gp[0]
 
 classes = [UseAll, UseSelected, SelectFound, DeselectFound]
 

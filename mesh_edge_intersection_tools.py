@@ -187,7 +187,7 @@ def ProjectGeometry(vX, opoint):
 def getMeshMatrix(obj):
     is_editmode = (obj.mode == 'EDIT')
     if is_editmode:
-       bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     (edges, meshMatrix) = ([],[])
     mesh = obj.data
