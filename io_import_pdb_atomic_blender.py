@@ -1,4 +1,4 @@
-#
+# 
 #
 #  Authors           : Clemens Barth (Blendphys@root-1.de), ...
 #
@@ -7,7 +7,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2011-11-20
+#  Last modified                 : 2011-11-21
 #
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
@@ -581,28 +581,28 @@ def Measure_distance_in_scene():
 # Routine to modify the radii of a specific type of atom
 def Modify_atom_radii_type_pm(atomname, radius_pm):
 
-    for obj in bpy.data.objects:
+    for obj in bpy.context.scene.objects:
 
         if atomname in obj.name:
 
-            bpy.data.objects[obj.name].scale = (radius_pm/100,radius_pm/100,radius_pm/100)
+            obj.scale = (radius_pm/100,radius_pm/100,radius_pm/100)
                 
 
 # Routine to modify the radii of a specific type of atom
 def Modify_atom_radii_type_scale(atomname, radius_rel):
 
-    for obj in bpy.data.objects:
+    for obj in bpy.context.scene.objects:
 
         if atomname in obj.name:
 
             value = obj.scale[0]
-            bpy.data.objects[obj.name].scale = (radius_rel * value,radius_rel * value,radius_rel * value)
+            obj.scale = (radius_rel * value,radius_rel * value,radius_rel * value)
 
 
 # Routine to scale the radii of all atoms
 def Modify_all_atom_radii(scale):
 
-    for obj in bpy.data.objects:
+    for obj in bpy.context.scene.objects:
 
         if obj.type == "SURFACE" or obj.type == "MESH":
 
