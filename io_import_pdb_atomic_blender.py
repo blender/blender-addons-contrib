@@ -41,7 +41,7 @@ bl_info = {
   "version": (2,0),
   "blender": (2,6),
   "api": 31236,
-  "location": "File > Import => PDB (.pdb)",
+  "location": "File -> Import -> PDB (.pdb)",
   "warning": "",
   "wiki_url": "http://development.root-1.de/Atomic_Blender.php",
   "tracker_url": "http://projects.blender.org/tracker/?func=detail&atid=467&aid=29226&group_id=153",
@@ -52,13 +52,14 @@ import bpy
 import io
 import sys
 import os
+import inspect
 from math import *
 import mathutils, math
 from mathutils import Vector
 
 
-# These are variables, which contain the name of the PDB file,
-# the path of the PDB file and, finally, the path to the DATAFILEPATH.
+# These are variables, which contain the name of the PDB file and
+# the path of the PDB file.
 # They are used almost everywhere, which is the reason why they 
 # should stay global. First, they are empty and get 'filled' directly
 # after having chosen the PDB file (see discussion at 'class LoadPDB'
@@ -66,68 +67,131 @@ from mathutils import Vector
 
 PDBFILEPATH       = ""
 PDBFILENAME       = ""
-DATAFILEPATH      = ""
 
 # The name of this script and the data file. This is used in the class 
 # LoadPDB, for determining the path of the data file. For further details 
 # see below.
 SCRIPTNAME   = "io_import_pdb_atomic_blender.py"
-DATAFILENAME = "io_import_pdb_atomic_blender.dat"
 
 
 # Some string stuff for the console.
 Atomic_Blender_string     = "Atomic Blender 2.0\n==================="
 Atomic_Blender_panel_name = "PDB - Atomic Blender"
 
+# Before I had a data file, which included all the following atom data. Well, in fact I prefer
+# separate files, especially data files.
+# However, since it was almost impossible to find a mean for determing the path of the data 
+# file for any kind of situation, I finally decided to include all the atom data into the Python
+# script. The script is now absolutely independent on a second file, and we solved many problems
+# that come along with the world of file paths under different operating systems.
 
-
-# This routine is used to determine the path of the data file. The data file
-# needs to be in 
-#                    /script
-#                    /script/addons
-#                    /script/startup            
-# 
-# either in USER: or SYSTEM: 
+# This is a list that contains some data of all possible atoms. The structure is as follows:
 #
-# So, check all these possibilities and return the path of the data file.
-# The empty return string "" means that no data file could be found. Note that:
+# 1, "Hydrogen", "H", [0.0,0.0,1.0], 0.32, 0.32, 0.32 , -1 , 1.54   means
 #
-# bpy.utils.script_paths()[0]        => system script path
-# bpy.utils.user_resource('SCRIPTS') => user   script path
+# Number, name of atom, short name, color, radius (used for Blender), radius (covalent), radius (atomic), ... 
 #
-def Determine_path_of_data_file():
+# ... then the charge state: charge state, radius (ionic), charge state, radius (ionic), ... all charge states 
+# for any atom are listed, if existing.
+  
+Data_all_atoms = [
+[ 1, "Hydrogen", "H", [0.0,0.0,1.0], 0.32, 0.32, 0.32 , -1 , 1.54 ],
+[ 2, "Helium", "He", [0.20,0.56,0.20], 0.93, 0.93, 0.93 , 1 , 0.68 ],
+[ 3, "Beryllium", "Be", [0.44,0.72,0.30], 0.90, 0.90, 0.90 , 1 , 0.44 , 2 , 0.35 ],
+[ 4, "Boron", "B", [1.0,1.0,1.0], 0.82, 0.82, 0.82 , 1 , 0.35 , 3 , 0.23 ],
+[ 5, "Carbon", "C", [0.0,0.0,0.0], 0.77, 0.77, 0.77 , -4 , 2.60 , 4 , 0.16 ],
+[ 6, "Nitrogen", "N", [0.0,0.0,1.0], 0.75, 0.75, 0.75 , -3 , 1.71 , 1 , 0.25 , 3 , 0.16 , 5 , 0.13 ],
+[ 7, "Oxygen", "O", [1.0,0.0,0.0], 0.73, 0.73, 0.73 , -2 , 1.32 , -1 , 1.76 , 1 , 0.22 , 6 , 0.09 ],
+[ 8, "Fluorine", "F", [0.0,1.0,0.0], 0.72, 0.72, 0.72 , -1 , 1.33 , 7 , 0.08 ],
+[ 9, "Neon", "Ne", [0.53,0.60,0.52], 0.71, 0.71, 0.71 , 1 , 1.12 ],
+[ 10, "Sodium", "Na", [0.0,0.0,1.0], 1.54, 1.54, 1.54 , 1 , 0.97 ],
+[ 11, "Magnesium", "Mg", [1.0,1.0,1.0], 1.36, 1.36, 1.36 , 1 , 0.82 , 2 , 0.66 ],
+[ 12, "Aluminium", "Al", [0.70,0.2,0.62], 1.18, 1.18, 1.18 , 3 , 0.51 ],
+[ 13, "Silicon", "Si", [0.65,0.64,0.27], 1.11, 1.11, 1.11 , -4 , 2.71 , -1 , 3.84 , 1 , 0.65 , 4 , 0.42 ],
+[ 14, "Phosphorus", "P", [1.0,1.0,0.0], 1.06, 1.06, 1.06 , -3 , 2.12 , 3 , 0.44 , 5 , 0.35 ],
+[ 15, "Sulfur", "S", [1.0,1.0,0.50], 1.02, 1.02, 1.02 , -2 , 1.84 , 2 , 2.19 , 4 , 0.37 , 6 , 0.30 ],
+[ 16, "Chlorine", "Cl", [0.0,1.0,0.0], 0.99, 0.99, 0.99 , -1 , 1.81 , 5 , 0.34 , 7 , 0.27 ],
+[ 17, "Argon", "Ar", [0.31,0.32,0.74], 0.98, 0.98, 0.98 , 1 , 1.54 ],
+[ 18, "Potassium", "K", [0.81,0.23,0.42], 2.03, 2.03, 2.03 , 1 , 0.81 ],
+[ 19, "Calcium", "Ca", [1.0,1.0,1.0], 1.74, 1.74, 1.74 , 1 , 1.18 , 2 , 0.99 ],
+[ 20, "Scandium", "Sc", [0.66,0.44,0.31], 1.44, 1.44, 1.44 , 3 , 0.73 ],
+[ 21, "Titanium", "Ti", [0.27,0.53,0.68], 1.32, 1.32, 1.32 , 1 , 0.96 , 2 , 0.94 , 3 , 0.76 , 4 , 0.68 ],
+[ 22, "Vanadium", "V", [0.27,0.24,0.63], 1.22, 1.22, 1.22 , 2 , 0.88 , 3 , 0.74 , 4 , 0.63 , 5 , 0.59 ],
+[ 23, "Chromium", "Cr", [0.80,0.28,0.81], 1.18, 1.18, 1.18 , 1 , 0.81 , 2 , 0.89 , 3 , 0.63 , 6 , 0.52 ],
+[ 24, "Manganese", "Mn", [0.75,0.35,0.55], 1.17, 1.17, 1.17 , 2 , 0.80 , 3 , 0.66 , 4 , 0.60 , 7 , 0.46 ],
+[ 25, "Iron", "Fe", [1.0,0.0,0.0], 1.17, 1.17, 1.17 , 2 , 0.74 , 3 , 0.64 ],
+[ 26, "Cobalt", "Co", [0.27,0.21,0.75], 1.16, 1.16, 1.16 , 2 , 0.72 , 3 , 0.63 ],
+[ 27, "Nickel", "Ni", [0.43,0.36,0.86], 1.15, 1.15, 1.15 , 2 , 0.69 ],
+[ 28, "Copper", "Cu", [0.60,0.0,0.0], 1.17, 1.17, 1.17 , 1 , 0.96 , 2 , 0.72 ],
+[ 29, "Zinc", "Zn", [0.42,0.36,0.45], 1.25, 1.25, 1.25 , 1 , 0.88 , 2 , 0.74 ],
+[ 30, "Gallium", "Ga", [0.63,0.72,0.33], 1.26, 1.26, 1.26 , 1 , 0.81 , 3 , 0.62 ],
+[ 31, "Germanium", "Ge", [0.42,0.75,0.30], 1.22, 1.22, 1.22 , -4 , 2.72 , 2 , 0.73 , 4 , 0.53 ],
+[ 32, "Arsenic", "As", [0.39,0.77,0.25], 1.20, 1.20, 1.20 , -3 , 2.22 , 3 , 0.58 , 5 , 0.46 ],
+[ 33, "Selenium", "Se", [0.95,0.27,0.90], 1.16, 1.16, 1.16 , -2 , 1.91 , -1 , 2.32 , 1 , 0.66 , 4 , 0.50 , 6 , 0.42 ],
+[ 34, "Bromine", "Br", [0.0,0.49,0.0], 1.14, 1.14, 1.14 , -1 , 1.96 , 5 , 0.47 , 7 , 0.39 ],
+[ 35, "Krypton", "Kr", [0.22,0.43,0.19], 1.31, 1.31, 1.31 , 1 , 1.47 ],
+[ 36, "Strontium", "Sr", [1.0,1.0,1.0], 1.91, 1.91, 1.91 , 2 , 1.12 ],
+[ 37, "Yttrium", "Y", [1.0,1.0,1.0], 1.62, 1.62, 1.62 , 3 , 0.89 ],
+[ 38, "Zirconium", "Zr", [1.0,1.0,1.0], 1.45, 1.45, 1.45 , 1 , 1.09 , 4 , 0.79 ],
+[ 39, "Niobium", "Nb", [1.0,1.0,1.0], 1.34, 1.34, 1.34 , 1 , 1.00 , 4 , 0.74 , 5 , 0.69 ],
+[ 40, "Molybdenum", "Mo", [1.0,1.0,1.0], 1.30, 1.30, 1.30 , 1 , 0.93 , 4 , 0.70 , 6 , 0.62 ],
+[ 41, "Technetium", "Tc", [1.0,1.0,1.0], 1.27, 1.27, 1.27 , 7 , 0.97 ],
+[ 42, "Ruthenium", "Ru", [1.0,1.0,1.0], 1.25, 1.25, 1.25 , 4 , 0.67 ],
+[ 43, "Rhodium", "Rh", [1.0,1.0,1.0], 1.25, 1.25, 1.25 , 3 , 0.68 ],
+[ 44, "Palladium", "Pd", [1.0,1.0,1.0], 1.28, 1.28, 1.28 , 2 , 0.80 , 4 , 0.65 ],
+[ 45, "Silver", "Ag", [1.0,1.0,1.0], 1.34, 1.34, 1.34 , 1 , 1.26 , 2 , 0.89 ],
+[ 46, "Cadmium", "Cd", [1.0,1.0,1.0], 1.48, 1.48, 1.48 , 1 , 1.14 , 2 , 0.97 ],
+[ 47, "Indium", "In", [1.0,1.0,1.0], 1.44, 1.44, 1.44 , 3 , 0.81 ],
+[ 48, "Tin", "Sn", [1.0,1.0,1.0], 1.41, 1.41, 1.41 , -4 , 2.94 , -1 , 3.70 , 2 , 0.93 , 4 , 0.71 ],
+[ 49, "Antimony", "Sb", [1.0,1.0,1.0], 1.40, 1.40, 1.40 , -3 , 2.45 , 3 , 0.76 , 5 , 0.62 ],
+[ 50, "Tellurium", "Te", [1.0,1.0,1.0], 1.36, 1.36, 1.36 , -2 , 2.11 , -1 , 2.50 , 1 , 0.82 , 4 , 0.70 , 6 , 0.56 ],
+[ 51, "Iodine", "I", [0.0,0.49,0.49], 1.33, 1.33, 1.33 , -1 , 2.20 , 5 , 0.62 , 7 , 0.50 ],
+[ 52, "Xenon", "Xe", [1.0,1.0,1.0], 1.31, 1.31, 1.31 , 1 , 1.67 ],
+[ 53, "Barium", "Ba", [1.0,1.0,1.0], 1.98, 1.98, 1.98 , 1 , 1.53 , 2 , 1.34 ],
+[ 54, "Lanthanum", "La", [1.0,1.0,1.0], 1.69, 1.69, 1.69 , 1 , 1.39 , 3 , 1.06 ],
+[ 55, "Cerium", "Ce", [1.0,1.0,1.0], 1.65, 1.65, 1.65 , 1 , 1.27 , 3 , 1.03 , 4 , 0.92 ],
+[ 56, "Praseodymium", "Pr", [1.0,1.0,1.0], 1.65, 1.65, 1.65 , 3 , 1.01 , 4 , 0.90 ],
+[ 57, "Neodymium", "Nd", [1.0,1.0,1.0], 1.64, 1.64, 1.64 , 3 , 0.99 ],
+[ 58, "Promethium", "Pm", [1.0,1.0,1.0], 1.63, 1.63, 1.63 , 3 , 0.97 ],
+[ 59, "Samarium", "Sm", [1.0,1.0,1.0], 1.62, 1.62, 1.62 , 3 , 0.96 ],
+[ 60, "Europium", "Eu", [1.0,1.0,1.0], 1.85, 1.85, 1.85 , 2 , 1.09 , 3 , 0.95 ],
+[ 61, "Gadolinium", "Gd", [1.0,1.0,1.0], 1.61, 1.61, 1.61 , 3 , 0.93 ],
+[ 62, "Terbium", "Tb", [1.0,1.0,1.0], 1.59, 1.59, 1.59 , 3 , 0.92 , 4 , 0.84 ],
+[ 63, "Dysprosium", "Dy", [1.0,1.0,1.0], 1.59, 1.59, 1.59 , 3 , 0.90 ],
+[ 64, "Holmium", "Ho", [1.0,1.0,1.0], 1.58, 1.58, 1.58 , 3 , 0.89 ],
+[ 65, "Erbium", "Er", [0.48,0.48,0.48], 1.57, 1.57, 1.57 , 3 , 0.88 ],
+[ 66, "Thulium", "Tm", [1.0,1.0,1.0], 1.56, 1.56, 1.56 , 3 , 0.87 ],
+[ 67, "Ytterbium", "Yb", [1.0,1.0,1.0], 1.74, 1.74, 1.74 , 2 , 0.93 , 3 , 0.85 ],
+[ 68, "Lutetium", "Lu", [1.0,1.0,1.0], 1.56, 1.56, 1.56 , 3 , 0.85 ],
+[ 69, "Hafnium", "Hf", [1.0,1.0,1.0], 1.44, 1.44, 1.44 , 4 , 0.78 ],
+[ 70, "Tantalum", "Ta", [1.0,1.0,1.0], 1.34, 1.34, 1.34 , 5 , 0.68 ],
+[ 71, "Tungsten", "W", [1.0,1.0,1.0], 1.30, 1.30, 1.30 , 4 , 0.70 , 6 , 0.62 ],
+[ 72, "Rhenium", "Re", [1.0,1.0,1.0], 1.28, 1.28, 1.28 , 4 , 0.72 , 7 , 0.56 ],
+[ 73, "Osmium", "Os", [1.0,1.0,1.0], 1.26, 1.26, 1.26 , 4 , 0.88 , 6 , 0.69 ],
+[ 74, "Iridium", "Ir", [1.0,1.0,1.0], 1.27, 1.27, 1.27 , 4 , 0.68 ],
+[ 75, "Platinium", "Pt", [1.0,1.0,1.0], 1.30, 1.30, 1.30 , 2 , 0.80 , 4 , 0.65 ],
+[ 76, "Gold", "Au", [1.0,1.0,1.0], 1.34, 1.34, 1.34 , 1 , 1.37 , 3 , 0.85 ],
+[ 77, "Mercury", "Hg", [1.0,1.0,1.0], 1.49, 1.49, 1.49 , 1 , 1.27 , 2 , 1.10 ],
+[ 78, "Thallium", "Tl", [1.0,1.0,1.0], 1.48, 1.48, 1.48 , 1 , 1.47 , 3 , 0.95 ],
+[ 79, "Lead", "Pb", [0.49,0.49,0.49], 1.47, 1.47, 1.47 , 2 , 1.20 , 4 , 0.84 ],
+[ 80, "Bismuth", "Bi", [1.0,1.0,1.0], 1.46, 1.46, 1.46 , 1 , 0.98 , 3 , 0.96 , 5 , 0.74 ],
+[ 81, "Polonium", "Po", [1.0,1.0,1.0], 1.46, 1.46, 1.46 , 6 , 0.67 ],
+[ 82, "Astatine", "At", [1.0,1.0,1.0], 1.45, 1.45, 1.45 , -3 , 2.22 , 3 , 0.85 , 5 , 0.46 ],
+[ 83, "Radon", "Rn", [1.0,1.0,1.0], 1.00, 1.00, 1.00 , 1 , 1.80 ],
+[ 84, "Radium", "Ra", [1.0,1.0,1.0], 1.00, 1.00, 1.00 , 2 , 1.43 ],
+[ 85, "Actinium", "Ac", [1.0,1.0,1.0], 1.00, 1.00, 1.00 , 3 , 1.18 ],
+[ 86, "Thorium", "Th", [1.0,1.0,1.0], 1.65, 1.65, 1.65 , 4 , 1.02 ],
+[ 87, "Protactinium", "Pa", [1.0,1.0,1.0], 1.00, 1.00, 1.00 , 3 , 1.13 , 4 , 0.98 , 5 , 0.89 ],
+[ 88, "Uranium", "U", [1.0,1.0,1.0], 1.42, 1.42, 1.42 , 4 , 0.97 , 6 , 0.80 ],
+[ 89, "Neptunium", "Np", [1.0,1.0,1.0], 1.00, 1.00, 1.00 , 3 , 1.10 , 4 , 0.95 , 7 , 0.71 ],
+[ 90, "Plutonium", "Pu", [1.0,1.0,1.0], 1.00, 1.00, 1.00 , 3 , 1.08 , 4 , 0.93 ],
+[ 91, "Americium", "Am", [1.0,1.0,1.0], 1.00, 1.00, 1.00 , 3 , 1.07 , 4 , 0.92 ],
+[ 92, "Curium", "Cm", [1.0,1.0,1.0], 1.00, 1.00, 1.00 ],
+[ 93, "Vacancy", "Vac", [0.5,0.5,0.5], 1.00, 0.00, 0.00],
+[ 94, "Default", "Default", [1.0,1.0,1.0], 1.00, 1.00, 1.00],
+[ 95, "Stick", "Stick", [0.5,0.5,0.5], 0.00, 0.00, 0.00]]
 
-    script_path = bpy.utils.script_paths()[0]
-    datafile_path  = os.path.join(script_path, DATAFILENAME)
-    if os.path.isfile(datafile_path):
-        return datafile_path
-    
-    script_path   = bpy.utils.user_resource('SCRIPTS')
-    datafile_path  = os.path.join(script_path, DATAFILENAME)
-    if os.path.isfile(datafile_path):
-        return datafile_path
-    
-    script_path   = bpy.utils.script_paths(subdir="addons")[0]
-    datafile_path  = os.path.join(script_path, DATAFILENAME)
-    if os.path.isfile(datafile_path):
-        return datafile_path
-
-    script_path   = bpy.utils.user_resource('SCRIPTS', path="addons")
-    datafile_path  = os.path.join(script_path, DATAFILENAME)
-    if os.path.isfile(datafile_path):
-        return datafile_path
-
-    script_path   = bpy.utils.script_paths(subdir="startup")[0]
-    datafile_path  = os.path.join(script_path, DATAFILENAME)
-    if os.path.isfile(datafile_path):
-        return datafile_path
-
-    script_path   = bpy.utils.user_resource('SCRIPTS', path="startup")
-    datafile_path  = os.path.join(script_path, DATAFILENAME)
-    if os.path.isfile(datafile_path):
-        return datafile_path    
-
-    return ""
+all_existing_atoms = 95
     
     
 
@@ -292,12 +356,12 @@ class CLASS_Distance_Button(bpy.types.Operator):
         dist   = Measure_distance_in_scene()
 
         if dist != "-1.0":
-            # The string length is cut, 3 digits after the first 3 digits 
-            # after the '.'. Append also "Angstrom". 
-            # Remember: 1 Angstrom = 10^(-10) m 
-            pos    = str.find(dist, ".")
-            dist   = dist[:pos+4] 
-            dist   = dist + " Angstrom"
+           # The string length is cut, 3 digits after the first 3 digits 
+           # after the '.'. Append also "Angstrom". 
+           # Remember: 1 Angstrom = 10^(-10) m 
+           pos    = str.find(dist, ".")
+           dist   = dist[:pos+4] 
+           dist   = dist + " Angstrom"
 
         # Put the distance into the string of the output field.
         scn                = bpy.context.scene
@@ -416,7 +480,6 @@ class CLASS_LoadPDB(bpy.types.Operator):
     def execute(self, context):
         global PDBFILEPATH
         global PDBFILENAME
-        global DATAFILEPATH
         
         # In the following the name and path of the PDB file
         # is stored into the global variables.
@@ -469,7 +532,6 @@ def unregister():
 
 if __name__ == "__main__":
 
-    DATAFILEPATH = Determine_path_of_data_file()
     register()
 
 
@@ -688,21 +750,11 @@ def Draw_scene(FLAG_group_atoms,group_atoms_dn,mesh_yn,Ball_azimuth,Ball_zenith,
 
     global PDBFILEPATH
     global PDBFILENAME
-    global DATAFILEPATH
     
 
     # This is in order to solve this strange 'relative path' thing.
     PDBFILEPATH  = bpy.path.abspath(PDBFILEPATH)
-    DATAFILEPATH = bpy.path.abspath(DATAFILEPATH)
    
-   
-    # Lists for all atoms in the data file
-    Data_Number        = []
-    Data_Atomname      = []
-    Data_Shortname     = []
-    Data_Color         = []
-    Data_Radius        = []
-
     # Lists for atoms in the PDB file
     atom_object    = []
     atom_element   = []
@@ -719,54 +771,7 @@ def Draw_scene(FLAG_group_atoms,group_atoms_dn,mesh_yn,Ball_azimuth,Ball_zenith,
    
     # Materials
     atom_material_list = []
-   
 
-    #
-    #
-    #
-    #
-    #          READING DATA OF ALL POSSIBLE ATOMS FROM THE DATA FILE
-    #         
-    #
-    #
-    #
-
-
-    # Read the data file, which contains all data (atom name, radii, colors, etc.)
-    DATAFILEPATH_p = io.open(DATAFILEPATH, "r")
-
-    i = 0
-    for line in DATAFILEPATH_p:
-
-        if "Atom" in line:
-
-            line              = DATAFILEPATH_p.readline() 
-            line              = DATAFILEPATH_p.readline()
-            pos               = str.find(line, ":")
-            Data_Number.append(line[pos+2:-1])
-
-            line              = DATAFILEPATH_p.readline()
-            pos               = str.find(line, ":")
-            Data_Atomname.append(line[pos+2:-1])
-
-            line              = DATAFILEPATH_p.readline()
-            pos               = str.find(line, ":")
-            Data_Shortname.append(line[pos+2:-1])
-
-            line              = DATAFILEPATH_p.readline()
-            pos               = str.find(line, ":")
-            color_value       = line[pos+2:-1].split(',')
-            Data_Color.append([float(color_value[0]),float(color_value[1]),float(color_value[2])]) 
-
-            line              = DATAFILEPATH_p.readline()
-            pos               = str.find(line, ":")
-            Data_Radius.append(line[pos+2:-1])
-
-            i += 1
-
-    DATAFILEPATH_p.close()
-    
-    all_existing_atoms = i
 
 
     #
@@ -806,14 +811,14 @@ def Draw_scene(FLAG_group_atoms,group_atoms_dn,mesh_yn,Ball_azimuth,Ball_zenith,
         
             # Split the line into its parts (devided by a ' ') and analyse it. The first line is read.
             split_list = line.rsplit()
-         
+                        
             for i in list(range(all_existing_atoms)):
-                if str.upper(split_list[-1]) == str.upper(Data_Shortname[i]):
+                if str.upper(split_list[-1]) == str.upper(Data_all_atoms[i][2]):
                     # Give the atom its proper name and radius:
-                    atom_element.append(str.upper(Data_Shortname[i]))
-                    atom_name.append(Data_Atomname[i])
-                    atom_R.append(float(Data_Radius[i]))
-                    atom_color.append(Data_Color[i])
+                    atom_element.append(str.upper(Data_all_atoms[i][2]))
+                    atom_name.append(Data_all_atoms[i][1])
+                    atom_R.append(float(Data_all_atoms[i][4]))
+                    atom_color.append(Data_all_atoms[i][3])
                     break
 
             # 1. case: These are 'unknown' atoms. In some cases, atoms are named with an additional label like H1 (hydrogen1)
@@ -830,8 +835,8 @@ def Draw_scene(FLAG_group_atoms,group_atoms_dn,mesh_yn,Ball_azimuth,Ball_zenith,
                     atom_name.append(str.upper(split_list[2]))
 
                 # Default values for the atom.
-                atom_R.append(float(Data_Radius[all_existing_atoms-2]))
-                atom_color.append(Data_Color[all_existing_atoms-2])
+                atom_R.append(float(Data_all_atoms[all_existing_atoms-2][4]))
+                atom_color.append(Data_all_atoms[all_existing_atoms-2][3])
          
                  
          
@@ -1499,9 +1504,10 @@ def Draw_scene(FLAG_group_atoms,group_atoms_dn,mesh_yn,Ball_azimuth,Ball_zenith,
         # color is taken from the all_atom list, it is the last entry
         # in the data file (index -1).
         bpy.ops.object.material_slot_add()
-        stick_material               = bpy.data.materials.new(Data_Shortname[all_existing_atoms-1])
-        stick_material.name          = Data_Atomname[all_existing_atoms-1]
-        stick_material.diffuse_color = Data_Color [all_existing_atoms-1]
+        stick_material               = bpy.data.materials.new(Data_all_atoms[all_existing_atoms-1][2])
+                       
+        stick_material.name          = Data_all_atoms[all_existing_atoms-1][1]
+        stick_material.diffuse_color = Data_all_atoms[all_existing_atoms-1][3]
  
         # This is the unit vector of the z axis
         up_axis = mathutils.Vector([0.0, 0.0, 1.0])
@@ -1532,8 +1538,9 @@ def Draw_scene(FLAG_group_atoms,group_atoms_dn,mesh_yn,Ball_azimuth,Ball_zenith,
             # Material ... 
             stick.active_material = stick_material
             # ... and name
-            stick.name            = Data_Atomname[all_existing_atoms-1]
+            stick.name            = Data_all_atoms[all_existing_atoms-1][1]
 
+ 
     print()
     print()
     print("All atoms and sticks have been drawn - finished.")
