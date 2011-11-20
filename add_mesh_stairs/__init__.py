@@ -1,6 +1,6 @@
 # Paul "BrikBot" Marshall
 # Created: July 24, 2011
-# Last Modified: Spetember 20, 2011
+# Last Modified: November 20, 2011
 # Homepage (blog): http://post.darkarsenic.com/
 #                       //blog.darkarsenic.com/
 #
@@ -31,8 +31,8 @@ bl_info = {
     "name": "StairBuilder",
     "author": "Nick van Adium",
     "version": (1,1),
-    "blender": (2, 5, 9),
-    "api": 40249,
+    "blender": (2, 6, 0),
+    "api": 41875,
     "location": "View3D > Add > Stairs",
     "description": "Creates a straight-run staircase with railings and stringer",
     "warning": "Add-on is very feature incomplete beyond basic functionality.",

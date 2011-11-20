@@ -13,7 +13,7 @@
 # 
 # Paul "BrikBot" Marshall
 # Created: September 19, 2011
-# Last Modified: September 20, 2011
+# Last Modified: November 20, 2011
 # Homepage (blog): http://post.darkarsenic.com/
 #                       //blog.darkarsenic.com/
 #
@@ -46,27 +46,28 @@ from mathutils.geometry import (intersect_line_plane,
                                 intersect_line_line)
 
 class Stringer:
-    def  __init__(self,G,typ,typ_s,rise,run,w,h,nT,hT,wT,tT,tO,tw,tf,tp,g,nS = 1,notMulti=True):
+    def  __init__(self,G,typ,typ_s,rise,run,w,h,nT,hT,wT,tT,tO,tw,tf,tp,g,nS=1,dis=False,notMulti=True):
         self.G = G #General
         self.typ = typ # Stair type
         self.typ_s = typ_s # Stringer type
         self.rise = rise #Stair rise
         self.run = run #Stair run
         if notMulti:
-            self.w=w/100 #stringer width
+            self.w = w / 100 #stringer width
         else:
-            self.w=(wT*(w/100))/nS
+            self.w = (wT * (w / 100)) / nS
         self.h = h #stringer height
-        self.nT=nT #number of treads
-        self.hT=hT #tread height
-        self.wT=wT #tread width
-        self.tT=tT #tread toe
+        self.nT = nT #number of treads
+        self.hT = hT #tread height
+        self.wT = wT #tread width
+        self.tT = tT #tread toe
         self.tO = tO #Tread overhang
         self.tw = self.w * (tw / 100) #stringer web thickness
         self.tf = tf #stringer flange thickness
         self.tp = 1 - (tp / 100) #stringer flange taper
         self.g = g #does stringer intersect the ground?
-        self.nS=nS #number of stringers
+        self.nS = nS #number of stringers
+        self.dis = dis #Use distributed stringers
         # Default stringer object (classic / sId1):
         self.faces1=[[0,1,3,2],[1,5,3],[3,5,4],[6,7,9,8],[7,11,9],[9,11,10],
                      [0,2,8,6],[0,1,7,6],[1,5,11,7],[2,3,9,8],[3,4,10,9],[4,5,11,10]]
@@ -102,11 +103,15 @@ class Stringer:
         # C-beam stringer (C-Beam / sId3):
         self.faces4=[[]]
         self.Create()
-        
+
+
     def Create(self):
         if self.typ == "id1":
             if self.typ_s == "sId1":
-                offset = (self.wT / (self.nS + 1)) - (self.w / 2)
+                if self.dis or self.nS == 1:
+                    offset = (self.wT / (self.nS + 1)) - (self.w / 2)
+                else:
+                    offset = 0
                 for i in range(self.nS):
                     for j in range(self.nT):
                         coords = []
@@ -121,9 +126,12 @@ class Stringer:
                         for k in coords:
                             k += j*Vector([self.run, 0, self.rise])
                         self.G.Make_mesh(coords,self.faces1,'stringer')
-                    offset += self.wT / (self.nS + 1)
+                    if self.dis or self.nS == 1:
+                        offset += self.wT / (self.nS + 1)
+                    else:
+                        offset += (self.wT - self.w) / (self.nS - 1)
             elif self.typ_s == "sId2":
-                self.IBeam()
+                self.I_beam()
         elif self.typ == "id2":
             if self.typ_s == "sId1":
                 coords = []
@@ -142,7 +150,9 @@ class Stringer:
                     i += Vector([0, self.w + self.wT, 0])
                 self.G.Make_mesh(coords, self.faces2, 'stringer')
             elif self.typ_s == "sId2":
-                self.HousedIBeam()
+                self.housed_I_beam()
+            elif self.typ_s == "sId3":
+                self.housed_C_beam()
         elif self.typ == "id3":
             h = (self.rise - self.hT) - self.rise #height of top section
             for i in range(self.nT):
@@ -155,7 +165,10 @@ class Stringer:
                     coords.append(coords[j] + Vector([0,self.wT,0]))
                 self.G.Make_mesh(coords, self.G.faces, 'stringer')
 
-    def IBeam(self):
+        return {'FINISHED'}
+
+
+    def I_beam(self):
         mid = self.w / 2
         web = self.tw / 2
         # Bottom of the stringer:
@@ -164,7 +177,12 @@ class Stringer:
         topZ = -self.rise - self.hT
         # Vertical taper amount:
         taper = self.tf * self.tp
-        offset = (self.wT / (self.nS + 1)) - mid
+
+        if self.dis or self.nS == 1:
+            offset = (self.wT / (self.nS + 1)) - mid
+        else:
+            offset = 0
+
         # taper < 100%:
         if self.tp > 0:
             for i in range(self.nS):
@@ -197,7 +215,11 @@ class Stringer:
                                                          Vector([0, 0, topZ]),
                                                          Vector([0, 0, 1]))
                 self.G.Make_mesh(coords, self.faces3a, 'stringer')
-                offset += self.wT / (self.nS + 1)
+
+                if self.dis or self.nS == 1:
+                    offset += self.wT / (self.nS + 1)
+                else:
+                    offset += (self.wT - self.w) / (self.nS - 1)
         # taper = 100%:
         else:
             for i in range(self.nS):
@@ -217,7 +239,151 @@ class Stringer:
                 
         return {'FINISHED'}
 
-    def HousedIBeam(self):
+
+    def housed_I_beam(self):
+        webOrth = Vector([self.rise, 0, -self.run]).normalized()
+        webHeight = Vector([self.run + self.tT, 0, -self.hT]).project(webOrth).length
+        vDelta_1 = self.tf * tan(self.G.angle)
+        vDelta_2 = (self.rise * (self.nT - 1)) - (webHeight + self.tf)
+        flange_y = (self.w - self.tw) / 2
+        front = -self.tT - self.tf
+        outer = -self.tO - self.tw - flange_y
+
+        coords = []
+        if self.tp > 0:
+            # Upper-Outer flange:
+            coords.append(Vector([front, outer, -self.rise]))
+            coords.append(Vector([-self.tT, outer, -self.rise]))
+            coords.append(Vector([-self.tT, outer, 0]))
+            coords.append(Vector([(self.run * (self.nT - 1)) - self.tT, outer,
+                                  self.rise * (self.nT - 1)]))
+            coords.append(Vector([self.run * self.nT, outer,
+                                  self.rise * (self.nT - 1)]))
+            coords.append(Vector([self.run * self.nT, outer,
+                                  (self.rise * (self.nT - 1)) + self.tf]))
+            coords.append(Vector([(self.run * (self.nT - 1)) - self.tT, outer,
+                                  (self.rise * (self.nT - 1)) + self.tf]))
+            coords.append(Vector([front, outer, self.tf - vDelta_1]))
+            # Lower-Outer flange:
+            coords.append(coords[0] + Vector([self.tf + webHeight, 0, 0]))
+            coords.append(coords[1] + Vector([self.tf + webHeight, 0, 0]))
+            coords.append(intersect_line_line(coords[9],
+                                              coords[9] - Vector([0, 0, 1]),
+                                              Vector([self.run, 0, -self.hT - self.tf]),
+                                              Vector([self.run * 2, 0, self.rise - self.hT - self.tf]))[0])
+            coords.append(Vector([(self.run * self.nT) - ((webHeight - self.hT) / tan(self.G.angle)),
+                                  outer, vDelta_2]))
+            coords.append(coords[4] - Vector([0, 0, self.tf + webHeight]))
+            coords.append(coords[5] - Vector([0, 0, self.tf + webHeight]))
+            coords.append(coords[11] + Vector([0, 0, self.tf]))
+            coords.append(intersect_line_line(coords[8],
+                                              coords[8] - Vector([0, 0, 1]),
+                                              Vector([self.run, 0, -self.hT]),
+                                              Vector([self.run * 2, 0, self.rise - self.hT]))[0])
+            # Outer web:
+            coords.append(coords[1] + Vector([0, flange_y, 0]))
+            coords.append(coords[8] + Vector([0, flange_y, 0]))
+            coords.append(coords[15] + Vector([0, flange_y, 0]))
+            coords.append(coords[14] + Vector([0, flange_y, 0]))
+            coords.append(coords[13] + Vector([0, flange_y, 0]))
+            coords.append(coords[4] + Vector([0, flange_y, 0]))
+            coords.append(coords[3] + Vector([0, flange_y, 0]))
+            coords.append(coords[2] + Vector([0, flange_y, 0]))
+            # Upper-Inner flange and lower-inner flange:
+            for i in range(16):
+                coords.append(coords[i] + Vector([0, self.w, 0]))
+            # Inner web:
+            for i in range(8):
+                coords.append(coords[i + 16] + Vector([0, self.tw, 0]))
+            # Mid nodes to so faces will be quads:
+            for i in [0,7,6,5,9,10,11,12]:
+                coords.append(coords[i] + Vector([0, flange_y, 0]))
+            for i in range(8):
+                coords.append(coords[i + 48] + Vector([0, self.tw, 0]))
+
+            self.G.Make_mesh(coords, self.faces3c, 'stringer')
+
+            for i in coords:
+                i += Vector([0, self.wT + self.tw, 0])
+
+            self.G.Make_mesh(coords, self.faces3c, 'stringer')
+        
+        return {'FINISHED'}
+
+
+    def C_Beam(self):
+        mid = self.w / 2
+        web = self.tw / 2
+        # Bottom of the stringer:
+        baseZ = -self.rise - self.hT - self.h
+        # Top of the strigner:
+        topZ = -self.rise - self.hT
+        # Vertical taper amount:
+        taper = self.tf * self.tp
+
+        if self.dis or self.nS == 1:
+            offset = (self.wT / (self.nS + 1)) - mid
+        else:
+            offset = 0
+
+        # taper < 100%:
+        if self.tp > 0:
+            for i in range(self.nS):
+                coords = []
+                coords.append(Vector([0, offset,                baseZ]))
+                coords.append(Vector([0, offset,                baseZ + taper]))
+                coords.append(Vector([0, offset + (mid - web),  baseZ + self.tf]))
+                coords.append(Vector([0, offset + (mid - web),  topZ - self.tf]))
+                coords.append(Vector([0, offset,                topZ - taper]))
+                coords.append(Vector([0, offset,                topZ]))
+                coords.append(Vector([0, offset + (mid - web),  topZ]))
+                coords.append(Vector([0, offset + (mid + web),  topZ]))
+                coords.append(Vector([0, offset + self.w,       topZ]))
+                coords.append(Vector([0, offset + self.w,       topZ - taper]))
+                coords.append(Vector([0, offset + (mid + web),  topZ - self.tf]))
+                coords.append(Vector([0, offset + (mid + web),  baseZ + self.tf]))
+                coords.append(Vector([0, offset + self.w,       baseZ + taper]))
+                coords.append(Vector([0, offset + self.w,       baseZ]))
+                coords.append(Vector([0, offset + (mid + web),  baseZ]))
+                coords.append(Vector([0, offset + (mid - web),  baseZ]))
+                for j in range(16):
+                    coords.append(coords[j]+Vector([self.run * self.nT, 0, self.rise * self.nT]))
+                # If the bottom meets the ground:
+                #   Bottom be flat with the xy plane, but shifted down.
+                #   Either project onto the plane along a vector (hard) or use the built in
+                #       interest found in mathutils.geometry (easy).  Using intersect:
+                if self.g:
+                    for j in range(16):
+                        coords[j] = intersect_line_plane(coords[j], coords[j + 16],
+                                                         Vector([0, 0, topZ]),
+                                                         Vector([0, 0, 1]))
+                self.G.Make_mesh(coords, self.faces3a, 'stringer')
+
+                if self.dis or self.nS == 1:
+                    offset += self.wT / (self.nS + 1)
+                else:
+                    offset += (self.wT - self.w) / (self.nS - 1)
+        # taper = 100%:
+        else:
+            for i in range(self.nS):
+                coords = []
+                coords.append(Vector([0, offset,                baseZ]))
+                coords.append(Vector([0, offset + (mid - web),  baseZ + self.tf]))
+                coords.append(Vector([0, offset + (mid - web),  topZ - self.tf]))
+                coords.append(Vector([0, offset,                topZ]))
+                coords.append(Vector([0, offset + self.w,       topZ]))
+                coords.append(Vector([0, offset + (mid + web),  topZ - self.tf]))
+                coords.append(Vector([0, offset + (mid + web),  baseZ + self.tf]))
+                coords.append(Vector([0, offset + self.w,       baseZ]))
+                for j in range(8):
+                    coords.append(coords[j]+Vector([self.run * self.nT, 0, self.rise * self.nT]))
+                self.G.Make_mesh(coords, self.faces3b, 'stringer')
+                offset += self.wT / (self.nS + 1)
+                
+        return {'FINISHED'}
+
+
+    def housed_C_beam(self):
         webOrth = Vector([self.rise, 0, -self.run]).normalized()
         webHeight = Vector([self.run + self.tT, 0, -self.hT]).project(webOrth).length
         vDelta_1 = self.tf * tan(self.G.angle)
@@ -285,7 +451,4 @@ class Stringer:
 
             self.G.Make_mesh(coords, self.faces3c, 'stringer')
         
-        return {'FINISHED'}
-
-    def CBeam(self):
         return {'FINISHED'}

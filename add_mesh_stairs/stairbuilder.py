@@ -44,7 +44,7 @@
 #       - "T" staircase
 #
 # Last Modified By: Paul "brikbot" Marshall
-# Last Modification: August 29, 2011
+# Last Modification: November 20, 2011
 
 #-----------------------------------------------------------
 # BEGIN NEW B2.5/Py3.2 CODE
@@ -229,6 +229,9 @@ class stairs(bpy.types.Operator):
                            description = "Number of stringers to generate",
                            min = 1, max = 10,
                            default = 1)
+    string_dis = BoolProperty(name = "Distributed",
+                              description = "Use distributed stringers",
+                              default = False)
     string_w = FloatProperty(name = "Stringer width",
                              description = "Width of stringer as a percentage of tread width",
                              min = 0.0001, max = 100.0,
@@ -283,6 +286,7 @@ class stairs(bpy.types.Operator):
                 box.prop(self, 'rEnable')
                 box.prop(self, 'lEnable')
         else:
+            self.use_original = False
             box.prop(self, 'rEnable')
             box.prop(self, 'lEnable')
             
@@ -349,8 +353,10 @@ class stairs(bpy.types.Operator):
             if self.typ == "id1":
                 if self.typ_s == "sId1" and not self.use_original:
                     box.prop(self, 'string_n')
+                    box.prop(self, 'string_dis')
                 elif self.typ_s in ["sId2", "sId3"]:
                     box.prop(self, 'string_n')
+                    box.prop(self, 'string_dis')
                     box.prop(self, 'string_h')
                     box.prop(self, 'string_tw')
                     box.prop(self, 'string_tf')
@@ -442,8 +448,8 @@ class stairs(bpy.types.Operator):
                          self.tread_o,
                          self.string_tw,
                          self.string_tf,
-                         not self.string_g,
-                         self.string_tp)
+                         self.string_tp,
+                         not self.string_g)
             elif typ == "id3":
                 Stringer(G,
                          typ,
@@ -461,7 +467,7 @@ class stairs(bpy.types.Operator):
                          self.string_tf,
                          self.string_tp,
                          not self.string_g,
-                         1, False)
+                         1, False, False)
             else:
                 Stringer(G,
                          typ,
@@ -480,5 +486,6 @@ class stairs(bpy.types.Operator):
                          self.string_tp,
                          not self.string_g,
                          self.string_n,
+                         self.string_dis,
                          self.use_original)
         return {'FINISHED'}
