@@ -7,7 +7,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2011-11-18
+#  Last modified                 : 2011-11-20
 #
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
@@ -35,13 +35,13 @@
 #
 
 bl_info = {
-  "name": "Atomic Blender",
+  "name": "PDB Atomic Blender",
   "description": "Loading and manipulating atoms from PDB files",
   "author": "Dr. Clemens Barth",
-  "version": (1,11),
+  "version": (2,0),
   "blender": (2,6),
   "api": 31236,
-  "location": "Properties > Physics => Panel Atomic Blender",
+  "location": "File > Import => PDB (.pdb)",
   "warning": "",
   "wiki_url": "http://development.root-1.de/Atomic_Blender.php",
   "tracker_url": "http://projects.blender.org/tracker/?func=detail&atid=467&aid=29226&group_id=153",
@@ -63,10 +63,6 @@ from mathutils import Vector
 # should stay global. First, they are empty and get 'filled' directly
 # after having chosen the PDB file (see discussion at 'class LoadPDB'
 # further below).
-#
-# Note that the treatment of the data filepath needs to be adjusted for 
-# the case that the script shall be called during startup (see discussion 
-# in the class LoadPDB further below).
 
 PDBFILEPATH       = ""
 PDBFILENAME       = ""
@@ -80,12 +76,60 @@ DATAFILENAME = "io_import_pdb_atomic_blender.dat"
 
 
 # Some string stuff for the console.
-Atomic_Blender_string     = "Atomic Blender 1.11\n==================="
+Atomic_Blender_string     = "Atomic Blender 2.0\n==================="
 Atomic_Blender_panel_name = "PDB - Atomic Blender"
 
 
 
+# This routine is used to determine the path of the data file. The data file
+# needs to be in 
+#                    /script
+#                    /script/addons
+#                    /script/startup            
+# 
+# either in USER: or SYSTEM: 
+#
+# So, check all these possibilities and return the path of the data file.
+# The empty return string "" means that no data file could be found. Note that:
+#
+# bpy.utils.script_paths()[0]        => system script path
+# bpy.utils.user_resource('SCRIPTS') => user   script path
+#
+def Determine_path_of_data_file():
 
+    script_path = bpy.utils.script_paths()[0]
+    datafile_path  = os.path.join(script_path, DATAFILENAME)
+    if os.path.isfile(datafile_path):
+        return datafile_path
+    
+    script_path   = bpy.utils.user_resource('SCRIPTS')
+    datafile_path  = os.path.join(script_path, DATAFILENAME)
+    if os.path.isfile(datafile_path):
+        return datafile_path
+    
+    script_path   = bpy.utils.script_paths(subdir="addons")[0]
+    datafile_path  = os.path.join(script_path, DATAFILENAME)
+    if os.path.isfile(datafile_path):
+        return datafile_path
+
+    script_path   = bpy.utils.user_resource('SCRIPTS', path="addons")
+    datafile_path  = os.path.join(script_path, DATAFILENAME)
+    if os.path.isfile(datafile_path):
+        return datafile_path
+
+    script_path   = bpy.utils.script_paths(subdir="startup")[0]
+    datafile_path  = os.path.join(script_path, DATAFILENAME)
+    if os.path.isfile(datafile_path):
+        return datafile_path
+
+    script_path   = bpy.utils.user_resource('SCRIPTS', path="startup")
+    datafile_path  = os.path.join(script_path, DATAFILENAME)
+    if os.path.isfile(datafile_path):
+        return datafile_path    
+
+    return ""
+    
+    
 
 # The panel, which is loaded after the file has been
 # chosen via the menu 'File -> Import'
@@ -349,8 +393,6 @@ class CLASS_Start_Button(bpy.types.Operator):
         yn        = scn.atom_pdb_sticks_yesno 
         ssector   = scn.atom_pdb_sticks_sectors
         sradius   = scn.atom_pdb_sticks_radius
-        pdb       = PDBFILEPATH
-        data      = DATAFILEPATH
         cam       = scn.atom_pdb_cam_yesno 
         lamp      = scn.atom_pdb_lamp_yesno
         mesh      = scn.atom_pdb_mesh_yesno 
@@ -383,20 +425,6 @@ class CLASS_LoadPDB(bpy.types.Operator):
         PDBFILEPATH     = self.filepath
         scn.atom_pdb_PDB_filename = PDBFILENAME
         scn.atom_pdb_PDB_file     = PDBFILEPATH
-        
-        # This needs to be changed in future, if one decides to permanently
-        # include the PDB importer.
-        # So far, it takes the path of the loaded Atomic Blender script
-        # and replaces the name of the python script with the name of the
-        # data file.
-        # This works, so far, only if the script is loaded manually. 
-        if bpy.data.texts[0].filepath != "":
-            DATAFILEPATH = bpy.data.texts[0].filepath
-        else:
-            DATAFILEPATH = bpy.data.texts[-1].filepath
-        DATAFILEPATH = DATAFILEPATH.replace(SCRIPTNAME, DATAFILENAME)   
-        print(DATAFILEPATH)
-
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -441,6 +469,7 @@ def unregister():
 
 if __name__ == "__main__":
 
+    DATAFILEPATH = Determine_path_of_data_file()
     register()
 
 
