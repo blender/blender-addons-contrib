@@ -22,7 +22,7 @@ bl_info = {
     'location': "View3D > Tool Shelf > Surround Projection panel",
     'description': "Setup cameras and create rendering scenes for n-screen surround projection.",
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D_interaction/Surround_Projection_Tools",
-    'version': (0,1,1),
+    'version': (0,1,2),
     'blender': (2, 6, 0),
     'api': 41769,
     'category': '3D View'
@@ -65,15 +65,24 @@ class AddSurroundCamerasPanel(bpy.types.Panel):
         row = col.row()
         row.prop(context.window_manager, "num_surround_screens")
         row = col.row()
-        row.operator('objects.add_surround_cameras', icon='CAMERA_DATA')
+        
+        if context.window_manager.previous_num_surround_screens is not -1:
+             row.operator('objects.remove_surround_cameras', icon='X')
+        else:
+             row.operator('objects.add_surround_cameras', icon='CAMERA_DATA')
+        
         row = col.row()
-        row.operator('scene.add_linked_scenes_for_surround_cameras', icon='SCENE_DATA')
+        
+        if context.window_manager.surround_screens_init is True:
+             row.operator('objects.remove_linked_scenes_for_surround_cameras', icon='X')
+        else:
+             row.operator('scene.add_linked_scenes_for_surround_cameras', icon='SCENE_DATA')
 
-        col = layout.column(align=True)
-        row = col.row()
-        row.operator('objects.remove_surround_cameras', icon='X')
-        row = col.row()
-        row.operator('objects.remove_linked_scenes_for_surround_cameras', icon='X')
+        #col = layout.column(align=True)
+        #row = col.row()
+        #row.operator('objects.remove_surround_cameras', icon='X')
+        #row = col.row()
+        #row.operator('objects.remove_linked_scenes_for_surround_cameras', icon='X')
 
 
 # operator for adding cameras
@@ -157,11 +166,16 @@ class AddSurroundScenesOperator(bpy.types.Operator):
 
             thisScene = sceneName + "-Camera" + str(i)
 
-            bpy.ops.scene.new(type='LINK_OBJECTS')
+            bpy.ops.scene.new(type='EMPTY')
             scene_new = context.scene
             scene_new.name = thisScene
 
-            scene_new.camera = bpy.data.objects["Camera" + str(i)]
+            camera_object = bpy.data.objects["Camera" + str(i)]
+            scene_new.camera = camera_object
+            scene_new.background_set = scene_base
+            
+            # not essential but nice to have the camera in the scene
+            scene_new.objects.link(camera_object)
 
             scene_new.render.filepath = renderpath + thisScene
 
