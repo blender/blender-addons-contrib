@@ -7,7 +7,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2011-11-21
+#  Last modified                 : 2011-11-22
 #
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
@@ -54,8 +54,8 @@ import sys
 import math
 import os
 from mathutils import Vector, Matrix
-from bpy_extras.io_utils import ExportHelper
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy_extras.io_utils import ImportHelper
+from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty
 
 
 # These are variables, which contain the name of the PDB file and
@@ -185,11 +185,6 @@ ALL_EXISTING_ATOMS = 95
 LOADED_STRUCTURES       = []
 LOADED_STRUCTURES_DUPLI = []     
     
-    
-    
-    
-    
-    
 
 # The panel, which is loaded after the file has been
 # chosen via the menu 'File -> Import'
@@ -315,29 +310,29 @@ class CLASS_PDB_Panel(bpy.types.Panel):
 
 
 class CLASS_Input_Output(bpy.types.PropertyGroup):
-    bpy.types.Scene.atom_pdb_PDB_filename        = bpy.props.StringProperty(name = "File name", default="", description = "PDB file name")
-    bpy.types.Scene.atom_pdb_PDB_file            = bpy.props.StringProperty(name = "Path to file", default="", description = "Path of the PDB file")
-    bpy.types.Scene.use_atom_pdb_dupliverts      = bpy.props.BoolProperty  (name = "Use dupliverts (Loading much faster)", default=True, description = "Use the dublication method via vertice referencing (Much faster loading!)")    
-    bpy.types.Scene.use_atom_pdb_mesh            = bpy.props.BoolProperty  (name = "Mesh balls", default=False, description = "Do you want to use mesh balls instead of NURBS?")    
-    bpy.types.Scene.atom_pdb_mesh_azimuth        = bpy.props.IntProperty   (name = "Azimuth", default=32, min=0, description = "Number of sectors (azimuth)")
-    bpy.types.Scene.atom_pdb_mesh_zenith         = bpy.props.IntProperty   (name = "Zenith", default=32, min=0, description = "Number of sectors (zenith)")
-    bpy.types.Scene.atom_pdb_scale_ballradius    = bpy.props.FloatProperty (name = "Balls", default=1.0, min=0.0, description = "Scale factor for all atom radii")
-    bpy.types.Scene.atom_pdb_scale_distances     = bpy.props.FloatProperty (name = "Distances", default=1.0, min=0.0, description = "Scale factor for all distances")
-    bpy.types.Scene.use_atom_pdb_center          = bpy.props.BoolProperty  (name = "Object to origin", default=True, description = "Shall the object first put into the global origin before applying the offsets on the left?")    
-    bpy.types.Scene.atom_pdb_offset_x            = bpy.props.FloatProperty (name = "X", default=0.0, description = "Offset in X")
-    bpy.types.Scene.atom_pdb_offset_y            = bpy.props.FloatProperty (name = "Y", default=0.0, description = "Offset in Y")
-    bpy.types.Scene.atom_pdb_offset_z            = bpy.props.FloatProperty (name = "Z", default=0.0, description = "Offset in Z")
-    bpy.types.Scene.use_atom_pdb_sticks          = bpy.props.BoolProperty  (name = "Use sticks", default=False, description = "Do you want to display also the sticks?")    
-    bpy.types.Scene.atom_pdb_sticks_sectors      = bpy.props.IntProperty   (name = "Sector", default = 20, min=0,   description = "Number of sectors of a stick")        
-    bpy.types.Scene.atom_pdb_sticks_radius       = bpy.props.FloatProperty (name = "Radius", default =  0.1, min=0.0, description = "Radius of a stick")  
-    bpy.types.Scene.use_atom_pdb_cam             = bpy.props.BoolProperty  (name = "Camera", default=False, description = "Do you need a camera?")   
-    bpy.types.Scene.use_atom_pdb_lamp            = bpy.props.BoolProperty  (name = "Lamp", default=False, description = "Do you need a lamp?")
-    bpy.types.Scene.atom_pdb_number_atoms        = bpy.props.StringProperty(name = "", default="Number", description = "This output shows the number of atoms which have been loaded")
-    bpy.types.Scene.atom_pdb_distance            = bpy.props.StringProperty(name = "", default="Distance (Angstrom)", description = "Distance of 2 objects in Angstrom")  
-    bpy.types.Scene.atom_pdb_mod_atomname        = bpy.props.StringProperty(name = "", default = "Atom name", description="Put in the name of the atom (e.g. Hydrogen)")
-    bpy.types.Scene.atom_pdb_mod_pm_radius       = bpy.props.FloatProperty (name = "", default = 100.0, min=0.0, description="Put in the radius of the atom (in pm)")
-    bpy.types.Scene.atom_pdb_mod_rel_radius      = bpy.props.FloatProperty (name = "", default = 1.05, min=1.0, description="Put in the scale factor")
-    bpy.types.Scene.atom_pdb_mod_all_radii       = bpy.props.FloatProperty (name = "Scale", default = 1.05, min=1.0, description="Put in the scale factor")
+    bpy.types.Scene.atom_pdb_PDB_filename        = StringProperty(name = "File name", default="", description = "PDB file name")
+    bpy.types.Scene.atom_pdb_PDB_file            = StringProperty(name = "Path to file", default="", description = "Path of the PDB file")
+    bpy.types.Scene.use_atom_pdb_dupliverts      = BoolProperty  (name = "Use dupliverts (much faster)", default=True, description = "Use the dublication method via vertice referencing (Much faster loading!)")    
+    bpy.types.Scene.use_atom_pdb_mesh            = BoolProperty  (name = "Mesh balls", default=False, description = "Do you want to use mesh balls instead of NURBS?")    
+    bpy.types.Scene.atom_pdb_mesh_azimuth        = IntProperty   (name = "Azimuth", default=32, min=0, description = "Number of sectors (azimuth)")
+    bpy.types.Scene.atom_pdb_mesh_zenith         = IntProperty   (name = "Zenith", default=32, min=0, description = "Number of sectors (zenith)")
+    bpy.types.Scene.atom_pdb_scale_ballradius    = FloatProperty (name = "Balls", default=1.0, min=0.0, description = "Scale factor for all atom radii")
+    bpy.types.Scene.atom_pdb_scale_distances     = FloatProperty (name = "Distances", default=1.0, min=0.0, description = "Scale factor for all distances")
+    bpy.types.Scene.use_atom_pdb_center          = BoolProperty  (name = "Object to origin", default=True, description = "Shall the object first put into the global origin before applying the offsets on the left?")    
+    bpy.types.Scene.atom_pdb_offset_x            = FloatProperty (name = "X", default=0.0, description = "Offset in X")
+    bpy.types.Scene.atom_pdb_offset_y            = FloatProperty (name = "Y", default=0.0, description = "Offset in Y")
+    bpy.types.Scene.atom_pdb_offset_z            = FloatProperty (name = "Z", default=0.0, description = "Offset in Z")
+    bpy.types.Scene.use_atom_pdb_sticks          = BoolProperty  (name = "Use sticks", default=False, description = "Do you want to display also the sticks?")    
+    bpy.types.Scene.atom_pdb_sticks_sectors      = IntProperty   (name = "Sector", default = 20, min=0,   description = "Number of sectors of a stick")        
+    bpy.types.Scene.atom_pdb_sticks_radius       = FloatProperty (name = "Radius", default =  0.1, min=0.0, description = "Radius of a stick")  
+    bpy.types.Scene.use_atom_pdb_cam             = BoolProperty  (name = "Camera", default=False, description = "Do you need a camera?")   
+    bpy.types.Scene.use_atom_pdb_lamp            = BoolProperty  (name = "Lamp", default=False, description = "Do you need a lamp?")
+    bpy.types.Scene.atom_pdb_number_atoms        = StringProperty(name = "", default="Number", description = "This output shows the number of atoms which have been loaded")
+    bpy.types.Scene.atom_pdb_distance            = StringProperty(name = "", default="Distance (Angstrom)", description = "Distance of 2 objects in Angstrom")  
+    bpy.types.Scene.atom_pdb_mod_atomname        = StringProperty(name = "", default = "Atom name", description="Put in the name of the atom (e.g. Hydrogen)")
+    bpy.types.Scene.atom_pdb_mod_pm_radius       = FloatProperty (name = "", default = 100.0, min=0.0, description="Put in the radius of the atom (in pm)")
+    bpy.types.Scene.atom_pdb_mod_rel_radius      = FloatProperty (name = "", default = 1.05, min=1.0, description="Put in the scale factor")
+    bpy.types.Scene.atom_pdb_mod_all_radii       = FloatProperty (name = "Scale", default = 1.05, min=1.0, description="Put in the scale factor")
 
 
 # Button for measuring the distance of the active objects
@@ -350,7 +345,7 @@ class CLASS_Distance_Button(bpy.types.Operator):
         scn    = bpy.context.scene
         dist   = Measure_distance_in_scene()
 
-        if dist != "-1.0":
+        if dist != "N.A.":
            # The string length is cut, 3 digits after the first 3 digits 
            # after the '.'. Append also "Angstrom". 
            # Remember: 1 Angstrom = 10^(-10) m 
@@ -437,25 +432,23 @@ class CLASS_Start_Button(bpy.types.Operator):
         bradius    = scn.atom_pdb_scale_ballradius
         bdistance  = scn.atom_pdb_scale_distances
         center     = scn.use_atom_pdb_center 
-        x          = scn.atom_pdb_offset_x
-        y          = scn.atom_pdb_offset_y
-        z          = scn.atom_pdb_offset_z
-        yn         = scn.use_atom_pdb_sticks 
+        offset_vec = Vector((scn.atom_pdb_offset_x,scn.atom_pdb_offset_y,scn.atom_pdb_offset_z))
+        sticks     = scn.use_atom_pdb_sticks 
         ssector    = scn.atom_pdb_sticks_sectors
         sradius    = scn.atom_pdb_sticks_radius
         cam        = scn.use_atom_pdb_cam 
         lamp       = scn.use_atom_pdb_lamp
         mesh       = scn.use_atom_pdb_mesh 
         dupliverts = scn.use_atom_pdb_dupliverts
-        
-        atom_number               = Draw_scene(dupliverts,mesh,azimuth,zenith,bradius,bdistance,x,y,z,yn,ssector,sradius,center,cam,lamp)
+              
+        atom_number               = Draw_scene(dupliverts,mesh,azimuth,zenith,bradius,bdistance,offset_vec,sticks,ssector,sradius,center,cam,lamp)
         scn.atom_pdb_number_atoms = str(atom_number)
 
         return {'FINISHED'}
 
 
 # This is the class for the file dialog.
-class CLASS_LoadPDB(bpy.types.Operator, ExportHelper):
+class CLASS_LoadPDB(bpy.types.Operator, ImportHelper):
     bl_idname = "import_pdb.pdb"
     bl_label  = "Import PDB"
     
@@ -554,11 +547,9 @@ def Measure_distance_in_scene():
         object_1 = bpy.context.selected_objects[0]
         object_2 = bpy.context.selected_objects[1]
     else:
-        return "-1.0"
+        return "N.A."
 
-    v1     = object_1.location
-    v2     = object_2.location
-    dv     = (v2 - v1)
+    dv     = object_2.location - object_1.location
     length = str(dv.length)
     return length 
 
@@ -584,13 +575,11 @@ def Modify_atom_radii_type_scale(atomname, radius_rel):
     for structure in LOADED_STRUCTURES:
         for obj in structure:
             if atomname in obj.name:
-                radius = obj.scale[0]
-                obj.scale = (radius_rel * obj.scale[0],radius_rel * obj.scale[0],radius_rel * obj.scale[0])
+                obj.scale *= radius_rel
                 
     for obj in LOADED_STRUCTURES_DUPLI:
         if atomname in obj.name:
-            radius = obj.scale[0]
-            obj.scale = (radius_rel * radius, radius_rel * radius, radius_rel * radius)
+            obj.scale *= radius_rel
 
 
 # Routine to scale the radii of all atoms
@@ -599,119 +588,11 @@ def Modify_all_atom_radii(scale):
     for structure in LOADED_STRUCTURES:
         for obj in structure:
             if "Stick" not in obj.name:
-                radius = obj.scale[0]
-                obj.scale = (radius * scale,radius * scale,radius * scale)
+                obj.scale *= scale
                 
     for obj in LOADED_STRUCTURES_DUPLI:
         if "Stick" not in obj.name:
-            radius = obj.scale[0]
-            obj.scale = (radius * scale,radius * scale,radius * scale)                
-
-
-
-########################################################
-#
-#
-#
-#
-#
-#          For reading the sticks inside the PDB file
-#
-#
-#
-#
-#
-########################################################
-
-
-
-def Read_atom_for_stick(string):        
-
-    string_length = len(string)
-
-    j               = 0
-    string_reversed = ""
-    atoms           = []
-    space           = False
-    # An atom number can have max 5 letters! This automatically means that
-    # up to 99999 atoms can be loaded max. - Well, this should be sufficient.
-    counter_letters = 5 
-   
-    # I know that what follows is somewhat 'confusing'! However, the strings of
-    # the atom numbers do have a clear position in the file (From 1 to 5, 
-    # from 6 to 10 and so on.) and one needs to consider this. One could also use
-    # the split function but then one gets into trouble if there are many atoms:
-    # For instance, it may happen that one has
-    #
-    # CONECT 11111  22244444
-    #
-    # In Fact it means that atom No. 11111 has a stick with atom No. 222 but also
-    # with atom No. 44444. The split function would give me only two numbers (11111
-    # and 22244444), which is wrong. However, the following code supplies 
-    # the three correct numbers: 
-    for i in list(range(string_length)):
-   
-        # If the 'T' of 'CONECT' is read => exit
-        if string[string_length-i-1] == 'T':
-            break
-
-        # Continue, if a space is read but no letter is present in 'string_reversed'.
-        # This happens, when there are spaces behind the last atom number in the
-        # string. 
-        if string[string_length-i-1] == ' ' and string_reversed == "":
-            continue
-   
-        if string[string_length-i-1] == ' ' or counter_letters == 0:
-      
-            string_correct         = ""
-            string_reversed_length = len(string_reversed)
-            l                      = 0
-            for k in list(range(string_reversed_length)):
-                string_correct = string_correct + string_reversed[string_reversed_length-k-1]
-                l += 1
-      
-            # If the first 'space' is found, we found the number of an atom
-            # Transform the string into an integer and append this to the overall list
-            if space == False:
-                atom            = int(string_correct)
-                atoms.append(atom)
-                # Initialization of the variables
-                string_reversed = ""
-                space           = True
-            
-            
-            # If it was only a 'space' then go up the 'for loop'.
-            if counter_letters != 0:
-                counter_letters  = 5
-                continue
-            
-            counter_letters = 5
-   
-   
-        space            = False
-        string_reversed  = string_reversed + string[string_length-i-1]
-        j               += 1
-        # One letter has been read, so one down with the counter. 
-        # Max is 5! 
-        counter_letters -= 1
-      
-    # Return the list of atoms   
-    return atoms
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            obj.scale *= scale  
 
 
 
@@ -743,7 +624,7 @@ def Read_atom_for_stick(string):
 
 
 
-def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_factor,Ball_distance_factor,offset_x,offset_y,offset_z,used_stick,Stick_sectors,Stick_diameter, put_to_center, used_camera, used_lamp):
+def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_factor,Ball_distance_factor,offset_vec,used_stick,Stick_sectors,Stick_diameter,put_to_center,used_camera,used_lamp):
 
     global PDBFILEPATH
     global PDBFILENAME
@@ -759,10 +640,8 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
     atom_name      = []
     atom_charge    = []
     atom_color     = []
-    atom_material  = []   
-    atom_x         = []
-    atom_y         = []
-    atom_z         = []
+    atom_material  = []
+    atom_xyz_vec   = []
     atom_R         = []
     # The sticks
     stick_atom1    = []
@@ -816,7 +695,7 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
                         
             for i in list(range(ALL_EXISTING_ATOMS)):
                 if str.upper(split_list[-1]) == str.upper(Data_all_atoms[i][2]):
-                    # Give the atom its proper name and radius:
+                    # Give the atom its proper names, color and radius:
                     atom_element.append(str.upper(Data_all_atoms[i][2]))
                     atom_name.append(Data_all_atoms[i][1])
                     atom_R.append(float(Data_all_atoms[i][4]))
@@ -843,11 +722,10 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
                  
          
             # The list that contains info about all types of atoms is created here.
-            # It is used for building the material properties for instance. 
-            
-            # If the name of the atom is already in the list, FLAG on 'True'. 
+            # It is used for building the material properties for instance.      
             FLAG_FOUND = False
             for atom_type in atom_all_types_list:
+                # If the name of the atom is already in the list, FLAG on 'True'. 
                 if atom_type[0] == atom_name[-1]:
                     FLAG_FOUND = True
                     break
@@ -870,14 +748,16 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
                 # If there is a dot, it is an coordinate.
                 if "." in each_element:
                     if coor == 1:
-                        atom_x.append(float(each_element))
+                        x = float(each_element)
                         coor     += 1
                     elif coor == 2:
-                        atom_y.append(float(each_element))
+                        y = float(each_element)
                         coor     += 1
                     elif coor == 3:
-                        atom_z.append(float(each_element))
+                        z = float(each_element)
                         coor     += 1        
+      
+            atom_xyz_vec.append(Vector((x,y,z)))
       
             j += 1
            
@@ -963,8 +843,8 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
 
   
     Number_of_sticks = 0
-    doppelte_bars  = 0
-    j              = 0
+    doppelte_bars    = 0
+    j                = 0
     # This is in fact an endless while loop, ...    
     while j > -1:
  
@@ -974,33 +854,44 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
         # ... or here, when no 'CONECT' appears anymore.
         if "CONECT" not in line:
             break
-         
-        line = line.rstrip()
+               
+        # The strings of the atom numbers do have a clear position in the file (From 7 to 12, 
+        # from 13 to 18 and so on.) and one needs to consider this. One could also use
+        # the split function but then one gets into trouble if there are many atoms:
+        # For instance, it may happen that one has
+        #
+        # CONECT 11111  22244444
+        #
+        # In Fact it means that atom No. 11111 has a stick with atom No. 222 but also
+        # with atom No. 44444. The split function would give me only two numbers (11111
+        # and 22244444), which is wrong. 
+  
+        # Cut spaces from the right and 'CONECT' at the beginning
+        line = line.rstrip()    
+        line = line[6:]
+        # Amount of loops
+        length = len(line)
+        loops  = int(length/5)
+    
+        # List of atoms
+        atoms = []
+        for i in list(range(loops)):
+            atom = int(line[5*i:5*(i+1)])
+            atoms.append(atom)
+   
+        # The first atom is connected with all the others in the list.
+        atom1 = atoms[0]
         
-        # Read the sticks for the actual atom (sub routine). One gets a list of
-        # sticks.
-        atoms_list        = Read_atom_for_stick(line)
-        # Determine the length of the list
-        atoms_list_length = len(atoms_list)
-
-        # For all sticks in the list do:
-        q = 0
-        for each_element in atoms_list:
+        # For all the other atoms in the list do:
+        for each_element in atoms[1:]:
       
-            # End == break
-            if q == atoms_list_length - 1:
-                break
-      
-            # The first atom is connected with all the others in the list.
-            atom1 = atoms_list[-1]
             # The second, third, ... partner atom
             atom2 = each_element
 
-            FLAG_BAR = False
- 
             # Note that in a PDB file, sticks of one atom pair can appear a couple
             # of times. (Only god knows why ...) 
             # So, does a stick between the considered atoms already exist?
+            FLAG_BAR = False
             for k in list(range(j)):
                 if (stick_atom1[k] == atom1 and stick_atom2[k] == atom2) or (stick_atom1[k] == atom2 and stick_atom2[k] == atom1):
                     doppelte_bars += 1
@@ -1015,8 +906,6 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
                 stick_atom2.append(atom2)      
                 Number_of_sticks += 1   
                 j += 1
- 
-            q += 1
 
         line = PDBFILEPATH_p.readline()
         line = line.rstrip()
@@ -1040,28 +929,18 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
     # If chosen, the objects are first put into the center of the scene.
     if put_to_center == True:
 
-        sum_x = 0
-        sum_y = 0
-        sum_z = 0
+        sum_vec = Vector((0.0,0.0,0.0)) 
 
         # Sum of all atom coordinates
         for i in list(range(Number_of_total_atoms)):
-
-            sum_x = sum_x + atom_x[i]
-            sum_y = sum_y + atom_y[i]
-            sum_z = sum_z + atom_z[i]
+            sum_vec = sum_vec + atom_xyz_vec[i]
 
         # Then the average is taken
-        sum_x = sum_x / Number_of_total_atoms
-        sum_y = sum_y / Number_of_total_atoms
-        sum_z = sum_z / Number_of_total_atoms
+        sum_vec = sum_vec / Number_of_total_atoms
 
         # After, for each atom the center of gravity is substracted
         for i in list(range(Number_of_total_atoms)):
-
-            atom_x[i] = atom_x[i] - sum_x
-            atom_y[i] = atom_y[i] - sum_y
-            atom_z[i] = atom_z[i] - sum_z
+            atom_xyz_vec[i] = atom_xyz_vec[i] - sum_vec
 
 
 
@@ -1081,14 +960,11 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
     # - and move the center of the whole ('+= offset_x', in Angstroem)
     for i in list(range(Number_of_total_atoms)):
 
-        atom_charge.append(1.0)  
-        atom_x[i] += offset_x
-        atom_y[i] += offset_y
-        atom_z[i] += offset_z
-        atom_x[i] *= Ball_distance_factor
-        atom_y[i] *= Ball_distance_factor
-        atom_z[i] *= Ball_distance_factor
+        atom_charge.append(1.0) 
+        atom_xyz_vec[i] += offset_vec
+        atom_xyz_vec[i] *= Ball_distance_factor
 
+         
 
 
     #
@@ -1103,29 +979,23 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
 
     # In the following, some geometric properties of the whole object are 
     # determined: center, size, etc. 
-    sum_x = 0
-    sum_y = 0
-    sum_z = 0
+    sum_vec = Vector((0.0,0.0,0.0))
 
     # First the center is determined. All coordinates are summed up ...
     for i in list(range(Number_of_total_atoms)):
-        sum_x = sum_x + atom_x[i]
-        sum_y = sum_y + atom_y[i]
-        sum_z = sum_z + atom_z[i]
+        sum_vec = sum_vec + atom_xyz_vec[i]
     # ... and the average is taken. This gives the center of the object.
-    object_center = [sum_x / Number_of_total_atoms, sum_y / Number_of_total_atoms, sum_z / Number_of_total_atoms]
+    object_center_vec = sum_vec / Number_of_total_atoms
 
     # Now, we determine the size. All coordinates are analyzed ...
     object_size = 0.0
     for i in list(range(Number_of_total_atoms)):
 
-        diff_x = atom_x[i] - object_center[0]
-        diff_y = atom_y[i] - object_center[1]
-        diff_z = atom_z[i] - object_center[2]
+        diff_vec = atom_xyz_vec[i] - object_center_vec
 
         # This is needed in order to estimate the size of the object.
         # The farest atom from the object center is taken as a measure.
-        distance_to_object_center = math.sqrt(diff_x*diff_x + diff_y*diff_y + diff_z*diff_z)
+        distance_to_object_center = diff_vec.length
         if distance_to_object_center > object_size:
             object_size = distance_to_object_center
 
@@ -1149,13 +1019,12 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
         # math.sqrt(object_size) from the origin. So, move the camera by this distance
         # times a factor of camera_factor in x and z. Then add x, y and z of the origin of the
         # object.   
-        camera_x = object_center[0] + math.sqrt(object_size) * camera_factor
-        camera_y = object_center[1]
-        camera_z = object_center[2] + math.sqrt(object_size) * camera_factor
-        camera_pos    = [camera_x,camera_y,camera_z]
+        object_camera_vec = Vector((math.sqrt(object_size) * camera_factor, 0.0, math.sqrt(object_size) * camera_factor))
+        camera_xyz_vec    = object_center_vec + object_camera_vec
+
         # Create the camera
         current_layers=bpy.context.scene.layers
-        bpy.ops.object.camera_add(view_align=False, enter_editmode=False, location=camera_pos, rotation=(0.0, 0.0, 0.0), layers=current_layers)
+        bpy.ops.object.camera_add(view_align=False, enter_editmode=False, location=camera_xyz_vec, rotation=(0.0, 0.0, 0.0), layers=current_layers)
         # Some properties of the camera are changed.
         camera               = bpy.context.scene.objects.active
         camera.name          = "A_camera"
@@ -1164,24 +1033,21 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
         camera.data.clip_end = 500.0
 
         # Here the camera is rotated such it looks towards the center of the object.
-        
-        # The vector between camera and origin of the object
-        vec_cam_obj            = Vector(camera_pos) - Vector(object_center)
         # The [0.0, 0.0, 1.0] vector along the z axis
-        vec_up_axis            = Vector((0.0, 0.0, 1.0))
+        z_axis_vec             = Vector((0.0, 0.0, 1.0))
         # The angle between the last two vectors
-        angle                  = vec_cam_obj.angle(vec_up_axis, 0)
+        angle                  = object_camera_vec.angle(z_axis_vec, 0)
         # The cross-product of the [0.0, 0.0, 1.0] vector and vec_cam_obj
         # It is the resulting vector which stands up perpendicular on vec_up_axis and vec_cam_obj
-        axis                   = vec_up_axis.cross(vec_cam_obj)
+        axis_vec               = z_axis_vec.cross(object_camera_vec)
         # Rotate axis 'axis' by angle 'angle' and convert this to euler parameters. 4 is the size
         # of the matrix.
-        euler                  = Matrix.Rotation(angle, 4, axis).to_euler()
+        euler                  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
         camera.rotation_euler  = euler
 
         # Rotate the camera around its axis by 90° such that we have a nice camera position
         # and view onto the object.
-        bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0,), axis=vec_cam_obj, constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1, snap=False, snap_target='CLOSEST', snap_point=(0, 0, 0), snap_align=False, snap_normal=(0, 0, 0), release_confirm=False)
+        bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0,), axis=object_camera_vec, constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1, snap=False, snap_target='CLOSEST', snap_point=(0, 0, 0), snap_align=False, snap_normal=(0, 0, 0), release_confirm=False)
 
 
         # This does not work, I don't know why. 
@@ -1203,13 +1069,12 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
         lamp_dy_right                  = lamp_dl * (3.0/4.0)
         
         # Create x, y and z for the lamp.
-        lamp_x                         = object_center[0] + lamp_dl
-        lamp_y                         = object_center[1] + lamp_dy_right
-        lamp_z                         = object_center[2] + lamp_dl
-        lamp_pos                       = [lamp_x, lamp_y, lamp_z]
+        object_lamp_vec                = Vector((lamp_dl,lamp_dy_right,lamp_dl))
+        lamp_xyz_vec                   = object_center_vec + object_lamp_vec 
+
         # Create the lamp
         current_layers=bpy.context.scene.layers
-        bpy.ops.object.lamp_add  (type = 'POINT', view_align=False,         location=lamp_pos,   rotation=(0.0, 0.0, 0.0), layers=current_layers)
+        bpy.ops.object.lamp_add  (type = 'POINT', view_align=False, location=lamp_xyz_vec, rotation=(0.0, 0.0, 0.0), layers=current_layers)
         # Some properties of the lamp are changed.
         lamp                           = bpy.context.scene.objects.active
         lamp.data.name                 = "A_lamp"
@@ -1252,17 +1117,9 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
     print()
     print("Total number of atoms   : " + str(Number_of_total_atoms))
     print("Total number of sticks  : " + str(Number_of_sticks))
-    print("Center of object        : ", object_center)
+    print("Center of object        : ", object_center_vec)
     print("Size of object          : ", object_size)
     print()
-
-
-
-
-
-
-
-
 
 
 
@@ -1305,18 +1162,14 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
 
                 # Vacancy
                 if atom_type[0] == "Vacancy":
-                    draw_atom_type_list_vacancy.append([atom_name[i], atom_material[i], [atom_x[i], atom_y[i], atom_z[i]], atom_R[i]])
+                    draw_atom_type_list_vacancy.append([atom_name[i], atom_material[i], atom_xyz_vec[i], atom_R[i]])
                 # ... and append them to the list 'draw_atom_list'.
                 else:
-                    draw_atom_list.append([atom_name[i], atom_material[i], [atom_x[i], atom_y[i], atom_z[i]], atom_R[i]])
+                    draw_atom_list.append([atom_name[i], atom_material[i], atom_xyz_vec[i], atom_R[i]])
     
         # Now append the atom list to the list of all types of atoms
         if atom_type[0] != "Vacancy":
             draw_atom_type_list.append(draw_atom_list)
-   
-
-
-
 
 
 
@@ -1363,7 +1216,7 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
                 # Create first the vertices composed of the coordinates of all atoms of one type
                 atom_vertices = []
                 for atom in atom_list:
-                    atom_vertices.append( (atom[2][0], atom[2][1], atom[2][2]) )
+                    atom_vertices.append( atom[2] )
 
                 # Build the mesh
                 atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
@@ -1410,7 +1263,7 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
 
                 atom_vertices = []       
                 for atom in atom_list:
-                    atom_vertices.append( (atom[2][0], atom[2][1], atom[2][2]) )
+                    atom_vertices.append( atom[2] )
 
                 atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
                 atom_mesh.from_pydata(atom_vertices, [], [])
@@ -1462,7 +1315,7 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
    
             atom_vertices = []
             for atom in draw_atom_type_list_vacancy:
-                atom_vertices.append( (atom[2][0], atom[2][1], atom[2][2]) )
+                atom_vertices.append( atom[2] )
             
             atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
             atom_mesh.from_pydata(atom_vertices, [], [])
@@ -1507,37 +1360,43 @@ def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_fa
         stick_material.diffuse_color = Data_all_atoms[ALL_EXISTING_ATOMS-1][3]
  
         # This is the unit vector of the z axis
-        up_axis = Vector((0.0, 0.0, 1.0))
+        z_axis_vec = Vector((0.0, 0.0, 1.0))
  
- 
+        sticks = []
         # For all sticks, do ...
         for i in range(0,Number_of_sticks):
             # Print on the terminal the actual number of the stick that is build
             sys.stdout.write("Stick No. %d has been built\r" % (i+1) )
             sys.stdout.flush()
-            # The vectors of the two atoms are build 
-            k1 = Vector((atom_x[stick_atom1[i]-1],atom_y[stick_atom1[i]-1],atom_z[stick_atom1[i]-1]))
-            k2 = Vector((atom_x[stick_atom2[i]-1],atom_y[stick_atom2[i]-1],atom_z[stick_atom2[i]-1]))
-            # This is the difference of both vectors
-            v = (k2-k1)
+            # Sum and difference of both atoms
+            vv_vec   = atom_xyz_vec[stick_atom2[i]-1] + atom_xyz_vec[stick_atom1[i]-1] 
+            dv_vec   = atom_xyz_vec[stick_atom2[i]-1] - atom_xyz_vec[stick_atom1[i]-1]
             # Angle with respect to the z-axis
-            angle   = v.angle(up_axis, 0)
-            # Cross-product between v and the z-axis vector. It is the vector of
+            angle    = dv_vec.angle(z_axis_vec, 0)
+            # Cross-product between dv_vec and the z-axis vector. It is the vector of
             # rotation.
-            axis    = up_axis.cross(v)
+            axis_vec = z_axis_vec.cross(dv_vec)
             # Calculate Euler angles
-            euler   = Matrix.Rotation(angle, 4, axis).to_euler()
+            euler   = Matrix.Rotation(angle, 4, axis_vec).to_euler()
             # Create stick
-            current_layers=bpy.context.scene.layers
-            bpy.ops.mesh.primitive_cylinder_add(vertices=Stick_sectors, radius=Stick_diameter, depth= v.length, cap_ends=True, view_align=False, enter_editmode=False, location= ((k1+k2)*0.5), rotation=(0,0,0), layers=current_layers)
+            current_layers = bpy.context.scene.layers
+            bpy.ops.mesh.primitive_cylinder_add(vertices=Stick_sectors, radius=Stick_diameter, depth= dv_vec.length, cap_ends=True, view_align=False, enter_editmode=False, location= (vv_vec*0.5), rotation=(0,0,0), layers=current_layers)
             # Put the stick into the scene ...
             stick                 = bpy.context.scene.objects.active
             # ... and rotate the stick.
             stick.rotation_euler  = euler
-            # Material ... 
             stick.active_material = stick_material
-            # ... and name
             stick.name            = Data_all_atoms[ALL_EXISTING_ATOMS-1][1]
+            sticks.append(stick)
+            
+        if used_dupliverts == True:
+            bpy.ops.object.select_all(action='DESELECT')
+            for stick in sticks:
+                stick.select = True
+            bpy.ops.object.join()
+            bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+            sticks_all      = bpy.context.scene.objects.active
+            sticks_all.name = "Sticks" 
 
 
     print("\n\nAll atoms and sticks have been drawn - finished (%d) .\n\n" % Number_of_total_atoms)
