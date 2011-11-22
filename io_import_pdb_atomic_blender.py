@@ -52,7 +52,10 @@ import bpy
 import io
 import sys
 import math
+import os
 from mathutils import Vector, Matrix
+from bpy_extras.io_utils import ExportHelper
+from bpy.props import StringProperty, BoolProperty, EnumProperty
 
 
 # These are variables, which contain the name of the PDB file and
@@ -77,102 +80,102 @@ Atomic_Blender_panel_name = "PDB - Atomic Blender"
 # ... then the charge state: charge state, radius (ionic), charge state, radius (ionic), ... all charge states 
 # for any atom are listed, if existing.
 
-Data_all_atoms = [
-[ 1,      "Hydrogen",        "H", [  0.0,   0.0,   1.0], 0.32, 0.32, 0.32 , -1 , 1.54 ],
-[ 2,        "Helium",       "He", [ 0.20,  0.56,  0.20], 0.93, 0.93, 0.93 ,  1 , 0.68 ],
-[ 3,     "Beryllium",       "Be", [ 0.44,  0.72,  0.30], 0.90, 0.90, 0.90 ,  1 , 0.44 ,  2 , 0.35 ],
-[ 4,         "Boron",        "B", [  1.0,   1.0,   1.0], 0.82, 0.82, 0.82 ,  1 , 0.35 ,  3 , 0.23 ],
-[ 5,        "Carbon",        "C", [  0.0,   0.0,   0.0], 0.77, 0.77, 0.77 , -4 , 2.60 ,  4 , 0.16 ],
-[ 6,      "Nitrogen",        "N", [  0.0,   0.0,   1.0], 0.75, 0.75, 0.75 , -3 , 1.71 ,  1 , 0.25 ,  3 , 0.16 ,  5 , 0.13 ],
-[ 7,        "Oxygen",        "O", [  1.0,   0.0,   0.0], 0.73, 0.73, 0.73 , -2 , 1.32 , -1 , 1.76 ,  1 , 0.22 ,  6 , 0.09 ],
-[ 8,      "Fluorine",        "F", [  0.0,   1.0,   0.0], 0.72, 0.72, 0.72 , -1 , 1.33 ,  7 , 0.08 ],
-[ 9,          "Neon",       "Ne", [ 0.53,  0.60,  0.52], 0.71, 0.71, 0.71 ,  1 , 1.12 ],
-[10,        "Sodium",       "Na", [  0.0,   0.0,   1.0], 1.54, 1.54, 1.54 ,  1 , 0.97 ],
-[11,     "Magnesium",       "Mg", [  1.0,   1.0,   1.0], 1.36, 1.36, 1.36 ,  1 , 0.82 ,  2 , 0.66 ],
-[12,     "Aluminium",       "Al", [ 0.70,   0.2,  0.62], 1.18, 1.18, 1.18 ,  3 , 0.51 ],
-[13,       "Silicon",       "Si", [ 0.65,  0.64,  0.27], 1.11, 1.11, 1.11 , -4 , 2.71 , -1 , 3.84 ,  1 , 0.65 ,  4 , 0.42 ],
-[14,    "Phosphorus",        "P", [  1.0,   1.0,   0.0], 1.06, 1.06, 1.06 , -3 , 2.12 ,  3 , 0.44 ,  5 , 0.35 ],
-[15,        "Sulfur",        "S", [  1.0,   1.0,  0.50], 1.02, 1.02, 1.02 , -2 , 1.84 ,  2 , 2.19 ,  4 , 0.37 ,  6 , 0.30 ],
-[16,      "Chlorine",       "Cl", [  0.0,   1.0,   0.0], 0.99, 0.99, 0.99 , -1 , 1.81 ,  5 , 0.34 ,  7 , 0.27 ],
-[17,         "Argon",       "Ar", [ 0.31,  0.32,  0.74], 0.98, 0.98, 0.98 ,  1 , 1.54 ],
-[18,     "Potassium",        "K", [ 0.81,  0.23,  0.42], 2.03, 2.03, 2.03 ,  1 , 0.81 ],
-[19,       "Calcium",       "Ca", [  1.0,   1.0,   1.0], 1.74, 1.74, 1.74 ,  1 , 1.18 ,  2 , 0.99 ],
-[20,      "Scandium",       "Sc", [ 0.66,  0.44,  0.31], 1.44, 1.44, 1.44 ,  3 , 0.73 ],
-[21,      "Titanium",       "Ti", [ 0.27,  0.53,  0.68], 1.32, 1.32, 1.32 ,  1 , 0.96 ,  2 , 0.94 ,  3 , 0.76 ,  4 , 0.68 ],
-[22,      "Vanadium",        "V", [ 0.27,  0.24,  0.63], 1.22, 1.22, 1.22 ,  2 , 0.88 ,  3 , 0.74 ,  4 , 0.63 ,  5 , 0.59 ],
-[23,      "Chromium",       "Cr", [ 0.80,  0.28,  0.81], 1.18, 1.18, 1.18 ,  1 , 0.81 ,  2 , 0.89 ,  3 , 0.63 ,  6 , 0.52 ],
-[24,     "Manganese",       "Mn", [ 0.75,  0.35,  0.55], 1.17, 1.17, 1.17 ,  2 , 0.80 ,  3 , 0.66 ,  4 , 0.60 ,  7 , 0.46 ],
-[25,          "Iron",       "Fe", [  1.0,   0.0,   0.0], 1.17, 1.17, 1.17 ,  2 , 0.74 ,  3 , 0.64 ],
-[26,        "Cobalt",       "Co", [ 0.27,  0.21,  0.75], 1.16, 1.16, 1.16 ,  2 , 0.72 ,  3 , 0.63 ],
-[27,        "Nickel",       "Ni", [ 0.43,  0.36,  0.86], 1.15, 1.15, 1.15 ,  2 , 0.69 ],
-[28,        "Copper",       "Cu", [ 0.60,   0.0,   0.0], 1.17, 1.17, 1.17 ,  1 , 0.96 ,  2 , 0.72 ],
-[29,          "Zinc",       "Zn", [ 0.42,  0.36,  0.45], 1.25, 1.25, 1.25 ,  1 , 0.88 ,  2 , 0.74 ],
-[30,       "Gallium",       "Ga", [ 0.63,  0.72,  0.33], 1.26, 1.26, 1.26 ,  1 , 0.81 ,  3 , 0.62 ],
-[31,     "Germanium",       "Ge", [ 0.42,  0.75,  0.30], 1.22, 1.22, 1.22 , -4 , 2.72 ,  2 , 0.73 ,  4 , 0.53 ],
-[32,       "Arsenic",       "As", [ 0.39,  0.77,  0.25], 1.20, 1.20, 1.20 , -3 , 2.22 ,  3 , 0.58 ,  5 , 0.46 ],
-[33,      "Selenium",       "Se", [ 0.95,  0.27,  0.90], 1.16, 1.16, 1.16 , -2 , 1.91 , -1 , 2.32 ,  1 , 0.66 ,  4 , 0.50 ,  6 , 0.42 ],
-[34,       "Bromine",       "Br", [  0.0,  0.49,   0.0], 1.14, 1.14, 1.14 , -1 , 1.96 ,  5 , 0.47 ,  7 , 0.39 ],
-[35,       "Krypton",       "Kr", [ 0.22,  0.43,  0.19], 1.31, 1.31, 1.31 ,  1 , 1.47 ],
-[36,     "Strontium",       "Sr", [  1.0,   1.0,   1.0], 1.91, 1.91, 1.91 ,  2 , 1.12 ],
-[37,       "Yttrium",        "Y", [  1.0,   1.0,   1.0], 1.62, 1.62, 1.62 ,  3 , 0.89 ],
-[38,     "Zirconium",       "Zr", [  1.0,   1.0,   1.0], 1.45, 1.45, 1.45 ,  1 , 1.09 ,  4 , 0.79 ],
-[39,       "Niobium",       "Nb", [  1.0,   1.0,   1.0], 1.34, 1.34, 1.34 ,  1 , 1.00 ,  4 , 0.74 ,  5 , 0.69 ],
-[40,    "Molybdenum",       "Mo", [  1.0,   1.0,   1.0], 1.30, 1.30, 1.30 ,  1 , 0.93 ,  4 , 0.70 ,  6 , 0.62 ],
-[41,    "Technetium",       "Tc", [  1.0,   1.0,   1.0], 1.27, 1.27, 1.27 ,  7 , 0.97 ],
-[42,     "Ruthenium",       "Ru", [  1.0,   1.0,   1.0], 1.25, 1.25, 1.25 ,  4 , 0.67 ],
-[43,       "Rhodium",       "Rh", [  1.0,   1.0,   1.0], 1.25, 1.25, 1.25 ,  3 , 0.68 ],
-[44,     "Palladium",       "Pd", [  1.0,   1.0,   1.0], 1.28, 1.28, 1.28 ,  2 , 0.80 ,  4 , 0.65 ],
-[45,        "Silver",       "Ag", [  1.0,   1.0,   1.0], 1.34, 1.34, 1.34 ,  1 , 1.26 ,  2 , 0.89 ],
-[46,       "Cadmium",       "Cd", [  1.0,   1.0,   1.0], 1.48, 1.48, 1.48 ,  1 , 1.14 ,  2 , 0.97 ],
-[47,        "Indium",       "In", [  1.0,   1.0,   1.0], 1.44, 1.44, 1.44 ,  3 , 0.81 ],
-[48,           "Tin",       "Sn", [  1.0,   1.0,   1.0], 1.41, 1.41, 1.41 , -4 , 2.94 , -1 , 3.70 ,  2 , 0.93 ,  4 , 0.71 ],
-[49,      "Antimony",       "Sb", [  1.0,   1.0,   1.0], 1.40, 1.40, 1.40 , -3 , 2.45 ,  3 , 0.76 ,  5 , 0.62 ],
-[50,     "Tellurium",       "Te", [  1.0,   1.0,   1.0], 1.36, 1.36, 1.36 , -2 , 2.11 , -1 , 2.50 ,  1 , 0.82 ,  4 , 0.70 ,  6 , 0.56 ],
-[51,        "Iodine",        "I", [  0.0,  0.49,  0.49], 1.33, 1.33, 1.33 , -1 , 2.20 ,  5 , 0.62 ,  7 , 0.50 ],
-[52,         "Xenon",       "Xe", [  1.0,   1.0,   1.0], 1.31, 1.31, 1.31 ,  1 , 1.67 ],
-[53,        "Barium",       "Ba", [  1.0,   1.0,   1.0], 1.98, 1.98, 1.98 ,  1 , 1.53 ,  2 , 1.34 ],
-[54,     "Lanthanum",       "La", [  1.0,   1.0,   1.0], 1.69, 1.69, 1.69 ,  1 , 1.39 ,  3 , 1.06 ],
-[55,        "Cerium",       "Ce", [  1.0,   1.0,   1.0], 1.65, 1.65, 1.65 ,  1 , 1.27 ,  3 , 1.03 ,  4 , 0.92 ],
-[56,  "Praseodymium",       "Pr", [  1.0,   1.0,   1.0], 1.65, 1.65, 1.65 ,  3 , 1.01 ,  4 , 0.90 ],
-[57,     "Neodymium",       "Nd", [  1.0,   1.0,   1.0], 1.64, 1.64, 1.64 ,  3 , 0.99 ],
-[58,    "Promethium",       "Pm", [  1.0,   1.0,   1.0], 1.63, 1.63, 1.63 ,  3 , 0.97 ],
-[59,      "Samarium",       "Sm", [  1.0,   1.0,   1.0], 1.62, 1.62, 1.62 ,  3 , 0.96 ],
-[60,      "Europium",       "Eu", [  1.0,   1.0,   1.0], 1.85, 1.85, 1.85 ,  2 , 1.09 ,  3 , 0.95 ],
-[61,    "Gadolinium",       "Gd", [  1.0,   1.0,   1.0], 1.61, 1.61, 1.61 ,  3 , 0.93 ],
-[62,       "Terbium",       "Tb", [  1.0,   1.0,   1.0], 1.59, 1.59, 1.59 ,  3 , 0.92 ,  4 , 0.84 ],
-[63,    "Dysprosium",       "Dy", [  1.0,   1.0,   1.0], 1.59, 1.59, 1.59 ,  3 , 0.90 ],
-[64,       "Holmium",       "Ho", [  1.0,   1.0,   1.0], 1.58, 1.58, 1.58 ,  3 , 0.89 ],
-[65,        "Erbium",       "Er", [ 0.48,  0.48,  0.48], 1.57, 1.57, 1.57 ,  3 , 0.88 ],
-[66,       "Thulium",       "Tm", [  1.0,   1.0,   1.0], 1.56, 1.56, 1.56 ,  3 , 0.87 ],
-[67,     "Ytterbium",       "Yb", [  1.0,   1.0,   1.0], 1.74, 1.74, 1.74 ,  2 , 0.93 ,  3 , 0.85 ],
-[68,      "Lutetium",       "Lu", [  1.0,   1.0,   1.0], 1.56, 1.56, 1.56 ,  3 , 0.85 ],
-[69,       "Hafnium",       "Hf", [  1.0,   1.0,   1.0], 1.44, 1.44, 1.44 ,  4 , 0.78 ],
-[70,      "Tantalum",       "Ta", [  1.0,   1.0,   1.0], 1.34, 1.34, 1.34 ,  5 , 0.68 ],
-[71,      "Tungsten",        "W", [  1.0,   1.0,   1.0], 1.30, 1.30, 1.30 ,  4 , 0.70 ,  6 , 0.62 ],
-[72,       "Rhenium",       "Re", [  1.0,   1.0,   1.0], 1.28, 1.28, 1.28 ,  4 , 0.72 ,  7 , 0.56 ],
-[73,        "Osmium",       "Os", [  1.0,   1.0,   1.0], 1.26, 1.26, 1.26 ,  4 , 0.88 ,  6 , 0.69 ],
-[74,       "Iridium",       "Ir", [  1.0,   1.0,   1.0], 1.27, 1.27, 1.27 ,  4 , 0.68 ],
-[75,     "Platinium",       "Pt", [  1.0,   1.0,   1.0], 1.30, 1.30, 1.30 ,  2 , 0.80 ,  4 , 0.65 ],
-[76,          "Gold",       "Au", [  1.0,   1.0,   1.0], 1.34, 1.34, 1.34 ,  1 , 1.37 ,  3 , 0.85 ],
-[77,       "Mercury",       "Hg", [  1.0,   1.0,   1.0], 1.49, 1.49, 1.49 ,  1 , 1.27 ,  2 , 1.10 ],
-[78,      "Thallium",       "Tl", [  1.0,   1.0,   1.0], 1.48, 1.48, 1.48 ,  1 , 1.47 ,  3 , 0.95 ],
-[79,          "Lead",       "Pb", [ 0.49,  0.49,  0.49], 1.47, 1.47, 1.47 ,  2 , 1.20 ,  4 , 0.84 ],
-[80,       "Bismuth",       "Bi", [  1.0,   1.0,   1.0], 1.46, 1.46, 1.46 ,  1 , 0.98 ,  3 , 0.96 ,  5 , 0.74 ],
-[81,      "Polonium",       "Po", [  1.0,   1.0,   1.0], 1.46, 1.46, 1.46 ,  6 , 0.67 ],
-[82,      "Astatine",       "At", [  1.0,   1.0,   1.0], 1.45, 1.45, 1.45 , -3 , 2.22 ,  3 , 0.85 ,  5 , 0.46 ],
-[83,         "Radon",       "Rn", [  1.0,   1.0,   1.0], 1.00, 1.00, 1.00 ,  1 , 1.80 ],
-[84,        "Radium",       "Ra", [  1.0,   1.0,   1.0], 1.00, 1.00, 1.00 ,  2 , 1.43 ],
-[85,      "Actinium",       "Ac", [  1.0,   1.0,   1.0], 1.00, 1.00, 1.00 ,  3 , 1.18 ],
-[86,       "Thorium",       "Th", [  1.0,   1.0,   1.0], 1.65, 1.65, 1.65 ,  4 , 1.02 ],
-[87,  "Protactinium",       "Pa", [  1.0,   1.0,   1.0], 1.00, 1.00, 1.00 ,  3 , 1.13 ,  4 , 0.98 ,  5 , 0.89 ],
-[88,       "Uranium",        "U", [  1.0,   1.0,   1.0], 1.42, 1.42, 1.42 ,  4 , 0.97 ,  6 , 0.80 ],
-[89,     "Neptunium",       "Np", [  1.0,   1.0,   1.0], 1.00, 1.00, 1.00 ,  3 , 1.10 ,  4 , 0.95 ,  7 , 0.71 ],
-[90,     "Plutonium",       "Pu", [  1.0,   1.0,   1.0], 1.00, 1.00, 1.00 ,  3 , 1.08 ,  4 , 0.93 ],
-[91,     "Americium",       "Am", [  1.0,   1.0,   1.0], 1.00, 1.00, 1.00 ,  3 , 1.07 ,  4 , 0.92 ],
-[92,        "Curium",       "Cm", [  1.0,   1.0,   1.0], 1.00, 1.00, 1.00 ],
-[93,       "Vacancy",      "Vac", [  0.5,   0.5,   0.5], 1.00, 0.00, 0.00],
-[94,       "Default",  "Default", [  1.0,   1.0,   1.0], 1.00, 1.00, 1.00],
-[95,         "Stick",    "Stick", [  0.5,   0.5,   0.5], 0.00, 0.00, 0.00]]
+Data_all_atoms = (
+( 1,      "Hydrogen",        "H", (  0.0,   0.0,   1.0), 0.32, 0.32, 0.32 , -1 , 1.54 ),
+( 2,        "Helium",       "He", ( 0.20,  0.56,  0.20), 0.93, 0.93, 0.93 ,  1 , 0.68 ),
+( 3,     "Beryllium",       "Be", ( 0.44,  0.72,  0.30), 0.90, 0.90, 0.90 ,  1 , 0.44 ,  2 , 0.35 ),
+( 4,         "Boron",        "B", (  1.0,   1.0,   1.0), 0.82, 0.82, 0.82 ,  1 , 0.35 ,  3 , 0.23 ),
+( 5,        "Carbon",        "C", (  0.0,   0.0,   0.0), 0.77, 0.77, 0.77 , -4 , 2.60 ,  4 , 0.16 ),
+( 6,      "Nitrogen",        "N", (  0.0,   0.0,   1.0), 0.75, 0.75, 0.75 , -3 , 1.71 ,  1 , 0.25 ,  3 , 0.16 ,  5 , 0.13 ),
+( 7,        "Oxygen",        "O", (  1.0,   0.0,   0.0), 0.73, 0.73, 0.73 , -2 , 1.32 , -1 , 1.76 ,  1 , 0.22 ,  6 , 0.09 ),
+( 8,      "Fluorine",        "F", (  0.0,   1.0,   0.0), 0.72, 0.72, 0.72 , -1 , 1.33 ,  7 , 0.08 ),
+( 9,          "Neon",       "Ne", ( 0.53,  0.60,  0.52), 0.71, 0.71, 0.71 ,  1 , 1.12 ),
+(10,        "Sodium",       "Na", (  0.0,   0.0,   1.0), 1.54, 1.54, 1.54 ,  1 , 0.97 ),
+(11,     "Magnesium",       "Mg", (  1.0,   1.0,   1.0), 1.36, 1.36, 1.36 ,  1 , 0.82 ,  2 , 0.66 ),
+(12,     "Aluminium",       "Al", ( 0.70,   0.2,  0.62), 1.18, 1.18, 1.18 ,  3 , 0.51 ),
+(13,       "Silicon",       "Si", ( 0.65,  0.64,  0.27), 1.11, 1.11, 1.11 , -4 , 2.71 , -1 , 3.84 ,  1 , 0.65 ,  4 , 0.42 ),
+(14,    "Phosphorus",        "P", (  1.0,   1.0,   0.0), 1.06, 1.06, 1.06 , -3 , 2.12 ,  3 , 0.44 ,  5 , 0.35 ),
+(15,        "Sulfur",        "S", (  1.0,   1.0,  0.50), 1.02, 1.02, 1.02 , -2 , 1.84 ,  2 , 2.19 ,  4 , 0.37 ,  6 , 0.30 ),
+(16,      "Chlorine",       "Cl", (  0.0,   1.0,   0.0), 0.99, 0.99, 0.99 , -1 , 1.81 ,  5 , 0.34 ,  7 , 0.27 ),
+(17,         "Argon",       "Ar", ( 0.31,  0.32,  0.74), 0.98, 0.98, 0.98 ,  1 , 1.54 ),
+(18,     "Potassium",        "K", ( 0.81,  0.23,  0.42), 2.03, 2.03, 2.03 ,  1 , 0.81 ),
+(19,       "Calcium",       "Ca", (  1.0,   1.0,   1.0), 1.74, 1.74, 1.74 ,  1 , 1.18 ,  2 , 0.99 ),
+(20,      "Scandium",       "Sc", ( 0.66,  0.44,  0.31), 1.44, 1.44, 1.44 ,  3 , 0.73 ),
+(21,      "Titanium",       "Ti", ( 0.27,  0.53,  0.68), 1.32, 1.32, 1.32 ,  1 , 0.96 ,  2 , 0.94 ,  3 , 0.76 ,  4 , 0.68 ),
+(22,      "Vanadium",        "V", ( 0.27,  0.24,  0.63), 1.22, 1.22, 1.22 ,  2 , 0.88 ,  3 , 0.74 ,  4 , 0.63 ,  5 , 0.59 ),
+(23,      "Chromium",       "Cr", ( 0.80,  0.28,  0.81), 1.18, 1.18, 1.18 ,  1 , 0.81 ,  2 , 0.89 ,  3 , 0.63 ,  6 , 0.52 ),
+(24,     "Manganese",       "Mn", ( 0.75,  0.35,  0.55), 1.17, 1.17, 1.17 ,  2 , 0.80 ,  3 , 0.66 ,  4 , 0.60 ,  7 , 0.46 ),
+(25,          "Iron",       "Fe", (  1.0,   0.0,   0.0), 1.17, 1.17, 1.17 ,  2 , 0.74 ,  3 , 0.64 ),
+(26,        "Cobalt",       "Co", ( 0.27,  0.21,  0.75), 1.16, 1.16, 1.16 ,  2 , 0.72 ,  3 , 0.63 ),
+(27,        "Nickel",       "Ni", ( 0.43,  0.36,  0.86), 1.15, 1.15, 1.15 ,  2 , 0.69 ),
+(28,        "Copper",       "Cu", ( 0.60,   0.0,   0.0), 1.17, 1.17, 1.17 ,  1 , 0.96 ,  2 , 0.72 ),
+(29,          "Zinc",       "Zn", ( 0.42,  0.36,  0.45), 1.25, 1.25, 1.25 ,  1 , 0.88 ,  2 , 0.74 ),
+(30,       "Gallium",       "Ga", ( 0.63,  0.72,  0.33), 1.26, 1.26, 1.26 ,  1 , 0.81 ,  3 , 0.62 ),
+(31,     "Germanium",       "Ge", ( 0.42,  0.75,  0.30), 1.22, 1.22, 1.22 , -4 , 2.72 ,  2 , 0.73 ,  4 , 0.53 ),
+(32,       "Arsenic",       "As", ( 0.39,  0.77,  0.25), 1.20, 1.20, 1.20 , -3 , 2.22 ,  3 , 0.58 ,  5 , 0.46 ),
+(33,      "Selenium",       "Se", ( 0.95,  0.27,  0.90), 1.16, 1.16, 1.16 , -2 , 1.91 , -1 , 2.32 ,  1 , 0.66 ,  4 , 0.50 ,  6 , 0.42 ),
+(34,       "Bromine",       "Br", (  0.0,  0.49,   0.0), 1.14, 1.14, 1.14 , -1 , 1.96 ,  5 , 0.47 ,  7 , 0.39 ),
+(35,       "Krypton",       "Kr", ( 0.22,  0.43,  0.19), 1.31, 1.31, 1.31 ,  1 , 1.47 ),
+(36,     "Strontium",       "Sr", (  1.0,   1.0,   1.0), 1.91, 1.91, 1.91 ,  2 , 1.12 ),
+(37,       "Yttrium",        "Y", (  1.0,   1.0,   1.0), 1.62, 1.62, 1.62 ,  3 , 0.89 ),
+(38,     "Zirconium",       "Zr", (  1.0,   1.0,   1.0), 1.45, 1.45, 1.45 ,  1 , 1.09 ,  4 , 0.79 ),
+(39,       "Niobium",       "Nb", (  1.0,   1.0,   1.0), 1.34, 1.34, 1.34 ,  1 , 1.00 ,  4 , 0.74 ,  5 , 0.69 ),
+(40,    "Molybdenum",       "Mo", (  1.0,   1.0,   1.0), 1.30, 1.30, 1.30 ,  1 , 0.93 ,  4 , 0.70 ,  6 , 0.62 ),
+(41,    "Technetium",       "Tc", (  1.0,   1.0,   1.0), 1.27, 1.27, 1.27 ,  7 , 0.97 ),
+(42,     "Ruthenium",       "Ru", (  1.0,   1.0,   1.0), 1.25, 1.25, 1.25 ,  4 , 0.67 ),
+(43,       "Rhodium",       "Rh", (  1.0,   1.0,   1.0), 1.25, 1.25, 1.25 ,  3 , 0.68 ),
+(44,     "Palladium",       "Pd", (  1.0,   1.0,   1.0), 1.28, 1.28, 1.28 ,  2 , 0.80 ,  4 , 0.65 ),
+(45,        "Silver",       "Ag", (  1.0,   1.0,   1.0), 1.34, 1.34, 1.34 ,  1 , 1.26 ,  2 , 0.89 ),
+(46,       "Cadmium",       "Cd", (  1.0,   1.0,   1.0), 1.48, 1.48, 1.48 ,  1 , 1.14 ,  2 , 0.97 ),
+(47,        "Indium",       "In", (  1.0,   1.0,   1.0), 1.44, 1.44, 1.44 ,  3 , 0.81 ),
+(48,           "Tin",       "Sn", (  1.0,   1.0,   1.0), 1.41, 1.41, 1.41 , -4 , 2.94 , -1 , 3.70 ,  2 , 0.93 ,  4 , 0.71 ),
+(49,      "Antimony",       "Sb", (  1.0,   1.0,   1.0), 1.40, 1.40, 1.40 , -3 , 2.45 ,  3 , 0.76 ,  5 , 0.62 ),
+(50,     "Tellurium",       "Te", (  1.0,   1.0,   1.0), 1.36, 1.36, 1.36 , -2 , 2.11 , -1 , 2.50 ,  1 , 0.82 ,  4 , 0.70 ,  6 , 0.56 ),
+(51,        "Iodine",        "I", (  0.0,  0.49,  0.49), 1.33, 1.33, 1.33 , -1 , 2.20 ,  5 , 0.62 ,  7 , 0.50 ),
+(52,         "Xenon",       "Xe", (  1.0,   1.0,   1.0), 1.31, 1.31, 1.31 ,  1 , 1.67 ),
+(53,        "Barium",       "Ba", (  1.0,   1.0,   1.0), 1.98, 1.98, 1.98 ,  1 , 1.53 ,  2 , 1.34 ),
+(54,     "Lanthanum",       "La", (  1.0,   1.0,   1.0), 1.69, 1.69, 1.69 ,  1 , 1.39 ,  3 , 1.06 ),
+(55,        "Cerium",       "Ce", (  1.0,   1.0,   1.0), 1.65, 1.65, 1.65 ,  1 , 1.27 ,  3 , 1.03 ,  4 , 0.92 ),
+(56,  "Praseodymium",       "Pr", (  1.0,   1.0,   1.0), 1.65, 1.65, 1.65 ,  3 , 1.01 ,  4 , 0.90 ),
+(57,     "Neodymium",       "Nd", (  1.0,   1.0,   1.0), 1.64, 1.64, 1.64 ,  3 , 0.99 ),
+(58,    "Promethium",       "Pm", (  1.0,   1.0,   1.0), 1.63, 1.63, 1.63 ,  3 , 0.97 ),
+(59,      "Samarium",       "Sm", (  1.0,   1.0,   1.0), 1.62, 1.62, 1.62 ,  3 , 0.96 ),
+(60,      "Europium",       "Eu", (  1.0,   1.0,   1.0), 1.85, 1.85, 1.85 ,  2 , 1.09 ,  3 , 0.95 ),
+(61,    "Gadolinium",       "Gd", (  1.0,   1.0,   1.0), 1.61, 1.61, 1.61 ,  3 , 0.93 ),
+(62,       "Terbium",       "Tb", (  1.0,   1.0,   1.0), 1.59, 1.59, 1.59 ,  3 , 0.92 ,  4 , 0.84 ),
+(63,    "Dysprosium",       "Dy", (  1.0,   1.0,   1.0), 1.59, 1.59, 1.59 ,  3 , 0.90 ),
+(64,       "Holmium",       "Ho", (  1.0,   1.0,   1.0), 1.58, 1.58, 1.58 ,  3 , 0.89 ),
+(65,        "Erbium",       "Er", ( 0.48,  0.48,  0.48), 1.57, 1.57, 1.57 ,  3 , 0.88 ),
+(66,       "Thulium",       "Tm", (  1.0,   1.0,   1.0), 1.56, 1.56, 1.56 ,  3 , 0.87 ),
+(67,     "Ytterbium",       "Yb", (  1.0,   1.0,   1.0), 1.74, 1.74, 1.74 ,  2 , 0.93 ,  3 , 0.85 ),
+(68,      "Lutetium",       "Lu", (  1.0,   1.0,   1.0), 1.56, 1.56, 1.56 ,  3 , 0.85 ),
+(69,       "Hafnium",       "Hf", (  1.0,   1.0,   1.0), 1.44, 1.44, 1.44 ,  4 , 0.78 ),
+(70,      "Tantalum",       "Ta", (  1.0,   1.0,   1.0), 1.34, 1.34, 1.34 ,  5 , 0.68 ),
+(71,      "Tungsten",        "W", (  1.0,   1.0,   1.0), 1.30, 1.30, 1.30 ,  4 , 0.70 ,  6 , 0.62 ),
+(72,       "Rhenium",       "Re", (  1.0,   1.0,   1.0), 1.28, 1.28, 1.28 ,  4 , 0.72 ,  7 , 0.56 ),
+(73,        "Osmium",       "Os", (  1.0,   1.0,   1.0), 1.26, 1.26, 1.26 ,  4 , 0.88 ,  6 , 0.69 ),
+(74,       "Iridium",       "Ir", (  1.0,   1.0,   1.0), 1.27, 1.27, 1.27 ,  4 , 0.68 ),
+(75,     "Platinium",       "Pt", (  1.0,   1.0,   1.0), 1.30, 1.30, 1.30 ,  2 , 0.80 ,  4 , 0.65 ),
+(76,          "Gold",       "Au", (  1.0,   1.0,   1.0), 1.34, 1.34, 1.34 ,  1 , 1.37 ,  3 , 0.85 ),
+(77,       "Mercury",       "Hg", (  1.0,   1.0,   1.0), 1.49, 1.49, 1.49 ,  1 , 1.27 ,  2 , 1.10 ),
+(78,      "Thallium",       "Tl", (  1.0,   1.0,   1.0), 1.48, 1.48, 1.48 ,  1 , 1.47 ,  3 , 0.95 ),
+(79,          "Lead",       "Pb", ( 0.49,  0.49,  0.49), 1.47, 1.47, 1.47 ,  2 , 1.20 ,  4 , 0.84 ),
+(80,       "Bismuth",       "Bi", (  1.0,   1.0,   1.0), 1.46, 1.46, 1.46 ,  1 , 0.98 ,  3 , 0.96 ,  5 , 0.74 ),
+(81,      "Polonium",       "Po", (  1.0,   1.0,   1.0), 1.46, 1.46, 1.46 ,  6 , 0.67 ),
+(82,      "Astatine",       "At", (  1.0,   1.0,   1.0), 1.45, 1.45, 1.45 , -3 , 2.22 ,  3 , 0.85 ,  5 , 0.46 ),
+(83,         "Radon",       "Rn", (  1.0,   1.0,   1.0), 1.00, 1.00, 1.00 ,  1 , 1.80 ),
+(84,        "Radium",       "Ra", (  1.0,   1.0,   1.0), 1.00, 1.00, 1.00 ,  2 , 1.43 ),
+(85,      "Actinium",       "Ac", (  1.0,   1.0,   1.0), 1.00, 1.00, 1.00 ,  3 , 1.18 ),
+(86,       "Thorium",       "Th", (  1.0,   1.0,   1.0), 1.65, 1.65, 1.65 ,  4 , 1.02 ),
+(87,  "Protactinium",       "Pa", (  1.0,   1.0,   1.0), 1.00, 1.00, 1.00 ,  3 , 1.13 ,  4 , 0.98 ,  5 , 0.89 ),
+(88,       "Uranium",        "U", (  1.0,   1.0,   1.0), 1.42, 1.42, 1.42 ,  4 , 0.97 ,  6 , 0.80 ),
+(89,     "Neptunium",       "Np", (  1.0,   1.0,   1.0), 1.00, 1.00, 1.00 ,  3 , 1.10 ,  4 , 0.95 ,  7 , 0.71 ),
+(90,     "Plutonium",       "Pu", (  1.0,   1.0,   1.0), 1.00, 1.00, 1.00 ,  3 , 1.08 ,  4 , 0.93 ),
+(91,     "Americium",       "Am", (  1.0,   1.0,   1.0), 1.00, 1.00, 1.00 ,  3 , 1.07 ,  4 , 0.92 ),
+(92,        "Curium",       "Cm", (  1.0,   1.0,   1.0), 1.00, 1.00, 1.00 ),
+(93,       "Vacancy",      "Vac", (  0.5,   0.5,   0.5), 1.00, 0.00, 0.00),
+(94,       "Default",  "Default", (  1.0,   1.0,   1.0), 1.00, 1.00, 1.00),
+(95,         "Stick",    "Stick", (  0.5,   0.5,   0.5), 0.00, 0.00, 0.00))
 
 ALL_EXISTING_ATOMS = 95
     
@@ -234,11 +237,11 @@ class CLASS_PDB_Panel(bpy.types.Panel):
         row = layout.row() 
         
         col = row.column()
-        col.prop(scn, "atom_pdb_dupliverts_yesno")
+        col.prop(scn, "use_atom_pdb_dupliverts")
 
         row = layout.row()
         col = row.column(align=True)        
-        col.prop(scn, "atom_pdb_mesh_yesno")
+        col.prop(scn, "use_atom_pdb_mesh")
         col.prop(scn, "atom_pdb_mesh_azimuth")
         col.prop(scn, "atom_pdb_mesh_zenith")        
         col = row.column(align=True)        
@@ -246,7 +249,7 @@ class CLASS_PDB_Panel(bpy.types.Panel):
         col.prop(scn, "atom_pdb_scale_ballradius")
         col.prop(scn, "atom_pdb_scale_distances")
         col = row.column(align=True) 
-        col.prop(scn, "atom_pdb_sticks_yesno")
+        col.prop(scn, "use_atom_pdb_sticks")
         col.prop(scn, "atom_pdb_sticks_sectors")
         col.prop(scn, "atom_pdb_sticks_radius")
 
@@ -256,13 +259,13 @@ class CLASS_PDB_Panel(bpy.types.Panel):
         col.prop(scn, "atom_pdb_offset_y")
         col.prop(scn, "atom_pdb_offset_z")
         col = row.column()         
-        col.prop(scn, "atom_pdb_center_yesno")
+        col.prop(scn, "use_atom_pdb_center")
 
         layout.separator()  
         row = layout.row(align=True)        
         col = row.column()
-        col.prop(scn, "atom_pdb_cam_yesno")
-        col.prop(scn, "atom_pdb_lamp_yesno")        
+        col.prop(scn, "use_atom_pdb_cam")
+        col.prop(scn, "use_atom_pdb_lamp")        
         col = row.column() 
         col.operator( "atom_pdb.button_start" )
         row2 = col.row()
@@ -314,22 +317,22 @@ class CLASS_PDB_Panel(bpy.types.Panel):
 class CLASS_Input_Output(bpy.types.PropertyGroup):
     bpy.types.Scene.atom_pdb_PDB_filename        = bpy.props.StringProperty(name = "File name", default="", description = "PDB file name")
     bpy.types.Scene.atom_pdb_PDB_file            = bpy.props.StringProperty(name = "Path to file", default="", description = "Path of the PDB file")
-    bpy.types.Scene.atom_pdb_dupliverts_yesno    = bpy.props.BoolProperty  (name = "Use dupliverts (Loading much faster)", default=True, description = "Use the dublication method via vertice referencing (Much faster loading!)")    
-    bpy.types.Scene.atom_pdb_mesh_yesno          = bpy.props.BoolProperty  (name = "Mesh balls", default=False, description = "Do you want to use mesh balls instead of NURBS?")    
+    bpy.types.Scene.use_atom_pdb_dupliverts      = bpy.props.BoolProperty  (name = "Use dupliverts (Loading much faster)", default=True, description = "Use the dublication method via vertice referencing (Much faster loading!)")    
+    bpy.types.Scene.use_atom_pdb_mesh            = bpy.props.BoolProperty  (name = "Mesh balls", default=False, description = "Do you want to use mesh balls instead of NURBS?")    
     bpy.types.Scene.atom_pdb_mesh_azimuth        = bpy.props.IntProperty   (name = "Azimuth", default=32, min=0, description = "Number of sectors (azimuth)")
     bpy.types.Scene.atom_pdb_mesh_zenith         = bpy.props.IntProperty   (name = "Zenith", default=32, min=0, description = "Number of sectors (zenith)")
     bpy.types.Scene.atom_pdb_scale_ballradius    = bpy.props.FloatProperty (name = "Balls", default=1.0, min=0.0, description = "Scale factor for all atom radii")
     bpy.types.Scene.atom_pdb_scale_distances     = bpy.props.FloatProperty (name = "Distances", default=1.0, min=0.0, description = "Scale factor for all distances")
-    bpy.types.Scene.atom_pdb_center_yesno        = bpy.props.BoolProperty  (name = "Object to origin", default=True, description = "Shall the object first put into the global origin before applying the offsets on the left?")    
+    bpy.types.Scene.use_atom_pdb_center          = bpy.props.BoolProperty  (name = "Object to origin", default=True, description = "Shall the object first put into the global origin before applying the offsets on the left?")    
     bpy.types.Scene.atom_pdb_offset_x            = bpy.props.FloatProperty (name = "X", default=0.0, description = "Offset in X")
     bpy.types.Scene.atom_pdb_offset_y            = bpy.props.FloatProperty (name = "Y", default=0.0, description = "Offset in Y")
     bpy.types.Scene.atom_pdb_offset_z            = bpy.props.FloatProperty (name = "Z", default=0.0, description = "Offset in Z")
-    bpy.types.Scene.atom_pdb_sticks_yesno        = bpy.props.BoolProperty  (name = "Use sticks", default=False, description = "Do you want to display also the sticks?")    
+    bpy.types.Scene.use_atom_pdb_sticks          = bpy.props.BoolProperty  (name = "Use sticks", default=False, description = "Do you want to display also the sticks?")    
     bpy.types.Scene.atom_pdb_sticks_sectors      = bpy.props.IntProperty   (name = "Sector", default = 20, min=0,   description = "Number of sectors of a stick")        
     bpy.types.Scene.atom_pdb_sticks_radius       = bpy.props.FloatProperty (name = "Radius", default =  0.1, min=0.0, description = "Radius of a stick")  
-    bpy.types.Scene.atom_pdb_cam_yesno           = bpy.props.BoolProperty  (name = "Camera", default=False, description = "Do you need a camera?")   
-    bpy.types.Scene.atom_pdb_lamp_yesno          = bpy.props.BoolProperty  (name = "Lamp", default=False, description = "Do you need a lamp?")
-    bpy.types.Scene.atom_pdb_number_atoms  = bpy.props.StringProperty(name = "", default="Number", description = "This output shows the number of atoms which have been loaded")
+    bpy.types.Scene.use_atom_pdb_cam             = bpy.props.BoolProperty  (name = "Camera", default=False, description = "Do you need a camera?")   
+    bpy.types.Scene.use_atom_pdb_lamp            = bpy.props.BoolProperty  (name = "Lamp", default=False, description = "Do you need a lamp?")
+    bpy.types.Scene.atom_pdb_number_atoms        = bpy.props.StringProperty(name = "", default="Number", description = "This output shows the number of atoms which have been loaded")
     bpy.types.Scene.atom_pdb_distance            = bpy.props.StringProperty(name = "", default="Distance (Angstrom)", description = "Distance of 2 objects in Angstrom")  
     bpy.types.Scene.atom_pdb_mod_atomname        = bpy.props.StringProperty(name = "", default = "Atom name", description="Put in the name of the atom (e.g. Hydrogen)")
     bpy.types.Scene.atom_pdb_mod_pm_radius       = bpy.props.FloatProperty (name = "", default = 100.0, min=0.0, description="Put in the radius of the atom (in pm)")
@@ -433,17 +436,17 @@ class CLASS_Start_Button(bpy.types.Operator):
         zenith     = scn.atom_pdb_mesh_zenith 
         bradius    = scn.atom_pdb_scale_ballradius
         bdistance  = scn.atom_pdb_scale_distances
-        center     = scn.atom_pdb_center_yesno 
+        center     = scn.use_atom_pdb_center 
         x          = scn.atom_pdb_offset_x
         y          = scn.atom_pdb_offset_y
         z          = scn.atom_pdb_offset_z
-        yn         = scn.atom_pdb_sticks_yesno 
+        yn         = scn.use_atom_pdb_sticks 
         ssector    = scn.atom_pdb_sticks_sectors
         sradius    = scn.atom_pdb_sticks_radius
-        cam        = scn.atom_pdb_cam_yesno 
-        lamp       = scn.atom_pdb_lamp_yesno
-        mesh       = scn.atom_pdb_mesh_yesno 
-        dupliverts = scn.atom_pdb_dupliverts_yesno
+        cam        = scn.use_atom_pdb_cam 
+        lamp       = scn.use_atom_pdb_lamp
+        mesh       = scn.use_atom_pdb_mesh 
+        dupliverts = scn.use_atom_pdb_dupliverts
         
         atom_number               = Draw_scene(dupliverts,mesh,azimuth,zenith,bradius,bdistance,x,y,z,yn,ssector,sradius,center,cam,lamp)
         scn.atom_pdb_number_atoms = str(atom_number)
@@ -452,30 +455,31 @@ class CLASS_Start_Button(bpy.types.Operator):
 
 
 # This is the class for the file dialog.
-class CLASS_LoadPDB(bpy.types.Operator):
-    bl_idname = "import_image.brushset"
+class CLASS_LoadPDB(bpy.types.Operator, ExportHelper):
+    bl_idname = "import_pdb.pdb"
     bl_label  = "Import PDB"
-
-    filename = bpy.props.StringProperty(name = "PDB  File", description="Path to the PDB file", maxlen = 256, default = PDBFILEPATH, subtype='FILE_PATH', options={'HIDDEN'})
-    filepath = bpy.props.StringProperty(name = "PDB  File", description="Path to the PDB file", maxlen = 256, default = PDBFILEPATH, subtype='FILE_PATH', options={'HIDDEN'})
     
-    def execute(self, context):
+    filename_ext = ".pdb"
+    filter_glob  = StringProperty(default="*.pdb", options={'HIDDEN'},)
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
+
+    def execute(self, context):   
         global PDBFILEPATH
         global PDBFILENAME
-        
+      
         # In the following the name and path of the PDB file
         # is stored into the global variables.
         scn = bpy.context.scene
-        PDBFILENAME     = self.filename
         PDBFILEPATH     = self.filepath
+        PDBFILENAME     = os.path.basename(PDBFILEPATH)
         scn.atom_pdb_PDB_filename = PDBFILENAME
         scn.atom_pdb_PDB_file     = PDBFILEPATH
         return {'FINISHED'}
 
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+
 
 
 # The entry into the menu 'file -> import'
@@ -739,7 +743,7 @@ def Read_atom_for_stick(string):
 
 
 
-def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor,Ball_distance_factor,offset_x,offset_y,offset_z,Stick_yn,Stick_sectors,Stick_diameter, put_to_center, camera_yn, lamp_yn):
+def Draw_scene(used_dupliverts,used_mesh,Ball_azimuth,Ball_zenith,Ball_radius_factor,Ball_distance_factor,offset_x,offset_y,offset_z,used_stick,Stick_sectors,Stick_diameter, put_to_center, used_camera, used_lamp):
 
     global PDBFILEPATH
     global PDBFILENAME
@@ -971,8 +975,7 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
         if "CONECT" not in line:
             break
          
-        if line[-1] == '\n':
-            line = line[:-1]
+        line = line.rstrip()
         
         # Read the sticks for the actual atom (sub routine). One gets a list of
         # sticks.
@@ -1016,7 +1019,7 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
             q += 1
 
         line = PDBFILEPATH_p.readline()
-        line = line[:-1]
+        line = line.rstrip()
 
     PDBFILEPATH_p.close()
     # So far, all atoms and sticks have been registered.
@@ -1139,7 +1142,7 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
     camera_factor = 15.0
 
     # Here a camera is put into the scene, if chosen.
-    if camera_yn == True:
+    if used_camera == True:
 
         # Assume that the object is put into the global origin. Then, the camera
         # is moved in x and z direction, not in y. The object has its size at distance
@@ -1151,7 +1154,8 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
         camera_z = object_center[2] + math.sqrt(object_size) * camera_factor
         camera_pos    = [camera_x,camera_y,camera_z]
         # Create the camera
-        bpy.ops.object.camera_add(view_align=False, enter_editmode=False, location=camera_pos, rotation=(0.0, 0.0, 0.0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
+        current_layers=bpy.context.scene.layers
+        bpy.ops.object.camera_add(view_align=False, enter_editmode=False, location=camera_pos, rotation=(0.0, 0.0, 0.0), layers=current_layers)
         # Some properties of the camera are changed.
         camera               = bpy.context.scene.objects.active
         camera.name          = "A_camera"
@@ -1188,7 +1192,7 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
 
 
     # Here a lamp is put into the scene, if chosen.
-    if lamp_yn == True:
+    if used_lamp == True:
 
 
         # This is the distance from the object measured in terms of % of the camera 
@@ -1204,7 +1208,8 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
         lamp_z                         = object_center[2] + lamp_dl
         lamp_pos                       = [lamp_x, lamp_y, lamp_z]
         # Create the lamp
-        bpy.ops.object.lamp_add  (type = 'POINT', view_align=False,         location=lamp_pos,   rotation=(0.0, 0.0, 0.0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
+        current_layers=bpy.context.scene.layers
+        bpy.ops.object.lamp_add  (type = 'POINT', view_align=False,         location=lamp_pos,   rotation=(0.0, 0.0, 0.0), layers=current_layers)
         # Some properties of the lamp are changed.
         lamp                           = bpy.context.scene.objects.active
         lamp.data.name                 = "A_lamp"
@@ -1325,40 +1330,40 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
     # for the code, which is used to draw meshes and the vacancies.
    
     # This is the number of all atoms which are put into the scene.
-    i = 0 
+    number_loaded_atoms = 0 
     bpy.ops.object.select_all(action='DESELECT')    
     # Draw NURBS or ...
-    if mesh_yn == False:
+    if used_mesh == False:
         # For each list of atoms of ONE type (e.g. Hydrogen)
         for atom_list in draw_atom_type_list:
 
-            if Dupliverts_yn == False:
+            if used_dupliverts == False:
 
                 # For each atom in a group do ...
                 structure = []
                 for atom in atom_list:
                     # First print in the terminal the number of atom that will be build right now.
-                    sys.stdout.write("Atom No. %d has been built\r" % (i+1) )
+                    sys.stdout.write("Atom No. %d has been built\r" % (number_loaded_atoms+1) )
                     sys.stdout.flush()
 
                     # Build a sphere (atom)
-                    bpy.ops.surface.primitive_nurbs_surface_sphere_add(view_align=False, enter_editmode=False, location=atom[2], rotation=(0.0, 0.0, 0.0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
+                    current_layers=bpy.context.scene.layers
+                    bpy.ops.surface.primitive_nurbs_surface_sphere_add(view_align=False, enter_editmode=False, location=atom[2], rotation=(0.0, 0.0, 0.0), layers=current_layers)
                     ball                 = bpy.context.scene.objects.active
                     ball.scale           = (atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor)
                     ball.name            = atom[0]
                     ball.active_material = atom[1]
                     structure.append(ball)
-                    i += 1  
+                    number_loaded_atoms += 1  
                 LOADED_STRUCTURES.append(structure)
 
 
-            if Dupliverts_yn == True:
+            if used_dupliverts == True:
 
                 # Create first the vertices composed of the coordinates of all atoms of one type
                 atom_vertices = []
                 for atom in atom_list:
                     atom_vertices.append( (atom[2][0], atom[2][1], atom[2][2]) )
-                    i += 1  
 
                 # Build the mesh
                 atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
@@ -1368,7 +1373,8 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
                 bpy.context.scene.objects.link(new_atom_mesh)
 
                 # Now, build a representative sphere (atom)
-                bpy.ops.surface.primitive_nurbs_surface_sphere_add(view_align=False, enter_editmode=False, location=(0,0,0), rotation=(0.0, 0.0, 0.0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
+                current_layers=bpy.context.scene.layers
+                bpy.ops.surface.primitive_nurbs_surface_sphere_add(view_align=False, enter_editmode=False, location=(0,0,0), rotation=(0.0, 0.0, 0.0), layers=current_layers)
                 ball                 = bpy.context.scene.objects.active
                 ball.scale           = (atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor)
                 ball.name            = "Ball (NURBS)_"+atom[0]
@@ -1382,29 +1388,29 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
     else: 
         for atom_list in draw_atom_type_list:
 
-            if Dupliverts_yn == False:  
+            if used_dupliverts == False:  
 
                 structure = []
                 for atom in atom_list:
-                    sys.stdout.write("Atom No. %d has been built\r" % (i+1) )
+                    sys.stdout.write("Atom No. %d has been built\r" % (number_loaded_atoms+1) )
                     sys.stdout.flush()
 
-                    bpy.ops.mesh.primitive_uv_sphere_add(segments=Ball_azimuth, ring_count=Ball_zenith, size=1, view_align=False, enter_editmode=False, location=atom[2], rotation=(0, 0, 0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
+                    current_layers=bpy.context.scene.layers
+                    bpy.ops.mesh.primitive_uv_sphere_add(segments=Ball_azimuth, ring_count=Ball_zenith, size=1, view_align=False, enter_editmode=False, location=atom[2], rotation=(0, 0, 0), layers=current_layers)
                     ball                 = bpy.context.scene.objects.active
                     ball.scale           = (atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor)
                     ball.name            = atom[0]
                     ball.active_material = atom[1]
                     structure.append(ball)
-                    i += 1         
+                    number_loaded_atoms += 1         
                 LOADED_STRUCTURES.append(structure)
   
 
-            if Dupliverts_yn == True:
+            if used_dupliverts == True:
 
                 atom_vertices = []       
                 for atom in atom_list:
                     atom_vertices.append( (atom[2][0], atom[2][1], atom[2][2]) )
-                    i += 1  
 
                 atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
                 atom_mesh.from_pydata(atom_vertices, [], [])
@@ -1412,7 +1418,8 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
                 new_atom_mesh = bpy.data.objects.new(atom[0], atom_mesh)
                 bpy.context.scene.objects.link(new_atom_mesh)
 
-                bpy.ops.mesh.primitive_uv_sphere_add(segments=Ball_azimuth, ring_count=Ball_zenith, size=1, view_align=False, enter_editmode=False, location=(0,0,0), rotation=(0, 0, 0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))    
+                current_layers=bpy.context.scene.layers
+                bpy.ops.mesh.primitive_uv_sphere_add(segments=Ball_azimuth, ring_count=Ball_zenith, size=1, view_align=False, enter_editmode=False, location=(0,0,0), rotation=(0, 0, 0), layers=current_layers)    
                 ball                 = bpy.context.scene.objects.active
                 ball.scale           = (atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor)
                 ball.name            = "Ball (UV)_"+atom[0]
@@ -1433,28 +1440,29 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
     
     if draw_atom_type_list_vacancy != []:
     
-        if Dupliverts_yn == False:  
+        if used_dupliverts == False:  
      
             structure = []   
             for atom in atom_list:
-                sys.stdout.write("Atom No. %d has been built\r" % (i+1) )
+                sys.stdout.write("Atom No. %d has been built\r" % (number_loaded_atoms+1) )
                 sys.stdout.flush()
-                bpy.ops.mesh.primitive_cube_add(view_align=False, enter_editmode=False, location=atom[2], rotation=(0.0, 0.0, 0.0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
+                
+                current_layers=bpy.context.scene.layers
+                bpy.ops.mesh.primitive_cube_add(view_align=False, enter_editmode=False, location=atom[2], rotation=(0.0, 0.0, 0.0), layers=current_layers)
                 ball                 = bpy.context.scene.objects.active
                 ball.scale           = (atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor)
                 ball.name            = atom[0]
                 ball.active_material = atom[1]
                 structure.append(ball)
-                i += 1   
+                number_loaded_atoms += 1   
             LOADED_STRUCTURES.append(structure) 
     
     
-        if Dupliverts_yn == True:
+        if used_dupliverts == True:
    
             atom_vertices = []
             for atom in draw_atom_type_list_vacancy:
                 atom_vertices.append( (atom[2][0], atom[2][1], atom[2][2]) )
-                i += 1  
             
             atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
             atom_mesh.from_pydata(atom_vertices, [], [])
@@ -1462,7 +1470,8 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
             new_atom_mesh = bpy.data.objects.new(atom[0], atom_mesh)
             bpy.context.scene.objects.link(new_atom_mesh)
             
-            bpy.ops.mesh.primitive_cube_add(view_align=False, enter_editmode=False, location=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
+            current_layers=bpy.context.scene.layers
+            bpy.ops.mesh.primitive_cube_add(view_align=False, enter_editmode=False, location=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0), layers=current_layers)
             ball                 = bpy.context.scene.objects.active
             ball.scale           = (atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor,atom[3]*Ball_radius_factor)
             ball.name            = "Cube_"+atom[0]
@@ -1488,15 +1497,13 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
 
 
 
-    if Stick_yn == True:
+    if used_stick == True:
  
         # Create a new material with the corresponding color. The
         # color is taken from the all_atom list, it is the last entry
         # in the data file (index -1).
         bpy.ops.object.material_slot_add()
-        stick_material               = bpy.data.materials.new(Data_all_atoms[ALL_EXISTING_ATOMS-1][2])
-                       
-        stick_material.name          = Data_all_atoms[ALL_EXISTING_ATOMS-1][1]
+        stick_material               = bpy.data.materials.new(Data_all_atoms[ALL_EXISTING_ATOMS-1][2])  
         stick_material.diffuse_color = Data_all_atoms[ALL_EXISTING_ATOMS-1][3]
  
         # This is the unit vector of the z axis
@@ -1521,7 +1528,8 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
             # Calculate Euler angles
             euler   = Matrix.Rotation(angle, 4, axis).to_euler()
             # Create stick
-            bpy.ops.mesh.primitive_cylinder_add(vertices=Stick_sectors, radius=Stick_diameter, depth= v.length, cap_ends=True, view_align=False, enter_editmode=False, location= ((k1+k2)*0.5), rotation=(0,0,0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
+            current_layers=bpy.context.scene.layers
+            bpy.ops.mesh.primitive_cylinder_add(vertices=Stick_sectors, radius=Stick_diameter, depth= v.length, cap_ends=True, view_align=False, enter_editmode=False, location= ((k1+k2)*0.5), rotation=(0,0,0), layers=current_layers)
             # Put the stick into the scene ...
             stick                 = bpy.context.scene.objects.active
             # ... and rotate the stick.
