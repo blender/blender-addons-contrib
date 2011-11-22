@@ -51,11 +51,8 @@ bl_info = {
 import bpy
 import io
 import sys
-import os
-import inspect
-from math import *
-import mathutils, math
-from mathutils import Vector
+import math
+from mathutils import Vector, Matrix
 
 
 # These are variables, which contain the name of the PDB file and
@@ -317,7 +314,7 @@ class CLASS_PDB_Panel(bpy.types.Panel):
 class CLASS_Input_Output(bpy.types.PropertyGroup):
     bpy.types.Scene.atom_pdb_PDB_filename        = bpy.props.StringProperty(name = "File name", default="", description = "PDB file name")
     bpy.types.Scene.atom_pdb_PDB_file            = bpy.props.StringProperty(name = "Path to file", default="", description = "Path of the PDB file")
-    bpy.types.Scene.atom_pdb_dupliverts_yesno    = bpy.props.BoolProperty  (name = "Use dupliverts (Loading much faster)", default=True, description = "Use the dublication method via vertice referencing (Much faster loading!).")    
+    bpy.types.Scene.atom_pdb_dupliverts_yesno    = bpy.props.BoolProperty  (name = "Use dupliverts (Loading much faster)", default=True, description = "Use the dublication method via vertice referencing (Much faster loading!)")    
     bpy.types.Scene.atom_pdb_mesh_yesno          = bpy.props.BoolProperty  (name = "Mesh balls", default=False, description = "Do you want to use mesh balls instead of NURBS?")    
     bpy.types.Scene.atom_pdb_mesh_azimuth        = bpy.props.IntProperty   (name = "Azimuth", default=32, min=0, description = "Number of sectors (azimuth)")
     bpy.types.Scene.atom_pdb_mesh_zenith         = bpy.props.IntProperty   (name = "Zenith", default=32, min=0, description = "Number of sectors (zenith)")
@@ -344,7 +341,7 @@ class CLASS_Input_Output(bpy.types.PropertyGroup):
 class CLASS_Distance_Button(bpy.types.Operator):
     bl_idname = "atom_pdb.button_distance"
     bl_label = "Measure ..."
-    bl_description = "Measure the distance between two objects."
+    bl_description = "Measure the distance between two objects"
 
     def execute(self, context):
         scn    = bpy.context.scene
@@ -367,7 +364,7 @@ class CLASS_Distance_Button(bpy.types.Operator):
 class CLASS_Modify_Single_Button(bpy.types.Operator):
     bl_idname = "atom_pdb.button_modify_single"
     bl_label = "Modify ..."
-    bl_description = "Change the radii of atoms of one type in pm."
+    bl_description = "Change the radii of atoms of one type in pm"
 
     def execute(self, context):
         scn = bpy.context.scene
@@ -379,7 +376,7 @@ class CLASS_Modify_Single_Button(bpy.types.Operator):
 class CLASS_Bigger_Single_Button(bpy.types.Operator):
     bl_idname = "atom_pdb.button_bigger_single"
     bl_label = "Bigger ..."
-    bl_description = "Increase the radii of atoms of one type."
+    bl_description = "Increase the radii of atoms of one type"
 
     def execute(self, context):
         scn = bpy.context.scene
@@ -391,7 +388,7 @@ class CLASS_Bigger_Single_Button(bpy.types.Operator):
 class CLASS_Smaller_Single_Button(bpy.types.Operator):
     bl_idname = "atom_pdb.button_smaller_single"
     bl_label = "Smaller ..."
-    bl_description = "Decrease the radii of atoms of one type."
+    bl_description = "Decrease the radii of atoms of one type"
 
     def execute(self, context):
         scn = bpy.context.scene
@@ -403,7 +400,7 @@ class CLASS_Smaller_Single_Button(bpy.types.Operator):
 class CLASS_Bigger_All_Button(bpy.types.Operator):
     bl_idname = "atom_pdb.button_modify_all"
     bl_label = "Bigger ..."
-    bl_description = "Increase the radii of all atoms."
+    bl_description = "Increase the radii of all atoms"
 
     def execute(self, context):
         scn     = bpy.context.scene
@@ -415,7 +412,7 @@ class CLASS_Bigger_All_Button(bpy.types.Operator):
 class CLASS_Smaller_All_Button(bpy.types.Operator):
     bl_idname = "atom_pdb.button_invert_all"
     bl_label = "Smaller ..."
-    bl_description = "Decrease the radii of all atoms."
+    bl_description = "Decrease the radii of all atoms"
 
     def execute(self, context):
         scn     = bpy.context.scene
@@ -427,7 +424,7 @@ class CLASS_Smaller_All_Button(bpy.types.Operator):
 class CLASS_Start_Button(bpy.types.Operator):
     bl_idname = "atom_pdb.button_start"
     bl_label = "DRAW THE ATOMS ..."
-    bl_description = "Start to load and draw the atoms and sticks."
+    bl_description = "Start to load and draw the atoms and sticks"
     
     def execute(self, context):
         scn = bpy.context.scene
@@ -449,7 +446,7 @@ class CLASS_Start_Button(bpy.types.Operator):
         dupliverts = scn.atom_pdb_dupliverts_yesno
         
         atom_number               = Draw_scene(dupliverts,mesh,azimuth,zenith,bradius,bdistance,x,y,z,yn,ssector,sradius,center,cam,lamp)
-        scn.atom_pdb_number_atoms = atom_number
+        scn.atom_pdb_number_atoms = str(atom_number)
 
         return {'FINISHED'}
 
@@ -483,8 +480,7 @@ class CLASS_LoadPDB(bpy.types.Operator):
 
 # The entry into the menu 'file -> import'
 def menu_func(self, context):
-    default_name = "" 
-    self.layout.operator(CLASS_LoadPDB.bl_idname, text="PDB (.pdb)").filename = default_name
+    self.layout.operator(CLASS_LoadPDB.bl_idname, text="PDB (.pdb)")
 
 
 def register():
@@ -590,7 +586,7 @@ def Modify_atom_radii_type_scale(atomname, radius_rel):
     for obj in LOADED_STRUCTURES_DUPLI:
         if atomname in obj.name:
             radius = obj.scale[0]
-            obj.scale = (radius_rel * obj.scale[0],radius_rel * obj.scale[0],radius_rel * obj.scale[0])
+            obj.scale = (radius_rel * radius, radius_rel * radius, radius_rel * radius)
 
 
 # Routine to scale the radii of all atoms
@@ -755,7 +751,6 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
     PDBFILEPATH  = bpy.path.abspath(PDBFILEPATH)
    
     # Properties for atoms
-    atom_object    = []
     atom_element   = []
     atom_name      = []
     atom_charge    = []
@@ -861,7 +856,6 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
                  
             # Now the coordinates x, y and z are read.
             coor   = 1
-            number = 0
          
             # The coordinates x, y and z are identified as such by the dot (e.g., 5.678) - a dot
             # in the line appears only in the coordinates. The coordinates are listed as follwos: 
@@ -1168,9 +1162,9 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
         # Here the camera is rotated such it looks towards the center of the object.
         
         # The vector between camera and origin of the object
-        vec_cam_obj            = (mathutils.Vector(camera_pos) - mathutils.Vector(object_center))
+        vec_cam_obj            = Vector(camera_pos) - Vector(object_center)
         # The [0.0, 0.0, 1.0] vector along the z axis
-        vec_up_axis            = mathutils.Vector([0.0, 0.0, 1.0])
+        vec_up_axis            = Vector((0.0, 0.0, 1.0))
         # The angle between the last two vectors
         angle                  = vec_cam_obj.angle(vec_up_axis, 0)
         # The cross-product of the [0.0, 0.0, 1.0] vector and vec_cam_obj
@@ -1178,7 +1172,7 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
         axis                   = vec_up_axis.cross(vec_cam_obj)
         # Rotate axis 'axis' by angle 'angle' and convert this to euler parameters. 4 is the size
         # of the matrix.
-        euler                  = mathutils.Matrix.Rotation(angle, 4, axis).to_euler()
+        euler                  = Matrix.Rotation(angle, 4, axis).to_euler()
         camera.rotation_euler  = euler
 
         # Rotate the camera around its axis by 90° such that we have a nice camera position
@@ -1506,7 +1500,7 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
         stick_material.diffuse_color = Data_all_atoms[ALL_EXISTING_ATOMS-1][3]
  
         # This is the unit vector of the z axis
-        up_axis = mathutils.Vector([0.0, 0.0, 1.0])
+        up_axis = Vector((0.0, 0.0, 1.0))
  
  
         # For all sticks, do ...
@@ -1515,8 +1509,8 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
             sys.stdout.write("Stick No. %d has been built\r" % (i+1) )
             sys.stdout.flush()
             # The vectors of the two atoms are build 
-            k1 = mathutils.Vector([atom_x[stick_atom1[i]-1],atom_y[stick_atom1[i]-1],atom_z[stick_atom1[i]-1]])
-            k2 = mathutils.Vector([atom_x[stick_atom2[i]-1],atom_y[stick_atom2[i]-1],atom_z[stick_atom2[i]-1]])
+            k1 = Vector((atom_x[stick_atom1[i]-1],atom_y[stick_atom1[i]-1],atom_z[stick_atom1[i]-1]))
+            k2 = Vector((atom_x[stick_atom2[i]-1],atom_y[stick_atom2[i]-1],atom_z[stick_atom2[i]-1]))
             # This is the difference of both vectors
             v = (k2-k1)
             # Angle with respect to the z-axis
@@ -1525,7 +1519,7 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
             # rotation.
             axis    = up_axis.cross(v)
             # Calculate Euler angles
-            euler   = mathutils.Matrix.Rotation(angle, 4, axis).to_euler()
+            euler   = Matrix.Rotation(angle, 4, axis).to_euler()
             # Create stick
             bpy.ops.mesh.primitive_cylinder_add(vertices=Stick_sectors, radius=Stick_diameter, depth= v.length, cap_ends=True, view_align=False, enter_editmode=False, location= ((k1+k2)*0.5), rotation=(0,0,0), layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
             # Put the stick into the scene ...
@@ -1537,14 +1531,7 @@ def Draw_scene(Dupliverts_yn,mesh_yn,Ball_azimuth,Ball_zenith,Ball_radius_factor
             # ... and name
             stick.name            = Data_all_atoms[ALL_EXISTING_ATOMS-1][1]
 
- 
-    print()
-    print()
-    print("All atoms and sticks have been drawn - finished.")
-    print()
-    print()
 
+    print("\n\nAll atoms and sticks have been drawn - finished (%d) .\n\n" % Number_of_total_atoms)
 
-    return str(Number_of_total_atoms)
-            
-            
+    return Number_of_total_atoms
