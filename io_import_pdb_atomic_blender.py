@@ -44,7 +44,7 @@ bl_info = {
   "location": "File -> Import -> PDB (.pdb)",
   "warning": "",
   "wiki_url": "http://development.root-1.de/Atomic_Blender.php",
-  "tracker_url": "http://projects.blender.org/tracker/?func=detail&atid=467&aid=29226&group_id=153",
+  "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=29226&group_id=153&atid=468",
   "category": "Import-Export"
 }
 
@@ -191,12 +191,12 @@ LOADED_STRUCTURES_DUPLI = []
 # chosen via the menu 'File -> Import'
 class CLASS_PDB_Panel(bpy.types.Panel):
     bl_label       = Atomic_Blender_panel_name
-    bl_space_type  = "PROPERTIES"
-    bl_region_type = "WINDOW"
-    bl_context     = "physics"
+    #bl_space_type  = "PROPERTIES"
+    #bl_region_type = "WINDOW"
+    #bl_context     = "physics"
     # This could be also an option ... :
-    #bl_space_type  = "VIEW_3D"
-    #bl_region_type = "TOOL_PROPS"
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "TOOL_PROPS"
 
     # This 'poll thing' has taken 3 hours of a hard search and understanding.
     # I explain it in the following from my point of view:
@@ -226,12 +226,7 @@ class CLASS_PDB_Panel(bpy.types.Panel):
         scn    = bpy.context.scene
 
         row = layout.row()
-        col = row.column(align=True)
-        col.prop(scn, "atom_pdb_PDB_filename") 
-        col.prop(scn, "atom_pdb_PDB_file")
-        row = layout.row()
-        row = layout.row() 
-        
+        scn = bpy.context.scene
         col = row.column()
         col.prop(scn, "use_atom_pdb_dupliverts")
 
@@ -261,7 +256,15 @@ class CLASS_PDB_Panel(bpy.types.Panel):
         row = layout.row(align=True)        
         col = row.column()
         col.prop(scn, "use_atom_pdb_cam")
-        col.prop(scn, "use_atom_pdb_lamp")        
+        col.prop(scn, "use_atom_pdb_lamp")  
+        
+        row = layout.row()
+        col = row.column(align=True)
+        col.prop(scn, "atom_pdb_PDB_filename") 
+        col.prop(scn, "atom_pdb_PDB_file")
+        row = layout.row()
+        row = layout.row() 
+        
         col = row.column() 
         col.operator( "atom_pdb.button_start" )
         row2 = col.row()
@@ -312,12 +315,8 @@ class CLASS_PDB_Panel(bpy.types.Panel):
 
 class CLASS_Input_Output(bpy.types.PropertyGroup):
     scn = bpy.types.Scene
-    scn.atom_pdb_PDB_filename = StringProperty(
-        name = "File name", default="", 
-        description = "PDB file name")
-    scn.atom_pdb_PDB_file = StringProperty(
-        name = "Path to file", default="", 
-        description = "Path of the PDB file")
+  
+    
     scn.use_atom_pdb_dupliverts = BoolProperty(
         name = "Use dupliverts (much faster)", default=True, 
         description = "Use the dublication method via vertice referencing "
@@ -361,7 +360,15 @@ class CLASS_Input_Output(bpy.types.PropertyGroup):
         description="Do you need a camera?")   
     scn.use_atom_pdb_lamp = BoolProperty(
         name="Lamp", default=False, 
-        description = "Do you need a lamp?")
+        description = "Do you need a lamp?")  
+        
+    # In TOOL_PROPS
+    scn.atom_pdb_PDB_filename = StringProperty(
+        name = "File name", default="", 
+        description = "PDB file name")
+    scn.atom_pdb_PDB_file = StringProperty(
+        name = "Path to file", default="", 
+        description = "Path of the PDB file")
     scn.atom_pdb_number_atoms = StringProperty(name="", 
         default="Number", description = "This output shows "
         "the number of atoms which have been loaded")
@@ -509,10 +516,15 @@ class CLASS_LoadPDB(bpy.types.Operator, ImportHelper):
     filename_ext = ".pdb"
     filter_glob  = StringProperty(default="*.pdb", options={'HIDDEN'},)
 
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
+    """    
+    If wished a part of the inputs can go inside the file
+    dialog window. However, I prefer that all is remaining in the
+    panel. One can then easily load same molecules a couple of times.
+     
+    def draw(self, context):
+        layout = self.layout     
+    """
+    
     def execute(self, context):   
         global PDBFILEPATH
         global PDBFILENAME
@@ -565,6 +577,23 @@ def unregister():
 if __name__ == "__main__":
 
     register()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -648,15 +677,6 @@ def Modify_all_atom_radii(scale):
     for obj in LOADED_STRUCTURES_DUPLI:
         if "Stick" not in obj.name:
             obj.scale *= scale  
-
-
-
-
-
-
-
-
-
 
 
 
@@ -857,7 +877,6 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
     # (e.g. hydrogen)
     for atom_type in atom_all_types_list:
    
-        bpy.ops.object.material_slot_add()
         material               = bpy.data.materials.new(atom_type[1])
         material.name          = atom_type[0]
         material.diffuse_color = atom_type[2]
@@ -1306,9 +1325,26 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
                     ball.name            = atom[0]
                     ball.active_material = atom[1]
                     structure.append(ball)
-                    number_loaded_atoms += 1  
-                LOADED_STRUCTURES.append(structure)
-
+                    number_loaded_atoms += 1         
+                LOADED_STRUCTURES.append(structure) 
+ 
+                """
+                Grouping works but after, I cannot easily change only the size
+                of the objects without changing their distances to each other.
+                kept for the future.
+                
+                # 'Group' the stuff   
+                bpy.ops.object.select_all(action='DESELECT')   
+                atom_parent = structure[0]
+                inv_mat = atom_parent.matrix_world.inverted()
+                for atom in structure[1:]: 
+                    atom.matrix_parent_inverse = inv_mat
+                    atom.parent = atom_parent    
+                bpy.ops.object.select_all(action='DESELECT')   
+                atom = bpy.context.scene.objects[0]
+                atom.name = atom_list[0][0] 
+                """
+                
 
             if use_dupliverts == True:
 
@@ -1316,7 +1352,10 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
                 # atoms of one type
                 atom_vertices = []
                 for atom in atom_list:
-                    atom_vertices.append( atom[2] )
+                    # In fact, the object is created in the World's origin.
+                    # This is why 'object_center_vec' is substracted. At the end
+                    # the whole object is put to 'object_center_vec'.
+                    atom_vertices.append( atom[2] - object_center_vec )
 
                 # Build the mesh
                 atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
@@ -1336,9 +1375,11 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
                                         atom[3]*Ball_radius_factor,
                                         atom[3]*Ball_radius_factor)
                 ball.name            = "Ball (NURBS)_"+atom[0]
-                ball.active_material = atom[1]
+                ball.active_material = atom[1] 
                 ball.parent = new_atom_mesh
                 new_atom_mesh.dupli_type = 'VERTS'
+                # The object is back translated to 'object_center_vec'.
+                new_atom_mesh.location = object_center_vec
                 LOADED_STRUCTURES_DUPLI.append(ball)
                    
             
@@ -1375,7 +1416,7 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
 
                 atom_vertices = []       
                 for atom in atom_list:
-                    atom_vertices.append( atom[2] )
+                    atom_vertices.append( atom[2] - object_center_vec )
 
                 atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
                 atom_mesh.from_pydata(atom_vertices, [], [])
@@ -1396,7 +1437,8 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
                 ball.name            = "Ball (UV)_"+atom[0]
                 ball.active_material = atom[1]
                 ball.parent = new_atom_mesh
-                new_atom_mesh.dupli_type = 'VERTS'    
+                new_atom_mesh.dupli_type = 'VERTS'
+                new_atom_mesh.location = object_center_vec    
                 LOADED_STRUCTURES_DUPLI.append(ball)
         
 
@@ -1439,7 +1481,7 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
    
             atom_vertices = []
             for atom in draw_atom_type_list_vacancy:
-                atom_vertices.append( atom[2] )
+                atom_vertices.append( atom[2] - object_center_vec )
             
             atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
             atom_mesh.from_pydata(atom_vertices, [], [])
@@ -1460,7 +1502,8 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
             ball.name            = "Cube_"+atom[0]
             ball.active_material = atom[1]
             ball.parent = new_atom_mesh
-            new_atom_mesh.dupli_type = 'VERTS'  
+            new_atom_mesh.dupli_type = 'VERTS'
+            new_atom_mesh.location = object_center_vec  
             LOADED_STRUCTURES_DUPLI.append(ball)
 
 
@@ -1524,14 +1567,16 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
             stick.name            = Data_all_atoms[ALL_EXISTING_ATOMS-1][1]
             sticks.append(stick)
             
-        if use_dupliverts == True:
-            bpy.ops.object.select_all(action='DESELECT')
-            for stick in sticks:
-                stick.select = True
-            bpy.ops.object.join()
-            bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
-            sticks_all      = bpy.context.scene.objects.active
-            sticks_all.name = "Sticks" 
+        # 'Group' the stuff   
+        bpy.ops.object.select_all(action='DESELECT')   
+        stick_parent = sticks[0]
+        inv_mat = stick_parent.matrix_world.inverted()
+        for stick in sticks[1:]: 
+            stick.matrix_parent_inverse = inv_mat
+            stick.parent = stick_parent    
+        bpy.ops.object.select_all(action='DESELECT')   
+        sticks = bpy.context.scene.objects[0]
+        sticks.name = "Sticks"
 
 
     print("\n\nAll atoms and sticks have been drawn - finished (%d) .\n\n" 
