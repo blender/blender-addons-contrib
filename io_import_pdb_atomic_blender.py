@@ -260,23 +260,23 @@ class CLASS_PDB_Panel(bpy.types.Panel):
         col.prop(scn, "atom_pdb_offset_z")
         col = row.column()         
         col.prop(scn, "use_atom_pdb_center")
+        
+        row = layout.row()    
+        row.prop(scn, "atom_pdb_atomradius")
 
-        layout.separator()  
-        row = layout.row(align=True)        
+        layout.separator()
+        row = layout.row()        
         col = row.column()
         col.prop(scn, "use_atom_pdb_cam")
         col.prop(scn, "use_atom_pdb_lamp")          
         col = row.column() 
         col.operator( "atom_pdb.button_start" )
-        row2 = col.row()
-        row2.label(text="Number of atoms")
-        row2.prop(scn, "atom_pdb_number_atoms")
+        col.prop(scn, "atom_pdb_number_atoms")
         layout.separator()
               
         row = layout.row()             
         row.operator( "atom_pdb.button_distance")
         row.prop(scn, "atom_pdb_distance") 
-        layout.separator()
             
         row = layout.row()                   
         row.label(text="Modification of the radii of one type of atom")            
@@ -320,6 +320,13 @@ class CLASS_Input_Output(bpy.types.PropertyGroup):
     scn.atom_pdb_datafile = StringProperty(
         name = "Custom datfile", description="Path to your custom data file", 
         maxlen = 256, default = "", subtype='FILE_PATH')
+    scn.atom_pdb_PDB_filename = StringProperty(
+        name = "File name", default="", 
+        description = "PDB file name")
+    scn.atom_pdb_PDB_file = StringProperty(
+        name = "Path to file", default="", 
+        description = "Path of the PDB file")
+                
     scn.use_atom_pdb_dupliverts = BoolProperty(
         name = "Use dupliverts (much faster)", default=True, 
         description = "Use the dublication method via vertice referencing "
@@ -365,13 +372,14 @@ class CLASS_Input_Output(bpy.types.PropertyGroup):
         name="Lamp", default=False, 
         description = "Do you need a lamp?")  
         
-    # In TOOL_PROPS
-    scn.atom_pdb_PDB_filename = StringProperty(
-        name = "File name", default="", 
-        description = "PDB file name")
-    scn.atom_pdb_PDB_file = StringProperty(
-        name = "Path to file", default="", 
-        description = "Path of the PDB file")
+    scn.atom_pdb_atomradius = EnumProperty(
+        name="Type of radius",
+        description="Choose type of atom radius",
+        items=(('0', "Pre-defined", "Use pre-defined radius"),
+               ('1', "Atomic", "Use atomic radius"),
+               ('2', "van der Waals", "Use van der Waals radius")),
+               default='0',)
+               
     scn.atom_pdb_number_atoms = StringProperty(name="", 
         default="Number", description = "This output shows "
         "the number of atoms which have been loaded")
@@ -491,6 +499,7 @@ class CLASS_Start_Button(bpy.types.Operator):
         zenith     = scn.atom_pdb_mesh_zenith 
         bradius    = scn.atom_pdb_scale_ballradius
         bdistance  = scn.atom_pdb_scale_distances
+        radiustype = scn.atom_pdb_atomradius
         center     = scn.use_atom_pdb_center 
         offset_vec = Vector((scn.atom_pdb_offset_x,
                              scn.atom_pdb_offset_y,
@@ -504,10 +513,10 @@ class CLASS_Start_Button(bpy.types.Operator):
         dupliverts = scn.use_atom_pdb_dupliverts
         datafile   = scn.atom_pdb_datafile
               
-        atom_number = Draw_scene(dupliverts,mesh,azimuth,zenith,bradius,
+        atom_number = Draw_scene(dupliverts,mesh,azimuth,zenith,bradius,radiustype,
                                  bdistance,offset_vec,sticks,ssector,
                                  sradius,center,cam,lamp,datafile)
-        scn.atom_pdb_number_atoms = str(atom_number)
+        scn.atom_pdb_number_atoms = str(atom_number) + " atoms"
 
         return {'FINISHED'}
 
@@ -710,26 +719,26 @@ def Read_custom_datafile(path_datafile):
         
             # Number
             line              = data_file_p.readline()
-            pos               = str.find(line, ":")
-            element_list.append(line[pos+2:-1])
+            element_list.append(line[19:-1])
             # Name
             line              = data_file_p.readline()
-            pos               = str.find(line, ":")
-            element_list.append(line[pos+2:-1])
+            element_list.append(line[19:-1])
             # Short name
             line              = data_file_p.readline()
-            pos               = str.find(line, ":")
-            element_list.append(line[pos+2:-1])
+            element_list.append(line[19:-1])
             # Color
             line              = data_file_p.readline()
-            pos               = str.find(line, ":")
-            color_value       = line[pos+2:-1].split(',')
+            color_value       = line[19:-1].split(',')
             element_list.append([float(color_value[0]),float(color_value[1]),float(color_value[2])]) 
             # Used radius
             line              = data_file_p.readline()
-            pos               = str.find(line, ":")
-            element_list.append(line[pos+2:-1])
-            # Later I include all the other things ...
+            element_list.append(line[19:-1])
+            # Atomic radius
+            line              = data_file_p.readline()
+            element_list.append(line[19:-1])
+            # Van der Waals radius
+            line              = data_file_p.readline()
+            element_list.append(line[19:-1])
             
             Data_all_atoms.append(element_list)    
 
@@ -767,7 +776,7 @@ def Read_custom_datafile(path_datafile):
 
 
 def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
-               Ball_radius_factor,Ball_distance_factor,offset_vec,
+               Ball_radius_factor,radiustype,Ball_distance_factor,offset_vec,
                use_stick,Stick_sectors,Stick_diameter,put_to_center,
                use_camera,use_lamp,path_datafile):
 
@@ -796,7 +805,7 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
     atom_material_list = []
 
 
-
+    
 
 
 
@@ -838,36 +847,41 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
         # If 'ATOM4 or 'HETATM' appears in the line then do ...
         if "ATOM" in line or "HETATM" in line:
         
+            # Cut 'ATOM or 'HEATM'
+            line = line[6:]
+        
             # Split the line into its parts (devided by a ' ') and analyse it. 
             split_list = line.rsplit()
-                        
+                      
             for i in list(range(ALL_EXISTING_ATOMS)):
                 if str.upper(split_list[-1]) == str.upper(Data_all_atoms[i][2]):
                     # Give the atom its proper names, color and radius:
                     atom_element.append(str.upper(Data_all_atoms[i][2]))
                     atom_name.append(Data_all_atoms[i][1])
-                    atom_R.append(float(Data_all_atoms[i][4]))
+                    # int(radiustype) => type of radius: 
+                    # pre-defined (0), atomic (1) or van der Waals (2)
+                    atom_R.append(float(Data_all_atoms[i][4+int(radiustype)]))
                     atom_color.append(Data_all_atoms[i][3])
                     break
 
-            # 1. case: These are 'unknown' atoms. In some cases, atoms are  
+            # 1st case: These are 'unknown' atoms. In some cases, atoms are  
             # named with an additional label like H1 (hydrogen1)
-            # 2. case: The last column 'split_list[-1]' does not exist, we take 
-            # then column 3 in the PDB file.
+            # 2nd case: The last column 'split_list[-1]' does not exist, we 
+            # take then column 3 in the PDB file.
             if i == ALL_EXISTING_ATOMS-1:
 
                 # Give this atom also a name. If it is an 'X' then it is a 
                 # vacancy. Otherwise ...
-                if "X" in str.upper(split_list[2]):
+                if "X" in str.upper(split_list[1]):
                     atom_element.append("VAC")
                     atom_name.append("Vacancy")
                 # ... take what is written in the PDB file.
                 else:
-                    atom_element.append(str.upper(split_list[2]))
-                    atom_name.append(str.upper(split_list[2]))
+                    atom_element.append(str.upper(split_list[1]))
+                    atom_name.append(str.upper(split_list[1]))
 
                 # Default values for the atom.
-                atom_R.append(float(Data_all_atoms[ALL_EXISTING_ATOMS-2][4]))
+                atom_R.append(float(Data_all_atoms[ALL_EXISTING_ATOMS-2][4+int(radiustype)]))
                 atom_color.append(Data_all_atoms[ALL_EXISTING_ATOMS-2][3])
          
                  
@@ -935,7 +949,7 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
 
 
 
-    # Here, the atoms get already their material properties. Why already here? 
+    # Here, the list of materials is already built. Why already here? 
     # Because then it is done and the atoms can be drawn in a fast way (see 
     # drawing part at the end of this script, further below). 
     # Note that all atoms of one type (e.g. all hydrogens) get only ONE 
@@ -1351,7 +1365,6 @@ def Draw_scene(use_dupliverts,use_mesh,Ball_azimuth,Ball_zenith,
         # Now append the atom list to the list of all types of atoms
         if atom_type[0] != "Vacancy":
             draw_atom_type_list.append(draw_atom_list)
-
 
 
 
