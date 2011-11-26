@@ -54,11 +54,12 @@ else:
 
 import bpy
 
+
 # Register:
 def menu_func_rocks(self, context):
     self.layout.operator(rockgen.rocks.bl_idname,
-                         text = "Rock Generator",
-                         icon = "PLUGIN")
+                         text="Rock Generator",
+                         icon="PLUGIN")
 
 
 def register():
@@ -75,4 +76,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

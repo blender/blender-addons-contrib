@@ -31,7 +31,7 @@ search_url = "http://mocap.cs.cmu.edu/search.php?subjectnumber=%&motion=%"
 
 # Carnegie Mellon University Mocap Library - http://mocap.cs.cmu.edu
 
-subjects={1: {'desc': 'climb, swing, hang on playground equipment',
+subjects = {1: {'desc': 'climb, swing, hang on playground equipment',
      'motions': {1: {'desc': 'playground - forward jumps, turn around',
                      'files': ['tvd', 'c3d', 'amc', 'mpg', 'avi'],
                      'fps': 120},

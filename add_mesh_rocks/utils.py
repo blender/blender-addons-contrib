@@ -20,6 +20,7 @@
 
 # <pep8 compliant>
 
+
 # Converts a formated string to a float tuple:
 #   IN - '(0.5, 0.2)' -> CONVERT -> OUT - (0.5, 0.2)
 def toTuple(stringIn):

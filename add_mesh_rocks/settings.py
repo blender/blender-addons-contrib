@@ -32,7 +32,8 @@
 
 # <pep8 compliant>
 
-import inspect, shutil
+import inspect
+import shutil
 from add_mesh_rocks import utils
 from xml.dom import minidom
 
@@ -56,7 +57,7 @@ presets = []
 
 
 def getDefault():
-    global default    
+    global default
     return default
 
 
@@ -65,7 +66,7 @@ def getPresetLists():
     return presets
 
 
-def getPreset(ID = 0):
+def getPreset(ID=0):
     global presets
     return presets[ID]
 
@@ -91,7 +92,7 @@ def parse():
 # Takes a node and parses it for data.  Relies on that setting.xml has
 #   a valid format as specified by the DTD.
 # For some reason minidom places an empty child node for every other node.
-def parseNode(setting, title = True):
+def parseNode(setting, title=True):
     loc = 1
 
     if title:
