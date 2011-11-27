@@ -925,7 +925,6 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     # Properties for atoms
     atom_element = []
     atom_name = []
-    atom_charge = []
     atom_color = []
     atom_material = []
     atom_xyz_vec = []
@@ -1164,7 +1163,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
        
         # List of atoms
         atoms = []
-        for i in list(range(loops)):
+        for i in range(loops):
             number = line[5*i:5*(i+1)].rsplit()
             if number != []:    
                 if number[0].isdigit() == True:
@@ -1184,7 +1183,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             # couple of times. (Only god knows why ...) 
             # So, does a stick between the considered atoms already exist?
             FLAG_BAR = False
-            for k in list(range(j)):
+            for k in range(j):
                 if ((stick_atom1[k] == atom1 and stick_atom2[k] == atom2) or 
                     (stick_atom1[k] == atom2 and stick_atom2[k] == atom1)):
                     sticks_double += 1
@@ -1225,15 +1224,16 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         sum_vec = Vector((0.0,0.0,0.0)) 
 
         # Sum of all atom coordinates
-        for i in list(range(Number_of_total_atoms)):
-            sum_vec = sum_vec + atom_xyz_vec[i]
+        # sum_vec can be done like, sum_vec = sum(atom_xyz_vec, Vector((0, 0, 0))
+        sum_vec = sum(atom_xyz_vec, sum_vec)
 
         # Then the average is taken
         sum_vec = sum_vec / Number_of_total_atoms
 
         # After, for each atom the center of gravity is substracted
-        for i in list(range(Number_of_total_atoms)):
-            atom_xyz_vec[i] = atom_xyz_vec[i] - sum_vec
+        for atom_vec in atom_xyz_vec:
+            atom_vec = atom_vec - sum_vec
+        
 
 
 
@@ -1251,11 +1251,10 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     # - adjust their radii,
     # - scale the distances,
     # - and move the center of the whole ('+= offset_x', in Angstroem)
-    for i in list(range(Number_of_total_atoms)):
+    for atom_vec in atom_xyz_vec:
+        atom_vec += offset_vec
+        atom_vec *= Ball_distance_factor
 
-        atom_charge.append(1.0) 
-        atom_xyz_vec[i] += offset_vec
-        atom_xyz_vec[i] *= Ball_distance_factor
 
          
 
@@ -1275,22 +1274,18 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     sum_vec = Vector((0.0,0.0,0.0))
 
     # First the center is determined. All coordinates are summed up ...
-    for i in list(range(Number_of_total_atoms)):
-        sum_vec = sum_vec + atom_xyz_vec[i]
+    sum_vec = sum(atom_xyz_vec, sum_vec)
+    
     # ... and the average is taken. This gives the center of the object.
     object_center_vec = sum_vec / Number_of_total_atoms
 
     # Now, we determine the size. All coordinates are analyzed ...
     object_size = 0.0
-    for i in list(range(Number_of_total_atoms)):
+    
+    # This is needed in order to estimate the size of the object.
+    # The farest atom from the object center is taken as a measure.
+    object_size = max(atom_xyz_vec[i] - object_center_vec)
 
-        diff_vec = atom_xyz_vec[i] - object_center_vec
-
-        # This is needed in order to estimate the size of the object.
-        # The farest atom from the object center is taken as a measure.
-        distance_to_object_center = diff_vec.length
-        if distance_to_object_center > object_size:
-            object_size = distance_to_object_center
 
 
     #
@@ -1374,7 +1369,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         lamp_dy_right = lamp_dl * (3.0/4.0)
         
         # Create x, y and z for the lamp.
-        object_lamp_vec  = Vector((lamp_dl,lamp_dy_right,lamp_dl))
+        object_lamp_vec = Vector((lamp_dl,lamp_dy_right,lamp_dl))
         lamp_xyz_vec = object_center_vec + object_lamp_vec 
 
         # Create the lamp
@@ -1411,14 +1406,14 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
    
     # Atoms
     # print("\nCoordinates of the atoms:")
-    # for i in list(range(Number_of_total_atoms)):
+    # for i in range(Number_of_total_atoms):
     #   print(str(i+1) + "	" + str(atom_x[i]) + "	" 
     #   + str(atom_y[i]) + "	" + str(atom_z[i]) + "	" + str(atom_R[i]) 
     #   + "	" + atom_element[i])
 
     # Sticks
     # print("\nSticks, which connect two atoms with indices:")
-    # for i in list(range(Number_of_sticks)):
+    # for i in range(Number_of_sticks):
     #    print(str(stick_atom1[i]) + "   " + str(stick_atom2[i]))
    
     print()
