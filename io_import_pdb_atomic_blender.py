@@ -978,9 +978,19 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         if line == "":
             break  
 
+        # If there is a "TER" we need to put empty entries into the lists
+        # in order to not destroy the order of atom numbers and same numbers
+        # used for sticks. "TER? What is that?" TER indicates the end of a 
+        # list of ATOM/HETATM records for a chain.
+        if "TER" in line:
+            atom_element.append("TER")
+            atom_name.append("TER")
+            atom_R.append(0.0)
+            atom_color.append([0,0,0])
+            atom_xyz_vec.append(Vector((0,0,0)))   
+            j += 1
         # If 'ATOM or 'HETATM' appears in the line then do ...
-        if "ATOM" in line or "HETATM" in line:
-      
+        elif "ATOM" in line or "HETATM" in line:
 
             # What follows is due to deviations which appear from PDB to
             # PDB file. it is very special. PLEASE, DO NOT CHANGE! From here ...
@@ -1197,7 +1207,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             # register it!
             if FLAG_BAR == False:
                 stick_atom1.append(atom1)
-                stick_atom2.append(atom2)      
+                stick_atom2.append(atom2)
                 Number_of_sticks += 1   
                 j += 1
 
@@ -1206,6 +1216,8 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
 
     ATOM_PDB_FILEPATH_p.close()
     # So far, all atoms and sticks have been registered.
+    
+
 
 
 
@@ -1455,6 +1467,10 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     # which has been created on the top during reading the PDB file. 
     # Example: atom_all_types_list = ["hydrogen", "carbon", ...]
     for atom_type in atom_all_types_list:
+    
+        # Don't draw 'TER atoms'.
+        if atom_type[0] == "TER":
+            continue
    
         # This is the draw list, which contains all atoms of one type (e.g. 
         # all hydrogens) ...
