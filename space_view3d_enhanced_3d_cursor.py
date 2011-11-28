@@ -4878,11 +4878,30 @@ class DelayRegistrationOperator(bpy.types.Operator):
             ((event.type == 'TIMER') or ("MOVE" in event.type)):
             # clean up (we don't need this operator to run anymore)
             wm = bpy.context.window_manager
-            km = wm.keyconfigs.active.keymaps['Window']
-            items = find_keymap_items(km,
-                'wm.enhanced_3d_cursor_registration')
-            for kmi in items:
-                km.keymap_items.remove(kmi)
+            
+            for kcfg in wm.keyconfigs.values():
+                for km in kcfg.keymaps.values():
+                    items = find_keymap_items(km,
+                        'wm.enhanced_3d_cursor_registration')
+                    for kmi in items:
+                        km.keymap_items.remove(kmi)
+            
+            """
+            try:
+                # A bug when using Maya keymap presets
+                # (reported by chafouin in BlenderArtists thread)
+                # KeyError: key "Window" not found'
+                # Circumvent for now.
+                km = wm.keyconfigs.active.keymaps['Window']
+            except KeyError:
+                km = None
+            
+            if km:
+                items = find_keymap_items(km,
+                    'wm.enhanced_3d_cursor_registration')
+                for kmi in items:
+                    km.keymap_items.remove(kmi)
+            """
             
             update_keymap(True)
             
