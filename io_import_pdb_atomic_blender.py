@@ -39,7 +39,7 @@ bl_info = {
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2011-11-28
+#  Last modified                 : 2011-11-29
 #
 #  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon, 
 #  dairin0d, PKHG, Valter, etc 
@@ -411,10 +411,11 @@ class CLASS_atom_pdb_separate_atom(bpy.types.Operator):
         
         # Get first all important properties from the atom which the user
         # has chosen: location, color, scale
-        name = bpy.context.edit_object.name 
-        loc_obj_vec = bpy.context.edit_object.location 
-        scale = bpy.context.edit_object.children[0].scale
-        material = bpy.context.edit_object.children[0].active_material        
+        obj = bpy.context.edit_object
+        name = obj.name 
+        loc_obj_vec = obj.location 
+        scale = obj.children[0].scale
+        material = obj.children[0].active_material        
         
         # Separate the vertex from the main mesh and create a new mesh.
         bpy.ops.mesh.separate()
@@ -462,6 +463,14 @@ class CLASS_atom_pdb_separate_atom(bpy.types.Operator):
         new_atom.active_material = material
         new_atom.name = name + "_sep"
         
+        # Switch back into the 'Edit mode' because we would like to seprate
+        # other atoms may be (more convinient)
+        new_atom.select = False
+        obj.select = True
+        bpy.context.scene.objects.active = obj
+        bpy.ops.object.select_all(action='DESELECT')  
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)  
+ 
         return {'FINISHED'}
 
 
@@ -995,7 +1004,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         elif "ATOM" in line or "HETATM" in line:
 
             # What follows is due to deviations which appear from PDB to
-            # PDB file. it is very special. PLEASE, DO NOT CHANGE! From here ...
+            # PDB file. It is very special. PLEASE, DO NOT CHANGE! From here ...
             short_name = line[13:14]
             if short_name.isupper() == True:
                 if line[14:15].islower() == True:
@@ -1085,7 +1094,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
 
 
 
-    # Here, the list of materials is built. 
+    # The list of materials is built. 
     # Note that all atoms of one type (e.g. all hydrogens) get only ONE 
     # material! This is good because then, by activating one atom in the 
     # Blender scene and changing the color of this atom, one changes the color 
