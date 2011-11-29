@@ -60,7 +60,6 @@ from bpy.props import (StringProperty,
                        IntProperty,
                        FloatProperty)
 
-
 # These are variables, which contain the name of the PDB file and
 # the path of the PDB file.
 # They are used almost everywhere, which is the reason why they 
@@ -194,10 +193,11 @@ ATOM_PDB_ELEMENTS = [
 ]
 
 ATOM_PDB_ELEMENTS_NUMBER = 106
-    
- 
-    
 
+# A list of ALL objects which are loaded (needed for selected the loaded
+# structure. 
+LOADED_STRUCTURE = []
+    
 # The panel, which is loaded after the file has been
 # chosen via the menu 'File -> Import'
 class CLASS_atom_pdb_panel(bpy.types.Panel):
@@ -237,24 +237,59 @@ class CLASS_atom_pdb_panel(bpy.types.Panel):
         scn    = bpy.context.scene
 
         row = layout.row()
-        row.prop(scn, "atom_pdb_datafile")
+        row.label(text="Custom data file")
+        row = layout.row()
+        col = row.column()
+        col.prop(scn, "atom_pdb_datafile")
+        col.operator("atom_pdb.datafile_apply")
         row = layout.row()
         col = row.column(align=True)
         col.prop(scn, "atom_pdb_PDB_filename") 
         col.prop(scn, "atom_pdb_PDB_file")
 
+
+
+
+
         layout.separator()
+        
+        row = layout.row()  
+        col = row.column(align=True) 
+        col.prop(scn, "use_atom_pdb_mesh")
+        col.prop(scn, "atom_pdb_mesh_azimuth")
+        col.prop(scn, "atom_pdb_mesh_zenith")    
+        
+     
+        col = row.column(align=True)    
+        col.label(text="Scaling factors")
+        col.prop(scn, "atom_pdb_scale_ballradius")
+        col.prop(scn, "atom_pdb_scale_distances")
+        row = layout.row() 
+        col = row.column()
+        col.prop(scn, "use_atom_pdb_sticks")
+        col = row.column(align=True)
+        col.prop(scn, "atom_pdb_sticks_sectors")
+        col.prop(scn, "atom_pdb_sticks_radius")
+
+        row = layout.row()           
+        row.prop(scn, "use_atom_pdb_center")        
+       
+       
+       
+        
+        
+        
         row = layout.row()        
         col = row.column()
         col.prop(scn, "use_atom_pdb_cam")
         col.prop(scn, "use_atom_pdb_lamp")          
         col = row.column() 
-        col.operator( "atom_pdb.button_start" )
+        col.operator("atom_pdb.button_reload")
         col.prop(scn, "atom_pdb_number_atoms")
         layout.separator()
               
         row = layout.row()             
-        row.operator( "atom_pdb.button_distance")
+        row.operator("atom_pdb.button_distance")
         row.prop(scn, "atom_pdb_distance") 
         layout.separator()
              
@@ -303,10 +338,15 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
         DEF_atom_pdb_radius_pm(scnn.atom_pdb_radius_pm_name, 
                                scnn.atom_pdb_radius_pm,
                                scnn.atom_pdb_radius_how)       
-        
-    
+           
     # In the file dialog window
     scn = bpy.types.Scene
+    scn.use_atom_pdb_cam = BoolProperty(
+        name="Camera", default=False, 
+        description="Do you need a camera?")   
+    scn.use_atom_pdb_lamp = BoolProperty(
+        name="Lamp", default=False, 
+        description = "Do you need a lamp?")      
     scn.use_atom_pdb_mesh = BoolProperty(
         name = "Mesh balls", default=False, 
         description = "Do you want to use mesh balls instead of NURBS?")    
@@ -326,12 +366,6 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
         name = "Object to origin", default=True, 
         description = "Shall the object first put into the global origin "
         "before applying the offsets on the left?")    
-    scn.atom_pdb_offset_x = FloatProperty(
-        name="X", default=0.0, description="Offset in X")
-    scn.atom_pdb_offset_y = FloatProperty(
-        name="Y", default=0.0, description="Offset in Y")
-    scn.atom_pdb_offset_z = FloatProperty(
-        name="Z", default=0.0, description="Offset in Z")
     scn.use_atom_pdb_sticks = BoolProperty(
         name="Use sticks", default=False, 
         description="Do you want to display also the sticks?")    
@@ -351,7 +385,7 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
 
     # In the panel
     scn.atom_pdb_datafile = StringProperty(
-        name = "Custom datfile", description="Path to your custom data file", 
+        name = "", description="Path to your custom data file", 
         maxlen = 256, default = "", subtype='FILE_PATH')
     scn.atom_pdb_PDB_filename = StringProperty(
         name = "File name", default="", 
@@ -359,12 +393,6 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
     scn.atom_pdb_PDB_file = StringProperty(
         name = "Path to file", default="", 
         description = "Path of the PDB file")               
-    scn.use_atom_pdb_cam = BoolProperty(
-        name="Camera", default=False, 
-        description="Do you need a camera?")   
-    scn.use_atom_pdb_lamp = BoolProperty(
-        name="Lamp", default=False, 
-        description = "Do you need a lamp?")  
     scn.atom_pdb_number_atoms = StringProperty(name="", 
         default="Number", description = "This output shows "
         "the number of atoms which have been loaded")
@@ -396,10 +424,43 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
         description="Put in the scale factor")
         
         
+        
+# Button loading a custom data file
+class CLASS_atom_pdb_datafile_apply(bpy.types.Operator):
+    bl_idname = "atom_pdb.datafile_apply"
+    bl_label = "Apply"
+    bl_description = "Use color and radii values stored in a custom file."
 
-
-
-
+    def execute(self, context):
+        scn    = bpy.context.scene        
+        
+        if scn.atom_pdb_datafile == "":
+            return {'FINISHED'}   
+        
+        DEF_atom_pdb_custom_datafile(scn.atom_pdb_datafile)
+        
+        for obj in bpy.context.selected_objects:
+            if len(obj.children) != 0:
+                child = obj.children[0]
+                if child.type == "SURFACE" or child.type  == "MESH":
+                    for element in ATOM_PDB_ELEMENTS:        
+                        if element[1] in obj.name:
+                            child.scale = (element[4],
+                                           element[4],
+                                           element[4])
+                            child.active_material.diffuse_color = element[3] 
+            else:
+                if obj.type == "SURFACE" or obj.type == "MESH":
+                    for element in ATOM_PDB_ELEMENTS:          
+                        if element[1] in obj.name:
+                            obj.scale = (element[4],
+                                         element[4],
+                                         element[4])
+                            obj.active_material.diffuse_color = element[3]
+             
+        return {'FINISHED'}   
+        
+        
 # Button for measuring the distance of the active objects
 class CLASS_atom_pdb_separate_atom(bpy.types.Operator):
     bl_idname = "atom_pdb.separate_atom"
@@ -429,8 +490,7 @@ class CLASS_atom_pdb_separate_atom(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')   
         new_object.select = True
         bpy.ops.object.delete()
-        
-        
+
         # Create a new atom/vacancy at the position of the old atom
         current_layers=bpy.context.scene.layers      
         
@@ -456,7 +516,6 @@ class CLASS_atom_pdb_separate_atom(bpy.types.Operator):
                                rotation=(0.0, 0.0, 0.0), 
                                layers=current_layers)                     
                                                                                                                      
-                                                                  
         new_atom = bpy.context.scene.objects.active
         # Scale, material and name it.
         new_atom.scale = scale
@@ -490,7 +549,7 @@ class CLASS_atom_pdb_distance_button(bpy.types.Operator):
            # Remember: 1 Angstrom = 10^(-10) m 
            pos    = str.find(dist, ".")
            dist   = dist[:pos+4] 
-           dist   = dist + " Angstrom"
+           dist   = dist + " A"
 
         # Put the distance into the string of the output field.
         scn.atom_pdb_distance = dist
@@ -504,7 +563,7 @@ class CLASS_atom_pdb_radius_all_bigger_button(bpy.types.Operator):
     bl_description = "Increase the radii of the atoms"
 
     def execute(self, context):
-        scn     = bpy.context.scene
+        scn = bpy.context.scene
         DEF_atom_pdb_radius_all(scn.atom_pdb_radius_all, 
                               scn.atom_pdb_radius_how)
         return {'FINISHED'}
@@ -517,17 +576,17 @@ class CLASS_atom_pdb_radius_all_smaller_button(bpy.types.Operator):
     bl_description = "Decrease the radii of the atoms"
 
     def execute(self, context):
-        scn     = bpy.context.scene
+        scn = bpy.context.scene
         DEF_atom_pdb_radius_all(1.0/scn.atom_pdb_radius_all, 
                                   scn.atom_pdb_radius_how)
         return {'FINISHED'}
 
 
 # The button for loading the atoms and creating the scene
-class CLASS_atom_pdb_start_button(bpy.types.Operator):
-    bl_idname = "atom_pdb.button_start"
-    bl_label = "DRAW ..."
-    bl_description = "Start to load and draw the atoms and sticks"
+class CLASS_atom_pdb_load_button(bpy.types.Operator):
+    bl_idname = "atom_pdb.button_reload"
+    bl_label = "RELOAD"
+    bl_description = "Load the structure again"
     
     def execute(self, context):
         scn = bpy.context.scene
@@ -538,9 +597,6 @@ class CLASS_atom_pdb_start_button(bpy.types.Operator):
         bdistance  = scn.atom_pdb_scale_distances
         radiustype = scn.atom_pdb_atomradius
         center     = scn.use_atom_pdb_center 
-        offset_vec = Vector((scn.atom_pdb_offset_x,
-                             scn.atom_pdb_offset_y,
-                             scn.atom_pdb_offset_z))
         sticks     = scn.use_atom_pdb_sticks 
         ssector    = scn.atom_pdb_sticks_sectors
         sradius    = scn.atom_pdb_sticks_radius
@@ -549,13 +605,21 @@ class CLASS_atom_pdb_start_button(bpy.types.Operator):
         mesh       = scn.use_atom_pdb_mesh 
         datafile   = scn.atom_pdb_datafile
               
+        # Execute main routine an other time ... from the panel      
         atom_number = DEF_atom_pdb_main(mesh,azimuth,zenith,bradius,
-                                 radiustype,bdistance,offset_vec,sticks,
+                                 radiustype,bdistance,sticks,
                                  ssector,sradius,center,cam,lamp,datafile)
         scn.atom_pdb_number_atoms = str(atom_number) + " atoms"
+        
+        # Select all loaded objects
+        bpy.ops.object.select_all(action='DESELECT')  
+        for obj in LOADED_STRUCTURE:
+            obj.select = True
+            bpy.context.scene.objects.active = obj
+        # Clean this list
+        LOADED_STRUCTURE[:] = []
 
         return {'FINISHED'}
-
 
 # This is the class for the file dialog.
 class CLASS_LoadPDB(bpy.types.Operator, ImportHelper):
@@ -567,60 +631,87 @@ class CLASS_LoadPDB(bpy.types.Operator, ImportHelper):
 
     def draw(self, context):
         layout = self.layout     
-
         scn = bpy.context.scene
 
         row = layout.row()
-        col = row.column(align=True)        
+        row.prop(scn, "use_atom_pdb_cam")
+        row.prop(scn, "use_atom_pdb_lamp")   
+        row = layout.row()  
+        col = row.column() 
         col.prop(scn, "use_atom_pdb_mesh")
+        col = row.column(align=True) 
         col.prop(scn, "atom_pdb_mesh_azimuth")
-        col.prop(scn, "atom_pdb_mesh_zenith")        
-        col = row.column(align=True)        
+        col.prop(scn, "atom_pdb_mesh_zenith")    
+        
+        row = layout.row()     
+        col = row.column()      
         col.label(text="Scaling factors")
+        col = row.column(align=True)
         col.prop(scn, "atom_pdb_scale_ballradius")
         col.prop(scn, "atom_pdb_scale_distances")
-        col = row.column(align=True) 
+        row = layout.row() 
+        col = row.column()
         col.prop(scn, "use_atom_pdb_sticks")
+        col = row.column(align=True)
         col.prop(scn, "atom_pdb_sticks_sectors")
         col.prop(scn, "atom_pdb_sticks_radius")
 
-        row = layout.row()        
-        col = row.column(align=True)  
-        col.prop(scn, "atom_pdb_offset_x")
-        col.prop(scn, "atom_pdb_offset_y")
-        col.prop(scn, "atom_pdb_offset_z")
-        col = row.column()         
-        col.prop(scn, "use_atom_pdb_center")
+        row = layout.row()           
+        row.prop(scn, "use_atom_pdb_center")
         
         row = layout.row()    
         row.prop(scn, "atom_pdb_atomradius")
-
     
     def execute(self, context):   
         global ATOM_PDB_FILEPATH
         global ATOM_PDB_FILENAME
       
-        # In the following the name and path of the PDB file
-        # is stored into the global variables.
         scn = bpy.context.scene
         ATOM_PDB_FILEPATH     = self.filepath
         ATOM_PDB_FILENAME     = os.path.basename(ATOM_PDB_FILEPATH)
         scn.atom_pdb_PDB_filename = ATOM_PDB_FILENAME
         scn.atom_pdb_PDB_file     = ATOM_PDB_FILEPATH
+        
+        azimuth    = scn.atom_pdb_mesh_azimuth
+        zenith     = scn.atom_pdb_mesh_zenith 
+        bradius    = scn.atom_pdb_scale_ballradius
+        bdistance  = scn.atom_pdb_scale_distances
+        radiustype = scn.atom_pdb_atomradius
+        center     = scn.use_atom_pdb_center 
+        sticks     = scn.use_atom_pdb_sticks 
+        ssector    = scn.atom_pdb_sticks_sectors
+        sradius    = scn.atom_pdb_sticks_radius
+        cam        = scn.use_atom_pdb_cam 
+        lamp       = scn.use_atom_pdb_lamp
+        mesh       = scn.use_atom_pdb_mesh 
+        datafile   = scn.atom_pdb_datafile
+              
+        # Execute main routine      
+        atom_number = DEF_atom_pdb_main(mesh,azimuth,zenith,bradius,
+                                 radiustype,bdistance,sticks,
+                                 ssector,sradius,center,cam,lamp,datafile)
+        scn.atom_pdb_number_atoms = str(atom_number) + " atoms"
+        
+        # Select all loaded objects
+        bpy.ops.object.select_all(action='DESELECT')  
+        for obj in LOADED_STRUCTURE:
+            obj.select = True
+            bpy.context.scene.objects.active = obj
+        # Clean this list
+        LOADED_STRUCTURE[:] = []
+        
         return {'FINISHED'}
-
-
 
 
 # The entry into the menu 'file -> import'
 def menu_func(self, context):
     self.layout.operator(CLASS_LoadPDB.bl_idname, text="PDB (.pdb)")
 
-
 def register():
     bpy.utils.register_class(CLASS_atom_pdb_panel)
+    bpy.utils.register_class(CLASS_atom_pdb_datafile_apply)
     bpy.utils.register_class(CLASS_atom_pdb_IO)
-    bpy.utils.register_class(CLASS_atom_pdb_start_button)
+    bpy.utils.register_class(CLASS_atom_pdb_load_button)
     bpy.utils.register_class(CLASS_atom_pdb_radius_all_bigger_button)
     bpy.utils.register_class(CLASS_atom_pdb_radius_all_smaller_button)
     bpy.utils.register_class(CLASS_atom_pdb_distance_button)
@@ -628,11 +719,11 @@ def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func)
 
-
 def unregister():
     bpy.utils.unregister_class(CLASS_atom_pdb_panel)
+    bpy.utils.unregister_class(CLASS_atom_pdb_datafile_apply)
     bpy.utils.unregister_class(CLASS_atom_pdb_IO)
-    bpy.utils.unregister_class(CLASS_atom_pdb_start_button) 
+    bpy.utils.unregister_class(CLASS_atom_pdb_load_button) 
     bpy.utils.unregister_class(CLASS_atom_pdb_radius_all_bigger_button)
     bpy.utils.unregister_class(CLASS_atom_pdb_radius_all_smaller_button)
     bpy.utils.unregister_class(CLASS_atom_pdb_distance_button)  
@@ -640,54 +731,13 @@ def unregister():
     bpy.utils.unregister_module(__name__)  
     bpy.types.INFO_MT_file_import.remove(menu_func)
         
-
 if __name__ == "__main__":
 
     register()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-########################################################
-#
-#
-#
-#
-#
-#
-#          Some small routines
-#
-#
-#
-#
-#
-########################################################
-
+# -----------------------------------------------------------------------------
+#                                                          Some small routines
 
 
 # This function measures the distance between two objects (atoms), 
@@ -757,11 +807,7 @@ def DEF_atom_pdb_radius_type(rtype,how):
                             obj.scale = (element[4+int(rtype)],
                                          element[4+int(rtype)],
                                          element[4+int(rtype)])
-
-
-
-
-    
+  
 # Routine to modify the radii in picometer of a specific type of atom
 def DEF_atom_pdb_radius_pm(atomname, radius_pm, how):
                 
@@ -807,7 +853,6 @@ def DEF_atom_pdb_radius_pm(atomname, radius_pm, how):
                                      radius_pm/100,
                                      radius_pm/100)
 
-
 # Routine to scale the radii of all atoms
 def DEF_atom_pdb_radius_all(scale, how):
                
@@ -846,7 +891,6 @@ def DEF_atom_pdb_radius_all(scale, how):
                     if "Stick" not in obj.name:
                         obj.scale *= scale 
 
-
 # This reads a custom data file.
 def DEF_atom_pdb_custom_datafile(path_datafile):
 
@@ -854,6 +898,9 @@ def DEF_atom_pdb_custom_datafile(path_datafile):
         return False
 
     path_datafile = bpy.path.abspath(path_datafile)
+
+    if os.path.isfile(path_datafile) == False:
+        return False
        
     # The whole list gets deleted! We build it new.    
     ATOM_PDB_ELEMENTS[:] = []
@@ -901,36 +948,12 @@ def DEF_atom_pdb_custom_datafile(path_datafile):
     return True
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-########################################################
-#
-#
-#
-#
-#
-#          The main routine
-#
-#
-#
-#
-#
-########################################################
-
+# -----------------------------------------------------------------------------
+#                                                            The main routine
 
 
 def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
-               Ball_radius_factor,radiustype,Ball_distance_factor,offset_vec,
+               Ball_radius_factor,radiustype,Ball_distance_factor,
                use_stick,Stick_sectors,Stick_diameter,put_to_center,
                use_camera,use_lamp,path_datafile):
 
@@ -955,19 +978,12 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     atom_material_list = []
 
 
+    # ------------------------------------------------------------------------
+    # READING DATA OF ATOMS
 
-    #
-    #
-    #
-    #
-    #          READING DATA OF ATOMS
-    #
-    #
-    #
 
     if DEF_atom_pdb_custom_datafile(path_datafile):
         print("Custom data file is loaded.")
-
 
     # Open the file ...
     ATOM_PDB_FILEPATH_p = io.open(ATOM_PDB_FILEPATH, "r")
@@ -979,8 +995,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             break
         if "HETATM" in split_list[0]:
             break
-
-
+            
     j = 0
     # This is in fact an endless 'while loop', ...
     while j > -1:
@@ -1062,15 +1077,8 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     Number_of_total_atoms = j
 
 
-    #
-    #
-    #
-    #
-    #          MATERIAL PROPERTIES FOR ATOMS
-    #
-    #
-    #
-
+    # ------------------------------------------------------------------------
+    # MATERIAL PROPERTIES FOR ATOMS
 
 
     # The list that contains info about all types of atoms is created
@@ -1090,9 +1098,6 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             # Stored are: Atom label (e.g. 'Na'), the corresponding atom
             # name (e.g. 'Sodium') and its color.
             atom_all_types_list.append([name, element, color])
-
-
-
 
     # The list of materials is built. 
     # Note that all atoms of one type (e.g. all hydrogens) get only ONE 
@@ -1129,15 +1134,9 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                 atom_material.append(material)   
 
 
-    #
-    #
-    #
-    #
-    #          READING DATA OF STICKS
-    #
-    #
-    #
-
+    # ------------------------------------------------------------------------
+    # READING DATA OF STICKS
+    
 
     # Open the PDB file again such that the file pointer is in the first
     # line ... . Stupid, I know ... ;-)
@@ -1151,7 +1150,6 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             split_list = line.split(' ')
             if "CONECT" in split_list[0]:
                 break
-
   
     Number_of_sticks = 0
     sticks_double = 0
@@ -1227,19 +1225,10 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
 
     ATOM_PDB_FILEPATH_p.close()
     # So far, all atoms and sticks have been registered.
-    
 
 
-
-
-    #
-    #
-    #
-    #
-    #          TRANSLATION OF THE STRUCTURE TO THE ORIGIN
-    #
-    #
-    #
+    # ------------------------------------------------------------------------
+    # TRANSLATION OF THE STRUCTURE TO THE ORIGIN
 
 
     # It may happen that the structure in a PDB file already has an offset
@@ -1259,41 +1248,18 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         atom_xyz_vec = [vec - sum_vec for vec in atom_xyz_vec]
 
 
+    # ------------------------------------------------------------------------
+    # SCALING 
 
 
-    #
-    #
-    #
-    #
-    #          SCALING AND OFFSET of X,Y AND Z
-    #
-    #
-    #
-
-
-    # Take all atoms and ...
-    # - adjust their radii,
-    # - scale the distances,
-    # - and apply the offset (chosen by the user in the file dialog window)
-    atom_xyz_vec = [vec + offset_vec for vec in atom_xyz_vec]
+    # Take all atoms and adjust their radii and scale the distances,
     atom_xyz_vec = [vec * Ball_distance_factor for vec in atom_xyz_vec]
+
     
-
-
-
-         
-
-
-    #
-    #
-    #
-    #
-    #          DETERMINATION OF SOME GEOMETRIC PROPERTIES
-    #
-    #
-    #
-
-
+    # ------------------------------------------------------------------------
+    # DETERMINATION OF SOME GEOMETRIC PROPERTIES
+    
+    
     # In the following, some geometric properties of the whole object are 
     # determined: center, size, etc. 
     sum_vec = Vector((0.0,0.0,0.0))
@@ -1312,15 +1278,9 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     object_size = max(object_size_vec).length
 
 
+    # ------------------------------------------------------------------------
+    # CAMERA AND LAMP
 
-    #
-    #
-    #
-    #
-    #          CAMERA AND LAMP
-    #
-    #
-    #
 
     camera_factor = 15.0
 
@@ -1385,7 +1345,6 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     # Here a lamp is put into the scene, if chosen.
     if use_lamp == True:
 
-
         # This is the distance from the object measured in terms of % 
         # of the camera distance. It is set onto 50% (1/2) distance.
         lamp_dl = math.sqrt(object_size) * 15 * 0.5
@@ -1413,33 +1372,11 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
 
         bpy.context.scene.world.light_settings.use_ambient_occlusion = True
         bpy.context.scene.world.light_settings.ao_factor = 0.2
-
-
-
-    #
-    #
-    #
-    #
-    #          SOME OUTPUT ON THE CONSOLE
-    #
-    #
-    #
-
+        
+        
+    # ------------------------------------------------------------------------
+    # SOME OUTPUT ON THE CONSOLE
    
-    # The following two loops print out all coordinates of the atoms in the
-    # terminal. If needed one can uncomment these lines
-   
-    # Atoms
-    # print("\nCoordinates of the atoms:")
-    # for i in range(Number_of_total_atoms):
-    #   print(str(i+1) + "	" + str(atom_x[i]) + "	" 
-    #   + str(atom_y[i]) + "	" + str(atom_z[i]) + "	" + str(atom_R[i]) 
-    #   + "	" + atom_element[i])
-
-    # Sticks
-    # print("\nSticks, which connect two atoms with indices:")
-    # for i in range(Number_of_sticks):
-    #    print(str(stick_atom1[i]) + "   " + str(stick_atom2[i]))
    
     print()
     print()
@@ -1453,19 +1390,8 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     print()
 
 
-
-
-
-
-    #
-    #
-    #
-    #
-    #          SORTING THE ATOMS
-    #
-    #
-    #
-
+    # ------------------------------------------------------------------------
+    # SORTING THE ATOMS
 
 
     # Lists of atoms of one type are created. Example: 
@@ -1501,20 +1427,10 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         draw_atom_type_list.append(draw_atom_list)
 
 
-
-    #
-    #
-    #
-    #
-    #          DRAWING THE ATOMS
-    #
-    #
-    #
+    # ------------------------------------------------------------------------
+    # DRAWING THE ATOMS
 
 
-
-
-   
     # This is the number of all atoms which are put into the scene.
     number_loaded_atoms = 0 
     bpy.ops.object.select_all(action='DESELECT')    
@@ -1576,20 +1492,13 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         new_atom_mesh.dupli_type = 'VERTS'
         # The object is back translated to 'object_center_vec'.
         new_atom_mesh.location = object_center_vec
+        LOADED_STRUCTURE.append(new_atom_mesh)
 
     print()    
-      
-      
-      
-    #
-    #
-    #
-    #
-    #          DRAWING THE STICKS
-    #
-    #
-    #
-
+           
+           
+    # ------------------------------------------------------------------------
+    # DRAWING THE STICKS
 
 
     if use_stick == True and stick_atom1 != [] and stick_atom2 != []:
@@ -1646,6 +1555,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         bpy.ops.object.select_all(action='DESELECT')   
         sticks = bpy.context.scene.objects[0]
         sticks.name = "Sticks"
+        LOADED_STRUCTURE.append(sticks)
 
 
     print("\n\nAll atoms (%d) and sticks (%d) have been drawn - finished.\n\n" 
