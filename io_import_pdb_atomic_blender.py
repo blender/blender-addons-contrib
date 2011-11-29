@@ -192,8 +192,6 @@ ATOM_PDB_ELEMENTS = [
 (106,         "Stick",    "Stick", (  0.5,   0.5,   0.5), 1.00, 1.00, 1.00),
 ]
 
-ATOM_PDB_ELEMENTS_NUMBER = 106
-
 # A list of ALL objects which are loaded (needed for selected the loaded
 # structure. 
 LOADED_STRUCTURE = []
@@ -1058,8 +1056,9 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                     atom_name.append(str.upper(short_name))
 
                 # Default values for the atom.
-                atom_R.append(float(ATOM_PDB_ELEMENTS[ATOM_PDB_ELEMENTS_NUMBER-2][4+int(radiustype)]))
-                atom_color.append(ATOM_PDB_ELEMENTS[ATOM_PDB_ELEMENTS_NUMBER-2][3])        
+                # XXX, whats so special about second last item?
+                atom_R.append(float(ATOM_PDB_ELEMENTS[-2][4 + int(radiustype)]))
+                atom_color.append(ATOM_PDB_ELEMENTS[-2][3])        
         
             # x,y and z are at fixed positions in the PDB file.
             x = float(line[30:38].rsplit()[0])
@@ -1507,8 +1506,8 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         # color is taken from the all_atom list, it is the last entry
         # in the data file (index -1).
         bpy.ops.object.material_slot_add()
-        stick_material = bpy.data.materials.new(ATOM_PDB_ELEMENTS[ATOM_PDB_ELEMENTS_NUMBER-1][2])  
-        stick_material.diffuse_color = ATOM_PDB_ELEMENTS[ATOM_PDB_ELEMENTS_NUMBER-1][3]
+        stick_material = bpy.data.materials.new(ATOM_PDB_ELEMENTS[-1][2])  
+        stick_material.diffuse_color = ATOM_PDB_ELEMENTS[-1][3]
  
         # This is the unit vector of the z axis
         z_axis_vec = Vector((0.0, 0.0, 1.0))
@@ -1542,7 +1541,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             # ... and rotate the stick.
             stick.rotation_euler  = euler
             stick.active_material = stick_material
-            stick.name = ATOM_PDB_ELEMENTS[ATOM_PDB_ELEMENTS_NUMBER-1][1]
+            stick.name = ATOM_PDB_ELEMENTS[-1][1]
             sticks.append(stick)
             
         # 'Group' the stuff   
