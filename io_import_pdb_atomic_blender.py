@@ -52,6 +52,7 @@ import io
 import sys
 import math
 import os
+from math import pi, cos, sin
 from mathutils import Vector, Matrix
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import (StringProperty,
@@ -487,7 +488,7 @@ class CLASS_atom_pdb_datafile_apply(bpy.types.Operator):
             else:
                 if obj.type == "SURFACE" or obj.type == "MESH":
                     for element in ATOM_PDB_ELEMENTS:          
-                        if element[1] in obj.name:
+                        if element.name in obj.name:
                             obj.scale = (element.radii[0],
                                          element.radii[0],
                                          element.radii[0])
@@ -793,6 +794,59 @@ if __name__ == "__main__":
 #                                                          Some small routines
 
 
+# Routine which produces a cylinder. All is somewhat easy to undertsand. 
+def DEF_atom_pdb_build_stick(radius, length, sectors):
+        
+    vertices = []
+    faces    = []
+
+    dphi = 2.0 * pi/(float(sectors)-1)
+
+    # Vertices
+    vertices_top    = [Vector((0,0,length / 2.0))]
+    vertices_bottom = [Vector((0,0,-length / 2.0))]
+    for i in range(sectors-1):
+        x = radius * cos( dphi * i )
+        y = radius * sin( dphi * i )
+        z =  length / 2.0  
+        vertex = Vector((x,y,z))
+        vertices_top.append(vertex)
+        z = -length / 2.0
+        vertex = Vector((x,y,z))
+        vertices_bottom.append(vertex)
+    vertices = vertices_top + vertices_bottom
+
+    # Top facets
+    for i in range(sectors-1):
+        if i == sectors-2:
+            face_top = [0,sectors-1,1]
+            face_bottom = [sectors,2*sectors-1,sectors+1]
+        else:
+            face_top    = [0]
+            face_bottom = [sectors]
+            for j in range(2):
+                face_top.append(i+j+1)
+                face_bottom.append(i+j+1+sectors)
+        faces.append(face_top)
+        faces.append(face_bottom)
+
+    # Side facets   
+    for i in range(sectors-1):
+        if i == sectors-2:
+            faces.append(  [i+1, 1, 1+sectors, i+1+sectors] ) 
+        else:
+            faces.append(  [i+1, i+2, i+2+sectors, i+1+sectors] ) 
+
+    # Build the mesh
+    cylinder = bpy.data.meshes.new("Sticks_Cylinder")
+    cylinder.from_pydata(vertices, [], faces)
+    cylinder.update()
+    new_cylinder = bpy.data.objects.new("Sticks_Cylinder", cylinder)
+    bpy.context.scene.objects.link(new_cylinder)
+    
+    return new_cylinder
+
+
 # This function measures the distance between two objects (atoms), 
 # which are active.
 def DEF_atom_pdb_distance():
@@ -1065,12 +1119,17 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         # used for sticks. "TER? What is that?" TER indicates the end of a 
         # list of ATOM/HETATM records for a chain.
         if "TER" in line:
-            element = "TER"
+            short_name = "TER"
             name = "TER"
             radius = 0.0
             color = [0,0,0]
-            location = Vector((0,0,0))   
-            j += 1
+            location = Vector((0,0,0))  
+            # Append the TER into the list. Material remains empty so far.
+            all_atoms.append(CLASS_atom_pdb_atom(short_name, 
+                                                 name, 
+                                                 location, 
+                                                 radius, 
+                                                 color,[])) 
         # If 'ATOM or 'HETATM' appears in the line then do ...
         elif "ATOM" in line or "HETATM" in line:
 
@@ -1124,16 +1183,16 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             y = float(line[38:46].rsplit()[0])
             z = float(line[46:55].rsplit()[0])
            
-            location = Vector((x,y,z))     
+            location = Vector((x,y,z))   
+        
+            j += 1       
 
             # Append the atom to the list. Material remains empty so far.
             all_atoms.append(CLASS_atom_pdb_atom(short_name, 
                                              name, 
                                              location, 
                                              radius, 
-                                             color,[]))
-                          
-            j += 1        
+                                             color,[]))                  
                        
         line = ATOM_PDB_FILEPATH_p.readline()
         line = line[:-1]
@@ -1190,7 +1249,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                 # However, before we check, if it is a vacancy, because then it
                 # gets some additional preparation. The vacancy is represented
                 # by a transparent cube.
-                if name == "Vacancy":
+                if atom.name == "Vacancy":
                     material.transparency_method = 'Z_TRANSPARENCY'
                     material.alpha = 1.3
                     material.raytrace_transparency.fresnel = 1.6
@@ -1270,9 +1329,9 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             # couple of times. (Only god knows why ...) 
             # So, does a stick between the considered atoms already exist?
             FLAG_BAR = False
-            for k in range(j):
+            for k in range(Number_of_sticks):
                 if ((all_sticks[k].atom1 == atom1 and all_sticks[k].atom2 == atom2) or 
-                    (all_sticks[k].atom2 == atom2 and all_sticks[k].atom1 == atom1)):
+                    (all_sticks[k].atom2 == atom1 and all_sticks[k].atom1 == atom2)):
                     sticks_double += 1
                     # If yes, then FLAG on 'True'.
                     FLAG_BAR       = True
@@ -1577,57 +1636,63 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         stick_material = bpy.data.materials.new(ATOM_PDB_ELEMENTS[-1].name)  
         stick_material.diffuse_color = ATOM_PDB_ELEMENTS[-1].color
  
-        # This is the unit vector of the z axis
-        z_axis_vec = Vector((0.0, 0.0, 1.0))
- 
-        stick_group_list = []
+        vertices = []
+        faces    = []
+        dl = 0.2
+
+        i = 0
         # For all sticks, do ...
         for stick in all_sticks:
-            # Print on the terminal the actual number of the stick that is 
-            # build
-            sys.stdout.write("Stick No. %d has been built\r" % (i+1) )
-            sys.stdout.flush()
-            # Sum and difference of both atoms
-            vv_vec = (all_atoms[stick.atom2-1].location 
-                   + all_atoms[stick.atom1-1].location)
-            dv_vec = (all_atoms[stick.atom2-1].location 
-                   - all_atoms[stick.atom1-1].location)
-            # Angle with respect to the z-axis
-            angle = dv_vec.angle(z_axis_vec, 0)
-            # Cross-product between dv_vec and the z-axis vector. It is the 
-            # vector of rotation.
-            axis_vec = z_axis_vec.cross(dv_vec)
-            # Calculate Euler angles
-            euler = Matrix.Rotation(angle, 4, axis_vec).to_euler()
-            # Create stick
-            current_layers = bpy.context.scene.layers
-            bpy.ops.mesh.primitive_cylinder_add(vertices=Stick_sectors, 
-                                  radius=Stick_diameter, depth= dv_vec.length, 
-                                  cap_ends=True, view_align=False, 
-                                  enter_editmode=False, location= (vv_vec*0.5), 
-                                  rotation=(0,0,0), layers=current_layers)
-            # Put the stick into the scene ...
-            stick = bpy.context.scene.objects.active
-            # ... and rotate the stick.
-            stick.rotation_euler  = euler
-            stick.active_material = stick_material
-            stick.name = ATOM_PDB_ELEMENTS[-1].name
-            stick_group_list.append(stick)
-            
-        # 'Group' the stuff   
-        bpy.ops.object.select_all(action='DESELECT')   
-        stick_parent = stick_group_list[0]
-        inv_mat = stick_parent.matrix_world.inverted()
-        for stick in stick_group_list[1:]: 
-            stick.matrix_parent_inverse = inv_mat
-            stick.parent = stick_parent    
-        bpy.ops.object.select_all(action='DESELECT')   
-        sticks_grouped = bpy.context.scene.objects[0]
-        sticks_grouped.name = "Sticks"
-        LOADED_STRUCTURE.append(sticks_grouped)
+        
+            # What follows is school mathematics! :-)
+            v1 = all_atoms[stick.atom2-1].location
+            v2 = all_atoms[stick.atom1-1].location
+        
+            dv = (v1 - v2)
+           
+            n  = dv / dv.length
+            m  = v1 - dv / 2.0
+  
+            gamma = -n * v1
+            b     = v1 + gamma * n
+            n_b   = b / b.length
+ 
+            loops = int(dv.length / dl)
+       
+            for j in range(loops):
+        
+                g = v1 - n * dl / 2.0 - n * dl * j
+        
+                p1 = g + n_b * Stick_diameter
+                p2 = g - n_b * Stick_diameter
+                p3 = g - n_b.cross(n) * Stick_diameter
+                p4 = g + n_b.cross(n) * Stick_diameter
 
+                vertices.append(p1)
+                vertices.append(p2)
+                vertices.append(p3)
+                vertices.append(p4)
+                faces.append((i*4+0,i*4+2,i*4+1,i*4+3))
+                i += 1        
+              
+        mesh = bpy.data.meshes.new("Sticks")
+        mesh.from_pydata(vertices, [], faces)
+        mesh.update()
+        new_mesh = bpy.data.objects.new("Sticks", mesh)
+        bpy.context.scene.objects.link(new_mesh)  
+              
+        current_layers = bpy.context.scene.layers
+        stick_cylinder = DEF_atom_pdb_build_stick(Stick_diameter, dl, Stick_sectors)
+        
+
+        stick_cylinder.active_material = stick_material
+        stick_cylinder.parent = new_mesh
+        new_mesh.dupli_type = 'FACES'
+        LOADED_STRUCTURE.append(new_mesh)
+        
 
     print("\n\nAll atoms (%d) and sticks (%d) have been drawn - finished.\n\n" 
            % (Number_of_total_atoms,Number_of_sticks))
+      
 
     return Number_of_total_atoms
