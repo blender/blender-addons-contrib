@@ -363,7 +363,7 @@ class stairs(bpy.types.Operator):
                     box.prop(self, 'string_tp')
                     box.prop(self, 'string_g')
             elif self.typ == "id2":
-                if self.typ_s == "sId2":
+                if self.typ_s in ["sId2", "sId3"]:
                     box.prop(self, 'string_tw')
                     box.prop(self, 'string_tf')
 

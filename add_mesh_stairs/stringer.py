@@ -74,19 +74,18 @@ class Stringer:
         # Box stair type stringer:
         self.faces2=[[0,1,7,6],[1,3,9,7],[3,4,10,9],[4,10,11,5],[5,11,8,2],
                      [2,8,6,0],[0,1,2],[1,2,5,3],[3,4,5],[6,7,8],[7,8,11,9],[9,10,11]]
-        # I-beam stringer (I-Beam / sId2 / Taper < 100%):
-        # @todo: faces are not complete nor are they layed out correctly.  Check verts also.
+        # I-beam stringer (id2 / sId2 / Taper < 100%):
         self.faces3a=[[0,1,17,16],[1,2,18,17],[2,3,19,18],[3,4,20,19],[4,5,21,20],[5,6,22,21],
                       [6,7,23,22],[7,8,24,23],[8,9,25,24],[9,10,26,25],[10,11,27,26],
                       [11,12,28,27],[12,13,29,28],[13,14,30,29],[14,15,31,30],[15,0,16,31],
                       [0,1,2,15],[2,11,14,15],[11,12,13,14],[2,3,10,11],[3,4,5,6],[3,6,7,10],
                       [7,8,9,10],[16,17,18,31],[18,27,30,31],[27,28,29,30],[18,19,26,27],
                       [19,20,21,22],[19,22,23,26],[23,24,25,26]]
-        # I-beam stringer (I-Beam / sId2 / Taper = 100%):
+        # I-beam stringer (id2 / sId2 / Taper = 100%):
         self.faces3b=[[0,1,9,8],[1,2,10,9],[2,3,11,10],[3,4,12,11],[4,5,13,12],[5,6,14,13],
                       [6,7,15,14],[7,0,8,15],[0,1,6,7],[1,2,5,6],[2,3,4,5],[8,9,14,15],
                       [9,10,13,14],[10,11,12,13]]
-        # I-beam stringer for housed-open stringed:
+        # I-beam stringer (id3 / sId2 / Taper < 100%):
         self.faces3c=[[0,1,2,7],[2,3,6,7],[3,4,5,6],[1,2,23,16],[2,3,22,23],[3,4,21,22],
                       [16,17,18,23],[18,19,22,23],[19,20,21,22],[17,8,15,18],[18,15,14,19],
                       [19,14,13,20],[8,9,10,15],[10,11,14,15],[11,12,13,14],[9,10,53,52],
@@ -100,8 +99,13 @@ class Stringer:
                       [16,17,41,40],[8,9,52,17],[17,52,60,41],[32,33,60,41],[12,13,20,55],
                       [20,44,63,55],[37,44,63,36],[20,21,45,44],[28,29,51,21],[21,51,59,45],
                       [28,45,59,29],[4,5,51,21]]
-        # C-beam stringer (C-Beam / sId3):
-        self.faces4=[[]]
+        # C-beam stringer (id3 / sId3 / Taper < 100%):
+        self.faces4c=[[0,1,2,7],[2,3,6,7],[3,4,5,6],[1,2,23,16],[2,3,22,23],[3,4,21,22],
+                      [16,17,18,23],[18,19,22,23],[19,20,21,22],[17,8,15,18],[18,15,14,19],
+                      [19,14,13,20],[8,9,10,15],[10,11,14,15],[11,12,13,14],[0,24,25,7],
+                      [7,25,26,6],[6,26,27,5],[9,31,30,10],[10,30,29,11],[11,29,28,12],
+                      [24,25,30,31],[25,26,29,30],[26,27,28,29],[0,1,16,24],[16,24,31,17],
+                      [8,9,31,17],[4,5,27,21],[20,21,27,28],[12,13,20,28]]
         self.Create()
 
 
@@ -307,6 +311,8 @@ class Stringer:
                 i += Vector([0, self.wT + self.tw, 0])
 
             self.G.Make_mesh(coords, self.faces3c, 'stringer')
+
+        # @TODO Taper = 100%
         
         return {'FINISHED'}
 
@@ -432,23 +438,19 @@ class Stringer:
             coords.append(coords[4] + Vector([0, flange_y, 0]))
             coords.append(coords[3] + Vector([0, flange_y, 0]))
             coords.append(coords[2] + Vector([0, flange_y, 0]))
-            # Upper-Inner flange and lower-inner flange:
+            # Outer corner nodes:
+            for i in [0, 7, 6, 5, 12, 11, 10, 9]:
+                coords.append(coords[i] + Vector([0, flange_y + self.tw, 0]))
+
+            self.G.Make_mesh(coords, self.faces4c, 'stringer')
+
             for i in range(16):
-                coords.append(coords[i] + Vector([0, self.w, 0]))
-            # Inner web:
+                coords[i] += Vector([0, -outer * 2, 0])
             for i in range(8):
-                coords.append(coords[i + 16] + Vector([0, self.tw, 0]))
-            # Mid nodes to so faces will be quads:
-            for i in [0,7,6,5,9,10,11,12]:
-                coords.append(coords[i] + Vector([0, flange_y, 0]))
-            for i in range(8):
-                coords.append(coords[i + 48] + Vector([0, self.tw, 0]))
-
-            self.G.Make_mesh(coords, self.faces3c, 'stringer')
-
+                coords[i + 16] += Vector([0, (-outer - flange_y) * 2, 0])
             for i in coords:
-                i += Vector([0, (self.tO * 2) + self.wT + self.tf, 0])
+                i += Vector([0, (self.tO * 2) + self.wT, 0])
 
-            self.G.Make_mesh(coords, self.faces3c, 'stringer')
+            self.G.Make_mesh(coords, self.faces4c, 'stringer')
         
         return {'FINISHED'}
