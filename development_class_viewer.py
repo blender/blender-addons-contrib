@@ -37,7 +37,7 @@ import bpy
 #escape = character right next to the class or def name 
 
 def getfunc(space, sort, tipo="def ", escape= ""):
-        defs = []
+	defs = []
 	if space.type=="TEXT_EDITOR":
 		if space.text!=None:
 			txt = space.text
@@ -187,7 +187,7 @@ def unregister():
 	for c in classes:
 		bpy.utils.unregister_class(c)
 		
-        bpy.types.TEXT_MT_toolbox.remove(GotoComments)
+		bpy.types.TEXT_MT_toolbox.remove(GotoComments)
 	bpy.types.TEXT_MT_toolbox.remove(GotoDefs)
 	bpy.types.TEXT_MT_toolbox.remove(GotoClasses)
 	
