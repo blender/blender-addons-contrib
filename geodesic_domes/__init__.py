@@ -18,10 +18,10 @@
 
 bl_info = {
     "name": "Geodesic Domes",
-    "author": "PKHG , Meta Androcto, original for 2.49 from Andy Houston",
-    "version": (0,2,1),
-    "blender": (2, 6, 0),
-    "api": 41431,
+    "author": "PKHG , Meta Androcto, Kilon original for 2.49 from Andy Houston",
+    "version": (0,2,3),
+    "blender": (2, 6, 1),
+    "api": 42662,
     "location": "View3D > UI > Geodesic...",
     "description": "Choice for objects",
     "warning": "not yet finished",
@@ -30,7 +30,8 @@ bl_info = {
     "category": "Mesh"}
 
 """
-Rev 0.5 building gui
+Added save and load of parameters 14-12-2011 PKHG
+Added one possible *.bak for GD_0.GD (one time) 17-12-2011
 """
 if "bpy" in locals():
     import imp
