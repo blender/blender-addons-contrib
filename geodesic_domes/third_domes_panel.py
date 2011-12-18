@@ -672,13 +672,14 @@ class GenerateGeodesicDome(bpy.types.Operator):
                         ui.label(text=el[y])
 
             box = layout.box() 
-            help_text = ["NEW!", 
-                "New facility: save or load (nearly all) parameters",
-                 "A file GD_0.GD will be used, living in:",
-                 "geodesic_domes/tmp",
+            help_text = ["NEW! ", 
+                "New facility: save or load (nearly all) parameters ",
+                 "A file GD_0.GD will be used, living in: ",
+                 "geodesic_domes/tmp ",
+                 "and if possible two backups "
                  "--------",
                  "After loading you have to change a ",
-                 "parameter back and forth"
+                 "parameter back and forth "
                  "to see it"]
             text_width = self.gd_help_text_width
             box.prop(self,"gd_help_text_width",slider=True)
@@ -881,32 +882,51 @@ class GenerateGeodesicDome(bpy.types.Operator):
         if self.save_parameters:
             self.save_parameters = False
             try:
+                print("DBG L884")
                 message = ""
                 scriptpath = bpy.utils.script_paths()[0]
                 sep = os.path.sep
                 tmpdir = os.path.join(scriptpath,"addons", "geodesic_domes" , "tmp")
 #scriptpath + sep + "addons" + sep + "geodesic_domes" + sep + "tmp"
+                print("tmpdirL890 = ",tmpdir)
                 if not os.path.isdir(tmpdir):
-                    message += "***ERROR***\n" + tmpdir + "\nnot (yet) available\n"  
-                    
-                filename = tmpdir + sep + "GD_0.GD"
-                filename_ren = tmpdir + sep + "GD_0.GD.bak"
-                try:
-                    os.rename(filename,filename_ren)
-                except:
-                    message += "***INFO***\nbak-file could not be created\n"
+                    message += "***ERROR***\n" + tmpdir + "\nnot (yet) available\n"
                     print(message)
-#        self.read_file(filename)
-                try:
-                    self.write_params(filename)
-                    message += "***OK***\nparameters saved in\n" + filename
-                    print(message)
-                except:
-                    message = "***ERRROR***\n" + "writing " + filename + "\nnot possible"
-                #bpy.context.scene.instant_filenames = filenames
-                
+                else:
+                    filename = tmpdir + sep + "GD_0.GD"
+                    filename_ren = tmpdir + sep + "GD_0.GD.bak"
+                    filename_ren2 = tmpdir + sep + "GD_0.GD.2bak"
+                    if os.path.isfile(filename_ren2):
+                        try:
+                            os.remove(filename_ren2)
+                            message = "***Info***\nGD_0.GD.2bak removed\n"
+                        except:
+                            message = "***ERROR***\n,GD_0.GD.2bak could not be removed\n"
+                        print(message)
+                    if os.path.isfile(filename_ren):
+                        try:
+                            os.rename(filename_ren,filename_ren2)
+                            message += "***INFO***\nGD_0.GD.bak renamed into GD_0.GD.2bak\n"
+                        except:
+                            message += "***Info***\nrenaming GD_0.GD.bak not possible\n"
+                    if os.path.isfile(filename):
+                        try:
+                            os.rename(filename,filename_ren)
+                            message += "***INFO***\nGD_0.GD renamed into GD_0.GD.bak\n"
+                        except:
+                            message += "***ERROR***\ncreation of GD_0.GD.bak not possible\n"
+                    try:
+                        print("DBG L921")
+                        self.write_params(filename)
+                        message += "***OK***\nparameters saved in\n" + filename
+                        print(message)
+                    except:
+                        message = "***ERRROR***\n" + "writing " + filename + "\nnot possible"
+                        print(message)                 
             except:
+                
                 message += "***ERROR***\n Contakt PKHG, something wrong happened"
+                print(message)
                 
             context.scene.error_message = message
             bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
