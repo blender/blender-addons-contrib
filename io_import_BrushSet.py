@@ -53,7 +53,7 @@ bl_info = {
     "author": "Daniel Grauer",
     "version": (1, 1, 5),
     "blender": (2, 5, 6),
-    "category": "Export",
+    "category": "Import-Export",
     "location": "File > Import > BrushSet",
     "description": "imports all image files from a folder",
     "warning": '', # used for warning icon and text in addons panel
