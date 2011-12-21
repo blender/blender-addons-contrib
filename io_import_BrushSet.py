@@ -51,9 +51,9 @@ from bpy.props import *
 bl_info = {
     "name": "import BrushSet",
     "author": "Daniel Grauer",
-    "version": (1, 1, 4),
+    "version": (1, 1, 5),
     "blender": (2, 5, 6),
-    "category": "VirtaMed",
+    "category": "Export",
     "location": "File > Import > BrushSet",
     "description": "imports all image files from a folder",
     "warning": '', # used for warning icon and text in addons panel
