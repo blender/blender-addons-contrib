@@ -284,18 +284,18 @@ class GenerateGeodesicDome(bpy.types.Operator):
 #for choice of superformula
     uact = BoolProperty(name = 'superformula u (x/y)', description = "activate superformula u parameters", default = False)
     vact = BoolProperty(name = 'superformula v (z)', description = "activate superformula v parameters", default = False)
-    um = FloatProperty(name = 'um', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+    um = FloatProperty(name = 'um', min = 0, soft_min=0.1, soft_max = 10, max = 20,\
                  description = "to do",	default =  3)
-    un1 = FloatProperty(name = 'un1', min = 0, soft_min=0.1, soft_max=5,max = 20,\
+    un1 = FloatProperty(name = 'un1', min = 0, soft_min=0.1, soft_max = 10,max = 20,\
                  description = "to do",	default =  1)
-    un2 = FloatProperty(name = 'un2', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+    un2 = FloatProperty(name = 'un2', min = 0, soft_min=0.1, soft_max = 10,max = 20,\
                  description = "to do",	default =  1)
-    un3 = FloatProperty(name = 'un3', min = 0,   soft_min=0.1, soft_max=5,max = 10,\
+    un3 = FloatProperty(name = 'un3', min = 0,   soft_min=0.1, soft_max = 10, max = 20,\
                  description = "to do",	default =  1)
-    ua = FloatProperty(name = 'ua', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  1.0)
-    ub = FloatProperty(name = 'ub', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  4.0)
+    ua = FloatProperty(name = 'ua', min = 0.01, soft_min=0.1, soft_max = 8, max = 16,\
+                 description = "semi-diameter (has both soft pars!)", default =  1.0)
+    ub = FloatProperty(name = 'ub', min = 0.01, soft_min = 0.1, soft_max = 8, max = 16,\
+                 description = "semi-diameter  (has both soft pars!)", default =  1.0)
     vm = FloatProperty(name = 'vm', min = 0, soft_min=0.1, soft_max=5,max = 10,\
                  description = "to do",	default =  1)
     vn1 = FloatProperty(name = 'vn1', min = 0, soft_min=0.1, soft_max=5,max = 10,\

@@ -456,11 +456,13 @@ class mesh:
         r = self.power(1.0/(t1+t2),(1.0/n1))
         return r
 
+#PKHG changed according to http://de.wikipedia.org/wiki/Superformel
+#a and b a semi-diameter
     def superform(self,m,n1,n2,n3,uv,a,b,twist):
-        t1 = cos(m*(uv+twist)*.25)*a
+        t1 = cos(m*(uv+twist)*.25) / a
         t1 = abs(t1)
         t1 = t1**n2
-        t2 = sin(m*(uv+twist)*.25)*b
+        t2 = sin(m*(uv+twist)*.25) / b
         t2 = abs(t2)
         t2 = t2**n3
         r = self.power(1.0/(t1+t2),n1)        
