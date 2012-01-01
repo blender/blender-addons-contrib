@@ -64,29 +64,27 @@ class VIEW3D_MT_ManipulatorMenu(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
+        props = layout.operator("view3d.enable_manipulator",text ='Translate', icon='MAN_TRANS')
+        props.translate = True
 
+        props = layout.operator("view3d.enable_manipulator",text ='Rotate', icon='MAN_ROT')
+        props.rotate = True
 
-        prop = layout.operator("view3d.enable_manipulator",text ='Translate', icon='MAN_TRANS')
-        prop.translate = True
-
-        prop = layout.operator("view3d.enable_manipulator",text ='Rotate', icon='MAN_ROT')
-        prop.rotate = True
-
-        prop = layout.operator("view3d.enable_manipulator",text ='Scale', icon='MAN_SCALE')
-        prop.scale = True
+        props = layout.operator("view3d.enable_manipulator",text ='Scale', icon='MAN_SCALE')
+        props.scale = True
         layout.separator()
 
-        prop = layout.operator("view3d.enable_manipulator",text ='Combo', icon='MAN_SCALE')
-        prop.scale = True
-        prop.rotate = True
-        prop.translate = True
+        props = layout.operator("view3d.enable_manipulator",text ='Combo', icon='MAN_SCALE')
+        props.scale = True
+        props.rotate = True
+        props.translate = True
 
         layout.separator()
 
-        prop = layout.operator("view3d.enable_manipulator",text ='Hide', icon='MAN_SCALE')
-        prop.scale = False
-        prop.rotate = False
-        prop.translate = False
+        props = layout.operator("view3d.enable_manipulator",text ='Hide', icon='MAN_SCALE')
+        props.scale = False
+        props.rotate = False
+        props.translate = False
         
         layout.separator()
 
