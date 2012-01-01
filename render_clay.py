@@ -202,7 +202,6 @@ def register():
         description='Use as Clay',
         default=False)
 
-    
     bpy.utils.register_class(ClayPinned)
     bpy.utils.register_class(CheckClay)
     bpy.types.RENDER_PT_render.prepend(draw_clay_render)
