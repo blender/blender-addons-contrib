@@ -13,9 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, write to:
 #
-#	the Free Software Foundation Inc.
-#	51 Franklin Street, Fifth Floor
-#	Boston, MA 02110-1301, USA
+#   the Free Software Foundation Inc.
+#   51 Franklin Street, Fifth Floor
+#   Boston, MA 02110-1301, USA
 #
 # or go online at: http://www.gnu.org/licenses/ to view license options.
 #
@@ -49,35 +49,35 @@ from math import fmod, sqrt, sin, cos, atan
 
 #A few constants
 SMALL = 0.000000000001
-NOTZERO = 0.01 # for values that must be != 0; see UI options/variables - 
+NOTZERO = 0.01 # for values that must be != 0; see UI options/variables -
 # sort of a bug to be fixed.
 PI = math.pi
 
 #global variables
 
 #General masonry Settings
-settings = {'w': 1.2, 'wv': 0.3, 'h': .6, 'hv': 0.3, 'd': 0.3, 'dv': 0.1, 
-            'g': 0.1, 'gv': 0.07, 'gd': 0.01, 'gdv': 0.0, 'b': 0, 'bv': 0, 
-            'f': 0.0, 'fv': 0.0, 't': 0.0, 'sdv': 0.1, 'hwt': 0.5, 'aln':0, 
-            'wm': 0.8, 'hm': 0.3, 'dm':0.1, 
-            'woff':0.0, 'woffv':0.0, 'eoff':0.3, 'eoffv':0.0, 'rwhl':1, 
+settings = {'w': 1.2, 'wv': 0.3, 'h': .6, 'hv': 0.3, 'd': 0.3, 'dv': 0.1,
+            'g': 0.1, 'gv': 0.07, 'gd': 0.01, 'gdv': 0.0, 'b': 0, 'bv': 0,
+            'f': 0.0, 'fv': 0.0, 't': 0.0, 'sdv': 0.1, 'hwt': 0.5, 'aln':0,
+            'wm': 0.8, 'hm': 0.3, 'dm':0.1,
+            'woff':0.0, 'woffv':0.0, 'eoff':0.3, 'eoffv':0.0, 'rwhl':1,
             'hb':0, 'ht':0, 'ge':0, 'physics':0}
-# 'w':width 'wv':widthVariation 
-# 'h':height 'hv':heightVariation 
+# 'w':width 'wv':widthVariation
+# 'h':height 'hv':heightVariation
 # 'd':depth 'dv':depthVariation
-# 'g':grout 'gv':groutVariation 'gd':groutDepth 'gdv':groutDepthVariation 
+# 'g':grout 'gv':groutVariation 'gd':groutDepth 'gdv':groutDepthVariation
 # 'b':bevel 'bv':bevelVariation
-# 'f':flawSize 'fv':flawSizeVariation 'ff':flawFraction 
-# 't':taper 
+# 'f':flawSize 'fv':flawSizeVariation 'ff':flawFraction
+# 't':taper
 # 'sdv':subdivision(distance or angle)
-# 'hwt':row height effect on block widths in the row (0=no effect, 
+# 'hwt':row height effect on block widths in the row (0=no effect,
 #     1=1:1 relationship, negative values allowed, 0.5 works well)
 # 'aln':alignment(0=none, 1=rows w/features, 2=features w/rows)
 #     (currently un-used)
 # 'wm':width minimum 'hm':height minimum 'dm':depth minimum
-# 'woff':row start offset(fraction of width) 
+# 'woff':row start offset(fraction of width)
 # 'woffv':width offset variation(fraction of width)
-# 'eoff':edge offset 'eoffv':edge offset variation 
+# 'eoff':edge offset 'eoffv':edge offset variation
 # 'rwhl':row height lock(1 is all blocks in row have same height)
 # 'hb':bottom row height 'ht': top row height 'ge': grout the edges
 # 'physics': set up for physics
@@ -91,16 +91,16 @@ dims = {'s':0, 'e':PI*3/2, 'b':0.1, 't':12.3} # radial
 
 radialized = 0 # Radiating from one point - round/disc; instead of square
 slope = 0 # Warp/slope; curved over like a vaulted tunnel
-# 'bigblock': merge adjacent blocks into single large blocks 
+# 'bigblock': merge adjacent blocks into single large blocks
 bigBlock = 0 # Merge blocks
 
 # Gaps in blocks for various apertures.
 #openingSpecs = []
-openingSpecs = [{'w':0.5, 'h':0.5, 'x':0.8, 'z':2.7, 'rp':1, 'b':0.0, 
+openingSpecs = [{'w':0.5, 'h':0.5, 'x':0.8, 'z':2.7, 'rp':1, 'b':0.0,
                  'v':0, 'vl':0, 't':0, 'tl':0}]
-# 'w': opening width, 'h': opening height, 
-# 'x': horizontal position, 'z': vertical position, 
-# 'rp': make multiple openings, with a spacing of x, 
+# 'w': opening width, 'h': opening height,
+# 'x': horizontal position, 'z': vertical position,
+# 'rp': make multiple openings, with a spacing of x,
 # 'b': bevel the opening, inside only, like an arrow slit.
 # 'v': height of the top arch, 'vl':height of the bottom arch,
 # 't': thickness of the top arch, 'tl': thickness of the bottom arch
@@ -115,7 +115,7 @@ shelfSpecs = {'w':0.5, 'h':0.5, 'd': 0.3, 'x':0.8, 'z':2.7}
 # Add blocks to make steps.
 stepMod = 0
 stepSpecs = {'x':0.0, 'z':-10, 'w':10.0, 'h':10.0,
-	'v':0.7, 't':1.0, 'd':1.0 }
+    'v':0.7, 't':1.0, 'd':1.0 }
 # 'x': horizontal start position, 'z': vertical start position,
 # 'w': step area width, 'h': step area height,
 # 'v': riser height, 't': tread width, 'd': block depth (step size; offset from wall)
@@ -145,9 +145,9 @@ def test(TestN = 13):
         t = 0.3 + random()
         tl = 0.3 + random()
         rn = random()*2
-        openingSpecs += [{'w':3.1 + rn, 'h':0.3 + rn, 'x':float(x), 
-                          'z':float(z), 'rp':0, 'b':0., 
-                          'v':float(v), 'vl':float(vl), 
+        openingSpecs += [{'w':3.1 + rn, 'h':0.3 + rn, 'x':float(x),
+                          'z':float(z), 'rp':0, 'b':0.,
+                          'v':float(v), 'vl':float(vl),
                           't':float(t), 'tl':float(tl)}]
     return dims, openingSpecs
 
@@ -155,29 +155,29 @@ def test(TestN = 13):
 
 
 #For filling a linear space with divisions
-def fill(left, right, avedst, mindst=0.0, dev=0.0, pad=(0.0,0.0), num=0, 
+def fill(left, right, avedst, mindst=0.0, dev=0.0, pad=(0.0,0.0), num=0,
          center=0):
     __doc__ = '''\
-	Fills a linear range with points and returns an ordered list of those points 
-	including the end points.
+    Fills a linear range with points and returns an ordered list of those points
+    including the end points.
 
-	left: the lower boundary
-	right: the upper boundary
-	avedst: the average distance between points
-	mindst: the minimum distance between points
-	dev: the maximum random deviation from avedst
-	pad: tends to move the points near the bounds right (positive) or 
-	    left (negative).
-	    element 0 pads the lower bounds, element 1 pads the upper bounds
-	num: substitutes a numerical limit for the right limit.  fill will then make
-	    a num+1 element list
-	center: flag to center the elements in the range, 0 == disabled
+    left: the lower boundary
+    right: the upper boundary
+    avedst: the average distance between points
+    mindst: the minimum distance between points
+    dev: the maximum random deviation from avedst
+    pad: tends to move the points near the bounds right (positive) or
+        left (negative).
+        element 0 pads the lower bounds, element 1 pads the upper bounds
+    num: substitutes a numerical limit for the right limit.  fill will then make
+        a num+1 element list
+    center: flag to center the elements in the range, 0 == disabled
         '''
 
     poslist = [left]
     curpos = left+pad[0]
 
-    # Set offset by average spacing, then add blocks (fall through); 
+    # Set offset by average spacing, then add blocks (fall through);
     # if not at right edge.
     if center:
         curpos += ((right-left-mindst*2)%avedst)/2+mindst
@@ -205,8 +205,8 @@ def fill(left, right, avedst, mindst=0.0, dev=0.0, pad=(0.0,0.0), num=0,
 
     # make block edges
     else:
-        while True: # loop for blocks	
-            curpos += avedst+rndd()*dev		
+        while True: # loop for blocks
+            curpos += avedst+rndd()*dev
             if curpos-poslist[-1]<mindst:
                 curpos = poslist[-1]+mindst+rnd()*dev/2
             # close off edges at limit
@@ -218,31 +218,31 @@ def fill(left, right, avedst, mindst=0.0, dev=0.0, pad=(0.0,0.0), num=0,
 
 
 #For generating block geometry
-def MakeABlock(bounds, segsize, vll=0, Offsets=None, FaceExclude=[], 
+def MakeABlock(bounds, segsize, vll=0, Offsets=None, FaceExclude=[],
                bevel=0, xBevScl=1):
     __doc__ = '''\
-	MakeABlock returns lists of points and faces to be made into a square
+    MakeABlock returns lists of points and faces to be made into a square
             cornered block, subdivided along the length, with optional bevels.
-	bounds: a list of boundary positions:
+    bounds: a list of boundary positions:
         0:left, 1:right, 2:bottom, 3:top, 4:back, 5:front
-	segsize: the maximum size before lengthwise subdivision occurs
-	vll: the number of vertexes already in the mesh. len(mesh.verts) should 
+    segsize: the maximum size before lengthwise subdivision occurs
+    vll: the number of vertexes already in the mesh. len(mesh.verts) should
             give this number.
-	Offsets: list of coordinate delta values.
-		Offsets are lists, [x,y,z] in
-			[
-			0:left_bottom_back,
-			1:left_bottom_front,
-			2:left_top_back,
-			3:left_top_front,
-			4:right_bottom_back,
-			5:right_bottom_front,
-			6:right_top_back,
-			7:right_top_front,
-			]
-	FaceExclude: list of faces to exclude from the faces list.  see bounds above for indicies
-	xBevScl: how much to divide the end (+- x axis) bevel dimensions.  Set to current average radius to compensate for angular distortion on curved blocks
-	'''
+    Offsets: list of coordinate delta values.
+        Offsets are lists, [x,y,z] in
+            [
+            0:left_bottom_back,
+            1:left_bottom_front,
+            2:left_top_back,
+            3:left_top_front,
+            4:right_bottom_back,
+            5:right_bottom_front,
+            6:right_top_back,
+            7:right_top_front,
+            ]
+    FaceExclude: list of faces to exclude from the faces list.  see bounds above for indicies
+    xBevScl: how much to divide the end (+- x axis) bevel dimensions.  Set to current average radius to compensate for angular distortion on curved blocks
+    '''
 
     slices = fill(bounds[0], bounds[1], segsize, segsize, center=1)
     points = []
@@ -305,18 +305,18 @@ def MakeABlock(bounds, segsize, vll=0, Offsets=None, FaceExclude=[],
 #For generating Keystone Geometry
 def MakeAKeystone(xpos, width, zpos, ztop, zbtm, thick, bevel, vll=0, FaceExclude=[], xBevScl=1):
     __doc__ = '''\
-	MakeAKeystone returns lists of points and faces to be made into a square cornered keystone, with optional bevels.
-	xpos: x position of the centerline
-	width: x width of the keystone at the widest point (discounting bevels)
-	zpos: z position of the widest point
-	ztop: distance from zpos to the top
-	zbtm: distance from zpos to the bottom
-	thick: thickness
+    MakeAKeystone returns lists of points and faces to be made into a square cornered keystone, with optional bevels.
+    xpos: x position of the centerline
+    width: x width of the keystone at the widest point (discounting bevels)
+    zpos: z position of the widest point
+    ztop: distance from zpos to the top
+    zbtm: distance from zpos to the bottom
+    thick: thickness
     bevel: the amount to raise the back vertex to account for arch beveling
-	vll: the number of vertexes already in the mesh. len(mesh.verts) should give this number
-	faceExclude: list of faces to exclude from the faces list.  0:left, 1:right, 2:bottom, 3:top, 4:back, 5:front
-	xBevScl: how much to divide the end (+- x axis) bevel dimensions.  Set to current average radius to compensate for angular distortion on curved blocks
-	'''
+    vll: the number of vertexes already in the mesh. len(mesh.verts) should give this number
+    faceExclude: list of faces to exclude from the faces list.  0:left, 1:right, 2:bottom, 3:top, 4:back, 5:front
+    xBevScl: how much to divide the end (+- x axis) bevel dimensions.  Set to current average radius to compensate for angular distortion on curved blocks
+    '''
 
     points = []
     faces = []
@@ -326,7 +326,7 @@ def MakeAKeystone(xpos, width, zpos, ztop, zbtm, thick, bevel, vll=0, FaceExclud
     Btm = zpos - zbtm
     Wid = width/2.
     Thk = thick/2.
-    
+
     # The front top point
     points.append([xpos, Thk, Top])
     # The front left point
@@ -335,7 +335,7 @@ def MakeAKeystone(xpos, width, zpos, ztop, zbtm, thick, bevel, vll=0, FaceExclud
     points.append([xpos, Thk, Btm])
     # The front right point
     points.append([xpos+Wid, Thk, zpos])
-    
+
     MirrorPoints = []
     for i in points:
         MirrorPoints.append([i[0],-i[1],i[2]])
@@ -358,10 +358,10 @@ def MakeAKeystone(xpos, width, zpos, ztop, zbtm, thick, bevel, vll=0, FaceExclud
 #for finding line/circle intercepts
 def circ(offs=0.,r=1.):
     __doc__ = """\
-	offs is the distance perpendicular to the line to the center of the circle
-	r is the radius of the circle
-	circ returns the distance paralell to the line to the center of the circle at the intercept.
-	"""
+    offs is the distance perpendicular to the line to the center of the circle
+    r is the radius of the circle
+    circ returns the distance paralell to the line to the center of the circle at the intercept.
+    """
     offs = abs(offs)
     if offs > r: return None
     elif offs == r: return 0.
@@ -371,11 +371,11 @@ def circ(offs=0.,r=1.):
 #class openings in the wall
 class opening:
     __doc__ = """\
-	This is the class for holding the data for the openings in the wall.
-	It has methods for returning the edges of the opening for any given position value,
-	as well as bevel settings and top and bottom positions.
-	It stores the 'style' of the opening, and all other pertinent information.
-	"""
+    This is the class for holding the data for the openings in the wall.
+    It has methods for returning the edges of the opening for any given position value,
+    as well as bevel settings and top and bottom positions.
+    It stores the 'style' of the opening, and all other pertinent information.
+    """
     # x = 0. # x position of the opening
     # z = 0. # x position of the opening
     # w = 0. # width of the opening
@@ -396,12 +396,12 @@ class opening:
 
     def btm(self):
         if self.vl <= self.w/2 : return self.z-self.h/2-self.vl-self.rtl
-        else: return self.z - sqrt((self.rl+self.rtl)**2 - (self.rl - self.w/2 )**2)  - self.h/2 
+        else: return self.z - sqrt((self.rl+self.rtl)**2 - (self.rl - self.w/2 )**2)  - self.h/2
 
 
     def top(self):
         if self.v <= self.w/2 : return self.z+self.h/2+self.v+self.rt
-        else: return sqrt((self.r+self.rt)**2 - (self.r - self.w/2 )**2) + self.z + self.h/2 
+        else: return sqrt((self.r+self.rt)**2 - (self.r - self.w/2 )**2) + self.z + self.h/2
 
 
     #crits returns the critical split points, or discontinuities, used for making rows
@@ -497,14 +497,14 @@ class opening:
         dist = abs(self.x-ht)
         def radialAdjust(dist, sideVal):
             '''take the distance and adjust for radial geometry, return dist.
-			'''
+            '''
             if radialized:
                 if slope:
                     dist = dist * abs(dims['t']*sin(sideVal*PI/(dims['t']*2)))
                 else:
                     dist = dist * sideVal
             return dist
-        
+
         if s > 0 :#and (dist <= self.edgeS(self.z+self.h/2+self.c,1)-self.x): #check top down
             #hack for radialized masonry, import approx Z instead of self.top()
             dist = radialAdjust(dist, self.top())
@@ -540,7 +540,7 @@ class opening:
                     return None
                 else: return self.z-self.h/2-circVal
 
-            #old conditional? if (dist-self.w/2+self.rl)<=(self.rl+self.rtl): 
+            #old conditional? if (dist-self.w/2+self.rl)<=(self.rl+self.rtl):
             #domed arch on bottom
             else:
                 circVal = circ(dist,self.rl+self.rtl) # dist-self.w/2+self.rl
@@ -548,7 +548,7 @@ class opening:
                     return None
                 else: return self.z-self.h/2-self.vl+self.rl-circVal
 
-	# and this never happens - but, leave it as failsafe :)
+    # and this never happens - but, leave it as failsafe :)
         print("got all the way out of the edgeV!  Not good!")
         print("opening x = ", self.x, ", opening z = ", self.z)
         return 0.0
@@ -622,10 +622,10 @@ class OpeningInv(opening):
 #class rows in the wall
 class rowOb:
     __doc__ = """\
-	This is the class for holding the data for individual rows of blocks.
-	each row is required to have some edge blocks, and can also have
-	intermediate sections of "normal" blocks.
-	"""
+    This is the class for holding the data for individual rows of blocks.
+    each row is required to have some edge blocks, and can also have
+    intermediate sections of "normal" blocks.
+    """
 
     #z = 0.
     #h = 0.
@@ -701,16 +701,16 @@ class rowOb:
 #
 def arch(ra,rt,x,z, archStart, archEnd, bevel, bevAngle, vll):
     __doc__ = '''\
-	Makes a list of faces and vertexes for arches.
-	ra: the radius of the arch, to the center of the bricks
-	rt: the thickness of the arch
-	x: x center location of the circular arc, as if the arch opening were centered on x = 0
-	z: z center location of the arch
-	anglebeg: start angle of the arch, in radians, from vertical?
-	angleend: end angle of the arch, in radians, from vertical?
-	bevel: how much to bevel the inside of the arch.
-	vll: how long is the vertex list already?
-	'''
+    Makes a list of faces and vertexes for arches.
+    ra: the radius of the arch, to the center of the bricks
+    rt: the thickness of the arch
+    x: x center location of the circular arc, as if the arch opening were centered on x = 0
+    z: z center location of the arch
+    anglebeg: start angle of the arch, in radians, from vertical?
+    angleend: end angle of the arch, in radians, from vertical?
+    bevel: how much to bevel the inside of the arch.
+    vll: how long is the vertex list already?
+    '''
     avlist = []
     aflist = []
 
@@ -728,11 +728,11 @@ def arch(ra,rt,x,z, archStart, archEnd, bevel, bevAngle, vll):
     SetDepthVar = settings['dv']
 
     # Init loop variables
-    
+
     def bevelEdgeOffset(offsets, bevel, side):
         '''
         Take the block offsets and modify it for the correct bevel.
-        
+
         offsets = the offset list. See MakeABlock
         bevel = how much to offset the edge
         side = -1 for left (right side), 1 for right (left side)
@@ -773,7 +773,7 @@ def arch(ra,rt,x,z, archStart, archEnd, bevel, bevAngle, vll):
 
         geom = MakeABlock([divs[i]+grt, divs[i+1]-grt, ArchInner, ArchOuter, DepthBack, DepthFront],
                           subdivision, len(avlist) + vll, ThisOffset, [], None, ra)
-        
+
         avlist += geom[0]
         aflist += geom[1]
 
@@ -802,9 +802,9 @@ def arch(ra,rt,x,z, archStart, archEnd, bevel, bevAngle, vll):
 #
 def sketch():
     __doc__ = """\
-	The 'sketch' function creates a list of openings from the general specifications passed to it.
-	It takes curved and domed walls into account, placing the openings at the appropriate angular locations
-	"""
+    The 'sketch' function creates a list of openings from the general specifications passed to it.
+    It takes curved and domed walls into account, placing the openings at the appropriate angular locations
+    """
     boundlist = []
     for x in openingSpecs:
         if x['rp']:
@@ -829,12 +829,12 @@ def sketch():
 
 def wedgeBlocks(row, opening, leftPos, rightPos, edgeBinary, r1):
     __doc__ = """\
-	Makes wedge blocks for the left and right sides, depending
-	example:
-	wedgeBlocks(row, LeftWedgeEdge, LNerEdge, LEB, r1)
-	wedgeBlocks(row, RNerEdge, RightWedgeEdge, REB, r1)
-	"""
-    wedgeEdges = fill(leftPos, rightPos, settings['w']/r1, settings['wm']/r1, 
+    Makes wedge blocks for the left and right sides, depending
+    example:
+    wedgeBlocks(row, LeftWedgeEdge, LNerEdge, LEB, r1)
+    wedgeBlocks(row, RNerEdge, RightWedgeEdge, REB, r1)
+    """
+    wedgeEdges = fill(leftPos, rightPos, settings['w']/r1, settings['wm']/r1,
                       settings['wv']/r1)
 
     for i in range(len(wedgeEdges)-1):
@@ -872,12 +872,12 @@ def wedgeBlocks(row, opening, leftPos, rightPos, edgeBinary, r1):
 
 def bevelBlockOffsets(offsets, bevel, side):
     '''
-	Take the block offsets and modify it for the correct bevel.
-    
+    Take the block offsets and modify it for the correct bevel.
+
     offsets = the offset list. See MakeABlock
     bevel = how much to offset the edge
     side = -1 for left (right side), 1 for right (left side)
-	'''
+    '''
 #    left = (4,6)
 #    right = (0,2)
     if side == 1: pointsToAffect = (0,2) # right
@@ -888,8 +888,8 @@ def bevelBlockOffsets(offsets, bevel, side):
 
 def rowProcessing(row, Thesketch, WallBoundaries):
     __doc__ = """\
-	Take row and opening data and process a single row, adding edge and fill blocks to the row data.
-	"""
+    Take row and opening data and process a single row, adding edge and fill blocks to the row data.
+    """
     #set end blocks
     #check for openings, record top and bottom of row for right and left of each
     #if both top and bottom intersect create blocks on each edge, appropriate to the size of the overlap
@@ -980,7 +980,7 @@ def rowProcessing(row, Thesketch, WallBoundaries):
             LFarEdge = LTop #The furthest edge left
             LNerEdge = LBtm #the nearer edge left
             LEB = 1 #Left Edge Boolean, set to 1 if furthest edge is top, -1 if it is bottom
-        else: 
+        else:
             LFarEdge = LBtm
             LNerEdge = LTop
             LEB = -1
@@ -990,7 +990,7 @@ def rowProcessing(row, Thesketch, WallBoundaries):
             RNerEdge = RBtm #the nearer edge right
             REB = 1 #Right Edge Boolean, set to 1 if furthest edge is top, -1 if it is bottom
 
-        else: 
+        else:
             RFarEdge = RBtm #The furthest edge right
             RNerEdge = RTop
             REB = -1 #Right Edge Boolean, set to 1 if furthest edge is top, -1 if it is bottom
@@ -1041,7 +1041,7 @@ def rowProcessing(row, Thesketch, WallBoundaries):
             ThisBlockDepth = rndd()*settings['dv']+settings['d']
             BtmOff = LBtm - LNerEdge
             TopOff = LTop - LNerEdge
-            ThisBlockOffsets = [[BtmOff,0,0]]*2 + [[TopOff,0,0]]*2 
+            ThisBlockOffsets = [[BtmOff,0,0]]*2 + [[TopOff,0,0]]*2
             BtmOff = RBtm - RNerEdge
             TopOff = RTop - RNerEdge
             ThisBlockOffsets += [[BtmOff,0,0]]*2 + [[TopOff,0,0]]*2
@@ -1051,7 +1051,7 @@ def rowProcessing(row, Thesketch, WallBoundaries):
             bevelBlockOffsets(ThisBlockOffsets, bevel, -1)
             row.BlocksEdge.append([x,row.z,w,row.h,ThisBlockDepth,ThisBlockOffsets])
             continue
-        
+
         # it's not one block, must be two or more
         # set up the offsets for the left
         BtmOff = LBtm - LNerEdge
@@ -1069,7 +1069,7 @@ def rowProcessing(row, Thesketch, WallBoundaries):
         if (InnerDiff < MaxWid*2):
         #this row is just two blocks! Left block, then right block
             #div is the x position of the dividing point between the two bricks
-            div = InnerMid + (rndd()*settings['wv'])/r1 
+            div = InnerMid + (rndd()*settings['wv'])/r1
             #set the grout distance, since we need grout seperation between the blocks
             grt = (settings['g'] + rndc()*settings['gv'])/r1
             #set the x position and width for the left block
@@ -1123,12 +1123,12 @@ def rowProcessing(row, Thesketch, WallBoundaries):
 
 def plan(Thesketch, oldrows = 0):
     __doc__ = """\
-	The 'plan' function takes the data generated by the sketch function and the global settings
-	and creates a list of blocks.
-	It passes out a list of row heights, edge positions, edge blocks, and rows of blocks.
-	"""
+    The 'plan' function takes the data generated by the sketch function and the global settings
+    and creates a list of blocks.
+    It passes out a list of row heights, edge positions, edge blocks, and rows of blocks.
+    """
     # if we were passed a list of rows already, use those; else make a list.
-    if oldrows: rows = oldrows 
+    if oldrows: rows = oldrows
     else:
         #rows holds the important information common to all rows
         #rows = [list of row objects]
@@ -1209,16 +1209,16 @@ def plan(Thesketch, oldrows = 0):
 
 def archGeneration(hole, vlist, flist, sideSign):
     __doc__ = """\
-	Makes arches for the top and bottom, depending on sideSign
-	example, Lower arch:
-	archGeneration(hole, vlist, flist, -1)
-	example, Upper arch:
-	archGeneration(hole, vlist, flist, 1)
+    Makes arches for the top and bottom, depending on sideSign
+    example, Lower arch:
+    archGeneration(hole, vlist, flist, -1)
+    example, Upper arch:
+    archGeneration(hole, vlist, flist, 1)
     hole is the opening object that the arch is for
     add the verticies to vlist
     add the faces to flist
     sideSign is + or - 1, for the top or bottom arch. Other values may cause errors.
-	"""
+    """
 
     # working arrays for vectors and faces
     avlist = []
@@ -1360,7 +1360,7 @@ def archGeneration(hole, vlist, flist, sideSign):
                 topSide = zstart
                 btmSide = zstart-height
             # Do some stuff to incorporate bev here
-            bevelBlockOffsets(offsets, bev, -1)        
+            bevelBlockOffsets(offsets, bev, -1)
 
             avlist,aflist = MakeABlock([x-xstart-width, x-xstart- woffset, btmSide, topSide, -depth/2, depth/2], subdivision, len(vlist), Offsets=offsets, xBevScl=1)
 
@@ -1372,11 +1372,11 @@ def archGeneration(hole, vlist, flist, sideSign):
             flist += aflist
 
 # keep sizing same - neat arches = master masons :)
-#			grt = (settings['g'] + rndc()*settings['gv'])
-#			height = c - grt*(0.5 + c/(width + grt))
+#           grt = (settings['g'] + rndc()*settings['gv'])
+#           height = c - grt*(0.5 + c/(width + grt))
 # if grout varies may as well change width too... width = sqrt(rt**2 - c**2) - grt
-#			voff = sideSign * (settings['hm'] - height)
-#			woffset = width*(settings['hm'] + grt/2)/(c - grt/2)
+#           voff = sideSign * (settings['hm'] - height)
+#           woffset = width*(settings['hm'] + grt/2)/(c - grt/2)
 
             if sideSign == 1:
                 offsets = [[0]*3]*2 + [[0]*2 + [voff]]*2 + [[0]*3]*4
@@ -1402,12 +1402,12 @@ def archGeneration(hole, vlist, flist, sideSign):
 
 def build(Aplan):
     __doc__ = """\
-	Build creates the geometry for the wall, based on the
-	"Aplan" object from the "plan" function.  If physics is
-	enabled, then it make a number of individual blocks with
-	physics	interaction enabled.  Otherwise it creates
-	geometry for the blocks, arches, etc. of the wall.
-	"""
+    Build creates the geometry for the wall, based on the
+    "Aplan" object from the "plan" function.  If physics is
+    enabled, then it make a number of individual blocks with
+    physics interaction enabled.  Otherwise it creates
+    geometry for the blocks, arches, etc. of the wall.
+    """
 
     vlist = []
     flist = []
@@ -1416,40 +1416,40 @@ def build(Aplan):
 #dead code...
     #Physics setup is horribly broken.  Revisit when new API is in place.
     '''if False: #settings['physics']:
-		geom = MakeABlock([-0.5,0.5,-0.5,0.5,-0.5,0.5], 3, 0, None,[], 3*settings['b']/(settings['w'] + settings['h'] + settings['d']))
-		blockmesh = Blender.Mesh.New('block')
-		vlist += geom[0]
-		flist += geom[1]
-		blockmesh.verts.extend(vlist)
-		blockmesh.faces.extend(flist)
+        geom = MakeABlock([-0.5,0.5,-0.5,0.5,-0.5,0.5], 3, 0, None,[], 3*settings['b']/(settings['w'] + settings['h'] + settings['d']))
+        blockmesh = Blender.Mesh.New('block')
+        vlist += geom[0]
+        flist += geom[1]
+        blockmesh.verts.extend(vlist)
+        blockmesh.faces.extend(flist)
 
-		for block in Aplan[1]:
-			x,z,w,h,d = block[:5]
-			block = scn.objects.new(blockmesh, 'block')
-			block.loc = [x, 0, z]
-			block.size = [w,d,h]
-			block.rbFlags = Blender.Object.RBFlags['BOUNDS'] | Blender.Object.RBFlags['ACTOR'] | Blender.Object.RBFlags['DYNAMIC'] | Blender.Object.RBFlags['RIGIDBODY']
-			block.rbShapeBoundType = Blender.Object.RBShapes['BOX']
+        for block in Aplan[1]:
+            x,z,w,h,d = block[:5]
+            block = scn.objects.new(blockmesh, 'block')
+            block.loc = [x, 0, z]
+            block.size = [w,d,h]
+            block.rbFlags = Blender.Object.RBFlags['BOUNDS'] | Blender.Object.RBFlags['ACTOR'] | Blender.Object.RBFlags['DYNAMIC'] | Blender.Object.RBFlags['RIGIDBODY']
+            block.rbShapeBoundType = Blender.Object.RBShapes['BOX']
 
 
-		for row in Aplan[2]:#row=[xstart,xend,z,h]
-			#currently, radial geometry is disabled for physics blocks setup
-			if radialized:
-				if slope: r1 = dims['t']*sin(row[2]*PI/(dims['t']*2))
-				else: r1 = row[2]
+        for row in Aplan[2]:#row=[xstart,xend,z,h]
+            #currently, radial geometry is disabled for physics blocks setup
+            if radialized:
+                if slope: r1 = dims['t']*sin(row[2]*PI/(dims['t']*2))
+                else: r1 = row[2]
 
-			else: r1 = 1 
+            else: r1 = 1
 
-			divs = fill(row[0], row[1], settings['w'], settings['wm'], settings['wv'])
-			for i in range(len(divs)-1):
-				block = scn.objects.new(blockmesh, 'block')
-				block.loc = [(divs[i]+divs[i+1])/2, 0, row[2]]
-				block.size = [(divs[i + 1] - divs[i]) - settings['g'], (settings['d'] + rndd()*settings['dv'])*(1-settings['t']*((row[3]-dims['b'])/(dims['t'] - dims['b']))), row[3]]
-				block.rbFlags = Blender.Object.RBFlags['BOUNDS'] | Blender.Object.RBFlags['ACTOR'] | Blender.Object.RBFlags['DYNAMIC'] | Blender.Object.RBFlags['RIGIDBODY']
-				block.rbShapeBoundType = Blender.Object.RBShapes['BOX']
+            divs = fill(row[0], row[1], settings['w'], settings['wm'], settings['wv'])
+            for i in range(len(divs)-1):
+                block = scn.objects.new(blockmesh, 'block')
+                block.loc = [(divs[i]+divs[i+1])/2, 0, row[2]]
+                block.size = [(divs[i + 1] - divs[i]) - settings['g'], (settings['d'] + rndd()*settings['dv'])*(1-settings['t']*((row[3]-dims['b'])/(dims['t'] - dims['b']))), row[3]]
+                block.rbFlags = Blender.Object.RBFlags['BOUNDS'] | Blender.Object.RBFlags['ACTOR'] | Blender.Object.RBFlags['DYNAMIC'] | Blender.Object.RBFlags['RIGIDBODY']
+                block.rbShapeBoundType = Blender.Object.RBShapes['BOX']
 
-		return None'''
-#end dead code...		
+        return None'''
+#end dead code...
 
     # all the edge blocks, redacted
     #AllBlocks = [[x,z,w,h,d,[corner offset matrix]],[etc.]]
@@ -1499,7 +1499,7 @@ def build(Aplan):
                 else: idxThat -= 1
 
     #
-    # 
+    #
     # Add blocks to create a "shelf/platform".
     # Does not account for openings (crosses gaps - which is a good thing)
     if shelfExt:
@@ -1526,7 +1526,7 @@ def build(Aplan):
         else:
             ShelfOffsets = [[0,-wallDepth,0],[0,-ShelfThk/2,0],[0,-wallDepth,0],[0,-ShelfThk/2,0],[0,-wallDepth,0],[0,-ShelfThk/2,0],[0,-wallDepth,0],[0,-ShelfThk/2,0]]
 
-	# Add blocks for each "shelf row" in area
+    # Add blocks for each "shelf row" in area
         while ShelfBtm < ShelfTop:
 
             # Make blocks for each row - based on rowOb::fillblocks
@@ -1542,7 +1542,7 @@ def build(Aplan):
 
             ShelfBtm += SetBH + SetGrtOff # moving up to next row...
     #
-    # 
+    #
     # Add blocks to create "steps".
     # Does not account for openings (crosses gaps - which is a good thing)
     if stepMod:
@@ -1571,7 +1571,7 @@ def build(Aplan):
         else:
             StepOffsets = [[0,-wallDepth,0],[0,-StepThk/2,0],[0,-wallDepth,0],[0,-StepThk/2,0],[0,-wallDepth,0],[0,-StepThk/2,0],[0,-wallDepth,0],[0,-StepThk/2,0]]
 
-	# Add steps for each "step row" in area (neg width is interesting but prevented)
+    # Add steps for each "step row" in area (neg width is interesting but prevented)
         while StepBtm < StepTop and StepWide > 0:
 
             # Make blocks for each step row - based on rowOb::fillblocks
@@ -1650,8 +1650,8 @@ def build(Aplan):
 def createWall(radial, curve, openings, mergeBlox, shelf, shelfSide,
         steps, stepDir, stepBare, stepSide):
     __doc__ = """\
-	Call all the funcitons you need to make a wall, return the verts and faces.
-	"""
+    Call all the funcitons you need to make a wall, return the verts and faces.
+    """
     global radialized
     global slope
     global openingSpecs

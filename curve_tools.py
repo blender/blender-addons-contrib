@@ -1186,7 +1186,7 @@ class CutCurveOperator(bpy.types.Operator):
 			cutcurve(context.object, self.t, self.method)
 			return {'FINISHED'}
 
-		elif event.type in ('RIGHTMOUSE', 'ESC'):
+		elif event.type in {'RIGHTMOUSE', 'ESC'}:
 			#print("Cancelled")
 			
 			return {'CANCELLED'}
