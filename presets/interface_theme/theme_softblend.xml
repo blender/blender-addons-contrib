@@ -1,4 +1,3 @@
-<!-- Softblend theme by Martin Lindelof -->
 <bpy>
   <Theme name="Default">
     <view_3d>
@@ -535,16 +534,16 @@
           </ThemeWidgetColors>
         </wcol_radio>
         <wcol_regular>
-            <ThemeWidgetColors inner="#000000ff"
-                               inner_sel="#ff0900ff"
-                               item="#000000ff"
-                               outline="#ffffff"
-                               shadedown="0"
-                               shadetop="0"
-                               show_shaded="FALSE"
-                               text="#808080"
-                               text_sel="#ffff00">
-            </ThemeWidgetColors>
+          <ThemeWidgetColors inner="#999999ff"
+                             inner_sel="#646464ff"
+                             item="#191919ff"
+                             outline="#191919"
+                             shadedown="0"
+                             shadetop="0"
+                             show_shaded="FALSE"
+                             text="#000000"
+                             text_sel="#ffffff">
+          </ThemeWidgetColors>
         </wcol_regular>
         <wcol_scroll>
           <ThemeWidgetColors inner="#a4a2a0ff"
@@ -596,7 +595,7 @@
           <ThemeWidgetColors inner="#a8a6a4ff"
                              inner_sel="#95adc1ff"
                              item="#aaa8a6ff"
-                             outline="#aaa8a6"
+                             outline="#3b3b3a"
                              shadedown="0"
                              shadetop="-3"
                              show_shaded="TRUE"
