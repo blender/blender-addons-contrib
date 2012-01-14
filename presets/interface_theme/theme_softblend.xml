@@ -30,9 +30,6 @@
                    handle_free="#cccccc"
                    handle_sel_free="#ffffff"
                    grid="#6e6e6e"
-                   header="#aaa8a6"
-                   header_text="#000000"
-                   header_text_hi="#ffffff"
                    lamp="#ffe56666"
                    lastsel_point="#ffffff"
                    nurb_uline="#a3a3a3"
@@ -44,14 +41,7 @@
                    object_selected="#88fca7"
                    outline_width="1"
                    panel="#aaa8a6ff"
-                   button="#aaa8a6"
-                   button_text="#222222"
-                   button_text_hi="#ffffff"
-                   button_title="#313131"
                    speaker="#000000"
-                   text="#ffffff"
-                   text_hi="#ffffff"
-                   title="#ffffff"
                    transform="#ffffff"
                    handle_vect="#afafaf"
                    handle_sel_vect="#ffffff"
@@ -59,8 +49,21 @@
                    vertex_normal="#68a1db"
                    vertex_select="#ff2f7a"
                    vertex_size="4"
-                   back="#918f8d"
                    wire="#242424">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#000000"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#222222"
+                             button_text_hi="#ffffff"
+                             button_title="#313131"
+                             text="#ffffff"
+                             text_hi="#ffffff"
+                             title="#ffffff"
+                             back="#918f8d">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeView3D>
     </view_3d>
     <clip_editor>
@@ -71,42 +74,48 @@
                        handle_vertex="#000000"
                        handle_vertex_select="#ff2f7a"
                        handle_vertex_size="4"
-                       header="#aaa8a6"
-                       header_text="#000000"
-                       header_text_hi="#ffffff"
                        locked_marker="#7f7f7f"
                        marker="#71cd7f"
                        marker_outline="#000000"
                        path_after="#5a7575"
                        path_before="#22d8d1"
-                       button="#aaa8a6"
-                       button_text="#222222"
-                       button_text_hi="#ffffff"
-                       button_title="#222222"
-                       selected_marker="#ff2f7a"
-                       text="#1a1a1a"
-                       text_hi="#ffffff"
-                       title="#1a1a1a"
-                       back="#aaa8a6">
+                       selected_marker="#ff2f7a">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#000000"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#222222"
+                             button_text_hi="#ffffff"
+                             button_title="#222222"
+                             text="#1a1a1a"
+                             text_hi="#ffffff"
+                             title="#1a1a1a"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeClipEditor>
     </clip_editor>
     <console>
       <ThemeConsole cursor="#9cfcc8"
-                    header="#aaa8a6"
-                    header_text="#000000"
-                    header_text_hi="#ffffff"
                     line_error="#dc3a77"
                     line_info="#00aa00"
                     line_input="#ffffff"
-                    line_output="#6080ff"
-                    button="#4d4d4d"
-                    button_text="#131313"
-                    button_text_hi="#ffffff"
-                    button_title="#131313"
-                    text="#000000"
-                    text_hi="#ffffff"
-                    title="#000000"
-                    back="#0c0c0c">
+                    line_output="#6080ff">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#000000"
+                             header_text_hi="#ffffff"
+                             button="#4d4d4d"
+                             button_text="#131313"
+                             button_text_hi="#ffffff"
+                             button_title="#131313"
+                             text="#000000"
+                             text_hi="#ffffff"
+                             title="#000000"
+                             back="#0c0c0c">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeConsole>
     </console>
     <dopesheet_editor>
@@ -118,49 +127,61 @@
                       dopesheet_channel="#9baeb9"
                       dopesheet_subchannel="#aaa8a6"
                       grid="#7f7f7f"
-                      header="#aaa8a6"
-                      header_text="#000000"
-                      header_text_hi="#ffffff"
                       long_key="#0c0a0a"
                       long_key_selected="#ecfc37"
-                      button="#aaa8a6"
-                      button_text="#111111"
-                      button_text_hi="#a3a3a3"
-                      button_title="#111111"
-                      list="#aaa8a6"
-                      list_text="#222222"
-                      list_text_hi="#ffffff"
-                      list_title="#cccccc"
-                      text="#222222"
-                      text_hi="#ffffff"
-                      title="#ffffff"
                       value_sliders="#000000"
-                      view_sliders="#333333"
-                      back="#aaa8a6">
+                      view_sliders="#333333">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#000000"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#111111"
+                             button_text_hi="#a3a3a3"
+                             button_title="#111111"
+                             text="#222222"
+                             text_hi="#ffffff"
+                             title="#ffffff"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
+        <space_list>
+          <ThemeSpaceListGeneric list="#aaa8a6"
+                                 list_text="#222222"
+                                 list_text_hi="#ffffff"
+                                 list_title="#cccccc">
+          </ThemeSpaceListGeneric>
+        </space_list>
       </ThemeDopeSheet>
     </dopesheet_editor>
     <file_browser>
       <ThemeFileBrowser active_file="#f1e593"
                         active_file_text="#ffffff"
-                        header="#aaa8a6"
-                        header_text="#afafaf"
-                        header_text_hi="#ffffff"
-                        button="#aaa8a6"
-                        button_text="#cccccc"
-                        button_text_hi="#ffffff"
-                        button_title="#222222"
                         scroll_handle="#8c8a88"
                         scrollbar="#4d4b4d"
                         selected_file="#f1e593"
-                        list="#aaa8a6"
-                        list_text="#7f7f7f"
-                        list_text_hi="#ffffff"
-                        list_title="#3a3a3a"
-                        text="#222222"
-                        text_hi="#ffffff"
-                        tiles="#aaa8a6"
-                        title="#ffffff"
-                        back="#aaa8a6">
+                        tiles="#aaa8a6">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#afafaf"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#cccccc"
+                             button_text_hi="#ffffff"
+                             button_title="#222222"
+                             text="#222222"
+                             text_hi="#ffffff"
+                             title="#ffffff"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
+        <space_list>
+          <ThemeSpaceListGeneric list="#aaa8a6"
+                                 list_text="#7f7f7f"
+                                 list_text_hi="#ffffff"
+                                 list_title="#3a3a3a">
+          </ThemeSpaceListGeneric>
+        </space_list>
       </ThemeFileBrowser>
     </file_browser>
     <graph_editor>
@@ -182,29 +203,35 @@
                         handle_vertex="#525252"
                         handle_vertex_select="#f1f1f1"
                         handle_vertex_size="6"
-                        header="#aaa8a6"
-                        header_text="#000000"
-                        header_text_hi="#ffffff"
                         lastsel_point="#000000"
                         panel="#989898"
-                        button="#aaa8a6"
-                        button_text="#222222"
-                        button_text_hi="#ffffff"
-                        button_title="#333333"
-                        list="#aaa8a6"
-                        list_text="#222222"
-                        list_text_hi="#ffffff"
-                        list_title="#676767"
-                        text="#222222"
-                        text_hi="#ffffff"
-                        title="#000000"
                         handle_vect="#191919"
                         handle_sel_vect="#ffffff"
                         vertex="#575757"
                         vertex_select="#ffffff"
                         vertex_size="3"
-                        back="#aaa8a6"
                         window_sliders="#4d4d4d">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#000000"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#222222"
+                             button_text_hi="#ffffff"
+                             button_title="#333333"
+                             text="#222222"
+                             text_hi="#ffffff"
+                             title="#000000"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
+        <space_list>
+          <ThemeSpaceListGeneric list="#aaa8a6"
+                                 list_text="#222222"
+                                 list_text_hi="#ffffff"
+                                 list_title="#676767">
+          </ThemeSpaceListGeneric>
+        </space_list>
       </ThemeGraphEditor>
     </graph_editor>
     <image_editor>
@@ -213,50 +240,60 @@
                         face_dot="#ffffff"
                         facedot_size="2"
                         face_select="#ffffff3c"
-                        header="#aaa8a6"
-                        header_text="#000000"
-                        header_text_hi="#ffffff"
-                        button="#aaa8a6"
-                        button_text="#222222"
-                        button_text_hi="#ffffff"
-                        button_title="#383838"
                         scope_back="#aaa8a6ff"
-                        text="#ffffff"
-                        text_hi="#ffffff"
-                        title="#000000"
                         vertex="#000000"
                         vertex_select="#ffffff"
-                        vertex_size="3"
-                        back="#2d2d2d">
+                        vertex_size="3">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#000000"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#222222"
+                             button_text_hi="#ffffff"
+                             button_title="#383838"
+                             text="#ffffff"
+                             text_hi="#ffffff"
+                             title="#000000"
+                             back="#2d2d2d">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeImageEditor>
     </image_editor>
     <info>
-      <ThemeInfo header="#aaa8a6"
-                 header_text="#000000"
-                 header_text_hi="#ffffff"
-                 button="#aaa8a6"
-                 button_text="#000000"
-                 button_text_hi="#ffffff"
-                 button_title="#000000"
-                 text="#000000"
-                 text_hi="#ffffff"
-                 title="#000000"
-                 back="#aaa8a6">
+      <ThemeInfo >
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#000000"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#000000"
+                             button_text_hi="#ffffff"
+                             button_title="#000000"
+                             text="#000000"
+                             text_hi="#ffffff"
+                             title="#000000"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeInfo>
     </info>
     <logic_editor>
-      <ThemeLogicEditor header="#aaa8a6"
-                        header_text="#000000"
-                        header_text_hi="#ffffff"
-                        panel="#aaa8a6"
-                        button="#aaa8a6"
-                        button_text="#222222"
-                        button_text_hi="#ffffff"
-                        button_title="#111111"
-                        text="#222222"
-                        text_hi="#ffffff"
-                        title="#202020"
-                        back="#aaa8a6">
+      <ThemeLogicEditor panel="#aaa8a6">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#000000"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#222222"
+                             button_text_hi="#ffffff"
+                             button_title="#111111"
+                             text="#222222"
+                             text_hi="#ffffff"
+                             title="#202020"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeLogicEditor>
     </logic_editor>
     <nla_editor>
@@ -264,80 +301,99 @@
                       bars_selected="#60c040"
                       frame_current="#a3ff96"
                       grid="#a39f9c"
-                      header="#aaa8a6"
-                      header_text="#a3a3a3"
-                      header_text_hi="#cccccc"
-                      button="#aaa8a6"
-                      button_text="#000000"
-                      button_text_hi="#ffffff"
-                      button_title="#000000"
-                      list="#aaa8a6"
-                      list_text="#000000"
-                      list_text_hi="#ffffff"
-                      list_title="#000000"
                       strips="#000000"
                       strips_selected="#60c040"
-                      text="#333333"
-                      text_hi="#ffffff"
-                      title="#000000"
-                      view_sliders="#4d4d4d"
-                      back="#aaa8a6">
+                      view_sliders="#4d4d4d">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#a3a3a3"
+                             header_text_hi="#cccccc"
+                             button="#aaa8a6"
+                             button_text="#000000"
+                             button_text_hi="#ffffff"
+                             button_title="#000000"
+                             text="#333333"
+                             text_hi="#ffffff"
+                             title="#000000"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
+        <space_list>
+          <ThemeSpaceListGeneric list="#aaa8a6"
+                                 list_text="#000000"
+                                 list_text_hi="#ffffff"
+                                 list_title="#000000">
+          </ThemeSpaceListGeneric>
+        </space_list>
       </ThemeNLAEditor>
     </nla_editor>
     <node_editor>
       <ThemeNodeEditor converter_node="#e6e397"
                        group_node="#dda865"
-                       header="#aaa8a6"
-                       header_text="#333333"
-                       header_text_hi="#ffffff"
                        in_out_node="#92b1d1"
                        node_backdrop="#aaa8a6ff"
                        noodle_curving="5"
                        operator_node="#9bcfa5"
-                       button="#aaa8a6"
-                       button_text="#222222"
-                       button_text_hi="#c5c5c5"
-                       button_title="#222222"
                        selected_text="#ffffff"
-                       list="#4d4d4d"
-                       list_text="#676767"
-                       list_text_hi="#ffffff"
-                       list_title="#383838"
-                       text="#222222"
-                       text_hi="#ffffff"
-                       title="#a3a3a3"
-                       back="#aaa8a6"
                        wire_select="#ffffff"
                        wire="#222222">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#333333"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#222222"
+                             button_text_hi="#c5c5c5"
+                             button_title="#222222"
+                             text="#222222"
+                             text_hi="#ffffff"
+                             title="#a3a3a3"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
+        <space_list>
+          <ThemeSpaceListGeneric list="#4d4d4d"
+                                 list_text="#676767"
+                                 list_text_hi="#ffffff"
+                                 list_title="#383838">
+          </ThemeSpaceListGeneric>
+        </space_list>
       </ThemeNodeEditor>
     </node_editor>
     <outliner>
-      <ThemeOutliner header="#aaa8a6"
-                     header_text="#000000"
-                     header_text_hi="#ffffff"
-                     button="#aaa8a6"
-                     button_text="#000000"
-                     button_text_hi="#ffffff"
-                     button_title="#0f0f0f"
-                     text="#000000"
-                     text_hi="#ffffff"
-                     title="#ffffff"
-                     back="#aaa8a6">
+      <ThemeOutliner >
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#000000"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#000000"
+                             button_text_hi="#ffffff"
+                             button_title="#0f0f0f"
+                             text="#000000"
+                             text_hi="#ffffff"
+                             title="#ffffff"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeOutliner>
     </outliner>
     <properties>
-      <ThemeProperties header="#aaa8a6"
-                       header_text="#222222"
-                       header_text_hi="#000000"
-                       panel="#aaa8a6"
-                       button="#aaa8a6"
-                       button_text="#222222"
-                       button_text_hi="#ffffff"
-                       button_title="#222222"
-                       text="#222222"
-                       text_hi="#ffffff"
-                       title="#222222"
-                       back="#aaa8a6">
+      <ThemeProperties panel="#aaa8a6">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#222222"
+                             header_text_hi="#000000"
+                             button="#aaa8a6"
+                             button_text="#222222"
+                             button_text_hi="#ffffff"
+                             button_title="#222222"
+                             text="#222222"
+                             text_hi="#ffffff"
+                             title="#222222"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeProperties>
     </properties>
     <sequence_editor>
@@ -346,64 +402,73 @@
                            draw_action="#50c8ff"
                            effect_strip="#be8c76"
                            grid="#afafaf"
-                           header="#aaa8a6"
-                           header_text="#a3a3a3"
-                           header_text_hi="#ffffff"
                            image_strip="#c99ac0"
                            keyframe="#ffeb89"
                            meta_strip="#91918d"
                            movie_strip="#87a4c3"
                            plugin_strip="#7e7e56"
-                           button="#aaa8a6"
-                           button_text="#111111"
-                           button_text_hi="#ffffff"
-                           button_title="#111111"
                            scene_strip="#91b1a0"
-                           text="#333333"
-                           text_hi="#ffffff"
-                           title="#000000"
                            transition_strip="#d9777a"
-                           back="#aaa8a6"
                            window_sliders="#777777">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#a3a3a3"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#111111"
+                             button_text_hi="#ffffff"
+                             button_title="#111111"
+                             text="#333333"
+                             text_hi="#ffffff"
+                             title="#000000"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeSequenceEditor>
     </sequence_editor>
     <text_editor>
       <ThemeTextEditor cursor="#54da70"
-                       header="#aaa8a6"
-                       header_text="#000000"
-                       header_text_hi="#ffffff"
                        line_numbers_background="#a3a3a3"
-                       button="#aaa8a6"
-                       button_text="#333333"
-                       button_text_hi="#ffffff"
-                       button_title="#222222"
                        scroll_bar="#8f8f8f"
                        selected_text="#f1e593"
                        syntax_builtin="#3162b2"
                        syntax_comment="#535353"
                        syntax_numbers="#b62440"
                        syntax_special="#ca0c97"
-                       syntax_string="#c31736"
-                       text="#222222"
-                       text_hi="#ffffff"
-                       title="#000000"
-                       back="#aaa8a6">
+                       syntax_string="#c31736">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#000000"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#333333"
+                             button_text_hi="#ffffff"
+                             button_title="#222222"
+                             text="#222222"
+                             text_hi="#ffffff"
+                             title="#000000"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeTextEditor>
     </text_editor>
     <timeline>
       <ThemeTimeline frame_current="#a3ff96"
-                     grid="#838383"
-                     header="#aaa8a6"
-                     header_text="#a3a3a3"
-                     header_text_hi="#ffffff"
-                     button="#aaa8a6"
-                     button_text="#222222"
-                     button_text_hi="#a3a3a3"
-                     button_title="#aeacaa"
-                     text="#222222"
-                     text_hi="#ffffff"
-                     title="#cccccc"
-                     back="#aaa8a6">
+                     grid="#838383">
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#a3a3a3"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#222222"
+                             button_text_hi="#a3a3a3"
+                             button_title="#aeacaa"
+                             text="#222222"
+                             text_hi="#ffffff"
+                             title="#cccccc"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeTimeline>
     </timeline>
     <user_interface>
@@ -619,17 +684,21 @@
       </ThemeUserInterface>
     </user_interface>
     <user_preferences>
-      <ThemeUserPreferences header="#aaa8a6"
-                            header_text="#000000"
-                            header_text_hi="#ffffff"
-                            button="#aaa8a6"
-                            button_text="#000000"
-                            button_text_hi="#ffffff"
-                            button_title="#000000"
-                            text="#222222"
-                            text_hi="#ffffff"
-                            title="#222222"
-                            back="#aaa8a6">
+      <ThemeUserPreferences >
+        <space>
+          <ThemeSpaceGeneric header="#aaa8a6"
+                             header_text="#000000"
+                             header_text_hi="#ffffff"
+                             button="#aaa8a6"
+                             button_text="#000000"
+                             button_text_hi="#ffffff"
+                             button_title="#000000"
+                             text="#222222"
+                             text_hi="#ffffff"
+                             title="#222222"
+                             back="#aaa8a6">
+          </ThemeSpaceGeneric>
+        </space>
       </ThemeUserPreferences>
     </user_preferences>
     <bone_color_sets>
