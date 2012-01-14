@@ -26,7 +26,6 @@ bl_info = {
     "author": "Jambay, Brikbot",
     "version": (0, 6, 0),
     "blender": (2, 6, 1),
-    "api": 43252,
     "location": "View3D > Add > Mesh",
     "description": "Adds a block/rock wall.",
     "warning": "WIP - updates pending and API not final for Blender",

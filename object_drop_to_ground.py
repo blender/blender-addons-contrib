@@ -20,7 +20,6 @@ bl_info = {
     "author": "Unnikrishnan(kodemax), Florian Meyer(testscreenings)",
     "version": (1, 1),
     "blender": (2, 5, 9),
-    "api": 39740,
     "location": "Tool shelf",
     "description": "Drops the selected objects to the active object",
     "warning": "Before using it do :- ctrl+a -> apply rotation on the object to be dropped",

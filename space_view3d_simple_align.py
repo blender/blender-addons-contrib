@@ -24,7 +24,6 @@ bl_info = {
     "author": "Gabriel Beaudin (gabhead)",
     "version": (0,1),
     "blender": (2, 6, 1),
-    "api": 43252,
     "location": "View3D > Tool Shelf > Simple Align Panel",
     "description": "Align Selected Objects to Active Object",
     "warning": "",

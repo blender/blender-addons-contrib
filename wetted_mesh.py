@@ -21,7 +21,6 @@ bl_info = {
     "author": "freejack",
     "version": (0, 2, 1),
     "blender": (2, 5, 8),
-    "api": 37699,
     "location": "View3D > Tool Shelf > Wetted Mesh Panel",
     "description": "Adds separated fluid, dry and wetted mesh for selected pair.",
     "warning": "",

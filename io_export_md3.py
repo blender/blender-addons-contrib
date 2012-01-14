@@ -21,7 +21,6 @@ bl_info = {
     'author': 'Xembie',
     'version': (0, 7),
     'blender': (2, 5, 3),
-    'api': 31667,
     'location': 'File > Export',
     'description': 'Save a Quake Model 3 File)',
     'warning': '', # used for warning icon and text in addons panel

@@ -43,7 +43,6 @@ bl_info = {
     "author": "Doug Hammond (dougal2)",
     "version": (0, 0, 1),
     "blender": (2, 5, 6),
-    "api": 35078,
     "category": "Object",
     "location": "Lamp data > Geographical Sun",
     "warning": "",

@@ -25,7 +25,6 @@ bl_info = {
     'author': 'Morgan Mörtsell (Seminumerical)',
     'version': (0, 7, 0),
     'blender': (2, 5, 9),
-    'api': 39307,
     'location': 'View3D > Properties > Cursor',
     'description': 'Control the Cursor',
     'warning': '', # used for warning icon and text in addons panel

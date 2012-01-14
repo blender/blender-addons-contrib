@@ -27,7 +27,6 @@ bl_info = {
     "author": "Jbakker",
     "version": (0, 1),
     "blender": (2, 6, 0),
-    "api": 41875,
     "location": "",
     "description": "Save the hotkeys as a .svg file (search: Keyboard)",
     "warning": "may not work in recent svn",

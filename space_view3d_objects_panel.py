@@ -21,7 +21,6 @@ bl_info = {
     "author": "Murat Egretli (Demohero)",
     "version": (1,2),
     "blender": (2, 6, 1),
-    "api": 43252,
     "location": "View3D > Toolbar",
     "description": "add objects(mesh, curve etc.) from Toolbar",
     "warning": "",

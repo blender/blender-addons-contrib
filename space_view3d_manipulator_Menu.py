@@ -24,7 +24,6 @@ bl_info = {
     'author': 'MichaelW',
     'version': (1, 2 ,1),
     'blender': (2, 6, 1),
-    "api": 41599,
     'location': 'View3D > Ctrl Space ',
     'description': 'Menu to change the manipulator type and/or disable it',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\

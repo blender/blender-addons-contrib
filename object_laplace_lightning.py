@@ -20,7 +20,6 @@ bl_info = {
     "author": "teldredge",
     "version": (0, 2, 6),
     "blender": (2, 6, 1),
-    "api": 43252,
     "location": "View3D > ToolShelf > Laplacian Lightning",
     "description": "Lightning mesh generator using laplacian growth algorithm",
     "warning": "Beta/Buggy.",

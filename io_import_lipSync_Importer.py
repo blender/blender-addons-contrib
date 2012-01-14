@@ -21,7 +21,6 @@ bl_info = {
     "author": "Yousef Harfoush - bat3a ;)",
     "version": (0, 4, 0),
     "blender": (2, 5, 9),
-    "api": 39900,
     "location": "3D window > Tool Shelf",
     "description": "Plot Moho (Papagayo, Jlipsync, Yolo) file to frames and adds automatic blinking",
     "warning": "",

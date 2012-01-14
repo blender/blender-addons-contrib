@@ -21,7 +21,6 @@ bl_info = {
     "author": "PKHG , Meta Androcto, Kilon original for 2.49 from Andy Houston",
     "version": (0,2,3),
     "blender": (2, 6, 1),
-    "api": 42662,
     "location": "View3D > UI > Geodesic...",
     "description": "Choice for objects",
     "warning": "not yet finished",

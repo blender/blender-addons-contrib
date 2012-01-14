@@ -27,7 +27,6 @@ bl_info = {
     'author': "Daniel Monteiro Basso <daniel@basso.inf.br>",
     'version': (2011, 10, 30, 1),
     'blender': (2, 6, 0),
-    'api': 41226,
     'location': "View3D > Tools",
     'description': "Assistant for using CMU Motion Capture data",
     'warning': '',

@@ -32,7 +32,6 @@ bl_info = {
     "author": "Nick van Adium",
     "version": (1,1),
     "blender": (2, 6, 1),
-    "api": 43252,
     "location": "View3D > Add > Stairs",
     "description": "Creates a straight-run staircase with railings and stringer",
     "warning": "Add-on is very feature incomplete beyond basic functionality.",

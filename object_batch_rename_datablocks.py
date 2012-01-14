@@ -21,7 +21,6 @@ bl_info = {
     "author": "tstscr",
     "version": (1, 0),
     "blender": (2, 5, 9),
-    "api": 39685,
     "location": "Search > (rename)",
     "description": "Batch renaming of datablocks (e.g. rename materials after objectnames)",
     "warning": "",

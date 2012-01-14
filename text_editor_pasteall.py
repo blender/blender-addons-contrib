@@ -21,7 +21,6 @@ bl_info = {
     "author": "Dalai Felinto (dfelinto)",
     "version": (0,7),
     "blender": (2, 6, 0),
-    "api": 41374,
     "location": "Text editor > Properties panel",
     "description": "Send your selection or text to www.pasteall.org",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\

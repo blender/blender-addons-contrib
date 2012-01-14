@@ -21,7 +21,6 @@ bl_info = {
     "author": "Valter Battioli (ValterVB)",
     "version": (1, 1, 8),
     "blender": (2, 5, 8),
-    "api": 37806,
     "location": "3D window > Tool Shelf",
     "description": "Import DTM from LRO Lola and MGS Mola",
     "warning": "May consume a lot of memory",

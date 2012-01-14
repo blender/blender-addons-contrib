@@ -24,7 +24,6 @@ bl_info = {
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D_interaction/Surround_Projection_Tools",
     'version': (0,1,2),
     'blender': (2, 6, 0),
-    'api': 41769,
     'category': '3D View'
 }
 

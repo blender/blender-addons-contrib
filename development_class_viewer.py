@@ -21,7 +21,6 @@ bl_info = {
     'author': "Mackraken", "batFinger"
     'version': (0, 1, 2),
     'blender': (2, 5, 8),
-    'api': 37702,
     'location': "Text Editor > Toolbar, Text Editor > Right Click",
     'warning': "",
     'description': "List text's classes and definitions",

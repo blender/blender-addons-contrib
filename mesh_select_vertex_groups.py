@@ -21,7 +21,6 @@ bl_info = {
     'author': 'Martin Ellison',
     'version': (1, 0),
     'blender': (2, 5, 9),
-    'api': 39685,
     'location': 'Toolbox',
     'description': 'Finds all the vertex groups that chosen verts are in, & any verts that are not in any group',
     'warning': '', # used for warning icon and text in addons panel

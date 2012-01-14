@@ -4,7 +4,6 @@ bl_info = {
     "author": "revolt_randy",
     "version": (0, 1, 2),
     "blender": (2, 5, 6),
-    "api": 35968,
     "location": "View3D > Add > Mesh",
     "warning": "Currently under development.", 
     "wiki_url": "",

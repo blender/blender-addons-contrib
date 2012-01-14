@@ -23,7 +23,6 @@ bl_info = {
     "author": "Fabio Russo <ruesp83@libero.it>",
     "version": (1, 2),
     "blender": (2, 5, 6),
-    "api": 35115,
     "location": "Render > Clay Render",
     "description": "This script, applies a temporary material to all objects"\
         " of the scene.",
