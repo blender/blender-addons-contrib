@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 bl_info = {
     "name": "Futurism",
     "author": "Oscurart",
@@ -47,14 +65,14 @@ def object_osc_futurism (self, context,STEP, HOLD):
             # MARCO EXPRESIONES PARA VIEW
             OBJECT.driver_add("hide")
             OBJECT.animation_data.drivers[0].driver.variables.new()
-            OBJECT.animation_data.drivers[0].driver.expression= "False if bpy.context.scene.frame_current >= "+str(FC)+" and bpy.context.scene.frame_current <= "+str(FC+HOLD)+" else True"
+            OBJECT.animation_data.drivers[0].driver.expression= "False if frame >= "+str(FC)+" and frame <= "+str(FC+HOLD)+" else True"
             OBJECT.animation_data.drivers[0].driver.variables[0].targets[0].id_type = 'SCENE'
             OBJECT.animation_data.drivers[0].driver.variables[0].targets[0].id= bpy.context.scene
             OBJECT.animation_data.drivers[0].driver.variables[0].targets[0].data_path = "current_frame"
             # MARCO EXPRESIONES PARA RENDER
             OBJECT.driver_add("hide_render")
             OBJECT.animation_data.drivers[1].driver.variables.new()
-            OBJECT.animation_data.drivers[1].driver.expression= "False if bpy.context.scene.frame_current >= "+str(FC)+" and bpy.context.scene.frame_current <= "+str(FC+HOLD)+" else True"
+            OBJECT.animation_data.drivers[1].driver.expression= "False if frame >= "+str(FC)+" and frame <= "+str(FC+HOLD)+" else True"
             OBJECT.animation_data.drivers[1].driver.variables[0].targets[0].id_type = 'SCENE'
             OBJECT.animation_data.drivers[1].driver.variables[0].targets[0].id= bpy.context.scene
             OBJECT.animation_data.drivers[1].driver.variables[0].targets[0].data_path = "current_frame"            
