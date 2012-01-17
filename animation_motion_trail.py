@@ -22,8 +22,8 @@
 bl_info = {
     'name': "Motion Trail",
     'author': "Bart Crouch",
-    'version': (3, 1, 0),
-    'blender': (2, 6, 0),
+    'version': (3, 1, 1),
+    'blender': (2, 6, 1),
     'location': "View3D > Toolbar > Motion Trail tab",
     'warning': "",
     'description': "Display and edit motion trails in the 3d-view",
@@ -848,7 +848,8 @@ active_timebead, keyframes_ori, handles_ori, edit_bones):
                 if kf.co[0] == frame:
                     if side == "left":
                         # change handle type, if necessary
-                        if kf.handle_left_type in ['AUTO', 'ANIM_CLAMPED']:
+                        if kf.handle_left_type in ['AUTO', 'AUTO_CLAMPED',
+                        'ANIM_CLAMPED']:
                             kf.handle_left_type = 'ALIGNED'
                         elif kf.handle_left_type == 'VECTOR':
                             kf.handle_left_type = 'FREE'
@@ -856,7 +857,7 @@ active_timebead, keyframes_ori, handles_ori, edit_bones):
                         kf.handle_left[1] = handles_ori[objectname][frame]\
                             ["left"][i][1] + d[i]
                         if kf.handle_left_type in ['ALIGNED', 'ANIM_CLAMPED',
-                        'AUTO']:
+                        'AUTO', 'AUTO_CLAMPED']:
                             dif = (abs(handles_ori[objectname][frame]["right"]\
                                 [i][0] - kf.co[0]) / abs(kf.handle_left[0] - \
                                 kf.co[0])) * d[i]
@@ -864,7 +865,8 @@ active_timebead, keyframes_ori, handles_ori, edit_bones):
                                 [frame]["right"][i][1] - dif
                     elif side == "right":
                         # change handle type, if necessary
-                        if kf.handle_right_type in ['AUTO', 'ANIM_CLAMPED']:
+                        if kf.handle_right_type in ['AUTO', 'AUTO_CLAMPED',
+                        'ANIM_CLAMPED']:
                             kf.handle_left_type = 'ALIGNED'
                             kf.handle_right_type = 'ALIGNED'
                         elif kf.handle_right_type == 'VECTOR':
@@ -874,7 +876,7 @@ active_timebead, keyframes_ori, handles_ori, edit_bones):
                         kf.handle_right[1] = handles_ori[objectname][frame]\
                             ["right"][i][1] + d[i]
                         if kf.handle_right_type in ['ALIGNED', 'ANIM_CLAMPED',
-                        'AUTO']:
+                        'AUTO', 'AUTO_CLAMPED']:
                             dif = (abs(handles_ori[objectname][frame]["left"]\
                                 [i][0] - kf.co[0]) / abs(kf.handle_right[0] - \
                                 kf.co[0])) * d[i]
@@ -1266,13 +1268,14 @@ def set_handle_type(self, context):
             if kf.co[0] == frame:
                 # align if necessary
                 if side in ["right", "both"] and new_type in \
-                ["AUTO", "ALIGNED"]:
+                ["AUTO", "AUTO_CLAMPED", "ALIGNED"]:
                     # change right handle
                     normal = (kf.co - kf.handle_left).normalized()
                     size = (kf.handle_right[0] - kf.co[0]) / normal[0]
                     normal = normal*size + kf.co
                     kf.handle_right[1] = normal[1]
-                elif side == "left" and new_type in ["AUTO", "ALIGNED"]:
+                elif side == "left" and new_type in ["AUTO", "AUTO_CLAMPED",
+                "ALIGNED"]:
                     # change left handle
                     normal = (kf.co - kf.handle_right).normalized()
                     size = (kf.handle_left[0] - kf.co[0]) / normal[0]
@@ -1623,8 +1626,8 @@ class MotionTrailProps(bpy.types.PropertyGroup):
     handle_type_action_ob = bpy.props.StringProperty()
     handle_type_child = bpy.props.StringProperty()
     handle_type_old = bpy.props.EnumProperty(items=(("AUTO", "", ""), 
-        ("VECTOR", "", ""), ("ALIGNED", "", ""), ("FREE", "", "")),
-        default='AUTO',)
+        ("AUTO_CLAMPED", "", ""), ("VECTOR", "", ""), ("ALIGNED", "", ""), 
+        ("FREE", "", "")), default='AUTO',)
     
     # visible in user interface
     calculate = bpy.props.EnumProperty(name="Calculate",
@@ -1645,6 +1648,7 @@ class MotionTrailProps(bpy.types.PropertyGroup):
         update=internal_update)
     handle_type = bpy.props.EnumProperty(name="Type",
         items=(("AUTO", "Automatic", ""),
+            ("AUTO_CLAMPED", "Auto Clamped", ""),
             ("VECTOR", "Vector", ""),
             ("ALIGNED", "Aligned", ""),
             ("FREE", "Free", "")),
