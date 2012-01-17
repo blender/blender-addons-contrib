@@ -906,14 +906,14 @@ class OBJECT_OT_convertcurve(bpy.types.Operator):
                 bpy.ops.object.mode_set()
                 bpy.ops.object.convert(target='CURVE')
                 for sp in obj.data.splines:
-                    sp.type = 'BEZIER'
+                    sp.type = objectSpline
 
         obj = bpy.context.object
         # Set spline type to custom property in panel
         bpy.ops.object.editmode_toggle()
         bpy.ops.curve.spline_type_set(type=objectSpline) 
         # Set handle type to custom property in panel
-        bpy.ops.handle_type_set(type=objectHandle) 
+        bpy.ops.curve.handle_type_set(type=objectHandle) 
         bpy.ops.object.editmode_toggle()
         obj.data.fill_mode = 'FULL'
         # Set resolution to custom property in panel
