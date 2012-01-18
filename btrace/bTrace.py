@@ -548,6 +548,8 @@ class OBJECT_OT_objectconnect(bpy.types.Operator):
         list = []
         bTrace = bpy.context.window_manager.curve_tracer
         objectHandle = bTrace.curve_handle # Get Handle selection
+        if objectHandle == 'AUTOMATIC': # hackish because of naming conflict in api
+            objectHandle = 'AUTO'
         objectrez = bTrace.curve_resolution # Get Bevel resolution 
         objectdepth = bTrace.curve_depth # Get Bevel Depth
         animate = bTrace.animate # add Grow Curve
