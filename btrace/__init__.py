@@ -18,21 +18,21 @@
 
 bl_info = {
     'name': "bTrace",
-    'author': "liero, crazycourier, Atom, Meta-Androcto",
-    'version': (1, 0, ),
-    'blender': (2, 6, 4),
+    'author': "liero, crazycourier, Atom, Meta-Androcto, MacKracken",
+    'version': (1, 1, ),
+    'blender': (2, 61, 1),
     'location': "View3D > Tools",
     'description': "Tools for converting/animating objects/particles into curves",
     'warning': "Still under development, bug reports appreciated",
     'wiki_url': "",
-    'tracker_url': "",
+    'tracker_url': "http://projects.blender.org/tracker/?func=detail&atid=468&aid=29563&group_id=153",
     'category': "Mesh"
     }
-
 import bpy
 from .bTrace import *
 from bpy.props import *
 
+### Define Classes to register
 classes = [TracerProperties,
     addTracerObjectPanel,
     OBJECT_OT_convertcurve,
@@ -43,8 +43,7 @@ classes = [TracerProperties,
     OBJECT_OT_traceallparticles,
     OBJECT_OT_curvegrow,
     OBJECT_OT_reset,
-    OBJECT_OT_fcnoise,
-    Selection]
+    OBJECT_OT_fcnoise]
 
 def register():
     for c in classes:
