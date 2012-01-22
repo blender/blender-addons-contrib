@@ -80,17 +80,17 @@
                        path_before="#ff0000"
                        selected_marker="#ffff00">
         <space>
-          <ThemeSpaceGeneric header="#727272"
+          <ThemeSpaceGeneric header="#3a3a3a"
                              header_text="#000000"
                              header_text_hi="#ffffff"
-                             button="#727272"
+                             button="#444444"
                              button_text="#000000"
                              button_text_hi="#ffffff"
                              button_title="#000000"
                              text="#000000"
                              text_hi="#ffffff"
                              title="#000000"
-                             back="#393939">
+                             back="#576471">
           </ThemeSpaceGeneric>
         </space>
       </ThemeClipEditor>
@@ -240,6 +240,12 @@
                         facedot_size="3"
                         face_select="#ff85003c"
                         scope_back="#727272ff"
+                        preview_stitch_active="#e1d2c323"
+                        preview_stitch_edge="#ff8500b2"
+                        preview_stitch_face="#1242b026"
+                        preview_stitch_stitchable="#00ff00ff"
+                        preview_stitch_unstitchable="#ff0000ff"
+                        preview_stitch_vert="#ff85007f"
                         vertex="#000000"
                         vertex_select="#ff8500"
                         vertex_size="3">

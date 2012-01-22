@@ -80,17 +80,17 @@
                        path_before="#ff0000"
                        selected_marker="#ffff00">
         <space>
-          <ThemeSpaceGeneric header="#727272"
+          <ThemeSpaceGeneric header="#b4b4b4"
                              header_text="#000000"
                              header_text_hi="#ffffff"
-                             button="#727272"
+                             button="#b4b4b4"
                              button_text="#000000"
                              button_text_hi="#ffffff"
                              button_title="#000000"
                              text="#000000"
                              text_hi="#ffffff"
                              title="#000000"
-                             back="#393939">
+                             back="#737373">
           </ThemeSpaceGeneric>
         </space>
       </ThemeClipEditor>
@@ -240,6 +240,12 @@
                         facedot_size="3"
                         face_select="#7c00003c"
                         scope_back="#b4b4b4ff"
+                        preview_stitch_active="#e1d2c323"
+                        preview_stitch_edge="#ff8500b2"
+                        preview_stitch_face="#1242b026"
+                        preview_stitch_stitchable="#00ff00ff"
+                        preview_stitch_unstitchable="#ff0000ff"
+                        preview_stitch_vert="#ff85007f"
                         vertex="#5454f0"
                         vertex_select="#d00000"
                         vertex_size="3">
@@ -327,12 +333,12 @@
       </ThemeNLAEditor>
     </nla_editor>
     <node_editor>
-      <ThemeNodeEditor converter_node="#686a75"
-                       group_node="#69756e"
-                       in_out_node="#646464"
+      <ThemeNodeEditor converter_node="#deaf66"
+                       group_node="#3c753c"
+                       in_out_node="#faa044"
                        node_backdrop="#9b9b9ba0"
                        noodle_curving="5"
-                       operator_node="#6c696f"
+                       operator_node="#9e733e"
                        selected_text="#7f7070"
                        wire_select="#ffffff"
                        wire="#000000">
