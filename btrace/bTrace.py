@@ -780,7 +780,8 @@ class OBJECT_OT_traceallparticles(bpy.types.Operator):
                     bp.keyframe_insert('handle_right')
         # Select new curve
         bpy.ops.object.select_all(action='DESELECT')
-        curve.select = True
+        curve .select = True
+        bpy.context.scene.objects.active = curve
         if bTrace.animate:
             bpy.ops.curve.btgrow()
         return{'FINISHED'}
