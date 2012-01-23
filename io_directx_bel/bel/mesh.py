@@ -4,8 +4,9 @@ import bpy
 import mathutils
 from mathutils import *
 
-import bel.uv
-import bel.ob
+import io_directx_bel.bel.uv
+import io_directx_bel.bel.ob
+from io_directx_bel import bel
 
 debuglevel = 0
 '''

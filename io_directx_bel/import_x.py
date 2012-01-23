@@ -27,17 +27,18 @@ import struct, binascii
 import time
 
 import bpy
-import mathutils as bmat
 from mathutils import Vector, Matrix
 
-import bel
-import bel.mesh
-import bel.image
-import bel.uv
-import bel.material
-import bel.ob
-import bel.fs
 
+import io_directx_bel.bel.mesh
+import io_directx_bel.bel.image
+import io_directx_bel.bel.uv
+import io_directx_bel.bel.material
+import io_directx_bel.bel.ob
+import io_directx_bel.bel.fs
+from io_directx_bel import bel
+
+# XXX, should use explicit names
 from .templates_x import *
 
 '''

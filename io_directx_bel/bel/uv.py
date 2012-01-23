@@ -1,5 +1,5 @@
 from mathutils import Vector
-import bel
+from .. import bel
 
 def write(me, uvs, matimage = False) :
     uvs, nest = bel.nested(uvs)

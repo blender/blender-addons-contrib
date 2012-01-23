@@ -5,7 +5,6 @@ bl_info = {
     "author": "Littleneo (Jerome Mahieux)",
     "version": (0, 16),
     "blender": (2, 6, 1),
-    "api": 42615,
     "location": "File > Import > DirectX (.x)",
     "warning": "",
     "wiki_url": "https://github.com/littleneo/directX_blender/wiki",
@@ -33,7 +32,7 @@ from bpy_extras.io_utils import (ExportHelper,
                                  path_reference_mode,
                                  axis_conversion,
                                  )
-import bel
+
 '''
 class DisplayTree(bpy.types.Operator) :
     bl_idname = 'city.selector'
@@ -190,6 +189,7 @@ class ImportX(bpy.types.Operator, ImportHelper):
             )
 
     def execute(self, context):
+        from . import bel
         from . import import_x
         if self.split_mode == 'OFF':
             self.use_split_objects = False

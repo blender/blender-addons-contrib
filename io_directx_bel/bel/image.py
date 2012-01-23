@@ -1,7 +1,7 @@
 import bpy
 import bpy.path
-import bel
-import bel.fs
+import io_directx_bel.bel.fs
+from io_directx_bel import bel
 
 debuglevel = 0
 
