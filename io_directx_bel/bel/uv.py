@@ -4,6 +4,7 @@ from .. import bel
 def write(me, uvs, matimage = False) :
     uvs, nest = bel.nested(uvs)
     newuvs = []
+    append = newuvs.append
     for uvi, uvlist in enumerate(uvs) :
 
         uv = me.uv_textures.new()
@@ -24,7 +25,7 @@ def write(me, uvs, matimage = False) :
             uv.data[uvfi].uv3 = Vector((uvface[4],uvface[5]))
             if len(uvface) == 8 :
                 uv.data[uvfi].uv4 = Vector((uvface[6],uvface[7]))
-        newuvs.append(uv)
+        append(uv)
     if nest : return newuvs
     else : return newuvs[0]
 
@@ -35,11 +36,12 @@ def write(me, uvs, matimage = False) :
 # normal default when face has been built
 def row(vertices,faces,normals=True) :
     uvs = []
+    append = uvs.append
     for face in faces :
         v0 = vertices[face[0]]
         v1 = vertices[face[1]]
         v2 = vertices[face[-1]]
-        print(v0,v1)
+        #print(v0,v1)
         lx = (v1 - v0).length
         ly = (v2 - v0).length
         # init uv
@@ -52,13 +54,14 @@ def row(vertices,faces,normals=True) :
         else :
             x = uvs[-1][0]
             y = uvs[-1][1]
-        if normals : uvs.append([x,y,x+lx,y,x+lx,y+ly,x,y+ly])
-        else : uvs.append([x+lx,y,x,y,x,y+ly,x+lx,y+ly])
+        if normals : append([x,y,x+lx,y,x+lx,y+ly,x,y+ly])
+        else : append([x+lx,y,x,y,x,y+ly,x+lx,y+ly])
     return uvs
 
 ## convert UV given as verts location to blender format
 # eg : [ [v0x,v0y] , [vnx , vny] ... ] -> [ [ v1x,v1y,v0x,v0y,v4x,v4y] ... ]
-# found in directx
+# this format is found in directx files
+'''
 def asVertsLocation(verts2d, faces) :
     uv = []
     for f in faces :
@@ -67,3 +70,12 @@ def asVertsLocation(verts2d, faces) :
             uvface.extend(verts2d[vi])
         uv.append(uvface)
     return uv
+'''
+def asVertsLocation(verts2d, idFaces) :
+    coFaces = []
+    uvBlender = []
+    conv0 = coFaces.extend
+    conv1 = uvBlender.extend
+    for f in idFaces : conv0([verts2d[vi] for vi in f])
+    for f in coFaces : conv1(f)
+    return uvBlender

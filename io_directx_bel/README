@@ -20,13 +20,17 @@ PLY won't be used unfortunately (it's way too slow as far as I tested)
 
 
 TO TEST THE SCRIPT :
-  . copy the 'bel' folder in /scripts/modules. can reside in /addons but Blender will complain a bit in the console. (harmless)
-  . copy the 'io_directx_bel' in /scripts/addons
+  . copy the 'io_directx_bel' in /scripts/addons or addons_contrib
   . start blender
   . enable then addon in  user prefs > addons
   . run the script with file > import > directX
 
-13/01/12 rc 0.16
+25/01/12 0.17
+  . faster, 60% faster in some case : various loops improvements, infile templates parsing disabled by default
+    saw another bottleneck about data chunks as string but will wait for binary support for better point of view.
+  . interface cosmetics
+    
+23/01/12 rc 0.16
 . committed to svn (and littleneo git as usual)
 . corrected a bug about referenced token parenting
 . corrected a bug about non parented meshes
