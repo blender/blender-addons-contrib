@@ -110,15 +110,17 @@ class stairs(bpy.types.Operator):
     rad1 = FloatProperty(name = "Inner Radius",
                          description = "Inner radius for circular staircase",
                          min = 0.0, max = 1024.0,
-                         default = 0.2)
+                         soft_max = 10.0,
+                         default = 0.25)
     rad2 = FloatProperty(name = "Outer Radius",
                          description = "Outer radius for circular staircase",
-                         min = 0.0001, max = 1024.0001,
-                         default = 0.5)
-    deg = IntProperty(name = "Degrees",
-                      description = "Degrees per step",
-                      min = 5, max = 45, step = 5,
-                      default = 20)
+                         min = 0.0, max = 1024.0,
+                         soft_min = 0.015625, soft_max = 32.0,
+                         default = 1.0)
+    deg = FloatProperty(name = "Degrees",
+                        description = "Number of degrees the stairway rotates",
+                        min = 0.0, max = 92160.0, step = 5.0,
+                        default = 450.0)
     center = BoolProperty(name = "Center Pillar",
                           description = "Generate a central pillar",
                           default = False)
@@ -166,6 +168,12 @@ class stairs(bpy.types.Operator):
                            description = "Number of cross section supports",
                            min = 2, max = 1024,
                            default = 4)
+    #special circular tread properties:
+    tread_slc = IntProperty(name = "Slices",
+                            description = "Number of slices each tread is composed of",
+                            min = 1, max = 1024,
+                            soft_max = 16,
+                            default = 4)
 
     #for posts
     make_posts = BoolProperty(name = "Make Posts",
@@ -294,14 +302,15 @@ class stairs(bpy.types.Operator):
         box = layout.box()
         box.prop(self, 'make_treads')
         if self.make_treads:
-            if not self.use_original:
+            if not self.use_original and self.typ != "id4":
                 box.prop(self, 'typ_t')
             else:
                 self.typ_t = "tId1"
-            box.prop(self, 'tread_w')
+            if self.typ != "id4":
+                box.prop(self, 'tread_w')
             box.prop(self, 'tread_h')
             box.prop(self, 'tread_t')
-            if self.typ != "id2":
+            if self.typ not in ["id2", "id4"]:
                 box.prop(self, 'tread_o')
             else:
                 self.tread_o = 0.0
@@ -313,6 +322,8 @@ class stairs(bpy.types.Operator):
                     box.prop(self, 'tread_sp')
                 if self.typ_t in ["tId3", "tId4", "tId5"]:
                     box.prop(self, 'tread_sn')
+            elif self.typ == "id4":
+                box.prop(self, "tread_slc")
                     
         # Posts
         box = layout.box()
@@ -384,21 +395,39 @@ class stairs(bpy.types.Operator):
         run = self.run
         G=General(rise,run,self.tread_n)
         if self.make_treads:
-            Treads(G,
-                   typ,
-                   typ_t,
-                   run,
-                   self.tread_w,
-                   self.tread_h,
-                   self.run,
-                   self.rise,
-                   self.tread_t,
-                   self.tread_o,
-                   self.tread_n,
-                   self.tread_tk,
-                   self.tread_sec,
-                   self.tread_sp,
-                   self.tread_sn)
+            if typ != "id4":
+                Treads(G,
+                       typ,
+                       typ_t,
+                       run,
+                       self.tread_w,
+                       self.tread_h,
+                       self.run,
+                       self.rise,
+                       self.tread_t,
+                       self.tread_o,
+                       self.tread_n,
+                       self.tread_tk,
+                       self.tread_sec,
+                       self.tread_sp,
+                       self.tread_sn)
+            else:
+                Treads(G,
+                       typ,
+                       typ_t,
+                       self.deg,
+                       self.rad2,
+                       self.tread_h,
+                       self.run,
+                       self.rise,
+                       self.tread_t,
+                       self.rad1,
+                       self.tread_n,
+                       self.tread_tk,
+                       self.tread_sec,
+                       self.tread_sp,
+                       self.tread_sn,
+                       self.tread_slc)
         if self.make_posts and (self.rEnable or self.lEnable):
             Posts(G,
                   rise,

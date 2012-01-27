@@ -15,11 +15,11 @@
 # 
 # Paul "BrikBot" Marshall
 # Created: September 19, 2011
-# Last Modified: September 20, 2011
+# Last Modified: January 26, 2012
 # Homepage (blog): http://post.darkarsenic.com/
 #                       //blog.darkarsenic.com/
 #
-# Coded in IDLE, tested in Blender 2.59.
+# Coded in IDLE, tested in Blender 2.61.
 # Search for "@todo" to quickly find sections that need work.
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
@@ -42,22 +42,23 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+import mathutils
 from copy import copy
-from math import sqrt
-from mathutils import Vector
+from math import radians, sqrt
+from mathutils import Matrix, Vector
 
 class Treads:
-    def __init__(self,G,typ,typ_t,run,w,h,d,r,toe,o,n,tk,sec,sp,sn):
+    def __init__(self,G,typ,typ_t,run,w,h,d,r,toe,o,n,tk,sec,sp,sn,deg=4):
         self.G = G #General
         self.typ = typ #Stair type
         self.typ_t = typ_t #Tread type
-        self.run = run #Stair run
-        self.w=w #tread width
+        self.run = run #Stair run.  Degrees if self.typ == "id4"
+        self.w=w #tread width.  Is outer radius if self.typ == "id4"
         self.h=h #tread height
-        self.d=d #tread run
+        self.d=d #tread run.  Ignore for now if self.typ == "id4"
         self.r=r #tread rise
         self.t=toe #tread nosing
-        self.o=o #tread side overhang
+        self.o=o #tread side overhang.  Is inner radius if self.typ == "id4"
         self.n=n #number of treads
         self.tk=tk #thickness of tread metal
         self.sec=sec #metal sections for tread
@@ -68,6 +69,7 @@ class Treads:
         else:
             self.sp=0
         self.sn=sn #number of cross sections
+        self.deg = deg #number of section per "slice".  Only applys if self.typ == "id4"
         self.tId2_faces = [[0,1,2,3],[0,3,4,5],[4,5,6,7],[6,7,8,9],[8,9,10,11],
                            [12,13,14,15],[12,15,16,17],[16,17,18,19],
                            [18,19,20,21],[20,21,22,23],[0,1,13,12],[1,2,14,13],
@@ -175,7 +177,7 @@ class Treads:
                 coords3.append(Vector([self.d - self.tk, baseY, height]))
                 for i in range(4):
                     coords3.append(coords3[i] + Vector([0, cW, 0]))
-            
+
             # Make the treads:
             for i in range(self.n):
                 if self.typ_t == "tId1":
@@ -210,3 +212,31 @@ class Treads:
                         j += Vector([self.d, 0, self.r])
                 for j in coords:
                     j += Vector([self.d,0,self.r])
+        # Circular staircase:
+        elif self.typ in ["id4"]:
+            start = [Vector([0, -self.o, 0]), Vector([0, -self.o, -self.h]),
+                     Vector([0, -self.w, 0]), Vector([0, -self.w, -self.h])]
+            print("CHAOS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            self.d = radians(self.run) / self.n
+            for i in range(self.n):
+                coords = []
+                # Base faces.  Should be able to append more sections:
+                tId4_faces = [[0, 1, 3, 2]]
+                t_inner = Matrix.Rotation(-self.t / self.o, 3, 'Z')
+                coords.append(t_inner * start[0])
+                coords.append(t_inner * start[1])
+                t_outer = Matrix.Rotation(-self.t / self.w, 3, 'Z')
+                coords.append(t_outer * start[2])
+                coords.append(t_outer * start[3])
+                k = 0
+                for j in range(self.deg + 1):
+                    k = (j * 4) + 4
+                    tId4_faces.append([k, k + 2, k + 6, k + 4])
+                    tId4_faces.append([k + 1, k + 3, k + 7, k + 5])
+                    tId4_faces.append([k, k + 1, k + 5, k + 4])
+                    tId4_faces.append([k + 2, k + 3, k + 7, k + 6])
+                    rot = Matrix.Rotation(((self.d * j) / self.deg) + (self.d * i), 3, 'Z')
+                    for v in start:
+                        coords.append((rot * v) + Vector([0, 0, self.r * i]))
+                self.G.Make_mesh(coords, tId4_faces, 'treads')                    
+        return
