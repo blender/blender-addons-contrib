@@ -40,18 +40,19 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from math import atan, cos, tan
-from mathutils import Vector
+from math import atan, cos, radians, tan
+from mathutils import Matrix, Vector
 from mathutils.geometry import (intersect_line_plane,
                                 intersect_line_line)
 
 class Stringer:
-    def  __init__(self,G,typ,typ_s,rise,run,w,h,nT,hT,wT,tT,tO,tw,tf,tp,g,nS=1,dis=False,notMulti=True):
+    def  __init__(self,G,typ,typ_s,rise,run,w,h,nT,hT,wT,tT,tO,tw,tf,tp,g,
+                  nS=1,dis=False,notMulti=True,deg=4):
         self.G = G #General
         self.typ = typ # Stair type
         self.typ_s = typ_s # Stringer type
         self.rise = rise #Stair rise
-        self.run = run #Stair run
+        self.run = run #Stair run. Degrees if self.typ == "id4"
         if notMulti:
             self.w = w / 100 #stringer width
         else:
@@ -61,13 +62,14 @@ class Stringer:
         self.hT = hT #tread height
         self.wT = wT #tread width
         self.tT = tT #tread toe
-        self.tO = tO #Tread overhang
+        self.tO = tO #Tread overhang. Inner radius if self.typ == "id4"
         self.tw = self.w * (tw / 100) #stringer web thickness
         self.tf = tf #stringer flange thickness
         self.tp = 1 - (tp / 100) #stringer flange taper
         self.g = g #does stringer intersect the ground?
         self.nS = nS #number of stringers
         self.dis = dis #Use distributed stringers
+        self.deg = deg #number of sections per "slice". Only applys if self.typ == "id4"
         # Default stringer object (classic / sId1):
         self.faces1=[[0,1,3,2],[1,5,3],[3,5,4],[6,7,9,8],[7,11,9],[9,11,10],
                      [0,2,8,6],[0,1,7,6],[1,5,11,7],[2,3,9,8],[3,4,10,9],[4,5,11,10]]
@@ -86,19 +88,22 @@ class Stringer:
                       [6,7,15,14],[7,0,8,15],[0,1,6,7],[1,2,5,6],[2,3,4,5],[8,9,14,15],
                       [9,10,13,14],[10,11,12,13]]
         # I-beam stringer (id3 / sId2 / Taper < 100%):
-        self.faces3c=[[0,1,2,7],[2,3,6,7],[3,4,5,6],[1,2,23,16],[2,3,22,23],[3,4,21,22],
-                      [16,17,18,23],[18,19,22,23],[19,20,21,22],[17,8,15,18],[18,15,14,19],
-                      [19,14,13,20],[8,9,10,15],[10,11,14,15],[11,12,13,14],[9,10,53,52],
-                      [10,11,54,53],[11,12,55,54],[52,53,61,60],[53,54,62,61],[54,55,63,62],
-                      [60,61,34,33],[61,62,35,34],[62,63,36,35],[32,33,34,39],[34,35,38,39],
-                      [35,36,37,38],[41,32,39,42],[42,39,38,43],[43,38,37,44],[40,41,42,47],
-                      [42,43,46,47],[43,44,45,46],[25,26,47,40],[26,27,46,47],[27,28,45,46],
-                      [24,25,26,31],[26,27,30,31],[27,28,29,30],[24,31,57,56],[31,30,58,57],
-                      [30,29,59,58],[48,49,57,56],[49,50,58,57],[50,51,59,58],[0,7,49,48],
-                      [7,6,50,49],[6,5,51,50],[0,1,16,48],[16,40,56,48],[24,25,40,56],
-                      [16,17,41,40],[8,9,52,17],[17,52,60,41],[32,33,60,41],[12,13,20,55],
-                      [20,44,63,55],[37,44,63,36],[20,21,45,44],[28,29,51,21],[21,51,59,45],
-                      [28,45,59,29],[4,5,51,21]]
+        self.faces3c=[[0,1,2,7],[2,3,6,7],[3,4,5,6],[1,2,23,16],[2,3,22,23],
+                      [3,4,21,22],[16,17,18,23],[18,19,22,23],[19,20,21,22],
+                      [17,8,15,18],[18,15,14,19],[19,14,13,20],[8,9,10,15],
+                      [10,11,14,15],[11,12,13,14],[9,10,53,52],[10,11,54,53],
+                      [11,12,55,54],[52,53,61,60],[53,54,62,61],[54,55,63,62],
+                      [60,61,34,33],[61,62,35,34],[62,63,36,35],[32,33,34,39],
+                      [34,35,38,39],[35,36,37,38],[41,32,39,42],[42,39,38,43],
+                      [43,38,37,44],[40,41,42,47],[42,43,46,47],[43,44,45,46],
+                      [25,26,47,40],[26,27,46,47],[27,28,45,46],[24,25,26,31],
+                      [26,27,30,31],[27,28,29,30],[24,31,57,56],[31,30,58,57],
+                      [30,29,59,58],[48,49,57,56],[49,50,58,57],[50,51,59,58],
+                      [0,7,49,48],[7,6,50,49],[6,5,51,50],[0,1,16,48],[16,40,56,48],
+                      [24,25,40,56],[16,17,41,40],[8,9,52,17],[17,52,60,41],
+                      [32,33,60,41],[12,13,20,55],[20,44,63,55],[37,44,63,36],
+                      [20,21,45,44],[28,29,51,21],[21,51,59,45],[28,45,59,29],
+                      [4,5,51,21]]
         # C-beam stringer (id3 / sId3 / Taper < 100%):
         self.faces4c=[[0,1,2,7],[2,3,6,7],[3,4,5,6],[1,2,23,16],[2,3,22,23],[3,4,21,22],
                       [16,17,18,23],[18,19,22,23],[19,20,21,22],[17,8,15,18],[18,15,14,19],
@@ -168,6 +173,49 @@ class Stringer:
                 for j in range(4):
                     coords.append(coords[j] + Vector([0,self.wT,0]))
                 self.G.Make_mesh(coords, self.G.faces, 'stringer')
+        elif self.typ == "id4":
+            offset = (self.wT / (self.nS + 1)) - (self.w / 2)
+            for s in range(self.nS):
+                base = self.tO + (offset * (s + 1))
+                start = [Vector([0, -base, -self.hT]),
+                         Vector([0, -base, -self.hT - self.rise]),
+                         Vector([0, -base - self.w, -self.hT]),
+                         Vector([0, -base - self.w, -self.hT - self.rise])]
+                self.d = radians(self.run) / self.nT
+                for i in range(self.nT):
+                    coords = []
+                    # Base faces.  Should be able to append more sections:
+                    tId4_faces = [[0, 1, 3, 2]]
+                    t_inner = Matrix.Rotation(self.d * i, 3, 'Z')
+                    coords.append((t_inner * start[0]) + Vector([0, 0, self.rise * i]))
+                    coords.append((t_inner * start[1]) + Vector([0, 0, self.rise * i]))
+                    t_outer = Matrix.Rotation(self.d * i, 3, 'Z')
+                    coords.append((t_outer * start[2]) + Vector([0, 0, self.rise * i]))
+                    coords.append((t_outer * start[3]) + Vector([0, 0, self.rise * i]))
+                    k = 0
+                    for j in range(self.deg):
+                        k = (j * 4) + 4
+                        tId4_faces.append([k, k - 4, k - 3, k + 1])
+                        tId4_faces.append([k - 2, k - 1, k + 3, k + 2])
+                        tId4_faces.append([k + 1, k - 3, k - 1, k + 3])
+                        tId4_faces.append([k, k - 4, k - 2, k + 2])
+                        rot = Matrix.Rotation(((self.d * (j + 1)) / self.deg) + (self.d * i), 3, 'Z')
+                        for v in start:
+                            coords.append((rot * v) + Vector([0, 0, self.rise * i]))
+                    for j in range(self.deg):
+                        k = ((j + self.deg) * 4) + 4
+                        tId4_faces.append([k, k - 4, k - 3, k + 1])
+                        tId4_faces.append([k - 2, k - 1, k + 3, k + 2])
+                        tId4_faces.append([k + 1, k - 3, k - 1, k + 3])
+                        tId4_faces.append([k, k - 4, k - 2, k + 2])
+                        rot = Matrix.Rotation(((self.d * ((j + self.deg) + 1)) / self.deg) + (self.d * i), 3, 'Z')
+                        for v in range(4):
+                            if v in [1, 3]:
+                                incline = (self.rise * i) + (self.rise / self.deg) * (j + 1)
+                                coords.append((rot * start[v]) + Vector([0, 0, incline]))
+                            else:
+                                coords.append((rot * start[v]) + Vector([0, 0, self.rise * i]))
+                    self.G.Make_mesh(coords, tId4_faces, 'treads')
 
         return {'FINISHED'}
 

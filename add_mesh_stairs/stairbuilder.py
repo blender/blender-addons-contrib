@@ -497,6 +497,27 @@ class stairs(bpy.types.Operator):
                          self.string_tp,
                          not self.string_g,
                          1, False, False)
+            elif typ == "id4":
+                Stringer(G,
+                         typ,
+                         typ_s,
+                         rise,
+                         self.deg,
+                         self.string_w,
+                         self.string_h,
+                         self.tread_n,
+                         self.tread_h,
+                         self.rad2 - self.rad1,
+                         self.tread_t,
+                         self.rad1,
+                         self.string_tw,
+                         self.string_tf,
+                         self.string_tp,
+                         not self.string_g,
+                         self.string_n,
+                         self.string_dis,
+                         self.use_original,
+                         self.tread_slc)
             else:
                 Stringer(G,
                          typ,
