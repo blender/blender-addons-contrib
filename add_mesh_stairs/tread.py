@@ -216,27 +216,27 @@ class Treads:
         elif self.typ in ["id4"]:
             start = [Vector([0, -self.o, 0]), Vector([0, -self.o, -self.h]),
                      Vector([0, -self.w, 0]), Vector([0, -self.w, -self.h])]
-            print("CHAOS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             self.d = radians(self.run) / self.n
             for i in range(self.n):
                 coords = []
                 # Base faces.  Should be able to append more sections:
                 tId4_faces = [[0, 1, 3, 2]]
-                t_inner = Matrix.Rotation(-self.t / self.o, 3, 'Z')
-                coords.append(t_inner * start[0])
-                coords.append(t_inner * start[1])
-                t_outer = Matrix.Rotation(-self.t / self.w, 3, 'Z')
-                coords.append(t_outer * start[2])
-                coords.append(t_outer * start[3])
+                t_inner = Matrix.Rotation((-self.t / self.o) + (self.d * i), 3, 'Z')
+                coords.append((t_inner * start[0]) + Vector([0, 0, self.r * i]))
+                coords.append((t_inner * start[1]) + Vector([0, 0, self.r * i]))
+                t_outer = Matrix.Rotation((-self.t / self.w) + (self.d * i), 3, 'Z')
+                coords.append((t_outer * start[2]) + Vector([0, 0, self.r * i]))
+                coords.append((t_outer * start[3]) + Vector([0, 0, self.r * i]))
                 k = 0
                 for j in range(self.deg + 1):
                     k = (j * 4) + 4
-                    tId4_faces.append([k, k + 2, k + 6, k + 4])
-                    tId4_faces.append([k + 1, k + 3, k + 7, k + 5])
-                    tId4_faces.append([k, k + 1, k + 5, k + 4])
-                    tId4_faces.append([k + 2, k + 3, k + 7, k + 6])
+                    tId4_faces.append([k, k - 4, k - 3, k + 1])
+                    tId4_faces.append([k - 2, k - 1, k + 3, k + 2])
+                    tId4_faces.append([k + 1, k - 3, k - 1, k + 3])
+                    tId4_faces.append([k, k - 4, k - 2, k + 2])
                     rot = Matrix.Rotation(((self.d * j) / self.deg) + (self.d * i), 3, 'Z')
                     for v in start:
                         coords.append((rot * v) + Vector([0, 0, self.r * i]))
-                self.G.Make_mesh(coords, tId4_faces, 'treads')                    
+                tId4_faces.append([k, k + 1, k + 3, k + 2])
+                self.G.Make_mesh(coords, tId4_faces, 'treads')
         return
