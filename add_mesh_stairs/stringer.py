@@ -13,16 +13,16 @@
 # 
 # Paul "BrikBot" Marshall
 # Created: September 19, 2011
-# Last Modified: November 20, 2011
+# Last Modified: January 29, 2011
 # Homepage (blog): http://post.darkarsenic.com/
 #                       //blog.darkarsenic.com/
 #
-# Coded in IDLE, tested in Blender 2.59.
+# Coded in IDLE, tested in Blender 2.61.
 # Search for "@todo" to quickly find sections that need work.
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
-#  The Blender Rock Creation tool is for rapid generation of mesh rocks in Blender.
+#  Stairbuilder is for quick stair generation.
 #  Copyright (C) 2011  Paul Marshall
 #
 #  This program is free software: you can redistribute it and/or modify

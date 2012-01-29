@@ -24,7 +24,7 @@
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
-#  The Blender Rock Creation tool is for rapid generation of mesh rocks in Blender.
+#  Stairbuilder is for quick stair generation.
 #  Copyright (C) 2011  Paul Marshall
 #
 #  This program is free software: you can redistribute it and/or modify
