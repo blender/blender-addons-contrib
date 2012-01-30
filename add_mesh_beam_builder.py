@@ -1,14 +1,36 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 bl_info = {
     "name": "Beam Builder",
     "description": "Creates various types of beams.",
     "author": "revolt_randy",
-    "version": (0, 1, 2),
-    "blender": (2, 5, 6),
+    "version": (0, 1, 3),
+    "blender": (2, 6, 0),
     "location": "View3D > Add > Mesh",
     "warning": "Currently under development.", 
-    "wiki_url": "",
-    "tracker_url": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/BeamBuilder",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=26911",
     "category": "Add Mesh"}
+
+#
+# Creates a rectangluar, 'C', 'L', 'T', or 'I' - type beam.
+#
        
 # Version History
 #
@@ -23,95 +45,60 @@ bl_info = {
 #           (x,y,z). Added ability to taper beams as well.
 #           Add 'L' - type beam
 #           Add 'T' - type beam
-#           Add 'I' - type beam      
-
-# Creates a rectangluar, or 'C', or 'L' or 'T' or 'I' - type beam.
+#           Add 'I' - type beam 
+#
+# v0.1.3 - Updated to work with api r41226, including using object_utils.py -
+#           part of blender's bpy_extras scripts. This is what handles
+#           the 'align to view', 'location', & 'rotation' options in the
+#           toolshelf when creating mesh. Added wiki & tracker url. Fixed
+#           a few bugs & fixed some debug prints that were still printing
+#           to console.  
+#     
 
 import bpy
-import math
-import mathutils
-#import space_info
 
-# The following bit of code was taken from spindle.py
-# a script by Campbell Barton that creates a spindle mesh.
-# The script was found someplace at blender.org
-# Code determines the align_matrix to align the new object to 
-def align_matrix(context):
-    loc = mathutils.Matrix.Translation(context.scene.cursor_location)
-    obj_align = context.user_preferences.edit.object_align
-    if (context.space_data.type == 'VIEW_3D'
-        and obj_align == 'VIEW'):
-        rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
-    else:
-        rot = mathutils.Matrix()
-    align_matrix = loc * rot
-    return align_matrix
+from bpy_extras import object_utils
 
 
-def create_mesh (name, verts, faces, align_matrix):
+def create_mesh (self, context, name, verts, faces, debug):
     # Creates mesh and object
     # name - name of object to create
     # verts - a list of vertex tuples
     # faces - a list of face tuples
-    # align_matrix - alignment of the mesh based on user prefs - see above code
-    
-    # Check if in edit mode, if so, get name of active object and enter object mode
-    if bpy.context.mode == 'EDIT_MESH':
-        # toggle to object mode
-        bpy.ops.object.editmode_toggle()
-        # get name of active object
-        obj_act = bpy.context.scene.objects.active
-        #print ("\n\nTRAP WORKS", "\nactive object =", obj_act)
-    else:
-        obj_act = False
-     
-    # Unselect any objects
-    bpy.ops.object.select_all(action="DESELECT")
-    
+    # debug - debug flag - if true prints data to console
+           
     # Actually create mesh and object
     mesh = bpy.data.meshes.new(name)
-    obj = bpy.data.objects.new(name, mesh)
 
     # add verts & faces to object
     mesh.from_pydata(verts, [], faces)
-    mesh.update(calc_edges=True)    
+    mesh.update(calc_edges=True)
     
-    # Move object to 3d cursor & align
-    #obj.location = bpy.context.scene.cursor_location
-    obj.matrix_world = align_matrix
-        
-    # link object to scene 
-    bpy.context.scene.objects.link(obj)
+    if debug:
+        print("create_mesh function called and finished")    
+      
+    return object_utils.object_data_add(context, mesh, operator=self)
 
-    #print(obj_act, obj)
-    
-    # Were we in edit mode - if so need to join new mesh to active mesh object
-    if obj_act:
-        bpy.ops.object.select_all(action="DESELECT")
-        # Select first object
-        obj_act.select = True
-        # Select new object
-        obj.select = True  
-        # Join objects     
-        bpy.ops.object.join()
-         
-        #print("\n\n2nd TRAP Works")
 
-    else:
-        # Not in edit mode, so just make new object active object 
-        bpy.context.scene.objects.active = obj
-        obj.select = True
-        
-    # Enter edit mode
-    bpy.ops.object.editmode_toggle()
+def recalc_normals(debug):
+    # Recalculate normals
+    # parts of this script creates faces that are backwards or
+    # have thier normals facing the wrong way, so recalculate them
+    # debug - debug flag - if true prints data to console
     
-    # Recalcuate normals
-    bpy.ops.mesh.normals_make_consistent()
     
-    # Return to object mode if mesh created in object mode
-    if not obj_act:
+    if bpy.context.mode != 'EDIT_MESH':
         bpy.ops.object.editmode_toggle()
-    
+        # Recalcuate normals
+        bpy.ops.mesh.normals_make_consistent()
+        bpy.ops.object.editmode_toggle()
+        if debug:
+            print("\nObjectMode")
+    else:
+        bpy.ops.mesh.normals_make_consistent()
+        if debug:
+            print("\nEditMode")
+            
     return
 
 
@@ -232,9 +219,8 @@ def calc_end_verts(size, y_off, thick, debug):
     
     if debug:
         print ("\ncalc_end_verts Function Starts\n")
-    
-    print("\nsize = ",size)
-    print("y_off = ",y_off)
+        print("\nsize = ",size)
+        print("y_off = ",y_off)
         
     # Create vertices by calculation 
     x_pos = 0 + size[0]/2
@@ -296,7 +282,7 @@ def adjust_c_beam_verts(verts, taper, debug):
     
     # This function corrects vertex locations to properly shape the
     # beam, because creating a c beam uses the same code as the 
-    # create_multi_side_box function does. Therefore the 5th & 6th
+    # create_rectangular_beam function does. Therefore the 5th & 6th
     # vertice's z location needs to be changed to match the 1st & 2nd
     # vertice's z location.
 
@@ -311,8 +297,7 @@ def adjust_c_beam_verts(verts, taper, debug):
     # get value of 5th vert 
     vert_temp = verts[4]
     
-    print ("vert_orig = ",vert_orig[0])
-    print ("vert_x = ",vert_x)
+
     
     # calculate the amount of taper, updating vert_x
     # with the new value calculated.
@@ -321,6 +306,9 @@ def adjust_c_beam_verts(verts, taper, debug):
     vert_new = (vert_x,vert_temp[1],vert_z)
     
     if debug:
+        print ("\nadjust_c_beam_verts function starting")
+        print ("vert_orig = ",vert_orig[0])
+        print ("vert_x = ",vert_x)
         print("vert_temp =",vert_temp)
         print("vert_new =",vert_new)
 
@@ -337,8 +325,7 @@ def adjust_c_beam_verts(verts, taper, debug):
     # get value of 5th vert 
     vert_temp = verts[5]
     
-    print ("vert_orig = ",vert_orig[0])
-    print ("vert_x = ",vert_x)
+
     
     # calculate the amount of taper, updating vert_x
     # with the new value calculated.
@@ -347,6 +334,8 @@ def adjust_c_beam_verts(verts, taper, debug):
     vert_new = (vert_x,vert_temp[1],vert_z)
     
     if debug:
+        print ("vert_orig = ",vert_orig[0])
+        print ("vert_x = ",vert_x)
         print("vert_temp =",vert_temp)
         print("vert_new =",vert_new)
     
@@ -477,7 +466,7 @@ def create_rectangular_beam(size, thick, debug):
     return verts_final, faces_final
 
 
-def create_U_beam(size, thick, taper, debug):
+def create_C_beam(size, thick, taper, debug):
     # Creates a C or U shaped mesh beam object 
     # size - tuple of x,y,z dimensions of beam
     # thick - thickness, the amount the inner faces will be
@@ -491,11 +480,10 @@ def create_U_beam(size, thick, taper, debug):
     
     # print debug info to console
     if debug:
-        print ("\ncreate_U_beam - function called")
+        print ("\ncreate_C_beam - function called")
 
     # Get y offset of vertices from center
     y_off = size[1] / 2
-    print("\n y_off =",y_off)
     
     # Create temporarylists to hold vertices locations
     verts_front_temp=[]
@@ -507,25 +495,22 @@ def create_U_beam(size, thick, taper, debug):
     # needed because the calc_end_verts creates a rectangluar beam
     # the insides are inset, for a U channel we need the inside
     # verts on the open end to match the z-loc of the outside verts 
-    verts_front_temp = adjust_c_beam_verts(verts_front_temp, taper, 1)
-    print("\n front verts =",verts_front_temp)       
+    verts_front_temp = adjust_c_beam_verts(verts_front_temp, taper, debug)       
     
     # recalculate y_off for other end vertices
     y_off = 0 - y_off
-    print("\n y_off =",y_off)
     
     # Create back vertices by calculation
     verts_back_temp = calc_end_verts(size, y_off, thick, debug)
     # Additional adjustment to the verts needed - the z location
-    verts_back_temp = adjust_c_beam_verts(verts_back_temp, taper, debug)
-    print("\n back verts =",verts_back_temp)  
+    verts_back_temp = adjust_c_beam_verts(verts_back_temp, taper, debug)  
     
     # Combine all vertices into a final list of tuples
     verts_final = verts_front_temp + verts_back_temp   
   
     # Print debug info to console
     if debug:
-        print("\ncreate_U_beam function start")
+        print("\ncreate_C_beam function start")
         print("\n Front vertices :", verts_front_temp)
         print("\n Back vertices:", verts_back_temp)
         print("\n All vertices:", verts_final)
@@ -584,9 +569,9 @@ def create_U_beam(size, thick, taper, debug):
 
     # Print debug info to console
     if debug:
-        print("\ncreate_U_beam function") 
+        print("\ncreate_C_beam function") 
         print("\nAll faces =", faces_final)
-        print("\ncreate_c_beam function ending")
+        print("\ncreate_C_beam function ending")
          
     return verts_final, faces_final
 
@@ -954,7 +939,7 @@ class Add_Rectangular_Beam(bpy.types.Operator):
     
     bl_idname = "mesh.primitive_rectangle_add"
     bl_label = "Add Rectangluar Beam"
-    bl_description = "Create a Rectangular Beam mesh."
+    bl_description = "Create a Rectangular Beam mesh"
     bl_options = {'REGISTER', 'UNDO'}
         
     mesh_z_size = bpy.props.FloatProperty(name = "Height(z)",
@@ -985,8 +970,23 @@ class Add_Rectangular_Beam(bpy.types.Operator):
         max = 1,
         default = 0.1)
         
-    align_matrix = mathutils.Matrix()
-
+    # generic transform props
+    # required by object_utils.py - part of blender's
+    # code and is what handles alignment amongst other
+    # things.
+    view_align = bpy.props.BoolProperty(
+            name="Align to View",
+            default=False
+            )
+    location = bpy.props.FloatVectorProperty(
+            name="Location",
+            subtype='TRANSLATION',
+            )
+    rotation = bpy.props.FloatVectorProperty(
+            name="Rotation",
+            subtype='EULER',
+            )
+            
     # Define tool parameter layout
     def draw(self, context):
         layout = self.layout
@@ -994,7 +994,12 @@ class Add_Rectangular_Beam(bpy.types.Operator):
         layout.prop(self, 'mesh_x_size')
         layout.prop(self, 'mesh_y_size')
         layout.prop(self, 'thick_bool')
-        layout.prop(self, 'thick')
+        if self.thick_bool:
+            layout.prop(self, 'thick')
+        layout.prop(self, 'view_align')
+        col = layout.column()
+        col.prop(self, 'location')
+        col.prop(self, 'rotation')
                 
     def execute(self, context):
         # debug flag - True prints debug info to console
@@ -1012,14 +1017,18 @@ class Add_Rectangular_Beam(bpy.types.Operator):
             print("\nCreated Verts:", verts)
             print("\nCreated Faces:", faces)
                 
-        create_mesh("Rectangular Beam", verts, faces, self.align_matrix)
+        create_mesh(self, context, "Rectangular Beam", verts, faces, debug)
+        
+        recalc_normals(debug)        
         
         return {'FINISHED'}
 
+'''
     def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
+        #self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}    
+'''
 
 
 # Define "Add_C_Beam" operator        
@@ -1027,7 +1036,7 @@ class Add_C_Beam(bpy.types.Operator):
     
     bl_idname = "mesh.primitive_c_beam_add"
     bl_label = "Add C or U Channel"
-    bl_description = "Create a C or U channel mesh."
+    bl_description = "Create a C or U channel mesh"
     bl_options = {'REGISTER', 'UNDO'}
     
         
@@ -1063,9 +1072,24 @@ class Add_C_Beam(bpy.types.Operator):
 
     type = bpy.props.BoolProperty(name = "U-shaped",
         description = "Create the beam in a U orientation rather than the defualt C orientation", 
-        default = False)
+        default = True)
                 
-    align_matrix = mathutils.Matrix()
+    # generic transform props
+    # required by object_utils.py - part of blender's
+    # code and is what handles alignment amongst other
+    # things.
+    view_align = bpy.props.BoolProperty(
+            name="Align to View",
+            default=False
+            )
+    location = bpy.props.FloatVectorProperty(
+            name="Location",
+            subtype='TRANSLATION',
+            )
+    rotation = bpy.props.FloatVectorProperty(
+            name="Rotation",
+            subtype='EULER',
+            )
 
     # Define tool parameter layout
     def draw(self, context):
@@ -1076,6 +1100,11 @@ class Add_C_Beam(bpy.types.Operator):
         layout.prop(self, 'thick')
         layout.prop(self, 'taper')
         layout.prop(self, 'type')
+        layout.prop(self, 'view_align')
+        col = layout.column()
+        col.prop(self, 'location')
+        col.prop(self, 'rotation')
+        
                 
     def execute(self, context):
         # debug flag - True prints debug info to console
@@ -1084,37 +1113,38 @@ class Add_C_Beam(bpy.types.Operator):
         # if type == true beam is U chanel, otherwise it's a C
         if self.type:
             size = (self.mesh_x_size, self.mesh_y_size, self.mesh_z_size)
+            mesh_name = "U Beam"
         else:
             size = (self.mesh_z_size, self.mesh_y_size, self.mesh_x_size)
-            
-        verts, faces = create_U_beam(size, self.thick, self.taper, debug)      
-            
+            mesh_name = "C Beam"
+                        
+        verts, faces = create_C_beam(size, self.thick, self.taper, debug)      
+
         if debug:
             print("\nCreated Verts:", verts)
             print("\nCreated Faces:", faces)
                 
-        create_mesh("C Beam", verts, faces, self.align_matrix)
+        create_mesh(self, context, mesh_name, verts, faces, debug)
         
+        recalc_normals(debug)
+           
         if not self.type:
         # C-type beam is actually created as a u-type beam
         # so rotate 90 degrees on y-axis to make a c-type
-        # and apply rotation & location to reset those values
-        # and reset object origin to 3d cursor if self.type is false.
+        # and apply rotation to reset those values
         # if self.type is true, do nothing as beam is alreay u-type.
         # rotation value is in radians
             bpy.ops.transform.rotate(value=[1.570796], constraint_axis=[False, True, False])
-            bpy.ops.object.rotation_clear()
-            bpy.ops.object.location_clear()
-            bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
-        # The above code might not work right if rotation set to view 
-        # Need to test further!
+            bpy.ops.object.transform_apply(location=False, rotation =True, scale=False)
         
         return {'FINISHED'}
 
+'''
     def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
+        #self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
+'''
     
 
 # Define "Add_L_Beam" operator    
@@ -1122,7 +1152,7 @@ class Add_L_Beam(bpy.types.Operator):
     
     bl_idname = "mesh.primitive_l_beam_add"
     bl_label = "Add L Beam"
-    bl_description = "Create a L shaped mesh."
+    bl_description = "Create a L shaped mesh"
     bl_options = {'REGISTER', 'UNDO'}
 
     mesh_z_size = bpy.props.FloatProperty(name = "Height(z)",
@@ -1155,7 +1185,22 @@ class Add_L_Beam(bpy.types.Operator):
         max = 100,
         default = 0)
 
-    align_matrix = mathutils.Matrix()
+    # generic transform props
+    # required by object_utils.py - part of blender's
+    # code and is what handles alignment amongst other
+    # things.
+    view_align = bpy.props.BoolProperty(
+            name="Align to View",
+            default=False
+            )
+    location = bpy.props.FloatVectorProperty(
+            name="Location",
+            subtype='TRANSLATION',
+            )
+    rotation = bpy.props.FloatVectorProperty(
+            name="Rotation",
+            subtype='EULER',
+            )
 
     # Define tool parameter layout
     def draw(self, context):
@@ -1165,6 +1210,11 @@ class Add_L_Beam(bpy.types.Operator):
         layout.prop(self, 'mesh_y_size')
         layout.prop(self, 'thick')
         layout.prop(self, 'taper')
+        layout.prop(self, 'view_align')
+        col = layout.column()
+        col.prop(self, 'location')
+        col.prop(self, 'rotation')
+        
 
     def execute(self, context):
         # debug flag - True prints debug info to console
@@ -1178,14 +1228,18 @@ class Add_L_Beam(bpy.types.Operator):
             print("\nCreated Verts:", verts)
             print("\nCreated Faces:", faces)
                 
-        create_mesh("L Beam", verts, faces, self.align_matrix) 
+        create_mesh(self, context, "L Beam", verts, faces, debug)
+        
+        recalc_normals(debug) 
         
         return {'FINISHED'}
 
+'''
     def invoke(self, context, event):
         self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
+'''
     
     
 # Define "Add_T_Beam" operator    
@@ -1193,7 +1247,7 @@ class Add_T_Beam(bpy.types.Operator):
     
     bl_idname = "mesh.primitive_t_beam_add"
     bl_label = "Add T Beam"
-    bl_description = "Create a T shaped mesh."
+    bl_description = "Create a T shaped mesh"
     bl_options = {'REGISTER', 'UNDO'}    
 
     mesh_z_size = bpy.props.FloatProperty(name = "Height(z)",
@@ -1226,7 +1280,22 @@ class Add_T_Beam(bpy.types.Operator):
         max = 100,
         default = 0)
 
-    align_matrix = mathutils.Matrix()
+    # generic transform props
+    # required by object_utils.py - part of blender's
+    # code and is what handles alignment amongst other
+    # things.
+    view_align = bpy.props.BoolProperty(
+            name="Align to View",
+            default=False
+            )
+    location = bpy.props.FloatVectorProperty(
+            name="Location",
+            subtype='TRANSLATION',
+            )
+    rotation = bpy.props.FloatVectorProperty(
+            name="Rotation",
+            subtype='EULER',
+            )
 
     # Define tool parameter layout
     def draw(self, context):
@@ -1236,6 +1305,11 @@ class Add_T_Beam(bpy.types.Operator):
         layout.prop(self, 'mesh_y_size')
         layout.prop(self, 'thick')
         layout.prop(self, 'taper')
+        layout.prop(self, 'view_align')
+        col = layout.column()
+        col.prop(self, 'location')
+        col.prop(self, 'rotation')
+
 
     def execute(self, context):
         # debug flag - True prints debug info to console
@@ -1249,14 +1323,18 @@ class Add_T_Beam(bpy.types.Operator):
             print("\nCreated Verts:", verts)
             print("\nCreated Faces:", faces)
                 
-        create_mesh("T Beam", verts, faces, self.align_matrix) 
+        create_mesh(self, context, "T Beam", verts, faces, debug)
+        
+        recalc_normals(debug) 
         
         return {'FINISHED'}
 
+'''
     def invoke(self, context, event):
         self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
+'''
     
     
 # Define "Add_I_Beam" operator    
@@ -1264,7 +1342,7 @@ class Add_I_Beam(bpy.types.Operator):
     
     bl_idname = "mesh.primitive_i_beam_add"
     bl_label = "Add I Beam"
-    bl_description = "Create a I shaped mesh."
+    bl_description = "Create a I shaped mesh"
     bl_options = {'REGISTER', 'UNDO'}    
 
     mesh_z_size = bpy.props.FloatProperty(name = "Height(z)",
@@ -1297,7 +1375,22 @@ class Add_I_Beam(bpy.types.Operator):
         max = 100,
         default = 0)
 
-    align_matrix = mathutils.Matrix()
+    # generic transform props
+    # required by object_utils.py - part of blender's
+    # code and is what handles alignment amongst other
+    # things.
+    view_align = bpy.props.BoolProperty(
+            name="Align to View",
+            default=False
+            )
+    location = bpy.props.FloatVectorProperty(
+            name="Location",
+            subtype='TRANSLATION',
+            )
+    rotation = bpy.props.FloatVectorProperty(
+            name="Rotation",
+            subtype='EULER',
+            )
     
     # Define tool parameter layout
     def draw(self, context):
@@ -1307,6 +1400,11 @@ class Add_I_Beam(bpy.types.Operator):
         layout.prop(self, 'mesh_y_size')
         layout.prop(self, 'thick')
         layout.prop(self, 'taper')
+        layout.prop(self, 'view_align')
+        col = layout.column()
+        col.prop(self, 'location')
+        col.prop(self, 'rotation')
+        
 
     def execute(self, context):
         # debug flag - True prints debug info to console
@@ -1320,14 +1418,19 @@ class Add_I_Beam(bpy.types.Operator):
             print("\nCreated Verts:", verts)
             print("\nCreated Faces:", faces)
                 
-        create_mesh("I Beam", verts, faces, self.align_matrix) 
+        create_mesh(self, context, "I Beam", verts, faces, debug)
+        
+        recalc_normals(debug) 
         
         return {'FINISHED'}
 
+
+'''
     def invoke(self, context, event):
         self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}    
+'''
 
 
 # Register all operators and define menus
