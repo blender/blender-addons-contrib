@@ -79,9 +79,7 @@ def object_osc_futurism (self, context,STEP, HOLD):
             # RESETEO STEPINC
             STEPINC=0
             # COPIAMOS S R T
-            OBJECT.location=ACTOBJ.location
-            OBJECT.rotation_euler=ACTOBJ.rotation_euler
-            OBJECT.scale=ACTOBJ.scale
+            OBJECT.matrix_world=ACTOBJ.matrix_world
             #EMPARENTO
             OBJECT.parent=EMPTY
         # AVANZO STEP Y FRAME
