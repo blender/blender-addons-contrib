@@ -19,8 +19,8 @@
 bl_info = {
     "name": "LipSync Importer & Blinker",
     "author": "Yousef Harfoush - bat3a ;)",
-    "version": (0, 4, 0),
-    "blender": (2, 5, 9),
+    "version": (0, 5, 0),
+    "blender": (2, 6, 2),
     "location": "3D window > Tool Shelf",
     "description": "Plot Moho (Papagayo, Jlipsync, Yolo) file to frames and adds automatic blinking",
     "warning": "",
@@ -34,8 +34,8 @@ from random import random
 from bpy.props import *
 from bpy.props import IntProperty, FloatProperty, StringProperty
 
-global phnmlst
-phnmlst="nothing"
+global lastPhoneme
+lastPhoneme="nothing"
 
 # truning off relative path - it causes an error if it was true
 if bpy.context.user_preferences.filepaths.use_relative_paths == True:
@@ -47,32 +47,111 @@ def blinker():
     scn = bpy.context.scene
     obj = bpy.context.object
 
-    global blink, blinkphnm
+    if scn.regMenuTypes.enumBlinkTypes == '0':
+        modifier = 0
+    elif scn.regMenuTypes.enumBlinkTypes == '1':
+        modifier = scn.blinkMod
+    
+    #creating keys with blinkNm count
+    for y in range(scn.blinkNm):
+        frame = y * scn.blinkSp + int(random()*modifier)
+        createShapekey('blink', frame)
 
-    blink="off"
-    blinkphnm=-1
+# -----------code contributed by dalai felinto adds armature support modified by me-------------------
 
-    sk=len(obj.data.shape_keys.key_blocks)
+bone_keys = {
+"AI":   ('location', 0),
+"E":    ('location', 1),
+"FV":   ('location', 2),
+"L":    ('rotation_euler', 0),
+"MBP":  ('rotation_euler', 1),
+"O":    ('rotation_euler', 2),
+"U":    ('scale', 0),
+"WQ":   ('scale', 1),
+"etc":  ('scale', 2),
+"rest": ('ik_stretch', -1)
+}
 
-    # searching for blink shapekey index
-    for x in range(sk):
-        obj.active_shape_key_index = x
-        if obj.active_shape_key.name=="blink": blink="on"; blinkphnm=x
+def lipsyncerBone():
+    # reading imported file & creating keys
+    object = bpy.context.object
+    scene = bpy.context.scene
+    bone = bpy.context.active_pose_bone
+    
+    resetBoneScale(bone)
+    
+    f=open(scene.fpath) # importing file
+    f.readline() # reading the 1st line that we don"t need
+    
+    for line in f:
+        # removing new lines
+        lsta = re.split("\n+", line)
 
-    if blinkphnm!=-1:
-       
-        if scn.remnuTypes.enumBlinks == '0':
-            modifier = 0
-        elif scn.remnuTypes.enumBlinks == '1':
-            modifier = scn.blinkMod
+        # building a list of frames & shapes indexes
+        lst = re.split(":? ", lsta[0])# making a list of a frame & number 
+        frame = int(lst[0])
         
-        #creating keys with blinkNm count
-        for y in range(scn.blinkNm):
-            
-            blinkfrm = y * scn.blinkSp + int(random()*modifier)
-             
-            crtkey(blinkphnm, blinkfrm)
+        for key,attribute in bone_keys.items():
+            if lst[1] == key:
+                createBoneKeys(key, bone, attribute, frame)
 
+def resetBoneScale(bone):
+    # set the attributes used by papagayo to 0.0
+    for attribute,index in bone_keys.values():
+        if index != -1:
+            #bone.location[0] = 0.0
+            exec("bone.%s[%d] = %f" % (attribute, index, 0.0))
+        else:
+            exec("bone.%s = %f" % (attribute, 0.0))
+
+def addBoneKey(bone, data_path, index=-1, value=None, frame=bpy.context.scene.frame_current, group=""):
+    # set a value and keyframe for the bone
+    # it assumes the 'bone' variable was defined before
+    # and it's the current selected bone
+
+    if value != None:
+        if index != -1:
+            # bone.location[0] = 0.0
+            exec("bone.%s[%d] = %f" % (data_path, index, value))
+        else:
+            exec("bone.%s = %f" % (data_path, value))
+
+    # bone.keyframe_insert("location", 0, 10.0, "Lipsync")
+    exec('bone.keyframe_insert("%s", %d, %f, "%s")' % (data_path, index, frame, group))
+
+# creating keys with offset and eases for a phonem @ the Skframe
+def createBoneKeys(phoneme, bone, attribute, frame):
+    global lastPhoneme
+    
+    scene = bpy.context.scene
+    object = bpy.context.object
+    
+    offst = scene.offset     # offset value
+    skVlu = scene.skscale    # shape key value
+    
+    #in case of Papagayo format
+    if scene.regMenuTypes.enumFileTypes == '0' :
+        frmIn = scene.easeIn     # ease in value
+        frmOut = scene.easeOut   # ease out value
+        hldIn = scene.holdGap    # holding time value
+        
+    #in case of Jlipsync format or Yolo
+    elif scene.regMenuTypes.enumFileTypes == '1' :
+        frmIn = 1
+        frmOut = 1
+        hldIn = 0
+
+    # inserting the In key only when phonem change or when blinking
+    if lastPhoneme!=phoneme or eval(scene.regMenuTypes.enumModeTypes) == 1:
+        addBoneKey(bone, attribute[0], attribute[1], 0.0, offst+frame-frmIn, "Lipsync")
+
+    addBoneKey(bone, attribute[0], attribute[1], skVlu, offst+frame, "Lipsync")
+    addBoneKey(bone, attribute[0], attribute[1], skVlu, offst+frame+hldIn, "Lipsync")
+    addBoneKey(bone, attribute[0], attribute[1], 0.0, offst+frame+hldIn+frmOut, "Lipsync")
+    
+    lastPhoneme=phoneme
+
+# -------------------------------------------------------------------------------
 
 # reading imported file & creating keys
 def lipsyncer():
@@ -89,85 +168,57 @@ def lipsyncer():
         lsta = re.split("\n+", line)
 
         # building a list of frames & shapes indexes
-        lst = re.split(":? ", lsta[0])# making a list of a frame number & 
-        frm = int(lst[0])
+        lst = re.split(":? ", lsta[0])# making a list of a frame & number 
+        frame = int(lst[0])
         
-        sk=len(obj.data.shape_keys.key_blocks)
-        for x in range(sk):
-            obj.active_shape_key_index = x
-            oask=obj.active_shape_key.name
-            if lst[1]==oask: crtkey(x, frm)
+        for key in obj.data.shape_keys.key_blocks:
+            if lst[1] == key.name:
+                createShapekey(key.name, frame)
 
-# retargetting?? ------WIP
-def retargeter():
+# creating keys with offset and eases for a phonem @ the frame
+def createShapekey(phoneme, frame):
     
-    scn = bpy.context.scene
-
-    f=open(scn.fpath) # importing file
-    f.readline() # reading the 1st line that we don"t need
-    
-    for line in f:
-        # removing new lines
-        lsta = re.split("\n+", line)
-        
-        # building a list of frames & shapes indexes
-        lst = re.split(":? ", lsta[0])# making a list of a frame number & 
-        frm = int(lst[0])
-        
-        sk=len(obj.data.shape_keys.key_blocks)
-        
-        for x in range(sk):
-            obj.active_shape_key_index = x
-            oask=obj.active_shape_key.name
-            if lst[1]==oask: crtkey(x, frm)
-                    
-# creating keys with offset and eases for a phonem @ the Skframe
-def crtkey(phoneme, Skframe):
-    
-    global phnmlst
+    global lastPhoneme
     
     scn = bpy.context.scene
     obj = bpy.context.object
-    objSK=obj.data.shape_keys
+    objSK = obj.data.shape_keys
     
-    #setting the active shape key to phonem
-    obj.active_shape_key_index=phoneme
-
     offst = scn.offset     # offset value
     skVlu = scn.skscale    # shape key value
     
     #in case of Papagayo format
-    if scn.remnuTypes.enumFiles == '0' :
+    if scn.regMenuTypes.enumFileTypes == '0' :
         frmIn = scn.easeIn     # ease in value
         frmOut = scn.easeOut   # ease out value
         hldIn = scn.holdGap    # holding time value
         
     #in case of Jlipsync format or Yolo
-    elif scn.remnuTypes.enumFiles == '1' :
+    elif scn.regMenuTypes.enumFileTypes == '1' :
         frmIn = 1
         frmOut = 1
         hldIn = 0
 
     # inserting the In key only when phonem change or when blinking
-    if phnmlst!=phoneme or eval(scn.mnuFunc) == 1:
-        obj.active_shape_key.value=0.0
+    if lastPhoneme!=phoneme or eval(scn.regMenuTypes.enumModeTypes) == 1:
+        objSK.key_blocks[phoneme].value=0.0
         objSK.key_blocks[phoneme].keyframe_insert("value",
-            -1, offst+Skframe-frmIn, "Lipsync")
+            -1, offst+frame-frmIn, "Lipsync")
             
-    obj.active_shape_key.value=skVlu
+    objSK.key_blocks[phoneme].value=skVlu
     objSK.key_blocks[phoneme].keyframe_insert("value", 
-        -1, offst+Skframe, "Lipsync")
+        -1, offst+frame, "Lipsync")
     
-    obj.active_shape_key.value=skVlu
+    objSK.key_blocks[phoneme].value=skVlu
     objSK.key_blocks[phoneme].keyframe_insert("value", 
-        -1, offst+Skframe+hldIn, "Lipsync")
+        -1, offst+frame+hldIn, "Lipsync")
             
-    obj.active_shape_key.value=0.0
+    objSK.key_blocks[phoneme].value=0.0
     objSK.key_blocks[phoneme].keyframe_insert("value", 
-    -1, offst+Skframe+hldIn+frmOut, "Lipsync")
+    -1, offst+frame+hldIn+frmOut, "Lipsync")
     
-    phnmlst=phoneme
-      
+    lastPhoneme = phoneme
+
 # lipsyncer operation start
 class btn_lipsyncer(bpy.types.Operator):
     bl_idname = 'lipsync.go'
@@ -177,149 +228,166 @@ class btn_lipsyncer(bpy.types.Operator):
     def execute(self, context):
 
         scn = context.scene
-        obj = context.object
+        obj = context.active_object
 
-        # testing if a mesh object with shape keys is selected
-        if obj!=None and obj.type=="MESH":
-            if obj.data.shape_keys!=None:
-                if scn.fpath!='': lipsyncer()
-                else: print ("select a Moho file")
-            else: print("add shape keys PLEASE")
-        else: print ("Object is not mesh or not selected ")
+        # testing if object is valid
+        if obj!=None:
+            if obj.type=="MESH":
+                if obj.data.shape_keys!=None:
+                    if scn.fpath!='': lipsyncer()
+                    else: print ("select a Moho file")
+                else: print("No shape keys")
+    
+            elif obj.type=="ARMATURE":
+                if 1:#XXX add prop test
+                    if scn.fpath!='': lipsyncerBone()
+                    else: print ("select a Moho file")
+                else: print("Create Pose properties")
+                
+            else: print ("Object is not a mesh ot bone")
+        else: print ("Select object")
         return {'FINISHED'}
 
 # blinker operation start
 class btn_blinker(bpy.types.Operator):
     bl_idname = 'blink.go'
     bl_label = 'Start Processing'
-    bl_description = 'Adds random or specifice blinks'
+    bl_description = 'Add blinks at random or specifice frames'
 
     def execute(self, context):
         
         scn = context.scene
         obj = context.object
 
-        # testing if a mesh object with blink shape keys is selected
-        if obj!=None and obj.type=="MESH":
-            if obj.data.shape_keys!=None: blinker()
-            else: print("add shape keys PLEASE")
-        else: print ("Object is not mesh or not selected ")
+         # testing if object is valid
+        if obj!=None:
+            if obj.type=="MESH":
+                if obj.data.shape_keys!=None:
+                    for key in obj.data.shape_keys.key_blocks:
+                        if key.name=='blink':
+                            blinker()
+                            #return
+                else: print("No shape keys")
+            else: print ("Object is not a mesh ot bone")
+        else: print ("Select object")
         return {'FINISHED'}
 
-# retargetting operation start
-class btn_retarget(bpy.types.Operator):
-    bl_idname = 'retarget.go'
-    bl_label = 'Start Processing'
-    bl_description = 'Refresh Shape Keys List'
-
-    def execute(self, context):
-        
-        obj = context.object
-
-        # testing if a mesh object with blink shape keys is selected
-        if obj!=None and obj.type=="MESH":
-            if obj.data.shape_keys!=None: retargeter()
-            else: print("add shape keys PLEASE")
-        else: print ("Object is not mesh or not selected ")
-        return {'FINISHED'}
-
-# getting props from current shape keys
-class btn_refresh(bpy.types.Operator):
-    bl_idname = 'refresh.go'
-    bl_label = 'Start Processing'
-    bl_description = 'Refresh Shape Keys List'
-
-    def execute(self, context):
-        
-        scn = context.scene
-        obj = context.object
-
-        # testing if a mesh object with blink shape keys is selected
-        if obj!=None and obj.type=="MESH":
-            if obj.data.shape_keys!=None:
-                
-                obj = bpy.context.object
-                typ = bpy.types.Scene
-                sk = len(obj.data.shape_keys.key_blocks)
-                
-                for x in range(sk):
-                    obj.active_shape_key_index=x
-                    exec("typ.sk"+str(x)+"=StringProperty(name="+"obj.active_shape_key.name"+")")
-                    
-            else: print("add shape keys PLEASE")
-        else: print ("Object is not mesh or not selected ")
-        return {'FINISHED'}
 
 #defining custom enumeratos
-class mnuTypes(bpy.types.PropertyGroup):
+class menuTypes(bpy.types.PropertyGroup):
 
-    enumFiles = EnumProperty( items =(  ('0', 'Papagayo', ''), 
-                                        ('1', 'Jlipsync Or Yolo', '')
-                                        #,('2', 'Retarget', '')
-                                        ),
-                                        name = 'test',
-                                        default = '0' )
+    enumFileTypes = EnumProperty(items =(('0', 'Papagayo', ''), 
+                                         ('1', 'Jlipsync Or Yolo', '')
+                                       #,('2', 'Retarget', '')
+                                         ),
+                                 name = 'Choose FileType',
+                                 default = '0')
 
-    enumBlinks = EnumProperty( items =( ('0', 'Specific', ''),
-                                        ('1', 'Random','')),
-                                        name = 'test',
-                                        default = '0' )
-                        
+    enumBlinkTypes = EnumProperty(items =(('0', 'Specific', ''),
+                                          ('1', 'Random','')),
+                                  name = 'Choose BlinkType',
+                                  default = '0')
+
+    enumModeTypes = EnumProperty(items =(('0', 'Lipsyncer',''),
+                                         ('1', 'Blinker','')),
+                                 name = 'Choose Mode',
+                                 default = '0')
+                                 
+# drawing the user interface
+class LipSyncBoneUI(bpy.types.Panel):
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_label = "Phonemes"
+    
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+
+        bone = bpy.context.active_pose_bone
+        
+        #showing the current object type
+        if bone: #and if scn.regMenuTypes.enumModeTypes == '0':
+            col.prop(bone, "location", index=0, text="AI")
+            col.prop(bone, "location", index=1, text="E")
+            col.prop(bone, "location", index=2, text="FV")
+            if bpy.context.scene.unit_settings.system_rotation == 'RADIANS':
+                col.prop(bone, "rotation_euler", index=0, text="L")
+                col.prop(bone, "rotation_euler", index=1, text="MBP")
+                col.prop(bone, "rotation_euler", index=2, text="O")
+            else:
+                row=col.row()
+                row.prop(bone, "rotation_euler", index=0, text="L")
+                row.label(text=str("%4.2f" % (bone.rotation_euler.x)))
+                row=col.row()
+                row.prop(bone, "rotation_euler", index=1, text="MBP")
+                row.label(text=str("%4.2f" % (bone.rotation_euler.y)))
+                row=col.row()
+                row.prop(bone, "rotation_euler", index=2, text="O")
+                row.label(text=str("%4.2f" % (bone.rotation_euler.z)))
+            col.prop(bone, "scale", index=0, text="U")
+            col.prop(bone, "scale", index=1, text="WQ")
+            col.prop(bone, "scale", index=2, text="etc")
+        else:
+            layout.label(text="No good bone is selected")
+            
 # drawing the user interface
 class LipSyncUI(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOL_PROPS"
     bl_label = "LipSync Importer & Blinker"
     
-    typ = bpy.types.Scene
+    newType= bpy.types.Scene
     scn = bpy.context.scene
     
-    typ.mnuFunc = EnumProperty(name="Select Mode ", description="Select function",
-                                   items=(('0', 'Lipsyncer', ''), ('1', 'Blinker', '')), default='0')
-        
-    typ.fpath = StringProperty(name="Import File ", description="Select your voice file", subtype="FILE_PATH")
-    typ.skscale = FloatProperty(description="Smoothing shape key values", min=0.1, max=1.0, default=0.8)
-    typ.offset = IntProperty(description="Offset your frames", default=0)
+    newType.fpath = StringProperty(name="Import File ", description="Select your voice file", subtype="FILE_PATH")
+    newType.skscale = FloatProperty(description="Smoothing shape key values", min=0.1, max=1.0, default=0.8)
+    newType.offset = IntProperty(description="Offset your frames", default=0)
 
-    typ.easeIn = IntProperty(description="Smoothing In curve", min=1, default=3)
-    typ.easeOut = IntProperty(description="Smoothing Out curve", min=1, default=3)
-    typ.holdGap = IntProperty(description="Holding for slow keys", min=0, default=0)
+    newType.easeIn = IntProperty(description="Smoothing In curve", min=1, default=3)
+    newType.easeOut = IntProperty(description="Smoothing Out curve", min=1, default=3)
+    newType.holdGap = IntProperty(description="Holding for slow keys", min=0, default=0)
 
-    typ.blinkSp = IntProperty(description="Space between blinks", min=1, default=100)
-    typ.blinkNm = IntProperty(description="Number of blinks", min=1, default=10)
+    newType.blinkSp = IntProperty(description="Space between blinks", min=1, default=100)
+    newType.blinkNm = IntProperty(description="Number of blinks", min=1, default=10)
     
-    typ.blinkMod = IntProperty(description="Randomzing blinks keyframe placment", min=1, default=10)
-    
+    newType.blinkMod = IntProperty(description="Randomzing keyframe placment", min=1, default=10)
     
     def draw(self, context):
         
-        obj = bpy.context.object
+        obj = bpy.context.active_object
         scn = bpy.context.scene
         
         layout = self.layout
         col = layout.column()
 
-        #showing the current object type
+        # showing the current object type
         if obj != None:
             if obj.type == "MESH":
                 split = col.split(align=True)
                 split.label(text="The active object is: ", icon="OBJECT_DATA")
                 split.label(obj.name, icon="EDITMODE_HLT")
-            elif obj.type!="MESH":
-                col.label(text="The active object is not a Mesh !", icon="OBJECT_DATA")
+            elif obj.type == "ARMATURE": # bone needs to be selected
+                if obj.mode == "POSE": # mode needs to be pose
+                    split = col.split(align=True)
+                    split.label(text="The active object is: ", icon="ARMATURE_DATA")
+                    split.label(obj.name, icon="EDITMODE_HLT")
+                else:
+                    col.label(text="You need to select Pose mode!", icon="OBJECT_DATA")
+            else:
+                col.label(text="The active object is not a Mesh or Armature!", icon="OBJECT_DATA")
         else:
             layout.label(text="No object is selected", icon="OBJECT_DATA")
             
-        col.prop(context.scene, "mnuFunc")
+        col.row().prop(scn.regMenuTypes, 'enumModeTypes')
         col.separator()
         
-        # the lipsyncer panel
-        if bpy.context.scene.mnuFunc == '0':
-
-            col.row().prop(context.scene.remnuTypes, 'enumFiles', text = ' ', expand = True)
-            
+        # the lipsyncer panel 
+        if scn.regMenuTypes.enumModeTypes == '0':
+            # choose the file format
+            col.row().prop(scn.regMenuTypes, 'enumFileTypes', text = ' ', expand = True)
+                
             # Papagayo panel
-            if scn.remnuTypes.enumFiles == '0':
+            if scn.regMenuTypes.enumFileTypes == '0':
                 col.prop(context.scene, "fpath")
                 split = col.split(align=True)
                 split.label("Key Value :")
@@ -332,10 +400,10 @@ class LipSyncUI(bpy.types.Panel):
                 split.prop(context.scene, "holdGap", "Hold Gap")
                 split.prop(context.scene, "easeOut", "Ease Out")
                 
-                col.operator('lipsync.go', text='Plot Keys PLEASE')
+                col.operator('lipsync.go', text='Plot Keys to the Timeline')
 
             # Jlipsync & Yolo panel
-            elif scn.remnuTypes.enumFiles == '1':
+            elif scn.regMenuTypes.enumFileTypes == '1':
                 col.prop(context.scene, "fpath")
                 split = col.split(align=True)
                 split.label("Key Value :")
@@ -344,44 +412,15 @@ class LipSyncUI(bpy.types.Panel):
                 split.label("Frame Offset :")
                 split.prop(context.scene, "offset")
                 
-                col.operator('lipsync.go', text='Plot Keys PLEASE')
-
-#            # Retarget panel
-#            elif scn.remnuTypes.enumFiles == '2':
-#                col.prop(context.scene, "fpath")
-#                split = col.split(align=True)
-#                split.label("Key Value :")
-#                split.prop(context.scene, "skscale")
-#                split = col.split(align=True)
-#                split.label("Frame Offset :")
-#                split.prop(context.scene, "offset")
-#                split = col.split(align=True)
-#                split.prop(context.scene, "easeIn", "Ease In")
-#                split.prop(context.scene, "holdGap", "Hold Gap")
-#                split.prop(context.scene, "easeOut", "Ease Out")
-#                
-#                col.operator('refresh.go', text='Refresh Shape Key List')
-#                
-#                split = col.split(align=True)
-#                split.label("Current shape keys:")
-#                split.label("Mapping to custom keys:")
-#    
-#                obj = bpy.context.object
-#                sk=len(obj.data.shape_keys.key_blocks)
-#                
-#                for x in range(sk):
-#                    split = col.split(align=True)
-#                    split.prop(context.scene, "sk"+str(x))
-#                
-#                col.operator('retarget.go', text='Plot Keys PLEASE')
-          
+                col.operator('lipsync.go', text='Plot Keys to the Timeline')
+        
         # the blinker panel
-        elif bpy.context.scene.mnuFunc == '1':
-            
-            col.row().prop(context.scene.remnuTypes, 'enumBlinks', text = ' ', expand = True)
+        elif scn.regMenuTypes.enumModeTypes == '1':
+            # choose blink type
+            col.row().prop(scn.regMenuTypes, 'enumBlinkTypes', text = ' ', expand = True)
             
             # specific panel
-            if scn.remnuTypes.enumBlinks == '0':
+            if scn.regMenuTypes.enumBlinkTypes == '0':
                 split = col.split(align=True)
                 split.label("Key Value :")
                 split.prop(context.scene, "skscale")
@@ -394,10 +433,10 @@ class LipSyncUI(bpy.types.Panel):
                 split.prop(context.scene, "easeOut", "Ease Out")
                 col.prop(context.scene, "blinkSp", "Spacing")
                 col.prop(context.scene, "blinkNm", "Times")
-                col.operator('blink.go', text='Blink Keys PLEASE')
+                col.operator('blink.go', text='Add Keys to the Timeline')
             
             # Random panel
-            elif scn.remnuTypes.enumBlinks == '1':
+            elif scn.regMenuTypes.enumBlinkTypes == '1':
                 split = col.split(align=True)
                 split.label("Key Value :")
                 split.prop(context.scene, "skscale")
@@ -412,20 +451,17 @@ class LipSyncUI(bpy.types.Panel):
                 split.prop(context.scene, "blinkSp", "Spacing")
                 split.prop(context.scene, "blinkMod", "Random Modifier")
                 col.prop(context.scene, "blinkNm", "Times")
-                col.operator('blink.go', text='Blink Keys PLEASE')
-                
-        col.separator()
-        col.label("Version 0.4 By Yousef Harfoush" )
-        col.label("Updated 04/09/2011")
-
+                col.operator('blink.go', text='Add Keys to the Timeline')
+        
+        
 # clearing vars
 def clear_properties():
 
     # can happen on reload
     if bpy.context.scene is None:
         return
-
-    props = ["offset", "skscale", "easeIn", "easeOut", "blinkSp", "blinkNm", "holdGap", "blinkMod"]
+     
+    props = ["fpath", "skscale", "offset", "easeIn", "easeOut", "holdGap", "blinkSp", "blinkNm", "blinkMod"]
     for p in props:
         if p in bpy.types.Scene.bl_rna.properties:
             exec("del bpy.types.Scene."+p)
@@ -435,11 +471,11 @@ def clear_properties():
 # registering the script
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.Scene.remnuTypes = PointerProperty(type = mnuTypes)
+    bpy.types.Scene.regMenuTypes = PointerProperty(type = menuTypes)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    del bpy.context.scene.remnuTypes
+    del bpy.context.scene.regMenuTypes
 
     clear_properties()
 
