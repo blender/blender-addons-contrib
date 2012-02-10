@@ -2,7 +2,7 @@
   <Theme name="Pinkified">
     <view_3d>
       <ThemeView3D object_active="#ff0034"
-                   editmesh_active="#ffb9b946"
+                   editmesh_active="#ff5edece"
                    act_spline="#db2512"
                    handle_align="#803060"
                    handle_sel_align="#f090a0"
@@ -37,8 +37,8 @@
                    nurb_sel_vline="#f090a0"
                    object_grouped="#127112"
                    object_grouped_active="#55bb55"
-                   object_selected="#80404d"
-                   outline_width="2"
+                   object_selected="#d1687d"
+                   outline_width="1"
                    panel="#7575757f"
                    speaker="#a63904"
                    transform="#ffffff"
