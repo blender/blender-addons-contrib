@@ -1,5 +1,5 @@
 <bpy>
-  <Theme name="Pinkified">
+  <Theme>
     <view_3d>
       <ThemeView3D object_active="#ff0034"
                    editmesh_active="#ff5edece"

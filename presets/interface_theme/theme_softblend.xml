@@ -1,5 +1,5 @@
 <bpy>
-  <Theme name="Theme Softblend">
+  <Theme>
     <view_3d>
       <ThemeView3D object_active="#ffffff"
                    editmesh_active="#ffffff00"

@@ -1,5 +1,5 @@
 <bpy>
-  <Theme name="Default">
+  <Theme>
     <view_3d>
       <ThemeView3D object_active="#ffffff"
                    editmesh_active="#fcf8ff80"
