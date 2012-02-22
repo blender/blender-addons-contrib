@@ -33,6 +33,7 @@
 <!ELEMENT mat_IOR (#PCDATA)>
 <!ELEMENT mat_mossy (#PCDATA)>
 <!ELEMENT random (use_random_seed,user_seed)>
+<!ELEMENT use_generate (#PCDATA)>
 <!ELEMENT use_random_seed (#PCDATA)>
 <!ELEMENT user_seed (#PCDATA)>
 
@@ -94,6 +95,7 @@
 			<mat_mossy>0.0</mat_mossy>
 		</material>
 		<random>
+			<use_generate>True</use_generate>
 			<use_random_seed>True</use_random_seed>
 			<user_seed>1</user_seed>
 		</random>
@@ -153,6 +155,7 @@
 			<mat_mossy>0.0</mat_mossy>
 		</material>
 		<random>
+			<use_generate>True</use_generate>
 			<use_random_seed>True</use_random_seed>
 			<user_seed>1</user_seed>
 		</random>
@@ -212,6 +215,7 @@
 			<mat_mossy>0.0</mat_mossy>
 		</material>
 		<random>
+			<use_generate>True</use_generate>
 			<use_random_seed>True</use_random_seed>
 			<user_seed>1</user_seed>
 		</random>
@@ -271,6 +275,7 @@
 			<mat_mossy>0.0</mat_mossy>
 		</material>
 		<random>
+			<use_generate>True</use_generate>
 			<use_random_seed>True</use_random_seed>
 			<user_seed>1</user_seed>
 		</random>
@@ -330,6 +335,7 @@
 			<mat_mossy>0.0</mat_mossy>
 		</material>
 		<random>
+			<use_generate>True</use_generate>
 			<use_random_seed>True</use_random_seed>
 			<user_seed>1</user_seed>
 		</random>
@@ -389,6 +395,7 @@
 			<mat_mossy>0.0</mat_mossy>
 		</material>
 		<random>
+			<use_generate>True</use_generate>
 			<use_random_seed>True</use_random_seed>
 			<user_seed>1</user_seed>
 		</random>

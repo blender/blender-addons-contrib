@@ -1475,12 +1475,15 @@ class rocks(bpy.types.Operator):
                               description = "Amount of mossiness on the rocks",
                               min = 0.0, max = 1.0, default = defaults[25])
 
+    use_generate = BoolProperty(name = "Generate Rocks",
+                                description = "Enable actual generation.",
+                                default = defaults[26])
     use_random_seed = BoolProperty(name = "Use a random seed",
                                   description = "Create a seed based on time. Causes user seed to be ignored.",
-                                  default = defaults[26])
+                                  default = defaults[27])
     user_seed = IntProperty(name = "User seed",
                             description = "Use a specific seed for the generator.",
-                            min = 0, max = 1048576, default = defaults[27])
+                            min = 0, max = 1048576, default = defaults[28])
 
 
     def draw(self, context):
@@ -1521,6 +1524,7 @@ class rocks(bpy.types.Operator):
                 box.prop(self, 'mat_IOR')
             box.prop(self, 'mat_mossy')
         box = layout.box()
+        box.prop(self, 'use_generate')
         box.prop(self, 'use_random_seed')
         if not self.use_random_seed:
             box.prop(self, 'user_seed')
@@ -1555,42 +1559,44 @@ class rocks(bpy.types.Operator):
             self.mat_cloudy = float(self.presetsList[int(self.preset_values)][23])
             self.mat_IOR = float(self.presetsList[int(self.preset_values)][24])
             self.mat_mossy = float(self.presetsList[int(self.preset_values)][25])
-            self.use_random_seed = bool(self.presetsList[int(self.preset_values)][26])
-            self.user_seed = int(self.presetsList[int(self.preset_values)][27])
+            self.use_generate = bool(self.presetsList[int(self.preset_values)][26])
+            self.use_random_seed = bool(self.presetsList[int(self.preset_values)][27])
+            self.user_seed = int(self.presetsList[int(self.preset_values)][28])
             self.lastPreset = int(self.preset_values)
 
         # todo Add deform, deform_Var, rough, and rough_Var:
         #   *** todo completed 4/23/2011 ***
         #   *** Eliminated "deform_Var" and "rough_Var" so the script is not
         #       as complex to use.  May add in again as advanced features. ***
-        generateRocks(context,
-                      self.scale_X,
-                      self.skew_X,
-                      self.scale_Y,
-                      self.skew_Y,
-                      self.scale_Z,
-                      self.skew_Z,
-                      self.scale_fac,
-                      self.detail,
-                      self.display_detail,
-                      self.deform,
-                      self.rough,
-                      self.smooth_fac,
-                      self.smooth_it,
-                      self.mat_enable,
-                      self.mat_color,
-                      self.mat_bright,
-                      self.mat_rough,
-                      self.mat_spec,
-                      self.mat_hard,
-                      self.mat_use_trans,
-                      self.mat_alpha,
-                      self.mat_cloudy,
-                      self.mat_IOR,
-                      self.mat_mossy,
-                      self.num_of_rocks,
-                      self.user_seed,
-                      self.use_scale_dis,
-                      self.use_random_seed)
+        if self.use_generate:
+            generateRocks(context,
+                          self.scale_X,
+                          self.skew_X,
+                          self.scale_Y,
+                          self.skew_Y,
+                          self.scale_Z,
+                          self.skew_Z,
+                          self.scale_fac,
+                          self.detail,
+                          self.display_detail,
+                          self.deform,
+                          self.rough,
+                          self.smooth_fac,
+                          self.smooth_it,
+                          self.mat_enable,
+                          self.mat_color,
+                          self.mat_bright,
+                          self.mat_rough,
+                          self.mat_spec,
+                          self.mat_hard,
+                          self.mat_use_trans,
+                          self.mat_alpha,
+                          self.mat_cloudy,
+                          self.mat_IOR,
+                          self.mat_mossy,
+                          self.num_of_rocks,
+                          self.user_seed,
+                          self.use_scale_dis,
+                          self.use_random_seed)
 
         return {'FINISHED'}

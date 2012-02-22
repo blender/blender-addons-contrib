@@ -147,25 +147,29 @@ def parseNode(setting, title=True):
     loc += 2
 
     # Preset random values (xmlPreset.childNodes[9]):
-    if setting.childNodes[loc].childNodes[1].childNodes[0].data == 'False':
+    if setting.childNodes[loc].childNodes[1].childNodes[0].data == 'True':
+        use_generate = True
+    else:
+        use_generate = False
+    if setting.childNodes[loc].childNodes[3].childNodes[0].data == 'False':
         use_random_seed = False
     else:
         use_random_seed = True
-    user_seed = int(setting.childNodes[loc].childNodes[3].childNodes[0].data)
+    user_seed = int(setting.childNodes[loc].childNodes[5].childNodes[0].data)
 
     if title:
         parsed = [title, scaleX, scaleY, scaleZ, skewX, skewY, skewZ,
                   use_scale_dis, scale_fac, deform, rough, detail,
                   display_detail, smooth_fac, smooth_it, mat_enable, mat_color,
                   mat_bright, mat_rough, mat_spec, mat_hard, mat_use_trans,
-                  mat_alpha, mat_cloudy, mat_IOR, mat_mossy, use_random_seed,
-                  user_seed]
+                  mat_alpha, mat_cloudy, mat_IOR, mat_mossy, use_generate,
+                  use_random_seed, user_seed]
     else:
         parsed = [scaleX, scaleY, scaleZ, skewX, skewY, skewZ, use_scale_dis,
                   scale_fac, deform, rough, detail, display_detail, smooth_fac,
                   smooth_it, mat_enable, mat_color, mat_bright, mat_rough,
                   mat_spec, mat_hard, mat_use_trans, mat_alpha, mat_cloudy,
-                  mat_IOR, mat_mossy, use_random_seed, user_seed]
+                  mat_IOR, mat_mossy, use_generate, use_random_seed, user_seed]
 
     return parsed
 
