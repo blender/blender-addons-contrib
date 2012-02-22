@@ -23,7 +23,7 @@ bl_info = {
     'blender': (2, 61, 1),
     'location': "View3D > Tools",
     'description': "Tools for converting/animating objects/particles into curves",
-    'warning': "Still under development, bug reports appreciated",
+    'warning': "Some features broken, Still under development",
     'wiki_url': "",
     'tracker_url': "http://projects.blender.org/tracker/?func=detail&atid=468&aid=29563&group_id=153",
     'category': "Mesh"
