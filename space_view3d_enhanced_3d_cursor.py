@@ -3844,7 +3844,7 @@ class Cursor3DTools(bpy.types.Panel):
         # If addon is enabled by default, the new scene
         # created on Blender startup will have disabled
         # standard Cursor3D behavior. However, if user
-        # creates new scene, somewhy Cursor3D is active
+        # creates new scene, somehow Cursor3D is active
         # as if nothing happened xD
         update_keymap(True)
         #=============================================#
