@@ -225,7 +225,7 @@ class CMUMocapDownloadImport(bpy.types.Operator):
                 bpy.ops.import_anim.asf(
                     filepath=self.local_file,
                     from_inches=True,
-                    rotX=True, rotZ=True,
+                    use_rot_x=True, use_rot_z=True,
                     armature_name=cml.subject_import_name)
             elif self.local_file.endswith("amc"):
                 ob = bpy.context.active_object
