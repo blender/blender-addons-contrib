@@ -22,7 +22,7 @@
 bl_info = {
     "name": "Marmalade Cross-platform Apps (.group)",
     "author": "Benoit Muller",
-    "version": (0, 5, 0),
+    "version": (0, 5, 1),
     "blender": (2, 6, 0),
     "api": 37702,
     "location": "File > Export > Marmalade cross-platform Apps (.group)",
@@ -149,8 +149,11 @@ def ExportMadeWithMarmaladeGroup(Config):
     if Config.ExportAnimation:
         if Config.Verbose:
             print("Writing Animation...")
-        WriteKeyedAnimationSet(Config)
-        bpy.context.scene.frame_current = CurrentFrame
+        if bpy.context.scene:
+            WriteKeyedAnimationSet(Config, bpy.context.scene)
+            bpy.context.scene.frame_current = CurrentFrame
+        elif Config.Verbose:
+            print("bpy.context.scene is null: cannot export animation...")
         if Config.Verbose:
             print("Done")
     Config.File.write("}\n")
@@ -284,10 +287,7 @@ def WriteObjects(Config, ObjectList, geoFile=None, mtlFile=None, GeoModel=None, 
             else:
                 # In Merge mode, we need to keep relative postion of each objects, so we export in WORLD SPACE
                 SCALE_MAT = mathutils.Matrix.Scale(Config.Scale, 4)
-                Mesh.transform(Object.matrix_world)
-                Mesh.transform(SCALE_MAT)
-
-                Mesh.transform(X_ROT)
+                Mesh.transform(Object.matrix_world * SCALE_MAT * X_ROT)
 
              # manage merge options
    
@@ -461,6 +461,7 @@ def WriteMesh(Config, Object, Mesh,  geoFile=None, mtlFile=None, GeoModel=None):
 #Store one Point of a Quad or Tri in marmalade geo format: //index-list is: { <int> <int> <int> <int> <int> }   //v,vn,uv0,uv1,vc
 #############                           
 class CGeoIndexList:
+    __slots__ = "v", "vn", "uv0", "uv1", "vc"
     
     def __init__(self, v, vn, uv0, uv1, vc):
         self.v = v
@@ -474,7 +475,8 @@ class CGeoIndexList:
 #Store a Quad or a Tri in marmalade geo format : 3 or 4 CIndexList depending it is a Tri or a Quad
 #############                        
 class CGeoPoly:
-
+    __slots__ = "pointsList"
+    
     def __init__(self):
         self.pointsList = list()
 
@@ -495,9 +497,10 @@ class CGeoPoly:
 
 
 #############
-#Store all the poly (tri or quad) affected to a Material in marmalade geo format
+#Store all the poly (tri or quad) assigned to a Material in marmalade geo format
 #############                        
 class CGeoMaterialPolys:
+    __slots__ = "name", "material", "quadList", "triList", "currentPoly"
     
     def __init__(self, name, material=None):
         self.name = name
@@ -528,7 +531,7 @@ class CGeoMaterialPolys:
         geoFile.write("\t\tCSurface\n")
         geoFile.write("\t\t{\n")
         geoFile.write("\t\t\tmaterial \"%s\"\n" % self.name)
-        if len(self.triList) > 0:
+        if self.triList:
             geoFile.write("\t\t\tCTris\n")
             geoFile.write("\t\t\t{\n")
             geoFile.write("\t\t\t\tnumTris %d\n" % (len(self.triList)))
@@ -536,7 +539,7 @@ class CGeoMaterialPolys:
                 poly.PrintPoly(geoFile)
             geoFile.write("\t\t\t}\n")
 
-        if len(self.quadList) > 0:
+        if self.quadList:
             geoFile.write("\t\t\tCQuads\n")
             geoFile.write("\t\t\t{\n")
             geoFile.write("\t\t\t\tnumQuads %d\n" % (len(self.quadList)))
@@ -550,7 +553,10 @@ class CGeoMaterialPolys:
 #Store all the information on a Model/Mesh (vertices, normal, certcies color, uv0, uv1, TRI, QUAD) in marmalade geo format
 #############  
 class CGeoModel:
-
+    __slots__ = ("name", "MaterialsDict", "vList", "vnList", "vcList", "uv0List", "uv1List",
+                "currentMaterialPolys", "vbaseIndex","vnbaseIndex", "uv0baseIndex", "uv1baseIndex",
+                "armatureObjectName", "useBonesDict", "mapVertexGroupNames")
+                
     def __init__(self, name):
         self.name = name
         self.MaterialsDict = dict()
@@ -655,7 +661,7 @@ class CGeoModel:
         geoFile.write("\t{\n")
         geoFile.write("\t\tname \"%s\"\n" % (StripName(self.name)))
 
-        if len(self.vList) > 0:
+        if self.vList:
             geoFile.write("\t\tCVerts\n")
             geoFile.write("\t\t{\n")
             geoFile.write("\t\t\tnumVerts %d\n" % len(self.vList))
@@ -663,7 +669,7 @@ class CGeoModel:
                 geoFile.write("\t\t\tv { %.9f, %.9f, %.9f }\n" % (vertex[0], vertex[1], vertex[2]))                      
             geoFile.write("\t\t}\n")
 
-        if len(self.vnList) > 0:
+        if self.vnList:
             geoFile.write("\t\tCVertNorms\n")
             geoFile.write("\t\t{\n")
             geoFile.write("\t\t\tnumVertNorms  %d\n" % len(self.vnList))
@@ -671,7 +677,7 @@ class CGeoModel:
                 geoFile.write("\t\t\tvn { %.9f, %.9f, %.9f }\n" % (vertexn[0], vertexn[1], vertexn[2]))                      
             geoFile.write("\t\t}\n")
 
-        if len(self.vcList) > 0:
+        if self.vcList:
             geoFile.write("\t\tCVertCols\n")
             geoFile.write("\t\t{\n")
             geoFile.write("\t\t\tnumVertCols %d\n" % len(self.vcList))
@@ -679,7 +685,7 @@ class CGeoModel:
                 geoFile.write("\t\t\tcol { %.6f, %.6f, %.6f, %.6f }\n" % (color[0], color[1], color[2], color[3])) #alpha is not supported on blender for vertex colors           
             geoFile.write("\t\t}\n")
 
-        if len(self.uv0List) > 0:
+        if self.uv0List:
             geoFile.write("\t\tCUVs\n")
             geoFile.write("\t\t{\n")
             geoFile.write("\t\t\tsetID 0\n")
@@ -688,7 +694,7 @@ class CGeoModel:
                  geoFile.write("\t\t\tuv { %.9f, %.9f }\n" % (uv[0], uv[1]))                       
             geoFile.write("\t\t}\n")
 
-        if len(self.uv1List) > 0:
+        if self.uv1List:
             geoFile.write("\t\tCUVs\n")
             geoFile.write("\t\t{\n")
             geoFile.write("\t\t\tsetID 1\n")
@@ -702,16 +708,13 @@ class CGeoModel:
         geoFile.write("\t}\n")
 
     def GetMaterialList(self):
-        matList = list()
-        for matName in self.MaterialsDict.keys():
-            matList.append(matName)
-        return matList
+        return list(self.MaterialsDict.keys())
 
     def GetMaterialByName(self, name):
         if name in self.MaterialsDict:
             return self.MaterialsDict[name].material
         else:
-            return none       
+            return None       
 
 
 
@@ -1041,7 +1044,8 @@ def WriteMeshPoly(Config, Mesh, geoFile, bVertexColors, bUVTextures):
                                 uv1 = streamIndex
                                 uv2 = streamIndex+1
                                 uv3 = streamIndex+2
-                            geoFile.write("\t\t\t\tt {%d, %d, %d, -1, %d} {%d, %d, %d, -1, %d} {%d, %d, %d, -1, %d}\n" % (streamIndex, streamIndex, uv1, vc1, streamIndex+1, streamIndex+1, uv2, vc2, streamIndex+2, streamIndex+2, uv3, vc3))
+                            geoFile.write("\t\t\t\tt {%d, %d, %d, -1, %d} {%d, %d, %d, -1, %d} {%d, %d, %d, -1, %d}\n"
+                                          % (streamIndex, streamIndex, uv1, vc1, streamIndex+1, streamIndex+1, uv2, vc2, streamIndex+2, streamIndex+2, uv3, vc3))
                             streamIndex = streamIndex + 3
                 geoFile.write("\t\t\t}\n")
             #Write the Quad for this material, if any
@@ -1064,7 +1068,9 @@ def WriteMeshPoly(Config, Mesh, geoFile, bVertexColors, bUVTextures):
                                 uv2 = streamIndex + 1
                                 uv3 = streamIndex + 2
                                 uv4 = streamIndex + 3
-                            geoFile.write("\t\t\t\tq {%d, %d, %d, -1, %d} {%d, %d, %d, -1, %d} {%d, %d, %d, -1, %d} {%d, %d, %d, -1, %d}\n" % (streamIndex, streamIndex, uv1, vc1, streamIndex+1, streamIndex+1, uv2, vc2, streamIndex+2, streamIndex+2, uv3, vc3, streamIndex+3, streamIndex+3, uv4, vc4))
+                            geoFile.write("\t\t\t\tq {%d, %d, %d, -1, %d} {%d, %d, %d, -1, %d} {%d, %d, %d, -1, %d} {%d, %d, %d, -1, %d}\n"
+                                          % (streamIndex, streamIndex, uv1, vc1, streamIndex+1, streamIndex+1, uv2, vc2,
+                                             streamIndex+2, streamIndex+2, uv3, vc3, streamIndex+3, streamIndex+3, uv4, vc4))
                             streamIndex = streamIndex + 4
                 geoFile.write("\t\t\t}\n")
 
@@ -1094,11 +1100,11 @@ def WriteMaterial(Config, mtlFile, Material=None):
             MatAmbientColor = Material.ambient * Material.diffuse_color
             mtlFile.write("\tcolAmbient {%.2f,%.2f,%.2f,%.2f} \n" % (MatAmbientColor[0] * 255, MatAmbientColor[1] * 255, MatAmbientColor[2] * 255, Material.alpha * 255))
             MatDiffuseColor = Material.diffuse_intensity * Material.diffuse_color
-            mtlFile.write("\tcolDiffuse  {%.2f,%.2f,%.2f} \n" % (MatDiffuseColor[0] * 255, MatDiffuseColor[1] * 255, MatDiffuseColor[2] * 255))
+            mtlFile.write("\tcolDiffuse  {%.2f,%.2f,%.2f} \n" % (MatDiffuseColor * 255)[:])
             MatSpecularColor = Material.specular_intensity * Material.specular_color
-            mtlFile.write("\tcolSpecular  {%.2f,%.2f,%.2f} \n" % (MatSpecularColor[0] * 255, MatSpecularColor[1] * 255, MatSpecularColor[2] * 255))
+            mtlFile.write("\tcolSpecular  {%.2f,%.2f,%.2f} \n" % (MatSpecularColor * 255)[:])
             # EmitColor = Material.emit * Material.diffuse_color
-            # mtlFile.write("\tcolEmissive {%.2f,%.2f,%.2f} \n" % (EmitColor[0] * 255, EmitColor[1] * 255, EmitColor[2] * 255))
+            # mtlFile.write("\tcolEmissive {%.2f,%.2f,%.2f} \n" % (EmitColor* 255)[:])
 
             
     else:
@@ -1366,7 +1372,7 @@ def WriteBonePosition(Config, Object, Bone, PoseBones, PoseBone, File, isSkelFil
         File.write("\t}\n")
 
       
-def WriteKeyedAnimationSet(Config):  
+def WriteKeyedAnimationSet(Config, Scene):  
     for Object in [Object for Object in Config.ObjectList if Object.animation_data]:
         if Config.Verbose:
             print("  Writing Animation Data for Object: {}".format(Object.name))
@@ -1379,22 +1385,22 @@ def WriteKeyedAnimationSet(Config):
                 # Exports only key frames
                 for FCurve in Action.fcurves:
                     for Keyframe in FCurve.keyframe_points:
-                        if Keyframe.co[0] < bpy.context.scene.frame_start:
-                            keyframeTimes.add(bpy.context.scene.frame_start)
-                        elif Keyframe.co[0] > bpy.context.scene.frame_end:
-                            keyframeTimes.add(bpy.context.scene.frame_end)
+                        if Keyframe.co[0] < Scene.frame_start:
+                            keyframeTimes.add(Scene.frame_start)
+                        elif Keyframe.co[0] > Scene.frame_end:
+                            keyframeTimes.add(Scene.frame_end)
                         else:
                             keyframeTimes.add(int(Keyframe.co[0]))
             else:
                 # Exports all frames
-                for i in range(bpy.context.scene.frame_start,bpy.context.scene.frame_end + 1, 1):
-                    keyframeTimes.add(i)
+                keyframeTimes.update(range(scene.frame_start, scene.frame_end + 1, 1))
             keyframeTimes = list(keyframeTimes)
             keyframeTimes.sort()
             if len(keyframeTimes):
                 #Create the anim file for offset animation (or single bone animation
                 animfullname = os.path.dirname(Config.FilePath) + "\\anims\\%s_offset.anim" % (StripName(Object.name))
                 #not yet supported
+                """
                 ##    ensure_dir(animfullname)
                 ##    if Config.Verbose:
                 ##        print("      Creating anim file (single bone animation) %s" % (animfullname))
@@ -1409,7 +1415,7 @@ def WriteKeyedAnimationSet(Config):
                 ##    Config.File.write("\t\".\\anims\\%s_offset.anim\"\n" % (StripName(Object.name)))
                 ##
                 ##    for KeyframeTime in keyframeTimes:
-                ##        #bpy.context.scene.frame_set(KeyframeTime)    
+                ##        #Scene.frame_set(KeyframeTime)    
                 ##        animFile.write("\tCIwAnimKeyFrame\n")
                 ##        animFile.write("\t{\n")
                 ##        animFile.write("\t\ttime %.2f // frame num %d \n" % (KeyframeTime/Config.AnimFPS, KeyframeTime))
@@ -1454,6 +1460,7 @@ def WriteKeyedAnimationSet(Config):
                 ##        animFile.write("\t}\n")
                 ##    animFile.write("}\n")
                 ##    animFile.close()
+                """
             else:
                 if Config.Verbose:
                     print("    Object %s has no useable animation data." % (StripName(Object.name)))
@@ -1470,16 +1477,15 @@ def WriteKeyedAnimationSet(Config):
                     # Exports only key frames
                     for FCurve in Action.fcurves:
                         for Keyframe in FCurve.keyframe_points:
-                            if Keyframe.co[0] < bpy.context.scene.frame_start:
-                                keyframeTimes.add(bpy.context.scene.frame_start)
-                            elif Keyframe.co[0] > bpy.context.scene.frame_end:
-                                keyframeTimes.add(bpy.context.scene.frame_end)
+                            if Keyframe.co[0] < Scene.frame_start:
+                                keyframeTimes.add(Scene.frame_start)
+                            elif Keyframe.co[0] > Scene.frame_end:
+                                keyframeTimes.add(Scene.frame_end)
                             else:
                                 keyframeTimes.add(int(Keyframe.co[0]))
                 else:
                     # Exports all frame
-                    for i in range(bpy.context.scene.frame_start,bpy.context.scene.frame_end+1, 1):
-                        keyframeTimes.add(i)
+                    keyframeTimes.update(range(scene.frame_start, scene.frame_end + 1, 1))
                    
                 keyframeTimes = list(keyframeTimes)
                 keyframeTimes.sort()
@@ -1506,7 +1512,7 @@ def WriteKeyedAnimationSet(Config):
                         animFile.write("\t{\n")
                         animFile.write("\t\ttime %.2f // frame num %d \n" % (KeyframeTime / Config.AnimFPS, KeyframeTime))
                         #for every frame write bones positions
-                        bpy.context.scene.frame_set(KeyframeTime)
+                        Scene.frame_set(KeyframeTime)
                         for PoseBone in PoseBones:
                             if Config.Verbose:
                                 print("      Writing Bone: {}...".format(PoseBone.name))
