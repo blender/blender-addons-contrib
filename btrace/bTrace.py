@@ -893,8 +893,9 @@ class OBJECT_OT_convertcurve(bpy.types.Operator):
                     bpy.ops.object.mode_set(mode='EDIT')
                     bpy.context.tool_settings.mesh_select_mode = [True, False, False]
                     bpy.ops.mesh.edge_face_add()
+                    bpy.ops.mesh.select_all(action='DESELECT')
                     bpy.ops.object.mode_set(mode='OBJECT')
-                    verts[p1].select = verts[p2].select = False
+                    # verts[p1].select = verts[p2].select = False #Doesn't work after Bmesh merge
                     li.remove(p2)  # remove item from list.
                     p1 = p2
                 # Convert edges to curve
