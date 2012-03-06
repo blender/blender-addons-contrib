@@ -87,7 +87,7 @@ class MarmaladeExporterSettings:
         self.ExportMode = int(ExportMode)
         self.MergeModes = int(MergeModes)
         self.Verbose = Verbose
-        self.WarningList = list()
+        self.WarningList = []
 
 
 def ExportMadeWithMarmaladeGroup(Config):
@@ -149,11 +149,8 @@ def ExportMadeWithMarmaladeGroup(Config):
     if Config.ExportAnimation:
         if Config.Verbose:
             print("Writing Animation...")
-        if bpy.context.scene:
-            WriteKeyedAnimationSet(Config, bpy.context.scene)
-            bpy.context.scene.frame_current = CurrentFrame
-        elif Config.Verbose:
-            print("bpy.context.scene is null: cannot export animation...")
+        WriteKeyedAnimationSet(Config, bpy.context.scene)
+        bpy.context.scene.frame_current = CurrentFrame
         if Config.Verbose:
             print("Done")
     Config.File.write("}\n")
@@ -475,10 +472,10 @@ class CGeoIndexList:
 #Store a Quad or a Tri in marmalade geo format : 3 or 4 CIndexList depending it is a Tri or a Quad
 #############                        
 class CGeoPoly:
-    __slots__ = "pointsList"
+    __slots__ = "pointsList",
     
     def __init__(self):
-        self.pointsList = list()
+        self.pointsList = []
 
     def AddPoint(self, v, vn, uv0, uv1, vc):
         self.pointsList.append( CGeoIndexList(v, vn, uv0, uv1, vc))
@@ -505,8 +502,8 @@ class CGeoMaterialPolys:
     def __init__(self, name, material=None):
         self.name = name
         self.material = material
-        self.quadList = list()
-        self.triList = list()
+        self.quadList = []
+        self.triList = []
         self.currentPoly = None
 
     def BeginPoly(self):
@@ -523,8 +520,8 @@ class CGeoMaterialPolys:
         self.currentPoly = None
 
     def ClearPolys(self):
-        self.quadList = list()
-        self.triList = list()
+        self.quadList = []
+        self.triList = []
         self.currentPoly = None
 
     def PrintMaterialPolys(self, geoFile):
@@ -559,12 +556,12 @@ class CGeoModel:
                 
     def __init__(self, name):
         self.name = name
-        self.MaterialsDict = dict()
-        self.vList = list()
-        self.vnList = list()
-        self.vcList = list()
-        self.uv0List = list()
-        self.uv1List = list()
+        self.MaterialsDict = {}
+        self.vList = []
+        self.vnList = []
+        self.vcList = []
+        self.uv0List = []
+        self.uv1List = []
         self.currentMaterialPolys = None
         #used xx baseIndex are used when merging several blender objects into one Mesh in the geo file (internal offset)
         self.vbaseIndex = 0
@@ -577,8 +574,8 @@ class CGeoModel:
         self.armatureObjectName = ""
         #useBonesKey : bit field, where each bit is a VertexGroup.Index): Sum(2^VertGroupIndex).
         #useBonesDict[useBonesKey] = tuple(VertexGroups.group, list(Vertex))
-        self.useBonesDict = dict()
-        self.mapVertexGroupNames = dict()
+        self.useBonesDict = {}
+        self.mapVertexGroupNames = {}
 
 
 
@@ -640,11 +637,11 @@ class CGeoModel:
 
     def ClearAllExceptMaterials(self):
         #used in Merge mode 2: one geo with several mesh
-        self.vList = list()
-        self.vnList = list()
-        self.vcList = list()
-        self.uv0List = list()
-        self.uv1List = list()
+        self.vList = []
+        self.vnList = []
+        self.vcList = []
+        self.uv0List = []
+        self.uv1List = []
         self.currentMaterialPolys = None
         self.vbaseIndex = 0
         self.vnbaseIndex = 0
@@ -652,8 +649,8 @@ class CGeoModel:
         self.uv1baseIndex = 0
         for GeoMaterialPolys in self.MaterialsDict.values():
             GeoMaterialPolys.ClearPolys()
-        self.useBonesDict = dict()
-        self.mapVertexGroupNames = dict()
+        self.useBonesDict = {}
+        self.mapVertexGroupNames = {}
         self.armatureObjectName = ""
 
     def PrintGeoMesh(self, geoFile):
@@ -759,7 +756,7 @@ def BuildOptimizedGeo(Config, Object, Mesh, GeoModel):
                 FaceColors = list((MeshColor.color1, MeshColor.color2, MeshColor.color3, MeshColor.color4))
             if Config.CoordinateSystem == 1:
                 FaceColors = FaceColors[::-1]
-            colorIndex = list()
+            colorIndex = []
             for color in FaceColors:
                 index = GeoModel.AddVertexColor(color[0], color[1], color[2], 1)  #rgba => no alpha on vertex color in Blender so use 1
                 colorIndex.append(index)
@@ -774,7 +771,7 @@ def BuildOptimizedGeo(Config, Object, Mesh, GeoModel):
                 uvVertices.append(tuple(uvVertex))
             if Config.CoordinateSystem == 1:
                 uvVertices = uvVertices[::-1]
-            uv0Index = list()
+            uv0Index = []
             for uvVertex in uvVertices:
                 index = GeoModel.AddVertexUV0(uvVertex[0], 1 - uvVertex[1]) 
                 uv0Index.append(index)
@@ -1144,11 +1141,11 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
         # so first we have to get all the combinations of affected bones that exist int he mesh
         # to build thoses groups, we build a unique key (like a bit field, where each bit is a VertexGroup.Index): Sum(2^VertGroupIndex)... so we have a unique Number per combinations
 
-        useBonesDict = dict()
+        useBonesDict = {}
         #useBonesKey => pair_ListGroupIndices_ListAssignedVertices
         #useBonesDict[useBonesKey] = tuple(VertexGroups.group, list(Vertex))
 
-        mapVertexGroupNames = dict() 
+        mapVertexGroupNames = {} 
         matCount = len(Mesh.materials)
         if matCount == 0:
             matCount = 1 #No material defined for the Mesh !!!! => generate a default Material
@@ -1226,7 +1223,7 @@ def PrintSkinWeights(Config, ArmatureObjectName, useBonesDict, mapVertexGroupNam
 def AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, useBonesDict, mapVertexGroupNames, VertexIndex):
     #build useBones
     useBonesKey = 0
-    vertexGroupIndices = list()
+    vertexGroupIndices = []
     weightTotal = 0.0
     if (len(Vertex.groups)) > 4:
         print ("ERROR Vertex %d is influenced by more than 4 bones\n" % (VertexIndex))
@@ -1268,7 +1265,7 @@ def AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, useBonesDict, 
            
         #store in dictionnary information
         if useBonesKey not in useBonesDict:
-            VertexList = list()
+            VertexList = []
             VertexList.append(VertexWeightString)
             useBonesDict[useBonesKey] = (vertexGroupIndices, VertexList)
         else:
