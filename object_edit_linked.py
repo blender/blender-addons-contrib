@@ -33,26 +33,26 @@ bl_info = {
 import bpy
 from bpy.app.handlers import persistent
 
-
-bpy.original_file = ""
-bpy.linked_file = ""
-bpy.linked_objects = []
-
+settings = {
+    "original_file": "",
+    "linked_file": "",
+    "linked_objects": [],
+    }
 
 @persistent
 def linked_file_check(context):
-    if bpy.linked_file != "":
-        if bpy.linked_file == bpy.data.filepath or bpy.linked_file == bpy.path.abspath("//") + bpy.data.filepath[2:]:
+    if settings["linked_file"] != "":
+        if settings["linked_file"] in {bpy.data.filepath, bpy.path.abspath(bpy.data.filepath)}:
             print("Editing a linked library.")
             bpy.ops.object.select_all(action = 'DESELECT')
-            for ob in bpy.linked_objects:
-                bpy.data.objects[ob].select = True
-            if len(bpy.linked_objects) == 1:
-                bpy.context.scene.objects.active = bpy.data.objects[bpy.linked_objects[0]]
+            for ob_name in settings["linked_objects"]:
+                bpy.data.objects[ob_name].select = True
+            if len(settings["linked_objects"]) == 1:
+                bpy.context.scene.objects.active = bpy.data.objects[settings["linked_objects"][0]]
         else:
             # For some reason, the linked editing session ended (failed to find a file or opened a different file before returning to the originating .blend)
-            bpy.original_file = ""
-            bpy.linked_file = ""
+            settings["original_file"] = ""
+            settings["linked_file"] = ""
 
 
 
@@ -73,11 +73,10 @@ class EditLinked(bpy.types.Operator):
 
         if target.dupli_group and target.dupli_group.library:
             targetpath = target.dupli_group.library.filepath
-            for ob in target.dupli_group.objects:
-                bpy.linked_objects.append(ob.name)
+            settings["linked_objects"].extend([ob.name for ob in target.dupli_group.objects])
         elif target.library:
             targetpath = target.library.filepath
-            bpy.linked_objects.append(target.name)
+            settings["linked_objects"].append(target.name)
 
         if targetpath:
             print(target.name + " is linked to " + targetpath)
@@ -85,15 +84,12 @@ class EditLinked(bpy.types.Operator):
             if self.properties.autosave == True:
                 bpy.ops.wm.save_mainfile()
 
-            bpy.original_file = bpy.data.filepath
+            settings["original_file"] = bpy.data.filepath
 
             # XXX: need to test for proxied rigs
-            if targetpath[:2] == "//": #Relative path
-                bpy.linked_file = bpy.path.abspath("//") + targetpath[2:]
-            else: #Absolute path
-                bpy.linked_file = targetpath
+            settings["linked_file"] = bpy.path.abspath(targetpath)
 
-            bpy.ops.wm.open_mainfile(filepath = bpy.linked_file)
+            bpy.ops.wm.open_mainfile(filepath=settings["linked_file"])
             print("Opened linked file!")
         else:
             self.report({'WARNING'}, target.name + " is not linked")
@@ -117,9 +113,9 @@ class ReturnToOriginal(bpy.types.Operator):
     def execute(self, context):
         if self.properties.autosave == True:
             bpy.ops.wm.save_mainfile()
-        bpy.ops.wm.open_mainfile(filepath=bpy.original_file)
-        bpy.original_file = ""
-        bpy.linked_objects = []
+        bpy.ops.wm.open_mainfile(filepath=settings["original_file"])
+        settings["original_file"] = ""
+        settings["linked_objects"] = []
         print("Back to the original!")
         return {'FINISHED'}
 
@@ -138,12 +134,12 @@ class PanelLinkedEdit(bpy.types.Panel):
         kmi_edit = km.keymap_items["object.edit_linked"]
         kmi_return = km.keymap_items["wm.return_to_original"]
 
-        if bpy.original_file == "" and ((context.active_object.dupli_group and context.active_object.dupli_group.library is not None) or context.active_object.library is not None):
+        if settings["original_file"] == "" and ((context.active_object.dupli_group and context.active_object.dupli_group.library is not None) or context.active_object.library is not None):
             kmi_edit.active = True
             kmi_return.active = False
             self.layout.operator("object.edit_linked").autosave = context.scene.edit_linked_autosave
             self.layout.prop(context.scene, "edit_linked_autosave")
-        elif bpy.original_file != "":
+        elif settings["original_file"] != "":
             kmi_edit.active = False
             kmi_return.active = True
             self.layout.operator("wm.return_to_original").autosave = context.scene.edit_linked_autosave
