@@ -22,9 +22,11 @@ bl_info = {
     "author": "Clemens Barth",
     "version": (0,5),
     "blender": (2,6),
+    "api": 31236,
     "location": "File -> Import -> XYZ (.xyz), Panel: View 3D - Tools",
     "warning": "",
-    "wiki_url": "http://development.root-1.de/Atomic_Blender.php",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/"
+                "Import-Export/XYZ#Loading_XYZ_filesp",
     "tracker_url": "http://projects.blender.org/tracker/"
                    "index.php?func=detail&aid=29646&group_id=153&atid=468",
     "category": "Import-Export"
