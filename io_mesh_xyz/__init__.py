@@ -26,7 +26,7 @@ bl_info = {
     "location": "File -> Import -> XYZ (.xyz), Panel: View 3D - Tools",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/"
-                "Import-Export/XYZ#Loading_XYZ_filesp",
+                "Import-Export/XYZ",
     "tracker_url": "http://projects.blender.org/tracker/"
                    "index.php?func=detail&aid=29646&group_id=153&atid=468",
     "category": "Import-Export"
@@ -46,6 +46,7 @@ from bpy.props import (StringProperty,
 
 from . import import_xyz
 ATOM_XYZ_ERROR = ""
+ATOM_XYZ_NOTE  = ""
 
 # -----------------------------------------------------------------------------
 #                                                                           GUI
@@ -270,6 +271,7 @@ class CLASS_atom_xyz_create_command(Operator):
 
     def execute(self, context):
         global ATOM_XYZ_ERROR
+        global ATOM_XYZ_NOTE
         import os
  
         scn = bpy.context.scene
@@ -333,6 +335,9 @@ class CLASS_atom_xyz_create_command(Operator):
             command_fp.write("#!/bin/sh\n")   
         command_fp.write("\n"+execute+"\n")     
         command_fp.close()
+        
+        ATOM_XYZ_NOTE = "The command has been stored (dir. of the .blend file)"
+        bpy.ops.atom_xyz.note_dialog('INVOKE_DEFAULT')
 
         return {'FINISHED'}
 
@@ -706,6 +711,21 @@ class CLASS_atom_xyz_error_dialog(bpy.types.Operator):
         row.label(text="                          "+ATOM_XYZ_ERROR) 
     def execute(self, context):
         print("Atomic Blender - Error: "+ATOM_XYZ_ERROR+"\n")
+        return {'FINISHED'}
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class CLASS_atom_xyz_note_dialog(bpy.types.Operator):
+    bl_idname = "atom_xyz.note_dialog"
+    bl_label = "Attention !"
+    
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text=ATOM_XYZ_NOTE) 
+    def execute(self, context):
+        print("Atomic Blender - Note: "+ATOM_XYZ_NOTE+"\n")
         return {'FINISHED'}
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
