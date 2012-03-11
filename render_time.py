@@ -21,9 +21,9 @@
 bl_info = {
     "name": "Render Time Estimation",
     "author": "Jason van Gumster (Fweeb)",
-    "version": (0, 3, 0),
+    "version": (0, 4, 0),
     "blender": (2, 6, 2),
-    "api": 43969,
+    "api": 44810,
     "location": "UV/Image Editor > Properties > Image",
     "description": "Estimates the time to complete rendering on animations",
     "warning": "Does not work on OpenGL renders",
@@ -33,32 +33,32 @@ bl_info = {
 
 
 import bpy, time
+from bpy.app.handlers import persistent
 from datetime import timedelta
 
 
-timer = {"average": 0.0, "total": 0.0}
-time_start = 0.0
-bpy.is_rendering = False
+timer = {"average": 0.0, "total": 0.0, "time_start": 0.0, "is_rendering": False}
 
-def check_rendering(scene):
-    if bpy.ops.render.opengl.poll():
-        bpy.is_rendering = False
-    else:
-        bpy.is_rendering = True
+def set_rendering(scene):
+    timer["is_rendering"] = True
 
+@persistent
+def unset_rendering(scene):
+    timer["is_rendering"] = False
+
+@persistent
 def start_timer(scene):
-    global timer
-    global time_start
+    set_rendering(scene)
+
     if scene.frame_current == scene.frame_start:
-        timer = {"average": 0.0, "total": 0.0}
+        timer["average"] = 0.0
+        timer["total"] = 0.0
 
-    time_start = time.time()
+    timer["time_start"] = time.time()
 
+@persistent
 def end_timer(scene):
-    global timer
-    global time_start
-
-    render_time = time.time() - time_start
+    render_time = time.time() - timer["time_start"]
     timer["total"] += render_time
     if scene.frame_current == scene.frame_start:
         timer["average"] = render_time
@@ -72,30 +72,31 @@ def end_timer(scene):
 # UI
 
 def image_panel_rendertime(self, context):
-    global timer
     scene = context.scene
     layout = self.layout
 
     if context.space_data.image is not None and context.space_data.image.type == 'RENDER_RESULT':
         layout.label(text = "Total render time: " + str(timedelta(seconds = timer["total"])))
 
-        if bpy.is_rendering:
+        if timer["is_rendering"] and scene.frame_current != scene.frame_start:
             layout.label(text = "Estimated completion: " + str(timedelta(seconds = (timer["average"] * (scene.frame_end - scene.frame_current)))))
 
 
 # Registration
 
 def register():
-    bpy.app.handlers.frame_change_pre.append(check_rendering)
+    bpy.app.handlers.render_complete.append(unset_rendering)
+    bpy.app.handlers.render_cancel.append(unset_rendering)
     bpy.app.handlers.render_pre.append(start_timer)
     bpy.app.handlers.render_post.append(end_timer)
     bpy.types.IMAGE_PT_image_properties.append(image_panel_rendertime)
 
 
 def unregister():
-    bpy.app.handlers.frame_change_pre.remove(check_rendering)
     bpy.app.handlers.render_pre.remove(start_timer)
     bpy.app.handlers.render_post.remove(end_timer)
+    bpy.app.handlers.render_cancel.append(unset_rendering)
+    bpy.app.handlers.render_complete.remove(unset_rendering)
     bpy.types.IMAGE_PT_image_properties.remove(image_panel_rendertime)
 
 if __name__ == '__main__':
