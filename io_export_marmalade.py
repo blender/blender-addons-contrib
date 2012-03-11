@@ -24,7 +24,6 @@ bl_info = {
     "author": "Benoit Muller",
     "version": (0, 5, 1),
     "blender": (2, 6, 0),
-    "api": 37702,
     "location": "File > Export > Marmalade cross-platform Apps (.group)",
     "description": "Export Marmalade Format files (.group)",
     "warning": "",

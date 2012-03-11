@@ -21,7 +21,6 @@ bl_info = {
     "author": "Oscurart",
     "version": (1, 1),
     "blender": (2, 5, 9),
-    "api": 40900,
     "location": "Object > Futurism",
     "description": "Adds a new Mesh Object",
     "warning": "",

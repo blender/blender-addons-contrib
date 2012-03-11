@@ -21,7 +21,6 @@ bl_info = {
     "author": "Ondrej Raha(lokhorn), meta-androcto",
     "version": (0,5),
     "blender": (2, 6, 0),
-    "api": 42149,
     "location": "View3D > Tool Shelf > Grass Preset Panel",
     "description": "Creates particle grass with material",
     "warning": "",

@@ -22,7 +22,6 @@ bl_info = {
     "author": "Clemens Barth",
     "version": (0,5),
     "blender": (2,6),
-    "api": 31236,
     "location": "File -> Import -> XYZ (.xyz), Panel: View 3D - Tools",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/"

@@ -23,7 +23,6 @@ bl_info = {
     "author": "dairin0d",
     "version": (2, 8, 1),
     "blender": (2, 6, 0),
-    "api": 35853, # just copied from some Blender 2.59 script # 31236 ?
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\

@@ -23,7 +23,6 @@ bl_info = {
     "author": "Jason van Gumster (Fweeb)",
     "version": (0, 4, 0),
     "blender": (2, 6, 2),
-    "api": 44810,
     "location": "UV/Image Editor > Properties > Image",
     "description": "Estimates the time to complete rendering on animations",
     "warning": "Does not work on OpenGL renders",
