@@ -1,5 +1,5 @@
 bl_info = {
-    "name": "BProjection",
+    "name": "Z Projection",
     "description": "Help Clone tool",
     "author": "kgeogeo",
     "version": (1, 0),
@@ -526,12 +526,21 @@ class PresetView3D(Operator):
     view = StringProperty(name="View", description="Select the view", default='TOP',)
 
     def invoke(self, context, event):                   
+        origine = bpy.context.object.location
+        if bpy.context.object.custom_rot:
+            pos_init = view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.space_data.region_3d, origine)
+            bpy.context.space_data.region_3d.view_location = origine
+
         tmp = bpy.context.user_preferences.view.smooth_view
         bpy.context.user_preferences.view.smooth_view = 0
         bpy.ops.view3d.viewnumpad(type=self.view)        
         align_to_view(context)
         bpy.context.user_preferences.view.smooth_view = tmp
-        
+
+        if bpy.context.object.custom_rot:
+            pos_end = view3d_utils.region_2d_to_location_3d(bpy.context.region, bpy.context.space_data.region_3d, pos_init, Vector((0,0,0)))                
+            bpy.context.space_data.region_3d.view_location =  -1*pos_end
+                    
         return {'FINISHED'}
 
 
