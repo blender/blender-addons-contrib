@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Render Time Estimation",
     "author": "Jason van Gumster (Fweeb)",
-    "version": (0, 4, 0),
-    "blender": (2, 6, 2),
+    "version": (0, 5, 0),
+    "blender": (2, 62, 1),
     "location": "UV/Image Editor > Properties > Image",
     "description": "Estimates the time to complete rendering on animations",
     "warning": "Does not work on OpenGL renders",
@@ -34,9 +34,10 @@ bl_info = {
 import bpy, time
 from bpy.app.handlers import persistent
 from datetime import timedelta
+import blf
 
 
-timer = {"average": 0.0, "total": 0.0, "time_start": 0.0, "is_rendering": False}
+timer = {"average": 0.0, "total": 0.0, "time_start": 0.0, "is_rendering": False, "hud": False}
 
 def set_rendering(scene):
     timer["is_rendering"] = True
@@ -80,6 +81,62 @@ def image_panel_rendertime(self, context):
         if timer["is_rendering"] and scene.frame_current != scene.frame_start:
             layout.label(text = "Estimated completion: " + str(timedelta(seconds = (timer["average"] * (scene.frame_end - scene.frame_current)))))
 
+def draw_callback_px(self, context):
+    scene = context.scene
+
+    font_id = 0  # XXX, need to find out how best to get this.
+
+    # draw some text
+    blf.position(font_id, 15, 30, 0)
+    blf.size(font_id, 18, 72)
+    blf.enable(font_id, blf.SHADOW)
+    blf.shadow(font_id, 5, 0.0, 0.0, 0.0, 1.0)
+
+    blf.draw(font_id, "Total render time " + str(timedelta(seconds = timer["total"])))
+    if timer["is_rendering"] and scene.frame_current != scene.frame_start:
+        blf.position(font_id, 15, 12, 0)
+        blf.draw(font_id, "Estimated completion: " + str(timedelta(seconds = (timer["average"] * (scene.frame_end - scene.frame_current)))))
+
+    # restore defaults
+    blf.disable(font_id, blf.SHADOW)
+
+class RenderTimeHUD(bpy.types.Operator):
+    bl_idname = "view2d.rendertime_hud"
+    bl_label = "Display Render Times"
+    last_activity = 'NONE'
+
+    def modal(self, context, event):
+        if context.area:
+            context.area.tag_redraw()
+
+        #if event.type in {'ESC'}:
+        if timer["hud"] == False:
+            context.region.callback_remove(self._handle)
+            return {'CANCELLED'}
+
+        return {'PASS_THROUGH'}
+
+    def invoke(self, context, event):
+        if context.area.type == 'IMAGE_EDITOR':
+            if timer["hud"] == False:
+                context.window_manager.modal_handler_add(self)
+
+                # Add the region OpenGL drawing callback
+                self._handle = context.region.callback_add(draw_callback_px, (self, context), 'POST_PIXEL')
+                timer["hud"] = True
+                return {'RUNNING_MODAL'}
+            else:
+                timer["hud"] = False
+                return {'CANCELLED'}
+        else:
+            self.report({'WARNING'}, "UV/Image Editor not found, cannot run operator")
+            return {'CANCELLED'}
+
+def display_hud(self, context):
+    scene = context.scene
+    layout = self.layout
+    layout.operator("view2d.rendertime_hud")
+
 
 # Registration
 
@@ -89,9 +146,22 @@ def register():
     bpy.app.handlers.render_pre.append(start_timer)
     bpy.app.handlers.render_post.append(end_timer)
     bpy.types.IMAGE_PT_image_properties.append(image_panel_rendertime)
+    bpy.utils.register_class(RenderTimeHUD)
+    bpy.types.IMAGE_HT_header.append(display_hud)
 
+    # Keymapping      XXX TODO - This doesn't work for some reason
+    #kc = bpy.context.window_manager.keyconfigs.addon
+    #km = kc.keymaps.new(name = "View 2D", space_type = 'IMAGE_EDITOR')
+    #kmi = km.keymap_items.new("view2d.rendertime_hud", 'E', 'PRESS')
+    #kmi.active = True
 
 def unregister():
+    #kc = bpy.context.window_manager.keyconfigs.addon
+    #km = kc.keymaps["View 2D"]
+    #km.keymap_items.remove(km.keymap_items["view2d.rendertime_hud"])
+
+    bpy.types.IMAGE_HT_header.remove(display_hud)
+    bpy.utils.register_class(RenderTimeHUD)
     bpy.app.handlers.render_pre.remove(start_timer)
     bpy.app.handlers.render_post.remove(end_timer)
     bpy.app.handlers.render_cancel.append(unset_rendering)
