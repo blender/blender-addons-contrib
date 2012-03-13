@@ -1,5 +1,5 @@
 bl_info = {
-    "name": "Z Projection",
+    "name": "BProjection",
     "description": "Help Clone tool",
     "author": "kgeogeo",
     "version": (1, 0),
