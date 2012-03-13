@@ -540,6 +540,8 @@ class PresetView3D(Operator):
         if bpy.context.object.custom_rot:
             pos_end = view3d_utils.region_2d_to_location_3d(bpy.context.region, bpy.context.space_data.region_3d, pos_init, Vector((0,0,0)))                
             bpy.context.space_data.region_3d.view_location =  -1*pos_end
+            align_to_view(context)
+        
                     
         return {'FINISHED'}
 
