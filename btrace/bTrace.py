@@ -17,16 +17,16 @@
 #END GPL LICENCE BLOCK
 
 bl_info = {
-    'name': "bTrace",
+    'name': "Btrace",
     'author': "liero, crazycourier, Atom, Meta-Androcto, MacKracken",
     'version': (1, 1, ),
-    'blender': (2, 61, 1),
+    'blender': (2, 62),
     'location': "View3D > Tools",
     'description': "Tools for converting/animating objects/particles into curves",
     'warning': "Still under development, bug reports appreciated",
     'wiki_url': "",
     'tracker_url': "http://projects.blender.org/tracker/?func=detail&atid=468&aid=29563&group_id=153",
-    'category': "Mesh"
+    'category': "Add Curve"
     }
 
 #### TO DO LIST ####
@@ -42,7 +42,7 @@ class TracerProperties(bpy.types.PropertyGroup):
     curve_spline = EnumProperty(name="Spline", items=(("POLY", "Poly", "Use Poly spline type"),  ("NURBS", "Nurbs", "Use Nurbs spline type"), ("BEZIER", "Bezier", "Use Bezier spline type")), description="Choose which type of spline to use when curve is created", default="BEZIER")
     curve_handle = EnumProperty(name="Handle", items=(("ALIGNED", "Aligned", "Use Aligned Handle Type"), ("AUTOMATIC", "Automatic", "Use Auto Handle Type"), ("FREE_ALIGN", "Free Align", "Use Free Handle Type"), ("VECTOR", "Vector", "Use Vector Handle Type")), description="Choose which type of handle to use when curve is created",  default="VECTOR")
     curve_resolution = IntProperty(name="Bevel Resolution" , min=1, max=32, default=4, description="Adjust the Bevel resolution")
-    curve_depth = FloatProperty(name="Bevel Depth", min=0.0, max=100.0, default=0.125, description="Adjust the Bevel depth")
+    curve_depth = FloatProperty(name="Bevel Depth", min=0.0, max=100.0, default=0.02, description="Adjust the Bevel depth")
     curve_u = IntProperty(name="Resolution U", min=0, max=64, default=12, description="Adjust the Surface resolution")
     curve_join = BoolProperty(name="Join Curves", default=False, description="Join all the curves after they have been created")
     curve_smooth = BoolProperty(name="Smooth", default=True, description="Render curve smooth")
@@ -71,15 +71,18 @@ class TracerProperties(bpy.types.PropertyGroup):
     connect_noise = BoolProperty(name="F-Curve Noise", default=False, description="Adds F-Curve Noise Modifier to selected objects")
     settings_objectTrace = BoolProperty(name="Object Trace Settings", default=False, description="Trace selected mesh object with a curve")
     settings_objectsConnect = BoolProperty(name="Objects Connect Settings", default=False, description="Connect objects with a curve controlled by hooks")
+    settings_objectTrace = BoolProperty(name="Object Trace Settings", default=False, description="Trace selected mesh object with a curve")
     respect_order = BoolProperty(name="Order", default=False, description="Remember order objects were selected")
     settings_particleTrace = BoolProperty(name="Particle Trace Settings", default=False, description="Trace particle path with a  curve")
     settings_particleConnect = BoolProperty(name="Particle Connect Settings", default=False, description="Connect particles with a curves and animated over particle lifetime")
     settings_growCurve = BoolProperty(name="Grow Curve Settings", default=False, description="Animate curve bevel over time by keyframing points radius")
     settings_fcurve = BoolProperty(name="F-Curve Settings", default=False, description="F-Curve Settings")
+    settings_meshfollow = BoolProperty(name="Mesh Follow Settings", default=False, description="Mesh Follow Settings")
     # Toolbar Tool show/hide booleans
     tool_objectTrace = BoolProperty(name="Object Trace", default=False, description="Trace selected mesh object with a curve")
     tool_objectsConnect = BoolProperty(name="Objects Connect", default=False, description="Connect objects with a curve controlled by hooks")
     tool_particleTrace = BoolProperty(name="Particle Trace", default=False, description="Trace particle path with a  curve")
+    tool_meshFollow = BoolProperty(name="Mesh Follow", default=False, description="Follow selection items on animated mesh object")
     tool_particleConnect = BoolProperty(name="Particle Connect", default=False, description="Connect particles with a curves and animated over particle lifetime")
     tool_growCurve = BoolProperty(name="Grow Curve", default=False, description="Animate curve bevel over time by keyframing points radius")
     tool_handwrite = BoolProperty(name="Handwriting", default=False, description="Create and Animate curve using the grease pencil")
@@ -100,9 +103,23 @@ class TracerProperties(bpy.types.PropertyGroup):
         items=(("CONTI", "Continuous", "Create a continuous curve using verts from mesh"),  ("EDGEALL", "All Edges", "Create a curve from every edge in a mesh")), 
         description="Choose which type of spline to use when curve is created", default="CONTI")
     convert_joinbefore = BoolProperty(name="Join objects before convert", default=False, description='Join all selected mesh to one object before converting to mesh')
+    # Mesh Follow Options
+    fol_mesh_select = EnumProperty(name="Mesh type to spawn curves", 
+    items=(("VERTS", "Vertices", "Create the curve using verts from mesh"),  ("FACES", "Faces", "Create the curve using faces from mesh")), 
+    description="Choose which type of spline to use when curve is created", default="VERTS")
+    fol_edge_select = BoolProperty(name='Edge', default=False, description='Grow from edges')
+    fol_vert_select = BoolProperty(name='Vertex', default=False, description='Grow from verts')
+    fol_face_select = BoolProperty(name='Face', default=True, description='Grow from faces')
+    fol_mesh_type = EnumProperty(name='Mesh type', default='VERTS', description='Mesh feature to draw cruves from', items=(
+        ("VERTS", "Verts", ""), ("EDGES", "Edges", ""), ("FACES", "Faces", "")
+        ))
+    fol_start_frame = IntProperty(name="Start Frame", min=1, max=2500, default=1, description="Start frame for range to trace")
+    fol_end_frame = IntProperty(name="End Frame", min=1, max=2500, default=250, description="End frame for range to trace")
+    fol_perc_verts = FloatProperty(name="Reduce selection by", min=0.001, max=1.000, default=0.5, description="percentage of total verts to trace")
+    fol_sel_option = EnumProperty(name="Selection type", items=(("RANDOM", "Random", "Follow Random items"),  ("CUSTOM", "Custom", "Follow selected items"), ("ALL", "All", "Follow all items")), 
+    description="Choose which objects to follow", default="RANDOM")
 
-
-############################    
+############################
 ## Draw Brush panel in Toolbar
 ############################
 class addTracerObjectPanel(bpy.types.Panel):
@@ -113,9 +130,9 @@ class addTracerObjectPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        bTrace=bpy.context.window_manager.curve_tracer
+        bTrace = bpy.context.window_manager.curve_tracer
         obj = bpy.context.object
-        
+
         ############################
         ## Curve options
         ############################
@@ -272,6 +289,68 @@ class addTracerObjectPanel(bpy.types.Panel):
                     row = box.row()
                     row.prop(bTrace,'anim_tails')
                     row.prop(bTrace,'anim_keepr')
+
+        ############################
+        ### Mesh Follow
+        ############################
+        tool_meshFollow, settings_meshfollow, fol_edge_select, fol_vert_select, fol_face_select, fol_sel_option, fol_perc_verts = bTrace.tool_meshFollow, bTrace.settings_meshfollow, bTrace.fol_edge_select, bTrace.fol_vert_select, bTrace.fol_face_select, bTrace.fol_sel_option, bTrace.fol_perc_verts
+        box = self.layout.box()
+        row  = box.row ()
+        ObjectConnText = "Show: Mesh Follow"
+        if tool_meshFollow:
+            ObjectConnText="Hide: Mesh Follow"
+        else:
+            ObjectConnText="Show: Mesh Follow"
+        row.prop(bTrace, "tool_meshFollow", text=ObjectConnText, icon="DRIVER")
+        if tool_meshFollow:
+            row  = box.row ()
+            row.label(text="Mesh Follow", icon="DRIVER")
+            row.operator("object.btmeshfollow", text="Run!", icon="PLAY")
+            row = box.row()
+            row.prop(bTrace, "settings_meshfollow", icon='MODIFIER', text='Settings')
+            row.label(text="")
+            if settings_meshfollow:
+                row = box.row(align=True)
+                row.label(text="Mesh Type/Select Options", icon="VERTEXSEL")
+                col = box.column(align=True)
+                row = col.row(align=True)
+                row.prop(bTrace, "fol_mesh_type", expand=True)
+                row = col.row(align=True)
+                row.prop(bTrace, "fol_sel_option", expand=True)
+                row = box.row()
+                if fol_sel_option == 'RANDOM':
+                    row.label("Random Selection")
+                    row.prop(bTrace, "fol_perc_verts", text="")
+                if fol_sel_option == 'CUSTOM':
+                    row.label("Custom Selection: Choose in Edit Mode")
+                if fol_sel_option == 'ALL':
+                    row.label("Select All")
+                row = box.row()
+                row.label("Time Options", icon="TIME")
+                col = box.column(align=True)
+                col.prop(bTrace, "particle_step")
+                row = col.row(align=True)
+                row.prop(bTrace, "fol_start_frame")
+                row.prop(bTrace, "fol_end_frame")
+                # Grow settings here
+                row = box.row()
+                row.prop(bTrace, "animate", text="Add Grow Curve Animation")
+                if animate:
+                    box.label(text='Frame Animation Settings:')
+                    col = box.column(align=True)
+                    col.prop(bTrace, 'anim_auto')
+                    if not anim_auto:
+                        row = col.row(align=True)
+                        row.prop(bTrace,'anim_f_start')
+                        row.prop(bTrace,'anim_length')
+                    row = col.row(align=True)
+                    row.prop(bTrace,'anim_delay')
+                    row.prop(bTrace,'anim_f_fade')
+
+                    box.label(text='Additional Settings')
+                    row = box.row()
+                    row.prop(bTrace,'anim_tails')
+                    row.prop(bTrace,'anim_keepr')
     
         ############################
         ### Handwriting Tools
@@ -384,7 +463,7 @@ class addTracerObjectPanel(bpy.types.Panel):
             row.label(text='')
             if settings_particleConnect:
                 box.prop(bTrace, "particle_step")
-                row= box.row()
+                row = box.row()
                 row.prop(bTrace, 'particle_auto')
                 row.prop(bTrace, 'animate', text='Add Grow Curve Animation')
                 col = box.column(align=True)
@@ -480,7 +559,7 @@ class addTracerObjectPanel(bpy.types.Panel):
                 col.prop(bTrace, "fcnoise_timescale")
                 box.prop(bTrace, "fcnoise_key")
 ###### END PANEL ##############
-###############################            
+###############################
 
 
 ################## ################## ################## ############
@@ -938,6 +1017,147 @@ class OBJECT_OT_convertcurve(bpy.types.Operator):
         return{"FINISHED"}
 
 
+################## ################## ################## ############
+## Mesh Follow, trace vertex or faces
+## Create curve at center of selection item, extruded along animation
+## Needs to be animated mesh!!!
+################## ################## ################## ############
+
+class OBJECT_OT_meshfollow(bpy.types.Operator):
+    bl_idname = "object.btmeshfollow"
+    bl_label = "bTrace: Vertex Trace"
+    bl_description = "Trace Vertex or Face on an animated mesh"
+    bl_options = {'REGISTER', 'UNDO'}
+        
+    def execute(self, context):
+        import bpy, random
+        from mathutils import Vector
+
+        bTrace = bpy.context.window_manager.curve_tracer
+        distort_modscale = bTrace.distort_modscale  # add a scale to the modular random 
+        distort_curve = bTrace.distort_curve    # modulate the resulting curve
+        objectHandle = bTrace.curve_handle  # Get Handle selection
+        objectSpline = bTrace.curve_spline  # Get Spline selection
+        objectrez = bTrace.curve_resolution  # Get Bevel resolution 
+        objectdepth = bTrace.curve_depth  # Get Bevel Depth
+        objectU = bTrace.curve_u  # Get curve u
+        convert_joinbefore = bTrace.convert_joinbefore 
+        stepsize = bTrace.particle_step
+        traceobjects = bpy.context.selected_objects  # create a list with all the selected objects
+
+        obj = bpy.context.object
+        scn = bpy.context.scene
+        meshdata = obj.data
+
+        drawmethod = bTrace.fol_mesh_type  # Draw from Edges, Verts, or Faces
+        if drawmethod == 'VERTS':
+            meshobjs = obj.data.vertices
+        if drawmethod == 'FACES':
+            meshobjs = obj.data.polygons  # untested
+        if drawmethod == 'EDGES':
+            meshobjs = obj.data.edges  # untested
+
+        # Frame properties
+        start_frame, end_frame = bTrace.fol_start_frame, bTrace.fol_end_frame
+        if start_frame > end_frame:  # Make sure the math works
+            startframe = end_frame - 5  # if start past end, goto (end - 5)
+        frames = int((end_frame - start_frame) / stepsize)
+
+        def getsel_option():  # Get selection objects.
+            sel = []
+            seloption = bTrace.fol_sel_option  # options = 'random', 'custom', 'all'
+            if seloption == 'CUSTOM':
+                for i in meshobjs:
+                    if i.select == True:
+                        sel.append(i.index)
+            if seloption == 'RANDOM':
+                for i in list(meshobjs):
+                    sel.append(i.index)
+                finalsel = int(len(sel) * bTrace.fol_perc_verts)
+                remove = len(sel) - finalsel
+                for i in range(remove):
+                    sel.pop(random.randint(0, len(sel) - 1))
+            if seloption == 'ALL':
+                for i in list(meshobjs):
+                    sel.append(i.index)
+
+            return sel
+
+        def get_coord(objindex):
+            obj_co = []  # list of vector coordinates to use
+            frame_x = start_frame
+            for i in range(frames):  # create frame numbers list
+                scn.frame_set(frame_x)
+                followed_item = meshobjs[objindex]
+                if drawmethod == 'VERTS':
+                    g_co = obj.matrix_local * followed_item.co  # find Vert vector
+                if drawmethod == 'FACES':
+                    g_co = obj.matrix_local * followed_item.normal  # find Face vector
+                if drawmethod == 'EDGES':
+                    centers = []
+                    v1 = followed_item.vertices[0]
+                    v2 = followed_item.vertices[1]
+                    co1 = bpy.context.object.data.vertices[v1]
+                    co2 = bpy.context.object.data.vertices[v2]
+                    localcenter = co1.co.lerp(co2.co, 0.5)
+                    g_co = obj.matrix_local * localcenter
+
+                obj_co.append(g_co)
+                frame_x = frame_x + stepsize
+            scn.frame_set(start_frame)
+            return obj_co
+
+        def make_curve(co_list):
+            tracer = bpy.data.curves.new('tracer','CURVE')
+            tracer.dimensions = '3D'
+            spline = tracer.splines.new('BEZIER')
+            spline.bezier_points.add(len(co_list)-  1)
+            curve = bpy.data.objects.new('curve',tracer)
+            scn.objects.link(curve)
+            curvelist.append(curve)
+            # render ready curve
+            tracer.resolution_u = 64
+            tracer.bevel_resolution = objectrez  # Set bevel resolution from Panel options
+            tracer.fill_mode = 'FULL'
+            tracer.bevel_depth = objectdepth  # Set bevel depth from Panel options
+            bTrace = bpy.context.window_manager.curve_tracer
+            objectHandle = bTrace.curve_handle
+            if objectHandle == 'AUTOMATIC': # hackish AUTOMATIC won't work here
+                objectHandle = 'AUTO'
+
+            # move bezier points to objects
+            for i in range(len(co_list)):
+                p = spline.bezier_points[i]
+                p.co = co_list[i]
+                p.handle_right_type = objectHandle
+                p.handle_left_type = objectHandle
+
+        # Run methods
+        # Check if bTrace group exists, if not create
+        bgroup = bpy.data.groups.keys()
+        if 'bTrace' not in bgroup:
+            bpy.ops.group.create(name="bTrace") 
+
+        sel = getsel_option()  # Get selection
+        curvelist = []  # list to use for grow curve
+        for i in sel:
+            mine = get_coord(i)
+            make_curve(mine)
+
+        # Select new curves and add to group
+        bpy.ops.object.select_all(action='DESELECT')
+        for curvename in curvelist:
+            curvename.select = True
+            bpy.context.scene.objects.active = curvename
+            bpy.ops.object.group_link(group="bTrace")
+
+        if bTrace.animate:  # Add grow curve
+            bpy.ops.curve.btgrow()
+
+        return {'FINISHED'}
+
+
+
 ###################################################################
 #### Add Tracer Material
 ###################################################################        
@@ -1101,7 +1321,9 @@ classes = [TracerProperties,
     OBJECT_OT_traceallparticles,
     OBJECT_OT_curvegrow,
     OBJECT_OT_reset,
-    OBJECT_OT_fcnoise]
+    OBJECT_OT_fcnoise,
+    OBJECT_OT_meshfollow
+    ]
 
 def register():
     for c in classes:

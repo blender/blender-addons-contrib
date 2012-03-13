@@ -43,7 +43,8 @@ classes = [TracerProperties,
     OBJECT_OT_traceallparticles,
     OBJECT_OT_curvegrow,
     OBJECT_OT_reset,
-    OBJECT_OT_fcnoise]
+    OBJECT_OT_fcnoise,
+    OBJECT_OT_meshfollow]
 
 def register():
     for c in classes:
