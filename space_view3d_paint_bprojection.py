@@ -137,8 +137,8 @@ class ApplyImage(Operator):
         return {'FINISHED'}
 
 # Oprerator Class to make the 4 point and scale the plan
-class ScalePlane(Operator):
-    bl_idname = "object.scaleplane"
+class IntuitiveScale(Operator):
+    bl_idname = "object.intuitivescale"
     bl_label = "Draw lines"
 
     def invoke(self, context, event):
@@ -261,7 +261,7 @@ class AddBProjectionPlane(Operator):
             km.keymap_items[36-1].idname = 'view3d.preset_view3d'
             km.keymap_items[36-1].properties.view = 'BOTTOM'                                   
             km = bpy.context.window_manager.keyconfigs.default.keymaps['Image Paint']
-            kmi = km.keymap_items.new("object.scaleplane", 'LEFTMOUSE', 'PRESS', shift=True)
+            kmi = km.keymap_items.new("object.intuitivescale", 'LEFTMOUSE', 'PRESS', shift=True)
                         
             align_to_view(context)
             
@@ -348,7 +348,7 @@ class RemoveBProjectionPlane(Operator):
             
             km = bpy.context.window_manager.keyconfigs.default.keymaps['Image Paint']
             for kmi in km.keymap_items:
-                if kmi.idname in ["object.scaleplane"]:
+                if kmi.idname in ["object.intuitivescale"]:
                     km.keymap_items.remove(kmi)
             
             bpy.ops.paint.texture_paint_toggle()
