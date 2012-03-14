@@ -4057,11 +4057,15 @@ class CursorMonitor(bpy.types.Operator):
             self.just_initialized = False
         # ================== #
         
+        # Seems like recalc_csu() in this place causes trouble
+        # if space type is switched from 3D to e.g. UV
+        '''
         tfm_operator = CursorDynamicSettings.active_transform_operator
         if tfm_operator:
             CursorDynamicSettings.csu = tfm_operator.csu
         else:
             CursorDynamicSettings.recalc_csu(context, event.value)
+        '''
         
         return {'PASS_THROUGH'}
     
