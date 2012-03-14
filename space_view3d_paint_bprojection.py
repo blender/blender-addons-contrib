@@ -54,29 +54,53 @@ def align_to_view(context):
 
 # Function to update the properties
 def update_props(self, context):          
+    align_to_view(context)
+
+# Function to update the scaleUV
+def update_UVScale(self, context):          
     v = Vector((0.5,0.5))
     for i in range(4):
         vres =  v - bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv 
         vres /= vres.length
         for j in range(2):
             if abs(vres[j-1])>0:
-                vres[j-1] /= abs(vres[j-1])
+                vres[j-1] /= abs(vres[j-1])    
         bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv = v - vres*bpy.context.object.custom_scaleuv/2
+    
+    align_to_view(context)
+
+# Function to update the flip horizontal
+def update_FlipUVX(self, context):          
+    for i in range(4):
+        x = bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv[0]
+        l = 0.5 - x
+        bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv[0] = 0.5 + l
+    
+    align_to_view(context)
+
+# Function to update the flip vertical
+def update_FlipUVY(self, context):          
+    for i in range(4):
+        x = bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv[1]
+        l = 0.5 - x
+        bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv[1] = 0.5 + l
     
     align_to_view(context)
 
 # Function to create custom properties
 def createcustomprops():
     Ob = bpy.types.Object    
+    Ob.custom_location = IntVectorProperty(name="Location", description="Location of the plan", default=(0, 0), subtype = 'XYZ', size=2, update = update_props)
     Ob.custom_rotation = IntProperty(name="Rotation", description="Rotate the plane", min=-180, max=180, default=0,update = update_props)
     Ob.custom_scale = FloatProperty(name="Scale", description="Scale the plane", min=0, max=10, default=1.0,update = update_props)
     Ob.custom_z = FloatProperty(name="Z", description="Z axis for the plane", min=-10, max=10, default=-1.0,update = update_props)
-    Ob.custom_scaleuv = FloatProperty(name="ScaleUV", description="Scale the texture's UV", min=1.0, max=10, default=1.0,update = update_props)
-    Ob.custom_location = IntVectorProperty(name="Location", description="Location of the plan", default=(0, 0), subtype = 'XYZ', size=2, update = update_props)
     Ob.custom_c3d = BoolProperty(name="c3d", default=True)
     Ob.custom_rot = BoolProperty(name="rot", default=True)
+    Ob.custom_scaleuv = FloatProperty(name="ScaleUV", description="Scale the texture's UV", min=1.0, max=10, default=1.0,update = update_UVScale)
+    Ob.custom_flipuvx = BoolProperty(name="flipuvx", default=False, update = update_FlipUVX)
+    Ob.custom_flipuvy = BoolProperty(name="flipuvy", default=False, update = update_FlipUVY)
 
-# Draw Class to show the panel
+# Draw Class to show the panelggg
 class BProjection(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -103,15 +127,17 @@ class BProjection(Panel):
             col.operator('object.applyimage', text = "Apply image")
             col = layout.column(align =True)
             ob = context.object
-            col.prop(ob, "custom_c3d",text="Capture Cursor3d")
-            col.prop(ob, "custom_rot",text="Rotate around selection")
+            col.prop(ob, "custom_c3d",text="Capture Cursor3d",icon='CURSOR')
+            col.prop(ob, "custom_rot",text="Rotate around selection",icon='ROTATE')
             col = layout.column(align =True)
-            col.prop(ob,'custom_rotation')
-            col.prop(ob,'custom_scale') 
+            col.prop(ob,'custom_location', text = 'Plane Properties')
             col.prop(ob,'custom_z') 
-            col.prop(ob,'custom_location')
+            col.prop(ob,'custom_rotation')
+            col.prop(ob,'custom_scale')             
             col = layout.column(align =True)
             col.prop(ob,'custom_scaleuv', slider = True)
+            col.prop(ob, "custom_flipuvx",text="Flip horizontaly")
+            col.prop(ob, "custom_flipuvy",text="Flip verticaly")
             col = layout.column(align =True)
             col.prop(ob.material_slots['Material for BProjection'].material,'alpha', slider = True)
 
