@@ -1162,7 +1162,7 @@ class OBJECT_OT_meshfollow(bpy.types.Operator):
                 p.co = co_list[i]
                 p.handle_right_type = objectHandle
                 p.handle_left_type = objectHandle
-            curve.select = True
+            return curve
 
         # Run methods
         # Check if bTrace group exists, if not create
@@ -1176,20 +1176,22 @@ class OBJECT_OT_meshfollow(bpy.types.Operator):
         
         if bTrace.fol_mesh_type == 'OBJECT':
             vector_list = get_coord(obj)
-            make_curve(vector_list)
+            curvelist.append(make_curve(vector_list))
         else:
             for i in sel:
                 vector_list = get_coord(i)
-                make_curve(vector_list)
-
+                curvelist.append(make_curve(vector_list))
+        for i in curvelist:
+            print(i)
         # Select new curves and add to group
-        #bpy.ops.object.select_all(action='DESELECT')
-        for curveobject in bpy.context.selected_objects:
-            curveobject.select = True
-            bpy.context.scene.objects.active = curveobject
-            bpy.ops.object.group_link(group="bTrace")
-            addtracemat(curveobject.data)
-            curveobject.select = False
+        bpy.ops.object.select_all(action='DESELECT')
+        for curveobject in curvelist:
+            if curveobject.type == 'CURVE':
+                curveobject.select = True
+                bpy.context.scene.objects.active = curveobject
+                bpy.ops.object.group_link(group="bTrace")
+                addtracemat(curveobject.data)
+                curveobject.select = False
 
         if bTrace.animate:  # Add grow curve
             bpy.ops.curve.btgrow()
@@ -1210,14 +1212,15 @@ def addtracemat(matobj):
     if bTrace.trace_mat_random:
         mat_color = (random.random(), random.random(), random.random())
     else:
-       mat_color = bTrace.trace_mat_color
-    #if engine == 'CYCLES':
-        # Do cycles mat
-    if engine == 'BLENDER_RENDER':
-        TraceMat = bpy.data.materials.new('TraceMat')
-        TraceMat.diffuse_color = mat_color
-        TraceMat.specular_intensity = 0.5
-        matobj.materials.append(bpy.data.materials.get('TraceMat'))
+        mat_color = bTrace.trace_mat_color
+    # if engine == 'CYCLES':
+        # Add cycles mat
+    # if engine == 'BLENDER_RENDER':
+    
+    TraceMat = bpy.data.materials.new('TraceMat')
+    TraceMat.diffuse_color = mat_color
+    TraceMat.specular_intensity = 0.5
+    matobj.materials.append(bpy.data.materials.get('TraceMat'))
     return {'FINISHED'}
         
 ################## ################## ################## ############
