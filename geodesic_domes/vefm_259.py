@@ -11,7 +11,8 @@ try:
 except:
     pass    
 
-from add_utils import AddObjectHelper, add_object_data
+from bpy_extras.object_utils import AddObjectHelper, object_data_add
+
 from collections import Counter
 
 '''PKHG not needed?
@@ -42,7 +43,7 @@ def vefm_add_object(selfobj):
     m.from_pydata(v, e, f )
     # useful for development when the mesh may be invalid.
 #PKHG not needed, as ideasman_42 says    m.validate(verbose = False)
-    add_object_data(bpy.context, m, operator = None)    
+    object_data_add(bpy.context, m, operator = None)
 #???ERROR PKHG in AddSelf    setMaterial(bpy.context.active_object,pkhg_red_color)
 
 #extra test phase
