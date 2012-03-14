@@ -10,11 +10,12 @@ import bpy
 from bpy.types import Panel, Operator
 from bpy.props import IntProperty, FloatProperty, BoolProperty, IntVectorProperty, StringProperty
 from bpy_extras import view3d_utils
-from mathutils import *
-from math import * 
-import mathutils
 import math
+from math import *
+import mathutils
+from mathutils import * 
 
+# Main function for align the plan to view
 def align_to_view(context):
     ob = context.object        
     rotation = ob.custom_rotation
@@ -38,8 +39,8 @@ def align_to_view(context):
 
     pos = (posx,posy) 
 
-    em = bpy.data.objects['Empty for clone']
-    img = bpy.data.textures['Texture for clone'].image
+    em = bpy.data.objects['Empty for BProjection']
+    img = bpy.data.textures['Texture for BProjection'].image
     if img and img.size[1] != 0:
         prop = img.size[0]/img.size[1]
         em.scale[0] = prop
@@ -49,10 +50,35 @@ def align_to_view(context):
     em.location = view3d_utils.region_2d_to_location_3d(context.area.regions[4], r3d, pos, v)        
     em.rotation_euler = Quaternion.to_euler(vr*quat)
 
-class HelpClone(Panel):
+# Function to update the properties
+def update_props(self, context):          
+    v = Vector((0.5,0.5))
+    for i in range(4):
+        vres =  v - bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv 
+        vres /= vres.length
+        for j in range(2):
+            if abs(vres[j-1])>0:
+                vres[j-1] /= abs(vres[j-1])
+        bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv = v - vres*bpy.context.object.custom_scaleuv/2
+    
+    align_to_view(context)
+
+# Function to create custom properties
+def createcustomprops():
+    Ob = bpy.types.Object    
+    Ob.custom_rotation = IntProperty(name="Rotation", description="Rotate the plane", min=-180, max=180, default=0,update = update_props)
+    Ob.custom_scale = FloatProperty(name="Scale", description="Scale the plane", min=0, max=10, default=1.0,update = update_props)
+    Ob.custom_z = FloatProperty(name="Z", description="Z axis for the plane", min=-10, max=10, default=-1.0,update = update_props)
+    Ob.custom_scaleuv = FloatProperty(name="ScaleUV", description="Scale the texture's UV", min=1.0, max=10, default=1.0,update = update_props)
+    Ob.custom_location = IntVectorProperty(name="Location", description="Location of the plan", default=(0, 0), subtype = 'XYZ', size=2, update = update_props)
+    Ob.custom_c3d = BoolProperty(name="c3d", default=True)
+    Ob.custom_rot = BoolProperty(name="rot", default=True)
+
+# Draw Class to show the panel
+class BProjection(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Help Clone"
+    bl_label = "BProjection"
 
     @classmethod
     def poll(cls, context):
@@ -62,12 +88,12 @@ class HelpClone(Panel):
         layout = self.layout
                 
         try: 
-            bpy.data.objects['Empty for clone']
+            bpy.data.objects['Empty for BProjection']
 
             col = layout.column(align =True)
-            col.operator("object.removecloneplane", text="Remove clone plane")
+            col.operator("object.removebprojectionplane", text="Remove BProjection plane")
         
-            tex = bpy.data.textures['Texture for clone']
+            tex = bpy.data.textures['Texture for BProjection']
 
             layout.template_ID_preview(tex, "image", open="image.open", rows=3, cols=3)
         
@@ -78,26 +104,27 @@ class HelpClone(Panel):
             col.prop(ob, "custom_c3d",text="Capture Cursor3d")
             col.prop(ob, "custom_rot",text="Rotate around selection")
             col = layout.column(align =True)
-            col.prop(ob,'custom_rotation', slider = True)
-            col.prop(ob,'custom_scale', slider = True) 
-            col.prop(ob,'custom_z', slider = True) 
+            col.prop(ob,'custom_rotation')
+            col.prop(ob,'custom_scale') 
+            col.prop(ob,'custom_z') 
             col.prop(ob,'custom_location')
             col = layout.column(align =True)
             col.prop(ob,'custom_scaleuv', slider = True)
             col = layout.column(align =True)
-            col.prop(ob.material_slots['Material for clone'].material,'alpha', slider = True)
+            col.prop(ob.material_slots['Material for BProjection'].material,'alpha', slider = True)
 
         except:
             col = layout.column(align =True)
-            col.operator("object.addcloneplane", text="Add clone plan")             
-                
+            col.operator("object.addbprojectionplane", text="Add BProjection plan")             
+
+# Oprerator Class to apply the image to the plane             
 class ApplyImage(Operator):
     bl_idname = "object.applyimage"
     bl_label = "Apply image"
 
     def execute(self, context):        
-        img = bpy.data.textures['Texture for clone'].image
-        em = bpy.data.objects['Empty for clone']
+        img = bpy.data.textures['Texture for BProjection'].image
+        em = bpy.data.objects['Empty for BProjection']
         uvdata = bpy.context.object.data.uv_textures.active.data        
         uvdata[len(uvdata)-1].image = img
         if img and img.size[1] != 0:        
@@ -109,8 +136,9 @@ class ApplyImage(Operator):
         
         return {'FINISHED'}
 
-class DrawLines(Operator):
-    bl_idname = "object.drawlines"
+# Oprerator Class to make the 4 point and scale the plan
+class ScalePlane(Operator):
+    bl_idname = "object.scaleplane"
     bl_label = "Draw lines"
 
     def invoke(self, context, event):
@@ -136,37 +164,38 @@ class DrawLines(Operator):
         
         return {'FINISHED'}
 
-class AddClonePlane(Operator):
-    bl_idname = "object.addcloneplane"
+# Oprerator Class to configure all wath is needed
+class AddBProjectionPlane(Operator):
+    bl_idname = "object.addbprojectionplane"
     bl_label = "Configure"
     
     def creatematerial(self, context):        
         try:
-            matclone = bpy.data.materials['Material for clone']
+            matBProjection = bpy.data.materials['Material for BProjection']
         except:            
-            bpy.data.textures.new(name='Texture for clone',type='IMAGE')
+            bpy.data.textures.new(name='Texture for BProjection',type='IMAGE')
     
-            bpy.data.materials.new(name='Material for clone')
+            bpy.data.materials.new(name='Material for BProjection')
             
-            matclone = bpy.data.materials['Material for clone']
-            matclone.texture_slots.add()
-            matclone.use_shadeless = True
-            matclone.use_transparency = True
-            matclone.active_texture = bpy.data.textures['Texture for clone']
+            matBProjection = bpy.data.materials['Material for BProjection']
+            matBProjection.texture_slots.add()
+            matBProjection.use_shadeless = True
+            matBProjection.use_transparency = True
+            matBProjection.active_texture = bpy.data.textures['Texture for BProjection']
         
-            index = matclone.active_texture_index
-            matclone.texture_slots[index].texture_coords = 'UV'
+            index = matBProjection.active_texture_index
+            matBProjection.texture_slots[index].texture_coords = 'UV'
      
         old_index = context.object.active_material_index
         bpy.ops.object.material_slot_add()
         index = context.object.active_material_index
-        bpy.context.object.material_slots[index].material = bpy.data.materials['Material for clone']
+        bpy.context.object.material_slots[index].material = bpy.data.materials['Material for BProjection']
         bpy.ops.object.material_slot_assign()
         context.object.active_material_index = old_index
             
     def execute(self, context):    
         try:
-            bpy.data.objects['Empty for clone']
+            bpy.data.objects['Empty for BProjection']
 
         except:            
             bpy.ops.paint.texture_paint_toggle()
@@ -177,7 +206,7 @@ class AddClonePlane(Operator):
         
             bpy.ops.object.add()
             em = bpy.context.object
-            em.name = "Empty for clone"
+            em.name = "Empty for BProjection"
                         
             bpy.data.scenes['Scene'].objects.active = ob
             ob.select = True
@@ -232,22 +261,23 @@ class AddClonePlane(Operator):
             km.keymap_items[36-1].idname = 'view3d.preset_view3d'
             km.keymap_items[36-1].properties.view = 'BOTTOM'                                   
             km = bpy.context.window_manager.keyconfigs.default.keymaps['Image Paint']
-            kmi = km.keymap_items.new("object.drawlines", 'LEFTMOUSE', 'PRESS', shift=True)
+            kmi = km.keymap_items.new("object.scaleplane", 'LEFTMOUSE', 'PRESS', shift=True)
                         
             align_to_view(context)
             
             bpy.ops.paint.texture_paint_toggle()
             
         return {'FINISHED'}
-    
-class RemoveClonePlane(Operator):
-    bl_idname = "object.removecloneplane"
+
+# Oprerator Class to remove what is no more needed    
+class RemoveBProjectionPlane(Operator):
+    bl_idname = "object.removebprojectionplane"
     bl_label = "Configure"
 
     def removematerial(self, context):
         i = 0
         for ms in context.object.material_slots:
-            if ms.name == 'Material for clone':
+            if ms.name == 'Material for BProjection':
                 index = i
             i+=1
                 
@@ -260,7 +290,7 @@ class RemoveClonePlane(Operator):
             
             context.space_data.show_relationship_lines = True
             
-            bpy.ops.object.modifier_remove(modifier="Hook-Empty for clone")
+            bpy.ops.object.modifier_remove(modifier="Hook-Empty for BProjection")
             
             self.removematerial(context)
 
@@ -287,7 +317,7 @@ class RemoveClonePlane(Operator):
    
             ob.select = False
                 
-            em = bpy.data.objects['Empty for clone']
+            em = bpy.data.objects['Empty for BProjection']
             bpy.data.scenes['Scene'].objects.active = em
             em.hide = False
             em.select = True
@@ -318,7 +348,7 @@ class RemoveClonePlane(Operator):
             
             km = bpy.context.window_manager.keyconfigs.default.keymaps['Image Paint']
             for kmi in km.keymap_items:
-                if kmi.idname in ["object.drawlines"]:
+                if kmi.idname in ["object.scaleplane"]:
                     km.keymap_items.remove(kmi)
             
             bpy.ops.paint.texture_paint_toggle()
@@ -328,6 +358,7 @@ class RemoveClonePlane(Operator):
         
         return {'FINISHED'}
 
+# Oprerator Class to rotate the view3D
 class RotateView3D(Operator):
     bl_idname = "view3d.rotate_view3d"
     bl_label = "Rotate the View3D"
@@ -343,6 +374,7 @@ class RotateView3D(Operator):
     gkey = False
     zkey = False
     ukey = False
+    ckey = False
     first_time = True
     
     def vect_sphere(self,mx,my):
@@ -422,6 +454,9 @@ class RotateView3D(Operator):
 
             if event.type == 'U':
                 self.ukey = True 
+
+            if event.type == 'C':
+                self.ckey = True 
                             
         if event.value == 'RELEASE':
             if event.type == 'S':
@@ -437,8 +472,11 @@ class RotateView3D(Operator):
                 self.zkey = False 
 
             if event.type == 'U':
-                self.ukey = False 
-            
+                self.ukey = False                 
+
+            if event.type == 'C':
+                self.ckey = False             
+
         if event.type == 'MOUSEMOVE':                        
             
             if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == False:
@@ -468,7 +506,7 @@ class RotateView3D(Operator):
                       
             if self.rkey == True and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == False:
                 bpy.context.object.custom_rotation+=deltax
-
+                    
             if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == True:
                 bpy.context.object.custom_scaleuv+=deltax/10                
 
@@ -477,10 +515,17 @@ class RotateView3D(Operator):
             self.first_mouse_x = event.mouse_region_x
             self.first_mouse_y = event.mouse_region_y
             
-        elif event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':
-
+        elif event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':       
+            
             return {'FINISHED'}
         
+        if self.ckey:
+            if self.skey:
+                bpy.context.object.custom_scale = 1
+            if self.rkey:
+                bpy.context.object.custom_rotation = 0
+            return {'RUNNING_MODAL'}
+                    
         return {'RUNNING_MODAL'}
     
     def execute(self, context):        
@@ -496,62 +541,7 @@ class RotateView3D(Operator):
         
         return {'RUNNING_MODAL'}
 
-class ZoomView3D(Operator):
-    bl_idname = "view3d.zoom_view3d"
-    bl_label = "Zoom View3D"
-
-    delta = FloatProperty(
-        name="delta",
-        description="Delta",
-        min=-1.0, max=1,
-        default=1.0,
-        )
-
-    def invoke(self, context, event):                   
-        bpy.ops.view3d.zoom(delta = self.delta)
-        
-        align_to_view(context)
-        
-        return {'FINISHED'}
-
-    def execute(self, context):        
-        align_to_view(context)
-        
-        return{'FINISHED'}
-
-class PresetView3D(Operator):
-    bl_idname = "view3d.preset_view3d"
-    bl_label = "Preset View3D"
-
-    view = StringProperty(name="View", description="Select the view", default='TOP',)
-
-    def invoke(self, context, event):                   
-        origine = bpy.context.object.location
-        
-        pos_init_cursor = view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.space_data.region_3d, bpy.context.space_data.cursor_location)
-
-        if bpy.context.object.custom_rot:
-            pos_init = view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.space_data.region_3d, origine)
-            bpy.context.space_data.region_3d.view_location = origine
-
-        tmp = bpy.context.user_preferences.view.smooth_view
-        bpy.context.user_preferences.view.smooth_view = 0
-        bpy.ops.view3d.viewnumpad(type=self.view)        
-        align_to_view(context)
-        bpy.context.user_preferences.view.smooth_view = tmp
-
-        if bpy.context.object.custom_rot:
-            pos_end = view3d_utils.region_2d_to_location_3d(bpy.context.region, bpy.context.space_data.region_3d, pos_init, Vector((0,0,0)))                
-            bpy.context.space_data.region_3d.view_location =  -1*pos_end
-            align_to_view(context)
-
-        if bpy.context.object.custom_c3d:
-            bpy.context.space_data.region_3d.update()       
-            bpy.context.space_data.cursor_location = view3d_utils.region_2d_to_location_3d(bpy.context.region, bpy.context.space_data.region_3d, pos_init_cursor, Vector((0,0,0)))        
-                    
-        return {'FINISHED'}
-
-
+# Oprerator Class to pan the view3D
 class PanView3D(bpy.types.Operator):
     bl_idname = "view3d.pan_view3d"
     bl_label = "Pan View3D"
@@ -612,27 +602,62 @@ class PanView3D(bpy.types.Operator):
         
         return{'FINISHED'}
 
-def update_func(self, context):          
-    v = Vector((0.5,0.5))
-    for i in range(4):
-        vres =  v - bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv 
-        vres /= vres.length
-        for j in range(2):
-            if abs(vres[j-1])>0:
-                vres[j-1] /= abs(vres[j-1])
-        bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv = v - vres*bpy.context.object.custom_scaleuv/2
-    
-    align_to_view(context)
+# Oprerator Class to zoom the view3D
+class ZoomView3D(Operator):
+    bl_idname = "view3d.zoom_view3d"
+    bl_label = "Zoom View3D"
 
-def createcustomprops():
-    Ob = bpy.types.Object    
-    Ob.custom_rotation = IntProperty(name="Rotation", description="Rotate the plane", min=-180, max=180, default=0,update = update_func)
-    Ob.custom_scale = FloatProperty(name="Scale", description="Scale the plane", min=0, max=10, default=1.0,update = update_func)
-    Ob.custom_z = FloatProperty(name="Z", description="Z axis for the plane", min=-10, max=10, default=-1.0,update = update_func)
-    Ob.custom_scaleuv = FloatProperty(name="ScaleUV", description="Scale the texture's UV", min=1.0, max=10, default=1.0,update = update_func)
-    Ob.custom_location = IntVectorProperty(name="Location", description="Location of the plan", default=(0, 0), subtype = 'XYZ', size=2, update = update_func)
-    Ob.custom_c3d = BoolProperty(name="c3d", default=True)
-    Ob.custom_rot = BoolProperty(name="rot", default=True)
+    delta = FloatProperty(
+        name="delta",
+        description="Delta",
+        min=-1.0, max=1,
+        default=1.0,
+        )
+
+    def invoke(self, context, event):                   
+        bpy.ops.view3d.zoom(delta = self.delta)
+        
+        align_to_view(context)
+        
+        return {'FINISHED'}
+
+    def execute(self, context):        
+        align_to_view(context)
+        
+        return{'FINISHED'}
+
+# Oprerator Class to use numpad shortcut
+class PresetView3D(Operator):
+    bl_idname = "view3d.preset_view3d"
+    bl_label = "Preset View3D"
+
+    view = StringProperty(name="View", description="Select the view", default='TOP',)
+
+    def invoke(self, context, event):                   
+        origine = bpy.context.object.location
+        
+        pos_init_cursor = view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.space_data.region_3d, bpy.context.space_data.cursor_location)
+
+        if bpy.context.object.custom_rot:
+            pos_init = view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.space_data.region_3d, origine)
+            bpy.context.space_data.region_3d.view_location = origine
+
+        tmp = bpy.context.user_preferences.view.smooth_view
+        bpy.context.user_preferences.view.smooth_view = 0
+        bpy.ops.view3d.viewnumpad(type=self.view)        
+        align_to_view(context)
+        bpy.context.user_preferences.view.smooth_view = tmp
+
+        if bpy.context.object.custom_rot:
+            pos_end = view3d_utils.region_2d_to_location_3d(bpy.context.region, bpy.context.space_data.region_3d, pos_init, Vector((0,0,0)))                
+            bpy.context.space_data.region_3d.view_location =  -1*pos_end
+            align_to_view(context)
+
+        if bpy.context.object.custom_c3d:
+            bpy.context.space_data.region_3d.update()       
+            bpy.context.space_data.cursor_location = view3d_utils.region_2d_to_location_3d(bpy.context.region, bpy.context.space_data.region_3d, pos_init_cursor, Vector((0,0,0)))        
+                    
+        return {'FINISHED'}
 
 def register():
     bpy.utils.register_module(__name__)
