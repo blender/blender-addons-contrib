@@ -253,17 +253,21 @@ class IntuitiveScale(Operator):
                                                                 "is_start":True, "location":(0, 0, 0),
                                                                 "mouse":(x,y), "pressure":1, "time":0}])
         else:
-            if len(bpy.context.object.grease_pencil.layers.active.frames[0].strokes) < 4:
+            if len(bpy.context.object.grease_pencil.layers.active.frames[0].strokes) < 6:
                 bpy.ops.gpencil.draw(mode='DRAW', stroke=[{"name":"", "pen_flip":False,
                                                                     "is_start":True, "location":(0, 0, 0),
                                                                     "mouse":(x,y), "pressure":1, "time":0}])
-            if len(bpy.context.object.grease_pencil.layers.active.frames[0].strokes) == 4:
+            if len(bpy.context.object.grease_pencil.layers.active.frames[0].strokes) == 6:
                 s = bpy.context.object.grease_pencil.layers.active.frames[0]
                 v1 = s.strokes[1].points[0].co - s.strokes[0].points[0].co
-                v2 = s.strokes[3].points[0].co - s.strokes[2].points[0].co
-                prop = v1.x/v2.x
-                bpy.context.object.custom_scale[0] *= abs(prop)
-                bpy.context.object.custom_scale[1] *= abs(prop)
+                v2 = s.strokes[4].points[0].co - s.strokes[3].points[0].co
+                propx = v1.x/v2.x                
+                bpy.context.object.custom_scale[0] *= abs(propx)
+
+                v1 = s.strokes[2].points[0].co - s.strokes[0].points[0].co
+                v2 = s.strokes[5].points[0].co - s.strokes[3].points[0].co
+                propy = v1.y/v2.y
+                bpy.context.object.custom_scale[1] *= abs(propy)
                 bpy.ops.gpencil.active_frame_delete()
         
         return {'FINISHED'}
