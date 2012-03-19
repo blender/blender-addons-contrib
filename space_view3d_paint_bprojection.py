@@ -10,7 +10,7 @@ bl_info = {
 
 import bpy
 from bpy.types import Panel, Operator
-from bpy.props import IntProperty, FloatProperty, BoolProperty, IntVectorProperty, StringProperty
+from bpy.props import IntProperty, FloatProperty, BoolProperty, IntVectorProperty, StringProperty, FloatVectorProperty
 from bpy_extras import view3d_utils
 import math
 from math import *
@@ -45,10 +45,9 @@ def align_to_view(context):
     img = bpy.data.textures['Texture for BProjection'].image
     if img and img.size[1] != 0:
         prop = img.size[0]/img.size[1]
-        em.scale[0] = prop
     else: prop = 1    
         
-    em.scale =  Vector((prop*scale, scale, scale))
+    em.scale =  Vector((prop*scale[0],scale[1],1))
     em.location = view3d_utils.region_2d_to_location_3d(context.area.regions[4], r3d, pos, v)        
     em.rotation_euler = Quaternion.to_euler(vr*quat)
 
@@ -87,20 +86,97 @@ def update_FlipUVY(self, context):
     
     align_to_view(context)
 
+# Function to update
+def update_Rotation(self, context):              
+    if context.object.custom_rotc3d:
+        angle = context.object.custom_rotation - context.object.custom_old_rotation
+        c3d = bpy.context.space_data.cursor_location
+        em = bpy.data.objects['Empty for BProjection'].location
+        c = c3d
+        e = em
+        v1 = e-c
+        vo = Vector((0.0, 0.0, 1.0))
+        vo.rotate(context.space_data.region_3d.view_rotation)
+        quat = mathutils.Quaternion(vo, math.radians(float(angle)))        
+        quat = quat
+        v2 = v1.copy()
+        v2.rotate(quat)
+        v = v1 - v2
+        res = e - v
+        context.space_data.region_3d.update()
+        x = view3d_utils.location_3d_to_region_2d(context.area.regions[4], bpy.context.space_data.region_3d, res)
+        y=[0,0]
+        y[0] = round(x[0])
+        y[1] = round(x[1])
+        
+        context.object.custom_location = y       
+    else:
+        align_to_view(context)
+    context.object.custom_old_rotation = context.object.custom_rotation
+
 # Function to create custom properties
 def createcustomprops():
     Ob = bpy.types.Object    
-    Ob.custom_location = IntVectorProperty(name="Location", description="Location of the plan", default=(0, 0), subtype = 'XYZ', size=2, update = update_props)
-    Ob.custom_rotation = IntProperty(name="Rotation", description="Rotate the plane", min=-180, max=180, default=0,update = update_props)
-    Ob.custom_scale = FloatProperty(name="Scale", description="Scale the plane", min=0, max=10, default=1.0,update = update_props)
+    Ob.custom_location = IntVectorProperty(name="Location", description="Location of the plan", default=(trunc(bpy.context.area.regions[4].width*3/4),trunc( bpy.context.area.regions[4].height*3/4)), subtype = 'XYZ', size=2, update = update_props)
+    Ob.custom_rotation = IntProperty(name="Rotation", description="Rotate the plane", min=-180, max=180, default=0,update = update_Rotation)
+    Ob.custom_old_rotation = IntProperty(name="old_Rotation", description="Old Rotate the plane", min=-180, max=180, default=0)
+    Ob.custom_scale = FloatVectorProperty(name="Scales", description="Scale the planes", default=(1.0, 1.0), size=2,update = update_Rotation)
+    
     Ob.custom_z = FloatProperty(name="Z", description="Z axis for the plane", min=-10, max=10, default=-1.0,update = update_props)
     Ob.custom_c3d = BoolProperty(name="c3d", default=True)
     Ob.custom_rot = BoolProperty(name="rot", default=True)
+    Ob.custom_rotc3d = BoolProperty(name="rotc3d", default=False)
     Ob.custom_scaleuv = FloatProperty(name="ScaleUV", description="Scale the texture's UV", min=1.0, max=10, default=1.0,update = update_UVScale)
     Ob.custom_flipuvx = BoolProperty(name="flipuvx", default=False, update = update_FlipUVX)
     Ob.custom_flipuvy = BoolProperty(name="flipuvy", default=False, update = update_FlipUVY)
 
-# Draw Class to show the panelggg
+def removecustomprops():    
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_location')
+    except:
+        nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_rotation')
+    except:
+        nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_old_rotation')
+    except:
+        nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_scale')
+    except:
+        nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_z')
+    except:
+        nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_c3s')
+    except:
+        nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_rot')
+    except:
+        nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_rotc3d')
+    except:
+        nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_scaleuv')
+    except:
+        nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_flipuvx')
+    except:
+        nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_flipuvy')
+    except:
+        nothing = 0
+
+# Draw Class to show the panel
 class BProjection(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -133,7 +209,8 @@ class BProjection(Panel):
             col.prop(ob,'custom_location', text = 'Plane Properties')
             col.prop(ob,'custom_z') 
             col.prop(ob,'custom_rotation')
-            col.prop(ob,'custom_scale')             
+            col.prop(ob,'custom_scale')              
+            col.prop(ob,'custom_rotc3d',text = "Rotate around 3D Cursor")
             col = layout.column(align =True)
             col.prop(ob,'custom_scaleuv', slider = True)
             col.prop(ob, "custom_flipuvx",text="Flip horizontaly")
@@ -155,10 +232,8 @@ class ApplyImage(Operator):
         em = bpy.data.objects['Empty for BProjection']
         uvdata = bpy.context.object.data.uv_textures.active.data        
         uvdata[len(uvdata)-1].image = img
-        if img and img.size[1] != 0:        
-            prop = img.size[0]/img.size[1]                
-            em.scale[0] = prop
-            
+        bpy.context.object.custom_scale[0] = 1
+        bpy.context.object.custom_scale[1] = 1                            
         context.object.data.update()
         align_to_view(context)
         
@@ -187,7 +262,8 @@ class IntuitiveScale(Operator):
                 v1 = s.strokes[1].points[0].co - s.strokes[0].points[0].co
                 v2 = s.strokes[3].points[0].co - s.strokes[2].points[0].co
                 prop = v1.x/v2.x
-                bpy.context.object.custom_scale *= abs(prop)
+                bpy.context.object.custom_scale[0] *= abs(prop)
+                bpy.context.object.custom_scale[1] *= abs(prop)
                 bpy.ops.gpencil.active_frame_delete()
         
         return {'FINISHED'}
@@ -226,6 +302,7 @@ class AddBProjectionPlane(Operator):
             bpy.data.objects['Empty for BProjection']
 
         except:            
+            createcustomprops()
             bpy.ops.paint.texture_paint_toggle()
             
             bpy.context.space_data.show_relationship_lines = False
@@ -380,9 +457,10 @@ class RemoveBProjectionPlane(Operator):
                     km.keymap_items.remove(kmi)
             
             bpy.ops.paint.texture_paint_toggle()
+            removecustomprops()
                     
         except:
-            nothing
+            nothing = 0
         
         return {'FINISHED'}
 
@@ -524,10 +602,12 @@ class RotateView3D(Operator):
 
             if self.rkey == False and self.skey == False and self.gkey == True and self.zkey == False and self.ukey == False:       
                 bpy.context.object.custom_location[0]+=deltax
-                bpy.context.object.custom_location[1]+=deltay                
+                bpy.context.object.custom_location[1]+=deltay               
                                    
             if self.rkey == False and self.skey == True and self.gkey == False and self.zkey == False and self.ukey == False:                
-                bpy.context.object.custom_scale+=deltax/10
+                bpy.context.object.custom_scale[0]+=deltax/20
+                bpy.context.object.custom_scale[1]+=deltay/20
+                print(deltax)
                                           
             if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == True and self.ukey == False:                
                 bpy.context.object.custom_z+=deltax/10
@@ -549,7 +629,8 @@ class RotateView3D(Operator):
         
         if self.ckey:
             if self.skey:
-                bpy.context.object.custom_scale = 1
+                bpy.context.object.custom_scale[0] = 1
+                bpy.context.object.custom_scale[1] = 1
             if self.rkey:
                 bpy.context.object.custom_rotation = 0
             return {'RUNNING_MODAL'}
@@ -689,7 +770,6 @@ class PresetView3D(Operator):
 
 def register():
     bpy.utils.register_module(__name__)
-    createcustomprops()
 
 def unregister():
     bpy.utils.unregister_module(__name__)
