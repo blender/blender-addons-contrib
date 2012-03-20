@@ -46,8 +46,12 @@ def align_to_view(context):
     if img and img.size[1] != 0:
         prop = img.size[0]/img.size[1]
     else: prop = 1    
-        
-    em.scale =  Vector((prop*scale[0],scale[1],1))
+    
+    if ob.custom_linkscale:    
+        em.scale =  Vector((prop*scale[0],scale[0],1))
+    else:
+        em.scale =  Vector((prop*scale[0],scale[1],1))
+            
     em.location = view3d_utils.region_2d_to_location_3d(context.area.regions[4], r3d, pos, v)        
     em.rotation_euler = Quaternion.to_euler(vr*quat)
 
@@ -57,6 +61,7 @@ def update_props(self, context):
 
 # Function to update the scaleUV
 def update_UVScale(self, context):          
+
     v = Vector((0.5,0.5))
     for i in range(4):
         vres =  v - bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv 
@@ -64,7 +69,12 @@ def update_UVScale(self, context):
         for j in range(2):
             if abs(vres[j-1])>0:
                 vres[j-1] /= abs(vres[j-1])    
-        bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv = v - vres*bpy.context.object.custom_scaleuv/2
+   
+        bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv.x = v.x - vres.x*bpy.context.object.custom_scaleuv[0]/2
+        if bpy.context.object.custom_linkscaleuv:
+            bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv.y = v.y - vres.y*bpy.context.object.custom_scaleuv[0]/2
+        else:
+            bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv.y = v.y - vres.y*bpy.context.object.custom_scaleuv[1]/2
     
     align_to_view(context)
 
@@ -120,15 +130,17 @@ def createcustomprops():
     Ob.custom_location = IntVectorProperty(name="Location", description="Location of the plan", default=(trunc(bpy.context.area.regions[4].width*3/4),trunc( bpy.context.area.regions[4].height*3/4)), subtype = 'XYZ', size=2, update = update_props)
     Ob.custom_rotation = IntProperty(name="Rotation", description="Rotate the plane", min=-180, max=180, default=0,update = update_Rotation)
     Ob.custom_old_rotation = IntProperty(name="old_Rotation", description="Old Rotate the plane", min=-180, max=180, default=0)
-    Ob.custom_scale = FloatVectorProperty(name="Scales", description="Scale the planes", default=(1.0, 1.0), size=2,update = update_Rotation)
+    Ob.custom_scale = FloatVectorProperty(name="Scales", description="Scale the planes", subtype = 'XYZ', default=(1.0, 1.0), size=2,update = update_props)
     
     Ob.custom_z = FloatProperty(name="Z", description="Z axis for the plane", min=-10, max=10, default=-1.0,update = update_props)
     Ob.custom_c3d = BoolProperty(name="c3d", default=True)
     Ob.custom_rot = BoolProperty(name="rot", default=True)
     Ob.custom_rotc3d = BoolProperty(name="rotc3d", default=False)
-    Ob.custom_scaleuv = FloatProperty(name="ScaleUV", description="Scale the texture's UV", min=1.0, max=10, default=1.0,update = update_UVScale)
+    Ob.custom_scaleuv = FloatVectorProperty(name="ScaleUV", description="Scale the texture's UV", default=(1.0,1.0), subtype = 'XYZ', size=2,update = update_UVScale)
     Ob.custom_flipuvx = BoolProperty(name="flipuvx", default=False, update = update_FlipUVX)
     Ob.custom_flipuvy = BoolProperty(name="flipuvy", default=False, update = update_FlipUVY)
+    Ob.custom_linkscale = BoolProperty(name="linkscale", default=True, update = update_props)
+    Ob.custom_linkscaleuv = BoolProperty(name="linkscaleUV", default=True, update = update_UVScale)
 
 def removecustomprops():    
     try:
@@ -175,6 +187,15 @@ def removecustomprops():
         bpy.ops.wm.properties_remove(data_path='object',property='custom_flipuvy')
     except:
         nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_linkscale')
+    except:
+        nothing = 0
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_linkscaleuv')
+    except:
+        nothing = 0        
+        
 
 # Draw Class to show the panel
 class BProjection(Panel):
@@ -200,7 +221,7 @@ class BProjection(Panel):
             layout.template_ID_preview(tex, "image", open="image.open", rows=3, cols=3)
         
             col = layout.column(align =True)
-            col.operator('object.applyimage', text = "Apply image")
+            col.operator('object.applyimage', text = "Apply image",icon = 'FILE_TICK')
             col = layout.column(align =True)
             ob = context.object
             col.prop(ob, "custom_c3d",text="Capture Cursor3d",icon='CURSOR')
@@ -209,12 +230,25 @@ class BProjection(Panel):
             col.prop(ob,'custom_location', text = 'Plane Properties')
             col.prop(ob,'custom_z') 
             col.prop(ob,'custom_rotation')
-            col.prop(ob,'custom_scale')              
-            col.prop(ob,'custom_rotc3d',text = "Rotate around 3D Cursor")
+            col.prop(ob,'custom_rotc3d',text = "Rotate around 3D Cursor",icon = 'MANIPUL')            
+            row = layout.row()
+            col = row.column(align =True)
+            col.prop(ob,'custom_scale')
+            if ob.custom_linkscale :
+                col.prop(ob, "custom_linkscale",text="Linked",icon = 'LINKED')
+            else: 
+                col.prop(ob, "custom_linkscale",text="Unlinked",icon = 'UNLINKED')                 
             col = layout.column(align =True)
-            col.prop(ob,'custom_scaleuv', slider = True)
-            col.prop(ob, "custom_flipuvx",text="Flip horizontaly")
-            col.prop(ob, "custom_flipuvy",text="Flip verticaly")
+            col.prop(ob,'custom_scaleuv')
+            if ob.custom_linkscaleuv:
+                col.prop(ob, "custom_linkscaleuv",text="Linked",icon = 'LINKED')
+            else: 
+                col.prop(ob, "custom_linkscaleuv",text="Uninked",icon = 'UNLINKED') 
+            row = layout.row()
+            col = row.column(align =True)
+            col.prop(ob, "custom_flipuvx",text="Flip X",icon = 'ARROW_LEFTRIGHT')   
+            col = row.column(align =True)
+            col.prop(ob, "custom_flipuvy",text="Flip Y",icon = 'FULLSCREEN_ENTER')            
             col = layout.column(align =True)
             col.prop(ob.material_slots['Material for BProjection'].material,'alpha', slider = True)
 
@@ -239,7 +273,7 @@ class ApplyImage(Operator):
         
         return {'FINISHED'}
 
-# Oprerator Class to make the 4 point and scale the plan
+# Oprerator Class to make the 4 or 6 point and scale the plan
 class IntuitiveScale(Operator):
     bl_idname = "object.intuitivescale"
     bl_label = "Draw lines"
@@ -253,21 +287,30 @@ class IntuitiveScale(Operator):
                                                                 "is_start":True, "location":(0, 0, 0),
                                                                 "mouse":(x,y), "pressure":1, "time":0}])
         else:
-            if len(bpy.context.object.grease_pencil.layers.active.frames[0].strokes) < 6:
+            if bpy.context.object.custom_linkscale:
+                nb_point = 4
+            else:
+                nb_point = 6
+                   
+            if len(bpy.context.object.grease_pencil.layers.active.frames[0].strokes) < nb_point:
                 bpy.ops.gpencil.draw(mode='DRAW', stroke=[{"name":"", "pen_flip":False,
                                                                     "is_start":True, "location":(0, 0, 0),
                                                                     "mouse":(x,y), "pressure":1, "time":0}])
-            if len(bpy.context.object.grease_pencil.layers.active.frames[0].strokes) == 6:
+            if len(bpy.context.object.grease_pencil.layers.active.frames[0].strokes) == nb_point:
                 s = bpy.context.object.grease_pencil.layers.active.frames[0]
                 v1 = s.strokes[1].points[0].co - s.strokes[0].points[0].co
-                v2 = s.strokes[4].points[0].co - s.strokes[3].points[0].co
+                if not bpy.context.object.custom_linkscale:
+                    v2 = s.strokes[4].points[0].co - s.strokes[3].points[0].co
+                else:
+                    v2 = s.strokes[3].points[0].co - s.strokes[2].points[0].co
                 propx = v1.x/v2.x                
                 bpy.context.object.custom_scale[0] *= abs(propx)
-
-                v1 = s.strokes[2].points[0].co - s.strokes[0].points[0].co
-                v2 = s.strokes[5].points[0].co - s.strokes[3].points[0].co
-                propy = v1.y/v2.y
-                bpy.context.object.custom_scale[1] *= abs(propy)
+                
+                if not bpy.context.object.custom_linkscale:
+                    v1 = s.strokes[2].points[0].co - s.strokes[0].points[0].co
+                    v2 = s.strokes[5].points[0].co - s.strokes[3].points[0].co
+                    propy = v1.y/v2.y
+                    bpy.context.object.custom_scale[1] *= abs(propy)
                 bpy.ops.gpencil.active_frame_delete()
         
         return {'FINISHED'}
@@ -610,8 +653,8 @@ class RotateView3D(Operator):
                                    
             if self.rkey == False and self.skey == True and self.gkey == False and self.zkey == False and self.ukey == False:                
                 bpy.context.object.custom_scale[0]+=deltax/20
-                bpy.context.object.custom_scale[1]+=deltay/20
-                print(deltax)
+                if not bpy.context.object.custom_linkscale:
+                    bpy.context.object.custom_scale[1]+=deltay/20
                                           
             if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == True and self.ukey == False:                
                 bpy.context.object.custom_z+=deltax/10
@@ -620,7 +663,9 @@ class RotateView3D(Operator):
                 bpy.context.object.custom_rotation+=deltax
                     
             if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == True:
-                bpy.context.object.custom_scaleuv+=deltax/10                
+                bpy.context.object.custom_scaleuv[0]+=deltax/10 
+                if not bpy.context.object.custom_linkscaleuv:
+                    bpy.context.object.custom_scaleuv[1]+=deltay/10               
 
             self.panx = event.mouse_region_x
             self.pany = event.mouse_region_y
