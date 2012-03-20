@@ -60,39 +60,42 @@ def update_props(self, context):
     align_to_view(context)
 
 # Function to update the scaleUV
-def update_UVScale(self, context):          
-
+def update_UVScale(self, context):
     v = Vector((0.5,0.5))
-    for i in range(4):
-        vres =  v - bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv 
-        vres /= vres.length
-        for j in range(2):
-            if abs(vres[j-1])>0:
-                vres[j-1] /= abs(vres[j-1])    
-   
-        bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv.x = v.x - vres.x*bpy.context.object.custom_scaleuv[0]/2
+    l = Vector((0.0,0.0))
+    scale = context.object.custom_scaleuv - context.object.custom_old_scaleuv 
+    uvdata = bpy.context.object.data.uv_loop_layers.active.data
+    for i in range(484):
+        vres =  v - uvdata[len(uvdata)-1-i].uv 
+        l.x = vres.x
+        l.y = vres.y   
+
         if bpy.context.object.custom_linkscaleuv:
-            bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv.y = v.y - vres.y*bpy.context.object.custom_scaleuv[0]/2
+            uvdata[len(uvdata)-1-i].uv = [v.x - l.x*(1+scale[0]), v.y - l.y*(1+scale[0])]
         else:
-            bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv.y = v.y - vres.y*bpy.context.object.custom_scaleuv[1]/2
+            uvdata[len(uvdata)-1-i].uv = [v.x - l.x*(1+scale[0]), v.y - l.y*(1+scale[1])]
+    
+    context.object.custom_old_scaleuv = context.object.custom_scaleuv
     
     align_to_view(context)
 
 # Function to update the flip horizontal
 def update_FlipUVX(self, context):          
-    for i in range(4):
-        x = bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv[0]
+    uvdata = bpy.context.object.data.uv_loop_layers.active.data
+    for i in range(484):
+        x = uvdata[len(uvdata)-1-i].uv[0]
         l = 0.5 - x
-        bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv[0] = 0.5 + l
+        uvdata[len(uvdata)-1-i].uv[0] = 0.5 + l
     
     align_to_view(context)
 
 # Function to update the flip vertical
 def update_FlipUVY(self, context):          
-    for i in range(4):
-        x = bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv[1]
+    uvdata = bpy.context.object.data.uv_loop_layers.active.data
+    for i in range(484):
+        x = uvdata[len(uvdata)-1-i].uv[1]
         l = 0.5 - x
-        bpy.context.object.data.uv_loop_layers.active.data[len(bpy.context.object.data.uv_loop_layers.active.data)-1-i].uv[1] = 0.5 + l
+        uvdata[len(uvdata)-1-i].uv[1] = 0.5 + l
     
     align_to_view(context)
 
@@ -130,13 +133,14 @@ def createcustomprops():
     Ob.custom_location = IntVectorProperty(name="Location", description="Location of the plan", default=(trunc(bpy.context.area.regions[4].width*3/4),trunc( bpy.context.area.regions[4].height*3/4)), subtype = 'XYZ', size=2, update = update_props)
     Ob.custom_rotation = IntProperty(name="Rotation", description="Rotate the plane", min=-180, max=180, default=0,update = update_Rotation)
     Ob.custom_old_rotation = IntProperty(name="old_Rotation", description="Old Rotate the plane", min=-180, max=180, default=0)
-    Ob.custom_scale = FloatVectorProperty(name="Scales", description="Scale the planes", subtype = 'XYZ', default=(1.0, 1.0), size=2,update = update_props)
+    Ob.custom_scale = FloatVectorProperty(name="Scales", description="Scale the planes", subtype = 'XYZ', default=(1.0, 1.0),min = 0.1, size=2,update = update_props)
     
     Ob.custom_z = FloatProperty(name="Z", description="Z axis for the plane", min=-10, max=10, default=-1.0,update = update_props)
     Ob.custom_c3d = BoolProperty(name="c3d", default=True)
     Ob.custom_rot = BoolProperty(name="rot", default=True)
     Ob.custom_rotc3d = BoolProperty(name="rotc3d", default=False)
-    Ob.custom_scaleuv = FloatVectorProperty(name="ScaleUV", description="Scale the texture's UV", default=(1.0,1.0), subtype = 'XYZ', size=2,update = update_UVScale)
+    Ob.custom_scaleuv = FloatVectorProperty(name="ScaleUV", description="Scale the texture's UV", default=(1.0,1.0),min = 1, subtype = 'XYZ', size=2,update = update_UVScale)
+    Ob.custom_old_scaleuv = FloatVectorProperty(name="old_ScaleUV", description="Scale the texture's UV", default=(1.0,1.0),min = 1, subtype = 'XYZ', size=2)
     Ob.custom_flipuvx = BoolProperty(name="flipuvx", default=False, update = update_FlipUVX)
     Ob.custom_flipuvy = BoolProperty(name="flipuvy", default=False, update = update_FlipUVY)
     Ob.custom_linkscale = BoolProperty(name="linkscale", default=True, update = update_props)
@@ -164,7 +168,7 @@ def removecustomprops():
     except:
         nothing = 0
     try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_c3s')
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_c3d')
     except:
         nothing = 0
     try:
@@ -194,6 +198,10 @@ def removecustomprops():
     try:
         bpy.ops.wm.properties_remove(data_path='object',property='custom_linkscaleuv')
     except:
+        nothing = 0 
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_old_scaleuv')
+    except:
         nothing = 0        
         
 
@@ -205,7 +213,7 @@ class BProjection(Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.image_paint_object)
+        return (context.image_paint_object or context.sculpt_object)
 
     def draw(self, context):        
         layout = self.layout
@@ -264,10 +272,29 @@ class ApplyImage(Operator):
     def execute(self, context):        
         img = bpy.data.textures['Texture for BProjection'].image
         em = bpy.data.objects['Empty for BProjection']
-        uvdata = bpy.context.object.data.uv_textures.active.data        
-        uvdata[len(uvdata)-1].image = img
-        bpy.context.object.custom_scale[0] = 1
-        bpy.context.object.custom_scale[1] = 1                            
+        
+        bpy.ops.object.editmode_toggle()
+        f = bpy.context.object.data.polygons
+        nbface = len(bpy.context.object.data.polygons)
+        uvdata = bpy.context.object.data.uv_textures.active.data 
+        wasnul = False
+        if len(uvdata) == 0:
+            bpy.ops.object.editmode_toggle()
+            uvdata = bpy.context.object.data.uv_textures.active.data
+            wasnul = True                        
+        
+        nbcut = 10
+        vglen = trunc(pow(nbcut+1, 2))
+        
+        for i in range(vglen):  
+            uvdata[f[nbface-i-1-1].index].image = img
+        
+        if wasnul == False:
+            bpy.ops.object.editmode_toggle()
+        else:
+            bpy.ops.paint.texture_paint_toggle()
+                                   
+        bpy.context.object.custom_scale = [1,1]                       
         context.object.data.update()
         align_to_view(context)
         
@@ -343,6 +370,7 @@ class AddBProjectionPlane(Operator):
         bpy.context.object.material_slots[index].material = bpy.data.materials['Material for BProjection']
         bpy.ops.object.material_slot_assign()
         context.object.active_material_index = old_index
+        context.object.data.update()
             
     def execute(self, context):    
         try:
@@ -374,25 +402,26 @@ class AddBProjectionPlane(Operator):
             for i in range(4):
                 ob.data.edges[len(ob.data.edges)-1-i].crease = 1
             bpy.ops.object.editmode_toggle()
+
+            nbcut = 10
+            bpy.ops.mesh.subdivide(number_cuts = nbcut)
     
             em.select = True
             bpy.ops.object.hook_add_selob()
-            
+            em.select = False
+            em.hide = True   
+                     
             self.creatematerial(context)
-            
+
+            bpy.ops.object.applyimage()  
+          
             bpy.ops.gpencil.data_add()
             bpy.context.object.grease_pencil.draw_mode = 'VIEW'
             bpy.ops.gpencil.layer_add()
             bpy.context.object.grease_pencil.layers.active.color = [1.0,0,0]
-
-            bpy.ops.mesh.hide()
-            
-            em.select = False
-            em.hide = True
             
             bpy.ops.object.editmode_toggle()
                     
-            bpy.ops.object.applyimage()
             km = bpy.data.window_managers['WinMan'].keyconfigs['Blender'].keymaps['3D View']
             km.keymap_items[3-1].idname = 'view3d.rotate_view3d'
             km.keymap_items[19-1].idname = 'view3d.zoom_view3d'
@@ -678,8 +707,7 @@ class RotateView3D(Operator):
         
         if self.ckey:
             if self.skey:
-                bpy.context.object.custom_scale[0] = 1
-                bpy.context.object.custom_scale[1] = 1
+                bpy.context.object.custom_scale = [1,1]
             if self.rkey:
                 bpy.context.object.custom_rotation = 0
             return {'RUNNING_MODAL'}
