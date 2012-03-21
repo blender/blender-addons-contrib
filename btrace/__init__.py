@@ -17,23 +17,27 @@
 #END GPL LICENCE BLOCK
 
 bl_info = {
-    'name': "bTrace",
+    'name': "Btrace",
     'author': "liero, crazycourier, Atom, Meta-Androcto, MacKracken",
     'version': (1, 1, ),
-    'blender': (2, 61, 1),
+    'blender': (2, 62),
     'location': "View3D > Tools",
     'description': "Tools for converting/animating objects/particles into curves",
-    'warning': "Some features broken, Still under development",
+    'warning': "Still under development, bug reports appreciated",
     'wiki_url': "",
     'tracker_url': "http://projects.blender.org/tracker/?func=detail&atid=468&aid=29563&group_id=153",
-    'category': "Mesh"
+    'category': "Add Curve"
     }
+
 import bpy
 from .bTrace import *
-from bpy.props import *
+import selection_utils
+from bpy.props import FloatProperty, EnumProperty, IntProperty, BoolProperty, FloatVectorProperty
 
 ### Define Classes to register
-classes = [TracerProperties,
+classes = [
+    TracerProperties,
+    TracerPropertiesMenu,
     addTracerObjectPanel,
     OBJECT_OT_convertcurve,
     OBJECT_OT_objecttrace,
@@ -44,12 +48,17 @@ classes = [TracerProperties,
     OBJECT_OT_curvegrow,
     OBJECT_OT_reset,
     OBJECT_OT_fcnoise,
-    OBJECT_OT_meshfollow]
+    OBJECT_OT_meshfollow,
+    OBJECT_OT_materialChango,
+    OBJECT_OT_clearColorblender
+    ]
 
 def register():
     for c in classes:
         bpy.utils.register_class(c)
     bpy.types.WindowManager.curve_tracer = bpy.props.PointerProperty(type=TracerProperties)
+    bpy.types.WindowManager.btrace_menu = bpy.props.PointerProperty(type=TracerPropertiesMenu, update=deselect_others)
+
 def unregister():
     for c in classes:
         bpy.utils.unregister_class(c)
