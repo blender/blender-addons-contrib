@@ -22,7 +22,7 @@
 bl_info = {
     "name": "Marmalade Cross-platform Apps (.group)",
     "author": "Benoit Muller",
-    "version": (0, 5, 1),
+    "version": (0, 5, 2),
     "blender": (2, 6, 0),
     "location": "File > Export > Marmalade cross-platform Apps (.group)",
     "description": "Export Marmalade Format files (.group)",
@@ -1389,7 +1389,7 @@ def WriteKeyedAnimationSet(Config, Scene):
                             keyframeTimes.add(int(Keyframe.co[0]))
             else:
                 # Exports all frames
-                keyframeTimes.update(range(scene.frame_start, scene.frame_end + 1, 1))
+                keyframeTimes.update(range(Scene.frame_start, Scene.frame_end + 1, 1))
             keyframeTimes = list(keyframeTimes)
             keyframeTimes.sort()
             if len(keyframeTimes):
@@ -1481,10 +1481,18 @@ def WriteKeyedAnimationSet(Config, Scene):
                                 keyframeTimes.add(int(Keyframe.co[0]))
                 else:
                     # Exports all frame
-                    keyframeTimes.update(range(scene.frame_start, scene.frame_end + 1, 1))
+                    keyframeTimes.update(range(Scene.frame_start, Scene.frame_end + 1, 1))
                    
                 keyframeTimes = list(keyframeTimes)
                 keyframeTimes.sort()
+                if Config.Verbose:
+                    print("Exporting frames: ")
+                    print(keyframeTimes)
+                    if (Scene.frame_preview_end > Scene.frame_end):
+                        print(" WARNING: END Frame of animation in UI preview is Higher than the Scene Frame end:\n Scene.frame_end %d versus Scene.frame_preview_end %d.\n"
+                              % (Scene.frame_end, Scene.frame_preview_end))
+                        print(" => You might need to change the Scene End Frame, to match the current UI preview frame end...\n=> if you don't want to miss end of animation.\n")
+
                 if len(keyframeTimes):
                     #Create the anim file
                     animfullname = os.path.dirname(Config.FilePath) + "\\anims\\%s.anim" % (StripName(Object.name))
