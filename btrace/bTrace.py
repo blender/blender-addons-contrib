@@ -600,6 +600,7 @@ class addTracerObjectPanel(bpy.types.Panel):
             row.operator("object.colorblender", icon='PLAY', text="Run!")
             row = box.row()
             row.operator("object.colorblenderclear", text="Reset Keyframes", icon="KEY_DEHLT")
+            row.prop(Btrace, 'mmSkip', text="Keyframe every")
             color_blender()
 
 ###### END PANEL ##############
