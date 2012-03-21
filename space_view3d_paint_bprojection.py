@@ -63,7 +63,9 @@ def update_props(self, context):
 def update_UVScale(self, context):
     v = Vector((0.5,0.5))
     l = Vector((0.0,0.0))
-    scale = context.object.custom_scaleuv - context.object.custom_old_scaleuv 
+    scale = context.object.custom_scaleuv - context.object.custom_old_scaleuv
+    s = context.object.custom_scaleuv
+    o = context.object.custom_old_scaleuv 
     uvdata = bpy.context.object.data.uv_loop_layers.active.data
     for i in range(484):
         vres =  v - uvdata[len(uvdata)-1-i].uv 
@@ -71,9 +73,9 @@ def update_UVScale(self, context):
         l.y = vres.y   
 
         if bpy.context.object.custom_linkscaleuv:
-            uvdata[len(uvdata)-1-i].uv = [v.x - l.x*(1+scale[0]), v.y - l.y*(1+scale[0])]
+            uvdata[len(uvdata)-1-i].uv = [v.x - l.x/o[0]*s[0], v.y - l.y/o[0]*s[0]]
         else:
-            uvdata[len(uvdata)-1-i].uv = [v.x - l.x*(1+scale[0]), v.y - l.y*(1+scale[1])]
+            uvdata[len(uvdata)-1-i].uv = [v.x - l.x/o[0]*s[0], v.y - l.y/o[1]*s[1]]
     
     context.object.custom_old_scaleuv = context.object.custom_scaleuv
     
