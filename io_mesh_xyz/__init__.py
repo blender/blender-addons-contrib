@@ -20,7 +20,7 @@ bl_info = {
     "name": "XYZ Atomic Blender",
     "description": "Loading and manipulating atoms from XYZ files",
     "author": "Clemens Barth",
-    "version": (0,5),
+    "version": (0,6),
     "blender": (2,6),
     "location": "File -> Import -> XYZ (.xyz), Panel: View 3D - Tools",
     "warning": "",
@@ -31,7 +31,8 @@ bl_info = {
     "category": "Import-Export"
 }
 
-
+import os
+import io
 import bpy
 from bpy.types import Operator, Panel
 from bpy_extras.io_utils import ImportHelper
@@ -41,11 +42,10 @@ from bpy.props import (StringProperty,
                        IntProperty,
                        FloatProperty)
 
-
-
 from . import import_xyz
 ATOM_XYZ_ERROR = ""
 ATOM_XYZ_NOTE  = ""
+ATOM_XYZ_PANEL = ""
 
 # -----------------------------------------------------------------------------
 #                                                                           GUI
@@ -54,100 +54,95 @@ ATOM_XYZ_NOTE  = ""
 # It is loaded after the file has been chosen via the menu 'File -> Import'
 class CLASS_atom_xyz_prepare_panel(Panel):
     bl_label       = "XYZ - Atomic Blender"
-    #bl_space_type  = "PROPERTIES"
-    #bl_region_type = "WINDOW"
-    #bl_context     = "physics"
-    # This could be also an option ... :
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOL_PROPS"
 
     @classmethod
     def poll(self, context):
-        if import_xyz.ATOM_XYZ_FILEPATH == "":
+        global ATOM_XYZ_PANEL
+        
+        if ATOM_XYZ_PANEL == "0" and import_xyz.ATOM_XYZ_FILEPATH == "":
             return False
-        else:
+        if ATOM_XYZ_PANEL == "0" and import_xyz.ATOM_XYZ_FILEPATH != "":
             return True
+        if ATOM_XYZ_PANEL == "1":
+            return True
+        if ATOM_XYZ_PANEL == "2":
+            return False
+        
+        return True
+
 
     def draw(self, context):
         layout = self.layout
-        scn    = bpy.context.scene
+        scn    = context.scene.atom_xyz[0]
 
         row = layout.row()
         row.label(text="Outputs and custom data file")
-
         box = layout.box()
         row = box.row()
         row.label(text="Custom data file")
         row = box.row()
         col = row.column()
-        col.prop(scn, "atom_xyz_datafile")
+        col.prop(scn, "datafile")
         col.operator("atom_xyz.datafile_apply")
         row = box.row()
         col = row.column(align=True)
-        col.prop(scn, "atom_xyz_XYZ_file")
+        col.prop(scn, "XYZ_file")
         row = box.row()
-        # TODO, use lanel() instead
-        row.prop(scn, "atom_xyz_number_atoms")
+        row.prop(scn, "number_atoms")
         row = box.row()
         row.operator("atom_xyz.button_distance")
-        row.prop(scn, "atom_xyz_distance")
-
+        row.prop(scn, "distance")
         row = layout.row()
         row.label(text="Choice of atom radii")
         box = layout.box()
-
         row = box.row()
         row.label(text="All changes concern:")
         row = box.row()
-        row.prop(scn, "atom_xyz_radius_how")
-
+        row.prop(scn, "radius_how")
         row = box.row()
         row.label(text="1. Change type of radii")
         row = box.row()
-        row.prop(scn, "atom_xyz_radius_type")
-
+        row.prop(scn, "radius_type")
         row = box.row()
         row.label(text="2. Change atom radii in pm")
         row = box.row()
-        row.prop(scn, "atom_xyz_radius_pm_name")
+        row.prop(scn, "radius_pm_name")
         row = box.row()
-        row.prop(scn, "atom_xyz_radius_pm")
-
+        row.prop(scn, "radius_pm")
         row = box.row()
         row.label(text="3. Change atom radii by scale")
         row = box.row()
         col = row.column()
-        col.prop(scn, "atom_xyz_radius_all")
+        col.prop(scn, "radius_all")
         col = row.column(align=True)
         col.operator( "atom_xyz.radius_all_bigger" )
         col.operator( "atom_xyz.radius_all_smaller" )
 
         if bpy.context.mode == 'EDIT_MESH':
-
             layout.separator()
             row = box.row()
             row.operator( "atom_xyz.separate_atom" )
 
         row = layout.row()
         row.label(text="Loading frames")
-
         box = layout.box()
         row = box.row()
         col = row.column()
         col.label(text="Frames")
         col = row.column()
-        col.prop(scn, "atom_xyz_number_frames")
+        col.prop(scn, "number_frames")
         row = box.row()
         col = row.column()
         col.label(text="Skip frames")
         col = row.column()
-        col.prop(scn, "atom_xyz_skip_frames")
+        col.prop(scn, "skip_frames")
         row = box.row()
         col = row.column()
         col.label(text="Frames/key")
         col = row.column()
-        col.prop(scn, "atom_xyz_images_per_key")        
-        
+        col.prop(scn, "images_per_key")        
         row = box.row()
         row.operator("atom_xyz.load_frames")
         row = box.row()
@@ -158,106 +153,99 @@ class CLASS_atom_xyz_prepare_panel(Panel):
         row.operator( "atom_xyz.render")
 
 
-class CLASS_atom_xyz_IO(bpy.types.PropertyGroup):
+class CLASS_atom_xyz_Properties(bpy.types.PropertyGroup):
 
     def Callback_radius_type(self, context):
-        scnn = bpy.context.scene
+        scn = bpy.context.scene.atom_xyz[0]
         import_xyz.DEF_atom_xyz_radius_type(
-                scnn.atom_xyz_radius_type,
-                scnn.atom_xyz_radius_how,
-                )
+                scn.radius_type,
+                scn.radius_how,)
 
     def Callback_radius_pm(self, context):
-        scnn = bpy.context.scene
+        scn = bpy.context.scene.atom_xyz[0]
         import_xyz.DEF_atom_xyz_radius_pm(
-                scnn.atom_xyz_radius_pm_name,
-                scnn.atom_xyz_radius_pm,
-                scnn.atom_xyz_radius_how,
-                )
+                scn.radius_pm_name,
+                scn.radius_pm,
+                scn.radius_how,)
 
     # In the file dialog window
-    scn = bpy.types.Scene
-    scn.use_atom_xyz_cam = BoolProperty(
+    use_camera = BoolProperty(
         name="Camera", default=False,
         description="Do you need a camera?")
-    scn.use_atom_xyz_lamp = BoolProperty(
+    use_lamp = BoolProperty(
         name="Lamp", default=False,
         description = "Do you need a lamp?")
-    scn.use_atom_xyz_mesh = BoolProperty(
+    use_mesh = BoolProperty(
         name = "Mesh balls", default=False,
         description = "Do you want to use mesh balls instead of NURBS?")
-    scn.atom_xyz_mesh_azimuth = IntProperty(
+    mesh_azimuth = IntProperty(
         name = "Azimuth", default=32, min=0,
         description = "Number of sectors (azimuth)")
-    scn.atom_xyz_mesh_zenith = IntProperty(
+    mesh_zenith = IntProperty(
         name = "Zenith", default=32, min=0,
         description = "Number of sectors (zenith)")
-    scn.atom_xyz_scale_ballradius = FloatProperty(
+    scale_ballradius = FloatProperty(
         name = "Balls", default=1.0, min=0.0,
         description = "Scale factor for all atom radii")
-    scn.atom_xyz_scale_distances = FloatProperty (
+    scale_distances = FloatProperty (
         name = "Distances", default=1.0, min=0.0,
         description = "Scale factor for all distances")
-    scn.use_atom_xyz_center = BoolProperty(
+    use_center = BoolProperty(
         name = "Object to origin", default=False,
         description = "Shall the object first put into the global origin "
         "before applying the offsets on the left?")
-    scn.atom_xyz_atomradius = EnumProperty(
+    atomradius = EnumProperty(
         name="Type of radius",
         description="Choose type of atom radius",
         items=(('0', "Pre-defined", "Use pre-defined radii"),
                ('1', "Atomic", "Use atomic radii"),
                ('2', "van der Waals", "Use van der Waals radii")),
                default='0',)
-
     # In the panel, first part
-    scn.atom_xyz_datafile = StringProperty(
+    datafile = StringProperty(
         name = "", description="Path to your custom data file",
         maxlen = 256, default = "", subtype='FILE_PATH')
-    scn.atom_xyz_XYZ_file = StringProperty(
+    XYZ_file = StringProperty(
         name = "Path to file", default="",
         description = "Path of the XYZ file")
-    # TODO, remove this property, its used for display only!
-    scn.atom_xyz_number_atoms = StringProperty(name="",
+    number_atoms = StringProperty(name="",
         default="Number", description = "This output shows "
         "the number of atoms which have been loaded")
-    scn.atom_xyz_distance = StringProperty(
+    distance = StringProperty(
         name="", default="Distance (A)",
         description="Distance of 2 objects in Angstrom")
-    scn.atom_xyz_radius_how = EnumProperty(
+    radius_how = EnumProperty(
         name="",
         description="Which objects shall be modified?",
         items=(('ALL_ACTIVE',"all active objects", "in the current layer"),
                ('ALL_IN_LAYER',"all"," in active layer(s)")),
                default='ALL_ACTIVE',)
-    scn.atom_xyz_radius_type = EnumProperty(
+    radius_type = EnumProperty(
         name="Type",
         description="Which type of atom radii?",
         items=(('0',"predefined", "Use pre-defined radii"),
                ('1',"atomic", "Use atomic radii"),
                ('2',"van der Waals","Use van der Waals radii")),
                default='0',update=Callback_radius_type)
-    scn.atom_xyz_radius_pm_name = StringProperty(
+    radius_pm_name = StringProperty(
         name="", default="Atom name",
         description="Put in the name of the atom (e.g. Hydrogen)")
-    scn.atom_xyz_radius_pm = FloatProperty(
+    radius_pm = FloatProperty(
         name="", default=100.0, min=0.0,
         description="Put in the radius of the atom (in pm)",
         update=Callback_radius_pm)
-    scn.atom_xyz_radius_all = FloatProperty(
-        name="Scale", default = 1.05, min=1.0,
+    radius_all = FloatProperty(
+        name="Scale", default = 1.05, min=1.0, max=5.0,
         description="Put in the scale factor")
-
-
     # In the panel, second part
-    scn.atom_xyz_number_frames = StringProperty(
+    number_frames = StringProperty(
         name="", default="0",
         description="This is the total number of frames stored in the xyz file")
-    scn.atom_xyz_skip_frames = IntProperty(
+    skip_frames = IntProperty(
         name="", default=0, min=0,
         description="Number of frames you want to skip.")
-    scn.atom_xyz_images_per_key = IntProperty(
-        name="", default=1, min=0,
+    images_per_key = IntProperty(
+        name="", default=1, min=1,
         description="Choose the number of images between 2 keys.")
 
 
@@ -271,7 +259,6 @@ class CLASS_atom_xyz_create_command(Operator):
     def execute(self, context):
         global ATOM_XYZ_ERROR
         global ATOM_XYZ_NOTE
-        import os
  
         scn = bpy.context.scene
 
@@ -311,7 +298,6 @@ class CLASS_atom_xyz_create_command(Operator):
             return {'FINISHED'}     
         
         bpy.ops.wm.save_mainfile()
-        
         file_name = bpy.path.basename(file_blend)
         file_path = file_blend.replace(file_name,"")
         file_movie = bpy.path.display_name_from_filepath(file_blend)
@@ -349,8 +335,6 @@ class CLASS_atom_xyz_render(Operator):
 
     def execute(self, context):
         global ATOM_XYZ_ERROR
-        import os
- 
         scn = bpy.context.scene
 
         fstart = scn.frame_start
@@ -404,8 +388,7 @@ class CLASS_atom_xyz_render(Operator):
             execute = ("\""+blender_exe+"\" -b "+file_blend+" -x 1 -o //"+file_movie+
                   "_ -F AVIJPEG -s "+str(fstart)+" -e "+str(scn.frame_end)+" -a")
             os_str = "C:\WINDOWS\system32\cmd.exe /C " + execute
-            
-        #print(os_str)    
+             
         os.system(os_str)    
         
         return {'FINISHED'}
@@ -418,9 +401,7 @@ class CLASS_atom_xyz_delete_keys(Operator):
     bl_description = "Delete the shape keys"
 
     def execute(self, context):
-    
         for element in import_xyz.STRUCTURE:
-        
             if element.data.shape_keys == None:
                 break
         
@@ -429,10 +410,8 @@ class CLASS_atom_xyz_delete_keys(Operator):
             element.select = True
         
             for key in element.data.shape_keys.key_blocks:
-            
                 bpy.ops.object.shape_key_remove()
         
-
         return {'FINISHED'}
 
 
@@ -444,8 +423,7 @@ class CLASS_atom_xyz_load_frames(Operator):
 
     def execute(self, context):
         global ATOM_XYZ_ERROR
-    
-        scn = bpy.context.scene
+        scn = bpy.context.scene.atom_xyz[0]
         
         KEYS_PRESENT = False
         for element in import_xyz.STRUCTURE:
@@ -462,7 +440,8 @@ class CLASS_atom_xyz_load_frames(Operator):
             return {'FINISHED'}
         
         
-        import_xyz.DEF_atom_xyz_build_frames(scn.atom_xyz_images_per_key, scn.atom_xyz_skip_frames)
+        import_xyz.DEF_atom_xyz_build_frames(scn.images_per_key, 
+                                             scn.skip_frames)
 
         return {'FINISHED'}
 
@@ -475,13 +454,12 @@ class CLASS_atom_xyz_datafile_apply(Operator):
     bl_description = "Use color and radii values stored in the custom file"
 
     def execute(self, context):
-    
-        scn = bpy.context.scene
+        scn = bpy.context.scene.atom_xyz[0]
 
-        if scn.atom_xyz_datafile == "":
+        if scn.datafile == "":
             return {'FINISHED'}
 
-        import_xyz.DEF_atom_xyz_custom_datafile(scn.atom_xyz_datafile)
+        import_xyz.DEF_atom_xyz_custom_datafile(scn.datafile)
 
         # TODO, move this into 'import_xyz' and call the function
         for obj in bpy.context.selected_objects:
@@ -509,7 +487,7 @@ class CLASS_atom_xyz_separate_atom(Operator):
     bl_description = "Separate the atom you have chosen"
 
     def execute(self, context):
-        scn    = bpy.context.scene
+        scn = bpy.context.scene.atom_xyz[0]
 
         # Get first all important properties from the atom which the user
         # has chosen: location, color, scale
@@ -530,13 +508,13 @@ class CLASS_atom_xyz_separate_atom(Operator):
         # ... delete the new mesh including the separated vertex
         bpy.ops.object.select_all(action='DESELECT')
         new_object.select = True
-        bpy.ops.object.delete()  # TODO, use scene.objects.unlink()
+        bpy.ops.object.delete()
 
         # Create a new atom/vacancy at the position of the old atom
         current_layers=bpy.context.scene.layers
 
         if "Vacancy" not in name:
-            if scn.use_atom_xyz_mesh == False:
+            if scn.use_mesh == False:
                 bpy.ops.surface.primitive_nurbs_surface_sphere_add(
                                     view_align=False, enter_editmode=False,
                                     location=loc_vec+loc_obj_vec,
@@ -544,8 +522,8 @@ class CLASS_atom_xyz_separate_atom(Operator):
                                     layers=current_layers)
             else:
                 bpy.ops.mesh.primitive_uv_sphere_add(
-                                segments=scn.atom_xyz_mesh_azimuth,
-                                ring_count=scn.atom_xyz_mesh_zenith,
+                                segments=scn.mesh_azimuth,
+                                ring_count=scn.mesh_zenith,
                                 size=1, view_align=False, enter_editmode=False,
                                 location=loc_vec+loc_obj_vec,
                                 rotation=(0, 0, 0),
@@ -581,8 +559,8 @@ class CLASS_atom_xyz_distance_button(Operator):
     bl_description = "Measure the distance between two objects"
 
     def execute(self, context):
-        scn    = bpy.context.scene
-        dist   = import_xyz.DEF_atom_xyz_distance()
+        scn  = bpy.context.scene.atom_xyz[0]
+        dist = import_xyz.DEF_atom_xyz_distance()
 
         if dist != "N.A.":
            # The string length is cut, 3 digits after the first 3 digits
@@ -593,7 +571,7 @@ class CLASS_atom_xyz_distance_button(Operator):
            dist   = dist + " A"
 
         # Put the distance into the string of the output field.
-        scn.atom_xyz_distance = dist
+        scn.distance = dist
         return {'FINISHED'}
 
 
@@ -604,10 +582,10 @@ class CLASS_atom_xyz_radius_all_bigger_button(Operator):
     bl_description = "Increase the radii of the atoms"
 
     def execute(self, context):
-        scn = bpy.context.scene
+        scn = bpy.context.scene.atom_xyz[0]
         import_xyz.DEF_atom_xyz_radius_all(
-                scn.atom_xyz_radius_all,
-                scn.atom_xyz_radius_how,
+                scn.radius_all,
+                scn.radius_how,
                 )
         return {'FINISHED'}
 
@@ -619,87 +597,51 @@ class CLASS_atom_xyz_radius_all_smaller_button(Operator):
     bl_description = "Decrease the radii of the atoms"
 
     def execute(self, context):
-        scn = bpy.context.scene
+        scn = bpy.context.scene.atom_xyz[0]
         import_xyz.DEF_atom_xyz_radius_all(
-                1.0/scn.atom_xyz_radius_all,
-                scn.atom_xyz_radius_how,
+                1.0/scn.radius_all,
+                scn.radius_how,
                 )
         return {'FINISHED'}
 
 
+def DEF_panel_yes_no():
+    global ATOM_XYZ_PANEL
 
-# This is the class for the file dialog.
-class ImportXYZ(Operator, ImportHelper):
-    bl_idname = "import_mesh.xyz"
-    bl_label  = "Import XYZ (*.xyz)"
-
-    filename_ext = ".xyz"
-    filter_glob  = StringProperty(default="*.xyz", options={'HIDDEN'},)
-
-    def draw(self, context):
-        layout = self.layout
-        scn = bpy.context.scene
-
-        row = layout.row()
-        row.prop(scn, "use_atom_xyz_cam")
-        row.prop(scn, "use_atom_xyz_lamp")
-        row = layout.row()
-        col = row.column()
-        col.prop(scn, "use_atom_xyz_mesh")
-        col = row.column(align=True)
-        col.prop(scn, "atom_xyz_mesh_azimuth")
-        col.prop(scn, "atom_xyz_mesh_zenith")
-
-        row = layout.row()
-        col = row.column()
-        col.label(text="Scaling factors")
-        col = row.column(align=True)
-        col.prop(scn, "atom_xyz_scale_ballradius")
-        col.prop(scn, "atom_xyz_scale_distances")
-
-        row = layout.row()
-        row.prop(scn, "use_atom_xyz_center")
-
-        row = layout.row()
-        row.prop(scn, "atom_xyz_atomradius")
-
-    def execute(self, context):
-        scn = bpy.context.scene
+    datafile_path = bpy.utils.user_resource('SCRIPTS', path='', create=False)
+    if os.path.isdir(datafile_path) == False:
+        bpy.utils.user_resource('SCRIPTS', path='', create=True)
         
-        import_xyz.ALL_FRAMES[:] = []
-        import_xyz.NUMBER_FRAMES = 0
-        import_xyz.ATOM_XYZ_ELEMENTS[:] = []
-        import_xyz.ATOM_XYZ_FILEPATH = ""
-        import_xyz.STRUCTURE[:] = []
-
-        # This is in order to solve this strange 'relative path' thing.
-        import_xyz.ATOM_XYZ_FILEPATH = bpy.path.abspath(self.filepath)
-
-        scn.atom_xyz_XYZ_file = import_xyz.ATOM_XYZ_FILEPATH
-
-        azimuth    = scn.atom_xyz_mesh_azimuth
-        zenith     = scn.atom_xyz_mesh_zenith
-        bradius    = scn.atom_xyz_scale_ballradius
-        bdistance  = scn.atom_xyz_scale_distances
-        radiustype = scn.atom_xyz_atomradius
-        center     = scn.use_atom_xyz_center
-        cam        = scn.use_atom_xyz_cam
-        lamp       = scn.use_atom_xyz_lamp
-        mesh       = scn.use_atom_xyz_mesh
-        datafile   = scn.atom_xyz_datafile
-
-        # Execute main routine
-        atom_number = import_xyz.DEF_atom_xyz_main(
-                mesh, azimuth, zenith, bradius,
-                radiustype, bdistance, 
-                center, cam, lamp, datafile)
-
-        scn.atom_xyz_number_atoms = str(atom_number) + " atoms"
-        scn.atom_xyz_number_frames = str(import_xyz.NUMBER_FRAMES)
+    datafile_path = os.path.join(datafile_path, "presets")
+    if os.path.isdir(datafile_path) == False:
+        os.mkdir(datafile_path)   
         
-        return {'FINISHED'}
-        
-   
+    datafile = os.path.join(datafile_path, "io_mesh_xyz.pref")
+    if os.path.isfile(datafile):
+        datafile_fp = io.open(datafile, "r")
+        for line in datafile_fp:
+            if "Panel" in line:
+                ATOM_XYZ_PANEL = line[-2:]
+                ATOM_XYZ_PANEL = ATOM_XYZ_PANEL[0:1]
+                bpy.context.scene.use_panel = ATOM_XYZ_PANEL
+                break       
+        datafile_fp.close()
+    else:
+        DEF_panel_write_pref("0") 
+
+
+def DEF_panel_write_pref(value): 
+    datafile_path = bpy.utils.user_resource('SCRIPTS', path='', create=False)
+    datafile_path = os.path.join(datafile_path, "presets")
+    datafile = os.path.join(datafile_path, "io_mesh_xyz.pref")
+    datafile_fp = io.open(datafile, "w")
+    datafile_fp.write("Atomic Blender XYZ - Import/Export - Preferences\n")
+    datafile_fp.write("================================================\n")
+    datafile_fp.write("\n")
+    datafile_fp.write("Panel: "+value+"\n\n\n")
+    datafile_fp.close()
+
+
 class CLASS_atom_xyz_error_dialog(bpy.types.Operator):
     bl_idname = "atom_xyz.error_dialog"
     bl_label = "Attention !"
@@ -728,17 +670,143 @@ class CLASS_atom_xyz_note_dialog(bpy.types.Operator):
         return {'FINISHED'}
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
+
+
+# This is the class for the file dialog.
+class CLASS_ImportXYZ(Operator, ImportHelper):
+    bl_idname = "import_mesh.xyz"
+    bl_label  = "Import XYZ (*.xyz)"
+    bl_options = {'PRESET', 'UNDO'}
+    
+    filename_ext = ".xyz"
+    filter_glob  = StringProperty(default="*.xyz", options={'HIDDEN'},)
+
+    bpy.types.Scene.use_panel = EnumProperty(
+        name="Panel",
+        description="Choose whether the panel shall appear or not in the View 3D.",
+        items=(('0', "Once", "The panel appears only in this session"),
+               ('1', "Always", "The panel always appears when Blender is started"),
+               ('2', "Never", "The panel never appears")),
+               default='0') 
+    use_camera = BoolProperty(
+        name="Camera", default=False,
+        description="Do you need a camera?")
+    use_lamp = BoolProperty(
+        name="Lamp", default=False,
+        description = "Do you need a lamp?")
+    use_mesh = BoolProperty(
+        name = "Mesh balls", default=False,
+        description = "Use mesh balls instead of NURBS")
+    mesh_azimuth = IntProperty(
+        name = "Azimuth", default=32, min=1,
+        description = "Number of sectors (azimuth)")
+    mesh_zenith = IntProperty(
+        name = "Zenith", default=32, min=1,
+        description = "Number of sectors (zenith)")
+    scale_ballradius = FloatProperty(
+        name = "Balls", default=1.0, min=0.0001,
+        description = "Scale factor for all atom radii")
+    scale_distances = FloatProperty (
+        name = "Distances", default=1.0, min=0.0001,
+        description = "Scale factor for all distances")
+    atomradius = EnumProperty(
+        name="Type of radius",
+        description="Choose type of atom radius",
+        items=(('0', "Pre-defined", "Use pre-defined radius"),
+               ('1', "Atomic", "Use atomic radius"),
+               ('2', "van der Waals", "Use van der Waals radius")),
+               default='0',)            
+    use_center = BoolProperty(
+        name = "Object to origin", default=True,
+        description = "Put the object into the global origin")           
+    datafile = StringProperty(
+        name = "", description="Path to your custom data file",
+        maxlen = 256, default = "", subtype='FILE_PATH')    
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.prop(self, "use_camera")
+        row.prop(self, "use_lamp")
+        row = layout.row()
+        col = row.column()
+        col.prop(self, "use_mesh")
+        col = row.column(align=True)
+        col.prop(self, "mesh_azimuth")
+        col.prop(self, "mesh_zenith")
+        row = layout.row()
+        col = row.column()
+        col.label(text="Scaling factors")
+        col = row.column(align=True)
+        col.prop(self, "scale_ballradius")
+        col.prop(self, "scale_distances")
+        row = layout.row()
+        row.prop(self, "use_center")
+        row = layout.row()
+        row.prop(self, "atomradius")
+        row = layout.row()
+        row.prop(bpy.context.scene, "use_panel")
+
+    def execute(self, context):
+        
+        import_xyz.ALL_FRAMES[:] = []
+        import_xyz.NUMBER_FRAMES = 0
+        import_xyz.ATOM_XYZ_ELEMENTS[:] = []
+        import_xyz.ATOM_XYZ_FILEPATH = ""
+        import_xyz.STRUCTURE[:] = []
+
+        # This is in order to solve this strange 'relative path' thing.
+        import_xyz.ATOM_XYZ_FILEPATH = bpy.path.abspath(self.filepath)
+
+        # Execute main routine
+        atom_number = import_xyz.DEF_atom_xyz_main(
+                      self.use_mesh,
+                      self.mesh_azimuth,
+                      self.mesh_zenith,
+                      self.scale_ballradius,
+                      self.atomradius,
+                      self.scale_distances,
+                      self.use_center,
+                      self.use_camera,
+                      self.use_lamp,
+                      self.datafile)
+                      
+        # Copy the whole bunch of values into the property collection.
+        scn = context.scene.atom_xyz[0]
+        scn.use_mesh = self.use_mesh
+        scn.mesh_azimuth = self.mesh_azimuth
+        scn.mesh_zenith = self.mesh_zenith
+        scn.scale_ballradius = self.scale_ballradius
+        scn.atomradius = self.atomradius
+        scn.scale_distances = self.scale_distances
+        scn.use_center = self.use_center
+        scn.use_camera = self.use_camera
+        scn.use_lamp = self.use_lamp
+        scn.datafile = self.datafile              
+                      
+        scn.number_atoms = str(atom_number) + " atoms"
+        scn.number_frames = str(import_xyz.NUMBER_FRAMES)
+        scn.XYZ_file = import_xyz.ATOM_XYZ_FILEPATH
+
+        global ATOM_XYZ_PANEL
+        ATOM_XYZ_PANEL = bpy.context.scene.use_panel
+        DEF_panel_write_pref(bpy.context.scene.use_panel)
+        
+        return {'FINISHED'}
         
 
 # The entry into the menu 'file -> import'
 def menu_func(self, context):
-    self.layout.operator(ImportXYZ.bl_idname, text="XYZ (.xyz)")
+    self.layout.operator(CLASS_ImportXYZ.bl_idname, text="XYZ (.xyz)")
 
 
 def register():
+    DEF_panel_yes_no()
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func)
-
+    bpy.types.Scene.atom_xyz = bpy.props.CollectionProperty(type=CLASS_atom_xyz_Properties)    
+    bpy.context.scene.atom_xyz.add()
+    
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_func)
