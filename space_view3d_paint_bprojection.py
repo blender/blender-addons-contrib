@@ -302,7 +302,7 @@ class ApplyImage(Operator):
         vglen = trunc(pow(nbcut+1, 2))
         
         for i in range(vglen):  
-            uvdata[f[nbface-i-1-1].index].image = img
+            uvdata[f[nbface-i-1].index].image = img
         
         if wasnul == False:
             bpy.ops.object.editmode_toggle()
