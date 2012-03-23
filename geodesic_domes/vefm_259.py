@@ -921,8 +921,8 @@ class importmesh(mesh):
             newedge = edge(tmp[0],tmp[1])
             newedge.index = e.index
             self.edges.append(newedge)            
-#PKHG faces
-        for f in impmesh.data.faces:
+#PKHG faces with out bmesh replace next line polygons by faces
+        for f in impmesh.data.polygons:
             temp=[]
             for vert in f.vertices:  #PKHG a list! of indices 
                 a = self.verts[vert] #PKHG verts contains already vertex objects
