@@ -58,7 +58,7 @@ def update_props(self, context):
 
 # Function to update the scaleUV
 def update_UVScale(self, context):
-    v = Vector((0.5,0.5))
+    v = Vector((context.object.custom_offsetuv[0]/10 + 0.5, context.object.custom_offsetuv[1]/10 + 0.5))
     l = Vector((0.0,0.0))
     scale = context.object.custom_scaleuv - context.object.custom_old_scaleuv
     s = context.object.custom_scaleuv
@@ -75,6 +75,19 @@ def update_UVScale(self, context):
             uvdata[len(uvdata)-1-i].uv = [v.x - l.x/o[0]*s[0], v.y - l.y/o[1]*s[1]]    
 
     context.object.custom_old_scaleuv = context.object.custom_scaleuv
+    
+    
+    align_to_view(context)
+
+# Function to update the offsetUV
+def update_UVOffset(self, context):
+    o = context.object.custom_offsetuv
+    oo = context.object.custom_old_offsetuv 
+    uvdata = context.object.data.uv_loop_layers.active.data
+    for i in range(484):
+        uvdata[len(uvdata)-1-i].uv = [uvdata[len(uvdata)-1-i].uv[0] - oo[0]/10 + o[0]/10, uvdata[len(uvdata)-1-i].uv[1] - oo[1]/10 + o[1]/10]   
+    print(oo,o)
+    context.object.custom_old_offsetuv = context.object.custom_offsetuv
     
     align_to_view(context)
 
@@ -148,12 +161,17 @@ def createcustomprops(context):
     
     # UV properties
     Ob.custom_scaleuv = FloatVectorProperty(name="ScaleUV", description="Scale the texture's UV",
-                                            default=(1.0,1.0),min = 0.1, subtype = 'XYZ', size=2,update = update_UVScale)    
+                                            default=(1.0,1.0),min = 0.01, subtype = 'XYZ', size=2,update = update_UVScale)    
     Ob.custom_old_scaleuv = FloatVectorProperty(name="old_ScaleUV", description="Scale the texture's UV",
-                                                default=(1.0,1.0),min = 0.1, subtype = 'XYZ', size=2)
+                                                default=(1.0,1.0),min = 0.01, subtype = 'XYZ', size=2)
     Ob.custom_linkscaleuv = BoolProperty(name="linkscaleUV", default=True, update = update_UVScale)
     Ob.custom_flipuvx = BoolProperty(name="flipuvx", default=False, update = update_FlipUVX)
     Ob.custom_flipuvy = BoolProperty(name="flipuvy", default=False, update = update_FlipUVY)
+    
+    Ob.custom_offsetuv = FloatVectorProperty(name="OffsetUV", description="Decal the texture's UV",
+                                            default=(0.0,0.0), subtype = 'XYZ', size=2,update = update_UVOffset)    
+    Ob.custom_old_offsetuv = FloatVectorProperty(name="old_OffsetUV", description="Decal the texture's UV",
+                                                 default=(0.0,0.0), subtype = 'XYZ', size=2)
     
     # other properties    
     Ob.custom_c3d = BoolProperty(name="c3d", default=True)
@@ -218,7 +236,15 @@ def removecustomprops():
         bpy.ops.wm.properties_remove(data_path='object',property='custom_old_scaleuv')
     except:
         nothing = 0        
-        
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_offsetuv')
+    except:
+        nothing = 0 
+    try:
+        bpy.ops.wm.properties_remove(data_path='object',property='custom_old_offsetuv')
+    except:
+        nothing = 0         
+
 
 # Draw Class to show the panel
 class BProjection(Panel):
@@ -262,6 +288,7 @@ class BProjection(Panel):
             else: 
                 col.prop(ob, "custom_linkscale",text="Unlinked",icon='UNLINKED')                 
             col = layout.column(align =True)
+            col.prop(ob,'custom_offsetuv')
             col.prop(ob,'custom_scaleuv')
             if ob.custom_linkscaleuv:
                 col.prop(ob, "custom_linkscaleuv",text="Linked",icon='LINKED')
@@ -573,6 +600,7 @@ class RotateView3D(Operator):
     zkey = False
     ukey = False
     ckey = False
+    ykey = False
     first_time = True
     
     def vect_sphere(self, context, mx, my):
@@ -655,6 +683,9 @@ class RotateView3D(Operator):
 
             if event.type == 'C':
                 self.ckey = True 
+                
+            if event.type == 'Y':
+                self.ykey = True 
                             
         if event.value == 'RELEASE':
             if event.type == 'S':
@@ -675,9 +706,12 @@ class RotateView3D(Operator):
             if event.type == 'C':
                 self.ckey = False             
 
+            if event.type == 'Y':
+                self.ykey = False 
+
         if event.type == 'MOUSEMOVE':                        
             
-            if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == False:
+            if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == False and self.ykey == False:
                 self.tracball(context, event.mouse_region_x, event.mouse_region_y,context.object.location)
                 align_to_view(context)
                 if self.first_time:
@@ -692,23 +726,33 @@ class RotateView3D(Operator):
             deltax = event.mouse_region_x - self.panx
             deltay = event.mouse_region_y - self.pany           
 
-            if self.rkey == False and self.skey == False and self.gkey == True and self.zkey == False and self.ukey == False:       
+            if self.rkey == False and self.skey == False and self.gkey == True and self.zkey == False and self.ukey == False and self.ykey == False:       
                 cl = context.object.custom_location
                 context.object.custom_location = [cl[0] + deltax,cl[1] + deltay]               
                                    
-            if self.rkey == False and self.skey == True and self.gkey == False and self.zkey == False and self.ukey == False:                
+            if self.rkey == False and self.skey == True and self.gkey == False and self.zkey == False and self.ukey == False and self.ykey == False:                
                 s = context.object.custom_scale
-                context.object.custom_scale = [s[0] + deltax/20, s[1] + deltay/20]
+                if context.object.custom_linkscale:
+                    context.object.custom_scale = [s[0] + deltax/20, s[0] + deltax/20]
+                else:
+                    context.object.custom_scale = [s[0] + deltax/20, s[1] + deltay/20]
                                           
-            if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == True and self.ukey == False:                
+            if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == True and self.ukey == False and self.ykey == False:                
                 context.object.custom_z+=deltax/10
                       
-            if self.rkey == True and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == False:
+            if self.rkey == True and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == False and self.ykey == False:
                 context.object.custom_rotation+=deltax
                     
-            if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == True:
+            if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == True and self.ykey == False:
                 suv = context.object.custom_scaleuv
-                context.object.custom_scaleuv[0]= [suv + deltax/10 , suv + deltay/10]               
+                if context.object.custom_linkscaleuv:    
+                    context.object.custom_scaleuv= [suv[0] + deltax/50 , suv[0] + deltax/50]
+                else:
+                    context.object.custom_scaleuv= [suv[0] + deltax/50 , suv[1] + deltay/50]               
+
+            if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == False and self.ykey == True:       
+                ouv = context.object.custom_offsetuv
+                context.object.custom_offsetuv = [ouv[0] - deltax/50,ouv[1] - deltay/50] 
 
             self.panx = event.mouse_region_x
             self.pany = event.mouse_region_y
@@ -720,10 +764,10 @@ class RotateView3D(Operator):
             return {'FINISHED'}
         
         if self.ckey:
-            if self.skey:
-                context.object.custom_scale = [1,1]
-            if self.rkey:
-                context.object.custom_rotation = 0
+            context.object.custom_scale = [1,1]
+            context.object.custom_rotation = 0
+            context.object.custom_scaleuv =[1.0,1.0]
+            context.object.custom_offsetuv =[0.0,0.0]
             return {'RUNNING_MODAL'}
                     
         return {'RUNNING_MODAL'}
