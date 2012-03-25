@@ -22,7 +22,7 @@
 bl_info = {
     "name": "Marmalade Cross-platform Apps (.group)",
     "author": "Benoit Muller",
-    "version": (0, 5, 2),
+    "version": (0, 5, 3),
     "blender": (2, 6, 0),
     "location": "File > Export > Marmalade cross-platform Apps (.group)",
     "description": "Export Marmalade Format files (.group)",
@@ -283,7 +283,7 @@ def WriteObjects(Config, ObjectList, geoFile=None, mtlFile=None, GeoModel=None, 
             else:
                 # In Merge mode, we need to keep relative postion of each objects, so we export in WORLD SPACE
                 SCALE_MAT = mathutils.Matrix.Scale(Config.Scale, 4)
-                Mesh.transform(Object.matrix_world * SCALE_MAT * X_ROT)
+                Mesh.transform(SCALE_MAT * X_ROT * Object.matrix_world)
 
              # manage merge options
    
@@ -327,8 +327,24 @@ def WriteObjects(Config, ObjectList, geoFile=None, mtlFile=None, GeoModel=None, 
                 # we have Merges all objects in one Mesh, so time to write this big mesh in the file
                 GeoModel.PrintGeoMesh(geoFile)
                 # time to write skinfile if any
-                len(GeoModel.useBonesDict)
                 if len(GeoModel.useBonesDict) > 0:
+                    # some mesh was not modified by the armature. so we must skinned the merged mesh.
+                    # So unskinned vertices from unarmatured meshes, are assigned to the root bone of the armature
+                    for i in range(0, len(GeoModel.vList)):
+                        if not i in GeoModel.skinnedVertices:
+                            GeoModel.skinnedVertices.append(i)
+                            useBonesKey = pow(2, GeoModel.armatureRootBoneIndex)
+                            vertexGroupIndices = list((GeoModel.armatureRootBoneIndex,))
+                            if useBonesKey not in GeoModel.useBonesDict:                          
+                                GeoModel.mapVertexGroupNames[GeoModel.armatureRootBoneIndex] = StripBoneName(GeoModel.armatureRootBone.name)
+                                VertexList = []
+                                VertexList.append("\t\tvertWeights { %d, 1.0}" % i)
+                                GeoModel.useBonesDict[useBonesKey] = (vertexGroupIndices, VertexList)
+                            else:
+                                pair_ListGroupIndices_ListAssignedVertices = GeoModel.useBonesDict[useBonesKey]
+                                pair_ListGroupIndices_ListAssignedVertices[1].append("\t\tvertWeights { %d, 1.0}" % i)
+                                GeoModel.useBonesDict[useBonesKey] = pair_ListGroupIndices_ListAssignedVertices
+                    # now generates the skin file
                     PrintSkinWeights(Config, GeoModel.armatureObjectName, GeoModel.useBonesDict, GeoModel.mapVertexGroupNames, GeoModel.name)
             if Config.MergeModes > 0:
                 WriteMeshMaterialsForGeoModel(Config, mtlFile, GeoModel)
@@ -551,7 +567,7 @@ class CGeoMaterialPolys:
 class CGeoModel:
     __slots__ = ("name", "MaterialsDict", "vList", "vnList", "vcList", "uv0List", "uv1List",
                 "currentMaterialPolys", "vbaseIndex","vnbaseIndex", "uv0baseIndex", "uv1baseIndex",
-                "armatureObjectName", "useBonesDict", "mapVertexGroupNames")
+                "armatureObjectName", "useBonesDict", "mapVertexGroupNames", "armatureRootBone", "armatureRootBoneIndex", "skinnedVertices")
                 
     def __init__(self, name):
         self.name = name
@@ -575,6 +591,9 @@ class CGeoModel:
         #useBonesDict[useBonesKey] = tuple(VertexGroups.group, list(Vertex))
         self.useBonesDict = {}
         self.mapVertexGroupNames = {}
+        self.armatureRootBone = None
+        self.armatureRootBoneIndex = 0
+        self.skinnedVertices = []
 
 
 
@@ -651,6 +670,9 @@ class CGeoModel:
         self.useBonesDict = {}
         self.mapVertexGroupNames = {}
         self.armatureObjectName = ""
+        self.armatureRootBone = None
+        self.armatureRootBoneIndex = 0
+        self.skinnedVertices = []
 
     def PrintGeoMesh(self, geoFile):
         geoFile.write("\tCMesh\n")
@@ -813,7 +835,6 @@ def WriteMeshVerticesAndNormals(Config,  Object, Mesh, geoFile):
     # Not optimized, simply iterate Blender Face, and writes all face vertices
     # Marmalade groups per material, and then groups per Tir and Quad.
     # So generate vertices grouped together per Tri of the same material, and same quad of the same material
-    geoFile.write("\tname \"%s\"\n" % (StripName(Object.name)))
     geoFile.write("\tCMesh\n")
     geoFile.write("\t{\n")
     geoFile.write("\t\tname \"%s\"\n" % (StripName(Object.name)))
@@ -1100,9 +1121,7 @@ def WriteMaterial(Config, mtlFile, Material=None):
             MatSpecularColor = Material.specular_intensity * Material.specular_color
             mtlFile.write("\tcolSpecular  {%.2f,%.2f,%.2f} \n" % (MatSpecularColor * 255)[:])
             # EmitColor = Material.emit * Material.diffuse_color
-            # mtlFile.write("\tcolEmissive {%.2f,%.2f,%.2f} \n" % (EmitColor* 255)[:])
-
-            
+            # mtlFile.write("\tcolEmissive {%.2f,%.2f,%.2f} \n" % (EmitColor* 255)[:])    
     else:
         mtlFile.write("\tname \"NoMaterialAssigned\" // There is no material assigned in blender !!!, exporter have generated a default one\n")
 
@@ -1127,6 +1146,30 @@ def WriteMaterial(Config, mtlFile, Material=None):
                         print("      CANNOT Copy texture file (not found) %s" % (Texture))
     mtlFile.write("}\n")
 
+def GetFirstRootBone(ArmatureObject):
+    ArmatureBones = ArmatureObject.data.bones
+    ParentBoneList = [Bone for Bone in ArmatureBones if Bone.parent is None]
+    if ParentBoneList:
+        return ParentBoneList[0]
+    return None
+
+
+def GetVertexGroupFromBone(Object, Bone):
+    if Bone:
+        rootBoneList = [VertexGroup for VertexGroup in Object.vertex_groups  if VertexGroup.name == Bone.name]
+        if rootBoneList:
+            return rootBoneList[0]
+    return None
+
+
+def FindUniqueIndexForRootBone(Object, RootVertexGroup):
+    if RootVertexGroup:
+        return RootVertexGroup.index
+    else:
+        #If there is not VertexGroup associated to the root bone name, we don't have a vertex index.
+        #so use the next available free index
+        return len(Object.vertex_groups)
+
 
 def WriteMeshSkinWeights(Config, Object, Mesh):
     ArmatureList = [Modifier for Modifier in Object.modifiers if Modifier.type == "ARMATURE"]
@@ -1134,10 +1177,11 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
         ArmatureObject = ArmatureList[0].object
         if ArmatureObject is None:
             return
-        ArmatureBones = ArmatureObject.data.bones
+        RootBone = GetFirstRootBone(ArmatureObject)
+        RootVertexGroup = GetVertexGroupFromBone(Object, RootBone)
 
-        # Marmlade need to declare a vertex per list of affected bones
-        # so first we have to get all the combinations of affected bones that exist int he mesh
+        # Marmalade need to declare a vertex per list of affected bones
+        # so first we have to get all the combinations of affected bones that exist in the mesh
         # to build thoses groups, we build a unique key (like a bit field, where each bit is a VertexGroup.Index): Sum(2^VertGroupIndex)... so we have a unique Number per combinations
 
         useBonesDict = {}
@@ -1158,7 +1202,7 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
                             if Config.CoordinateSystem == 1:
                                 Vertices = Vertices[::-1]
                             for Vertex in [Mesh.vertices[Vertex] for Vertex in Vertices]:
-                                AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, useBonesDict, mapVertexGroupNames, streamIndex) 
+                                AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, useBonesDict, mapVertexGroupNames, streamIndex, RootBone, RootVertexGroup) 
                                 streamIndex = streamIndex + 1
 
         PrintSkinWeights(Config, StripName(ArmatureObject.name), useBonesDict, mapVertexGroupNames, StripName(Object.name))
@@ -1170,17 +1214,22 @@ def WriteMeshSkinWeightsForGeoModel(Config, Object, Mesh, GeoModel):
         ArmatureObject = ArmatureList[0].object
         if ArmatureObject is None:
             return
-        ArmatureBones = ArmatureObject.data.bones
+        RootBone = GetFirstRootBone(ArmatureObject)
+        RootVertexGroup = GetVertexGroupFromBone(Object, RootBone)
 
         GeoModel.armatureObjectName = StripName(ArmatureObject.name)
+        if RootBone:
+            GeoModel.armatureRootBone = RootBone
+            GeoModel.armatureRootBoneIndex = FindUniqueIndexForRootBone(Object, RootVertexGroup)
 
-        # Marmlade need to declare a vertex per list of affected bones
-        # so first we have to get all the combinations of affected bones that exist int he mesh
+        # Marmalade need to declare a vertex per list of affected bones
+        # so first we have to get all the combinations of affected bones that exist in the mesh
         # to build thoses groups, we build a unique key (like a bit field, where each bit is a VertexGroup.Index): Sum(2^VertGroupIndex)... so we have a unique Number per combinations
         
         for Vertex in Mesh.vertices:
             VertexIndex = Vertex.index + GeoModel.vbaseIndex
-            AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, GeoModel.useBonesDict, GeoModel.mapVertexGroupNames, VertexIndex)
+            AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, GeoModel.useBonesDict, GeoModel.mapVertexGroupNames, VertexIndex, RootBone, RootVertexGroup)
+            GeoModel.skinnedVertices.append(VertexIndex)
 
         if Config.MergeModes != 1:
             # write skin file directly
@@ -1219,7 +1268,7 @@ def PrintSkinWeights(Config, ArmatureObjectName, useBonesDict, mapVertexGroupNam
         skinFile.close()
 
 
-def AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, useBonesDict, mapVertexGroupNames, VertexIndex):
+def AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, useBonesDict, mapVertexGroupNames, VertexIndex, RootBone, RootVertexGroup):
     #build useBones
     useBonesKey = 0
     vertexGroupIndices = []
@@ -1227,15 +1276,23 @@ def AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, useBonesDict, 
     if (len(Vertex.groups)) > 4:
         print ("ERROR Vertex %d is influenced by more than 4 bones\n" % (VertexIndex))
     for VertexGroup in Vertex.groups:
-        mapVertexGroupNames[VertexGroup.group] = StripBoneName(Object.vertex_groups[VertexGroup.group].name)
-        if (len(vertexGroupIndices))<4:  #ignore if more 4 bones are influencing the vertex
-            useBonesKey = useBonesKey + pow(2, VertexGroup.group)
-            vertexGroupIndices.append(VertexGroup.group)
-            weightTotal = weightTotal + VertexGroup.weight
+        if (VertexGroup.weight > 0):
+            mapVertexGroupNames[VertexGroup.group] = StripBoneName(Object.vertex_groups[VertexGroup.group].name)
+            if (len(vertexGroupIndices))<4:  #ignore if more 4 bones are influencing the vertex
+                useBonesKey = useBonesKey + pow(2, VertexGroup.group)
+                vertexGroupIndices.append(VertexGroup.group)
+                weightTotal = weightTotal + VertexGroup.weight
     if (weightTotal == 0):
-        print(" ERROR Weight is ZERO for vertex %d " % (VertexIndex))
-        print(vertexGroupIndices)
-        bWeightTotZero = True  #avoid divide by zero
+        bWeightTotZero = True  #avoid divide by zero later on
+        if (RootBone):
+            if Config.Verbose:
+                print(" Warning Weight is ZERO for vertex %d => Add it to the root bone" % (VertexIndex))
+            RootBoneGroupIndex = FindUniqueIndexForRootBone(Object, RootVertexGroup)
+            mapVertexGroupNames[RootBoneGroupIndex] = StripBoneName(RootBone.name)
+            useBonesKey = pow(2, RootBoneGroupIndex)
+            vertexGroupIndices = list((RootBoneGroupIndex,))
+
+            weightTotal = 1
     else:
         bWeightTotZero = False
     
@@ -1257,7 +1314,7 @@ def AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, useBonesDict, 
                 VertexWeightString += ", %.7f" % (1.0 / len(vertexGroupIndices))
         VertexWeightString += "}"
         if bWeightTotZero:
-            VertexWeightString += " // total weight was zero in blender , export assign default weighting." 
+            VertexWeightString += " // total weight was zero in blender , export assign it to the RootBone with weight 1." 
         if (len(Vertex.groups)) > 4:
             VertexWeightString += " // vertex is associated to more than 4 bones in blender !! skip some bone association (was associated to %d bones)." % (len(Vertex.groups))
         VertexWeightString += "\n"
