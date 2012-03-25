@@ -33,12 +33,47 @@ bl_info = {
 #============================================================================#
 
 """
+Breakdown:
+    Addon registration
+    Keymap utils
+    Various utils (e.g. find_region)
+    OpenGL; drawing utils
+    Non-undoable data storage
+    Cursor utils
+    Stick-object
+    Cursor monitor
+    Addon's GUI
+    Addon's properties
+    Addon's operators
+    ID Block emulator
+    Mesh cache
+    Snap utils
+    View3D utils
+    Transform orientation / coordinate system utils
+    Generic transform utils
+    Main operator
+    ...
+.
+
+First step is to re-make the cursor addon (make something usable first).
+CAD tools should be done without the hassle.
+
 TODO:
+    strip trailing space? (one of campbellbarton's commits did that)
+    
     IDEAS:
+        - implement 'GIMBAL' orientation (euler axes)
+        - mini-Z-buffer in the vicinity of mouse coords (using raycasts)
+        - an orientation that points towards cursor
+          (from current selection to cursor)
+        - user coordinate systems (using e.g. empties to store different
+          systems; when user switches to such UCS, origin will be set to
+          "cursor", cursor will be sticked to the empty, and a custom
+          transform orientation will be aligned with the empty)
+          - "Stick" transform orientation that is always aligned with the
+            object cursor is "sticked" to?
         - make 'NORMAL' system also work for bones?
-        - an option to select which normals/tangentials
-          are displayed? (only N, only T1, N+T1, all,
-          only meaningful)
+        - user preferences? (stored in a file)
         - create spline/edge_mesh from history?
         - API to access history/bookmarks/operators from other scripts?
         - Snap selection to bookmark?
@@ -72,13 +107,14 @@ Borrowed code/logic:
 import bpy
 import bgl
 import blf
+import bmesh
 
 from mathutils import Vector, Matrix, Quaternion, Euler
 
 from mathutils.geometry import (intersect_line_sphere,
                                 intersect_ray_tri,
                                 barycentric_transform,
-                                tesselate_polygon,
+                                tessellate_polygon,
                                 intersect_line_line,
                                 intersect_line_plane,
                                 )
@@ -990,7 +1026,7 @@ class EnhancedSetCursor(bpy.types.Operator):
                 bgl.glColor4f(0, 1, 0, 0.5)
                 
                 co = sui.potential_snap_elements
-                tris = tesselate_polygon([co])
+                tris = tessellate_polygon([co])
                 bgl.glBegin(bgl.GL_TRIANGLES)
                 for tri in tris:
                     for vi in tri:
@@ -1127,7 +1163,7 @@ class EnhancedSetCursor(bpy.types.Operator):
             axes_text = self.get_axes_text()
             
             for i in range(3):
-                color = tet.text
+                color = tet.space.text
                 alpha = (1.0 if self.allowed_axes[i] else 0.5)
                 text = axis_prefix + axis_names[i] + " : "
                 axis_cells.append(TextCell(text, color, alpha))
@@ -1138,7 +1174,7 @@ class EnhancedSetCursor(bpy.types.Operator):
                     else:
                         color = tet.syntax_string
                 else:
-                    color = tet.text
+                    color = tet.space.text
                 text = axes_text[i]
                 coord_cells.append(TextCell(text, color))
         except Exception as e:
@@ -1149,7 +1185,7 @@ class EnhancedSetCursor(bpy.types.Operator):
         try:
             snap_type = self.su.implementation.snap_type
             if snap_type is None:
-                color = tet.text
+                color = tet.space.text
             elif (not self.use_object_centers) or \
                     (snap_type == 'INCREMENT'):
                 color = tet.syntax_numbers
@@ -1161,13 +1197,13 @@ class EnhancedSetCursor(bpy.types.Operator):
             mode_cells.append(TextCell(text, color))
             
             if self.csu.tou.is_custom:
-                color = tet.text
+                color = tet.space.text
             else:
                 color = tet.syntax_builtin
             text = self.csu.tou.get_title()
             mode_cells.append(TextCell(text, color))
             
-            color = tet.text
+            color = tet.space.text
             text = self.csu.get_pivot_name(raw=True)
             if self.use_object_centers:
                 color = tet.syntax_special
@@ -1186,7 +1222,7 @@ class EnhancedSetCursor(bpy.types.Operator):
             xyz_margin = 16
             blend_margin = 32
             
-            color = tet.back
+            color = tet.space.back
             bgl.glColor4f(color[0], color[1], color[2], 1.0)
             draw_rect(0, 0, hdr_w, hdr_h)
             
@@ -1251,7 +1287,7 @@ class EnhancedSetCursor(bpy.types.Operator):
             bgl.glEnable(bgl.GL_BLEND)
             bgl.glShadeModel(bgl.GL_SMOOTH)
             gl_enable(bgl.GL_SMOOTH, True)
-            color = tet.back
+            color = tet.space.back
             bgl.glBegin(bgl.GL_TRIANGLE_STRIP)
             bgl.glColor4f(color[0], color[1], color[2], 1.0)
             bgl.glVertex2i(0, 0)
@@ -1280,7 +1316,7 @@ class EnhancedSetCursor(bpy.types.Operator):
             bgl.glEnable(bgl.GL_BLEND)
             bgl.glShadeModel(bgl.GL_SMOOTH)
             gl_enable(bgl.GL_SMOOTH, True)
-            color = tet.back
+            color = tet.space.back
             bgl.glBegin(bgl.GL_TRIANGLE_STRIP)
             bgl.glColor4f(color[0], color[1], color[2], 1.0)
             bgl.glVertex2i(0, 0)
@@ -1339,14 +1375,17 @@ class EnhancedSetCursor(bpy.types.Operator):
                 self.get_normal_params(tfm_opts, dest_point)
             
             snapshot = bpy.data.objects.new("normal_snapshot", None)
+            
+            m = Matrix()
             if tangential:
-                #snapshot.matrix_world = Matrix(
-                #    (x.to_4d(), y.to_4d(), _z.to_4d(), p0.to_4d()))
-                snapshot.matrix_world = Matrix(
-                    (_z.to_4d(), y.to_4d(), x.to_4d(), p0.to_4d()))
+                #m = Matrix((x, y, _z))
+                m = Matrix((_z, y, x))
             else:
-                snapshot.matrix_world = Matrix(
-                    (_x.to_4d(), y.to_4d(), z.to_4d(), p0.to_4d()))
+                m = Matrix((_x, y, z))
+            m.resize_4x4()
+            m.translation[:3] = p0
+            snapshot.matrix_world = m
+            
             snapshot.empty_draw_type = 'SINGLE_ARROW'
             #snapshot.empty_draw_type = 'ARROWS'
             #snapshot.layers = [True] * 20 # ?
@@ -1512,7 +1551,7 @@ def gather_particles(**kwargs):
             if context_mode == 'EDIT_MESH':
                 # We currently don't need to create particles
                 # for these; vertices are enough now.
-                #for face in active_object.data.faces:
+                #for face in active_object.data.polygons:
                 #    pass
                 #for edge in active_object.data.edges:
                 #    pass
@@ -2265,7 +2304,7 @@ class SnapUtilityBase:
                 if not use_object_centers:
                     self.potential_snap_elements = [
                         (obj.matrix_world * obj.data.vertices[vi].co)
-                        for vi in obj.data.faces[face_id].vertices
+                        for vi in obj.data.tessfaces[face_id].vertices
                     ]
                 
                 if use_object_centers:
@@ -2387,8 +2426,10 @@ class Snap3DUtility(SnapUtilityBase):
         self.bbox_cache = {}#collections.OrderedDict()
         self.sys_matrix_key = [0.0] * 9
         
-        vertex_coords, faces = prepare_gridbox_mesh(subdiv=2)
-        mesh = create_mesh(vertex_coords, faces)
+        bm = prepare_gridbox_mesh(subdiv=2)
+        mesh = bpy.data.meshes.new(tmp_name)
+        bm.to_mesh(mesh)
+        
         self.bbox_obj = self.cache.create_temporary_mesh_obj(mesh, Matrix())
         self.bbox_obj.hide = True
         self.bbox_obj.draw_type = 'WIRE'
@@ -2644,7 +2685,7 @@ class Snap3DUtility(SnapUtilityBase):
         
         _ln = ln.copy()
         
-        face = obj.data.faces[face_id]
+        face = obj.data.tessfaces[face_id]
         L = None
         t1 = None
         
@@ -2751,7 +2792,7 @@ class Snap3DUtility(SnapUtilityBase):
         return (matrix, face_id, obj, orig_obj)
     
     def interpolate_normal(self, obj, face_id, p, orig, ray):
-        face = obj.data.faces[face_id]
+        face = obj.data.tessfaces[face_id]
         
         use_smooth = face.use_smooth
         if self.interpolation == 'NEVER':
@@ -2778,7 +2819,7 @@ class Snap3DUtility(SnapUtilityBase):
             for vi in face.vertices]
         
         if len(face.vertices) != 3:
-            tris = tesselate_polygon([co])
+            tris = tessellate_polygon([co])
             for tri in tris:
                 i0, i1, i2 = tri
                 if intersect_ray_tri(co[i0], co[i1], co[i2], ray, orig):
@@ -2870,6 +2911,7 @@ class MeshCache:
                 if self.edit_object is None:
                     self.edit_object = self.__convert(
                                 obj, True, False, False)
+                    self.edit_object.data.update(calc_tessface=True)
                 return self.edit_object
         
         # A usual object. Cached data will suffice.
@@ -2888,6 +2930,7 @@ class MeshCache:
             rco = None
         
         self.object_cache[obj] = rco
+        rco.data.update(calc_tessface=True)
         
         return rco
     
@@ -4029,8 +4072,8 @@ class CursorMonitor(bpy.types.Operator):
             # (OR addon was disabled)
             return self.cancel(context)
         
-        # Somewhy after addod re-registration this permanently
-        # becomes False
+        # Somewhy after addon re-registration
+        # this permanently becomes False
         CursorMonitor.is_running = True
         
         if self.update_storage(runtime_settings):
@@ -4175,6 +4218,7 @@ class CursorMonitor(bpy.types.Operator):
         #self._timer = context.window_manager. \
         #    event_timer_add(0.1, context.window)
         
+        #'''
         #self._draw_callback_view = context.region.callback_add( \
         #    draw_callback_view, (self, context), 'POST_VIEW')
         self._draw_callback_view = find_region(context.area).\
@@ -4187,6 +4231,7 @@ class CursorMonitor(bpy.types.Operator):
         self._draw_header_px = find_region(context.area, 'HEADER').\
             callback_add(draw_callback_header_px, \
             (self, context), 'POST_PIXEL')
+        #'''
         
         # Here we cannot return 'PASS_THROUGH',
         # or Blender will crash!
@@ -4197,12 +4242,14 @@ class CursorMonitor(bpy.types.Operator):
         #type(self).is_running = False
         
         # Unregister callbacks...
+        #'''
         #context.region.callback_remove(self._draw_callback_view)
         find_region(context.area).callback_remove(self._draw_callback_view)
         find_region(context.area).callback_remove(self._draw_callback_px)
         
         find_region(context.area, 'HEADER').\
             callback_remove(self._draw_header_px)
+        #'''
         
         return {'CANCELLED'}
 
@@ -4232,7 +4279,8 @@ def clamp_angle(ang):
     ang = (ang % twoPi)
     return ((ang - twoPi) if (ang > math.pi) else ang)
 
-def prepare_grid_mesh(nx=1, ny=1, sx=1.0, sy=1.0, z=0.0, xyz_indices=(0,1,2)):
+def prepare_grid_mesh(bm, nx=1, ny=1, sx=1.0, sy=1.0,
+                      z=0.0, xyz_indices=(0,1,2)):
     vertices = []
     for i in range(nx + 1):
         x = 2 * (i / nx) - 1
@@ -4241,24 +4289,26 @@ def prepare_grid_mesh(nx=1, ny=1, sx=1.0, sy=1.0, z=0.0, xyz_indices=(0,1,2)):
             y = 2 * (j / ny) - 1
             y *= sy
             pos = (x, y, z)
-            vertices.append(pos[xyz_indices[0]])
-            vertices.append(pos[xyz_indices[1]])
-            vertices.append(pos[xyz_indices[2]])
+            vert = bm.verts.new((pos[xyz_indices[0]],
+                                 pos[xyz_indices[1]],
+                                 pos[xyz_indices[2]]))
+            vertices.append(vert)
     
-    faces = []
     nxmax = nx + 1
     for i in range(nx):
         i1 = i + 1
         for j in range(ny):
             j1 = j + 1
-            faces.append(j + i * nxmax)
-            faces.append(j1 + i * nxmax)
-            faces.append(j1 + i1 * nxmax)
-            faces.append(j + i1 * nxmax)
-    
-    return vertices, faces
+            verts = [vertices[j + i * nxmax],
+                     vertices[j1 + i * nxmax],
+                     vertices[j1 + i1 * nxmax],
+                     vertices[j + i1 * nxmax]]
+            bm.faces.new(verts)
+    #return
 
 def prepare_gridbox_mesh(subdiv=1):
+    bm = bmesh.new()
+    
     sides = [
         (-1, (0,1,2)), # -Z
         (1, (1,0,2)), # +Z
@@ -4268,27 +4318,11 @@ def prepare_gridbox_mesh(subdiv=1):
         (1, (2,1,0)), # +X
         ]
     
-    vertices = []
-    faces = []
-    
     for side in sides:
-        vs, fs = prepare_grid_mesh(nx=subdiv, ny=subdiv, z=side[0],
-            xyz_indices=side[1])
-        
-        n = len(vertices) // 3
-        vertices.extend(vs)
-        faces.extend(((f + n) for f in fs))
+        prepare_grid_mesh(bm, nx=subdiv, ny=subdiv,
+            z=side[0], xyz_indices=side[1])
     
-    return vertices, faces
-
-def create_mesh(vertex_coords, faces):
-    mesh = bpy.data.meshes.new(tmp_name)
-    mesh.vertices.add(len(vertex_coords) // 3)
-    mesh.faces.add(len(faces) // 4)
-    mesh.vertices.foreach_set("co", vertex_coords)
-    mesh.faces.foreach_set("vertices_raw", faces)
-    mesh.update()
-    return mesh
+    return bm
 
 # ===== DRAWING UTILITIES ===== #
 class GfxCell:
@@ -4583,7 +4617,11 @@ def draw_callback_view(self, context):
         # It's nice to have bookmark position update interactively
         # However, this still can be slow if there are many
         # selected objects
-        CursorDynamicSettings.recalc_csu(context, 'PRESS')
+        
+        # ATTENTION!!!
+        # This eats a lot of processor time!
+        #CursorDynamicSettings.recalc_csu(context, 'PRESS')
+        pass
     
     history = settings.history
     
