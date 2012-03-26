@@ -60,34 +60,30 @@ def update_props(self, context):
 def update_UVScale(self, context):
     v = Vector((context.object.custom_offsetuv[0]/10 + 0.5, context.object.custom_offsetuv[1]/10 + 0.5))
     l = Vector((0.0,0.0))
-    scale = context.object.custom_scaleuv - context.object.custom_old_scaleuv
-    s = context.object.custom_scaleuv
-    o = context.object.custom_old_scaleuv 
-    uvdata = context.object.data.uv_loop_layers.active.data
+    ob = context.object
+    s = ob.custom_scaleuv
+    os = ob.custom_old_scaleuv 
+    scale = s - os
+    uvdata = ob.data.uv_loop_layers.active.data
     for i in range(484):
-        vres =  v - uvdata[len(uvdata)-1-i].uv 
-        l.x = vres.x
-        l.y = vres.y   
-
-        if context.object.custom_linkscaleuv:
-            uvdata[len(uvdata)-1-i].uv = [v.x - l.x/o[0]*s[0], v.y - l.y/o[0]*s[0]]
+        vres =  v - uvdata[len(uvdata)-1-i].uv  
+        if ob.custom_linkscaleuv:
+            uvdata[len(uvdata)-1-i].uv = [v.x - vres.x/os[0]*s[0], v.y - vres.y/os[0]*s[0]]
         else:
-            uvdata[len(uvdata)-1-i].uv = [v.x - l.x/o[0]*s[0], v.y - l.y/o[1]*s[1]]    
-
-    context.object.custom_old_scaleuv = context.object.custom_scaleuv
-    
-    
+            uvdata[len(uvdata)-1-i].uv = [v.x - vres.x/os[0]*s[0], v.y - vres.y/os[1]*s[1]]    
+    ob.custom_old_scaleuv = s
+        
     align_to_view(context)
 
 # Function to update the offsetUV
 def update_UVOffset(self, context):
-    o = context.object.custom_offsetuv
-    oo = context.object.custom_old_offsetuv 
-    uvdata = context.object.data.uv_loop_layers.active.data
+    ob = context.object
+    o = ob.custom_offsetuv
+    oo = ob.custom_old_offsetuv 
+    uvdata = ob.data.uv_loop_layers.active.data
     for i in range(484):
         uvdata[len(uvdata)-1-i].uv = [uvdata[len(uvdata)-1-i].uv[0] - oo[0]/10 + o[0]/10, uvdata[len(uvdata)-1-i].uv[1] - oo[1]/10 + o[1]/10]   
-    print(oo,o)
-    context.object.custom_old_offsetuv = context.object.custom_offsetuv
+    ob.custom_old_offsetuv = o
     
     align_to_view(context)
 
@@ -96,8 +92,7 @@ def update_FlipUVX(self, context):
     uvdata = context.object.data.uv_loop_layers.active.data
     for i in range(484):
         x = uvdata[len(uvdata)-1-i].uv[0]
-        l = 0.5 - x
-        uvdata[len(uvdata)-1-i].uv[0] = 0.5 + l
+        uvdata[len(uvdata)-1-i].uv[0] = 1 - x
     
     align_to_view(context)
 
@@ -105,9 +100,8 @@ def update_FlipUVX(self, context):
 def update_FlipUVY(self, context):          
     uvdata = context.object.data.uv_loop_layers.active.data
     for i in range(484):
-        x = uvdata[len(uvdata)-1-i].uv[1]
-        l = 0.5 - x
-        uvdata[len(uvdata)-1-i].uv[1] = 0.5 + l
+        y = uvdata[len(uvdata)-1-i].uv[1]
+        uvdata[len(uvdata)-1-i].uv[1] = 1 - y
     
     align_to_view(context)
 
@@ -115,26 +109,28 @@ def update_FlipUVY(self, context):
 def update_Rotation(self, context):              
     if context.object.custom_rotc3d:
         angle = context.object.custom_rotation - context.object.custom_old_rotation
-        c3d = context.space_data.cursor_location
+        sd = context.space_data
+        c3d = sd.cursor_location
         em = bpy.data.objects['Empty for BProjection'].location
         c = c3d
         e = em
         v1 = e-c
         vo = Vector((0.0, 0.0, 1.0))
-        vo.rotate(context.space_data.region_3d.view_rotation)
+        vo.rotate(sd.region_3d.view_rotation)
         quat = mathutils.Quaternion(vo, math.radians(float(angle)))        
         quat = quat
         v2 = v1.copy()
         v2.rotate(quat)
         v = v1 - v2
         res = e - v
-        context.space_data.region_3d.update()
-        x = view3d_utils.location_3d_to_region_2d(context.area.regions[4], context.space_data.region_3d, res)
+        sd.region_3d.update()
+        x = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d, res)
         y=[round(x[0]), round(x[1])]
         
         context.object.custom_location = y       
     else:
         align_to_view(context)
+    
     context.object.custom_old_rotation = context.object.custom_rotation
 
 # Function to create custom properties
@@ -164,87 +160,29 @@ def createcustomprops(context):
                                             default=(1.0,1.0),min = 0.01, subtype = 'XYZ', size=2,update = update_UVScale)    
     Ob.custom_old_scaleuv = FloatVectorProperty(name="old_ScaleUV", description="Scale the texture's UV",
                                                 default=(1.0,1.0),min = 0.01, subtype = 'XYZ', size=2)
-    Ob.custom_linkscaleuv = BoolProperty(name="linkscaleUV", default=True, update = update_UVScale)
-    Ob.custom_flipuvx = BoolProperty(name="flipuvx", default=False, update = update_FlipUVX)
-    Ob.custom_flipuvy = BoolProperty(name="flipuvy", default=False, update = update_FlipUVY)
-    
     Ob.custom_offsetuv = FloatVectorProperty(name="OffsetUV", description="Decal the texture's UV",
                                             default=(0.0,0.0), subtype = 'XYZ', size=2,update = update_UVOffset)    
     Ob.custom_old_offsetuv = FloatVectorProperty(name="old_OffsetUV", description="Decal the texture's UV",
-                                                 default=(0.0,0.0), subtype = 'XYZ', size=2)
+                                                 default=(0.0,0.0), subtype = 'XYZ', size=2)    
+    Ob.custom_linkscaleuv = BoolProperty(name="linkscaleUV", default=True, update = update_UVScale)
+    Ob.custom_flipuvx = BoolProperty(name="flipuvx", default=False, update = update_FlipUVX)
+    Ob.custom_flipuvy = BoolProperty(name="flipuvy", default=False, update = update_FlipUVY)
     
     # other properties    
     Ob.custom_c3d = BoolProperty(name="c3d", default=True)
     Ob.custom_rot = BoolProperty(name="rot", default=True)
     Ob.custom_rotc3d = BoolProperty(name="rotc3d", default=False)    
 
-
+# Function to remove custom properties
 def removecustomprops():    
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_location')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_rotation')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_old_rotation')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_scale')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_z')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_c3d')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_rot')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_rotc3d')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_scaleuv')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_flipuvx')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_flipuvy')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_linkscale')
-    except:
-        nothing = 0
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_linkscaleuv')
-    except:
-        nothing = 0 
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_old_scaleuv')
-    except:
-        nothing = 0        
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_offsetuv')
-    except:
-        nothing = 0 
-    try:
-        bpy.ops.wm.properties_remove(data_path='object',property='custom_old_offsetuv')
-    except:
-        nothing = 0         
-
+    list_prop = ['custom_location', 'custom_rotation', 'custom_old_rotation', 'custom_scale', 'custom_z', 'custom_c3d',
+                 'custom_rot', 'custom_rotc3d', 'custom_scaleuv', 'custom_flipuvx', 'custom_flipuvy', 'custom_linkscale',
+                 'custom_linkscaleuv', 'custom_old_scaleuv', 'custom_offsetuv', 'custom_old_offsetuv']
+    for prop in list_prop:
+        try:
+            del bpy.context.object[prop]
+        except:
+            do = 'nothing'
 
 # Draw Class to show the panel
 class BProjection(Panel):
@@ -314,15 +252,16 @@ class ApplyImage(Operator):
     def execute(self, context):        
         img = bpy.data.textures['Texture for BProjection'].image
         em = bpy.data.objects['Empty for BProjection']
-        
+        ob = context.object
+               
         bpy.ops.object.editmode_toggle()
-        f = context.object.data.polygons
-        nbface = len(context.object.data.polygons)
-        uvdata = context.object.data.uv_textures.active.data 
+        f = ob.data.polygons
+        nbface = len(ob.data.polygons)
+        uvdata = ob.data.uv_textures.active.data 
         wasnul = False
         if len(uvdata) == 0:
             bpy.ops.object.editmode_toggle()
-            uvdata = context.object.data.uv_textures.active.data
+            uvdata = ob.data.uv_textures.active.data
             wasnul = True                        
         
         nbcut = 10
@@ -336,8 +275,9 @@ class ApplyImage(Operator):
         else:
             bpy.ops.paint.texture_paint_toggle()
                                    
-        context.object.custom_scale = [1,1]                       
-        context.object.data.update()
+        ob.custom_scale = [1,1]                       
+        ob.data.update()
+
         align_to_view(context)
         
         return {'FINISHED'}
@@ -348,39 +288,39 @@ class IntuitiveScale(Operator):
     bl_label = "Draw lines"
 
     def invoke(self, context, event):
-        
+        ob = context.object 
         x = event.mouse_region_x
         y = event.mouse_region_y                
-        if len(context.object.grease_pencil.layers.active.frames) == 0: 
+        if len(ob.grease_pencil.layers.active.frames) == 0: 
             bpy.ops.gpencil.draw(mode='DRAW', stroke=[{"name":"", "pen_flip":False,
                                                        "is_start":True, "location":(0, 0, 0),
                                                        "mouse":(x,y), "pressure":1, "time":0}])
         else:
-            if context.object.custom_linkscale:
+            if ob.custom_linkscale:
                 nb_point = 4
             else:
                 nb_point = 6
                    
-            if len(context.object.grease_pencil.layers.active.frames[0].strokes) < nb_point:
+            if len(ob.grease_pencil.layers.active.frames[0].strokes) < nb_point:
                 bpy.ops.gpencil.draw(mode='DRAW', stroke=[{"name":"", "pen_flip":False,
                                                            "is_start":True, "location":(0, 0, 0),
                                                            "mouse":(x,y), "pressure":1, "time":0}])
                                                            
-            if len(context.object.grease_pencil.layers.active.frames[0].strokes) == nb_point:
-                s = context.object.grease_pencil.layers.active.frames[0]
+            if len(ob.grease_pencil.layers.active.frames[0].strokes) == nb_point:
+                s = ob.grease_pencil.layers.active.frames[0]
                 v1 = s.strokes[1].points[0].co - s.strokes[0].points[0].co
-                if not context.object.custom_linkscale:
+                if not ob.custom_linkscale:
                     v2 = s.strokes[4].points[0].co - s.strokes[3].points[0].co
                 else:
                     v2 = s.strokes[3].points[0].co - s.strokes[2].points[0].co
                 propx = v1.x/v2.x                
-                context.object.custom_scale[0] *= abs(propx)
+                ob.custom_scale[0] *= abs(propx)
                 
-                if not context.object.custom_linkscale:
+                if not ob.custom_linkscale:
                     v1 = s.strokes[2].points[0].co - s.strokes[0].points[0].co
                     v2 = s.strokes[5].points[0].co - s.strokes[3].points[0].co
                     propy = v1.y/v2.y
-                    context.object.custom_scale[1] *= abs(propy)
+                    ob.custom_scale[1] *= abs(propy)
                 bpy.ops.gpencil.active_frame_delete()
         
         return {'FINISHED'}
@@ -406,14 +346,15 @@ class AddBProjectionPlane(Operator):
         
             index = matBProjection.active_texture_index
             matBProjection.texture_slots[index].texture_coords = 'UV'
-     
-        old_index = context.object.active_material_index
+        
+        ob = context.object 
+        old_index = ob.active_material_index
         bpy.ops.object.material_slot_add()
-        index = context.object.active_material_index
-        context.object.material_slots[index].material = bpy.data.materials['Material for BProjection']
+        index = ob.active_material_index
+        ob.material_slots[index].material = bpy.data.materials['Material for BProjection']
         bpy.ops.object.material_slot_assign()
-        context.object.active_material_index = old_index
-        context.object.data.update()
+        ob.active_material_index = old_index
+        ob.data.update()
             
     def execute(self, context):    
         try:
@@ -459,9 +400,9 @@ class AddBProjectionPlane(Operator):
             bpy.ops.object.applyimage()  
           
             bpy.ops.gpencil.data_add()
-            context.object.grease_pencil.draw_mode = 'VIEW'
+            ob.grease_pencil.draw_mode = 'VIEW'
             bpy.ops.gpencil.layer_add()
-            context.object.grease_pencil.layers.active.color = [1.0,0,0]
+            ob.grease_pencil.layers.active.color = [1.0,0,0]
             
             bpy.ops.object.editmode_toggle()
                     
@@ -499,13 +440,14 @@ class RemoveBProjectionPlane(Operator):
     bl_label = "Configure"
 
     def removematerial(self, context):
+        ob = context.object 
         i = 0
-        for ms in context.object.material_slots:
+        for ms in ob.material_slots:
             if ms.name == 'Material for BProjection':
                 index = i
             i+=1
                 
-        context.object.active_material_index = index
+        ob.active_material_index = index
         bpy.ops.object.material_slot_remove()
     
     def execute(self, context):
@@ -588,19 +530,12 @@ class RotateView3D(Operator):
     bl_idname = "view3d.rotate_view3d"
     bl_label = "Rotate the View3D"
     
-    first_mouse_x = 0
-    first_mouse_y = 0 
+    first_mouse = Vector((0,0))
 
-    panx = 0
-    pany = 0
+    pan = Vector((0,0))
 
-    rkey = False
-    skey = False
-    gkey = False
-    zkey = False
-    ukey = False
-    ckey = False
-    ykey = False
+    key = ['']
+ 
     first_time = True
     
     def vect_sphere(self, context, mx, my):
@@ -634,12 +569,14 @@ class RotateView3D(Operator):
         return p
     
     def tracball(self, context, mx, my, origine):
-        pos_init_cursor = view3d_utils.location_3d_to_region_2d(context.region, context.space_data.region_3d, context.space_data.cursor_location)        
-        if context.object.custom_rot:
-            pos_init = view3d_utils.location_3d_to_region_2d(context.region, context.space_data.region_3d, origine)
-            context.space_data.region_3d.view_location = origine
+        sd = context.space_data
+        ob = context.object 
+        pos_init_cursor = view3d_utils.location_3d_to_region_2d(context.region, sd.region_3d, sd.cursor_location)        
+        if ob.custom_rot:
+            pos_init = view3d_utils.location_3d_to_region_2d(context.region, sd.region_3d, origine)
+            sd.region_3d.view_location = origine
         
-        v1 = self.vect_sphere(context, self.first_mouse_x, self.first_mouse_y)
+        v1 = self.vect_sphere(context, self.first_mouse.x, self.first_mouse.y)
         v2 = self.vect_sphere(context, mx, my)
                         
         axis = Vector.cross(v1,v2);
@@ -647,72 +584,33 @@ class RotateView3D(Operator):
             
         q =  Quaternion(axis,-2*angle)
                         
-        context.space_data.region_3d.view_rotation *=q
-        context.space_data.region_3d.update()
+        sd.region_3d.view_rotation *=q
+        sd.region_3d.update()
         
-        if context.object.custom_rot:
-            pos_end = view3d_utils.region_2d_to_location_3d(context.region, context.space_data.region_3d, pos_init, Vector((0,0,0)))                
-            context.space_data.region_3d.view_location =  -1*pos_end
+        if ob.custom_rot:
+            pos_end = view3d_utils.region_2d_to_location_3d(context.region, sd.region_3d, pos_init, Vector((0,0,0)))                
+            sd.region_3d.view_location =  -1*pos_end
 
-        if context.object.custom_c3d:
-            context.space_data.region_3d.update()       
-            context.space_data.cursor_location = view3d_utils.region_2d_to_location_3d(context.region, context.space_data.region_3d, pos_init_cursor, Vector((0,0,0)))
+        if ob.custom_c3d:
+            sd.region_3d.update()       
+            sd.cursor_location = view3d_utils.region_2d_to_location_3d(context.region, sd.region_3d, pos_init_cursor, Vector((0,0,0)))
         
-        self.first_mouse_x = mx
-        self.first_mouse_y = my
+        self.first_mouse = Vector((mx, my))
                 
     def modal(self, context, event):                                
+        ob = context.object 
         if event.value == 'PRESS':
-            self.panx = event.mouse_region_x
-            self.pany = event.mouse_region_y
+            self.pan = Vector((event.mouse_region_x, event.mouse_region_y))
                     
-            if event.type == 'S':
-                self.skey = True
-            
-            if event.type == 'R':
-                self.rkey = True    
+            self.key = [event.type]
 
-            if event.type == 'G':
-                self.gkey = True
-
-            if event.type == 'Z':
-                self.zkey = True            
-
-            if event.type == 'U':
-                self.ukey = True 
-
-            if event.type == 'C':
-                self.ckey = True 
-                
-            if event.type == 'Y':
-                self.ykey = True 
-                            
         if event.value == 'RELEASE':
-            if event.type == 'S':
-                self.skey = False
-            
-            if event.type == 'R':
-                self.rkey = False
-            
-            if event.type == 'G':
-                self.gkey = False            
-
-            if event.type == 'Z':
-                self.zkey = False 
-
-            if event.type == 'U':
-                self.ukey = False                 
-
-            if event.type == 'C':
-                self.ckey = False             
-
-            if event.type == 'Y':
-                self.ykey = False 
+            self.key = [''] 
 
         if event.type == 'MOUSEMOVE':                        
             
-            if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == False and self.ykey == False:
-                self.tracball(context, event.mouse_region_x, event.mouse_region_y,context.object.location)
+            if '' in self.key:
+                self.tracball(context, event.mouse_region_x, event.mouse_region_y,ob.location)
                 align_to_view(context)
                 if self.first_time:
                     rot_ang = context.user_preferences.view.rotation_angle            
@@ -723,51 +621,49 @@ class RotateView3D(Operator):
                     bpy.ops.view3d.view_persportho()
                     self.first_time = False
           
-            deltax = event.mouse_region_x - self.panx
-            deltay = event.mouse_region_y - self.pany           
+            deltax = event.mouse_region_x - round(self.pan.x)
+            deltay = event.mouse_region_y - round(self.pan.y)          
 
-            if self.rkey == False and self.skey == False and self.gkey == True and self.zkey == False and self.ukey == False and self.ykey == False:       
-                cl = context.object.custom_location
-                context.object.custom_location = [cl[0] + deltax,cl[1] + deltay]               
+            if 'G' in self.key:       
+                cl = ob.custom_location
+                ob.custom_location = [cl[0] + deltax,cl[1] + deltay]               
                                    
-            if self.rkey == False and self.skey == True and self.gkey == False and self.zkey == False and self.ukey == False and self.ykey == False:                
-                s = context.object.custom_scale
-                if context.object.custom_linkscale:
-                    context.object.custom_scale = [s[0] + deltax/20, s[0] + deltax/20]
+            if 'S' in self.key:                
+                s = ob.custom_scale
+                if ob.custom_linkscale:
+                    ob.custom_scale = [s[0] + deltax/20, s[0] + deltax/20]
                 else:
-                    context.object.custom_scale = [s[0] + deltax/20, s[1] + deltay/20]
+                    ob.custom_scale = [s[0] + deltax/20, s[1] + deltay/20]
                                           
-            if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == True and self.ukey == False and self.ykey == False:                
-                context.object.custom_z+=deltax/10
+            if 'Z' in self.key:                
+                ob.custom_z+=deltax/10
                       
-            if self.rkey == True and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == False and self.ykey == False:
-                context.object.custom_rotation+=deltax
+            if 'R' in self.key:
+                ob.custom_rotation+=deltax
                     
-            if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == True and self.ykey == False:
-                suv = context.object.custom_scaleuv
-                if context.object.custom_linkscaleuv:    
-                    context.object.custom_scaleuv= [suv[0] + deltax/50 , suv[0] + deltax/50]
+            if 'U' in self.key:
+                suv = ob.custom_scaleuv
+                if ob.custom_linkscaleuv:    
+                    ob.custom_scaleuv= [suv[0] + deltax/50 , suv[0] + deltax/50]
                 else:
-                    context.object.custom_scaleuv= [suv[0] + deltax/50 , suv[1] + deltay/50]               
+                    ob.custom_scaleuv= [suv[0] + deltax/50 , suv[1] + deltay/50]               
 
-            if self.rkey == False and self.skey == False and self.gkey == False and self.zkey == False and self.ukey == False and self.ykey == True:       
-                ouv = context.object.custom_offsetuv
-                context.object.custom_offsetuv = [ouv[0] - deltax/50,ouv[1] - deltay/50] 
+            if 'Y' in self.key:       
+                ouv = ob.custom_offsetuv
+                ob.custom_offsetuv = [ouv[0] - deltax/50,ouv[1] - deltay/50] 
 
-            self.panx = event.mouse_region_x
-            self.pany = event.mouse_region_y
-            self.first_mouse_x = event.mouse_region_x
-            self.first_mouse_y = event.mouse_region_y
-            
+            self.pan = Vector((event.mouse_region_x, event.mouse_region_y))
+            self.first_mouse = Vector((event.mouse_region_x, self.first_mouse.y))
+                        
         elif event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':       
             
             return {'FINISHED'}
         
-        if self.ckey:
-            context.object.custom_scale = [1,1]
-            context.object.custom_rotation = 0
-            context.object.custom_scaleuv =[1.0,1.0]
-            context.object.custom_offsetuv =[0.0,0.0]
+        if 'C' in self.key:
+            ob.custom_scale = [1,1]
+            ob.custom_rotation = 0
+            ob.custom_scaleuv =[1.0,1.0]
+            ob.custom_offsetuv =[0.0,0.0]
             return {'RUNNING_MODAL'}
                     
         return {'RUNNING_MODAL'}
@@ -779,8 +675,7 @@ class RotateView3D(Operator):
 
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
-        self.first_mouse_x = event.mouse_region_x
-        self.first_mouse_y = event.mouse_region_y
+        self.first_mouse = Vector((event.mouse_region_x,event.mouse_region_y))
         self.first_time = True
         
         return {'RUNNING_MODAL'}
@@ -789,22 +684,19 @@ class RotateView3D(Operator):
 class PanView3D(bpy.types.Operator):
     bl_idname = "view3d.pan_view3d"
     bl_label = "Pan View3D"
-
     
-    first_mouse_x = 0
-    first_mouse_y = 0 
-
-    panx = 0
-    pany = 0
+    first_mouse = Vector((0,0))
 
     def modal(self, context, event):
         width = context.area.regions[4].width
         height = context.area.regions[4].height
 
-        deltax = event.mouse_region_x - self.first_mouse_x
-        deltay = event.mouse_region_y - self.first_mouse_y                
+        deltax = event.mouse_region_x - self.first_mouse.x
+        deltay = event.mouse_region_y - self.first_mouse.y                
+        
+        sd = context.space_data
                
-        l =  context.space_data.region_3d
+        l =  sd.region_3d
         vr = l.view_rotation
         
         v = Vector((deltax/max(width,height),deltay/max(width,height),0))
@@ -817,17 +709,17 @@ class PanView3D(bpy.types.Operator):
         
         v3 = (v2 - v1)
         
-        pos_init_cursor = view3d_utils.location_3d_to_region_2d(context.region, context.space_data.region_3d, context.space_data.cursor_location)
+        pos_init_cursor = view3d_utils.location_3d_to_region_2d(context.region, sd.region_3d, sd.cursor_location)
         
-        context.space_data.region_3d.view_location -= v*v3.length
+        sd.region_3d.view_location -= v*v3.length
         
-        context.space_data.region_3d.update()       
-        context.space_data.cursor_location = view3d_utils.region_2d_to_location_3d(context.region, context.space_data.region_3d, pos_init_cursor, Vector((0,0,0)))
+        sd.region_3d.update()       
+        sd.cursor_location = view3d_utils.region_2d_to_location_3d(context.region, sd.region_3d, pos_init_cursor, Vector((0,0,0)))
             
         align_to_view(context)
 
-        self.first_mouse_x = event.mouse_region_x
-        self.first_mouse_y = event.mouse_region_y
+        self.first_mouse.x = event.mouse_region_x
+        self.first_mouse.y = event.mouse_region_y
 
         if event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':
             return {'FINISHED'}
@@ -836,8 +728,8 @@ class PanView3D(bpy.types.Operator):
                 
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
-        self.first_mouse_x = event.mouse_region_x
-        self.first_mouse_y = event.mouse_region_y   
+        self.first_mouse.x = event.mouse_region_x
+        self.first_mouse.y = event.mouse_region_y   
         
         return {'RUNNING_MODAL'}
 
@@ -855,8 +747,7 @@ class ZoomView3D(Operator):
         name="delta",
         description="Delta",
         min=-1.0, max=1,
-        default=1.0,
-        )
+        default=1.0)
 
     def invoke(self, context, event):                   
         bpy.ops.view3d.zoom(delta = self.delta)
@@ -878,13 +769,15 @@ class PresetView3D(Operator):
     view = StringProperty(name="View", description="Select the view", default='TOP',)
 
     def invoke(self, context, event):                   
-        origine = context.object.location
+        ob = context.object 
+        origine = ob.location
+        sd = context.space_data
         
-        pos_init_cursor = view3d_utils.location_3d_to_region_2d(context.region, context.space_data.region_3d, context.space_data.cursor_location)
+        pos_init_cursor = view3d_utils.location_3d_to_region_2d(context.region, sd.region_3d, sd.cursor_location)
 
-        if context.object.custom_rot:
-            pos_init = view3d_utils.location_3d_to_region_2d(context.region, context.space_data.region_3d, origine)
-            context.space_data.region_3d.view_location = origine
+        if ob.custom_rot:
+            pos_init = view3d_utils.location_3d_to_region_2d(context.region, sd.region_3d, origine)
+            sd.region_3d.view_location = origine
 
         tmp = context.user_preferences.view.smooth_view
         context.user_preferences.view.smooth_view = 0
@@ -892,14 +785,14 @@ class PresetView3D(Operator):
         align_to_view(context)
         context.user_preferences.view.smooth_view = tmp
 
-        if context.object.custom_rot:
-            pos_end = view3d_utils.region_2d_to_location_3d(context.region, context.space_data.region_3d, pos_init, Vector((0,0,0)))                
-            context.space_data.region_3d.view_location =  -1*pos_end
+        if ob.custom_rot:
+            pos_end = view3d_utils.region_2d_to_location_3d(context.region, sd.region_3d, pos_init, Vector((0,0,0)))                
+            sd.region_3d.view_location =  -1*pos_end
             align_to_view(context)
 
-        if context.object.custom_c3d:
-            context.space_data.region_3d.update()       
-            context.space_data.cursor_location = view3d_utils.region_2d_to_location_3d(context.region, context.space_data.region_3d, pos_init_cursor, Vector((0,0,0)))        
+        if ob.custom_c3d:
+            sd.region_3d.update()       
+            sd.cursor_location = view3d_utils.region_2d_to_location_3d(context.region, sd.region_3d, pos_init_cursor, Vector((0,0,0)))        
                     
         return {'FINISHED'}
 
@@ -911,5 +804,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-   
-       
