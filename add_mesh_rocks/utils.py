@@ -60,6 +60,10 @@ def toInts(inList):
 # Sets all faces smooth.  Done this way since I can't
 # find a simple way without using bpy.ops:
 def smooth(mesh):
-    for i in mesh.faces:
-        i.use_smooth = True
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    for f in bm.faces:
+        f.smooth = True
+    bm.to_mesh(mesh)
     return mesh
