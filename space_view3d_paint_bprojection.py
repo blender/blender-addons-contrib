@@ -142,10 +142,30 @@ def update_Scale(self, context):
         e = bpy.data.objects['Empty for BProjection'].location
         c = c3d
         ce = e - c
-        v = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d,c + ((ce)/ob.custom_old_scale.x)*ob.custom_scale.x)   
-        print(ce,c,v)
-        res = [round(v.x),round(v.y)]        
-        ob.custom_location = res    
+        delta = ob.custom_old_scale - ob.custom_scale
+        xmove = False
+        ymove = False
+        v=[]
+        if delta.x != 0.0:
+            xmove = True
+        if delta.y != 0.0:
+            ymove = True    
+        
+        if xmove and not ob.custom_linkscale:
+            v = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d, c + ce/ob.custom_old_scale.x*ob.custom_scale.x) 
+            res = [round(v.x),ob.custom_location[1]]
+            ob.custom_location = res             
+
+        if ymove and not ob.custom_linkscale:
+            v = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d, c + ce/ob.custom_old_scale.y*ob.custom_scale.y) 
+            res = [ob.custom_location[0], round(v.y)]
+            ob.custom_location = res
+        
+        if ob.custom_linkscale and xmove:
+            v = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d, c + ce/ob.custom_old_scale.x*ob.custom_scale.x) 
+            res = [round(v.x),round(v.y)]        
+            ob.custom_location = res
+            
     else:
         align_to_view(context)
     
@@ -240,7 +260,8 @@ class BProjection(Panel):
             col.prop(ob, "custom_rot",text="Rotate around selection", icon='ROTATE')
             col = layout.column(align =True)
             col.prop(ob,'custom_location', text='Plane Properties')
-            col.prop(ob,'custom_z') 
+            col.prop(ob,'custom_z')
+            col = layout.column(align =True) 
             col.prop(ob,'custom_rotation')
             col.prop(ob,'custom_rotc3d',text="Rotate around 3D Cursor",icon='MANIPUL')            
             row = layout.row()
