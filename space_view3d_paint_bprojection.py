@@ -65,7 +65,7 @@ def update_UVScale(self, context):
     os = ob.custom_old_scaleuv 
     scale = s - os
     uvdata = ob.data.uv_loop_layers.active.data
-    for i in range(484):
+    for i in range(trunc(pow(ob.custom_sub+1, 2)*4)):
         vres =  v - uvdata[len(uvdata)-1-i].uv  
         if ob.custom_linkscaleuv:
             uvdata[len(uvdata)-1-i].uv = [v.x - vres.x/os[0]*s[0], v.y - vres.y/os[0]*s[0]]
@@ -81,7 +81,7 @@ def update_UVOffset(self, context):
     o = ob.custom_offsetuv
     oo = ob.custom_old_offsetuv 
     uvdata = ob.data.uv_loop_layers.active.data
-    for i in range(484):
+    for i in range(trunc(pow(ob.custom_sub+1, 2)*4)):
         uvdata[len(uvdata)-1-i].uv = [uvdata[len(uvdata)-1-i].uv[0] - oo[0]/10 + o[0]/10, uvdata[len(uvdata)-1-i].uv[1] - oo[1]/10 + o[1]/10]   
     ob.custom_old_offsetuv = o
     
@@ -90,7 +90,7 @@ def update_UVOffset(self, context):
 # Function to update the flip horizontal
 def update_FlipUVX(self, context):          
     uvdata = context.object.data.uv_loop_layers.active.data
-    for i in range(484):
+    for i in range(trunc(pow(context.object.custom_sub+1, 2)*4)):
         x = uvdata[len(uvdata)-1-i].uv[0]
         uvdata[len(uvdata)-1-i].uv[0] = 1 - x
     
@@ -99,7 +99,7 @@ def update_FlipUVX(self, context):
 # Function to update the flip vertical
 def update_FlipUVY(self, context):          
     uvdata = context.object.data.uv_loop_layers.active.data
-    for i in range(484):
+    for i in range(trunc(pow(context.object.custom_sub+1, 2)*4)):
         y = uvdata[len(uvdata)-1-i].uv[1]
         uvdata[len(uvdata)-1-i].uv[1] = 1 - y
     
@@ -111,9 +111,8 @@ def update_Rotation(self, context):
         angle = context.object.custom_rotation - context.object.custom_old_rotation
         sd = context.space_data
         c3d = sd.cursor_location
-        em = bpy.data.objects['Empty for BProjection'].location
+        e = bpy.data.objects['Empty for BProjection'].location
         c = c3d
-        e = em
         v1 = e-c
         vo = Vector((0.0, 0.0, 1.0))
         vo.rotate(sd.region_3d.view_rotation)
@@ -124,14 +123,33 @@ def update_Rotation(self, context):
         v = v1 - v2
         res = e - v
         sd.region_3d.update()
-        x = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d, res)
-        y=[round(x[0]), round(x[1])]
+        floc = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d, res)
+        iloc=[round(floc[0]), round(floc[1])]
         
-        context.object.custom_location = y       
+        context.object.custom_location = iloc       
     else:
         align_to_view(context)
     
     context.object.custom_old_rotation = context.object.custom_rotation
+
+# Function to update scale
+def update_Scale(self, context):              
+    ob = context.object
+    if context.object.custom_scac3d:
+        sd = context.space_data
+        c3d = sd.cursor_location
+        sd.region_3d.update()
+        e = bpy.data.objects['Empty for BProjection'].location
+        c = c3d
+        ce = e - c
+        v = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d,c + ((ce)/ob.custom_old_scale.x)*ob.custom_scale.x)   
+        print(ce,c,v)
+        res = [round(v.x),round(v.y)]        
+        ob.custom_location = res    
+    else:
+        align_to_view(context)
+    
+    ob.custom_old_scale = ob.custom_scale
 
 # Function to create custom properties
 def createcustomprops(context):
@@ -149,11 +167,17 @@ def createcustomprops(context):
                                          min=-180, max=180, default=0)
                                          
     Ob.custom_scale = FloatVectorProperty(name="Scales", description="Scale the planes",
-                                          subtype = 'XYZ', default=(1.0, 1.0),min = 0.1, size=2,update = update_props)
+                                          subtype = 'XYZ', default=(1.0, 1.0),min = 0.1, size=2,update = update_Scale)
+    Ob.custom_old_scale = FloatVectorProperty(name="old_Scales", description="Old Scale the planes",
+                                          subtype = 'XYZ', default=(1.0, 1.0),min = 0.1, size=2)
+                                          
     Ob.custom_linkscale = BoolProperty(name="linkscale", default=True, update = update_props)
     
     Ob.custom_z = FloatProperty(name="Z", description="Z axis for the plane",
                                 min=-10, max=10, default=-1.0,update = update_props)
+                                
+    Ob.custom_sub = IntProperty(name="Subdivide", description="Number of subdivision of the plan",
+                                     min=1, max=20, default=10)                                
     
     # UV properties
     Ob.custom_scaleuv = FloatVectorProperty(name="ScaleUV", description="Scale the texture's UV",
@@ -171,13 +195,14 @@ def createcustomprops(context):
     # other properties    
     Ob.custom_c3d = BoolProperty(name="c3d", default=True)
     Ob.custom_rot = BoolProperty(name="rot", default=True)
-    Ob.custom_rotc3d = BoolProperty(name="rotc3d", default=False)    
+    Ob.custom_rotc3d = BoolProperty(name="rotc3d", default=False)
+    Ob.custom_scac3d = BoolProperty(name="scac3d", default=False)  
 
 # Function to remove custom properties
 def removecustomprops():    
-    list_prop = ['custom_location', 'custom_rotation', 'custom_old_rotation', 'custom_scale', 'custom_z', 'custom_c3d',
+    list_prop = ['custom_location', 'custom_rotation', 'custom_old_rotation', 'custom_scale', 'custom_old_scale', 'custom_z', 'custom_c3d',
                  'custom_rot', 'custom_rotc3d', 'custom_scaleuv', 'custom_flipuvx', 'custom_flipuvy', 'custom_linkscale',
-                 'custom_linkscaleuv', 'custom_old_scaleuv', 'custom_offsetuv', 'custom_old_offsetuv']
+                 'custom_linkscaleuv', 'custom_old_scaleuv', 'custom_offsetuv', 'custom_old_offsetuv', 'custom_scac3d', 'custom_sub']
     for prop in list_prop:
         try:
             del bpy.context.object[prop]
@@ -224,7 +249,9 @@ class BProjection(Panel):
             if ob.custom_linkscale :
                 col.prop(ob, "custom_linkscale",text="Linked",icon='LINKED')
             else: 
-                col.prop(ob, "custom_linkscale",text="Unlinked",icon='UNLINKED')                 
+                col.prop(ob, "custom_linkscale",text="Unlinked",icon='UNLINKED')
+            col.prop(ob,'custom_scac3d',text="Scale according to 3D Cursor",icon='MANIPUL')
+                            
             col = layout.column(align =True)
             col.prop(ob,'custom_offsetuv')
             col.prop(ob,'custom_scaleuv')
@@ -264,8 +291,8 @@ class ApplyImage(Operator):
             uvdata = ob.data.uv_textures.active.data
             wasnul = True                        
         
-        nbcut = 10
-        vglen = trunc(pow(nbcut+1, 2))
+        
+        vglen = trunc(pow(ob.custom_sub+1, 2))
         
         for i in range(vglen):  
             uvdata[f[nbface-i-1].index].image = img
@@ -387,8 +414,7 @@ class AddBProjectionPlane(Operator):
                 ob.data.edges[len(ob.data.edges)-1-i].crease = 1
             bpy.ops.object.editmode_toggle()
 
-            nbcut = 10
-            bpy.ops.mesh.subdivide(number_cuts = nbcut)
+            bpy.ops.mesh.subdivide(number_cuts = ob.custom_sub)
     
             em.select = True
             bpy.ops.object.hook_add_selob()
@@ -631,7 +657,7 @@ class RotateView3D(Operator):
             if 'S' in self.key:                
                 s = ob.custom_scale
                 if ob.custom_linkscale:
-                    ob.custom_scale = [s[0] + deltax/20, s[0] + deltax/20]
+                    ob.custom_scale = [s[0] + deltax/20, s[1]]
                 else:
                     ob.custom_scale = [s[0] + deltax/20, s[1] + deltay/20]
                                           
