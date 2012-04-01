@@ -22,8 +22,8 @@
 bl_info = {
     "name": "Marmalade Cross-platform Apps (.group)",
     "author": "Benoit Muller",
-    "version": (0, 5, 4),
-    "blender": (2, 6, 0),
+    "version": (0, 6, 0),
+    "blender": (2, 6, 3),
     "location": "File > Export > Marmalade cross-platform Apps (.group)",
     "description": "Export Marmalade Format files (.group)",
     "warning": "",
@@ -693,6 +693,9 @@ def BuildOptimizedGeo(Config, Object, Mesh, GeoModel):
     if GeoModel == None:
         GeoModel = CGeoModel(filename, Object.name)
 
+    #Ensure tessfaces data are here
+    Mesh.update (calc_tessface=True)
+    
     #Store Vertex stream, and Normal stream (use directly the order from blender collection
     for Vertex in Mesh.vertices:
         GeoModel.AddVertex(Vertex.co)
@@ -703,18 +706,18 @@ def BuildOptimizedGeo(Config, Object, Mesh, GeoModel):
     #Check if some colors have been defined
     vertexColours = None
     if Config.ExportVertexColors and (len(Mesh.vertex_colors) > 0):
-        vertexColours = Mesh.vertex_colors[0].data
+        vertexColours = Mesh.tessface_vertex_colors[0].data
 
     #Check if some uv coordinates have been defined
     UVCoordinates = None
     if Config.ExportTextures and (len(Mesh.uv_textures) > 0):
-        for UV in Mesh.uv_textures:
+        for UV in Mesh.tessface_uv_textures:
             if UV.active_render:
                 UVCoordinates = UV.data
                 break
 
     #Iterate on Faces and Store the poly (quad or tri) and the associate colors,UVs
-    for Face in Mesh.faces:
+    for Face in Mesh.tessfaces:
         # stream for vertex (we use the same for normal)
         Vertices = list(Face.vertices)
         if Config.CoordinateSystem == 1:
