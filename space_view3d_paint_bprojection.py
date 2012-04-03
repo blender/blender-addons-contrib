@@ -680,7 +680,7 @@ class RotateView3D(Operator):
                     ob.custom_scale = [s[0] + deltax/20, s[1] + deltay/20]
                                           
             if 'Z' in self.key:                
-                ob.custom_z+=deltax/10
+                ob.custom_location.z+=deltax/10
                       
             if 'R' in self.key:
                 ob.custom_rotation+=deltax
