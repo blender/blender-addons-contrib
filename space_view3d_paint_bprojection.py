@@ -22,8 +22,8 @@ def align_to_view(context):
     ob = context.object        
     rotation = ob.custom_rotation
     scale = ob.custom_scale
-    z = ob.custom_z
-    pos = [ob.custom_location[0], ob.custom_location[1]]
+    z = ob.custom_location.z
+    pos = [round(ob.custom_location.x), round(ob.custom_location.y)]
 
     reg = context.area.regions[4]        
     width = reg.width
@@ -124,9 +124,8 @@ def update_Rotation(self, context):
         res = e - v
         sd.region_3d.update()
         floc = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d, res)
-        iloc=[round(floc[0]), round(floc[1])]
-        
-        context.object.custom_location = iloc       
+       
+        context.object.custom_location = [floc[0], floc[1],context.object.custom_location.z]      
     else:
         align_to_view(context)
     
@@ -153,17 +152,17 @@ def update_Scale(self, context):
         
         if xmove and not ob.custom_linkscale:
             v = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d, c + ce/ob.custom_old_scale.x*ob.custom_scale.x) 
-            res = [round(v.x),ob.custom_location[1]]
+            res = [round(v.x),ob.custom_location.y, ob.custom_location.z]
             ob.custom_location = res             
 
         if ymove and not ob.custom_linkscale:
             v = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d, c + ce/ob.custom_old_scale.y*ob.custom_scale.y) 
-            res = [ob.custom_location[0], round(v.y)]
+            res = [ob.custom_location.x, round(v.y), ob.custom_location.z]
             ob.custom_location = res
         
         if ob.custom_linkscale and xmove:
             v = view3d_utils.location_3d_to_region_2d(context.area.regions[4], sd.region_3d, c + ce/ob.custom_old_scale.x*ob.custom_scale.x) 
-            res = [round(v.x),round(v.y)]        
+            res = [round(v.x),round(v.y), ob.custom_location.z]        
             ob.custom_location = res
             
     else:
@@ -176,9 +175,9 @@ def createcustomprops(context):
     Ob = bpy.types.Object    
     
     # plane properties 
-    Ob.custom_location = IntVectorProperty(name="Location", description="Location of the plan",
-                                           default=(trunc(context.area.regions[4].width*3/4),trunc( context.area.regions[4].height*3/4)),
-                                           subtype = 'XYZ', size=2, update = update_props)
+    Ob.custom_location = FloatVectorProperty(name="Location", description="Location of the plan",
+                                           default=(trunc(context.area.regions[4].width*3/4),trunc( context.area.regions[4].height*3/4),-1.0),
+                                           subtype = 'XYZ', size=3, update = update_props)
                                            
     Ob.custom_rotation = IntProperty(name="Rotation", description="Rotate the plane",
                                      min=-180, max=180, default=0,update = update_Rotation)
@@ -193,8 +192,6 @@ def createcustomprops(context):
                                           
     Ob.custom_linkscale = BoolProperty(name="linkscale", default=True, update = update_props)
     
-    Ob.custom_z = FloatProperty(name="Z", description="Z axis for the plane",
-                                min=-10, max=10, default=-1.0,update = update_props)
                                 
     Ob.custom_sub = IntProperty(name="Subdivide", description="Number of subdivision of the plan",
                                      min=1, max=20, default=10)                                
@@ -220,7 +217,7 @@ def createcustomprops(context):
 
 # Function to remove custom properties
 def removecustomprops():    
-    list_prop = ['custom_location', 'custom_rotation', 'custom_old_rotation', 'custom_scale', 'custom_old_scale', 'custom_z', 'custom_c3d',
+    list_prop = ['custom_location', 'custom_rotation', 'custom_old_rotation', 'custom_scale', 'custom_old_scale', 'custom_c3d',
                  'custom_rot', 'custom_rotc3d', 'custom_scaleuv', 'custom_flipuvx', 'custom_flipuvy', 'custom_linkscale',
                  'custom_linkscaleuv', 'custom_old_scaleuv', 'custom_offsetuv', 'custom_old_offsetuv', 'custom_scac3d', 'custom_sub']
     for prop in list_prop:
@@ -244,53 +241,54 @@ class BProjection(Panel):
                 
         try: 
             bpy.data.objects['Empty for BProjection']
-
-            col = layout.column(align =True)
-            col.operator("object.removebprojectionplane", text="Remove BProjection plane")
-        
+            
             tex = bpy.data.textures['Texture for BProjection']
-
-            layout.template_ID_preview(tex, "image", open="image.open", rows=3, cols=3)
-        
-            col = layout.column(align =True)
-            col.operator('object.applyimage', text="Apply image", icon = 'FILE_TICK')
-            col = layout.column(align =True)
             ob = context.object
-            col.prop(ob, "custom_c3d",text="Capture Cursor3d", icon='CURSOR')
-            col.prop(ob, "custom_rot",text="Rotate around selection", icon='ROTATE')
+                        
             col = layout.column(align =True)
-            col.prop(ob,'custom_location', text='Plane Properties')
-            col.prop(ob,'custom_z')
-            col = layout.column(align =True) 
-            col.prop(ob,'custom_rotation')
-            col.prop(ob,'custom_rotc3d',text="Rotate around 3D Cursor",icon='MANIPUL')            
-            row = layout.row()
-            col = row.column(align =True)
-            col.prop(ob,'custom_scale')
+            col.operator("object.removebprojectionplane", text="Remove BProjection plane")           
+            box = layout.box()
+            col = box.column(align =True)
+            col.template_ID(tex, "image", open="image.open")
+            row  = box.row(align=True)
+            row.operator('object.applyimage', text="Apply image", icon = 'FILE_TICK')
+            row.prop(ob, "custom_c3d",text="", icon='CURSOR')
+            row.prop(ob, "custom_rot",text="", icon='ROTATE')
+            row  = box.row(align =True)
+            row.label(text="Location:")
+            row  = box.row(align =True)
+            row.prop(ob,'custom_location', text='')
+            row  = box.row(align =True)            
+            row.prop(ob,'custom_rotation')
+            row.prop(ob,'custom_rotc3d',text="",icon='MANIPUL')            
+            row  = box.row(align =True)
+            row.label(text="Scale:")
+            row  = box.row(align =True)
+            row.prop(ob,'custom_scale',text='') 
             if ob.custom_linkscale :
-                col.prop(ob, "custom_linkscale",text="Linked",icon='LINKED')
+                row.prop(ob, "custom_linkscale",text="",icon='LINKED')
             else: 
-                col.prop(ob, "custom_linkscale",text="Unlinked",icon='UNLINKED')
-            col.prop(ob,'custom_scac3d',text="Scale according to 3D Cursor",icon='MANIPUL')
-                            
-            col = layout.column(align =True)
-            col.prop(ob,'custom_offsetuv')
-            col.prop(ob,'custom_scaleuv')
+                row.prop(ob, "custom_linkscale",text="",icon='UNLINKED')
+            row.prop(ob,'custom_scac3d',text="",icon='MANIPUL')                            
+            row  = box.row(align =True)
+            row.label(text="UV's Offset:")
+            row  = box.row(align =True)
+            row.prop(ob,'custom_offsetuv',text='')
+            row.prop(ob, "custom_flipuvx",text="",icon='ARROW_LEFTRIGHT')   
+            row.prop(ob, "custom_flipuvy",text="",icon='FULLSCREEN_ENTER') 
+            row  = box.row(align =True)
+            row.label(text="UV's Scale:")
+            row  = box.row(align =True)            
+            row.prop(ob,'custom_scaleuv',text='')
             if ob.custom_linkscaleuv:
-                col.prop(ob, "custom_linkscaleuv",text="Linked",icon='LINKED')
+                row.prop(ob, "custom_linkscaleuv",text="",icon='LINKED')
             else: 
-                col.prop(ob, "custom_linkscaleuv",text="Uninked",icon='UNLINKED') 
-            row = layout.row()
-            col = row.column(align =True)
-            col.prop(ob, "custom_flipuvx",text="Flip X",icon='ARROW_LEFTRIGHT')   
-            col = row.column(align =True)
-            col.prop(ob, "custom_flipuvy",text="Flip Y",icon='FULLSCREEN_ENTER')            
-            col = layout.column(align =True)
-            col.prop(ob.material_slots['Material for BProjection'].material,'alpha', slider = True)
-
+                row.prop(ob, "custom_linkscaleuv",text="",icon='UNLINKED')            
+            row = box.column(align =True)
+            row.prop(ob.material_slots['Material for BProjection'].material,'alpha', slider = True)
         except:
             col = layout.column(align = True)
-            col.operator("object.addbprojectionplane", text="Add BProjection plan")             
+            col.operator("object.addbprojectionplane", text="Add BProjection plan")           
 
 # Oprerator Class to apply the image to the plane             
 class ApplyImage(Operator):
@@ -323,7 +321,7 @@ class ApplyImage(Operator):
         else:
             bpy.ops.paint.texture_paint_toggle()
                                    
-        ob.custom_scale = [1,1]                       
+        #ob.custom_scale = [1,1]                       
         ob.data.update()
 
         align_to_view(context)
@@ -444,7 +442,7 @@ class AddBProjectionPlane(Operator):
                      
             self.creatematerial(context)
 
-            bpy.ops.object.applyimage()  
+            #bpy.ops.object.applyimage()  
           
             bpy.ops.gpencil.data_add()
             ob.grease_pencil.draw_mode = 'VIEW'
@@ -672,8 +670,7 @@ class RotateView3D(Operator):
             deltay = event.mouse_region_y - round(self.pan.y)          
 
             if 'G' in self.key:       
-                cl = ob.custom_location
-                ob.custom_location = [cl[0] + deltax,cl[1] + deltay]               
+                ob.custom_location = [ob.custom_location.x + deltax, ob.custom_location.y + deltay, ob.custom_location.z]               
                                    
             if 'S' in self.key:                
                 s = ob.custom_scale
