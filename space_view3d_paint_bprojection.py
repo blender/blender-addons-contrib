@@ -280,13 +280,15 @@ class CreateView(Operator):
         for item in ob.custom_props:
             item.custom_active = False            
         new_props.custom_active = True
-        bpy.ops.object.copy_view(index = len(bpy.context.object.custom_props)-1)
-        
+        bpy.ops.object.save_view(index = len(bpy.context.object.custom_props)-1)
+        ob.data.shape_keys.key_blocks[ob.active_shape_key_index].mute = True
+        bpy.ops.object.shape_key_add(from_mix = False)
+        ob.data.shape_keys.key_blocks[ob.active_shape_key_index].value = 1.0
         return {'FINISHED'}
 
 # Oprerator Class to copy view 
 class Copyiew(Operator):
-    bl_idname = "object.copy_view"
+    bl_idname = "object.save_view"
     bl_label = "copy the view"
     
     index = IntProperty(default = 0)
@@ -344,13 +346,23 @@ class RemoveView(Operator):
     
     def execute(self, context):              
         ob = context.object
+        
+        ob.active_shape_key_index =  self.index + 1
+        bpy.ops.object.shape_key_remove()
+        
         if  context.object.custom_props[self.index].custom_active: 
             if len(ob.custom_props) > 0:
                 bpy.ops.object.active_view(index = self.index-1)
             if self.index == 0 and len(ob.custom_props) > 1:
                 bpy.ops.object.active_view(index = 1)
                 
-        ob.custom_props.remove(self.index)           
+        ob.custom_props.remove(self.index)
+        
+        print(len(context.object.custom_props))
+                
+        if len(context.object.custom_props) == 0:
+            bpy.ops.object.create_view()            
+                 
         i=0
         for item in context.object.custom_props:
             item.custom_index = i
@@ -366,10 +378,18 @@ class ActiveView(Operator):
     index = IntProperty(default = 0)
     
     def execute(self, context):
-        for item in context.object.custom_props:
+        ob = context.object
+        for item in ob.custom_props:
             item.custom_active = False
-        context.object.custom_props[self.index].custom_active  = True
-        context.object.custom_active_view = context.object.custom_props[self.index].custom_active_view 
+        ob.custom_props[self.index].custom_active  = True
+        ob.custom_active_view = ob.custom_props[self.index].custom_active_view 
+        ob.active_shape_key_index =  self.index + 1
+        
+        for i in ob.data.shape_keys.key_blocks:
+            i.mute = True
+        
+        ob.data.shape_keys.key_blocks[ob.active_shape_key_index].mute = False
+        
         bpy.ops.object.paste_view(index = self.index)         
         
         return {'FINISHED'}
@@ -445,7 +465,7 @@ class BProjection(Panel):
                 row = box.column(align =True)
                 row.prop(ob.material_slots['Material for BProjection'].material,'alpha', slider = True)
                 row = box.column(align =True)
-                row.operator('object.create_view', text="Create View", icon = 'RENDER_STILL')
+
                 
             for item in ob.custom_props:
                 box = layout.box()
@@ -455,8 +475,10 @@ class BProjection(Panel):
                 else:
                     row.operator("object.active_view",text = "", icon='RADIOBUT_OFF', emboss = False).index = item.custom_index 
                 row.prop(item, "custom_active_view", text="")
-                row.operator('object.copy_view', text="", icon = 'FILE_REFRESH').index = item.custom_index         
-                row.operator('object.remove_view', text="", icon = 'PANEL_CLOSE', emboss = False).index = item.custom_index         
+                row.operator('object.save_view', text="", icon = 'SAVE_PREFS').index = item.custom_index         
+                row.operator('object.remove_view', text="", icon = 'PANEL_CLOSE', emboss = False).index = item.custom_index
+            row = layout.row()
+            row.operator('object.create_view', text="Create View", icon = 'RENDER_STILL')        
 
         except:
             col = layout.column(align = True)
@@ -614,8 +636,7 @@ class AddBProjectionPlane(Operator):
             em.hide = True   
                      
             self.creatematerial(context)
-
-            #bpy.ops.object.applyimage()  
+  
           
             bpy.ops.gpencil.data_add()
             ob.grease_pencil.draw_mode = 'VIEW'
@@ -623,6 +644,10 @@ class AddBProjectionPlane(Operator):
             ob.grease_pencil.layers.active.color = [1.0,0,0]
             
             bpy.ops.object.editmode_toggle()
+            
+            bpy.ops.object.shape_key_add(from_mix = False)
+            
+            bpy.ops.object.create_view()
                     
             km = bpy.data.window_managers['WinMan'].keyconfigs['Blender'].keymaps['3D View']
             km.keymap_items[3-1].idname = 'view3d.rotate_view3d'
@@ -736,6 +761,11 @@ class RemoveBProjectionPlane(Operator):
                     km.keymap_items.remove(kmi)
             
             bpy.ops.paint.texture_paint_toggle()
+            
+            for i in ob.data.shape_keys.key_blocks:
+                bpy.ops.object.shape_key_remove()
+            bpy.ops.object.shape_key_remove()    
+            
             removecustomprops()
                     
         except:
