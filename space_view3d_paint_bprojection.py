@@ -305,7 +305,10 @@ class Copyiew(Operator):
         prop.custom_linkscaleuv = ob.custom_linkscaleuv
         prop.custom_flipuvx = ob.custom_flipuvx
         prop.custom_flipuvy = ob.custom_flipuvy
-        prop.custom_image = bpy.data.textures['Texture for BProjection'].image.name
+        try:
+            prop.custom_image = bpy.data.textures['Texture for BProjection'].image.name
+        except:
+            do = 'nothing'
         #bpy.ops.object.active_view(index = self.index)
         
         return {'FINISHED'}
