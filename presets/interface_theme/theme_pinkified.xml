@@ -11,6 +11,7 @@
                    bone_pose="#50c8ff"
                    bone_solid="#424242"
                    bundle_solid="#c8c8c8"
+                   camera="#000000"
                    camera_path="#a0a0a0"
                    frame_current="#60c040"
                    edge_crease="#cc0099"
@@ -19,6 +20,7 @@
                    edge_select="#b30025"
                    edge_sharp="#7bff00"
                    edge_facesel="#4b4b4b"
+                   empty="#000000"
                    face="#ffffff0c"
                    extra_face_angle="#008200"
                    extra_face_area="#0000ff"
@@ -266,7 +268,7 @@
       </ThemeImageEditor>
     </image_editor>
     <info>
-      <ThemeInfo >
+      <ThemeInfo>
         <space>
           <ThemeSpaceGeneric header="#222222"
                              header_text="#999999"
@@ -404,6 +406,7 @@
     </properties>
     <sequence_editor>
       <ThemeSequenceEditor audio_strip="#2e8f8f"
+                           movieclip_strip="#20208f"
                            frame_current="#99112c"
                            draw_action="#50c8ff"
                            effect_strip="#e270a6"
@@ -413,6 +416,7 @@
                            meta_strip="#6d9183"
                            movie_strip="#516987"
                            plugin_strip="#7e7e50"
+                           preview_back="#000000"
                            scene_strip="#4e983e"
                            transition_strip="#b33d59"
                            window_sliders="#6d6d6d">
@@ -687,10 +691,22 @@
                              text_sel="#ffffff">
           </ThemeWidgetColors>
         </wcol_tool>
+        <wcol_tooltip>
+          <ThemeWidgetColors inner="#191919e6"
+                             inner_sel="#2d2d2de6"
+                             item="#646464ff"
+                             outline="#000000"
+                             shadedown="-20"
+                             shadetop="25"
+                             show_shaded="FALSE"
+                             text="#ffffff"
+                             text_sel="#ffffff">
+          </ThemeWidgetColors>
+        </wcol_tooltip>
       </ThemeUserInterface>
     </user_interface>
     <user_preferences>
-      <ThemeUserPreferences >
+      <ThemeUserPreferences>
         <space>
           <ThemeSpaceGeneric header="#1a1a1a"
                              header_text="#000000"
