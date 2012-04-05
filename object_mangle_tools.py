@@ -18,17 +18,19 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-
 bl_info = {
-    'name': 'Mangle Tools',
-    'author': 'Phil Cote, cotejrp1, (http://www.blenderaddons.com)',
-    'version': (0, 2),
+    "name": "Mangle Tools",
+    "author": "Phil Cote",
+    "version": (0, 2),
     "blender": (2, 6, 3),
-    'location': 'VIEW 3D -> TOOLS',
-    'description': 'Set of tools to mangle curves, meshes, and shape keys',
-    'warning': '',
-    'category': 'Object'}
-
+    "location": "View3D > Tools",
+    "description": "Set of tools to mangle curves, meshes, and shape keys",
+    "warning": "", # used for warning icon and text in addons panel
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=29071",
+    "category": "Object"}
 
 import bpy
 import random
