@@ -67,14 +67,24 @@ def update_UVScale(self, context):
     uvdata = ob.data.uv_loop_layers.active.data
     for i in range(trunc(pow(ob.custom_sub+1, 2)*4)):
         vres =  v - uvdata[len(uvdata)-1-i].uv  
-        if ob.custom_linkscaleuv:
-            uvdata[len(uvdata)-1-i].uv = [v.x - vres.x/os[0]*s[0], v.y - vres.y/os[0]*s[0]]
-        else:
-            uvdata[len(uvdata)-1-i].uv = [v.x - vres.x/os[0]*s[0], v.y - vres.y/os[1]*s[1]]    
-    ob.custom_old_scaleuv = s
-        
+        uvdata[len(uvdata)-1-i].uv.x = v.x - vres.x/os[0]*s[0]
+        uvdata[len(uvdata)-1-i].uv.y = v.y - vres.y/os[1]*s[1]
+
+    ob.custom_old_scaleuv = s  
     align_to_view(context)
 
+def update_PropUVScale(self, context):
+    ob = context.object
+    if ob.custom_linkscaleuv:
+        ob.custom_scaleuv = [ob.custom_propscaleuv,ob.custom_propscaleuv]
+
+def update_LinkUVScale(self, context):
+    ob = context.object
+    if ob.custom_linkscaleuv:
+        update_PropUVScale(self, context)
+    else:
+        update_UVScale(self, context) 
+        
 # Function to update the offsetUV
 def update_UVOffset(self, context):
     ob = context.object
@@ -188,7 +198,9 @@ class custom_props(bpy.types.PropertyGroup):
    
     # UV properties
     custom_scaleuv = FloatVectorProperty(name="ScaleUV", description="Scale the texture's UV",
-                                            default=(1.0,1.0),min = 0.01, subtype = 'XYZ', size=2)  
+                                            default=(1.0,1.0),min = 0.01, subtype = 'XYZ', size=2)
+    custom_propscaleuv = FloatProperty(name="PropScaleUV", description="Scale the texture's UV",
+                                           default=1.0,min = 0.01) 
     custom_offsetuv = FloatVectorProperty(name="OffsetUV", description="Decal the texture's UV",
                                             default=(0.0,0.0), subtype = 'XYZ', size=2)       
     custom_linkscaleuv = BoolProperty(name="linkscaleUV", default=True)
@@ -233,14 +245,16 @@ def createcustomprops(context):
     
     # UV properties
     Ob.custom_scaleuv = FloatVectorProperty(name="ScaleUV", description="Scale the texture's UV",
-                                            default=(1.0,1.0),min = 0.01, subtype = 'XYZ', size=2,update = update_UVScale)    
+                                            default=(1.0,1.0),min = 0.01, subtype = 'XYZ', size=2,update = update_UVScale)
+    Ob.custom_propscaleuv = FloatProperty(name="PropScaleUV", description="Scale the texture's UV",
+                                           default=1.0,min = 0.01,update = update_PropUVScale)    
     Ob.custom_old_scaleuv = FloatVectorProperty(name="old_ScaleUV", description="Scale the texture's UV",
                                                 default=(1.0,1.0),min = 0.01, subtype = 'XYZ', size=2)
     Ob.custom_offsetuv = FloatVectorProperty(name="OffsetUV", description="Decal the texture's UV",
                                             default=(0.0,0.0), subtype = 'XYZ', size=2,update = update_UVOffset)    
     Ob.custom_old_offsetuv = FloatVectorProperty(name="old_OffsetUV", description="Decal the texture's UV",
                                                  default=(0.0,0.0), subtype = 'XYZ', size=2)    
-    Ob.custom_linkscaleuv = BoolProperty(name="linkscaleUV", default=True, update = update_UVScale)
+    Ob.custom_linkscaleuv = BoolProperty(name="linkscaleUV", default=True, update = update_LinkUVScale)
     Ob.custom_flipuvx = BoolProperty(name="flipuvx", default=False, update = update_FlipUVX)
     Ob.custom_flipuvy = BoolProperty(name="flipuvy", default=False, update = update_FlipUVY)
     
@@ -259,7 +273,7 @@ def removecustomprops():
     list_prop = ['custom_location', 'custom_rotation', 'custom_old_rotation', 'custom_scale', 'custom_old_scale', 'custom_c3d',
                  'custom_rot', 'custom_rotc3d', 'custom_scaleuv', 'custom_flipuvx', 'custom_flipuvy', 'custom_linkscale',
                  'custom_linkscaleuv', 'custom_old_scaleuv', 'custom_offsetuv', 'custom_old_offsetuv', 'custom_scac3d', 'custom_sub',
-                 'custom_expand', 'custom_active_view', 'custom_props']
+                 'custom_expand', 'custom_active_view', 'custom_propscaleuv', 'custom_props']
     for prop in list_prop:
         try:
             del bpy.context.object[prop]
@@ -300,6 +314,7 @@ class SaveView(Operator):
         prop.custom_scaleuv = ob.custom_scaleuv
         prop.custom_offsetuv =  ob.custom_offsetuv  
         prop.custom_linkscaleuv = ob.custom_linkscaleuv
+        prop.custom_propscaleuv = ob.custom_propscaleuv
         prop.custom_flipuvx = ob.custom_flipuvx
         prop.custom_flipuvy = ob.custom_flipuvy
         try:
@@ -321,9 +336,10 @@ class PasteView(Operator):
         ob = context.object
         prop = ob.custom_props[self.index]
         ob.custom_linkscale =  prop.custom_linkscale
+        ob.custom_offsetuv =  prop.custom_offsetuv 
+        ob.custom_linkscaleuv = prop.custom_linkscaleuv
         ob.custom_scaleuv = prop.custom_scaleuv
-        ob.custom_offsetuv =  prop.custom_offsetuv  
-        ob.custom_linkscaleuv = prop.custom_linkscaleuv        
+        ob.custom_propscaleuv = prop.custom_propscaleuv       
         ob.custom_rotation =  prop.custom_rotation                    
         ob.custom_scale =  prop.custom_scale  
         ob.custom_location =  prop.custom_location                    
@@ -472,11 +488,12 @@ class BProjection(Panel):
                 row.prop(ob, "custom_flipuvy",text="",icon='FULLSCREEN_ENTER') 
                 row  = box.row(align =True)
                 row.label(text="UV's Scale:")
-                row  = box.row(align =True)            
-                row.prop(ob,'custom_scaleuv',text='')
+                row  = box.row(align =True)                            
                 if ob.custom_linkscaleuv:
+                    row.prop(ob,'custom_propscaleuv',text='')
                     row.prop(ob, "custom_linkscaleuv",text="",icon='LINKED')
                 else: 
+                    row.prop(ob,'custom_scaleuv',text='')
                     row.prop(ob, "custom_linkscaleuv",text="",icon='UNLINKED')            
                 row = box.column(align =True)
                 row.prop(ob.material_slots['Material for BProjection'].material,'alpha', slider = True)
@@ -906,7 +923,7 @@ class RotateView3D(Operator):
             if 'U' in self.key:
                 suv = ob.custom_scaleuv
                 if ob.custom_linkscaleuv:    
-                    ob.custom_scaleuv= [suv[0] + deltax/50 , suv[0] + deltax/50]
+                    ob.custom_propscaleuv += deltax/50
                 else:
                     ob.custom_scaleuv= [suv[0] + deltax/50 , suv[1] + deltay/50]               
 
