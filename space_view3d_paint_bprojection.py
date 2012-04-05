@@ -196,7 +196,7 @@ class custom_props(bpy.types.PropertyGroup):
     custom_flipuvy = BoolProperty(name="flipuvy", default=False)
     
     # other properties
-    custom_active= BoolProperty(name="custom_active", default=False)   
+    custom_active= BoolProperty(name="custom_active", default=True)   
     custom_expand = BoolProperty(name="expand", default=False)
     
     custom_active_view = StringProperty(name = "custom_active_view",default = "View",update = update_activeviewname)
@@ -277,17 +277,14 @@ class CreateView(Operator):
         
         ob.custom_active_view = new_props.custom_active_view               
         new_props.custom_index = len(bpy.context.object.custom_props)-1
-        for item in ob.custom_props:
-            item.custom_active = False            
-        new_props.custom_active = True
-        bpy.ops.object.save_view(index = len(bpy.context.object.custom_props)-1)
+        bpy.ops.object.active_view(index = new_props.custom_index)
         ob.data.shape_keys.key_blocks[ob.active_shape_key_index].mute = True
         bpy.ops.object.shape_key_add(from_mix = False)
         ob.data.shape_keys.key_blocks[ob.active_shape_key_index].value = 1.0
         return {'FINISHED'}
 
 # Oprerator Class to copy view 
-class Copyiew(Operator):
+class SaveView(Operator):
     bl_idname = "object.save_view"
     bl_label = "copy the view"
     
@@ -314,7 +311,7 @@ class Copyiew(Operator):
         return {'FINISHED'}
 
 # Oprerator Class to copy view 
-class Pasteview(Operator):
+class PasteView(Operator):
     bl_idname = "object.paste_view"
     bl_label = "paste the view"
     
@@ -330,9 +327,10 @@ class Pasteview(Operator):
         ob.custom_rotation =  prop.custom_rotation                    
         ob.custom_scale =  prop.custom_scale  
         ob.custom_location =  prop.custom_location                    
-        if bpy.data.textures['Texture for BProjection'].image.name != prop.custom_image:
-            bpy.data.textures['Texture for BProjection'].image = bpy.data.images[prop.custom_image]
-            bpy.ops.object.applyimage()
+        if prop.custom_image != '':
+            if bpy.data.textures['Texture for BProjection'].image.name != prop.custom_image:
+                bpy.data.textures['Texture for BProjection'].image = bpy.data.images[prop.custom_image]
+                bpy.ops.object.applyimage()
         if ob.custom_flipuvx != prop.custom_flipuvx:
             ob.custom_flipuvx = prop.custom_flipuvx
         if ob.custom_flipuvy != prop.custom_flipuvy:
@@ -357,20 +355,33 @@ class RemoveView(Operator):
             if len(ob.custom_props) > 0:
                 bpy.ops.object.active_view(index = self.index-1)
             if self.index == 0 and len(ob.custom_props) > 1:
-                bpy.ops.object.active_view(index = 1)
+                bpy.ops.object.active_view(index = 1)            
                 
         ob.custom_props.remove(self.index)
         
         print(len(context.object.custom_props))
                 
         if len(context.object.custom_props) == 0:
+            ob.custom_scale = [1,1]
+            ob.custom_rotation = 0
+            ob.custom_scaleuv =[1.0,1.0]
+            ob.custom_offsetuv =[0.0,0.0]
+            if ob.custom_flipuvx == True:
+                ob.custom_flipuvx = False
+            if ob.custom_flipuvy == True:
+                ob.custom_flipuvy = False
+            
             bpy.ops.object.create_view()            
                  
         i=0
         for item in context.object.custom_props:
-            item.custom_index = i
+            item.custom_index = i           
             i+=1 
        
+        for item in context.object.custom_props:
+            if item.custom_active:
+                ob.active_shape_key_index = item.custom_index+1
+           
         return {'FINISHED'}
 
 # Oprerator Class to copy view 
@@ -383,7 +394,9 @@ class ActiveView(Operator):
     def execute(self, context):
         ob = context.object
         for item in ob.custom_props:
-            item.custom_active = False
+            if item.custom_active == True:
+                bpy.ops.object.save_view(index = item.custom_index)
+                item.custom_active = False
         ob.custom_props[self.index].custom_active  = True
         ob.custom_active_view = ob.custom_props[self.index].custom_active_view 
         ob.active_shape_key_index =  self.index + 1
@@ -477,8 +490,7 @@ class BProjection(Panel):
                     row.operator("object.active_view",text = "", icon='RADIOBUT_ON', emboss = False).index = item.custom_index 
                 else:
                     row.operator("object.active_view",text = "", icon='RADIOBUT_OFF', emboss = False).index = item.custom_index 
-                row.prop(item, "custom_active_view", text="")
-                row.operator('object.save_view', text="", icon = 'SAVE_PREFS').index = item.custom_index         
+                row.prop(item, "custom_active_view", text="")        
                 row.operator('object.remove_view', text="", icon = 'PANEL_CLOSE', emboss = False).index = item.custom_index
             row = layout.row()
             row.operator('object.create_view', text="Create View", icon = 'RENDER_STILL')        
