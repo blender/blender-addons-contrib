@@ -12,7 +12,7 @@ WINDOW_TYPE_SWITCHING = False  # Shift-f# hotkeys for switching window types
 
 SUBSURF_RELATIVE = True  # Make subsurf hotkeys work by relative
                          # shifting instead of absolute setting
-                         
+
 MAYA_STYLE_MANIPULATORS = False  # Maya-style "QWER" hotkeys for manipulators
 
 
@@ -29,11 +29,11 @@ class ShiftSubsurfLevel(bpy.types.Operator):
     '''
     bl_idname = "object.shift_subsurf_level"
     bl_label = "Shift Subsurf Level"
-    
+
     delta = bpy.props.IntProperty(name="Delta", description="Amount to increase/decrease the subsurf level.", default=1)
     min = bpy.props.IntProperty(name="Minimum", description="The lowest subsurf level to shift to.", default=0)
     max = bpy.props.IntProperty(name="Maximum", description="The highest subsurf level to shift to.", default=4)
-    
+
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
@@ -45,12 +45,12 @@ class ShiftSubsurfLevel(bpy.types.Operator):
             for mod in obj.modifiers:
                 if mod.type == "SUBSURF":
                     m = mod
-            
+
             # Add a subsurf modifier if necessary
             if not m and self.delta > 0:
-                m = obj.modifiers.new(name="Subsurf", type="SUBSURF")
+                m = obj.modifiers.new(name="Subsurf", type='SUBSURF')
                 m.levels = 0
-            
+
             # Adjust it's subsurf level
             if m:
                 if self.delta > 0:
@@ -72,6 +72,7 @@ class SetManipulator(bpy.types.Operator):
                                          ("ROTATE", "Rotate", ""),
                                          ("SCALE", "Scale", "")],
                                          default="NONE")
+
     def execute(self, context):
         if self.mode == "NONE":
             context.space_data.show_manipulator = False
@@ -90,7 +91,7 @@ class SetManipulator(bpy.types.Operator):
             context.space_data.use_manipulator_translate = False
             context.space_data.use_manipulator_rotate = False
             context.space_data.use_manipulator_scale = True
-            
+
         return {'FINISHED'}
 bpy.utils.register_class(SetManipulator)
 
@@ -104,9 +105,10 @@ class ModeSwitchMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_enum("object.mode_set", "mode")
+
 bpy.utils.register_class(ModeSwitchMenu)
 # Work around
-bpy.ops.object.mode_set(mode="OBJECT", toggle=False)
+bpy.ops.object.mode_set(mode='OBJECT', toggle=False)  # XXX, WHY IS THE KEYMAP DOING THIS? - campbell
 
 
 
@@ -812,5 +814,3 @@ kmi = km.keymap_items.new('wm.call_menu', 'H', 'PRESS', ctrl=True)
 kmi.properties.name = 'VIEW3D_MT_hook'
 kmi = km.keymap_items.new('wm.call_menu', 'G', 'PRESS', ctrl=True)
 kmi.properties.name = 'VIEW3D_MT_vertex_group'
-
-
