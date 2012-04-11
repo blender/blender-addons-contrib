@@ -81,6 +81,7 @@ def update_PropUVScale(self, context):
 def update_LinkUVScale(self, context):
     ob = context.object
     if ob.custom_linkscaleuv:
+        ob.custom_propscaleuv = ob.custom_scaleuv.x
         update_PropUVScale(self, context)
     else:
         update_UVScale(self, context) 
@@ -179,6 +180,19 @@ def update_Scale(self, context):
     
     ob.custom_old_scale = ob.custom_scale
 
+def update_PropScale(self, context):
+    ob = context.object
+    if ob.custom_linkscale:
+        ob.custom_scale = [ob.custom_propscale,ob.custom_propscale]
+    
+def update_LinkScale(self, context):
+    ob = context.object
+    if ob.custom_linkscale:
+        ob.custom_propscale = ob.custom_scale.x
+        update_PropScale(self, context)
+    else:
+        update_Scale(self, context) 
+
 def update_activeviewname(self, context):
     if self.custom_active:
         context.object.custom_active_view = self.custom_active_view
@@ -193,7 +207,9 @@ class custom_props(bpy.types.PropertyGroup):
                                          
     custom_scale = FloatVectorProperty(name="Scales", description="Scale the planes",
                                        subtype = 'XYZ', default=(1.0, 1.0),min = 0.1, size=2)
-                                          
+    custom_propscale = FloatProperty(name="PropScale", description="Scale the Plan",
+                                           default=1.0,min = 0.1)
+                                                                                    
     custom_linkscale = BoolProperty(name="linkscale", default=True)
    
     # UV properties
@@ -234,10 +250,12 @@ def createcustomprops(context):
                                          
     Ob.custom_scale = FloatVectorProperty(name="Scales", description="Scale the planes",
                                           subtype = 'XYZ', default=(1.0, 1.0),min = 0.1, size=2,update = update_Scale)
+    Ob.custom_propscale = FloatProperty(name="PropScale", description="Scale the Plan",
+                                           default=1.0,min = 0.1,update = update_PropScale)
     Ob.custom_old_scale = FloatVectorProperty(name="old_Scales", description="Old Scale the planes",
                                           subtype = 'XYZ', default=(1.0, 1.0),min = 0.1, size=2)
                                           
-    Ob.custom_linkscale = BoolProperty(name="linkscale", default=True, update = update_props)
+    Ob.custom_linkscale = BoolProperty(name="linkscale", default=True, update = update_LinkScale)
     
                                 
     Ob.custom_sub = IntProperty(name="Subdivide", description="Number of subdivision of the plan",
@@ -273,7 +291,7 @@ def removecustomprops():
     list_prop = ['custom_location', 'custom_rotation', 'custom_old_rotation', 'custom_scale', 'custom_old_scale', 'custom_c3d',
                  'custom_rot', 'custom_rotc3d', 'custom_scaleuv', 'custom_flipuvx', 'custom_flipuvy', 'custom_linkscale',
                  'custom_linkscaleuv', 'custom_old_scaleuv', 'custom_offsetuv', 'custom_old_offsetuv', 'custom_scac3d', 'custom_sub',
-                 'custom_expand', 'custom_active_view', 'custom_propscaleuv', 'custom_props']
+                 'custom_expand', 'custom_active_view', 'custom_propscaleuv', 'custom_props', 'custom_propscale']
     for prop in list_prop:
         try:
             del bpy.context.object[prop]
@@ -312,6 +330,7 @@ class SaveView(Operator):
         prop.custom_scale =  ob.custom_scale                  
         prop.custom_linkscale =  ob.custom_linkscale                                      
         prop.custom_scaleuv = ob.custom_scaleuv
+        prop.custom_propscale = ob.custom_propscale
         prop.custom_offsetuv =  ob.custom_offsetuv  
         prop.custom_linkscaleuv = ob.custom_linkscaleuv
         prop.custom_propscaleuv = ob.custom_propscaleuv
@@ -321,7 +340,6 @@ class SaveView(Operator):
             prop.custom_image = bpy.data.textures['Texture for BProjection'].image.name
         except:
             do = 'nothing'
-        #bpy.ops.object.active_view(index = self.index)
         
         return {'FINISHED'}
 
@@ -341,7 +359,8 @@ class PasteView(Operator):
         ob.custom_scaleuv = prop.custom_scaleuv
         ob.custom_propscaleuv = prop.custom_propscaleuv       
         ob.custom_rotation =  prop.custom_rotation                    
-        ob.custom_scale =  prop.custom_scale  
+        ob.custom_scale =  prop.custom_scale
+        ob.custom_propscale = prop.custom_propscale 
         ob.custom_location =  prop.custom_location                    
         if prop.custom_image != '':
             if bpy.data.textures['Texture for BProjection'].image.name != prop.custom_image:
@@ -382,6 +401,8 @@ class RemoveView(Operator):
             ob.custom_rotation = 0
             ob.custom_scaleuv =[1.0,1.0]
             ob.custom_offsetuv =[0.0,0.0]
+            ob.custom_propscaleuv = 1.0
+            ob.custom_propscale = 1.0
             if ob.custom_flipuvx == True:
                 ob.custom_flipuvx = False
             if ob.custom_flipuvy == True:
@@ -473,11 +494,12 @@ class BProjection(Panel):
                 row.prop(ob,'custom_rotc3d',text="",icon='MANIPUL')            
                 row  = box.row(align =True)
                 row.label(text="Scale:")
-                row  = box.row(align =True)
-                row.prop(ob,'custom_scale',text='') 
+                row  = box.row(align =True) 
                 if ob.custom_linkscale :
+                    row.prop(ob, "custom_propscale",text="")
                     row.prop(ob, "custom_linkscale",text="",icon='LINKED')
                 else: 
+                    row.prop(ob,'custom_scale',text='')
                     row.prop(ob, "custom_linkscale",text="",icon='UNLINKED')
                 row.prop(ob,'custom_scac3d',text="",icon='MANIPUL')                            
                 row  = box.row(align =True)
@@ -526,6 +548,7 @@ class ApplyImage(Operator):
         img = bpy.data.textures['Texture for BProjection'].image
         em = bpy.data.objects['Empty for BProjection']
         ob = context.object
+        cm = context.mode
                
         bpy.ops.object.editmode_toggle()
         f = ob.data.polygons
@@ -546,11 +569,11 @@ class ApplyImage(Operator):
         if wasnul == False:
             bpy.ops.object.editmode_toggle()
         else:
-            bpy.ops.paint.texture_paint_toggle()
-                                   
-        #ob.custom_scale = [1,1]                       
-        ob.data.update()
-
+            if cm == 'PAINT_TEXTURE':
+                bpy.ops.object.mode_set(mode = 'TEXTURE_PAINT', toggle=False)
+            else:
+                bpy.ops.object.mode_set(mode = cm, toggle=False)
+                
         align_to_view(context)
         
         return {'FINISHED'}
@@ -635,7 +658,8 @@ class AddBProjectionPlane(Operator):
 
         except:            
             createcustomprops(context)
-            bpy.ops.paint.texture_paint_toggle()
+            cm = bpy.context.mode
+            bpy.ops.object.mode_set(mode = 'OBJECT', toggle=False)
             
             context.space_data.show_relationship_lines = False
             
@@ -705,7 +729,10 @@ class AddBProjectionPlane(Operator):
                         
             align_to_view(context)
             
-            bpy.ops.paint.texture_paint_toggle()
+            if cm == 'PAINT_TEXTURE':
+                bpy.ops.object.mode_set(mode = 'TEXTURE_PAINT', toggle=False)
+            else:
+                bpy.ops.object.mode_set(mode = cm, toggle=False)
             
         return {'FINISHED'}
 
@@ -727,7 +754,8 @@ class RemoveBProjectionPlane(Operator):
     
     def execute(self, context):
         try:               
-            bpy.ops.paint.texture_paint_toggle()
+            cm = bpy.context.mode
+            bpy.ops.object.mode_set(mode = 'OBJECT', toggle=False)
             
             context.space_data.show_relationship_lines = True
             
@@ -792,7 +820,10 @@ class RemoveBProjectionPlane(Operator):
                 if kmi.idname in ["object.intuitivescale"]:
                     km.keymap_items.remove(kmi)
             
-            bpy.ops.paint.texture_paint_toggle()
+            if cm == 'PAINT_TEXTURE':
+                bpy.ops.object.mode_set(mode = 'TEXTURE_PAINT', toggle=False)
+            else:
+                bpy.ops.object.mode_set(mode = cm, toggle=False)
             
             for i in ob.data.shape_keys.key_blocks:
                 bpy.ops.object.shape_key_remove()
@@ -910,7 +941,7 @@ class RotateView3D(Operator):
             if 'S' in self.key:                
                 s = ob.custom_scale
                 if ob.custom_linkscale:
-                    ob.custom_scale = [s[0] + deltax/20, s[1]]
+                    ob.custom_propscale += deltax/20
                 else:
                     ob.custom_scale = [s[0] + deltax/20, s[1] + deltay/20]
                                           
@@ -943,6 +974,8 @@ class RotateView3D(Operator):
             ob.custom_rotation = 0
             ob.custom_scaleuv =[1.0,1.0]
             ob.custom_offsetuv =[0.0,0.0]
+            ob.custom_propscaleuv = 1.0
+            ob.custom_propscale = 1.0
             if ob.custom_flipuvx == True:
                 ob.custom_flipuvx = False
             if ob.custom_flipuvy == True:
