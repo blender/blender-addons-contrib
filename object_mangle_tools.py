@@ -36,7 +36,7 @@ import bpy
 import random
 import time
 from math import pi
-from pdb import set_trace
+import bmesh
 
 def move_coordinate(context, co, is_curve=False):
     xyz_const = context.scene.constraint_vector
@@ -70,7 +70,9 @@ class MeshManglerOperator(bpy.types.Operator):
 
     def execute(self, context):
         mesh = context.active_object.data
-        verts, faces = mesh.vertices, mesh.polygons
+        bm = bmesh.new()
+        bm.from_mesh(mesh)
+        verts, faces = bm.verts, bm.faces
         randomMag = context.scene.random_magnitude
         random.seed( time.time() )
 
@@ -84,8 +86,10 @@ class MeshManglerOperator(bpy.types.Operator):
             zVal = .01 * random.randrange( -randomMag, randomMag )
             vert.co.x = vert.co.x + xVal
             vert.co.y = vert.co.y + yVal
-            vert.co.z = vert.co.z + zVal    
-            
+            vert.co.z = vert.co.z + zVal
+                
+        bm.to_mesh(mesh)   
+        mesh.update()
         return {'FINISHED'}
 
 
