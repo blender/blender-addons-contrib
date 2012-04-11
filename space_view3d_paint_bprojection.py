@@ -796,6 +796,8 @@ class RemoveBProjectionPlane(Operator):
             ob.select = True
             
             km = bpy.data.window_managers['WinMan'].keyconfigs['Blender'].keymaps['3D View']
+            # ----------------------------------------------
+            # XXX, this isnt future proof, DON'T USE INDEX's - campbell
             km.keymap_items[3-1].idname = 'view3d.rotate'
             km.keymap_items[19-1].idname = 'view3d.zoom'
             km.keymap_items[19-1].properties.delta = 1.0
@@ -817,7 +819,7 @@ class RemoveBProjectionPlane(Operator):
             
             km = context.window_manager.keyconfigs.default.keymaps['Image Paint']
             for kmi in km.keymap_items:
-                if kmi.idname in ["object.intuitivescale"]:
+                if kmi.idname in {"object.intuitivescale", }:
                     km.keymap_items.remove(kmi)
             
             if cm == 'PAINT_TEXTURE':
