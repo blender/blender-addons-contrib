@@ -2091,6 +2091,11 @@ class BevelRoundAlgo(object):
         ptcur = intersect_line_line(edcur.parallels[ifacecur], lineinter)
         ptnext = intersect_line_line(ednext.parallels[ifacenext], lineinter)
 
+        # It is possible that the offset lines don't intersect the face intersection if
+        # either face is non-planar.
+        if not ptcur or not ptnext:
+            return False
+
         # Common vertex
         vertex = None
         for v1 in edgecur.verts:
@@ -2157,6 +2162,10 @@ class BevelRoundAlgo(object):
     # and the plane containing pt2 with normal normal2.
     def profile_compute_by_vectors(self, profile_type, pt1, vec1, pt2, normal2):
         origin = intersect_line_plane([pt1, vec1], [pt2, normal2])
+        if not origin:
+            # Can happen if one of the faces is non-planar
+            # Just make an origin to avoid a crash
+            origin = pt1.lerp(pt2, 0.5) + (pt2 - pt1).length * Vector([0.1, 0.1, 0.2])
         offset1 = (pt1 - origin).length
         offset2 = (pt2 - origin).length
         vec2 = pt2 - origin
