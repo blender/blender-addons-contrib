@@ -40,6 +40,8 @@ operator cycle, object.ray_cast() crashes if object's tessfaces were
 update()d earlier in the code. However, not update()ing the meshes
 seems to work fine -- ray_cast() does its job, and it's possible to
 access tessfaces afterwards.
+Seems like mesh.calc_tessface() is the proper way now (not reflected
+in the docs, though)
 
 Breakdown:
     Addon registration
@@ -932,7 +934,17 @@ class EnhancedSetCursor(bpy.types.Operator):
     def gizmo_scale(self, pos):
         return self.gizmo_distance(pos) * self.gizmo_factor
     
-    def draw_3d(self):
+    def check_v3d_local(self, context):
+        csu_v3d = self.csu.space_data
+        v3d = context.space_data
+        if csu_v3d.local_view:
+            return csu_v3d != v3d
+        return v3d.local_view
+    
+    def draw_3d(self, context):
+        if self.check_v3d_local(context):
+            return
+        
         if time.time() < (self.click_start + self.click_period):
             return
         
@@ -1043,6 +1055,9 @@ class EnhancedSetCursor(bpy.types.Operator):
                 bgl.glEnd()
     
     def draw_2d(self, context):
+        if self.check_v3d_local(context):
+            return
+        
         r = context.region
         rv3d = context.region_data
         
@@ -1132,6 +1147,9 @@ class EnhancedSetCursor(bpy.types.Operator):
         bgl.glLineWidth(1)
     
     def draw_axes_coords(self, context, header_size):
+        if self.check_v3d_local(context):
+            return
+        
         if time.time() < (self.click_start + self.click_period):
             return
         
@@ -1699,8 +1717,6 @@ def gather_particles(**kwargs):
                 active_element = active_object.\
                     matrix_world.to_translation()
         
-        # These are equivalent (though scene's is slower)
-        #cursor_pos = get_cursor_location(scene=scene)
         cursor_pos = get_cursor_location(v3d=space_data)
     
     #elif area_type == 'IMAGE_EDITOR':
@@ -3236,10 +3252,19 @@ def update_history_id(self, context):
     
     pos = history.get_pos()
     if pos is not None:
+        # History doesn't depend on view (?)
         cursor_pos = get_cursor_location(scene=scene)
+        
+        if CursorHistoryProp.update_cursor_on_id_change:
+            # Set cursor position anyway (we're changing v3d's
+            # cursor, which may be separate from scene's)
+            # This, however, should be done cautiously
+            # from scripts, since, e.g., CursorMonitor
+            # can supply wrong context -> cursor will be set
+            # in a different view than required
+            set_cursor_location(pos, v3d=context.space_data)
+        
         if pos != cursor_pos:
-            set_cursor_location(pos, scene=scene)
-            
             if (history.current_id == 0) and (history.last_id <= 1):
                 history.last_id = 1
             else:
@@ -3248,6 +3273,8 @@ def update_history_id(self, context):
 
 class CursorHistoryProp(bpy.types.PropertyGroup):
     max_size_limit = 500
+    
+    update_cursor_on_id_change = True
     
     show_trace = bpy.props.BoolProperty(
         name="Trace",
@@ -3313,7 +3340,7 @@ class CursorHistoryProp(bpy.types.PropertyGroup):
         bgl.glColor4f(1.0, 0.75, 0.5, 1.0)
         bgl.glVertex3f(p[0], p[1], p[2])
         
-        p = get_cursor_location(scene=scene)
+        p = get_cursor_location(v3d=context.space_data)
         bgl.glColor4f(1.0, 1.0, 0.25, 1.0)
         bgl.glVertex3f(p[0], p[1], p[2])
         
@@ -3364,10 +3391,11 @@ class NewCursor3DBookmark(bpy.types.Operator):
         
         bookmark = library.bookmarks.add(name=self.name)
         
-        cusor_pos = get_cursor_location(scene=context.scene)
+        cusor_pos = get_cursor_location(v3d=context.space_data)
         
         try:
-            bookmark.pos = library.convert_from_abs(cusor_pos, True)
+            bookmark.pos = library.convert_from_abs(context.space_data,
+                                                    cusor_pos, True)
         except Exception as exc:
             self.report('ERROR_INVALID_CONTEXT', exc.args[0])
             return {'CANCELLED'}
@@ -3411,10 +3439,11 @@ class OverwriteCursor3DBookmark(bpy.types.Operator):
         if not bookmark:
             return {'CANCELLED'}
         
-        cusor_pos = get_cursor_location(scene=context.scene)
+        cusor_pos = get_cursor_location(v3d=context.space_data)
         
         try:
-            bookmark.pos = library.convert_from_abs(cusor_pos, True)
+            bookmark.pos = library.convert_from_abs(context.space_data,
+                                                    cusor_pos, True)
         except Exception as exc:
             self.report('ERROR_INVALID_CONTEXT', exc.args[0])
             return {'CANCELLED'}
@@ -3443,8 +3472,9 @@ class RecallCursor3DBookmark(bpy.types.Operator):
             return {'CANCELLED'}
         
         try:
-            bookmark_pos = library.convert_to_abs(bookmark.pos, True)
-            set_cursor_location(bookmark_pos, scene=context.scene)
+            bookmark_pos = library.convert_to_abs(context.space_data,
+                                                  bookmark.pos, True)
+            set_cursor_location(bookmark_pos, v3d=context.space_data)
         except Exception as exc:
             self.report('ERROR_INVALID_CONTEXT', exc.args[0])
             return {'CANCELLED'}
@@ -3472,14 +3502,16 @@ class SwapCursor3DBookmark(bpy.types.Operator):
         if not bookmark:
             return {'CANCELLED'}
         
-        cusor_pos = get_cursor_location(scene=context.scene)
+        cusor_pos = get_cursor_location(v3d=context.space_data)
         
         try:
-            bookmark_pos = library.convert_to_abs(bookmark.pos, True)
+            bookmark_pos = library.convert_to_abs(context.space_data,
+                                                  bookmark.pos, True)
             
-            set_cursor_location(bookmark_pos, scene=context.scene)
+            set_cursor_location(bookmark_pos, v3d=context.space_data)
             
-            bookmark.pos = library.convert_from_abs(cusor_pos, True,
+            bookmark.pos = library.convert_from_abs(context.space_data,
+                                                    cusor_pos, True,
                 use_history=False)
         except Exception as exc:
             self.report('ERROR_INVALID_CONTEXT', exc.args[0])
@@ -3516,8 +3548,8 @@ class AddEmptyAtCursor3DBookmark(bpy.types.Operator):
             return {'CANCELLED'}
         
         try:
-            #bookmark_pos = library.convert_to_abs(bookmark.pos, True)
-            matrix = library.get_matrix(use_history=False, warn=True)
+            matrix = library.get_matrix(use_history=False,
+                                        v3d=context.space_data, warn=True)
             bookmark_pos = matrix * bookmark.pos
         except Exception as exc:
             self.report('ERROR_INVALID_CONTEXT', exc.args[0])
@@ -3526,7 +3558,6 @@ class AddEmptyAtCursor3DBookmark(bpy.types.Operator):
         name = "{}.{}".format(library.name, bookmark.name)
         obj = bpy.data.objects.new(name, None)
         obj.matrix_world = to_matrix4x4(matrix, bookmark_pos)
-        #obj.empty_draw_type = 'SPHERE'
         context.scene.objects.link(obj)
         
         """
@@ -3579,7 +3610,7 @@ class BookmarkLibraryProp(bpy.types.PropertyGroup):
         options={'HIDDEN'})
     
     # Returned None means "operation is not aplicable"
-    def get_matrix(self, use_history, warn=True, **kwargs):
+    def get_matrix(self, use_history, v3d, warn=True, **kwargs):
         #particles, csu = gather_particles(**kwargs)
         
         # Ensure we have relevant CSU (Blender will crash
@@ -3591,7 +3622,7 @@ class BookmarkLibraryProp(bpy.types.PropertyGroup):
         if self.offset:
             # history? or keep separate for each scene?
             if not use_history:
-                csu.source_pos = get_cursor_location(scene=csu.tou.scene)
+                csu.source_pos = get_cursor_location(v3d=v3d)
             else:
                 settings = find_settings()
                 history = settings.history
@@ -3635,19 +3666,16 @@ class BookmarkLibraryProp(bpy.types.PropertyGroup):
         
         return csu.get_matrix(sys_name, self.offset, pivot)
     
-    def convert_to_abs(self, pos, warn=False, **kwargs):
-        if "use_history" in kwargs:
-            del kwargs["use_history"]
-        matrix = self.get_matrix(False, warn, **kwargs)
+    def convert_to_abs(self, v3d, pos, warn=False, **kwargs):
+        kwargs.pop("use_history", None)
+        matrix = self.get_matrix(False, v3d, warn, **kwargs)
         if not matrix:
             return None
         return matrix * pos
     
-    def convert_from_abs(self, pos, warn=False, **kwargs):
-        use_history = kwargs.get("use_history", True)
-        if "use_history" in kwargs:
-            del kwargs["use_history"]
-        matrix = self.get_matrix(use_history, warn, **kwargs)
+    def convert_from_abs(self, v3d, pos, warn=False, **kwargs):
+        use_history = kwargs.pop("use_history", True)
+        matrix = self.get_matrix(use_history, v3d, warn, **kwargs)
         if not matrix:
             return None
         
@@ -3665,7 +3693,7 @@ class BookmarkLibraryProp(bpy.types.PropertyGroup):
         if not bookmark:
             return
         
-        pos = self.convert_to_abs(bookmark.pos)
+        pos = self.convert_to_abs(context.space_data, bookmark.pos)
         if pos is None:
             return
         
@@ -3991,14 +4019,14 @@ class SetCursorDialog(bpy.types.Operator):
         self.matrix = self.csu.get_matrix()
         
         pos = self.matrix * self.pos
-        set_cursor_location(pos, scene=context.scene)
+        set_cursor_location(pos, v3d=context.space_data)
         
         return {'FINISHED'}
 
     def invoke(self, context, event):
         scene = context.scene
         
-        cursor_pos = get_cursor_location(scene=scene)
+        cursor_pos = get_cursor_location(v3d=context.space_data)
         
         particles, self.csu = gather_particles(context=context)
         self.csu.source_pos = cursor_pos
@@ -4129,6 +4157,7 @@ class CursorMonitor(bpy.types.Operator):
         last_locations = {}
         
         for scene in bpy.data.scenes:
+            # History doesn't depend on view (?)
             curr_pos = get_cursor_location(scene=scene)
             
             last_locations[scene.name] = curr_pos
@@ -4185,7 +4214,11 @@ class CursorMonitor(bpy.types.Operator):
                 history.entries.remove(last_id)
             
             # make sure the most recent history entry is displayed
+            
+            CursorHistoryProp.update_cursor_on_id_change = False
             history.current_id = 0
+            CursorHistoryProp.update_cursor_on_id_change = True
+            
             history.curr_id = history.current_id
             history.last_id = 1
             
@@ -4660,7 +4693,7 @@ def draw_callback_view(self, context):
         bgl.glDepthRange(0.0, 1.0)
     
     if tfm_operator:
-        tfm_operator.draw_3d()
+        tfm_operator.draw_3d(context)
     
     if is_drawing:
         # Restore previous OpenGL settings
