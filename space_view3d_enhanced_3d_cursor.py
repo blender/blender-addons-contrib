@@ -4087,9 +4087,9 @@ class SetCursorDialog(bpy.types.Operator):
         row.prop(tfm_opts, "use_relative_coords", text="Relative")
         row.prop(v3d, "transform_orientation", text="")
 
-class CompensateOrientation(bpy.types.Operator):
-    bl_idname = "view3d.compensate_orientation"
-    bl_label = "Compensate Orientation"
+class AlignOrientation(bpy.types.Operator):
+    bl_idname = "view3d.align_orientation"
+    bl_label = "Align Orientation"
     bl_description = "Rotates active object to match axis of current "\
         "orientation to axis of another orientation"
     
@@ -4172,7 +4172,7 @@ class CompensateOrientation(bpy.types.Operator):
         
         obj.matrix_world = m
         
-        bpy.ops.ed.undo_push(message="Compensate Orientation")
+        bpy.ops.ed.undo_push(message="Align Orientation")
         
         return {'FINISHED'}
     
@@ -4182,10 +4182,6 @@ class CompensateOrientation(bpy.types.Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
-    
-    @staticmethod
-    def panel_draw(self, context):
-        self.layout.operator("view3d.compensate_orientation")
 
 class CopyOrientation(bpy.types.Operator):
     bl_idname = "view3d.copy_orientation"
@@ -4199,14 +4195,17 @@ class CopyOrientation(bpy.types.Operator):
         
         tou = TransformOrientationUtility(scene, v3d, rv3d)
         
-        create_transform_orientation(scene,
+        orient = create_transform_orientation(scene,
             name=tou.get()+".copy", matrix=tou.get_matrix())
         
+        tou.set(orient.name)
+        
         return {'FINISHED'}
-    
-    @staticmethod
-    def panel_draw(self, context):
-        self.layout.operator("view3d.copy_orientation")
+
+def transform_orientations_panel_extension(self, context):
+    row = self.layout.row()
+    row.operator("view3d.align_orientation", text="Align")
+    row.operator("view3d.copy_orientation", text="Copy")
 
 # ===== CURSOR MONITOR ===== #
 class CursorMonitor(bpy.types.Operator):
@@ -5102,13 +5101,10 @@ def update_keymap(activate):
         kmi.active = not activate
 
 def register():
-    bpy.utils.register_class(CompensateOrientation)
-    bpy.types.VIEW3D_PT_transform_orientations.append(
-        CompensateOrientation.panel_draw)
-    
+    bpy.utils.register_class(AlignOrientation)
     bpy.utils.register_class(CopyOrientation)
     bpy.types.VIEW3D_PT_transform_orientations.append(
-        CopyOrientation.panel_draw)
+        transform_orientations_panel_extension)
     
     bpy.utils.register_class(SetCursorDialog)
     
@@ -5217,12 +5213,9 @@ def unregister():
     bpy.utils.unregister_class(SetCursorDialog)
     
     bpy.types.VIEW3D_PT_transform_orientations.remove(
-        CopyOrientation.panel_draw)
+        transform_orientations_panel_extension)
     bpy.utils.unregister_class(CopyOrientation)
-    
-    bpy.types.VIEW3D_PT_transform_orientations.remove(
-        CompensateOrientation.panel_draw)
-    bpy.utils.unregister_class(CompensateOrientation)
+    bpy.utils.unregister_class(AlignOrientation)
 
 class DelayRegistrationOperator(bpy.types.Operator):
     bl_idname = "wm.enhanced_3d_cursor_registration"
