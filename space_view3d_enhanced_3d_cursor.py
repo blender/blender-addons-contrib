@@ -488,13 +488,28 @@ class EnhancedSetCursor(bpy.types.Operator):
                 self.process_axis_input(event)
             
             if event.alt:
+                jc = (", " if tfm_opts.use_comma_separator else "\t")
                 if event.type in self.key_map["copy_axes"]:
-                    wm.clipboard = "\t".join(self.get_axes_text(True))
+                    wm.clipboard = jc.join(self.get_axes_text(True))
                 elif event.type in self.key_map["cut_axes"]:
-                    wm.clipboard = "\t".join(self.get_axes_text(True))
+                    wm.clipboard = jc.join(self.get_axes_text(True))
                     self.set_axes_text("\t\t\t")
                 elif event.type in self.key_map["paste_axes"]:
-                    self.set_axes_text(wm.clipboard, True)
+                    if jc == "\t":
+                        self.set_axes_text(wm.clipboard, True)
+                    else:
+                        jc = jc.strip()
+                        ttext = ""
+                        brackets = 0
+                        for c in wm.clipboard:
+                            if c in "[{(":
+                                brackets += 1
+                            elif c in "]})":
+                                brackets -= 1
+                            if (brackets == 0) and (c == jc):
+                                c = "\t"
+                            ttext += c
+                        self.set_axes_text(ttext, True)
             
             if event.type in self.key_coordsys_map:
                 new_orientation = self.key_coordsys_map[event.type]
@@ -3216,6 +3231,12 @@ class TransformExtraOptionsProp(bpy.types.PropertyGroup):
         default=8,
         min=2,
         max=64)
+    use_comma_separator = bpy.props.BoolProperty(
+        name="Use comma separator",
+        description="Use comma separator when copying/pasting"\
+                    "coordinate values (instead of Tab character)",
+        default=True,
+        options={'HIDDEN'})
 
 # ===== 3D VECTOR LOCATION ===== #
 class LocationProp(bpy.types.PropertyGroup):
@@ -3910,6 +3931,7 @@ class TransformExtraOptions(bpy.types.Panel):
         layout.prop(tfm_opts, "use_relative_coords")
         layout.prop(tfm_opts, "snap_only_to_solid")
         layout.prop(tfm_opts, "snap_interpolate_normals_mode", text="")
+        layout.prop(tfm_opts, "use_comma_separator")
         #layout.prop(tfm_opts, "snap_element_screen_size")
 
 class Cursor3DTools(bpy.types.Panel):
@@ -4154,6 +4176,9 @@ class CompensateOrientation(bpy.types.Operator):
         
         return {'FINISHED'}
     
+    # ATTENTION!
+    # This _must_ be a dialog, because with 'UNDO' option
+    # the last selected orientation may revert to the previous state
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
@@ -4161,6 +4186,27 @@ class CompensateOrientation(bpy.types.Operator):
     @staticmethod
     def panel_draw(self, context):
         self.layout.operator("view3d.compensate_orientation")
+
+class CopyOrientation(bpy.types.Operator):
+    bl_idname = "view3d.copy_orientation"
+    bl_label = "Copy Orientation"
+    bl_description = "Makes a copy of current orientation"
+    
+    def execute(self, context):
+        scene = context.scene
+        v3d = context.space_data
+        rv3d = context.region_data
+        
+        tou = TransformOrientationUtility(scene, v3d, rv3d)
+        
+        create_transform_orientation(scene,
+            name=tou.get()+".copy", matrix=tou.get_matrix())
+        
+        return {'FINISHED'}
+    
+    @staticmethod
+    def panel_draw(self, context):
+        self.layout.operator("view3d.copy_orientation")
 
 # ===== CURSOR MONITOR ===== #
 class CursorMonitor(bpy.types.Operator):
@@ -5060,6 +5106,10 @@ def register():
     bpy.types.VIEW3D_PT_transform_orientations.append(
         CompensateOrientation.panel_draw)
     
+    bpy.utils.register_class(CopyOrientation)
+    bpy.types.VIEW3D_PT_transform_orientations.append(
+        CopyOrientation.panel_draw)
+    
     bpy.utils.register_class(SetCursorDialog)
     
     bpy.utils.register_class(NewCursor3DBookmarkLibrary)
@@ -5165,6 +5215,10 @@ def unregister():
     bpy.utils.unregister_class(AddEmptyAtCursor3DBookmark)
     
     bpy.utils.unregister_class(SetCursorDialog)
+    
+    bpy.types.VIEW3D_PT_transform_orientations.remove(
+        CopyOrientation.panel_draw)
+    bpy.utils.unregister_class(CopyOrientation)
     
     bpy.types.VIEW3D_PT_transform_orientations.remove(
         CompensateOrientation.panel_draw)
