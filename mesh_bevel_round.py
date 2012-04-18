@@ -1143,6 +1143,23 @@ class BevelRoundAlgo(object):
         for ed in vd.leds:
             icorner = 0 if ed.corners[0] == vd else 1
             section = self.compute_sections_multi(ed, icorner)
+            if len(vd.leds) == 1:
+                # Do we need an extra face between end of beveled
+                # edge and vd?  We do if the end of the beveled edge
+                # isn't in the plane of other faces not adjacent to the edge
+                needcornerface = False
+                for f in vd.vertex.link_faces:
+                    if f == ed.lfaces[0] or f == ed.lfaces[1]:
+                        continue
+                    plane = face_plane(f)
+                    if not (on_plane(section[0], plane) and on_plane(section[-1], plane)):
+                        needcornerface = True
+                        break
+                if needcornerface:
+                    facepts = section + [vd.vertex.co]
+                    norm = ed.lfaces[0].normal + ed.lfaces[1].normal
+                    norm.normalize()
+                    vd.vmesh = [[[facepts], ed.lfaces[0], norm]]
  
     # Compute a round corner with 3 edges
     def corner_compute_3round(self, vd):
@@ -1915,42 +1932,80 @@ class BevelRoundAlgo(object):
                 v = self.hsh_corners[bmv.index]
                 pr = self.pair_for_face(v.pairs, f)
                 if pr:
-                    fc.newpts[i] = [pr.ptcross]
+                   fc.newpts[i] = [pr.ptcross]
                 else:
-                    # Should only happen in valence 3 case
-                    # with one edge coming in and this is the
-                    # terminating face with both incoming edges
-                    # not beveled but the corner is.
-                    # First find the cross section
-                    ed = v.leds[0]
-                    icorner = 0 if ed.corners[0] == v else 1
-                    section = ed.cross_sections[icorner]
-                    # Now need to find if we have to
-                    # reverse the section.
-                    # Find the pairs.
-                    e1 = f.loops[i].edge
-                    e2 = f.loops[i].link_loop_prev.edge
-                    for f1 in e1.link_faces:
-                        if f1 != f:
-                            pr1 = self.pair_for_face(v.pairs, f1)
-                            if pr1:
-                                break
-                    for f2 in e2.link_faces:
-                        if f2 != f:
-                            pr2 = self.pair_for_face(v.pairs, f2)
-                            if pr2:
-                                break
-                    if not pr1 or not pr2:
-                        print("whoops, couldn't find term face pairs")
-                        # just so we won't create a dup face:
+                    # This is a face that is not adjacent to
+                    # a beveled edge, yet there is a beveled
+                    # edge going into this corner.
+                    # What to do depends on whether or
+                    # not this face is adjacent to a face
+                    # that is adjacent to a beveled edge.
+
+                    # One case is that this is a valence-three corner
+                    # with only one beveled edge,
+                    # and this is the third (unaffected) face.
+                    # We need to cut the corner off this face if
+                    # we are in the case where the beveled end
+                    # is in the plane of this face - we should have
+                    # a corner mesh, if so.
+                    # TODO: this corner cutting may happen even in
+                    # valence > 3 cases, but hard to do.
+                    if len(v.vertex.link_edges) == 3 and not v.vmesh:
+                       ed = v.leds[0]
+                       icorner = 0 if ed.corners[0] == v else 1
+                       section = ed.cross_sections[icorner]
+                       # Now need to find if we have to
+                       # reverse the section.
+                       # Find the pairs.
+                       e1 = f.loops[i].edge
+                       e2 = f.loops[i].link_loop_prev.edge
+                       for f1 in e1.link_faces:
+                           if f1 != f:
+                               pr1 = self.pair_for_face(v.pairs, f1)
+                               if pr1:
+                                   break
+                       for f2 in e2.link_faces:
+                           if f2 != f:
+                               pr2 = self.pair_for_face(v.pairs, f2)
+                               if pr2:
+                                   break
+                       if not pr1 or not pr2:
+                           print("whoops, couldn't find term face pairs")
+                           # just so we won't create a dup face:
+                           fc.newpts[i] = [v.vertex.co]
+                       else:
+                           if vec_approx_eq(pr2.ptcross, section[0]):
+                               fc.newpts[i] = section
+                           else:
+                               rsection = section[::]
+                               rsection.reverse()
+                               fc.newpts[i] = rsection
+                    elif len(v.vertex.link_edges) > 3:
+                        # Either or both of the edges into this vertex
+                        # may have been split because the adjacent face
+                        # was adjacent to a beveled edge.
+                        e1 = f.loops[i].edge
+                        f1 = find(e1.link_faces, lambda g: g != f)
+                        e2 = f.loops[i].link_loop_prev.edge
+                        f2 = find(e2.link_faces, lambda g: g != f)
+                        nco1 = None
+                        nco2 = None
+                        for ed in v.leds:
+                            if f in ed.lfaces:
+                                continue
+                            if f1 in ed.lfaces:
+                                pr1 = self.pair_for_face(v.pairs, f1)
+                                if pr1:
+                                    nco1 = pr1.ptcross
+                            if f2 in ed.lfaces:
+                                pr2 = self.pair_for_face(v.pairs, f2)
+                                if pr2:
+                                    nco2 = pr2.ptcross
                         fc.newpts[i] = [v.vertex.co]
-                    else:
-                        if vec_approx_eq(pr2.ptcross, section[0]):
-                            fc.newpts[i] = section
-                        else:
-                            rsection = section[::]
-                            rsection.reverse()
-                            fc.newpts[i] = rsection
+                        if nco1:
+                            fc.newpts[i] = fc.newpts[i] + [nco1]
+                        if nco2:
+                            fc.newpts[i] = [nco2] + fc.newpts[i]
 
     def pair_for_face(self, lpairs, f):
         for pr in lpairs:
@@ -2747,7 +2802,7 @@ def edge_reversed_in_face(edge, face):
             return lp.vert != edge.verts[0]
     print("whoops, edge_reversed_in_face: edge not in face")
     return False
-
+    
 
 # Three-way compare
 def cmp(a, b):
