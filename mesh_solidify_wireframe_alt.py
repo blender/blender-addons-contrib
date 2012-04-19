@@ -42,19 +42,14 @@ def add_nor(no_a, no_b):
         return no_a - no_b
 
 
-def calc_edge_tangent(e):
-    # TODO, make builtin, would make loop the arg
-    l = e.link_loops[0]
-    return l.face.normal.cross((l.vert.co - l.link_loop_next.vert.co))
-
-
 def calc_boundary_tangent(v):
     e_a, e_b = [e for e in v.link_edges if e.is_boundary][0:2]
 
+    l_a = e_a.link_loops[0]
+    l_b = e_b.link_loops[0]
+
     # average edge face normal
-    no_face = add_nor(e_a.link_loops[0].face.normal,
-                      e_b.link_loops[0].face.normal,
-                      )
+    no_face = add_nor(l_a.face.normal, l_b.face.normal)
 
     # average edge direction
     v_a = e_a.other_vert(v)
@@ -66,7 +61,7 @@ def calc_boundary_tangent(v):
     no = no_edge.cross(no_face).normalized()
 
     # check are we flipped the right way
-    ta = calc_edge_tangent(e_a) + calc_edge_tangent(e_b)
+    ta = e_a.calc_tangent(l_a) + e_b.calc_tangent(l_b)
     if no.dot(ta) < 0.0:
         no.negate()
 
