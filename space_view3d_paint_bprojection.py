@@ -64,7 +64,7 @@ def update_UVScale(self, context):
     s = ob.custom_scaleuv
     os = ob.custom_old_scaleuv 
     scale = s - os
-    uvdata = ob.data.uv_loop_layers.active.data
+    uvdata = ob.data.uv_layers.active.data
     for i in range(trunc(pow(ob.custom_sub+1, 2)*4)):
         vres =  v - uvdata[len(uvdata)-1-i].uv  
         uvdata[len(uvdata)-1-i].uv.x = v.x - vres.x/os[0]*s[0]
@@ -91,7 +91,7 @@ def update_UVOffset(self, context):
     ob = context.object
     o = ob.custom_offsetuv
     oo = ob.custom_old_offsetuv 
-    uvdata = ob.data.uv_loop_layers.active.data
+    uvdata = ob.data.uv_layers.active.data
     for i in range(trunc(pow(ob.custom_sub+1, 2)*4)):
         uvdata[len(uvdata)-1-i].uv = [uvdata[len(uvdata)-1-i].uv[0] - oo[0]/10 + o[0]/10, uvdata[len(uvdata)-1-i].uv[1] - oo[1]/10 + o[1]/10]   
     ob.custom_old_offsetuv = o
@@ -100,7 +100,7 @@ def update_UVOffset(self, context):
 
 # Function to update the flip horizontal
 def update_FlipUVX(self, context):          
-    uvdata = context.object.data.uv_loop_layers.active.data
+    uvdata = context.object.data.uv_layers.active.data
     for i in range(trunc(pow(context.object.custom_sub+1, 2)*4)):
         x = uvdata[len(uvdata)-1-i].uv[0]
         uvdata[len(uvdata)-1-i].uv[0] = 1 - x
@@ -109,7 +109,7 @@ def update_FlipUVX(self, context):
 
 # Function to update the flip vertical
 def update_FlipUVY(self, context):          
-    uvdata = context.object.data.uv_loop_layers.active.data
+    uvdata = context.object.data.uv_layers.active.data
     for i in range(trunc(pow(context.object.custom_sub+1, 2)*4)):
         y = uvdata[len(uvdata)-1-i].uv[1]
         uvdata[len(uvdata)-1-i].uv[1] = 1 - y
