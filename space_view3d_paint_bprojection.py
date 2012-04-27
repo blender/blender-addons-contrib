@@ -1072,8 +1072,35 @@ class ZoomView3D(Operator):
     def invoke(self, context, event):                   
         ob = context.object 
         sd = context.space_data
-        
+
+        width = context.area.regions[4].width
+        height = context.area.regions[4].height              
+                    
+        r3d =  sd.region_3d
+        v_init = Vector((0.0,0.0,1.0))
+
+        pos = [width,height]
+        vtr_b = view3d_utils.region_2d_to_location_3d(context.region, r3d, pos, v_init)
+        pos = [0,0]
+        vbl_b = view3d_utils.region_2d_to_location_3d(context.region, r3d, pos, v_init)
+        len_b = vtr_b - vbl_b
+       
         bpy.ops.view3d.zoom(delta = self.delta)
+        r3d.update()
+
+        pos = [width,height]
+        vtr_a = view3d_utils.region_2d_to_location_3d(context.region, r3d, pos, v_init)
+        pos = [0,0]
+        vbl_a = view3d_utils.region_2d_to_location_3d(context.region, r3d, pos, v_init) 
+        len_a = vtr_a - vbl_a
+        
+        fac = len_a.length/len_b.length
+        r3d.view_location -= ob.location
+        r3d.view_location *= fac
+        r3d.view_location += ob.location
+        vres = Vector((ob.custom_location.x*fac,ob.custom_location.y*fac,ob.custom_location.z))
+        ob.custom_location = vres
+        
         
         align_to_view(context)
         
