@@ -262,6 +262,8 @@ class BevelRoundAlgo(object):
 
         # Creating the new faces
         for fc in self.hsh_faces.values():
+            if not fc.anynew():
+                continue
             lv = []
             for i in range(len(fc.bmverts)):
                 npl = fc.newpts[i]
@@ -274,6 +276,8 @@ class BevelRoundAlgo(object):
         # Deleting the unneeded geometry
         for f in self.hsh_faces.values():
             if f.face.is_valid:
+                if not f.anynew():
+                    continue
                 fedges = f.face.edges[::]
                 self.bm.faces.remove(f.face)
                 for e in fedges:
@@ -834,11 +838,14 @@ class BevelRoundAlgo(object):
         if n1 > 0:
             normalref1 = self.compute_normal_reference(ed1, face1, xsection1[0], xsection1[1])
 
-        # Parse close to the other face
+        # Part close to the other face
         if reversed:
             face2 = ed2.facemain
         else:
             face2 = find(ed2.lfaces, lambda f: f != ed2.facemain)
+        mesh2 = []
+        for i in range(0, nblat):
+            mesh1.append(self.build_lattice(i, xsection1, xsection2, None, None))
         if n2 > 0:
             normalref2 = self.compute_normal_reference(ed2, face2, xsection1[n1+1], xsection1[n1])
 
@@ -2540,6 +2547,12 @@ class BFace(object):
         # for verts that change to one or more new points,
         # self.newpts[i] is list of float triple for replacement
         self.newpts = len(self.bmverts) * [None]
+
+    def anynew(self):
+        for p in self.newpts:
+            if p is not None:
+                return True
+        return False
 
     def __str__(self):
         return "f%d" % self.index
