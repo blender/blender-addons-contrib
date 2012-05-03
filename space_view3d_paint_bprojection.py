@@ -705,7 +705,7 @@ class AddBProjectionPlane(Operator):
             createcustomprops(context)
             cm = bpy.context.object.mode
             tmp = context.object
-            for ob in (ob for ob in bpy.data.objects if ob.type == 'MESH'):
+            for ob in (ob for ob in bpy.data.objects if ob.type == 'MESH' and ob.hide == False and context.scene in ob.users_scene):
                 context.scene.objects.active = ob
                 bpy.ops.object.mode_set(mode = cm, toggle=False) 
             
@@ -730,11 +730,8 @@ class AddBProjectionPlane(Operator):
             ob.vertex_groups.active.name = 'texture plane'   
             bpy.ops.uv.unwrap()
             
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.uv.select_all(action='DESELECT') 
             bpy.ops.mesh.select_all(action='DESELECT')                                
             bpy.ops.object.vertex_group_select()
-            bpy.ops.uv.select_all(action='SELECT')
             
             bpy.ops.object.editmode_toggle()
             for i in range(4):
@@ -829,7 +826,7 @@ class RemoveBProjectionPlane(Operator):
                                    
             bpy.ops.mesh.select_all(action='DESELECT')                    
             
-            ob.vertex_groups.active.name = 'texture plane'
+            ob.vertex_groups.active_index = ob.vertex_groups['texture plane'].index
             bpy.ops.object.vertex_group_select()
             bpy.ops.mesh.delete()
             bpy.ops.object.vertex_group_remove()
@@ -875,7 +872,7 @@ class RemoveBProjectionPlane(Operator):
                     km.keymap_items.remove(kmi)
             
             tmp = context.object
-            for ob in (ob for ob in bpy.data.objects if ob.type == 'MESH'):
+            for ob in (ob for ob in bpy.data.objects if ob.type == 'MESH' and ob.hide == False and context.scene in ob.users_scene):
                 context.scene.objects.active = ob
                 bpy.ops.object.mode_set(mode = 'OBJECT', toggle=False) 
             
@@ -930,7 +927,7 @@ class ChangeObject(Operator):
                 bpy.ops.mesh.reveal()
                                        
                 bpy.ops.mesh.select_all(action='DESELECT')                               
-                ob.vertex_groups.active.name = 'texture plane'
+                ob.vertex_groups.active_index = ob.vertex_groups['texture plane'].index
                 bpy.ops.object.vertex_group_select()
                 lo_b = [ob for ob in bpy.data.objects if ob.type == 'MESH']
                 bpy.ops.mesh.separate(type='SELECTED')
@@ -959,21 +956,16 @@ class ChangeObject(Operator):
                 context.scene.objects.active = bplane
                 for ms in (ms for ms in bplane.material_slots if ms.name != 'Material for BProjection'):
                     bplane.active_material = ms.material
-                    bpy.ops.object.material_slot_remove() 
+                    bpy.ops.object.material_slot_remove()
+                
+                for gs in (gs for gs in bplane.vertex_groups if gs.name != 'texture plane'):
+                    bplane.vertex_groups.active_index = gs.index
+                    bpy.ops.object.vertex_group_remove()
               
                 context.scene.objects.active = new_ob
                 cm = new_ob.mode
                 bpy.ops.object.mode_set(mode = 'OBJECT', toggle=False) 
                 bpy.ops.object.join()
-                
-                bpy.ops.object.editmode_toggle()
-                bpy.ops.mesh.select_all(action='SELECT')
-                bpy.ops.uv.select_all(action='DESELECT') 
-                bpy.ops.mesh.select_all(action='DESELECT')                                
-                new_ob.vertex_groups.active.name = 'texture plane'
-                bpy.ops.object.vertex_group_select()
-                bpy.ops.uv.select_all(action='SELECT')          
-                bpy.ops.object.editmode_toggle()
     
                 em.hide = False
                 em.select = True
@@ -991,7 +983,7 @@ class ChangeObject(Operator):
                 em.custom_active_object = new_ob.name
                 tmp = em.custom_c3d
                 em.custom_c3d = False
-                bpy.ops.object.active_view(index = shape_index-1)
+                #bpy.ops.object.active_view(index = shape_index-1)
                 bpy.ops.object.mode_set(mode = cm, toggle=False)
                         
                 sd = context.space_data
