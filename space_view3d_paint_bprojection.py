@@ -705,9 +705,9 @@ class AddBProjectionPlane(Operator):
             createcustomprops(context)
             cm = bpy.context.object.mode
             tmp = context.object
-            for ob in (ob for ob in bpy.data.objects if ob.type == 'MESH' and ob.hide == False and context.scene in ob.users_scene):
+            '''for ob in (ob for ob in bpy.data.objects if ob.type == 'MESH' and ob.hide == False and context.scene in ob.users_scene):
                 context.scene.objects.active = ob
-                bpy.ops.object.mode_set(mode = cm, toggle=False) 
+                bpy.ops.object.mode_set(mode = cm, toggle=False)''' 
             
             context.scene.objects.active = tmp
             bpy.ops.object.mode_set(mode = 'OBJECT', toggle=False)
@@ -872,9 +872,9 @@ class RemoveBProjectionPlane(Operator):
                     km.keymap_items.remove(kmi)
             
             tmp = context.object
-            for ob in (ob for ob in bpy.data.objects if ob.type == 'MESH' and ob.hide == False and context.scene in ob.users_scene):
+            '''for ob in (ob for ob in bpy.data.objects if ob.type == 'MESH' and ob.hide == False and context.scene in ob.users_scene):
                 context.scene.objects.active = ob
-                bpy.ops.object.mode_set(mode = 'OBJECT', toggle=False) 
+                bpy.ops.object.mode_set(mode = 'OBJECT', toggle=False) '''
             
             context.scene.objects.active = tmp
             ob = context.object           
@@ -983,7 +983,7 @@ class ChangeObject(Operator):
                 em.custom_active_object = new_ob.name
                 tmp = em.custom_c3d
                 em.custom_c3d = False
-                #bpy.ops.object.active_view(index = shape_index-1)
+                bpy.ops.object.active_view(index = shape_index-1)
                 bpy.ops.object.mode_set(mode = cm, toggle=False)
                         
                 sd = context.space_data
