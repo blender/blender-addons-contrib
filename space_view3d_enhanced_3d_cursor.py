@@ -3211,7 +3211,7 @@ class PseudoIDBlockBase(bpy.types.PropertyGroup):
 class TransformExtraOptionsProp(bpy.types.PropertyGroup):
     use_relative_coords = bpy.props.BoolProperty(
         name="Relative coordinates", 
-        description="Consider existing transformation as the strating point", 
+        description="Consider existing transformation as the starting point", 
         default=True)
     snap_interpolate_normals_mode = bpy.props.EnumProperty(
         items=[('NEVER', "Never", "Don't interpolate normals"),
@@ -4092,6 +4092,7 @@ class AlignOrientation(bpy.types.Operator):
     bl_label = "Align Orientation"
     bl_description = "Rotates active object to match axis of current "\
         "orientation to axis of another orientation"
+    bl_options = {'REGISTER', 'UNDO'}
     
     axes_items = [
         ('X', 'X', 'X axis'),
@@ -4172,7 +4173,7 @@ class AlignOrientation(bpy.types.Operator):
         
         obj.matrix_world = m
         
-        bpy.ops.ed.undo_push(message="Align Orientation")
+        #bpy.ops.ed.undo_push(message="Align Orientation")
         
         return {'FINISHED'}
     
