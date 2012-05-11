@@ -21,7 +21,7 @@ bl_info = {
     "name": "Enhanced 3D Cursor",
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
-    "version": (2, 8, 5),
+    "version": (2, 8, 7),
     "blender": (2, 6, 3),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
@@ -1572,16 +1572,11 @@ def gather_particles(**kwargs):
         # -> the monitor tries to update the CSU ->
         # -> object.mode_set seem to somehow conflict
         # with Undo/Redo mechanisms.
-        elif False and active_object and active_object.data and \
+        elif active_object and active_object.data and \
         (context_mode in {
         'EDIT_MESH', 'EDIT_METABALL',
         'EDIT_CURVE', 'EDIT_SURFACE',
         'EDIT_ARMATURE', 'POSE'}):
-            
-            prev_mode = active_object.mode
-            
-            if context_mode not in {'EDIT_ARMATURE', 'POSE'}:
-                bpy.ops.object.mode_set(mode='OBJECT')
             
             m = active_object.matrix_world
             
@@ -1589,16 +1584,31 @@ def gather_particles(**kwargs):
             normal = Vector((0, 0, 0))
             
             if context_mode == 'EDIT_MESH':
-                # We currently don't need to create particles
-                # for these; vertices are enough now.
-                #for face in active_object.data.polygons:
-                #    pass
-                #for edge in active_object.data.edges:
-                #    pass
-                for vertex in active_object.data.vertices:
-                    if vertex.select:
-                        positions.append(vertex.co)
-                        normal += vertex.normal
+                bm = bmesh.from_edit_mesh(active_object.data)
+                
+                if bm.select_history:
+                    elem = bm.select_history[-1]
+                    if isinstance(elem, bmesh.types.BMVert):
+                        active_element = elem.co.copy()
+                    else:
+                        active_element = Vector()
+                        for v in elem.verts:
+                            active_element += v.co
+                        active_element *= 1.0 / len(elem.verts)
+                
+                for v in bm.verts:
+                    if v.select:
+                        positions.append(v.co)
+                        normal += v.normal
+                
+                # mimic Blender's behavior (as of now,
+                # order of selection is ignored)
+                if len(positions) == 2:
+                    normal = positions[1] - positions[0]
+                elif len(positions) == 3:
+                    a = positions[0] - positions[1]
+                    b = positions[2] - positions[1]
+                    normal = a.cross(b)
             elif context_mode == 'EDIT_METABALL':
                 active_elem = active_object.data.elements.active
                 if active_elem:
@@ -1720,9 +1730,6 @@ def gather_particles(**kwargs):
                 normal_system.col[0].normalize()
                 normal_system.col[1].normalize()
                 normal_system.col[2].normalize()
-            
-            if context_mode not in {'EDIT_ARMATURE', 'POSE'}:
-                bpy.ops.object.mode_set(mode=prev_mode)
         else:
             # paint/sculpt, etc.?
             particle = View3D_Object(active_object)
@@ -1954,7 +1961,7 @@ class TransformOrientationUtility:
         name = self.transform_orientation
         return name[:1].upper() + name[1:].lower()
     
-    def set(self, name):
+    def set(self, name, set_v3d=True):
         if isinstance(name, int):
             n = len(self.custom_systems)
             if n == 0:
@@ -1983,7 +1990,8 @@ class TransformOrientationUtility:
         
         self.transform_orientation = name
         
-        self.v3d.transform_orientation = name
+        if set_v3d:
+            self.v3d.transform_orientation = name
     
     def get_matrix(self, name=None):
         active_obj = self.scene.objects.active
@@ -2037,6 +2045,11 @@ def create_transform_orientation(scene, name=None, matrix=None):
     tfm_orient = scene.orientations[-1]
     
     if name is not None:
+        basename = name
+        i = 1
+        while name in scene.orientations:
+            name = "%s.%03i" % (basename, i)
+            i += 1
         tfm_orient.name = name
     
     if matrix:
@@ -4145,9 +4158,11 @@ class AlignOrientation(bpy.types.Operator):
         v3d = context.space_data
         rv3d = context.region_data
         
-        tou = TransformOrientationUtility(scene, v3d, rv3d)
+        particles, csu = gather_particles(context=context)
+        tou = csu.tou
+        #tou = TransformOrientationUtility(scene, v3d, rv3d)
         
-        src_matrix = tou.get_matrix(v3d.transform_orientation)
+        src_matrix = tou.get_matrix()
         src_axes = MatrixDecompose(src_matrix)
         src_axis_name = self.src_axis
         if src_axis_name.startswith("-"):
@@ -4156,7 +4171,8 @@ class AlignOrientation(bpy.types.Operator):
         else:
             src_axis = src_axes[self.axes_ids[src_axis_name]]
         
-        dest_matrix = tou.get_matrix(self.dest_orient)
+        tou.set(self.dest_orient, False)
+        dest_matrix = tou.get_matrix()
         dest_axes = MatrixDecompose(dest_matrix)
         if self.dest_axis != ' ':
             dest_axis_name = self.dest_axis
@@ -4194,7 +4210,9 @@ class CopyOrientation(bpy.types.Operator):
         v3d = context.space_data
         rv3d = context.region_data
         
-        tou = TransformOrientationUtility(scene, v3d, rv3d)
+        particles, csu = gather_particles(context=context)
+        tou = csu.tou
+        #tou = TransformOrientationUtility(scene, v3d, rv3d)
         
         orient = create_transform_orientation(scene,
             name=tou.get()+".copy", matrix=tou.get_matrix())
