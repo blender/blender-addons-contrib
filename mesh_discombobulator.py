@@ -25,10 +25,9 @@ bl_info = {
     "api": 45996,
     "location": "Spacebar > Discombobulate",
     "warning": 'Beta',
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/My_Script",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=<number>",
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+                   'func=detail&aid=31390',
     "category": "Mesh"}
  
 import bpy
