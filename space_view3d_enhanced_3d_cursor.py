@@ -4100,6 +4100,46 @@ class SetCursorDialog(bpy.types.Operator):
         row.prop(tfm_opts, "use_relative_coords", text="Relative")
         row.prop(v3d, "transform_orientation", text="")
 
+class AlignOrientationProperties(bpy.types.PropertyGroup):
+    axes_items = [
+        ('X', 'X', 'X axis'),
+        ('Y', 'Y', 'Y axis'),
+        ('Z', 'Z', 'Z axis'),
+        ('-X', '-X', '-X axis'),
+        ('-Y', '-Y', '-Y axis'),
+        ('-Z', '-Z', '-Z axis'),
+    ]
+    
+    axes_items_ = [
+        ('X', 'X', 'X axis'),
+        ('Y', 'Y', 'Y axis'),
+        ('Z', 'Z', 'Z axis'),
+        (' ', ' ', 'Same as source axis'),
+    ]
+    
+    def get_orients(self, context):
+        orients = []
+        orients.append(('GLOBAL', "Global", ""))
+        orients.append(('LOCAL', "Local", ""))
+        orients.append(('GIMBAL', "Gimbal", ""))
+        orients.append(('NORMAL', "Normal", ""))
+        orients.append(('VIEW', "View", ""))
+        
+        for orientation in context.scene.orientations:
+            name = orientation.name
+            orients.append((name, name, ""))
+        
+        return orients
+    
+    src_axis = bpy.props.EnumProperty(default='Z', items=axes_items,
+                                      name="Initial axis")
+    #src_orient = bpy.props.EnumProperty(default='GLOBAL', items=get_orients)
+    
+    dest_axis = bpy.props.EnumProperty(default=' ', items=axes_items_,
+                                       name="Final axis")
+    dest_orient = bpy.props.EnumProperty(items=get_orients,
+                                         name="Final orientation")
+
 class AlignOrientation(bpy.types.Operator):
     bl_idname = "view3d.align_orientation"
     bl_label = "Align Orientation"
@@ -4153,6 +4193,7 @@ class AlignOrientation(bpy.types.Operator):
         return (context.area.type == 'VIEW_3D') and context.object
     
     def execute(self, context):
+        wm = context.window_manager
         obj = context.object
         scene = context.scene
         v3d = context.space_data
@@ -4162,20 +4203,22 @@ class AlignOrientation(bpy.types.Operator):
         tou = csu.tou
         #tou = TransformOrientationUtility(scene, v3d, rv3d)
         
+        aop = wm.align_orientation_properties # self
+        
         src_matrix = tou.get_matrix()
         src_axes = MatrixDecompose(src_matrix)
-        src_axis_name = self.src_axis
+        src_axis_name = aop.src_axis
         if src_axis_name.startswith("-"):
             src_axis_name = src_axis_name[1:]
             src_axis = -src_axes[self.axes_ids[src_axis_name]]
         else:
             src_axis = src_axes[self.axes_ids[src_axis_name]]
         
-        tou.set(self.dest_orient, False)
+        tou.set(aop.dest_orient, False)
         dest_matrix = tou.get_matrix()
         dest_axes = MatrixDecompose(dest_matrix)
         if self.dest_axis != ' ':
-            dest_axis_name = self.dest_axis
+            dest_axis_name = aop.dest_axis
         else:
             dest_axis_name = src_axis_name
         dest_axis = dest_axes[self.axes_ids[dest_axis_name]]
@@ -4198,7 +4241,15 @@ class AlignOrientation(bpy.types.Operator):
     # the last selected orientation may revert to the previous state
     def invoke(self, context, event):
         wm = context.window_manager
-        return wm.invoke_props_dialog(self)
+        return wm.invoke_props_dialog(self, width=200)
+    
+    def draw(self, context):
+        layout = self.layout
+        wm = context.window_manager
+        aop = wm.align_orientation_properties # self
+        layout.prop(aop, "src_axis")
+        layout.prop(aop, "dest_axis")
+        layout.prop(aop, "dest_orient")
 
 class CopyOrientation(bpy.types.Operator):
     bl_idname = "view3d.copy_orientation"
@@ -5120,8 +5171,11 @@ def update_keymap(activate):
         kmi.active = not activate
 
 def register():
+    bpy.utils.register_class(AlignOrientationProperties)
     bpy.utils.register_class(AlignOrientation)
     bpy.utils.register_class(CopyOrientation)
+    bpy.types.WindowManager.align_orientation_properties = \
+        bpy.props.PointerProperty(type=AlignOrientationProperties)
     bpy.types.VIEW3D_PT_transform_orientations.append(
         transform_orientations_panel_extension)
     
@@ -5233,8 +5287,10 @@ def unregister():
     
     bpy.types.VIEW3D_PT_transform_orientations.remove(
         transform_orientations_panel_extension)
+    del bpy.types.WindowManager.align_orientation_properties
     bpy.utils.unregister_class(CopyOrientation)
     bpy.utils.unregister_class(AlignOrientation)
+    bpy.utils.unregister_class(AlignOrientationProperties)
 
 class DelayRegistrationOperator(bpy.types.Operator):
     bl_idname = "wm.enhanced_3d_cursor_registration"
