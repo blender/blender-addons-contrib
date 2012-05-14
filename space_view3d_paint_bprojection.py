@@ -691,12 +691,12 @@ class AddBProjectionPlane(Operator):
         except:                 
             createcustomprops(context)
             cm = bpy.context.object.mode
-            tmp = context.object
+            '''tmp = context.object
             for ob in (ob for ob in bpy.data.objects if ob.type == 'MESH' and ob.hide == False and context.scene in ob.users_scene):
                 context.scene.objects.active = ob
                 bpy.ops.object.mode_set(mode = cm, toggle=False) 
             
-            context.scene.objects.active = tmp
+            context.scene.objects.active = tmp'''
             bpy.ops.object.mode_set(mode = 'OBJECT', toggle=False)
             
             context.space_data.show_relationship_lines = False
@@ -858,12 +858,12 @@ class RemoveBProjectionPlane(Operator):
             for kmi in (kmi for kmi in km.keymap_items if kmi.idname in {"object.intuitivescale", }):
                     km.keymap_items.remove(kmi)
             
-            tmp = context.object
+            '''tmp = context.object
             for ob in (ob for ob in bpy.data.objects if ob.type == 'MESH' and ob.hide == False and context.scene in ob.users_scene):
                 context.scene.objects.active = ob
                 bpy.ops.object.mode_set(mode = 'OBJECT', toggle=False) 
             
-            context.scene.objects.active = tmp
+            context.scene.objects.active = tmp'''
             ob = context.object           
             
             
