@@ -85,7 +85,7 @@ class vertex:
         self.normal = average(target).centroid()
         self.normal.findlength()
         if self.length == 0:
-            print("******ERROR*** lenght zero in findnormal, j = (0,1,0) replcaced")
+            print("******ERROR*** length zero in findnormal, j = (0,1,0) replcaced")
             self.normal = vertex((0,1,0))
         self.normal.normalize()
 
