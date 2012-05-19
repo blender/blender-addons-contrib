@@ -5156,19 +5156,24 @@ def update_keymap(activate):
             for kmi in items:
                 km.keymap_items.remove(kmi)
     
-    items = find_keymap_items(km, 'view3d.cursor3d')
-    for kmi in items:
+    for kmi in find_keymap_items(km, 'view3d.cursor3d'):
         kmi.active = not activate
     
-    km = wm.keyconfigs.active.keymaps['3D View']
-    items = find_keymap_items(km, 'view3d.cursor3d')
-    for kmi in items:
-        kmi.active = not activate
+    try:
+        km = wm.keyconfigs.active.keymaps['3D View']
+        for kmi in find_keymap_items(km, 'view3d.cursor3d'):
+            kmi.active = not activate
+    except KeyError:
+        # seems like in recent builds (after 2.63a)
+        # 'bpy_prop_collection[key]: key "3D View" not found'
+        pass
     
-    km = wm.keyconfigs.default.keymaps['3D View']
-    items = find_keymap_items(km, 'view3d.cursor3d')
-    for kmi in items:
-        kmi.active = not activate
+    try:
+        km = wm.keyconfigs.default.keymaps['3D View']
+        for kmi in find_keymap_items(km, 'view3d.cursor3d'):
+            kmi.active = not activate
+    except KeyError:
+        pass
 
 def register():
     bpy.utils.register_class(AlignOrientationProperties)
