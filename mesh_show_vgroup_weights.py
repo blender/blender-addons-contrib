@@ -184,7 +184,7 @@ class ShowVGroupWeights(bpy.types.Operator):
                 clear_properties(full=False)
                 return {'RUNNING_MODAL'}
         else:
-            self.report({"WARNING"}, "View3D not found, can't run operator")
+            self.report({'WARNING'}, "View3D not found, can't run operator")
             return {'CANCELLED'}
 
 

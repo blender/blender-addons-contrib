@@ -781,7 +781,7 @@ class Birail1Operator(bpy.types.Operator):
         objs = bpy.selection
 
         if len(objs)!=3:
-            self.report("ERROR","Please select 3 curves")
+            self.report({'ERROR'},"Please select 3 curves")
             return {'FINISHED'}
 
         scn = context.scene

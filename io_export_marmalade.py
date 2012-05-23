@@ -1449,14 +1449,14 @@ class MarmaladeExporter(bpy.types.Operator):
             bpy.ops.object.mode_set(mode='OBJECT')
 
         ExportMadeWithMarmaladeGroup(Config)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         if not self.filepath:
             self.filepath = bpy.path.ensure_ext(bpy.data.filepath, ".group")
         WindowManager = context.window_manager
         WindowManager.fileselect_add(self)
-        return {"RUNNING_MODAL"}
+        return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):

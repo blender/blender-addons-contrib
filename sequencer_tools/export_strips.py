@@ -61,12 +61,12 @@ class SEQExportStrip(bpy.types.Operator):
         sce.render.filepath = back_filepath
         sce.frame_start = back_start
         sce.frame_end = back_end
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         if not self.filepath:
             self.filepath = bpy.context.scene.render.filepath
         winman = context.window_manager
         winman.fileselect_add(self)
-        return {"RUNNING_MODAL"}
+        return {'RUNNING_MODAL'}
 

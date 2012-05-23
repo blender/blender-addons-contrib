@@ -760,7 +760,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
                 if obj_name == "None":
                     message = "fill in a name \nof an existing mesh\nto be imported"
                     context.scene.error_message = message
-                    self.report({"INFO"}, message)
+                    self.report({'INFO'}, message)
                     print("***INFO*** you have to fill in the name of an existing mesh")
                 else:
 #                    obj_in_scene = context.objects

@@ -110,7 +110,7 @@ class TEXT_OT_pasteall(bpy.types.Operator):
             try:
                 webbrowser.open_new_tab(page)
             except:
-                self.report('WARNING', "Error in opening the page %s." % (page))
+                self.report({'WARNING'}, "Error in opening the page %s." % (page))
 
         return {'FINISHED'}
             

@@ -3439,7 +3439,7 @@ class NewCursor3DBookmark(bpy.types.Operator):
             bookmark.pos = library.convert_from_abs(context.space_data,
                                                     cusor_pos, True)
         except Exception as exc:
-            self.report('ERROR_INVALID_CONTEXT', exc.args[0])
+            self.report({'ERROR_INVALID_CONTEXT'}, exc.args[0])
             return {'CANCELLED'}
         
         return {'FINISHED'}
@@ -3487,7 +3487,7 @@ class OverwriteCursor3DBookmark(bpy.types.Operator):
             bookmark.pos = library.convert_from_abs(context.space_data,
                                                     cusor_pos, True)
         except Exception as exc:
-            self.report('ERROR_INVALID_CONTEXT', exc.args[0])
+            self.report({'ERROR_INVALID_CONTEXT'}, exc.args[0])
             return {'CANCELLED'}
         
         CursorDynamicSettings.recalc_csu(context, 'PRESS')
@@ -3518,7 +3518,7 @@ class RecallCursor3DBookmark(bpy.types.Operator):
                                                   bookmark.pos, True)
             set_cursor_location(bookmark_pos, v3d=context.space_data)
         except Exception as exc:
-            self.report('ERROR_INVALID_CONTEXT', exc.args[0])
+            self.report({'ERROR_INVALID_CONTEXT'}, exc.args[0])
             return {'CANCELLED'}
         
         CursorDynamicSettings.recalc_csu(context)
@@ -3556,7 +3556,7 @@ class SwapCursor3DBookmark(bpy.types.Operator):
                                                     cusor_pos, True,
                 use_history=False)
         except Exception as exc:
-            self.report('ERROR_INVALID_CONTEXT', exc.args[0])
+            self.report({'ERROR_INVALID_CONTEXT'}, exc.args[0])
             return {'CANCELLED'}
         
         CursorDynamicSettings.recalc_csu(context)
@@ -3594,7 +3594,7 @@ class AddEmptyAtCursor3DBookmark(bpy.types.Operator):
                                         v3d=context.space_data, warn=True)
             bookmark_pos = matrix * bookmark.pos
         except Exception as exc:
-            self.report('ERROR_INVALID_CONTEXT', exc.args[0])
+            self.report({'ERROR_INVALID_CONTEXT'}, exc.args[0])
             return {'CANCELLED'}
         
         name = "{}.{}".format(library.name, bookmark.name)

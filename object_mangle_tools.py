@@ -77,7 +77,7 @@ class MeshManglerOperator(bpy.types.Operator):
         random.seed( time.time() )
 
         if mesh.shape_keys != None:
-            self.report( {"INFO"}, "Cannot mangle mesh: Shape keys present" )
+            self.report({'INFO'}, "Cannot mangle mesh: Shape keys present")
             return {'CANCELLED'}
         
         for vert in verts:
@@ -133,7 +133,7 @@ class CurveManglerOp(bpy.types.Operator):
 
         ob = context.active_object
         if ob.data.shape_keys != None:
-            self.report({"INFO"}, "Cannot mangle curve.  Shape keys present")
+            self.report({'INFO'}, "Cannot mangle curve.  Shape keys present")
             return {'CANCELLED'}
         splines = context.object.data.splines
         

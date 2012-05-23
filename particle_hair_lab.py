@@ -48,7 +48,7 @@ class saveSelectionPanel(bpy.types.Panel):
     bl_region_type = 'TOOLS'
 
     bl_label = "Selection Save"
-    bl_options = {"DEFAULT_CLOSED"}
+    bl_options = {'DEFAULT_CLOSED'}
     bl_context = "particlemode"
     
 
@@ -99,7 +99,7 @@ class saveSelection(bpy.types.Operator):
     
     def execute(self, context):
         
-        return {"FINISHED"}
+        return {'FINISHED'}
 """
 class testScene1(bpy.types.Operator):
     bl_idname = "grass.switch_back"
@@ -112,7 +112,7 @@ class testScene1(bpy.types.Operator):
         scene = bpy.context.scene
         bpy.data.scenes.remove(scene)
         
-        return {"FINISHED"}
+        return {'FINISHED'}
         
         
 class testScene2(bpy.types.Operator):
@@ -199,7 +199,7 @@ class testScene2(bpy.types.Operator):
         bpy.ops.mesh.primitive_uv_sphere_add(size=0.1)
         bpy.ops.object.shade_smooth()
 		
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 class Generategrass(bpy.types.Operator):
@@ -560,7 +560,7 @@ class saveSelection(bpy.types.Operator):
     
     def execute(self, context):
         
-        return {"FINISHED"}
+        return {'FINISHED'}
 """
 class testScene3(bpy.types.Operator):
     bl_idname = "hair.switch_back"
@@ -573,7 +573,7 @@ class testScene3(bpy.types.Operator):
         scene = bpy.context.scene
         bpy.data.scenes.remove(scene)
         
-        return {"FINISHED"}
+        return {'FINISHED'}
         
         
 class testScene4(bpy.types.Operator):
@@ -658,7 +658,7 @@ class testScene4(bpy.types.Operator):
 # add sphere
         bpy.ops.mesh.primitive_uv_sphere_add(size=0.1)
         bpy.ops.object.shade_smooth()       
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 class GenerateHair(bpy.types.Operator):
@@ -1013,7 +1013,7 @@ class saveSelection(bpy.types.Operator):
     
     def execute(self, context):
         
-        return {"FINISHED"}
+        return {'FINISHED'}
 """
 class testScene5(bpy.types.Operator):
     bl_idname = "fur.switch_back"
@@ -1026,7 +1026,7 @@ class testScene5(bpy.types.Operator):
         scene = bpy.context.scene
         bpy.data.scenes.remove(scene)
         
-        return {"FINISHED"}
+        return {'FINISHED'}
         
         
 class testScene6(bpy.types.Operator):
@@ -1111,7 +1111,7 @@ class testScene6(bpy.types.Operator):
 # add sphere
         bpy.ops.mesh.primitive_uv_sphere_add(size=0.1)
         bpy.ops.object.shade_smooth()       
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 class GenerateFur(bpy.types.Operator):

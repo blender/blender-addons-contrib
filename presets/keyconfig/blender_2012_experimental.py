@@ -72,7 +72,7 @@ class ObjectDeleteNoConfirm(bpy.types.Operator):
     '''Deletes selected objects without the confirmation popup.'''
     bl_idname = "object.delete_no_confirm"
     bl_label = "Delete Objects No Confirm"
-    bl_options = {"UNDO"}
+    bl_options = {'UNDO'}
     
     @classmethod
     def poll(cls, context):

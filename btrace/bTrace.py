@@ -646,7 +646,7 @@ class OBJECT_OT_objecttrace(bpy.types.Operator):
                 addtracemat(bpy.context.object.data)
             if Btrace.animate:
                 bpy.ops.curve.btgrow()
-        return{"FINISHED"}
+        return {'FINISHED'}
 
 
 ################## ################## ################## ############
@@ -734,7 +734,7 @@ class OBJECT_OT_objectconnect(bpy.types.Operator):
         bpy.ops.object.group_link(group="Btrace") # add to Btrace group
         if Btrace.animate:
             bpy.ops.curve.btgrow() # Add grow curve
-        return{"FINISHED"}
+        return {'FINISHED'}
 
 
 ################## ################## ################## ############
@@ -811,7 +811,7 @@ class OBJECT_OT_particletrace(bpy.types.Operator):
         if Btrace.animate:
             bpy.ops.curve.btgrow()  # Add grow curve
 
-        return{"FINISHED"}
+        return {'FINISHED'}
 
 
 ###########################################################################
@@ -837,7 +837,7 @@ class OBJECT_OT_traceallparticles(bpy.types.Operator):
 
         # Grids distribution not supported
         if set.distribution == 'GRID':
-            self.report('INFO',"Grid distribution mode for particles not supported.")
+            self.report({'INFO'},"Grid distribution mode for particles not supported.")
             return{'FINISHED'}
         
         Btrace = bpy.context.window_manager.curve_tracer
@@ -1040,11 +1040,11 @@ class OBJECT_OT_convertcurve(bpy.types.Operator):
         if Btrace.distort_curve: 
             scale = Btrace.distort_modscale
             if scale == 0:
-                return{"FINISHED"}
+                return {'FINISHED'}
             for u in obj.data.splines:
                 for v in u.bezier_points:
                     v.radius = scale*round(random.random(),3) 
-        return{"FINISHED"}
+        return {'FINISHED'}
 
 
 ################## ################## ################## ############
@@ -1439,7 +1439,7 @@ class OBJECT_OT_fcnoise(bpy.types.Operator):
                             n.strength = amplitude
                             n.scale = time_scale
                             n.phase = random.randint(0,999)
-        return{"FINISHED"}
+        return {'FINISHED'}
 
 ################## ################## ################## ############
 ## Curve Grow Animation

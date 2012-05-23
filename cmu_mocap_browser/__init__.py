@@ -214,7 +214,7 @@ class CMUMocapDownloadImport(bpy.types.Operator):
             return {'RUNNING_MODAL'}
         else:
             self.import_or_open()
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     def import_or_open(self):
         cml = bpy.data.scenes[0].cmu_mocap_lib
