@@ -53,7 +53,7 @@ def vrot(self,r):
 def vsca(self, r):
     random.seed(self.ran + r)
     return [self.sca * (1 + random.gauss(0, self.var3 / 3))] * 3
-# funcion para calcular el centro de una seleccion de vertices
+# centroide de una seleccion de vertices
 def centro(ver):
     vvv = [v for v in ver if v.select]
     if not vvv or len(vvv) == len(ver): return ('error')
@@ -62,9 +62,9 @@ def centro(ver):
     z = sum([round(v.co[2],4) for v in vvv]) / len(vvv)
     return (x,y,z)
 
+# recuperar el estado original del objeto
 def volver(obj, copia, om, msm, msv):
     for i in copia: obj.data.vertices[i].select = True
-    #bpy.ops.object.mode_set(mode=om) #stay in object mode...
     bpy.context.tool_settings.mesh_select_mode = msm
     for i in range(len(msv)):
         obj.modifiers[i].show_viewport = msv[i]
@@ -181,6 +181,7 @@ class MExtrude(bpy.types.Operator):
         if not total:
             self.report({'INFO'}, 'Select one or more faces...')
         return{'FINISHED'}
+
 class BB(bpy.types.Operator):
     bl_idname = 'object.mesh2bones'
     bl_label = 'Create Armature'
@@ -190,10 +191,10 @@ class BB(bpy.types.Operator):
     numb = IntProperty(name='Max Bones', min=1, max=1000, soft_max=100, default=5, description='Max number of bones')
     skip = IntProperty(name='Skip Loops', min=0, max=5, default=0, description='Skip some edges to get longer bones')
     long = FloatProperty(name='Min Length', min=0.01, max=5, default=0.15, description='Discard bones shorter than this value')
-    ika = BoolProperty(name='IK constraints', default=True, description='Add an Empty and a IK constraint')
-    rotk = BoolProperty(name='Use rotation', default=False, description='Activate constraint rotation')
+    ika = BoolProperty(name='IK constraints', default=True, description='Add IK constraint and Empty as target')
+    rotk = BoolProperty(name='IK Rotation', default=False, description='IK constraint follows target rotation')
     auto = BoolProperty(name='Auto weight', default=True, description='Auto weight and assign vertices')
-    env = BoolProperty(name='Use Envelopes', default=False, description='Use envelopes instead of weights')
+    env = BoolProperty(name='Envelopes', default=False, description='Use envelopes instead of weights')
     rad = FloatProperty(name='Radius', min=0.01, max=5, default=0.25, description='Envelope deform radius')
     nam = StringProperty(name='', default='hueso', description='Default name for bones / groups')
 
@@ -220,25 +221,33 @@ class BB(bpy.types.Operator):
     def execute(self, context):
         scn = bpy.context.scene
         obj = bpy.context.object
-        fac, ver, om = obj.data.polygons, obj.data.vertices, obj.mode
+        fac = obj.data.polygons
+        # guardar estado y seleccion
+        ver, om = obj.data.vertices, obj.mode
         msm, msv = list(bpy.context.tool_settings.mesh_select_mode), []
         for i in range(len(obj.modifiers)):
             msv.append(obj.modifiers[i].show_viewport)
             obj.modifiers[i].show_viewport = False
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.context.tool_settings.mesh_select_mode = [True, False, False]
-        txt = 'Select a face or a vertex where the chain should end...'
-
-        # una cadena de huesos por cara...
         bpy.ops.object.mode_set(mode='OBJECT')
         copia = [v.index for v in ver if v.select]
         sel = [f.index for f in fac if f.select]
-        if sel == []: sel = ['simple']
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.context.tool_settings.mesh_select_mode = [True, False, False]
+        bpy.ops.mesh.select_all(action='DESELECT')
+        txt = 'Select a face or a vertex where the chain should end...'
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        # crear rig unico -desde vertice/s y no desde caras-
+        if sel == []:
+            sel = ['simple']
+            for i in copia:
+                obj.data.vertices[i].select = True
 
         # reciclar el rig en cada refresco...
         try: scn.objects.unlink(rig)
         except: pass
 
+        # loop de caras
         for i in sel:
             if sel[0] != 'simple':
                 for v in ver: v.select = False
@@ -339,6 +348,7 @@ class BB(bpy.types.Operator):
         scn.objects.active = obj
         volver(obj, copia, om, msm, msv)
         return{'FINISHED'}
+
 
 
 class BotonME(bpy.types.Panel):
