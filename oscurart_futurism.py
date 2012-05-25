@@ -44,14 +44,17 @@ def object_osc_futurism (self, context,STEP, HOLD):
     
     OBACT = bpy.context.active_object
     
-    # SUMO PARAMETERS AL OBJECT
-    OBACT["FUTURISM_HOLDIN"] = 0
-    OBACT["FUTURISM_HOLDOUT"] = 0
+
     
     ## CREO EMPTY
     bpy.ops.object.add()
     bpy.context.active_object.name = "FuturismContainer"
     EMPTY = bpy.context.active_object
+    
+    
+    # SUMO PARAMETERS AL OBJECT
+    EMPTY["FUTURISM_HOLDIN"] = 0
+    EMPTY["FUTURISM_HOLDOUT"] = 0    
     
     bpy.context.scene.objects.active = OBACT  
     
@@ -75,10 +78,10 @@ def object_osc_futurism (self, context,STEP, HOLD):
             OBJECT.animation_data.drivers[0].driver.variables[0].targets[0].id= bpy.context.scene
             OBJECT.animation_data.drivers[0].driver.variables[0].targets[0].data_path = "current_frame"
             OBJECT.animation_data.drivers[0].driver.variables[1].targets[0].id_type = 'OBJECT'
-            OBJECT.animation_data.drivers[0].driver.variables[1].targets[0].id= OBACT
+            OBJECT.animation_data.drivers[0].driver.variables[1].targets[0].id= EMPTY
             OBJECT.animation_data.drivers[0].driver.variables[1].targets[0].data_path = '["FUTURISM_HOLDIN"]'  
             OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].id_type = 'OBJECT'
-            OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].id= OBACT
+            OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].id= EMPTY
             OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].data_path = '["FUTURISM_HOLDOUT"]'     
             
             # MARCO EXPRESIONES PARA RENDER
@@ -92,10 +95,10 @@ def object_osc_futurism (self, context,STEP, HOLD):
             OBJECT.animation_data.drivers[1].driver.variables[0].targets[0].id= bpy.context.scene
             OBJECT.animation_data.drivers[1].driver.variables[0].targets[0].data_path = "current_frame"   
             OBJECT.animation_data.drivers[0].driver.variables[1].targets[0].id_type = 'OBJECT'
-            OBJECT.animation_data.drivers[0].driver.variables[1].targets[0].id= OBACT
+            OBJECT.animation_data.drivers[0].driver.variables[1].targets[0].id= EMPTY
             OBJECT.animation_data.drivers[0].driver.variables[1].targets[0].data_path = '["FUTURISM_HOLDIN"]'  
             OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].id_type = 'OBJECT'
-            OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].id= OBACT
+            OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].id= EMPTY
             OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].data_path = '["FUTURISM_HOLDOUT"]'                       
             # RESETEO STEPINC
             STEPINC=0
