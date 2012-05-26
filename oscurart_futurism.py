@@ -38,25 +38,20 @@ def object_osc_futurism (self, context,STEP, HOLD):
     OBJLIST=[] # LISTA PARA OBJETOS ????
     FC=FS # FRAME CURRENT
     OBJNUMBER=1 # SUFIJO DE NUMERO PARA OBJETOS
-    STEPINC=0 # NUMERO PARA EVALUAR LOS PASOS    
-    # SETEO EL FRAME CURRENT
-    bpy.context.scene.frame_set(FS)  
-    
-    OBACT = bpy.context.active_object
-    
-
+    STEPINC=0 # NUMERO PARA EVALUAR LOS PASOS        
+    bpy.context.scene.frame_set(FS)  # SETEO EL FRAME CURRENT    
+    OBACT = bpy.context.active_object # SETEO EL OBJETO ACTIVO
     
     ## CREO EMPTY
     bpy.ops.object.add()
     bpy.context.active_object.name = "FuturismContainer"
-    EMPTY = bpy.context.active_object
+    EMPTY = bpy.context.active_object   
     
-    
-    # SUMO PARAMETERS AL OBJECT
+    # SUMO PARAMETERS AL EMPTY
     EMPTY["FUTURISM_HOLDIN"] = 0
     EMPTY["FUTURISM_HOLDOUT"] = 0    
     
-    bpy.context.scene.objects.active = OBACT  
+    bpy.context.scene.objects.active = OBACT  # RECUPERO OBJETO ACTIVO 
     
     for OBJETO in range((FE+1)-FS):
         if STEPINC == STEP:
@@ -84,22 +79,21 @@ def object_osc_futurism (self, context,STEP, HOLD):
             OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].id= EMPTY
             OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].data_path = '["FUTURISM_HOLDOUT"]'     
             
-            # MARCO EXPRESIONES PARA RENDER
-            OBJECT.animation_data.drivers[0].driver.variables.new()
-            OBJECT.animation_data.drivers[0].driver.variables.new()
-            OBJECT.animation_data.drivers[0].driver.variables.new()            
+            # MARCO EXPRESIONES PARA RENDER           
             OBJECT.driver_add("hide_render")
             OBJECT.animation_data.drivers[1].driver.variables.new()
+            OBJECT.animation_data.drivers[1].driver.variables.new()
+            OBJECT.animation_data.drivers[1].driver.variables.new()         
             OBJECT.animation_data.drivers[1].driver.expression= "False if frame >= %s+5 and frame <= %s else True" % (str(FC),str(FC+HOLD))
             OBJECT.animation_data.drivers[1].driver.variables[0].targets[0].id_type = 'SCENE'
             OBJECT.animation_data.drivers[1].driver.variables[0].targets[0].id= bpy.context.scene
             OBJECT.animation_data.drivers[1].driver.variables[0].targets[0].data_path = "current_frame"   
-            OBJECT.animation_data.drivers[0].driver.variables[1].targets[0].id_type = 'OBJECT'
-            OBJECT.animation_data.drivers[0].driver.variables[1].targets[0].id= EMPTY
-            OBJECT.animation_data.drivers[0].driver.variables[1].targets[0].data_path = '["FUTURISM_HOLDIN"]'  
-            OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].id_type = 'OBJECT'
-            OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].id= EMPTY
-            OBJECT.animation_data.drivers[0].driver.variables[2].targets[0].data_path = '["FUTURISM_HOLDOUT"]'                       
+            OBJECT.animation_data.drivers[1].driver.variables[1].targets[0].id_type = 'OBJECT'
+            OBJECT.animation_data.drivers[1].driver.variables[1].targets[0].id= EMPTY
+            OBJECT.animation_data.drivers[1].driver.variables[1].targets[0].data_path = '["FUTURISM_HOLDIN"]'  
+            OBJECT.animation_data.drivers[1].driver.variables[2].targets[0].id_type = 'OBJECT'
+            OBJECT.animation_data.drivers[1].driver.variables[2].targets[0].id= EMPTY
+            OBJECT.animation_data.drivers[1].driver.variables[2].targets[0].data_path = '["FUTURISM_HOLDOUT"]'                       
             # RESETEO STEPINC
             STEPINC=0
             # COPIAMOS S R T
@@ -108,9 +102,7 @@ def object_osc_futurism (self, context,STEP, HOLD):
             OBJECT.parent=EMPTY
         # AVANZO STEP Y FRAME
         FC+=1
-        STEPINC+=1
-        
-    
+        STEPINC+=1    
 
 # CLASE PARA OPERADOR
 class Oscurart_futurism (bpy.types.Operator):
@@ -122,6 +114,10 @@ class Oscurart_futurism (bpy.types.Operator):
     scale = bpy.props.IntProperty(name='Step',default=1, min=1, max=1000)
     
     hold = bpy.props.IntProperty(name='Hold', default=0, min=0)
+
+    @classmethod
+    def poll(cls, context):
+        return(bpy.context.active_object.type == "MESH" ) 
 
     def execute(self, context):
         object_osc_futurism(self, context, self.scale, self.hold)
