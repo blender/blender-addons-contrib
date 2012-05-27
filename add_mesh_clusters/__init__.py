@@ -46,7 +46,8 @@ bl_info = {
     "location": "Panel: View 3D - Tools (left side)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/Cluster",
-    "tracker_url": "",
+    "tracker_url": "http://projects.blender.org/tracker/"
+                   "index.php?func=detail&aid=31618&group_id=153&atid=468",
     "category": "Add mesh"
 }
 
