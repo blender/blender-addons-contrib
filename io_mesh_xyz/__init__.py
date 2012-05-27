@@ -16,6 +16,21 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+#
+#
+#  Authors           : Clemens Barth (Blendphys@root-1.de), ...
+#
+#  Homepage(Wiki)    : http://development.root-1.de/Atomic_Blender.php
+#  Tracker           : ... soon
+#
+#  Start of project              : 2011-12-01 by Clemens Barth
+#  First publication in Blender  : 2011-12-18
+#  Last modified                 : 2012-03-22
+#
+#  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
+#  dairin0d, PKHG, Valter, etc
+#
+
 bl_info = {
     "name": "XYZ Atomic Blender",
     "description": "Loading and manipulating atoms from XYZ files",
