@@ -64,15 +64,40 @@ from bpy.props import (StringProperty,
 
 from . import add_mesh_cluster
 
+ATOM_Cluster_PANEL = 0
+
 # -----------------------------------------------------------------------------
 #                                                                           GUI
 
-# The panel, which is loaded after the file has been
-# chosen via the menu 'File -> Import'
+
+class CLASS_ImportCluster(bpy.types.Operator):
+    bl_idname = "mesh.cluster"
+    bl_label = "Atom cluster"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+
+        global ATOM_Cluster_PANEL
+        ATOM_Cluster_PANEL = 1
+
+        return {'FINISHED'}
+
+
+
 class CLASS_atom_cluster_panel(Panel):
     bl_label       = "Atomic Blender - Cluster"
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOL_PROPS"
+
+
+    @classmethod
+    def poll(self, context):
+        global ATOM_Cluster_PANEL
+        
+        if ATOM_Cluster_PANEL == 0:
+            return False
+        
+        return True
 
     def draw(self, context):
         layout = self.layout
@@ -98,7 +123,6 @@ class CLASS_atom_cluster_panel(Panel):
             row.prop(scn, "size")
             row = box.row()
             row.prop(scn, "skin")
-
 
         row = box.row()
         row.prop(scn, "lattice_parameter")
@@ -180,7 +204,7 @@ class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
                ('parabolid_abc',    "Paraboloid: hex abc", "Paraboloid with abc-lattice")),
                default='sphere_square',)  
     lattice_parameter = FloatProperty(
-        name = "Lattice", default=4.0, min=0.1,
+        name = "Lattice", default=4.0, min=1.0,
         description = "Lattice parameter in Angstroem")
     element = StringProperty(name="Element",
         default="Gold", description = "Enter the name of the element")
@@ -471,6 +495,11 @@ def DEF_atom_cluster_radius_all(scale, how):
                     if "Stick" not in obj.name:
                         obj.scale *= scale
 
+
+# The entry into the menu 'file -> import'
+def DEF_menu_func(self, context):
+    self.layout.operator(CLASS_ImportCluster.bl_idname, icon='MESH_CUBE')
+
 def register_atom_class():
     bpy.types.Scene.atom_cluster = bpy.props.CollectionProperty(type=CLASS_atom_cluster_Properties)    
     bpy.context.scene.atom_cluster.add()
@@ -478,9 +507,11 @@ def register_atom_class():
 def register():
     bpy.utils.register_module(__name__)
     register_atom_class()
+    bpy.types.INFO_MT_mesh_add.append(DEF_menu_func)
     
 def unregister():
     bpy.utils.unregister_module(__name__)
+    bpy.types.INFO_MT_mesh_add.remove(DEF_menu_func)
 
 if __name__ == "__main__":
 
