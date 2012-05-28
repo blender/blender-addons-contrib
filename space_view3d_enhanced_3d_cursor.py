@@ -2477,7 +2477,8 @@ class Snap3DUtility(SnapUtilityBase):
     def __init__(self, scene, shade):
         SnapUtilityBase.__init__(self)
         
-        self.cache = MeshCache(scene)
+        convert_types = {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}
+        self.cache = MeshCache(scene, convert_types)
         
         # ? seems that dict is enough
         self.bbox_cache = {}#collections.OrderedDict()
@@ -2489,13 +2490,10 @@ class Snap3DUtility(SnapUtilityBase):
         mesh.update(calc_tessface=True)
         #mesh.calc_tessface()
         
-        self.bbox_obj = self.cache.create_temporary_mesh_obj(mesh, Matrix())
+        self.bbox_obj = self.cache._make_obj(mesh, None)
         self.bbox_obj.hide = True
         self.bbox_obj.draw_type = 'WIRE'
         self.bbox_obj.name = "BoundBoxSnap"
-        # make it displayable
-        #self.cache.scene.objects.link(self.bbox_obj)
-        #self.cache.scene.update()
         
         self.shade_bbox = (shade == 'BOUNDBOX')
     
@@ -2522,7 +2520,7 @@ class Snap3DUtility(SnapUtilityBase):
         bpy.data.objects.remove(self.bbox_obj)
         bpy.data.meshes.remove(mesh)
         
-        self.cache.dispose()
+        self.cache.clear()
     
     def hide_bbox(self, hide):
         if self.bbox_obj.hide == hide:
@@ -2556,7 +2554,8 @@ class Snap3DUtility(SnapUtilityBase):
             m_combined = sys_matrix_inv * m
             bbox = [None, None]
             
-            mesh_obj = self.cache[obj, True, self.editmode]
+            variant = ('RAW' if self.editmode else 'PREVIEW')
+            mesh_obj = self.cache.get(obj, variant, reuse=False)
             if (mesh_obj is None) or self.shade_bbox or \
                     (obj.draw_type == 'BOUNDS'):
                 if is_local:
@@ -2644,9 +2643,10 @@ class Snap3DUtility(SnapUtilityBase):
             
             if not is_bbox:
                 # Ensure we work with raycastable object.
-                obj = self.cache[obj, force, edit]
-                if obj is None:
-                    continue # the object has no geometry
+                variant = ('RAW' if edit else 'PREVIEW')
+                obj = self.cache.get(obj, variant, reuse=(not force))
+                if (obj is None) or (not obj.data.polygons):
+                    continue # the object has no raycastable geometry
             
             # If ray must be infinite, ensure that
             # endpoints are outside of bounding volume
@@ -2887,125 +2887,276 @@ class Snap3DUtility(SnapUtilityBase):
         return n
 
 # ====== CONVERTED-TO-MESH OBJECTS CACHE ====== #
-class MeshCache:
-    # ====== INITIALIZATION / CLEANUP ====== #
-    def __init__(self, scene):
-        self.scene = scene
+#============================================================================#
+class ToggleObjectMode:
+    def __init__(self, mode='OBJECT'):
+        if not isinstance(mode, str):
+            mode = ('OBJECT' if mode else None)
         
-        self.mesh_cache = {}
-        self.object_cache = {}
-        self.edit_object = None
+        self.mode = mode
+    
+    def __enter__(self):
+        if self.mode:
+            edit_preferences = bpy.context.user_preferences.edit
+            
+            self.global_undo = edit_preferences.use_global_undo
+            self.prev_mode = bpy.context.object.mode
+            
+            if self.prev_mode != self.mode:
+                edit_preferences.use_global_undo = False
+                bpy.ops.object.mode_set(mode=self.mode)
+        
+        return self
+    
+    def __exit__(self, type, value, traceback):
+        if self.mode:
+            edit_preferences = bpy.context.user_preferences.edit
+            
+            if self.prev_mode != self.mode:
+                bpy.ops.object.mode_set(mode=self.prev_mode)
+                edit_preferences.use_global_undo = self.global_undo
+
+class MeshCacheItem:
+    def __init__(self):
+        self.variants = {}
+    
+    def __getitem__(self, variant):
+        return self.variants[variant][0]
+    
+    def __setitem__(self, variant, conversion):
+        mesh = conversion[0].data
+        #mesh.update(calc_tessface=True)
+        #mesh.calc_tessface()
+        mesh.calc_normals()
+        
+        self.variants[variant] = conversion
+    
+    def __contains__(self, variant):
+        return variant in self.variants
     
     def dispose(self):
-        if self.edit_object:
-            mesh = self.edit_object.data
-            bpy.data.objects.remove(self.edit_object)
-            bpy.data.meshes.remove(mesh)
-        del self.edit_object
-        
-        for rco in self.object_cache.values():
-            if rco:
-                bpy.data.objects.remove(rco)
-        del self.object_cache
+        for obj, converted in self.variants.values():
+            if converted:
+                mesh = obj.data
+                bpy.data.objects.remove(obj)
+                bpy.data.meshes.remove(mesh)
+        self.variants = None
+
+class MeshCache:
+    """
+    Keeps a cache of mesh equivalents of requested objects.
+    It is assumed that object's data does not change while
+    the cache is in use.
+    """
     
-        for mesh in self.mesh_cache.values():
-            bpy.data.meshes.remove(mesh)
-        del self.mesh_cache
+    variants_enum = {'RAW', 'PREVIEW', 'RENDER'}
+    variants_normalization = {
+        'MESH':{},
+        'CURVE':{},
+        'SURFACE':{},
+        'FONT':{},
+        'META':{'RAW':'PREVIEW'},
+        'ARMATURE':{'RAW':'PREVIEW', 'RENDER':'PREVIEW'},
+        'LATTICE':{'RAW':'PREVIEW', 'RENDER':'PREVIEW'},
+        'EMPTY':{'RAW':'PREVIEW', 'RENDER':'PREVIEW'},
+        'CAMERA':{'RAW':'PREVIEW', 'RENDER':'PREVIEW'},
+        'LAMP':{'RAW':'PREVIEW', 'RENDER':'PREVIEW'},
+        'SPEAKER':{'RAW':'PREVIEW', 'RENDER':'PREVIEW'},
+    }
+    conversible_types = {'MESH', 'CURVE', 'SURFACE', 'FONT',
+                         'META', 'ARMATURE', 'LATTICE'}
+    convert_types = conversible_types
     
-    # ====== GET RELEVANT MESH/OBJECT ====== #
-    def __convert(self, obj, force=False, apply_modifiers=True, \
-                  add_to_cache=True):
-        # In Edit (and Sculpt?) mode mesh will not reflect
-        # changes until mode is changed to Object.
-        unstable_shape = ('EDIT' in obj.mode) or ('SCULPT' in obj.mode)
+    def __init__(self, scene, convert_types=None):
+        self.scene = scene
+        if convert_types:
+            self.convert_types = convert_types
+        self.cached = {}
+    
+    def __del__(self):
+        self.clear()
+    
+    def clear(self, expect_zero_users=False):
+        for cache_item in self.cached.values():
+            if cache_item:
+                try:
+                    cache_item.dispose()
+                except RuntimeError:
+                    if expect_zero_users:
+                        raise
+        self.cached.clear()
+    
+    def __delitem__(self, obj):
+        cache_item = self.cached.pop(obj, None)
+        if cache_item:
+            cache_item.dispose()
+    
+    def __contains__(self, obj):
+        return obj in self.cached
+    
+    def __getitem__(self, obj):
+        if isinstance(obj, tuple):
+            return self.get(*obj)
+        return self.get(obj)
+    
+    def get(self, obj, variant='PREVIEW', reuse=True):
+        if variant not in self.variants_enum:
+            raise ValueError("Mesh variant must be one of %s" %
+                             self.variants_enum)
         
-        force = force or (len(obj.modifiers) != 0)
+        # Make sure the variant is proper for this type of object
+        variant = (self.variants_normalization[obj.type].
+                   get(variant, variant))
         
-        if (obj.data.bl_rna.name == 'Mesh'):
-            if not (force or unstable_shape):
-                # Existing mesh actually satisfies us
-                return obj
-        
-        #if (not force) and (obj.data in self.mesh_cache):
-        if obj.data in self.mesh_cache:
-            mesh = self.mesh_cache[obj.data]
+        if obj in self.cached:
+            cache_item = self.cached[obj]
+            try:
+                # cache_item is None if object isn't conversible to mesh
+                return (None if (cache_item is None)
+                        else cache_item[variant])
+            except KeyError:
+                pass
         else:
-            if unstable_shape:
-                prev_mode = obj.mode
-                bpy.ops.object.mode_set(mode='OBJECT')
-            
-            mesh = obj.to_mesh(self.scene, apply_modifiers, 'PREVIEW')
+            cache_item = None
+        
+        if obj.type not in self.conversible_types:
+            self.cached[obj] = None
+            return None
+        
+        if not cache_item:
+            cache_item = MeshCacheItem()
+            self.cached[obj] = cache_item
+        
+        conversion = self._convert(obj, variant, reuse)
+        cache_item[variant] = conversion
+        
+        return conversion[0]
+    
+    def _convert(self, obj, variant, reuse=True):
+        obj_type = obj.type
+        obj_mode = obj.mode
+        data = obj.data
+        
+        if obj_type == 'MESH':
+            if reuse and ((variant == 'RAW') or (len(obj.modifiers) == 0)):
+                return (obj, False)
+            else:
+                force_objectmode = (obj_mode in ('EDIT', 'SCULPT'))
+                return (self._to_mesh(obj, variant, force_objectmode), True)
+        elif obj_type in ('CURVE', 'SURFACE', 'FONT'):
+            if variant == 'RAW':
+                bm = bmesh.new()
+                for spline in data.splines:
+                    for point in spline.bezier_points:
+                        bm.verts.new(point.co)
+                        bm.verts.new(point.handle_left)
+                        bm.verts.new(point.handle_right)
+                    for point in spline.points:
+                        bm.verts.new(point.co[:3])
+                return (self._make_obj(bm, obj), True)
+            else:
+                if variant == 'RENDER':
+                    resolution_u = data.resolution_u
+                    resolution_v = data.resolution_v
+                    if data.render_resolution_u != 0:
+                        data.resolution_u = data.render_resolution_u
+                    if data.render_resolution_v != 0:
+                        data.resolution_v = data.render_resolution_v
+                
+                result = (self._to_mesh(obj, variant), True)
+                
+                if variant == 'RENDER':
+                    data.resolution_u = resolution_u
+                    data.resolution_v = resolution_v
+                
+                return result
+        elif obj_type == 'META':
+            if variant == 'RAW':
+                # To avoid the hassle of snapping metaelements
+                # to themselves, we just create an empty mesh
+                bm = bmesh.new()
+                return (self._make_obj(bm, obj), True)
+            else:
+                if variant == 'RENDER':
+                    resolution = data.resolution
+                    data.resolution = data.render_resolution
+                
+                result = (self._to_mesh(obj, variant), True)
+                
+                if variant == 'RENDER':
+                    data.resolution = resolution
+                
+                return result
+        elif obj_type == 'ARMATURE':
+            bm = bmesh.new()
+            if obj_mode == 'EDIT':
+                for bone in data.edit_bones:
+                    head = bm.verts.new(bone.head)
+                    tail = bm.verts.new(bone.tail)
+                    bm.edges.new((head, tail))
+            elif obj_mode == 'POSE':
+                for bone in obj.pose.bones:
+                    head = bm.verts.new(bone.head)
+                    tail = bm.verts.new(bone.tail)
+                    bm.edges.new((head, tail))
+            else:
+                for bone in data.bones:
+                    head = bm.verts.new(bone.head_local)
+                    tail = bm.verts.new(bone.tail_local)
+                    bm.edges.new((head, tail))
+            return (self._make_obj(bm, obj), True)
+        elif obj_type == 'LATTICE':
+            bm = bmesh.new()
+            for point in data.points:
+                bm.verts.new(point.co_deform)
+            return (self._make_obj(bm, obj), True)
+    
+    def _to_mesh(self, obj, variant, force_objectmode=False):
+        tmp_name = chr(0x10ffff) # maximal Unicode value
+        
+        with ToggleObjectMode(force_objectmode):
+            if variant == 'RAW':
+                mesh = obj.to_mesh(self.scene, False, 'PREVIEW')
+            else:
+                mesh = obj.to_mesh(self.scene, True, variant)
             mesh.name = tmp_name
-            
-            if unstable_shape:
-                bpy.ops.object.mode_set(mode=prev_mode)
-            
-            if add_to_cache:
-                self.mesh_cache[obj.data] = mesh
         
-        rco = self.create_temporary_mesh_obj(mesh, obj.matrix_world)
-        rco.show_x_ray = obj.show_x_ray # necessary for corrent bbox display
-        
-        return rco
+        return self._make_obj(mesh, obj)
     
-    def __getitem__(self, args):
-        # If more than one argument is passed to getitem,
-        # Python wraps them into tuple.
-        if not isinstance(args, tuple):
-            args = (args,)
+    def _make_obj(self, mesh, src_obj):
+        tmp_name = chr(0x10ffff) # maximal Unicode value
         
-        obj = args[0]
-        force = (args[1] if len(args) > 1 else True)
-        edit = (args[2] if len(args) > 2 else False)
+        if isinstance(mesh, bmesh.types.BMesh):
+            bm = mesh
+            mesh = bpy.data.meshes.new(tmp_name)
+            bm.to_mesh(mesh)
         
-        # Currently edited object's raw mesh is a separate issue...
-        if edit and obj.data and ('EDIT' in obj.mode):
-            if (obj.data.bl_rna.name == 'Mesh'):
-                if self.edit_object is None:
-                    self.edit_object = self.__convert(
-                                obj, True, False, False)
-                    #self.edit_object.data.update(calc_tessface=True)
-                    #self.edit_object.data.calc_tessface()
-                    self.edit_object.data.calc_normals()
-                return self.edit_object
+        tmp_obj = bpy.data.objects.new(tmp_name, mesh)
         
-        # A usual object. Cached data will suffice.
-        if obj in self.object_cache:
-            return self.object_cache[obj]
-        
-        # Actually, convert and cache.
-        try:
-            rco = self.__convert(obj, force)
+        if src_obj:
+            tmp_obj.matrix_world = src_obj.matrix_world
             
-            if rco is obj:
-                # Source objects are not added to cache
-                return obj
-        except Exception as e:
-            # Object has no solid geometry, just ignore it
-            rco = None
-        
-        self.object_cache[obj] = rco
-        if rco:
-            #rco.data.update(calc_tessface=True)
-            #rco.data.calc_tessface()
-            rco.data.calc_normals()
-            pass
-        
-        return rco
-    
-    def create_temporary_mesh_obj(self, mesh, matrix=None):
-        rco = bpy.data.objects.new(tmp_name, mesh)
-        if matrix:
-            rco.matrix_world = matrix
+            # This is necessary for correct bbox display # TODO
+            # (though it'd be better to change the logic in the raycasting)
+            tmp_obj.show_x_ray = src_obj.show_x_ray
+            
+            tmp_obj.dupli_faces_scale = src_obj.dupli_faces_scale
+            tmp_obj.dupli_frames_end = src_obj.dupli_frames_end
+            tmp_obj.dupli_frames_off = src_obj.dupli_frames_off
+            tmp_obj.dupli_frames_on = src_obj.dupli_frames_on
+            tmp_obj.dupli_frames_start = src_obj.dupli_frames_start
+            tmp_obj.dupli_group = src_obj.dupli_group
+            #tmp_obj.dupli_list = src_obj.dupli_list
+            tmp_obj.dupli_type = src_obj.dupli_type
         
         # Make Blender recognize object as having geometry
         # (is there a simpler way to do this?)
-        self.scene.objects.link(rco)
+        self.scene.objects.link(tmp_obj)
         self.scene.update()
         # We don't need this object in scene
-        self.scene.objects.unlink(rco)
+        self.scene.objects.unlink(tmp_obj)
         
-        return rco
+        return tmp_obj
 
 #============================================================================#
 
