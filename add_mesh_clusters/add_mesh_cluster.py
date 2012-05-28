@@ -199,15 +199,12 @@ def DEF_atom_read_atom_data():
 #                                                    Some small vector routines
 
 def vec_dist_point_plane(ne, gamma, v):
-    a1 = ne * v - gamma
-    a2 = ne.length
-    s  = abs(a1/a2)
-    return s
+
+    return abs( (ne * v - gamma) / ne.length )
 
 def vec_on_plane(n,atom,dist):
-    scale = dist/n.length
-    c = atom - n * scale
-    return c.length
+
+    return (atom - n * (dist/n.length)).length
   
 # -----------------------------------------------------------------------------
 #                                                           Routines for shapes
@@ -217,10 +214,10 @@ def vec_in_sphere(atom_pos,size, skin):
     regular = True
     inner   = True
 
-    if(atom_pos.length > size/2.0):
+    if atom_pos.length > size/2.0:
         regular = False
 
-    if(atom_pos.length < ((size/2.0) - (size/2.0) * skin)):
+    if atom_pos.length < (size/2.0)*(1-skin):
         inner = False
 
     return (regular, inner)
@@ -260,6 +257,10 @@ def vec_in_parabole(atom_pos, height, diameter):
 
 def vec_in_pyramide_square(atom_pos, size, skin):
     
+    """
+    Please, leave all this! It tells the user the mathemetical way of
+    cutting out a pyramide with square base.
+
     P1 = Vector((-size/2, 0.0, -size/4))
     P2 = Vector((0.0, -size/2, -size/4))
     P4 = Vector((size/2, 0.0,  -size/4))
@@ -295,6 +296,22 @@ def vec_in_pyramide_square(atom_pos, size, skin):
     v52 = P2 - P4
     n5 = v51.cross(v52)
     g5 = -n5 * P2
+    """
+ 
+    # A much shorter way:
+    size2 = size  * size
+    size3 = size2 * size
+    n1 = Vector((-1/4*size2, -1/4*size2,  1/4*size2))
+    g1 = -1/16 * size3
+    n2 = Vector(( 1/4*size2,  1/4*size2,  1/4*size2))
+    g2 = g1
+    n3 = Vector((-1/4*size2,  1/4*size2,  1/4*size2))
+    g3 = g1
+    n4 = Vector(( 1/4*size2, -1/4*size2,  1/4*size2))
+    g4 = g1
+    n5 = Vector((       0.0,        0.0, -1/2*size2))
+    g5 = -1/8 * size3  
+    
 
     distance_plane_1  = vec_dist_point_plane(n1, g1, atom_pos)
     on_plane_1 = vec_on_plane(n1,atom_pos,distance_plane_1)
@@ -325,41 +342,19 @@ def vec_in_pyramide_square(atom_pos, size, skin):
 
     size = size * (1.0 - skin)
     
-    P1 = Vector((-size/2, 0.0, -size/4))
-    P2 = Vector((0.0, -size/2, -size/4))
-    P4 = Vector((size/2, 0.0,  -size/4))
-    P5 = Vector((0.0, size/2,  -size/4))
-    P6 = Vector((0.0, 0.0,      size/4))
-    
-    # First face
-    v11 = P1 - P2
-    v12 = P1 - P6
-    n1 = v11.cross(v12)
-    g1 = -n1 * P1   
-    
-    # Second face
-    v21 = P6 - P4
-    v22 = P6 - P5
-    n2 = v21.cross(v22)
-    g2 = -n2 * P6
-
-    # Third face
-    v31 = P1 - P5
-    v32 = P1 - P6
-    n3 = v32.cross(v31)
-    g3 = -n3 * P1
-    
-    # Forth face
-    v41 = P6 - P2
-    v42 = P2 - P4
-    n4 = v41.cross(v42)
-    g4 = -n4 * P2
-    
-    # Fith base face
-    v51 = P2 - P1
-    v52 = P2 - P4
-    n5 = v51.cross(v52)
-    g5 = -n5 * P2
+    # As above
+    size2 = size  * size
+    size3 = size2 * size
+    n1 = Vector((-1/4*size2, -1/4*size2,  1/4*size2))
+    g1 = -1/16 * size3
+    n2 = Vector(( 1/4*size2,  1/4*size2,  1/4*size2))
+    g2 = g1
+    n3 = Vector((-1/4*size2,  1/4*size2,  1/4*size2))
+    g3 = g1
+    n4 = Vector(( 1/4*size2, -1/4*size2,  1/4*size2))
+    g4 = g1
+    n5 = Vector((       0.0,        0.0, -1/2*size2))
+    g5 = -1/8 * size3
 
     distance_plane_1  = vec_dist_point_plane(n1, g1, atom_pos)
     on_plane_1 = vec_on_plane(n1,atom_pos,distance_plane_1)
@@ -1059,6 +1054,8 @@ def create_hexagonal_abcabc_lattice(ctype, size, skin, lattice):
         else:
            z_displ = 0
 
+    print("Atom positions calculated")
+
     return (atom_number_total, atom_number_drawn)
 
 
@@ -1133,6 +1130,8 @@ def create_hexagonal_abab_lattice(ctype, size, skin, lattice):
         else:
             z_displ = "even"
 
+    print("Atom positions calculated")
+
     return (atom_number_total, atom_number_drawn)
 
 
@@ -1177,5 +1176,7 @@ def create_square_lattice(ctype, size, skin, lattice):
                     atom_number_drawn += 1
                 if message[0] == True and message[1] == False:
                     atom_number_total += 1 
+
+    print("Atom positions calculated")
 
     return (atom_number_total, atom_number_drawn)

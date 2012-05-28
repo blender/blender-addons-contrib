@@ -73,7 +73,7 @@ ATOM_Cluster_PANEL = 0
 class CLASS_ImportCluster(bpy.types.Operator):
     bl_idname = "mesh.cluster"
     bl_label = "Atom cluster"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'PRESET', 'UNDO'}
 
     def execute(self, context):
 
@@ -256,8 +256,6 @@ class CLASS_atom_cluster_load_button(Operator):
 
         add_mesh_cluster.DEF_atom_read_atom_data()
         add_mesh_cluster.ATOM_CLUSTER_ALL_ATOMS[:] = []
-
-        print(scn.shape)
 
         if scn.shape in ["parabolid_ab", "parabolid_abc", "parabolid_square"]:
             parameter1 = scn.parabol_height
