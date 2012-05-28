@@ -2554,7 +2554,9 @@ class Snap3DUtility(SnapUtilityBase):
             m_combined = sys_matrix_inv * m
             bbox = [None, None]
             
-            variant = ('RAW' if self.editmode else 'PREVIEW')
+            variant = ('RAW' if (self.editmode and
+                       (obj.type == 'MESH') and (obj.mode == 'EDIT'))
+                       else 'PREVIEW')
             mesh_obj = self.cache.get(obj, variant, reuse=False)
             if (mesh_obj is None) or self.shade_bbox or \
                     (obj.draw_type == 'BOUNDS'):
@@ -2643,7 +2645,9 @@ class Snap3DUtility(SnapUtilityBase):
             
             if not is_bbox:
                 # Ensure we work with raycastable object.
-                variant = ('RAW' if edit else 'PREVIEW')
+                variant = ('RAW' if (edit and
+                           (obj.type == 'MESH') and (obj.mode == 'EDIT'))
+                           else 'PREVIEW')
                 obj = self.cache.get(obj, variant, reuse=(not force))
                 if (obj is None) or (not obj.data.polygons):
                     continue # the object has no raycastable geometry
