@@ -258,8 +258,8 @@ def vec_in_parabole(atom_pos, height, diameter):
 def vec_in_pyramide_square(atom_pos, size, skin):
     
     """
-    Please, leave all this! It tells the user the mathemetical way of
-    cutting out a pyramide with square base.
+    Please, if possible leave all this! The code documents the 
+    mathemetical way of cutting a pyramide with square base.
 
     P1 = Vector((-size/2, 0.0, -size/4))
     P2 = Vector((0.0, -size/2, -size/4))
@@ -298,21 +298,22 @@ def vec_in_pyramide_square(atom_pos, size, skin):
     g5 = -n5 * P2
     """
  
-    # A much shorter way:
+    # A much faster way for calculation:
     size2 = size  * size
     size3 = size2 * size
-    n1 = Vector((-1/4*size2, -1/4*size2,  1/4*size2))
+    n1 = Vector((-1/4, -1/4,  1/4)) * size2
     g1 = -1/16 * size3
-    n2 = Vector(( 1/4*size2,  1/4*size2,  1/4*size2))
+    n2 = Vector(( 1/4,  1/4,  1/4)) * size2
     g2 = g1
-    n3 = Vector((-1/4*size2,  1/4*size2,  1/4*size2))
+    n3 = Vector((-1/4,  1/4,  1/4)) * size2
     g3 = g1
-    n4 = Vector(( 1/4*size2, -1/4*size2,  1/4*size2))
+    n4 = Vector(( 1/4, -1/4,  1/4)) * size2
     g4 = g1
-    n5 = Vector((       0.0,        0.0, -1/2*size2))
+    n5 = Vector(( 0.0,  0.0, -1/2)) * size2
     g5 = -1/8 * size3  
     
 
+    """
     distance_plane_1  = vec_dist_point_plane(n1, g1, atom_pos)
     on_plane_1 = vec_on_plane(n1,atom_pos,distance_plane_1)
     distance_plane_2  = vec_dist_point_plane(n2, g2, atom_pos)
@@ -323,6 +324,18 @@ def vec_in_pyramide_square(atom_pos, size, skin):
     on_plane_4 = vec_on_plane(n4,atom_pos,distance_plane_4)
     distance_plane_5  = vec_dist_point_plane(n5, g5, atom_pos)
     on_plane_5 = vec_on_plane(n5,atom_pos,distance_plane_5)
+    """
+
+    distance_plane_1 = abs((n1 * atom_pos - g1)/n1.length)
+    on_plane_1 = (atom_pos - n1 * (distance_plane_1/n1.length)).length
+    distance_plane_2 = abs((n2 * atom_pos - g2)/n2.length)
+    on_plane_2 = (atom_pos - n2 * (distance_plane_2/n2.length)).length
+    distance_plane_3 = abs((n3 * atom_pos - g3)/n3.length)
+    on_plane_3 = (atom_pos - n3 * (distance_plane_3/n3.length)).length
+    distance_plane_4 = abs((n4 * atom_pos - g4)/n4.length)
+    on_plane_4 = (atom_pos - n4 * (distance_plane_4/n4.length)).length
+    distance_plane_5 = abs((n5 * atom_pos - g5)/n5.length)
+    on_plane_5 = (atom_pos - n5 * (distance_plane_5/n5.length)).length
 
     regular = True
     inner   = True
@@ -342,30 +355,29 @@ def vec_in_pyramide_square(atom_pos, size, skin):
 
     size = size * (1.0 - skin)
     
-    # As above
     size2 = size  * size
     size3 = size2 * size
-    n1 = Vector((-1/4*size2, -1/4*size2,  1/4*size2))
+    n1 = Vector((-1/4, -1/4,  1/4)) * size2
     g1 = -1/16 * size3
-    n2 = Vector(( 1/4*size2,  1/4*size2,  1/4*size2))
+    n2 = Vector(( 1/4,  1/4,  1/4)) * size2
     g2 = g1
-    n3 = Vector((-1/4*size2,  1/4*size2,  1/4*size2))
+    n3 = Vector((-1/4,  1/4,  1/4)) * size2
     g3 = g1
-    n4 = Vector(( 1/4*size2, -1/4*size2,  1/4*size2))
+    n4 = Vector(( 1/4, -1/4,  1/4)) * size2
     g4 = g1
-    n5 = Vector((       0.0,        0.0, -1/2*size2))
-    g5 = -1/8 * size3
+    n5 = Vector(( 0.0,  0.0, -1/2)) * size2
+    g5 = -1/8 * size3  
 
-    distance_plane_1  = vec_dist_point_plane(n1, g1, atom_pos)
-    on_plane_1 = vec_on_plane(n1,atom_pos,distance_plane_1)
-    distance_plane_2  = vec_dist_point_plane(n2, g2, atom_pos)
-    on_plane_2 = vec_on_plane(n2,atom_pos,distance_plane_2)
-    distance_plane_3  = vec_dist_point_plane(n3, g3, atom_pos)
-    on_plane_3 = vec_on_plane(n3,atom_pos,distance_plane_3)
-    distance_plane_4  = vec_dist_point_plane(n4, g4, atom_pos)
-    on_plane_4 = vec_on_plane(n4,atom_pos,distance_plane_4)
-    distance_plane_5  = vec_dist_point_plane(n5, g5, atom_pos)
-    on_plane_5 = vec_on_plane(n5,atom_pos,distance_plane_5)
+    distance_plane_1 = abs((n1 * atom_pos - g1)/n1.length)
+    on_plane_1 = (atom_pos - n1 * (distance_plane_1/n1.length)).length
+    distance_plane_2 = abs((n2 * atom_pos - g2)/n2.length)
+    on_plane_2 = (atom_pos - n2 * (distance_plane_2/n2.length)).length
+    distance_plane_3 = abs((n3 * atom_pos - g3)/n3.length)
+    on_plane_3 = (atom_pos - n3 * (distance_plane_3/n3.length)).length
+    distance_plane_4 = abs((n4 * atom_pos - g4)/n4.length)
+    on_plane_4 = (atom_pos - n4 * (distance_plane_4/n4.length)).length
+    distance_plane_5 = abs((n5 * atom_pos - g5)/n5.length)
+    on_plane_5 = (atom_pos - n5 * (distance_plane_5/n5.length)).length
     
     inner = False
     if(atom_pos.length > on_plane_1):
@@ -521,6 +533,10 @@ def vec_in_octahedron(atom_pos,size, skin):
     regular = True
     inner   = True
 
+    """
+    Please, if possible leave all this! The code documents the 
+    mathemetical way of cutting an octahedron.
+
     P1 = Vector((-size/2, 0.0, 0.0))
     P2 = Vector((0.0, -size/2, 0.0))
     P3 = Vector((0.0, 0.0, -size/2))
@@ -575,7 +591,29 @@ def vec_in_octahedron(atom_pos,size, skin):
     v82 = P1 - P6
     n8 = v82.cross(v81)
     g8 = -n8 * P1
+    """
+ 
+    # A much faster way for calculation:
+    size2 = size  * size
+    size3 = size2 * size
+    n1 = Vector((-1/4, -1/4, -1/4)) * size2
+    g1 = -1/8 * size3
+    n2 = Vector((-1/4,  1/4, -1/4)) * size2
+    g2 = g1
+    n3 = Vector((-1/4, -1/4,  1/4)) * size2
+    g3 = g1
+    n4 = Vector(( 1/4, -1/4,  1/4)) * size2
+    g4 = g1
+    n5 = Vector(( 1/4, -1/4, -1/4)) * size2
+    g5 = g1
+    n6 = Vector(( 1/4,  1/4,  1/4)) * size2
+    g6 = g1
+    n7 = Vector(( 1/4,  1/4, -1/4)) * size2
+    g7 = g1
+    n8 = Vector((-1/4,  1/4,  1/4)) * size2
+    g8 = g1
 
+    """
     distance_plane_1  = vec_dist_point_plane(n1, g1, atom_pos)
     on_plane_1 = vec_on_plane(n1,atom_pos,distance_plane_1)
     distance_plane_2  = vec_dist_point_plane(n2, g2, atom_pos)
@@ -592,6 +630,24 @@ def vec_in_octahedron(atom_pos,size, skin):
     on_plane_7 = vec_on_plane(n7,atom_pos,distance_plane_7)
     distance_plane_8  = vec_dist_point_plane(n8, g8, atom_pos)
     on_plane_8 = vec_on_plane(n8,atom_pos,distance_plane_8)
+    """
+
+    distance_plane_1 = abs((n1 * atom_pos - g1)/n1.length)
+    on_plane_1 = (atom_pos - n1 * (distance_plane_1/n1.length)).length
+    distance_plane_2 = abs((n2 * atom_pos - g2)/n2.length)
+    on_plane_2 = (atom_pos - n2 * (distance_plane_2/n2.length)).length
+    distance_plane_3 = abs((n3 * atom_pos - g3)/n3.length)
+    on_plane_3 = (atom_pos - n3 * (distance_plane_3/n3.length)).length
+    distance_plane_4 = abs((n4 * atom_pos - g4)/n4.length)
+    on_plane_4 = (atom_pos - n4 * (distance_plane_4/n4.length)).length
+    distance_plane_5 = abs((n5 * atom_pos - g5)/n5.length)
+    on_plane_5 = (atom_pos - n5 * (distance_plane_5/n5.length)).length
+    distance_plane_6 = abs((n6 * atom_pos - g6)/n6.length)
+    on_plane_6 = (atom_pos - n6 * (distance_plane_6/n6.length)).length
+    distance_plane_7 = abs((n7 * atom_pos - g7)/n7.length)
+    on_plane_7 = (atom_pos - n7 * (distance_plane_7/n7.length)).length
+    distance_plane_8 = abs((n8 * atom_pos - g8)/n8.length)
+    on_plane_8 = (atom_pos - n8 * (distance_plane_8/n8.length)).length
 
     if(atom_pos.length > on_plane_1):
         regular = False
@@ -615,77 +671,41 @@ def vec_in_octahedron(atom_pos,size, skin):
 
     size = size * (1.0 - skin)
 
-    P1 = Vector((-size/2, 0.0, 0.0))
-    P2 = Vector((0.0, -size/2, 0.0))
-    P3 = Vector((0.0, 0.0, -size/2))
-    P4 = Vector((size/2, 0.0, 0.0))
-    P5 = Vector((0.0, size/2, 0.0))
-    P6 = Vector((0.0, 0.0, size/2))
+    size2 = size  * size
+    size3 = size2 * size
+    n1 = Vector((-1/4, -1/4, -1/4)) * size2
+    g1 = -1/8 * size3
+    n2 = Vector((-1/4,  1/4, -1/4)) * size2
+    g2 = g1
+    n3 = Vector((-1/4, -1/4,  1/4)) * size2
+    g3 = g1
+    n4 = Vector(( 1/4, -1/4,  1/4)) * size2
+    g4 = g1
+    n5 = Vector(( 1/4, -1/4, -1/4)) * size2
+    g5 = g1
+    n6 = Vector(( 1/4,  1/4,  1/4)) * size2
+    g6 = g1
+    n7 = Vector(( 1/4,  1/4, -1/4)) * size2
+    g7 = g1
+    n8 = Vector((-1/4,  1/4,  1/4)) * size2
+    g8 = g1
 
-    # First face
-    v11 = P2 - P1
-    v12 = P2 - P3
-    n1 = v11.cross(v12)
-    g1 = -n1 * P2
-    
-    # Second face
-    v21 = P1 - P5
-    v22 = P1 - P3
-    n2 = v21.cross(v22)
-    g2 = -n2 * P1 
-    
-    # Third face
-    v31 = P1 - P2
-    v32 = P1 - P6
-    n3 = v31.cross(v32)
-    g3 = -n3 * P1
-    
-    # Forth face
-    v41 = P6 - P2
-    v42 = P2 - P4
-    n4 = v41.cross(v42)
-    g4 = -n4 * P2
-
-    # Fith face
-    v51 = P2 - P3
-    v52 = P2 - P4
-    n5 = v51.cross(v52)
-    g5 = -n5 * P2
-
-    # Six face
-    v61 = P6 - P4
-    v62 = P6 - P5
-    n6 = v61.cross(v62)
-    g6 = -n6 * P6
-
-    # Seventh face
-    v71 = P5 - P4
-    v72 = P5 - P3
-    n7 = v71.cross(v72)
-    g7 = -n7 * P5
-
-    # Eigth face
-    v81 = P1 - P5
-    v82 = P1 - P6
-    n8 = v82.cross(v81)
-    g8 = -n8 * P1
-
-    distance_plane_1  = vec_dist_point_plane(n1, g1, atom_pos)
-    on_plane_1 = vec_on_plane(n1,atom_pos,distance_plane_1)
-    distance_plane_2  = vec_dist_point_plane(n2, g2, atom_pos)
-    on_plane_2 = vec_on_plane(n2,atom_pos,distance_plane_2)
-    distance_plane_3  = vec_dist_point_plane(n3, g3, atom_pos)
-    on_plane_3 = vec_on_plane(n3,atom_pos,distance_plane_3)
-    distance_plane_4  = vec_dist_point_plane(n4, g4, atom_pos)
-    on_plane_4 = vec_on_plane(n4,atom_pos,distance_plane_4)
-    distance_plane_5  = vec_dist_point_plane(n5, g5, atom_pos)
-    on_plane_5 = vec_on_plane(n5,atom_pos,distance_plane_5)
-    distance_plane_6  = vec_dist_point_plane(n6, g6, atom_pos)
-    on_plane_6 = vec_on_plane(n6,atom_pos,distance_plane_6)
-    distance_plane_7  = vec_dist_point_plane(n7, g7, atom_pos)
-    on_plane_7 = vec_on_plane(n7,atom_pos,distance_plane_7)
-    distance_plane_8  = vec_dist_point_plane(n8, g8, atom_pos)
-    on_plane_8 = vec_on_plane(n8,atom_pos,distance_plane_8)
+    distance_plane_1 = abs((n1 * atom_pos - g1)/n1.length)
+    on_plane_1 = (atom_pos - n1 * (distance_plane_1/n1.length)).length
+    distance_plane_2 = abs((n2 * atom_pos - g2)/n2.length)
+    on_plane_2 = (atom_pos - n2 * (distance_plane_2/n2.length)).length
+    distance_plane_3 = abs((n3 * atom_pos - g3)/n3.length)
+    on_plane_3 = (atom_pos - n3 * (distance_plane_3/n3.length)).length
+    distance_plane_4 = abs((n4 * atom_pos - g4)/n4.length)
+    on_plane_4 = (atom_pos - n4 * (distance_plane_4/n4.length)).length
+    distance_plane_5 = abs((n5 * atom_pos - g5)/n5.length)
+    on_plane_5 = (atom_pos - n5 * (distance_plane_5/n5.length)).length
+    distance_plane_6 = abs((n6 * atom_pos - g6)/n6.length)
+    on_plane_6 = (atom_pos - n6 * (distance_plane_6/n6.length)).length
+    distance_plane_7 = abs((n7 * atom_pos - g7)/n7.length)
+    on_plane_7 = (atom_pos - n7 * (distance_plane_7/n7.length)).length
+    distance_plane_8 = abs((n8 * atom_pos - g8)/n8.length)
+    on_plane_8 = (atom_pos - n8 * (distance_plane_8/n8.length)).length
 
     inner = False
     if(atom_pos.length > on_plane_1):
@@ -713,82 +733,46 @@ def vec_in_truncated_octahedron(atom_pos,size, skin):
     regular = True
     inner   = True
 
-    P1 = Vector((-size/2, 0.0, 0.0))
-    P2 = Vector((0.0, -size/2, 0.0))
-    P3 = Vector((0.0, 0.0, -size/2))
-    P4 = Vector((size/2, 0.0, 0.0))
-    P5 = Vector((0.0, size/2, 0.0))
-    P6 = Vector((0.0, 0.0, size/2))
-
     # The normal octahedron
+    size2 = size  * size
+    size3 = size2 * size
+    n1 = Vector((-1/4, -1/4, -1/4)) * size2
+    g1 = -1/8 * size3
+    n2 = Vector((-1/4,  1/4, -1/4)) * size2
+    g2 = g1
+    n3 = Vector((-1/4, -1/4,  1/4)) * size2
+    g3 = g1
+    n4 = Vector(( 1/4, -1/4,  1/4)) * size2
+    g4 = g1
+    n5 = Vector(( 1/4, -1/4, -1/4)) * size2
+    g5 = g1
+    n6 = Vector(( 1/4,  1/4,  1/4)) * size2
+    g6 = g1
+    n7 = Vector(( 1/4,  1/4, -1/4)) * size2
+    g7 = g1
+    n8 = Vector((-1/4,  1/4,  1/4)) * size2
+    g8 = g1
 
-    # First face
-    v11 = P2 - P1
-    v12 = P2 - P3
-    n1 = v11.cross(v12)
-    g1 = -n1 * P2
-
-    # Second face
-    v21 = P1 - P5
-    v22 = P1 - P3
-    n2 = v21.cross(v22)
-    g2 = -n2 * P1
-
-    # Third face
-    v31 = P1 - P2
-    v32 = P1 - P6
-    n3 = v31.cross(v32)
-    g3 = -n3 * P1
-
-    # Forth face
-    v41 = P6 - P2
-    v42 = P2 - P4
-    n4 = v41.cross(v42)
-    g4 = -n4 * P2
-    
-    # Fith face
-    v51 = P2 - P3
-    v52 = P2 - P4
-    n5 = v51.cross(v52)
-    g5 = -n5 * P2
-
-    # Six face
-    v61 = P6 - P4
-    v62 = P6 - P5
-    n6 = v61.cross(v62)
-    g6 = -n6 * P6
-    
-    # Seventh face
-    v71 = P5 - P4
-    v72 = P5 - P3
-    n7 = v71.cross(v72)
-    g7 = -n7 * P5
-
-    # Eigth face
-    v81 = P1 - P5
-    v82 = P1 - P6
-    n8 = v82.cross(v81)
-    g8 = -n8 * P1 
-    
-    distance_plane_1  = vec_dist_point_plane(n1, g1, atom_pos)
-    on_plane_1 = vec_on_plane(n1,atom_pos,distance_plane_1)
-    distance_plane_2  = vec_dist_point_plane(n2, g2, atom_pos)
-    on_plane_2 = vec_on_plane(n2,atom_pos,distance_plane_2)
-    distance_plane_3  = vec_dist_point_plane(n3, g3, atom_pos)
-    on_plane_3 = vec_on_plane(n3,atom_pos,distance_plane_3)
-    distance_plane_4  = vec_dist_point_plane(n4, g4, atom_pos)
-    on_plane_4 = vec_on_plane(n4,atom_pos,distance_plane_4)
-    distance_plane_5  = vec_dist_point_plane(n5, g5, atom_pos)
-    on_plane_5 = vec_on_plane(n5,atom_pos,distance_plane_5)
-    distance_plane_6  = vec_dist_point_plane(n6, g6, atom_pos)
-    on_plane_6 = vec_on_plane(n6,atom_pos,distance_plane_6)
-    distance_plane_7  = vec_dist_point_plane(n7, g7, atom_pos)
-    on_plane_7 = vec_on_plane(n7,atom_pos,distance_plane_7)
-    distance_plane_8  = vec_dist_point_plane(n8, g8, atom_pos)
-    on_plane_8 = vec_on_plane(n8,atom_pos,distance_plane_8)
+    distance_plane_1 = abs((n1 * atom_pos - g1)/n1.length)
+    on_plane_1 = (atom_pos - n1 * (distance_plane_1/n1.length)).length
+    distance_plane_2 = abs((n2 * atom_pos - g2)/n2.length)
+    on_plane_2 = (atom_pos - n2 * (distance_plane_2/n2.length)).length
+    distance_plane_3 = abs((n3 * atom_pos - g3)/n3.length)
+    on_plane_3 = (atom_pos - n3 * (distance_plane_3/n3.length)).length
+    distance_plane_4 = abs((n4 * atom_pos - g4)/n4.length)
+    on_plane_4 = (atom_pos - n4 * (distance_plane_4/n4.length)).length
+    distance_plane_5 = abs((n5 * atom_pos - g5)/n5.length)
+    on_plane_5 = (atom_pos - n5 * (distance_plane_5/n5.length)).length
+    distance_plane_6 = abs((n6 * atom_pos - g6)/n6.length)
+    on_plane_6 = (atom_pos - n6 * (distance_plane_6/n6.length)).length
+    distance_plane_7 = abs((n7 * atom_pos - g7)/n7.length)
+    on_plane_7 = (atom_pos - n7 * (distance_plane_7/n7.length)).length
+    distance_plane_8 = abs((n8 * atom_pos - g8)/n8.length)
+    on_plane_8 = (atom_pos - n8 * (distance_plane_8/n8.length)).length
 
     # Here are the 6 additional faces
-    pp = (size/2.0) - (sqrt(2.0)/2.0) * ((size/sqrt(2.0))/3.0)
+    # pp = (size/2.0) - (sqrt(2.0)/2.0) * ((size/sqrt(2.0))/3.0)
+    pp = size / 3.0
 
     n_1 = Vector((1.0,0.0,0.0)) 
     n_2 = Vector((-1.0,0.0,0.0))           
@@ -796,19 +780,19 @@ def vec_in_truncated_octahedron(atom_pos,size, skin):
     n_4 = Vector((0.0,-1.0,0.0))
     n_5 = Vector((0.0,0.0,1.0))    
     n_6 = Vector((0.0,0.0,-1.0))   
-    
-    distance_plane_1b  = vec_dist_point_plane(n_1, -pp, atom_pos)
-    on_plane_1b = vec_on_plane(n_1,atom_pos,distance_plane_1b)
-    distance_plane_2b  = vec_dist_point_plane(n_2, -pp, atom_pos)
-    on_plane_2b = vec_on_plane(n_2,atom_pos,distance_plane_2b)
-    distance_plane_3b  = vec_dist_point_plane(n_3, -pp, atom_pos)
-    on_plane_3b = vec_on_plane(n_3,atom_pos,distance_plane_3b)
-    distance_plane_4b  = vec_dist_point_plane(n_4, -pp, atom_pos)
-    on_plane_4b = vec_on_plane(n_4,atom_pos,distance_plane_4b)
-    distance_plane_5b  = vec_dist_point_plane(n_5, -pp, atom_pos)
-    on_plane_5b = vec_on_plane(n_5,atom_pos,distance_plane_5b)
-    distance_plane_6b  = vec_dist_point_plane(n_6, -pp, atom_pos)
-    on_plane_6b = vec_on_plane(n_6,atom_pos,distance_plane_6b)
+
+    distance_plane_1b = abs((n_1 * atom_pos + pp)/n_1.length)
+    on_plane_1b = (atom_pos - n_1 * (distance_plane_1b/n_1.length)).length
+    distance_plane_2b = abs((n_2 * atom_pos + pp)/n_2.length)
+    on_plane_2b = (atom_pos - n_2 * (distance_plane_2b/n_2.length)).length
+    distance_plane_3b = abs((n_3 * atom_pos + pp)/n_3.length)
+    on_plane_3b = (atom_pos - n_3 * (distance_plane_3b/n_3.length)).length
+    distance_plane_4b = abs((n_4 * atom_pos + pp)/n_4.length)
+    on_plane_4b = (atom_pos - n_4 * (distance_plane_4b/n_4.length)).length
+    distance_plane_5b = abs((n_5 * atom_pos + pp)/n_5.length)
+    on_plane_5b = (atom_pos - n_5 * (distance_plane_5b/n_5.length)).length
+    distance_plane_6b = abs((n_6 * atom_pos + pp)/n_6.length)
+    on_plane_6b = (atom_pos - n_6 * (distance_plane_6b/n_6.length)).length
 
     if(atom_pos.length > on_plane_1):
         regular = False
@@ -844,77 +828,42 @@ def vec_in_truncated_octahedron(atom_pos,size, skin):
 
     size = size * (1.0 - skin)
     
-    P1 = Vector((-size/2, 0.0, 0.0))
-    P2 = Vector((0.0, -size/2, 0.0))
-    P3 = Vector((0.0, 0.0, -size/2))
-    P4 = Vector((size/2, 0.0, 0.0))
-    P5 = Vector((0.0, size/2, 0.0))
-    P6 = Vector((0.0, 0.0, size/2))
+    # The normal octahedron
+    size2 = size  * size
+    size3 = size2 * size
+    n1 = Vector((-1/4, -1/4, -1/4)) * size2
+    g1 = -1/8 * size3
+    n2 = Vector((-1/4,  1/4, -1/4)) * size2
+    g2 = g1
+    n3 = Vector((-1/4, -1/4,  1/4)) * size2
+    g3 = g1
+    n4 = Vector(( 1/4, -1/4,  1/4)) * size2
+    g4 = g1
+    n5 = Vector(( 1/4, -1/4, -1/4)) * size2
+    g5 = g1
+    n6 = Vector(( 1/4,  1/4,  1/4)) * size2
+    g6 = g1
+    n7 = Vector(( 1/4,  1/4, -1/4)) * size2
+    g7 = g1
+    n8 = Vector((-1/4,  1/4,  1/4)) * size2
+    g8 = g1
 
-    # First face
-    v11 = P2 - P1
-    v12 = P2 - P3
-    n1 = v11.cross(v12)
-    g1 = -n1 * P2
-
-    # Second face
-    v21 = P1 - P5
-    v22 = P1 - P3
-    n2 = v21.cross(v22)
-    g2 = -n2 * P1
-
-    # Third face
-    v31 = P1 - P2
-    v32 = P1 - P6
-    n3 = v31.cross(v32)
-    g3 = -n3 * P1
-
-    # Forth face
-    v41 = P6 - P2
-    v42 = P2 - P4
-    n4 = v41.cross(v42)
-    g4 = -n4 * P2
-    
-    # Fith face
-    v51 = P2 - P3
-    v52 = P2 - P4
-    n5 = v51.cross(v52)
-    g5 = -n5 * P2
-
-    # Six face
-    v61 = P6 - P4
-    v62 = P6 - P5
-    n6 = v61.cross(v62)
-    g6 = -n6 * P6
-    
-    # Seventh face
-    v71 = P5 - P4
-    v72 = P5 - P3
-    n7 = v71.cross(v72)
-    g7 = -n7 * P5
-
-    # Eigth face
-    v81 = P1 - P5
-    v82 = P1 - P6
-    n8 = v82.cross(v81)
-    g8 = -n8 * P1 
-    
-    distance_plane_1  = vec_dist_point_plane(n1, g1, atom_pos)
-    on_plane_1 = vec_on_plane(n1,atom_pos,distance_plane_1)
-    distance_plane_2  = vec_dist_point_plane(n2, g2, atom_pos)
-    on_plane_2 = vec_on_plane(n2,atom_pos,distance_plane_2)
-    distance_plane_3  = vec_dist_point_plane(n3, g3, atom_pos)
-    on_plane_3 = vec_on_plane(n3,atom_pos,distance_plane_3)
-    distance_plane_4  = vec_dist_point_plane(n4, g4, atom_pos)
-    on_plane_4 = vec_on_plane(n4,atom_pos,distance_plane_4)
-    distance_plane_5  = vec_dist_point_plane(n5, g5, atom_pos)
-    on_plane_5 = vec_on_plane(n5,atom_pos,distance_plane_5)
-    distance_plane_6  = vec_dist_point_plane(n6, g6, atom_pos)
-    on_plane_6 = vec_on_plane(n6,atom_pos,distance_plane_6)
-    distance_plane_7  = vec_dist_point_plane(n7, g7, atom_pos)
-    on_plane_7 = vec_on_plane(n7,atom_pos,distance_plane_7)
-    distance_plane_8  = vec_dist_point_plane(n8, g8, atom_pos)
-    on_plane_8 = vec_on_plane(n8,atom_pos,distance_plane_8)
+    distance_plane_1 = abs((n1 * atom_pos - g1)/n1.length)
+    on_plane_1 = (atom_pos - n1 * (distance_plane_1/n1.length)).length
+    distance_plane_2 = abs((n2 * atom_pos - g2)/n2.length)
+    on_plane_2 = (atom_pos - n2 * (distance_plane_2/n2.length)).length
+    distance_plane_3 = abs((n3 * atom_pos - g3)/n3.length)
+    on_plane_3 = (atom_pos - n3 * (distance_plane_3/n3.length)).length
+    distance_plane_4 = abs((n4 * atom_pos - g4)/n4.length)
+    on_plane_4 = (atom_pos - n4 * (distance_plane_4/n4.length)).length
+    distance_plane_5 = abs((n5 * atom_pos - g5)/n5.length)
+    on_plane_5 = (atom_pos - n5 * (distance_plane_5/n5.length)).length
+    distance_plane_6 = abs((n6 * atom_pos - g6)/n6.length)
+    on_plane_6 = (atom_pos - n6 * (distance_plane_6/n6.length)).length
+    distance_plane_7 = abs((n7 * atom_pos - g7)/n7.length)
+    on_plane_7 = (atom_pos - n7 * (distance_plane_7/n7.length)).length
+    distance_plane_8 = abs((n8 * atom_pos - g8)/n8.length)
+    on_plane_8 = (atom_pos - n8 * (distance_plane_8/n8.length)).length
 
     # Here are the 6 additional faces
     # pp = (size/2.0) - (sqrt(2.0)/2.0) * ((size/sqrt(2.0))/3.0)
@@ -927,18 +876,18 @@ def vec_in_truncated_octahedron(atom_pos,size, skin):
     n_5 = Vector((0.0,0.0,1.0))    
     n_6 = Vector((0.0,0.0,-1.0))   
     
-    distance_plane_1b  = vec_dist_point_plane(n_1, -pp, atom_pos)
-    on_plane_1b = vec_on_plane(n_1,atom_pos,distance_plane_1b)
-    distance_plane_2b  = vec_dist_point_plane(n_2, -pp, atom_pos)
-    on_plane_2b = vec_on_plane(n_2,atom_pos,distance_plane_2b)
-    distance_plane_3b  = vec_dist_point_plane(n_3, -pp, atom_pos)
-    on_plane_3b = vec_on_plane(n_3,atom_pos,distance_plane_3b)
-    distance_plane_4b  = vec_dist_point_plane(n_4, -pp, atom_pos)
-    on_plane_4b = vec_on_plane(n_4,atom_pos,distance_plane_4b)
-    distance_plane_5b  = vec_dist_point_plane(n_5, -pp, atom_pos)
-    on_plane_5b = vec_on_plane(n_5,atom_pos,distance_plane_5b)
-    distance_plane_6b  = vec_dist_point_plane(n_6, -pp, atom_pos)
-    on_plane_6b = vec_on_plane(n_6,atom_pos,distance_plane_6b)
+    distance_plane_1b = abs((n_1 * atom_pos + pp)/n_1.length)
+    on_plane_1b = (atom_pos - n_1 * (distance_plane_1b/n_1.length)).length
+    distance_plane_2b = abs((n_2 * atom_pos + pp)/n_2.length)
+    on_plane_2b = (atom_pos - n_2 * (distance_plane_2b/n_2.length)).length
+    distance_plane_3b = abs((n_3 * atom_pos + pp)/n_3.length)
+    on_plane_3b = (atom_pos - n_3 * (distance_plane_3b/n_3.length)).length
+    distance_plane_4b = abs((n_4 * atom_pos + pp)/n_4.length)
+    on_plane_4b = (atom_pos - n_4 * (distance_plane_4b/n_4.length)).length
+    distance_plane_5b = abs((n_5 * atom_pos + pp)/n_5.length)
+    on_plane_5b = (atom_pos - n_5 * (distance_plane_5b/n_5.length)).length
+    distance_plane_6b = abs((n_6 * atom_pos + pp)/n_6.length)
+    on_plane_6b = (atom_pos - n_6 * (distance_plane_6b/n_6.length)).length
 
     inner = False
 

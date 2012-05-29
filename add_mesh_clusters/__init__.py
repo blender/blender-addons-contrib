@@ -73,7 +73,7 @@ ATOM_Cluster_PANEL = 0
 class CLASS_ImportCluster(bpy.types.Operator):
     bl_idname = "mesh.cluster"
     bl_label = "Atom cluster"
-    bl_options = {'PRESET', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     def execute(self, context):
 
