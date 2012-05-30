@@ -1046,7 +1046,7 @@ def create_square_lattice(ctype, size, skin, lattice):
         number_i = int(size/(2.0*lattice))       
 
 
-    for k in range(-number_k,number_k):
+    for k in range(-number_k,number_k+1):
         for j in range(-number_j,number_j+1):
             for i in range(-number_i,number_i+1):
 
