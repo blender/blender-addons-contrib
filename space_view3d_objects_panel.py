@@ -42,6 +42,7 @@ class View3DPanel():
 class VIEW3D_PT_add_menu(View3DPanel,bpy.types.Panel):
     bl_context = "objectmode"
     bl_label = "Add Objects"
+    bl_options = {"DEFAULT_CLOSED"}
     
     def draw(self, context):
         layout = self.layout

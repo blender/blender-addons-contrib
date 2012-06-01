@@ -29,7 +29,7 @@ bl_info = {
     'blender': (2, 6, 0),
     'location': "View3D > Tools",
     'description': "Assistant for using CMU Motion Capture data",
-    'warning': '',
+    'warning': 'Script is returning errors',
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
                 "Scripts/3D_interaction/CMU_Mocap_Library_Browser",
     'tracker_url': "http://projects.blender.org/tracker/index.php?"\
