@@ -539,6 +539,7 @@ def DEF_atom_xyz_main(use_mesh,
                       radiustype,
                       Ball_distance_factor,
                       put_to_center, 
+                      put_to_center_all,
                       use_camera,
                       use_lamp,
                       path_datafile):
@@ -597,10 +598,11 @@ def DEF_atom_xyz_main(use_mesh,
     # TRANSLATION OF THE STRUCTURE TO THE ORIGIN
 
     # It may happen that the structure in a XYZ file already has an offset
-    # If chosen, the structure is first put into the center of the scene
-    # (the offset is substracted).
 
-    if put_to_center == True:
+
+    # If chosen, the structure is put into the center of the scene
+    # (only the first frame).
+    if put_to_center == True and put_to_center_all == False:
 
         sum_vec = Vector((0.0,0.0,0.0))
 
@@ -615,7 +617,29 @@ def DEF_atom_xyz_main(use_mesh,
         for atoms_of_one_type in first_frame:
             for atom in atoms_of_one_type:
                 atom.location -= sum_vec
-    
+
+    # If chosen, the structure is put into the center of the scene
+    # (all frames).
+    if put_to_center_all == True:
+
+        # For all frames
+        for frame in ALL_FRAMES: 
+
+            sum_vec = Vector((0.0,0.0,0.0))
+
+            # Sum of all atom coordinates
+            for atoms_of_one_type in frame:
+                sum_vec = sum([atom.location for atom in atoms_of_one_type], sum_vec)
+
+            # Then the average is taken
+            sum_vec = sum_vec / Number_of_total_atoms
+
+            # After, for each atom the center of gravity is substracted
+            for atoms_of_one_type in frame:
+                for atom in atoms_of_one_type:
+                    atom.location -= sum_vec
+
+   
     # ------------------------------------------------------------------------
     # SCALING
 
