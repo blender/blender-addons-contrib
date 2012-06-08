@@ -18,23 +18,24 @@
 
 #
 #  Main author       : Clemens Barth (Blendphys@root-1.de)
-#  Authors           : Clemens Barth, ...
+#  Authors           : Clemens Barth, Christine Mottet (Icosahedra), ...
 #
 #  Homepage(Wiki)    : http://development.root-1.de/Atomic_Blender.php
 #  Tracker           : ...
 #
 #  Start of project              : 2012-03-25 by Clemens Barth
-#  First publication in Blender  : 2012-05-27
-#  Last modified                 : 2012-05-27
+#  First publication in Blender  : 2012-05-27 by Clemens Barth
+#  Last modified                 : 2012-06-08
 #
 #
 #
 #  To do:
 #  ======
 #
-#  1. Include other shapes: icosahedron, dodecahedron
-#  2. ...
-#
+#  1. Include other shapes: dodecahedron, ...
+#  2. Skin option for parabolic shaped clusters
+#  3. Skin option for icosahedron
+#  4. Icosahedron: unlimited size ... 
 #
 
 bl_info = {
@@ -118,6 +119,9 @@ class CLASS_atom_cluster_panel(Panel):
             row.prop(scn, "parabol_diameter")
             row = box.row()
             row.prop(scn, "parabol_height")
+        elif scn.shape in ["icosahedron"]:
+            row = box.row()
+            row.prop(scn, "icosahedron_size")
         else:
             row = box.row()
             row.prop(scn, "size")
@@ -189,6 +193,9 @@ class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
     parabol_height = FloatProperty(
         name = "Height", default=30.0, min=0.1, 
         description = "Height in Angstroem")
+    icosahedron_size = IntProperty(
+        name = "Size", default=1, min=1, max=13, 
+        description = "Size n: 1 (13 atoms), 2 (55 atoms), 3 (147 atoms), 4 (309 atoms), 5 (561 atoms), ..., 13 (8217 atoms)")
     shape = EnumProperty(
         name="",
         description="Choose the shape of the cluster",
@@ -199,12 +206,13 @@ class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
                ('pyramide_hex_abc', "Pyramide - Tetraeder", "Pyramide: tetraeder (abcabc-lattice)"),
                ('octahedron',           "Octahedron",           "Octahedron"),
                ('truncated_octahedron', "Truncated octahedron", "Truncated octahedron"),
+               ('icosahedron', "Icosahedron", "Icosahedron"),
                ('parabolid_square', "Paraboloid: square",  "Paraboloid with square lattice"),
                ('parabolid_ab',     "Paraboloid: hex ab",  "Paraboloid with ab-lattice"),
                ('parabolid_abc',    "Paraboloid: hex abc", "Paraboloid with abc-lattice")),
                default='sphere_square',)  
     lattice_parameter = FloatProperty(
-        name = "Lattice", default=4.0, min=1.0,
+        name = "Lattice", default=4.08, min=1.0,
         description = "Lattice parameter in Angstroem")
     element = StringProperty(name="Element",
         default="Gold", description = "Enter the name of the element")
@@ -269,6 +277,8 @@ class CLASS_atom_cluster_load_button(Operator):
         elif scn.shape in ["octahedron", "truncated_octahedron"]:
             parameter1 = scn.size * 1.4
             parameter2 = scn.skin
+        elif scn.shape in ["icosahedron"]:
+            parameter1 = scn.icosahedron_size 
         else:
             parameter1 = scn.size
             parameter2 = scn.skin
@@ -294,6 +304,11 @@ class CLASS_atom_cluster_load_button(Operator):
                                 parameter2, 
                                 scn.lattice_parameter)
                                 
+        if scn.shape in ["icosahedron"]:
+            numbers = add_mesh_cluster.create_icosahedron( 
+                                parameter1, 
+                                scn.lattice_parameter)
+
         DEF_atom_draw_atoms(scn.element,
                             scn.radius_type,
                             scn.scale_radius,

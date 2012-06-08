@@ -1075,3 +1075,247 @@ def create_square_lattice(ctype, size, skin, lattice):
     print("Atom positions calculated")
 
     return (atom_number_total, atom_number_drawn)
+
+
+
+# -----------------------------------------------------------------------------
+#                                                   Routine for the icosahedron
+
+
+# Note that the icosahedron needs a special treatment since it requires a
+# non-common crystal lattice. The faces are (111) facets and the geometry
+# is five-fold. So far, a max size of 8217 atoms can be chosen.
+# More details can be found in:
+#
+# 1. C. Mottet, G. Tréglia, B. Legrand, Surface Science 383 (1997) L719-L727
+# 2. C. R. Henry, Surface Science Reports 31 (1998) 231-325
+
+# This routine is a translation from an existing Fortran code into Python.
+# The Fortran code has been created by Christine Mottet and translated by
+# Clemens Barth. 
+
+# Although a couple of code lines are non-typical for Python, it is best to
+# leave the code as is.
+#
+# To do:
+#
+# 1. Unlimited cluster size
+# 2. Skin effect
+
+def create_icosahedron(size, lattice):
+
+    natot = int(1 + (10*size*size+15*size+11)*size/3)
+
+    x = list(range(natot+1))
+    y = list(range(natot+1))
+    z = list(range(natot+1))
+
+    xs = list(range(12+1))
+    ys = list(range(12+1))
+    zs = list(range(12+1))
+
+    xa = [[[ [] for i in range(12+1)] for j in range(12+1)] for k in range(20+1)]
+    ya = [[[ [] for i in range(12+1)] for j in range(12+1)] for k in range(20+1)]
+    za = [[[ [] for i in range(12+1)] for j in range(12+1)] for k in range(20+1)]
+
+    naret  = [[ [] for i in range(12+1)] for j in range(12+1)]
+    nfacet = [[[ [] for i in range(12+1)] for j in range(12+1)] for k in range(12+1)]
+
+    rac2 = sqrt(2.0)
+    rac5 = sqrt(5.0)
+    tdef = (rac5+1.0)/2.0
+
+    rapp  = sqrt(2.0*(1.0-tdef/(tdef*tdef+1.0)))
+    nats  = 2 * (5*size*size+1)
+    nat   = 13
+    epsi  = 0.01
+
+    x[1] = 0.0
+    y[1] = 0.0
+    z[1] = 0.0
+
+    for i in range(2, 5+1):
+        z[i]   = 0.0
+        y[i+4] = 0.0
+        x[i+8] = 0.0
+    
+    for i in range(2, 3+1):
+        x[i]    =  tdef
+        x[i+2]  = -tdef
+        x[i+4]  =  1.0
+        x[i+6]  = -1.0
+        y[i+8]  =  tdef
+        y[i+10] = -tdef
+
+    for i in range(2, 4+1, 2):
+        y[i]   =  1.0
+        y[i+1] = -1.0
+        z[i+4] =  tdef
+        z[i+5] = -tdef
+        z[i+8] =  1.0
+        z[i+9] = -1.0
+
+    xdef = rac2 / sqrt(tdef * tdef + 1)
+
+    for i in range(2, 13+1):
+        x[i] = x[i] * xdef / 2.0
+        y[i] = y[i] * xdef / 2.0
+        z[i] = z[i] * xdef / 2.0
+
+    if size > 1:
+
+        for n in range (2, size+1):
+            ifacet = 0
+            iaret  = 0
+            inatf  = 0
+            for i in range(1, 12+1):
+                for j in range(1, 12+1):
+                    naret[i][j] = 0
+                    for k in range (1, 12+1): 
+                        nfacet[i][j][k] = 0
+
+            nl1 = 6
+            nl2 = 8
+            nl3 = 9
+            k1  = 0
+            k2  = 0
+            k3  = 0
+            k12 = 0
+            for i in range(1, 12+1):
+                nat += 1
+                xs[i] = n * x[i+1]
+                ys[i] = n * y[i+1]
+                zs[i] = n * z[i+1]
+                x[nat] = xs[i]
+                y[nat] = ys[i]
+                z[nat] = zs[i]
+                k1 += 1
+
+            for i in range(1, 12+1):
+                for j in range(2, 12+1):
+                    if j <= i:
+                        continue
+                    
+                    xij = xs[j] - xs[i]
+                    yij = ys[j] - ys[i]
+                    zij = zs[j] - zs[i]
+                    xij2 = xij * xij
+                    yij2 = yij * yij
+                    zij2 = zij * zij
+                    dij2 = xij2 + yij2 + zij2
+                    dssn = n * rapp / rac2
+                    dssn2 = dssn * dssn
+                    diffij = abs(dij2-dssn2)
+                    if diffij >= epsi:
+                        continue
+                    
+                    for k in range(3, 12+1):
+                        if k <= j:
+                            continue
+                        
+                        xjk = xs[k] - xs[j]
+                        yjk = ys[k] - ys[j]
+                        zjk = zs[k] - zs[j]
+                        xjk2 = xjk * xjk
+                        yjk2 = yjk * yjk
+                        zjk2 = zjk * zjk
+                        djk2 = xjk2 + yjk2 + zjk2
+                        diffjk = abs(djk2-dssn2)
+                        if diffjk >= epsi:
+                            continue
+                        
+                        xik = xs[k] - xs[i]
+                        yik = ys[k] - ys[i]
+                        zik = zs[k] - zs[i]
+                        xik2 = xik * xik
+                        yik2 = yik * yik
+                        zik2 = zik * zik
+                        dik2 = xik2 + yik2 + zik2
+                        diffik = abs(dik2-dssn2)
+                        if diffik >= epsi:
+                            continue
+                        
+                        if nfacet[i][j][k] != 0:
+                            continue
+
+                        ifacet += 1
+                        nfacet[i][j][k] = ifacet
+
+                        if naret[i][j] == 0:
+                            iaret += 1
+                            naret[i][j] = iaret
+                            for l in range(1,n-1+1):
+                                nat += 1
+                                xa[i][j][l] = xs[i]+l*(xs[j]-xs[i]) / n
+                                ya[i][j][l] = ys[i]+l*(ys[j]-ys[i]) / n
+                                za[i][j][l] = zs[i]+l*(zs[j]-zs[i]) / n
+                                x[nat] = xa[i][j][l]
+                                y[nat] = ya[i][j][l]
+                                z[nat] = za[i][j][l]
+
+                        if naret[i][k] == 0:
+                            iaret += 1
+                            naret[i][k] = iaret
+                            for l in range(1, n-1+1):
+                                nat += 1
+                                xa[i][k][l] = xs[i]+l*(xs[k]-xs[i]) / n
+                                ya[i][k][l] = ys[i]+l*(ys[k]-ys[i]) / n
+                                za[i][k][l] = zs[i]+l*(zs[k]-zs[i]) / n
+                                x[nat] = xa[i][k][l]
+                                y[nat] = ya[i][k][l]
+                                z[nat] = za[i][k][l]
+
+                        if naret[j][k] == 0:
+                            iaret += 1
+                            naret[j][k] = iaret
+                            for l in range(1, n-1+1):
+                                nat += 1
+                                xa[j][k][l] = xs[j]+l*(xs[k]-xs[j]) / n
+                                ya[j][k][l] = ys[j]+l*(ys[k]-ys[j]) / n
+                                za[j][k][l] = zs[j]+l*(zs[k]-zs[j]) / n
+                                x[nat] = xa[j][k][l]
+                                y[nat] = ya[j][k][l]
+                                z[nat] = za[j][k][l]
+
+                        for l in range(2, n-1+1):
+                            for ll in range(1, l-1+1):
+                                xf = xa[i][j][l]+ll*(xa[i][k][l]-xa[i][j][l]) / l
+                                yf = ya[i][j][l]+ll*(ya[i][k][l]-ya[i][j][l]) / l
+                                zf = za[i][j][l]+ll*(za[i][k][l]-za[i][j][l]) / l
+                                nat += 1
+                                inatf += 1
+                                x[nat] = xf
+                                y[nat] = yf
+                                z[nat] = zf
+                                k3 += 1
+
+    atom_number_total = 0
+    atom_number_drawn = 0
+
+    for i in range (1,natot+1):
+
+        atom = Vector((x[i],y[i],z[i])) * lattice 
+
+        atom_add = CLASS_atom_cluster_atom(atom)
+        ATOM_CLUSTER_ALL_ATOMS.append(atom_add)
+        atom_number_total += 1
+        atom_number_drawn += 1
+
+    return (atom_number_total, atom_number_drawn)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
