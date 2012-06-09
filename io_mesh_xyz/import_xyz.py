@@ -370,17 +370,31 @@ def DEF_atom_xyz_read_xyz_file(filepath,radiustype):
 
         if len(split_list) == 1:
             number_atoms = int(split_list[0])
+            #print(number_atoms)
             FLAG = True
             
         if FLAG == True:
         
             line = ATOM_XYZ_FILEPATH_p.readline()
             line = line.rstrip()
-            comment = line
             
             all_atoms= []
             for i in range(number_atoms):
-            
+
+
+                # This is a guarantee that only the total number of atoms of the
+                # first frame is used. Condition is, so far, that the number of
+                # atoms in a xyz file is constant. However, sometimes the number
+                # may increase (or decrease). If it decreases, the addon crashes.
+                # If it increases, only the tot number of atoms of the first frame
+                # is used.
+                # By time, I will allow varying atom numbers ... but this takes 
+                # some time ...            
+                if NUMBER_FRAMES != 0:
+                    if i >= total_number_atoms:
+                        break
+                        
+       
                 line = ATOM_XYZ_FILEPATH_p.readline()
                 line = line.rstrip()
                 split_list = line.rsplit()
@@ -390,7 +404,7 @@ def DEF_atom_xyz_read_xyz_file(filepath,radiustype):
                 FLAG_FOUND = False
                 for element in ATOM_XYZ_ELEMENTS:
                     if str.upper(short_name) == str.upper(element.short_name):
-                        # Give the atom its proper names, color and radius:
+                        # Give the atom its proper name, color and radius:
                         name = element.name
                         # int(radiustype) => type of radius:
                         # pre-defined (0), atomic (1) or van der Waals (2)
@@ -426,6 +440,18 @@ def DEF_atom_xyz_read_xyz_file(filepath,radiustype):
             
             # We note here all elements. This needs to be done only once. 
             if NUMBER_FRAMES == 0:
+            
+                # This is a guarantee that only the total number of atoms of the
+                # first frame is used. Condition is, so far, that the number of
+                # atoms in a xyz file is constant. However, sometimes the number
+                # may increase (or decrease). If it decreases, the addon crashes.
+                # If it increases, only the tot number of atoms of the first frame
+                # is used.
+                # By time, I will allow varying atom numbers ... but this takes 
+                # some time ...
+                total_number_atoms = number_atoms
+                
+                
                 elements = []
                 for atom in all_atoms:
                     FLAG_FOUND = False
@@ -441,6 +467,7 @@ def DEF_atom_xyz_read_xyz_file(filepath,radiustype):
                         # atom name (e.g. 'Sodium') and its color.
                         elements.append(atom[1])
             
+            # Sort the atoms: create lists of atoms of one type
             structure = []
             for element in elements:
                 atoms_one_type = []
@@ -467,7 +494,7 @@ def DEF_atom_xyz_read_xyz_file(filepath,radiustype):
                 print(atom.element + "	" + str(atom.location))
         print()    
     """
-    return number_atoms
+    return total_number_atoms
 
 
 # This reads a custom data file.
@@ -583,7 +610,7 @@ def DEF_atom_xyz_main(use_mesh,
                 # comparison of names ...
                 if atom.name in material.name:
                     # ... and give the atom its material properties.
-                    # However, before we check, if it is a vacancy
+                    # However, before we check if it is a vacancy
                     # The vacancy is represented by a transparent cube.
                     if atom.name == "Vacancy":
                         material.transparency_method = 'Z_TRANSPARENCY'
@@ -628,7 +655,19 @@ def DEF_atom_xyz_main(use_mesh,
             sum_vec = Vector((0.0,0.0,0.0))
 
             # Sum of all atom coordinates
-            for atoms_of_one_type in frame:
+            for (i, atoms_of_one_type) in enumerate(frame):
+
+                # This is a guarantee that only the total number of atoms of the
+                # first frame is used. Condition is, so far, that the number of
+                # atoms in a xyz file is constant. However, sometimes the number
+                # may increase (or decrease). If it decreases, the addon crashes.
+                # If it increases, only the tot number of atoms of the first frame
+                # is used.
+                # By time, I will allow varying atom numbers ... but this takes 
+                # some time ...
+                if i >= Number_of_total_atoms:
+                    break
+
                 sum_vec = sum([atom.location for atom in atoms_of_one_type], sum_vec)
 
             # Then the average is taken
@@ -675,7 +714,7 @@ def DEF_atom_xyz_main(use_mesh,
 
     # ------------------------------------------------------------------------
     # CAMERA AND LAMP
-    camera_factor = 15.0
+    camera_factor = 20.0
 
     # If chosen a camera is put into the scene.
     if use_camera == True:
