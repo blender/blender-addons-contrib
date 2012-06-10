@@ -31,7 +31,7 @@
 #
 # Paul "BrikBot" Marshall
 # Created: January 28, 2012
-# Last Modified: May 11, 2012
+# Last Modified: June 10, 2012
 # Homepage (blog): http://post.darkarsenic.com/
 #                       //blog.darkarsenic.com/
 #
@@ -133,6 +133,17 @@ def is_same_co(v1, v2):
         for co1, co2 in zip(v1, v2):
             if co1 != co2:
                 return False
+    return True
+
+
+# is_face_planar
+#
+# Tests a face to see if it is planar.
+def is_face_planar(face, error = 0.000002):
+    for v in face.verts:
+        d = distance_point_to_plane(v.co, face.verts[0].co, face.normal)
+        if d < -error or d > error:
+            return False
     return True
 
 
@@ -303,6 +314,13 @@ def interpolate_line_line(p1_co, p1_dir, p2_co, p2_dir, segments, tension = 1,
 # http://www.mediafire.com/file/0egbr5ahg14talm/intersect_line_surface2.nb for
 # Mathematica computation).
 #
+# Additionally, the resulting series of equations may result in a div by zero
+# exception if the line in question if parallel to one of the axis or if the
+# quad is planar and parallel to either the XY, XZ, or YZ planes.  However, the
+# system is still solvable but must be dealt with a little differently to avaid
+# these special cases.  Because the resulting equations are a little different,
+# we have to code them differently.  Hence the special cases.
+#
 # Tri math and theory:
 # A triangle must be planar (three points define a plane).  Therefore we just
 # have to make sure that the line intersects inside the triangle.
@@ -318,12 +336,10 @@ def intersect_line_face(edge, face, is_infinite = False, error = 0.000002):
         edgeA = face.edges[0]
         edgeB = None
         flipB = False
-
         for i in range(len(face.edges)):
             if face.edges[i].verts[0] not in edgeA.verts and face.edges[i].verts[1] not in edgeA.verts:
                 edgeB = face.edges[i]
                 break
-
         # I haven't figured out a way to mix this in with the above.  Doing so might remove a
         # few extra instructions from having to be executed saving a few clock cycles:
         for i in range(len(face.edges)):
@@ -332,11 +348,6 @@ def intersect_line_face(edge, face, is_infinite = False, error = 0.000002):
             if (edgeA.verts[0] in face.edges[i].verts and edgeB.verts[1] in face.edges[i].verts) or (edgeA.verts[1] in face.edges[i].verts and edgeB.verts[0] in face.edges[i].verts):
                 flipB = True
                 break
-
-        # Check to see if the quad is planar.  We can go faster if it is.
-        if planar_quad(face):
-            squat = None #Just to keep an indentation error from happeneing for the time being.
-
         # Define calculation coefficient constants:
         # "xx1" is the x coordinate, "xx2" is the y coordinate, and "xx3" is the z
         # coordinate.
@@ -348,10 +359,8 @@ def intersect_line_face(edge, face, is_infinite = False, error = 0.000002):
         else:
             a21, a22, a23 = edgeB.verts[0].co[0], edgeB.verts[0].co[1], edgeB.verts[0].co[2]
             b21, b22, b23 = edgeB.verts[1].co[0], edgeB.verts[1].co[1], edgeB.verts[1].co[2]
-
         a31, a32, a33 = edge.verts[0].co[0], edge.verts[0].co[1], edge.verts[0].co[2]
         b31, b32, b33 = edge.verts[1].co[0], edge.verts[1].co[1], edge.verts[1].co[2]
-
         # There are a bunch of duplicate "sub-calculations" inside the resulting
         # equations for t, t12, and t3.  Calculate them once and store them to
         # reduce computational time:
@@ -415,7 +424,6 @@ def intersect_line_face(edge, face, is_infinite = False, error = 0.000002):
         m58 = a32 * b21 * b33
         m59 = a11 * b22 * b33
         m60 = a31 * b22 * b33
-
         m61 = a33 * b12 * b21
         m62 = a32 * b13 * b21
         m63 = a33 * b11 * b22
@@ -428,7 +436,6 @@ def intersect_line_face(edge, face, is_infinite = False, error = 0.000002):
         m70 = b11 * b23 * b32
         m71 = b12 * b21 * b33
         m72 = b11 * b22 * b33
-
         n01 = m01 - m02 - m03 + m04 + m05 - m06
         n02 = -m07 + m08 + m09 - m10 - m11 + m12 + m13 - m14 - m15 + m16 + m17 - m18 - m25 + m27 + m29 - m31 + m39 - m41 - m43 + m45 - m53 + m55 + m57 - m59
         n03 = -m19 + m20 + m33 - m34 - m47 + m48
@@ -437,39 +444,62 @@ def intersect_line_face(edge, face, is_infinite = False, error = 0.000002):
         n06 = m61 - m62 - m63 + m64 + m65 - m66 - m67 + m68 + m69 - m70 - m71 + m72
         n07 = 2 * n01 + n02 + 2 * n03 + n04 + n05
         n08 = n01 + n02 + n03 + n06
-
         # Calculate t, t12, and t3:
         t = (n07 - sqrt(pow(-n07, 2) - 4 * (n01 + n03 + n04) * n08)) / (2 * n08)
         # t12 can be greatly simplified by defining it with t in it:
-        t12 = -(-(a32 - b32) * (-a31 + a11 * (1 - t) + b11 * t) + (a31 - b31) * (-a32 + a12 * (1 - t) + b12 * t)) / (-(a32 - b32) * (-a11 * (1 - t) + a21 * (1 - t) - b11 * t + b21 * t) + (a31 - b31) * (-a12 * (1 - t) + a22 * (1 - t) - b12 * t + b22 * t))
+        # If block used to help prevent any div by zero error.
+        t12 = 0
+        if a31 == b31:
+            # The line is parallel to the z-axis:
+            if a32 == b32:
+                t12 = ((a11 - a31) + (b11 - a11) * t) / ((a21 - a11) + (a11 - a21 - b11 + b21) * t)
+            # The line is parallel to the y-axis:
+            elif a33 == b33:
+                t12 = ((a11 - a31) + (b11 - a11) * t) / ((a21 - a11) + (a11 - a21 - b11 + b21) * t)
+            # The line is along the y/z-axis but is not parallel to either:
+            else:
+                t12 = -(-(a33 - b33) * (-a32 + a12 * (1 - t) + b12 * t) + (a32 - b32) * (-a33 + a13 * (1 - t) + b13 * t)) / (-(a33 - b33) * ((a22 - a12) * (1 - t) + (b22 - b12) * t) + (a32 - b32) * ((a23 - a13) * (1 - t) + (b23 - b13) * t))
+        elif a32 == b32:
+            # The line is parallel to the x-axis:
+            if a33 == b33:
+                t12 = ((a12 - a32) + (b12 - a12) * t) / ((a22 - a12) + (a12 - a22 - b12 + b22) * t)
+            # The line is along the x/z-axis but is not parallel to either:
+            else:
+                t12 = -(-(a33 - b33) * (-a31 + a11 * (1 - t) + b11 * t) + (a31 - b31) * (-a33 + a13 * (1 - t) + b13 * t)) / (-(a33 - b33) * ((a21 - a11) * (1 - t) + (b21 - b11) * t) + (a31 - b31) * ((a23 - a13) * (1 - t) + (b23 - b13) * t))
+        # The line is along the x/y-axis but is not parallel to either:
+        else:
+            t12 = -(-(a32 - b32) * (-a31 + a11 * (1 - t) + b11 * t) + (a31 - b31) * (-a32 + a12 * (1 - t) + b12 * t)) / (-(a32 - b32) * ((a21 - a11) * (1 - t) + (b21 - b11) * t) + (a31 - b31) * ((a22 - a21) * (1 - t) + (b22 - b12) * t))
         # Likewise, t3 is greatly simplified by defining it in terms of t and t12:
-        t3 = (-a11 + a31 + (a11 * t) - (b11 * t) + (a11 * t12) - (a21 * t12) - (a11 * t * t12) + (a21 * t * t12) + (b11 * t * t12) - (b21 * t * t12)) / (a31 - b31)
-
+        # If block used to prevent a div by zero error.
+        t3 = 0
+        if a31 != b31:
+            t3 = (-a11 + a31 + (a11 - b11) * t + (a11 - a21) * t12 + (a21 - a11 + b11 - b21) * t * t12) / (a31 - b31)
+        elif a32 != b32:
+            t3 = (-a12 + a32 + (a12 - b12) * t + (a12 - a22) * t12 + (a22 - a12 + b12 - b22) * t * t12) / (a32 - b32)
+        elif a33 != b33:
+            t3 = (-a13 + a33 + (a13 - b13) * t + (a13 - a23) * t12 + (a23 - a13 + b13 - b23) * t * t12) / (a33 - b33)
+        else:
+            print("The second edge is a zero-length edge!")
+            return None
         # Calculate the point of intersection:
         x = (1 - t3) * a31 + t3 * b31
         y = (1 - t3) * a32 + t3 * b32
         z = (1 - t3) * a33 + t3 * b33
-
         int_co = Vector((x, y, z))
-
         # If the line does not intersect the quad, we return "None":
-        if (t < 0 or t > 1 or t12 < 0 or t12 > 1) and not is_infinite:
+        if (t < -1 or t > 1 or t12 < -1 or t12 > 1) and not is_infinite:
             int_co = None
     elif len(face.verts) == 3:
         p1, p2, p3 = face.verts[0], face.verts[1], face.verts[2]
         int_co = intersect_line_plane(edge.verts[0], edge.verts[1], p1, face.normal)
-
         if int_co != None:
             pA = p1 - int_co
             pB = p2 - int_co
             pC = p3 - int_co
-
             aAB = acos(pA.dot(pB))
             aBC = acos(pB.dot(pC))
             aCA = acos(pC.dot(pA))
-
             sumA = aAB + aBC + aCA
-
             # If the point is outside the triangle:
             if (sumA > (pi + error) and sumA < (pi - error)) and not is_infinite:
                 int_co = None
@@ -484,22 +514,6 @@ def project_point_plane(pt, plane_co, plane_no):
     proj_co = intersect_line_plane(pt, pt + plane_no, plane_co, plane_no)
     proj_ve = proj_co - pt
     return (proj_ve, proj_co)
-
-
-# Tests a quad to see if it is planar:
-def planar_quad(face):
-    # Using a Cayley–Menger determinant to determine planarity:
-    d01 = pow((face.verts[0] - face.verts[1]).length, 2)
-    d02 = pow((face.verts[0] - face.verts[2]).length, 2)
-    d03 = pow((face.verts[0] - face.verts[3]).length, 2)
-    d12 = pow((face.verts[1] - face.verts[2]).length, 2)
-    d13 = pow((face.verts[1] - face.verts[3]).length, 2)
-    d23 = pow((face.verts[2] - face.verts[3]).length, 2)
-
-    if (2 * (-d01 * d02 * d12 + d01 * d03 * d12 + d02 * d03 * d12 - (d03 ** 2) * d12 - d03 * (d12 ** 2) + d01 * d02 * d13 - (d02 ** 2) * d13 - d01 * d03 * d13 + d02 * d03 * d13 + d02 * d12 * d13 + d03 * d12 * d13 - d02 * (d13  ** 2) - (d01  ** 2) * d23 + d01 * d02 * d23 + d01 * d03 * d23 - d02 * d03 * d23 + d01 * d12 * d23 + d03 * d12 * d23 + d01 * d13 * d23 + d02 * d13 * d23 - d12 * d13 * d23 - d01 * (d23  ** 2))) == 0:
-        return True
-    else:
-        return False
     
 
 # ------------ FILLET/CHAMPHER HELPER METHODS -------------
