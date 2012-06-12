@@ -75,7 +75,6 @@ def applyimage(context):
                 d.image = img
                
         align_to_view(context)
-        print(len(uvdata))
         ob.data.update()
 
 # Function to update the properties
@@ -998,6 +997,7 @@ class RotateView3D(Operator):
     key = ['']
  
     first_time = True
+    tmp_level = -1
     
     def vect_sphere(self, context, mx, my):
         width = context.area.regions[4].width
@@ -1128,7 +1128,9 @@ class RotateView3D(Operator):
             self.pan = Vector((event.mouse_region_x, event.mouse_region_y))
             self.first_mouse = Vector((event.mouse_region_x, self.first_mouse.y))
                         
-        elif event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':       
+        elif event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':
+            if self.tmp_level > -1:
+                bpy.context.object.modifiers['Subsurf'].levels = self.tmp_level      
             
             return {'FINISHED'}
         
@@ -1148,7 +1150,10 @@ class RotateView3D(Operator):
         context.window_manager.modal_handler_add(self)
         self.first_mouse = Vector((event.mouse_region_x,event.mouse_region_y))
         self.first_time = True
-        
+        for sub in context.object.modifiers:
+            if sub.type == 'SUBSURF':
+                self.tmp_level = bpy.context.object.modifiers['Subsurf'].levels
+                bpy.context.object.modifiers['Subsurf'].levels = 0
         return {'RUNNING_MODAL'}
 
 # Oprerator Class to pan the view3D
@@ -1157,6 +1162,7 @@ class PanView3D(bpy.types.Operator):
     bl_label = "Pan View3D"
     
     first_mouse = Vector((0,0))
+    tmp_level = -1
 
     def modal(self, context, event):
         ob = context.object
@@ -1187,6 +1193,8 @@ class PanView3D(bpy.types.Operator):
         self.first_mouse.y = event.mouse_region_y
 
         if event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':
+            if self.tmp_level > -1:
+                bpy.context.object.modifiers['Subsurf'].levels = self.tmp_level 
             return {'FINISHED'}
         
         return {'RUNNING_MODAL'}
@@ -1195,7 +1203,10 @@ class PanView3D(bpy.types.Operator):
         context.window_manager.modal_handler_add(self)
         self.first_mouse.x = event.mouse_region_x
         self.first_mouse.y = event.mouse_region_y   
-        
+        for sub in context.object.modifiers:
+            if sub.type == 'SUBSURF':
+                self.tmp_level = bpy.context.object.modifiers['Subsurf'].levels
+                bpy.context.object.modifiers['Subsurf'].levels = 0        
         return {'RUNNING_MODAL'}
 
     def execute(self, context):        
