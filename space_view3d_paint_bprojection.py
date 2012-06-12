@@ -1130,7 +1130,9 @@ class RotateView3D(Operator):
                         
         elif event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':
             if self.tmp_level > -1:
-                bpy.context.object.modifiers['Subsurf'].levels = self.tmp_level      
+                for sub in context.object.modifiers:
+                    if sub.type in ['SUBSURF','MULTIRES']:
+                        sub.levels = self.tmp_level   
             
             return {'FINISHED'}
         
@@ -1151,9 +1153,9 @@ class RotateView3D(Operator):
         self.first_mouse = Vector((event.mouse_region_x,event.mouse_region_y))
         self.first_time = True
         for sub in context.object.modifiers:
-            if sub.type == 'SUBSURF':
-                self.tmp_level = bpy.context.object.modifiers['Subsurf'].levels
-                bpy.context.object.modifiers['Subsurf'].levels = 0
+            if sub.type in ['SUBSURF', 'MULTIRES']:
+                self.tmp_level = sub.levels
+                sub.levels = 0
         return {'RUNNING_MODAL'}
 
 # Oprerator Class to pan the view3D
@@ -1194,7 +1196,9 @@ class PanView3D(bpy.types.Operator):
 
         if event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':
             if self.tmp_level > -1:
-                bpy.context.object.modifiers['Subsurf'].levels = self.tmp_level 
+                for sub in context.object.modifiers:
+                    if sub.type in ['SUBSURF','MULTIRES']:
+                        sub.levels = self.tmp_level
             return {'FINISHED'}
         
         return {'RUNNING_MODAL'}
@@ -1204,9 +1208,10 @@ class PanView3D(bpy.types.Operator):
         self.first_mouse.x = event.mouse_region_x
         self.first_mouse.y = event.mouse_region_y   
         for sub in context.object.modifiers:
-            if sub.type == 'SUBSURF':
-                self.tmp_level = bpy.context.object.modifiers['Subsurf'].levels
-                bpy.context.object.modifiers['Subsurf'].levels = 0        
+            if sub.type in ['SUBSURF', 'MULTIRES']:
+                self.tmp_level = sub.levels
+                sub.levels = 0  
+                      
         return {'RUNNING_MODAL'}
 
     def execute(self, context):        
@@ -1274,7 +1279,6 @@ class PresetView3D(Operator):
     bl_label = "Preset View3D"
 
     view = StringProperty(name="View", description="Select the view", default='TOP')
-
     def invoke(self, context, event):                   
         ob = context.object
         em = bpy.data.objects['Empty for BProjection']
@@ -1294,8 +1298,7 @@ class PresetView3D(Operator):
 
         vr_a = sd.region_3d.view_rotation.copy()                           
         pos_init.rotate(vr_a*vr_b)            
-        sd.region_3d.view_location =  pos_init + origine
-               
+        sd.region_3d.view_location =  pos_init + origine              
                     
         return {'FINISHED'}
 
