@@ -310,7 +310,7 @@ def createcustomprops(context):
     
                                 
     Ob.custom_sub = IntProperty(name="Subdivide", description="Number of subdivision of the plan",
-                                     min=1, max=20, default=10)                                
+                                     min=0, max=20, default=0)                                
     
     # UV properties
     Ob.custom_scaleuv = FloatVectorProperty(name="ScaleUV", description="Scale the texture's UV",
@@ -724,7 +724,8 @@ class AddBProjectionPlane(Operator):
                 ob.data.edges[len(ob.data.edges)-1-i].crease = 1
             bpy.ops.object.editmode_toggle()
 
-            bpy.ops.mesh.subdivide(number_cuts = em.custom_sub)
+            if em.custom_sub > 0:
+                bpy.ops.mesh.subdivide(number_cuts = em.custom_sub)
     
             em.select = True
             bpy.ops.object.hook_add_selob()
