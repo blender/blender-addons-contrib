@@ -594,8 +594,11 @@ class BProjection(Panel):
                     col.operator("object.change_object", text="Change Object")       
 
         except:
+            ob = context.object
             col = layout.column(align = True)
             col.operator("object.addbprojectionplane", text="Add BProjection plan")
+            col = layout.column(align = True)
+            col.prop(ob, "custom_sub",text="Subdivision level")
                    
 
 # Oprerator Class to apply the image to the plane             
@@ -688,7 +691,7 @@ class AddBProjectionPlane(Operator):
             bpy.data.objects['Empty for BProjection']
 
         except:                 
-            createcustomprops(context)
+            
             cm = bpy.context.object.mode
             '''tmp = context.object
             for ob in (ob for ob in bpy.data.objects if ob.type == 'MESH' and ob.hide == False and context.scene in ob.users_scene):
@@ -723,7 +726,8 @@ class AddBProjectionPlane(Operator):
             for i in range(4):
                 ob.data.edges[len(ob.data.edges)-1-i].crease = 1
             bpy.ops.object.editmode_toggle()
-
+            
+            em.custom_sub = ob.custom_sub
             if em.custom_sub > 0:
                 bpy.ops.mesh.subdivide(number_cuts = em.custom_sub)
     
@@ -1305,6 +1309,7 @@ class PresetView3D(Operator):
 
 def register():
     bpy.utils.register_module(__name__)
+    createcustomprops(bpy.context)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
