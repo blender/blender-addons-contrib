@@ -349,26 +349,14 @@ class BB(bpy.types.Operator):
         volver(obj, copia, om, msm, msv)
         return{'FINISHED'}
 
-
-
-class BotonME(bpy.types.Panel):
-    bl_label = 'Multi Extrude Plus'
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator('object.mextrude')
-        layout.operator('object.mesh2bones')
-
 def register():
     bpy.utils.register_class(MExtrude)
-    bpy.utils.register_class(BotonME)
+
     bpy.utils.register_class(BB)
 
 def unregister():
     bpy.utils.unregister_class(MExtrude)
-    bpy.utils.unregister_class(BotonME)
+
     bpy.utils.unregister_class(BB)
 
 
