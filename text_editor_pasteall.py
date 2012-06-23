@@ -23,7 +23,7 @@ bl_info = {
     "blender": (2, 6, 0),
     "location": "Text editor > Properties panel",
     "description": "Send your selection or text to www.pasteall.org",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Text_Editor/PasteAll",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=23493",

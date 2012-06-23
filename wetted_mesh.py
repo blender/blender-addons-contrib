@@ -24,7 +24,7 @@ bl_info = {
     "location": "View3D > Tool Shelf > Wetted Mesh Panel",
     "description": "Adds separated fluid, dry and wetted mesh for selected pair.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Mesh/Wetted_Mesh",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=27156",

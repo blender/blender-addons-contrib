@@ -24,7 +24,7 @@ bl_info = {
     'location': 'File > Export',
     'description': 'Save a Quake Model 3 File)',
     'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/'\
         'Scripts/',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=23160',

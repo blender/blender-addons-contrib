@@ -23,7 +23,7 @@ bl_info = {
     'location': '3D View -> Tool Shelf -> Object Tools Panel (at the bottom)',
     'description': 'Drop selected objects on active object',
     'warning': '',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Object/Drop_to_ground',
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/Drop_to_ground',
     "tracker_url": "http://projects.blender.org/tracker/?func=detail&atid=467&aid=25349",
     'category': 'Object'}
 #################################################################

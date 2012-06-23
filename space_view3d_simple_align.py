@@ -27,7 +27,7 @@ bl_info = {
     "location": "View3D > Tool Shelf > Simple Align Panel",
     "description": "Align Selected Objects to Active Object",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/3D interaction/Align_Tools",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid==22389",

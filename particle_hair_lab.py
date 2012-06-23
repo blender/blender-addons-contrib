@@ -24,7 +24,7 @@ bl_info = {
     "location": "View3D > Tool Shelf > Grass Preset Panel",
     "description": "Creates particle grass with material",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Object/grass_Lab",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/grass_Lab",
     "tracker_url": "",
     "category": "Object"}
 

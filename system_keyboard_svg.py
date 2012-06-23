@@ -30,7 +30,7 @@ bl_info = {
     "location": "",
     "description": "Save the hotkeys as a .svg file (search: Keyboard)",
     "warning": "may not work in recent svn",
-    "wiki_url": 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+    "wiki_url": 'http://wiki.blender.org/index.php/Extensions:2.6/Py/' \
         'Scripts/System/keymaps_to_svg',
     "tracker_url": "https://projects.blender.org/tracker/index.php?" \
         "func==detail&aid=21490",

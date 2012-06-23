@@ -24,7 +24,7 @@ bl_info = {
     "location": "File > Import > Voodoo camera",
     "description": "Imports a Blender (2.4x or 2.5x) Python script from the Voodoo (version 1.1 or 1.2) camera tracker software.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Import-Export/Voodoo_camera",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=22510",

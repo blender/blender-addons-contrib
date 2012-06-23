@@ -24,7 +24,7 @@ bl_info = {
     "location": "3D window > Tool Shelf",
     "description": "Import DTM from LRO Lola and MGS Mola",
     "warning": "May consume a lot of memory",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Import-Export/NASA_IMG_Importer",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=25462",

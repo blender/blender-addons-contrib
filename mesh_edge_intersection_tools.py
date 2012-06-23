@@ -27,7 +27,7 @@ bl_info = {
     "location": "View3D > EditMode > (w) Specials",
     "warning": "Still under development",
     "wiki_url": "http://wiki.blender.org/index.php/"\
-        "Extensions:2.5/Py/Scripts/Modeling/Edge_Slice",
+        "Extensions:2.6/Py/Scripts/Modeling/Edge_Slice",
     "tracker_url": "http://projects.blender.org/tracker/"\
         "?func=detail&aid=25227"
    }

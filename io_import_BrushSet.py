@@ -57,7 +57,7 @@ bl_info = {
     "location": "File > Import > BrushSet",
     "description": "imports all image files from a folder",
     "warning": '', # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Import-Export/BrushSet",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/BrushSet",
     "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25702&group_id=153&atid=467",
     }
 

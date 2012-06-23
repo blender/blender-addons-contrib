@@ -27,7 +27,7 @@ bl_info = {
     'location': "View3D > Toolbar > Motion Trail tab",
     'warning': "",
     'description': "Display and edit motion trails in the 3d-view",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/"\
+    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/"\
         "Py/Scripts/Animation/Motion_Trail",
     'tracker_url': "http://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=26374",
