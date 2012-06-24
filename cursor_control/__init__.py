@@ -29,7 +29,8 @@ bl_info = {
     'description': 'Control the Cursor',
     'warning': 'buggy, may crash other addons', # used for warning icon and text in addons panel
     'wiki_url': 'http://blenderpythonscripts.wordpress.com/',
-    'tracker_url': '',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+                   'func=detail&aid=27253',
     'category': '3D View'}
 
 
