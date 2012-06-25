@@ -122,14 +122,14 @@ class vertex:
 
 #???PKHG TODO why are add and sub different? Solved check the two cases used 
     def __add__(self,other):
-        if "<class 'Vector'>" == str(type(other)):
+        if isinstance(other, Vector):
             tmp = self.vector + other
         else:
             tmp = self.vector + other.vector
         return vertex(tmp)
 
     def __sub__(self,other):
-        if "<class 'Vector'>" == str(type(other)):
+        if isinstance(other, Vector):
             tmp = self.vector -  other
         else:
             tmp = self.vector - other.vector
