@@ -2,7 +2,7 @@ bl_info = {
     "name": "BProjection",
     "description": "Help Clone tool",
     "author": "kgeogeo",
-    "version": (1, 0),
+    "version": (2, 0),
     "blender": (2, 6, 3),
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/bprojection",
     "tracker_url":"http://projects.blender.org/tracker/index.php?func=detail&aid=30521&group_id=153&atid=468",
