@@ -2,7 +2,7 @@ bl_info = {
     "name": "BProjection",
     "description": "Help Clone tool",
     "author": "kgeogeo",
-    "version": (2, 0),
+    "version": (1, 0),
     "blender": (2, 6, 3),
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/bprojection",
     "tracker_url":"http://projects.blender.org/tracker/index.php?func=detail&aid=30521&group_id=153&atid=468",
@@ -347,7 +347,8 @@ def removecustomprops():
         try:
             del bpy.data.objects['Empty for BProjection'][prop]
         except:
-            do = 'nothing'
+            pass
+        
 def clear_props(context):
     em = bpy.data.objects['Empty for BProjection'] 
     em.custom_scale = [1,1]
@@ -401,7 +402,7 @@ class SaveView(Operator):
         try:
             prop.custom_image = bpy.data.textures['Texture for BProjection'].image.name
         except:
-            do = 'nothing'
+            pass
         
         return {'FINISHED'}
 
@@ -515,8 +516,8 @@ class BProjection(Panel):
     def draw(self, context):        
         layout = self.layout
                 
-        try: 
-            bpy.data.objects['Empty for BProjection']
+        if  'Empty for BProjection' in [ob.name for ob in bpy.data.objects]:
+            
             
             tex = bpy.data.textures['Texture for BProjection']
             ob = context.object
@@ -593,7 +594,7 @@ class BProjection(Panel):
                     col = box.column(align =True)
                     col.operator("object.change_object", text="Change Object")       
 
-        except:
+        else:
             ob = context.object
             col = layout.column(align = True)
             col.operator("object.addbprojectionplane", text="Add BProjection plan")
@@ -661,9 +662,7 @@ class AddBProjectionPlane(Operator):
     bl_label = "Configure"
     
     def creatematerial(self, context):        
-        try:
-            matBProjection = bpy.data.materials['Material for BProjection']
-        except:            
+        if 'Material for BProjection' not in [mat.name for mat in bpy.data.materials]:            
             bpy.data.textures.new(name='Texture for BProjection',type='IMAGE')
     
             bpy.data.materials.new(name='Material for BProjection')
@@ -687,10 +686,7 @@ class AddBProjectionPlane(Operator):
         ob.data.update()
             
     def execute(self, context):    
-        try:
-            bpy.data.objects['Empty for BProjection']
-
-        except:                 
+        if  'Empty for BProjection' not in [ob.name for ob in bpy.data.objects]:                
             
             cm = bpy.context.object.mode
             '''tmp = context.object
@@ -778,6 +774,7 @@ class AddBProjectionPlane(Operator):
             context.space_data.cursor_location = em.location
             
             bpy.ops.object.mode_set(mode = cm, toggle=False)
+            bpy.data.objects['Empty for BProjection'].custom_active_object = context.object.name
             
         return {'FINISHED'}
 
