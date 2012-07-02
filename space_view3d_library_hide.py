@@ -20,6 +20,17 @@
 
 # Script copyright (C) Campbell Barton
 
+bl_info = {
+    "name": "Library Hide",
+    "description": "Hide objects within library dupligroups",
+    "author": "Campbell Barton",
+    "version": (1, 0),
+    "blender": (2, 6, 3),
+    "wiki_url": "",
+    "tracker_url":"",
+    "category": "3D View",
+}
+
 import bpy
 from mathutils import Vector
 from bpy_extras import view3d_utils
