@@ -37,7 +37,7 @@ bl_info = {
 import bpy, bmesh, bgl, blf, mathutils
 
 
-# Borrowed/Modified from Bart Crouch's old Index Visualiser add-on
+# Borrowed/Modified from Bart Crouch's old Index Visualizer add-on
 def calc_callback(self, context):
     #polling
     if context.mode != "EDIT_MESH" or len(context.active_object.vertex_groups) == 0:

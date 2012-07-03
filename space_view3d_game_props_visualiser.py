@@ -20,7 +20,7 @@
 
 
 bl_info = {
-    'name': 'Game Property Visualiser',
+    'name': 'Game Property Visualizer',
     'author': 'Bartius Crouch/Vilem Novak',
     'version': (2,5),
     'blender': (2, 5, 3),
@@ -36,7 +36,7 @@ bl_info = {
 Displays game properties next to selected objects(under name)
 
 How to use:
-    just toggle the button 'Visualise game props' in the right side panel
+    just toggle the button 'Visualize game props' in the right side panel
 """
 
 import bgl
@@ -91,7 +91,7 @@ def calc_callback(self, context):
 
     # store as ID property in mesh
     #print (texts)
-    context.scene['GamePropsVisualiser'] = texts
+    context.scene['GamePropsVisualizer'] = texts
 
 
 # draw in 3d-view
@@ -101,8 +101,8 @@ def draw_callback(self, context):
         return
     # retrieving ID property data
     try:
-        #print(context.scene['GamePropsVisualiser'])
-        texts = context.scene['GamePropsVisualiser']
+        #print(context.scene['GamePropsVisualizer'])
+        texts = context.scene['GamePropsVisualizer']
         
     except:
         return
@@ -128,10 +128,10 @@ def draw_callback(self, context):
 
 
 # operator
-class GamePropertyVisualiser(bpy.types.Operator):
-    bl_idname = "view3d.game_props_visualiser"
-    bl_label = "Game Properties Visualiser"
-    bl_description = "Toggle the visualisation of game properties"
+class GamePropertyVisualizer(bpy.types.Operator):
+    bl_idname = "view3d.game_props_visualizer"
+    bl_label = "Game Properties Visualizer"
+    bl_description = "Toggle the visualization of game properties"
     
     @classmethod
     def poll(cls, context):
@@ -181,12 +181,12 @@ class GamePropertyVisualiser(bpy.types.Operator):
 # defining the panel
 def menu_func(self, context):
     col = self.layout.column(align=True)
-    col.operator(GamePropertyVisualiser.bl_idname, text="Visualise game props")
+    col.operator(GamePropertyVisualizer.bl_idname, text="Visualize game props")
     self.layout.separator()
 
 
 def register():
-    bpy.types.Scene.display_game_properties = bpy.props.IntProperty(name='Visualise Game Poperties')
+    bpy.types.Scene.display_game_properties = bpy.props.IntProperty(name='Visualize Game Poperties')
     bpy.types.VIEW3D_PT_view3d_display.prepend(menu_func)
 
 def unregister():
