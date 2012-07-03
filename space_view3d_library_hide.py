@@ -26,6 +26,7 @@ bl_info = {
     "author": "Campbell Barton",
     "version": (1, 0),
     "blender": (2, 6, 3),
+    'location': 'Search: RayCast View Operator',
     "wiki_url": "",
     "tracker_url":"",
     "category": "3D View",
