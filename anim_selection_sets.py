@@ -90,7 +90,7 @@ class SelectionSet(bpy.types.PropertyGroup):
 
 
 class ANIM_OT_selection_set_add(bpy.types.Operator):
-    '''Add a new selection set'''
+    """Add a new selection set"""
     bl_idname = "anim.selection_set_add"
     bl_label = "Selection Set Add"
 
@@ -116,7 +116,7 @@ class ANIM_OT_selection_set_add(bpy.types.Operator):
 
 
 class ANIM_OT_selection_set_remove(bpy.types.Operator):
-    '''Remove the active selection set'''
+    """Remove the active selection set"""
     bl_idname = "anim.selection_set_remove"
     bl_label = "Selection Set Remove"
 
@@ -138,7 +138,7 @@ class ANIM_OT_selection_set_remove(bpy.types.Operator):
 
 
 class ANIM_OT_selection_set_assign(bpy.types.Operator):
-    '''Add selected bones to the active selection set'''
+    """Add selected bones to the active selection set"""
     bl_idname = "anim.selection_set_assign"
     bl_label = "Selection Set Assign"
 
@@ -161,7 +161,7 @@ class ANIM_OT_selection_set_assign(bpy.types.Operator):
 
 
 class ANIM_OT_selection_set_unassign(bpy.types.Operator):
-    '''Remove selected bones from the active selection set'''
+    """Remove selected bones from the active selection set"""
     bl_idname = "anim.selection_set_unassign"
     bl_label = "Selection Set Unassign"
 
@@ -184,7 +184,7 @@ class ANIM_OT_selection_set_unassign(bpy.types.Operator):
 
 
 class ANIM_OT_selection_set_select(bpy.types.Operator):
-    '''Select bones in selection set'''
+    """Select bones in selection set"""
     bl_idname = "anim.selection_set_select"
     bl_label = "Selection Set Select Bones"
 
@@ -208,7 +208,7 @@ class ANIM_OT_selection_set_select(bpy.types.Operator):
 
 
 class ANIM_OT_selection_set_deselect(bpy.types.Operator):
-    '''Deselect bones in selection set'''
+    """Deselect bones in selection set"""
     bl_idname = "anim.selection_set_deselect"
     bl_label = "Selection Set Deselect Bones"
 
@@ -232,7 +232,7 @@ class ANIM_OT_selection_set_deselect(bpy.types.Operator):
 
 
 class ANIM_OT_selection_set_export(bpy.types.Operator):
-    '''Export selection set data to a python script'''
+    """Export selection set data to a python script"""
     bl_idname = "anim.selection_set_export"
     bl_label = "Selection Set Export"
 

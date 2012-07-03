@@ -157,7 +157,7 @@ def normal_smooth(context):
 
     
 class NormalSmooth(bpy.types.Operator):
-    '''Smoothes verticle position based on vertex normals'''
+    """Smoothes verticle position based on vertex normals"""
     bl_idname = 'normal.smooth'
     bl_label = 'Normal Smooth'
     bl_options = {'REGISTER', 'UNDO'}

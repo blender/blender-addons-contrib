@@ -57,8 +57,8 @@ def move_coordinate(context, co, is_curve=False):
 
 
 class MeshManglerOperator(bpy.types.Operator):
-    '''push vertices on the selected object around in random directions to 
-    create a crumpled look'''
+    """Push vertices on the selected object around in random """ \
+    """directions to create a crumpled look"""
     bl_idname = "ba.mesh_mangler"
     bl_label = "Mangle Mesh"
     bl_options = { "REGISTER", "UNDO" }
@@ -94,7 +94,8 @@ class MeshManglerOperator(bpy.types.Operator):
 
 
 class AnimanglerOperator(bpy.types.Operator):
-    '''makes a shape key and pushes the verts around on it to set up for random pulsating animation'''
+    """Make a shape key and pushes the verts around on it """ \
+    """to set up for random pulsating animation"""
     bl_idname = "ba.ani_mangler"
     bl_label = "Mangle Shape Key"
 
@@ -118,7 +119,7 @@ class AnimanglerOperator(bpy.types.Operator):
 
 
 class CurveManglerOp(bpy.types.Operator):
-    '''Mangles a curve to the degree the user specifies'''
+    """Mangle a curve to the degree the user specifies"""
     bl_idname = "ba.curve_mangler"
     bl_label = "Mangle Curve"
     bl_options = { 'REGISTER', 'UNDO' }

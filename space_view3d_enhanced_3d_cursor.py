@@ -4434,7 +4434,7 @@ def transform_orientations_panel_extension(self, context):
 
 # ===== CURSOR MONITOR ===== #
 class CursorMonitor(bpy.types.Operator):
-    '''Monitor changes in cursor location and write to history'''
+    """Monitor changes in cursor location and write to history"""
     bl_idname = "view3d.cursor3d_monitor"
     bl_label = "Cursor Monitor"
     

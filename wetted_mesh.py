@@ -36,7 +36,7 @@ import math
 
 ### Tool Panel ###
 class VIEW3D_PT_tools_WettedMesh(bpy.types.Panel):
-    '''Wetted Mesh Tool Panel'''
+    """Wetted Mesh Tool Panel"""
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_label = 'Wetted Mesh'
@@ -60,7 +60,7 @@ class VIEW3D_PT_tools_WettedMesh(bpy.types.Panel):
 
 ### Operator ###
 class AddWettedMesh(bpy.types.Operator):
-    '''Add wetted mesh for selected mesh pair'''
+    """Add wetted mesh for selected mesh pair"""
     bl_idname = "mesh.primitive_wetted_mesh_add"
     bl_label = "Add Wetted Mesh"
     bl_options = {'REGISTER', 'UNDO'}

@@ -138,7 +138,7 @@ def drop_objects(self, context):
     
 #################################################################
 class OBJECT_OT_drop_to_ground(Operator):
-    '''Drop selected objects on active object'''
+    """Drop selected objects on active object"""
     bl_idname = "object.drop_on_active"
     bl_label = "Drop to Ground"
     bl_options = {'REGISTER', 'UNDO'}

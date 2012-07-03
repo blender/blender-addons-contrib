@@ -26,7 +26,7 @@ SPECIALS_MENU_KEY = 'ACCENT_GRAVE'
 # Helper functions and classes
 ################################
 class SetManipulator(bpy.types.Operator):
-    '''Set's the manipulator mode.'''
+    """Set's the manipulator mode"""
     bl_idname = "view3d.manipulator_set"
     bl_label = "Set Manipulator"
     mode = bpy.props.EnumProperty(items=[("NONE", "None", ""),
@@ -77,7 +77,7 @@ bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
 
 class ObjectDeleteNoConfirm(bpy.types.Operator):
-    '''Deletes selected objects without the confirmation popup.'''
+    """Delete selected objects without the confirmation popup"""
     bl_idname = "object.delete_no_confirm"
     bl_label = "Delete Objects No Confirm"
     bl_options = {'UNDO'}
@@ -94,10 +94,9 @@ bpy.utils.register_class(ObjectDeleteNoConfirm)
 
 
 class ShiftSubsurfLevel(bpy.types.Operator):
-    ''' Shifts the subsurf level of the selected objects up or
-        down by the given amount.  Has maximum limit, to avoid
-        going crazy and running out of RAM.
-    '''
+    """Shift the subsurf level of the selected objects up or """ \
+    """down by the given amount (has maximum limit, to avoid """ \
+    """going crazy and running out of RAM)"""
     bl_idname = "object.shift_subsurf_level"
     bl_label = "Shift Subsurf Level"
 
@@ -135,7 +134,7 @@ bpy.utils.register_class(ShiftSubsurfLevel)
 
 
 class SetEditMeshSelectMode(bpy.types.Operator):
-    '''Set's edit mesh select mode (vert, edge, face).'''
+    """Set edit mesh select mode (vert, edge, face)"""
     bl_idname = "view3d.set_edit_mesh_select_mode"
     bl_label = "Set Edit Mesh Select Mode"
     mode = bpy.props.EnumProperty(items=[("VERT", "Vertex", ""),

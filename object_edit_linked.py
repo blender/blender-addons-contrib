@@ -56,7 +56,7 @@ def linked_file_check(context):
 
 
 class EditLinked(bpy.types.Operator):
-    '''Edit Linked Library'''
+    """Edit Linked Library"""
     bl_idname = "object.edit_linked"
     bl_label = "Edit Linked Library"
 
@@ -98,7 +98,7 @@ class EditLinked(bpy.types.Operator):
 
 
 class ReturnToOriginal(bpy.types.Operator):
-    '''Return to the original file after editing the linked library .blend'''
+    """Return to the original file after editing the linked library .blend"""
     bl_idname = "wm.return_to_original"
     bl_label = "Return to Original File"
 

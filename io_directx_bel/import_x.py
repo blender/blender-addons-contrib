@@ -98,7 +98,7 @@ def load(operator, context, filepath,
         'Matrix4x4',
         'Vector',
     '''
-    '''
+    """
     with * : defined in dXdata
     
     WORD     16 bits
@@ -146,7 +146,7 @@ BINARY FORMAT
 #define TOKEN_CSTRING     51
 #define TOKEN_ARRAY       52
     
-    '''
+    """
     
     # COMMON REGEX
     space = '[\ \t]{1,}' # at least one space / tab
@@ -176,7 +176,7 @@ BINARY FORMAT
     # returns header values or False if directx reco tag is missing
     # assuming there's never comment header and that xof if the 1st
     # string of the file
-    '''
+    """
      they look like xof 0303txt 0032
      4       Magic Number (required) "xof "
      2       Minor Version 03
@@ -187,7 +187,7 @@ BINARY FORMAT
         "tzip" MSZip Compressed Text File
         "bzip" MSZip Compressed Binary File
      4       Float Accuracy "0032" 32 bit or "0064" 64 bit
-    '''
+    """
     def dXheader(data) :
         l = data.read(4)
         if l != b'xof ' :

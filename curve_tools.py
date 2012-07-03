@@ -557,7 +557,7 @@ def loft(objs, steps, spans, interpolation=1, tension=0.0, bias=0.5):
 #loft operator
 
 class LoftOperator(bpy.types.Operator):
-    '''Tooltip'''
+    """Tooltip"""
     bl_idname = "mesh.loft_operator"
     bl_label = "Loft between bezier curves"
 
@@ -613,7 +613,7 @@ class LoftOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 class UpdateFix(bpy.types.Operator):
-    '''Tooltip'''
+    """Tooltip"""
     bl_idname = "mesh.update_fix"
     bl_label = "Update fix"
 
@@ -1141,7 +1141,7 @@ def cutcurve(obj, t, method=True):
             obj.data.splines.remove(spline)
 
 class CutCurveOperator(bpy.types.Operator):
-    '''Subdivide / Split a bezier curve.'''
+    """Subdivide / Split a bezier curve"""
     bl_idname = "curve.cut_operator"
     bl_label = "Cut curve operator"
 

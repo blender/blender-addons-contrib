@@ -9,7 +9,7 @@ import io_directx_bel.bel.ob
 from io_directx_bel import bel
 
 debuglevel = 0
-'''
+"""
 wip.. naming behaviour previous to any data
 name exist ?
 no : create
@@ -20,7 +20,7 @@ yes :
     naming_method = 3   create new, remove existing
     
 for now, and mesh data, 0 2 or 3
-'''
+"""
 
 ## material MUST exist before creation of material slots
 ## map only uvmap 0 to its image defined in mat  for now (multitex view)

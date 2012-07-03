@@ -149,7 +149,7 @@ class Bump():
 	
 
 class Bump_init(bpy.types.Operator):
-	'''Bump by extruding and moving/rotating/scaling multiple times'''
+	"""Bump by extruding and moving/rotating/scaling multiple times"""
 	bl_idname = 'mesh.bump'
 	bl_label = 'Bump'
 	bl_options = {'REGISTER', 'UNDO'}

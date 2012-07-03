@@ -90,7 +90,7 @@ def rename_datablocks_main(self, context):
                                 m_slot.material.name = name
 
 class OBJECT_OT_batch_rename_datablocks(bpy.types.Operator):
-    '''Batch rename Datablocks'''
+    """Batch rename Datablocks"""
     bl_idname = "object.batch_rename_datablocks"
     bl_label = "Batch Rename Datablocks"
     bl_options = {'REGISTER', 'UNDO'}

@@ -49,7 +49,7 @@ def not_parented(self,context) :
     self.use_templates = False
 
 class ImportX(bpy.types.Operator, ImportHelper):
-    '''Load a Direct x File'''
+    """Load a Direct x File"""
     bl_idname = "import_scene.x"
     bl_label = "Import X"
     bl_options = {'PRESET', 'UNDO'}

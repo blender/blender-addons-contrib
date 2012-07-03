@@ -63,7 +63,7 @@ class TEXT_PT_pasteall(bpy.types.Panel):
         layout.prop(context.scene, "use_webbrowser")
 
 class TEXT_OT_pasteall(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "text.pasteall"
     bl_label = "PasteAll.org"
     bl_description = "Send the current text or selection to www.pasteall.org"
@@ -115,7 +115,7 @@ class TEXT_OT_pasteall(bpy.types.Operator):
         return {'FINISHED'}
             
     def send_text(self, text, format):
-        ''''''
+        """"""
         import urllib
         url = "http://www.pasteall.org/index.php"
         values = {  'action' : 'savepaste',
@@ -134,7 +134,7 @@ class TEXT_OT_pasteall(bpy.types.Operator):
             return page_source
 
     def get_page(self, html):
-        ''''''
+        """"""
         id = html.find('directlink')
         id_begin = id + 12 # hardcoded: directlink">
         id_end = html[id_begin:].find("</a>")
@@ -145,7 +145,7 @@ class TEXT_OT_pasteall(bpy.types.Operator):
             return None
 
     def get_selected_text(self, text):
-        ''''''
+        """"""
         current_line = text.current_line
         select_end_line = text.select_end_line
         
@@ -193,7 +193,7 @@ class TEXT_OT_pasteall(bpy.types.Operator):
         return text_return
     
     def get_file_format(self, text):
-        '''Try to guess what is the format based on the file extension'''
+        """Try to guess what is the format based on the file extension"""
         extensions =   {'diff':'24',
                         'patch':'24',
                         'py':'62',

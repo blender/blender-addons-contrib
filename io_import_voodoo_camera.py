@@ -282,7 +282,7 @@ def voodoo_import(infile,ld_cam,ld_points):
 
 # Operator
 class ImportVoodooCamera(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "import.voodoo_camera"
     bl_label = "Import Voodoo camera"
     bl_description = "Load a Blender export script from the Voodoo motion tracker"

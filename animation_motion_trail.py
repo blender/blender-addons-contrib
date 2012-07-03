@@ -1291,7 +1291,7 @@ def set_handle_type(self, context):
 
 
 class MotionTrailOperator(bpy.types.Operator):
-    '''Edit motion trails in 3d-view'''
+    """Edit motion trails in 3d-view"""
     bl_idname = "view3d.motion_trail"
     bl_label = "Motion Trail"
     

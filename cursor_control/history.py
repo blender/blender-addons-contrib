@@ -106,7 +106,7 @@ class CursorHistoryData(bpy.types.PropertyGroup):
 
 
 class VIEW3D_OT_cursor_previous(bpy.types.Operator):
-    '''Previous cursor location'''
+    """Previous cursor location"""
     bl_idname = "view3d.cursor_previous"
     bl_label = "Previous cursor location"
     bl_options = {'REGISTER'}
@@ -122,7 +122,7 @@ class VIEW3D_OT_cursor_previous(bpy.types.Operator):
 
 
 class VIEW3D_OT_cursor_next(bpy.types.Operator):
-    '''Next cursor location'''
+    """Next cursor location"""
     bl_idname = "view3d.cursor_next"
     bl_label = "Next cursor location"
     bl_options = {'REGISTER'}
@@ -138,7 +138,7 @@ class VIEW3D_OT_cursor_next(bpy.types.Operator):
 
 
 class VIEW3D_OT_cursor_history_show(bpy.types.Operator):
-    '''Show cursor trace'''
+    """Show cursor trace"""
     bl_idname = "view3d.cursor_history_show"
     bl_label = "Show cursor trace"
     bl_options = {'REGISTER'}
@@ -155,7 +155,7 @@ class VIEW3D_OT_cursor_history_show(bpy.types.Operator):
 
 
 class VIEW3D_OT_cursor_history_hide(bpy.types.Operator):
-    '''Hide cursor trace'''
+    """Hide cursor trace"""
     bl_idname = "view3d.cursor_history_hide"
     bl_label = "Hide cursor trace"
     bl_options = {'REGISTER'}

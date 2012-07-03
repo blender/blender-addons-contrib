@@ -37,7 +37,7 @@ import bpy
 from bpy.props import EnumProperty
 
 class DATA_OP_facetype_select(bpy.types.Operator):
-    '''Selects all faces of a certain type'''
+    """Select all faces of a certain type"""
     bl_idname = "data.facetype_select"
     bl_label = "Select by face type"
     bl_options = {'REGISTER', 'UNDO'}

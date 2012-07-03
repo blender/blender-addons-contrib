@@ -642,7 +642,7 @@ def save_md3(settings):
 
 from bpy.props import *
 class ExportMD3(bpy.types.Operator):
-  '''Export to Quake Model 3 (.md3)'''
+  """Export to Quake Model 3 (.md3)"""
   bl_idname = "export.md3"
   bl_label = 'Export MD3'
 

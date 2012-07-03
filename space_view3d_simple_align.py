@@ -153,7 +153,7 @@ def ScaleZ(context):
 
 ## Align All Rotation And Location
 class AlignOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align"
     bl_label = "Align Selected To Active"
 
@@ -168,7 +168,7 @@ class AlignOperator(bpy.types.Operator):
 #######################Align Location########################
 ## Align LocationAll
 class AlignLocationOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_location_all"
     bl_label = "Align Selected Location To Active"
 
@@ -181,7 +181,7 @@ class AlignLocationOperator(bpy.types.Operator):
         return {'FINISHED'}
 ## Align LocationX
 class AlignLocationXOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_location_x"
     bl_label = "Align Selected Location X To Active"
 
@@ -194,7 +194,7 @@ class AlignLocationXOperator(bpy.types.Operator):
         return {'FINISHED'}
 ## Align LocationY
 class AlignLocationYOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_location_y"
     bl_label = "Align Selected Location Y To Active"
 
@@ -207,7 +207,7 @@ class AlignLocationYOperator(bpy.types.Operator):
         return {'FINISHED'}
 ## Align LocationZ
 class AlignLocationZOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_location_z"
     bl_label = "Align Selected Location Z To Active"
 
@@ -222,7 +222,7 @@ class AlignLocationZOperator(bpy.types.Operator):
 #######################Align Rotation########################
 ## Align RotationAll
 class AlignRotationOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_rotation_all"
     bl_label = "Align Selected Rotation To Active"
 
@@ -235,7 +235,7 @@ class AlignRotationOperator(bpy.types.Operator):
         return {'FINISHED'}
 ## Align RotationX
 class AlignRotationXOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_rotation_x"
     bl_label = "Align Selected Rotation X To Active"
 
@@ -248,7 +248,7 @@ class AlignRotationXOperator(bpy.types.Operator):
         return {'FINISHED'}
 ## Align RotationY
 class AlignRotationYOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_rotation_y"
     bl_label = "Align Selected Rotation Y To Active"
 
@@ -261,7 +261,7 @@ class AlignRotationYOperator(bpy.types.Operator):
         return {'FINISHED'}
 ## Align RotationZ
 class AlignRotationZOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_rotation_z"
     bl_label = "Align Selected Rotation Z To Active"
 
@@ -275,7 +275,7 @@ class AlignRotationZOperator(bpy.types.Operator):
 #######################Align Scale########################
 ## Scale All
 class AlignScaleOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_objects_scale_all"
     bl_label = "Align Selected Scale To Active"
 
@@ -288,7 +288,7 @@ class AlignScaleOperator(bpy.types.Operator):
         return {'FINISHED'}
 ## Align ScaleX
 class AlignScaleXOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_objects_scale_x"
     bl_label = "Align Selected Scale X To Active"
 
@@ -301,7 +301,7 @@ class AlignScaleXOperator(bpy.types.Operator):
         return {'FINISHED'}
 ## Align ScaleY
 class AlignScaleYOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_objects_scale_y"
     bl_label = "Align Selected Scale Y To Active"
 
@@ -314,7 +314,7 @@ class AlignScaleYOperator(bpy.types.Operator):
         return {'FINISHED'}
 ## Align ScaleZ
 class AlignScaleZOperator(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.align_objects_scale_z"
     bl_label = "Align Selected Scale Z To Active"
 

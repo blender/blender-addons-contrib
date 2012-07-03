@@ -43,7 +43,7 @@ def main(context):
     bpy.context.space_data.manipulator = False
 
 #class VIEW3D_OT_disable_manipulator(bpy.types.Operator):
-#    ''''''
+#    """"""
 #    bl_idname = "VIEW3D_OT_disable_manipulator"
 #    bl_label = "disable manipulator"
 #

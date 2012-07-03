@@ -18,7 +18,7 @@
 
 # ----------------------------------------------------------------------------#    
 
-'''
+"""
 todo:
 - add file selection for single and multiple files
 
@@ -39,7 +39,7 @@ version": (1,1,2)
 version":1.11:
     added type arg to texture.new() [L48]
     cleared default filename
-''' 
+""" 
 
 # ----------------------------------------------------------------------------#    
 
@@ -102,7 +102,7 @@ def LoadBrushSet(filepath, filename):
 # ----------------------------------------------------------------------------#    
 
 class BrushSetImporter(bpy.types.Operator):
-    '''Load Brush Set'''
+    """Load Brush Set"""
     bl_idname = "import_image.brushset"
     bl_label = "Import BrushSet"
 

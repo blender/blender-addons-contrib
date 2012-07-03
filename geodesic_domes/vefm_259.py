@@ -962,7 +962,7 @@ class importmesh(mesh):
 #PKHG_DBG_OK        print("\n======= mesh imported")
                                                     
     def surroundingverts(self,vert):
-        ''' Find the verts surrounding vert'''        
+        """ Find the verts surrounding vert"""        
         surround=[]                    ## list to be filled and returned        
         for faces in vert.faces:        ## loop through faces attached to vert
             finish = len(faces.vertices)
@@ -976,7 +976,7 @@ class importmesh(mesh):
         return surround
 
     def breakquad(self,quad_face):
-        ''' turn quads into triangles'''
+        """ turn quads into triangles"""
         distance1 = quad_face.vertices[0]-quad_face.vertices[2]
         distance2 = quad_face.vertices[1]-quad_face.vertices[3]        
         distance1.findlength()

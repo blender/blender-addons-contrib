@@ -171,7 +171,7 @@ from bpy.props import StringProperty, FloatProperty
 
 
 class ImportOSM(Operator, ImportHelper):
-    '''Import OSM'''
+    """Import OSM"""
     bl_idname = "import.open_street_map"
     bl_label = "Import OpenStreetMap (.osm)"
 
