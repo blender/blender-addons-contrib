@@ -80,7 +80,7 @@ class ImportXmodel(bpy.types.Operator, ImportHelper):
     #use_split_objects = BoolProperty(name="Object", description="Import OBJ Objects into Blender Objects", default=True)
     #use_split_groups = BoolProperty(name="Group", description="Import OBJ Groups into Blender Objects", default=True)
 
-    #use_image_search = BoolProperty(name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default=True)
+    #use_image_search = BoolProperty(name="Image Search", description="Search subdirs for any associated images (Warning, may be slow)", default=True)
 
     def execute(self, context):
         from . import import_xmodel

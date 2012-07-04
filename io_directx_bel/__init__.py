@@ -160,7 +160,7 @@ class ImportX(bpy.types.Operator, ImportHelper):
 
     use_image_search = BoolProperty(
             name="Image Search",
-            description="Search subdirs for any assosiated images " \
+            description="Search subdirs for any associated images " \
                         "(Warning, may be slow)",
             default=True,
             )
