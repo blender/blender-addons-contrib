@@ -274,7 +274,7 @@ def calc_callback(self, context):
         return
     
     # dictionaries with key: objectname
-    self.paths = {} # value: list of lists with x, y, colour
+    self.paths = {} # value: list of lists with x, y, color
     self.keyframes = {} # value: dict with frame as key and [x,y] as value
     self.handles = {} # value: dict of dicts
     self.timebeads = {} # value: dict with frame as key and [x,y] as value
@@ -365,7 +365,7 @@ def calc_callback(self, context):
                 speeds.append(dloc)
                 prev_loc = loc
         
-        # calculate colour of path
+        # calculate color of path
         if context.window_manager.motion_trail.path_style == 'speed':
             speeds.sort()
             min_speed = speeds[0]
@@ -569,7 +569,7 @@ def calc_callback(self, context):
         # add frame positions to click-list
         if context.window_manager.motion_trail.frame_display:
             path = self.paths[display_ob.name]
-            for x, y, colour, frame, action_ob, child in path:
+            for x, y, color, frame, action_ob, child in path:
                 click.append([frame, "frame", mathutils.Vector([x,y]),
                     action_ob, child])
         
@@ -609,17 +609,17 @@ def draw_callback(self, context):
         bgl.glColor4f(0.0, 0.0, 0.0, alpha)
         for objectname, path in self.paths.items():
             bgl.glBegin(bgl.GL_LINE_STRIP)
-            for x, y, colour, frame, action_ob, child in path:
+            for x, y, color, frame, action_ob, child in path:
                 if frame < limit_min or frame > limit_max:
                     continue
                 bgl.glVertex2i(x, y)
             bgl.glEnd()
     else:
         for objectname, path in self.paths.items():
-            for i, [x, y, colour, frame, action_ob, child] in enumerate(path):
+            for i, [x, y, color, frame, action_ob, child] in enumerate(path):
                 if frame < limit_min or frame > limit_max:
                     continue
-                r, g, b = colour
+                r, g, b = color
                 if i != 0:
                     prev_path = path[i-1]
                     halfway = [(x + prev_path[0])/2, (y + prev_path[1])/2]
@@ -643,7 +643,7 @@ def draw_callback(self, context):
         bgl.glPointSize(1)
         bgl.glBegin(bgl.GL_POINTS)
         for objectname, path in self.paths.items():
-            for x, y, colour, frame, action_ob, child in path:
+            for x, y, color, frame, action_ob, child in path:
                 if frame < limit_min or frame > limit_max:
                     continue
                 if self.active_frame and objectname == self.active_frame[0] \
@@ -1693,7 +1693,7 @@ class MotionTrailProps(bpy.types.PropertyGroup):
                 "acceleration"),
             ("simple", "Simple", "Black line"),
             ("speed", "Speed", "Gradient based on relative speed")),
-        description="Information conveyed by path colour",
+        description="Information conveyed by path color",
         default='simple',
         update=internal_update)
     path_transparency = bpy.props.IntProperty(name="Path transparency",

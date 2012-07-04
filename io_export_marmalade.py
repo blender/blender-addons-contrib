@@ -707,9 +707,9 @@ def BuildOptimizedGeo(Config, Object, Mesh, GeoModel):
             Normal = -Normal
         GeoModel.AddVertexNormal(Normal)
     #Check if some colors have been defined
-    vertexColours = None
+    vertexColors = None
     if Config.ExportVertexColors and (len(Mesh.vertex_colors) > 0):
-        vertexColours = Mesh.tessface_vertex_colors[0].data
+        vertexColors = Mesh.tessface_vertex_colors[0].data
 
     #Check if some uv coordinates have been defined
     UVCoordinates = None
@@ -726,8 +726,8 @@ def BuildOptimizedGeo(Config, Object, Mesh, GeoModel):
         if Config.CoordinateSystem == 1:
             Vertices = Vertices[::-1]
         # stream for vertex colors
-        if vertexColours:
-            MeshColor = vertexColours[Face.index]
+        if vertexColors:
+            MeshColor = vertexColors[Face.index]
             if len(Vertices) == 3:
                 FaceColors = list((MeshColor.color1, MeshColor.color2, MeshColor.color3))
             else:
