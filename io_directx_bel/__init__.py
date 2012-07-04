@@ -127,7 +127,7 @@ class ImportX(bpy.types.Operator, ImportHelper):
             )
     use_ngons = BoolProperty(
             name="NGons",
-            description="Import faces with more then 4 verts as fgons",
+            description="Import faces with more then 4 verts as ngons",
             default=True,
             )
     use_edges = BoolProperty(
