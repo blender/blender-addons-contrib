@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Render Time Estimation",
     "author": "Jason van Gumster (Fweeb)",
-    "version": (0, 5, 0),
+    "version": (0, 5, 1),
     "blender": (2, 62, 1),
     "location": "UV/Image Editor > Properties > Image",
     "description": "Estimates the time to complete rendering on animations",
@@ -161,10 +161,10 @@ def unregister():
     #km.keymap_items.remove(km.keymap_items["view2d.rendertime_hud"])
 
     bpy.types.IMAGE_HT_header.remove(display_hud)
-    bpy.utils.register_class(RenderTimeHUD)
+    bpy.utils.unregister_class(RenderTimeHUD)
     bpy.app.handlers.render_pre.remove(start_timer)
     bpy.app.handlers.render_post.remove(end_timer)
-    bpy.app.handlers.render_cancel.append(unset_rendering)
+    bpy.app.handlers.render_cancel.remove(unset_rendering)
     bpy.app.handlers.render_complete.remove(unset_rendering)
     bpy.types.IMAGE_PT_image_properties.remove(image_panel_rendertime)
 
