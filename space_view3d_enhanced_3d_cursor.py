@@ -5092,10 +5092,6 @@ def draw_callback_view(self, context):
     if settings is None:
         return
     
-    cursor_save_location = Vector(bpy.context.space_data.cursor_location)
-    if not settings.cursor_visible:
-        bpy.context.space_data.cursor_location = Vector([float('nan')] * 3)
-    
     update_stick_to_obj(context)
     
     if "EDIT" not in context.mode:
@@ -5152,6 +5148,10 @@ def draw_callback_view(self, context):
             color_prev[1],
             color_prev[2],
             color_prev[3])
+    
+    cursor_save_location = Vector(bpy.context.space_data.cursor_location)
+    if not settings.cursor_visible:
+        bpy.context.space_data.cursor_location = Vector([float('nan')] * 3)
 
 def draw_callback_header_px(self, context):
     r = context.region
