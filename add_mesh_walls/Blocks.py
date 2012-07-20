@@ -240,7 +240,7 @@ def MakeABlock(bounds, segsize, vll=0, Offsets=None, FaceExclude=[],
             6:right_top_back,
             7:right_top_front,
             ]
-    FaceExclude: list of faces to exclude from the faces list.  see bounds above for indicies
+    FaceExclude: list of faces to exclude from the faces list.  see bounds above for indices
     xBevScl: how much to divide the end (+- x axis) bevel dimensions.  Set to current average radius to compensate for angular distortion on curved blocks
     """
 

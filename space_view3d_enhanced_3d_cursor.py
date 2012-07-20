@@ -132,8 +132,7 @@ from mathutils.geometry import (intersect_line_sphere,
                                 intersect_line_plane,
                                 )
 
-from bpy_extras.view3d_utils import (region_2d_to_vector_3d,
-                                     region_2d_to_location_3d,
+from bpy_extras.view3d_utils import (region_2d_to_location_3d,
                                      location_3d_to_region_2d,
                                      )
 
