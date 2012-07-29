@@ -262,7 +262,7 @@ class EnhancedSetCursor(bpy.types.Operator):
         
         settings_scene = context.scene.cursor_3d_tools_settings
         
-        self.setup_keymaps(context)
+        self.setup_keymaps(context, event)
         
         # Coordinate System Utility
         self.particles, self.csu = gather_particles(context=context)
@@ -353,18 +353,28 @@ class EnhancedSetCursor(bpy.types.Operator):
         CursorDynamicSettings.active_transform_operator = None
     
     # ====== USER INPUT PROCESSING ====== #
-    def setup_keymaps(self, context):
+    def setup_keymaps(self, context, event=None):
         self.key_map = self.key_map.copy()
         
         # There is no such event as 'ACTIONMOUSE',
         # it's always 'LEFTMOUSE' or 'RIGHTMOUSE'
-        select_mouse = context.user_preferences.inputs.select_mouse
-        if select_mouse == 'RIGHT':
-            self.key_map["confirm"] = {'LEFTMOUSE'}
-            self.key_map["cancel"] = {'RIGHTMOUSE', 'ESC'}
-        else:
-            self.key_map["confirm"] = {'RIGHTMOUSE'}
-            self.key_map["cancel"] = {'LEFTMOUSE', 'ESC'}
+        if event:
+            if event.type == 'LEFTMOUSE':
+                self.key_map["confirm"] = {'LEFTMOUSE'}
+                self.key_map["cancel"] = {'RIGHTMOUSE', 'ESC'}
+            elif event.type == 'RIGHTMOUSE':
+                self.key_map["confirm"] = {'RIGHTMOUSE'}
+                self.key_map["cancel"] = {'LEFTMOUSE', 'ESC'}
+            else:
+                event = None
+        if event is None:
+            select_mouse = context.user_preferences.inputs.select_mouse
+            if select_mouse == 'RIGHT':
+                self.key_map["confirm"] = {'LEFTMOUSE'}
+                self.key_map["cancel"] = {'RIGHTMOUSE', 'ESC'}
+            else:
+                self.key_map["confirm"] = {'RIGHTMOUSE'}
+                self.key_map["cancel"] = {'LEFTMOUSE', 'ESC'}
         
         # Use user-defined "free mouse" key, if it exists
         wm = context.window_manager
