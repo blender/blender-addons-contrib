@@ -168,7 +168,7 @@ class ExtrudeAlongCurve(bpy.types.Operator):
 
         # Get the faces to be modified
         fprev = f
-        no = f.normal.copy()
+        # no = f.normal.copy()
         faces = [f.copy() for i in range(res)]
 
         # Offset if we need to snap to the face

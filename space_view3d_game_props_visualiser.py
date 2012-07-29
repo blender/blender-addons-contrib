@@ -74,7 +74,7 @@ def calc_callback(self, context):
         total_mat = view_mat*ob_mat
  
         for p in ob.game.properties:
-            d=0.0#{'data':p.name+':'+str(p.value)}
+            # d = {'data':p.name+':'+str(p.value)}
             # print (d)
             locs.append([ mathutils.Vector([0,0,0]).resize_4d()])
     

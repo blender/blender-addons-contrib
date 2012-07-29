@@ -2377,7 +2377,7 @@ class BevelRoundAlgo(object):
         crv = crv1[1:3] + crv2 + crv1[6:]
         return crv
 
-    def print(self):
+    def print(self):  # XXX - better call something else
         print("BevelRoundAlgo:")
         print("offset", self.offset)
         print("num_seg", self.num_seg)
