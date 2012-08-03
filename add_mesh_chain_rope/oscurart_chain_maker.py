@@ -36,12 +36,12 @@ bl_info = {
 import bpy
 
 
-def makeChain (context, mult, curverig): 
-    
+def makeChain (self, context, mult, curverig):     
+
+    if bpy.context.active_object.type == 'ARMATURE':                
         bpy.ops.object.mode_set(mode='OBJECT')      
         VAR_SWITCH=abs(1)
-        ARMATURE=bpy.context.active_object
-        
+        ARMATURE=bpy.context.active_object        
         def creahuesocero(hueso):
             ## CREO DATA PARA ESLABON
             mesh=bpy.data.meshes.new("objectData"+str(hueso.name))
@@ -53,14 +53,11 @@ def makeChain (context, mult, curverig):
             )
             bpy.context.scene.objects.link(object)
             ## ESCALO EL HUESO
-            bpy.data.objects['EslabonCero'+str(hueso.name)].scale= (hueso.length*mult,hueso.length*mult,hueso.length*mult)
-            
+            bpy.data.objects['EslabonCero'+str(hueso.name)].scale= (hueso.length*mult,hueso.length*mult,hueso.length*mult)            
             ## EMPARENTO
             bpy.data.objects['EslabonCero'+str(hueso.name)].parent=ARMATURE
             bpy.data.objects['EslabonCero'+str(hueso.name)].parent_type = 'BONE'
-            bpy.data.objects['EslabonCero'+str(hueso.name)].parent_bone=hueso.name   
-        
-        
+            bpy.data.objects['EslabonCero'+str(hueso.name)].parent_bone=hueso.name           
         def creahuesonoventa(hueso):
             ## CREO DATA PARA ESLABON
             mesh=bpy.data.meshes.new("objectData"+str(hueso.name))
@@ -70,17 +67,13 @@ def makeChain (context, mult, curverig):
             [(1,2),(0,3),(3,5),(2,4),(0,6),(5,6),(1,7),(4,7),(0,8),(1,8),(7,9),(6,9),(8,9),(2,10),(3,10),(4,11),(5,11),(10,11),(5,12),(12,13),(11,13),(13,14),(4,14),(10,16),(15,16),(3,15),(2,17),(16,17),(9,19),(18,19),(6,18),(7,20),(19,20),(8,22),(21,22),(1,21),(0,23),(22,23),(14,20),(12,18),(15,23),(17,21),(12,15),(13,16),(14,17),(20,21),(19,22),(18,23)],
             [(6,0,3,5),(1,7,4,2),(0,6,9,8),(8,9,7,1),(2,4,11,10),(10,11,5,3),(11,13,12,5),(4,14,13,11),(3,15,16,10),(10,16,17,2),(6,18,19,9),(9,19,20,7),(1,21,22,8),(23,0,8,22),(7,20,14,4),(5,12,18,6),(0,23,15,3),(2,17,21,1),(16,15,12,13),(17,16,13,14),(22,21,20,19),(23,22,19,18),(21,17,14,20),(15,23,18,12)]
             )
-            bpy.context.scene.objects.link(object)
-            
+            bpy.context.scene.objects.link(object)            
             ## ESCALO EL HUESO
-            bpy.data.objects['EslabonNov'+str(hueso.name)].scale= (hueso.length*mult,hueso.length*mult,hueso.length*mult)
-        
+            bpy.data.objects['EslabonNov'+str(hueso.name)].scale= (hueso.length*mult,hueso.length*mult,hueso.length*mult)        
             ## EMPARENTO
             bpy.data.objects['EslabonNov'+str(hueso.name)].parent=ARMATURE
             bpy.data.objects['EslabonNov'+str(hueso.name)].parent_type = 'BONE'
-            bpy.data.objects['EslabonNov'+str(hueso.name)].parent_bone=hueso.name   
-        
-        
+            bpy.data.objects['EslabonNov'+str(hueso.name)].parent_bone=hueso.name         
         
         for hueso in bpy.context.active_object.pose.bones:
             if VAR_SWITCH == 1:
@@ -92,45 +85,31 @@ def makeChain (context, mult, curverig):
                 print(VAR_SWITCH)
             else :
                 VAR_SWITCH = 1
-                print(VAR_SWITCH)
-                    
-                    
+                print(VAR_SWITCH)                      
         # SI NO TILDAMOS CURVERIG
-        if curverig == True:   
-                        
-                        
+        if curverig == True:                           
             # VARIABLES
             LISTA_POINTC=[]
-            ACTARM=bpy.context.active_object
-            
+            ACTARM=bpy.context.active_object            
             # CREO DATA , OBJETO Y LO CONECTO A LA ESCENA
             crv= bpy.data.curves.new("CurvaCable", "CURVE")
             obCable=bpy.data.objects.new("Cable",crv)
-            bpy.context.scene.objects.link(obCable)
-            
+            bpy.context.scene.objects.link(obCable)            
             # SETEO ATRIBUTOS
             crv.dimensions = "3D"
             crv.resolution_u = 10
             crv.resolution_v = 10
-            crv.twist_mode = "MINIMUM"
-            
-            
-            # CREO LISTA DE COORDENADAS DE TAIL Y HEAD
-            
+            crv.twist_mode = "MINIMUM"            
+            # CREO LISTA DE COORDENADAS DE TAIL Y HEAD            
             LISTA_POINTC.append((
                 ACTARM.data.bones[0].head_local[0],
                 ACTARM.data.bones[0].head_local[1],
                 ACTARM.data.bones[0].head_local[2],
                 1
-            ))
-            
+            ))            
             print("huesos: "+ str(len(ACTARM.data.bones)))
             for hueso in ACTARM.data.bones:
-                LISTA_POINTC.append((hueso.tail_local[0],hueso.tail_local[1],hueso.tail_local[2],1))
-                
-            print(LISTA_POINTC)
-            
-            
+                LISTA_POINTC.append((hueso.tail_local[0],hueso.tail_local[1],hueso.tail_local[2],1))               
             # CREO EL SPLINE
             spline=crv.splines.new("NURBS")
             lencoord= len(LISTA_POINTC)
@@ -140,30 +119,21 @@ def makeChain (context, mult, curverig):
             for punto in rango:
                 spline.points[punto].co = LISTA_POINTC[punto]
                 print(LISTA_POINTC[punto])
-            
             # SETEO ENDPOINT
-            bpy.data.objects['Cable'].data.splines[0].use_endpoint_u= True
-            
+            bpy.data.objects['Cable'].data.splines[0].use_endpoint_u= True            
             # SELECCIONO LA CURVA
             bpy.ops.object.select_all(action='DESELECT')
             bpy.data.objects['Cable'].select=1
-            bpy.context.scene.objects.active=bpy.data.objects['Cable']
-            
+            bpy.context.scene.objects.active=bpy.data.objects['Cable']            
             # PASO A EDIT
-            bpy.ops.object.mode_set(mode='EDIT')
-            
-            
+            bpy.ops.object.mode_set(mode='EDIT')            
             # CREO HOOKS
             POINTSTEP=0
             for POINT in bpy.data.objects['Cable'].data.splines[0].points:
                 bpy.ops.curve.select_all(action="DESELECT")
                 bpy.data.objects['Cable'].data.splines[0].points[POINTSTEP].select=1
                 bpy.ops.object.hook_add_newob()
-                POINTSTEP+=1
-            
-            
-                print(POINT)
-            
+                POINTSTEP+=1            
             # PASO A SELECCIONAR LOS OBJETOS
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.select_all(action='DESELECT')
@@ -179,8 +149,10 @@ def makeChain (context, mult, curverig):
             ACTARM.pose.bones[-1].constraints['Spline IK'].chain_count=100
             bpy.context.active_object.pose.bones[-1].constraints['Spline IK'].use_y_stretch= False     
             # VUELVO A OBJECT MODE
-            bpy.ops.object.mode_set(mode='OBJECT')		
-                         
+            bpy.ops.object.mode_set(mode='OBJECT')	
+    else:
+        self.report({'WARNING'}, "Active Object must be an Armature")            	
+                             
             
 #---------------        
 from bpy.props import *
@@ -195,11 +167,10 @@ class MESH_OT_chain_maker(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return(bpy.context.active_object.type == "ARMATURE" ) 
+        return (context.object is not None)       
     
     def execute(self, context):
-        makeChain(context, 
-            self.multiplier,self.curverig)
+        makeChain(self, context, self.multiplier,self.curverig)
         return {'FINISHED'}
     
 def menu_oscChain(self, context):
