@@ -103,15 +103,14 @@ class  OBJECT_OT_copy_uv_from_joined(Operator):
         Create a vertex lookup map from joined object space to original object
         """
 
-        map = {}
+        uv_map = {}
 
-        T = self._findTranslation(context)
-        obact = context.object
+        T = self._findTranslation(obact, objects)
 
-        for ob in context.selected_objects:
-            if ob != obact:
-                me = ob.data
-                mat = ob.matrix_world
+        for obj in objects:
+            if obj != obact:
+                me = obj.data
+                mat = obj.matrix_world.copy()
                 uv_layer = me.uv_layers.active
 
                 for poly in me.polygons:
@@ -125,12 +124,9 @@ class  OBJECT_OT_copy_uv_from_joined(Operator):
 
                         key = (center_key, vec.to_tuple(KEY_PRECISION))
 
-                        if key not in map:
-                            map[key] = []
+                        uv_map.setdefault(key, []).append((center, vec, (uv_layer, loop_index)))
 
-                        map[key].append((center, vec, (uv_layer, loop_index)))
-
-        return map
+        return uv_map
 
     def execute(self, context):
         obact = context.object
