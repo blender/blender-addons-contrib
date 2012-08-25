@@ -141,7 +141,7 @@ class CurveManglerOp(bpy.types.Operator):
         for spline in splines:
             if spline.type == 'BEZIER':
                 points = spline.bezier_points
-            elif spline.type in ('POLY', 'NURBS'):
+            elif spline.type in {'POLY', 'NURBS'}:
                 points = spline.points
 
             for point in points:

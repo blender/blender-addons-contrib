@@ -3054,9 +3054,9 @@ class MeshCache:
             if reuse and ((variant == 'RAW') or (len(obj.modifiers) == 0)):
                 return (obj, False)
             else:
-                force_objectmode = (obj_mode in ('EDIT', 'SCULPT'))
+                force_objectmode = (obj_mode in {'EDIT', 'SCULPT'})
                 return (self._to_mesh(obj, variant, force_objectmode), True)
-        elif obj_type in ('CURVE', 'SURFACE', 'FONT'):
+        elif obj_type in {'CURVE', 'SURFACE', 'FONT'}:
             if variant == 'RAW':
                 bm = bmesh.new()
                 for spline in data.splines:

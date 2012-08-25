@@ -248,7 +248,7 @@ class ExportXmodel(bpy.types.Operator, ExportHelper):
         row.prop(self, "use_version", expand=True)
 
         # Calculate number of selected mesh objects
-        if context.mode in ('OBJECT', 'PAINT_WEIGHT'):
+        if context.mode in {'OBJECT', 'PAINT_WEIGHT'}:
             meshes_selected = len([m for m in bpy.data.objects if m.type == 'MESH' and m.select])
         else:
             meshes_selected = 0
