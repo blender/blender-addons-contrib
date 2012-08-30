@@ -33,7 +33,7 @@ bl_info = {
     "description": "Insert an edge ring along the selected edge loop",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Mesh/Insert_Edge_Ring",
-    "tracker_url": "",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=32424",
     "category": "Mesh"}
 ###########################################################################
 import bpy, bmesh, math
