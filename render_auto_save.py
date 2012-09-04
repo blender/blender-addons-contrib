@@ -6,8 +6,8 @@ bl_info = {
     "location": "Rendertab -> Render Panel",
     "description": "Automatically save the image after rendering",
     "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Render/Auto_Save",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=32491",
     "category": "Render"}
 ###########################################################################
 import bpy
