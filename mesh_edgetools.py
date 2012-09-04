@@ -33,7 +33,7 @@
 #
 # Paul "BrikBot" Marshall
 # Created: January 28, 2012
-# Last Modified: June 10, 2012
+# Last Modified: August 25, 2012
 # Homepage (blog): http://post.darkarsenic.com/
 #                       //blog.darkarsenic.com/
 #
@@ -141,9 +141,11 @@ def is_same_co(v1, v2):
 # is_face_planar
 #
 # Tests a face to see if it is planar.
-def is_face_planar(face, error = 0.000002):
+def is_face_planar(face, error = 0.0005):
     for v in face.verts:
         d = distance_point_to_plane(v.co, face.verts[0].co, face.normal)
+        if bpy.app.debug:
+            print("Distance: " + str(d))
         if d < -error or d > error:
             return False
     return True
