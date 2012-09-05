@@ -1151,13 +1151,13 @@ class RotateView3D(Operator):
         return{'FINISHED'}
 
     def invoke(self, context, event):
-        context.window_manager.modal_handler_add(self)
         self.first_mouse = Vector((event.mouse_region_x,event.mouse_region_y))
         self.first_time = True
         for sub in context.object.modifiers:
-            if sub.type in ['SUBSURF', 'MULTIRES']:
+            if sub.type in {'SUBSURF', 'MULTIRES'}:
                 self.tmp_level = sub.levels
                 sub.levels = 0
+        context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
 # Oprerator Class to pan the view3D
@@ -1206,14 +1206,13 @@ class PanView3D(bpy.types.Operator):
         return {'RUNNING_MODAL'}
                 
     def invoke(self, context, event):
-        context.window_manager.modal_handler_add(self)
         self.first_mouse.x = event.mouse_region_x
         self.first_mouse.y = event.mouse_region_y   
         for sub in context.object.modifiers:
-            if sub.type in ['SUBSURF', 'MULTIRES']:
+            if sub.type in {'SUBSURF', 'MULTIRES'}:
                 self.tmp_level = sub.levels
-                sub.levels = 0  
-                      
+                sub.levels = 0
+        context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
     def execute(self, context):        

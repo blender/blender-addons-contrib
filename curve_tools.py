@@ -1195,7 +1195,6 @@ class CutCurveOperator(bpy.types.Operator):
     def invoke(self, context, event):
 
         if context.object:
-
             context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
         else:

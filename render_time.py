@@ -119,11 +119,11 @@ class RenderTimeHUD(bpy.types.Operator):
     def invoke(self, context, event):
         if context.area.type == 'IMAGE_EDITOR':
             if timer["hud"] == False:
-                context.window_manager.modal_handler_add(self)
-
                 # Add the region OpenGL drawing callback
                 self._handle = context.region.callback_add(draw_callback_px, (self, context), 'POST_PIXEL')
                 timer["hud"] = True
+
+                context.window_manager.modal_handler_add(self)
                 return {'RUNNING_MODAL'}
             else:
                 timer["hud"] = False

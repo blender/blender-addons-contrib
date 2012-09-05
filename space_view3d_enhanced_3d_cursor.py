@@ -308,7 +308,7 @@ class EnhancedSetCursor(bpy.types.Operator):
         
         # Initial run
         self.try_process_input(context, event, True)
-        
+
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
     
@@ -4643,10 +4643,7 @@ class CursorMonitor(bpy.types.Operator):
         CursorMonitor.is_running = True
         
         CursorDynamicSettings.recalc_csu(context, 'PRESS')
-        
-        # Currently there seems to be only one window manager
-        context.window_manager.modal_handler_add(self)
-        
+
         # I suppose that cursor position would change
         # only with user interaction.
         #self._timer = context.window_manager. \
@@ -4669,6 +4666,9 @@ class CursorMonitor(bpy.types.Operator):
         
         # Here we cannot return 'PASS_THROUGH',
         # or Blender will crash!
+
+        # Currently there seems to be only one window
+        context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
     
     def cancel(self, context):
@@ -5535,12 +5535,11 @@ class DelayRegistrationOperator(bpy.types.Operator):
     
     def execute(self, context):
         self.keymap_updated = False
-        
-        context.window_manager.modal_handler_add(self)
-        
+
         self._timer = context.window_manager.\
             event_timer_add(0.1, context.window)
-        
+
+        context.window_manager.modal_handler_add(self)        
         return {'RUNNING_MODAL'}
     
     def cancel(self, context):

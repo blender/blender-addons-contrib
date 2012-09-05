@@ -206,11 +206,11 @@ class CMUMocapDownloadImport(bpy.types.Operator):
                 ['b', 'Kb', 'Mb', 'Gb', 'Tb', 'Eb', 'Pb'][m])  # :-p
             self.fout = open(self.local_file, 'wb')
             self.recv = 0
-            context.window_manager.modal_handler_add(self)
             self.handle = context.region.\
                 callback_add(draw_callback, (self, context), 'POST_PIXEL')
             self.timer = context.window_manager.\
                 event_timer_add(0.001, context.window)
+            context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
         else:
             self.import_or_open()

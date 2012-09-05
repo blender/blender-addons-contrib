@@ -1525,14 +1525,15 @@ class MotionTrailOperator(bpy.types.Operator):
                 
                 for kmi in kmis:
                     kmi.active = False
-                
-                context.window_manager.modal_handler_add(self)
+
                 self._handle1 = context.region.callback_add(calc_callback,
                     (self, context), 'POST_VIEW')
                 self._handle2 = context.region.callback_add(draw_callback,
                     (self, context), 'POST_PIXEL')
                 if context.area:
                     context.area.tag_redraw()
+
+                context.window_manager.modal_handler_add(self)
             else:
                 # disable
                 context.window_manager.motion_trail.enabled = -1
