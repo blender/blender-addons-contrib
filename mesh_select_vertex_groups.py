@@ -166,7 +166,7 @@ def found_verts(vertex_group):
     if vertex_group == 'no group':
         for v in obj.data.vertices:
             if v.index in used_vertexes and len(v.groups) == 0:
-                gfound.append(v)
+                vgfound.append(v)
     else:
         vgnum = -1
         for vg in obj.vertex_groups:
