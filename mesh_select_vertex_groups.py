@@ -165,18 +165,17 @@ def found_verts(vertex_group):
     obj = bpy.context.active_object
     if vertex_group == 'no group':
         for v in obj.data.vertices:
-            if v.index in used_vertexes and len(v.groups) == 0:
+            if v.index in used_vertexes and (not v.groups):
                 vgfound.append(v)
     else:
-        vgnum = -1
-        for vg in obj.vertex_groups:
-            if vg.name == vertex_group: vgnum = vg.index
+        vgnum = obj.vertex_groups.find(vertex_group)
         for v in obj.data.vertices:
             if v.index in used_vertexes:
-                found = False
                 for g in v.groups:
-                        if g.group == vgnum: found = True
-                if found: vgfound.append(v)
+                    if g.group == vgnum:
+                        vgfound.append(v)
+                        break
+
     print('%d vertexes found for %s' % (len(vgfound), vertex_group))
     return vgfound
 
