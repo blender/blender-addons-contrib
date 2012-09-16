@@ -1259,7 +1259,7 @@ class CurvePanel(bpy.types.Panel):
     bl_region_type = "TOOLS"
     #bl_options = {'REGISTER', 'UNDO'}
     #bl_context = "data"
-
+    bl_options = {'DEFAULT_CLOSED'}
     steps = IntProperty(min=2, default = 12)
 
     @classmethod

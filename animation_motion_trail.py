@@ -1551,7 +1551,7 @@ class MotionTrailPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_label = "Motion Trail"
-
+    bl_options = {'DEFAULT_CLOSED'}
     @classmethod
     def poll(cls, context):
         if not context.active_object:
