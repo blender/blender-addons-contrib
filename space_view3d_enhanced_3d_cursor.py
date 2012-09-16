@@ -4121,7 +4121,7 @@ class Cursor3DTools(bpy.types.Panel):
     bl_idname = "OBJECT_PT_cursor_3d_tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    #bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
     
     def draw(self, context):
         layout = self.layout

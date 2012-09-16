@@ -715,7 +715,7 @@ class PANEL(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_context = "render"
     bl_region_type = 'UI'
-    
+    bl_options = {'DEFAULT_CLOSED'}
     def draw(self, context):
         global lastname
     
