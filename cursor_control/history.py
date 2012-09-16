@@ -175,7 +175,7 @@ class VIEW3D_PT_cursor_history(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Cursor History"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(self, context):
@@ -222,7 +222,7 @@ class VIEW3D_PT_cursor_history_init(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Register callback"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     initDone = False
 

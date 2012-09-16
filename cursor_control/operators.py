@@ -370,7 +370,7 @@ class VIEW3D_OT_cursor_to_plane(bpy.types.Operator):
         c = mati*Vector(CursorAccess.getCursor())
         q = None
         d = -1
-        for ff in obj.data.faces:
+        for ff in obj.data.polygons:
             if not ff.select:
                 continue
             qq = G3.closestP2S(c, Vector(obj.data.vertices[ff.vertices[0]].co), ff.normal)
@@ -420,7 +420,7 @@ class VIEW3D_OT_cursor_to_face(bpy.types.Operator):
         qqq = []
         q = None
         d = -1
-        for ff in obj.data.faces:
+        for ff in obj.data.polygons:
             if not ff.select:
                 continue
             fv=[]

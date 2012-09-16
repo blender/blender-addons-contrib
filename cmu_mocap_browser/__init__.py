@@ -264,6 +264,7 @@ class CMUMocapConfig(bpy.types.Panel):
     bl_label = "CMU Mocap Browser Configuration"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         if not bpy:
@@ -283,6 +284,7 @@ class CMUMocapSubjectBrowser(bpy.types.Panel):
     bl_label = "CMU Mocap Subject Browser"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         if not bpy:
@@ -321,6 +323,7 @@ class CMUMocapMotionBrowser(bpy.types.Panel):
     bl_label = "CMU Mocap Motion Browser"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         if not bpy:
