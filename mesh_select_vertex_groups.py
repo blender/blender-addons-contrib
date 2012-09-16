@@ -184,6 +184,7 @@ class VIEW3D_PT_FixVertexGroups(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label = "Select Vertex Groups"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(self, context):

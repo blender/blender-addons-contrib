@@ -63,10 +63,9 @@ class saveSelectionPanel(bpy.types.Panel):
 class grassLabPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-
     bl_label = "Grass Lab"
     bl_context = "objectmode"
-    
+    bl_options = {'DEFAULT_CLOSED'}  
 
     def draw(self, context):
         active_obj = bpy.context.active_object
@@ -524,10 +523,9 @@ class Generategrass(bpy.types.Operator):
 class HairLabPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-
     bl_label = "Hair Lab"
     bl_context = "objectmode"
-    
+    bl_options = {'DEFAULT_CLOSED'}    
 
     def draw(self, context):
         active_obj = bpy.context.active_object
@@ -977,10 +975,9 @@ class GenerateHair(bpy.types.Operator):
 class FurLabPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-
     bl_label = "Fur Lab"
     bl_context = "objectmode"
-    
+    bl_options = {'DEFAULT_CLOSED'}    
 
     def draw(self, context):
         active_obj = bpy.context.active_object
