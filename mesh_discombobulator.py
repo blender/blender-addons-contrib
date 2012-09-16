@@ -551,7 +551,7 @@ class unchooseDoodad(bpy.types.Operator):
 class discombobulator(bpy.types.Operator):
     bl_idname = "object.discombobulate"
     bl_label = "Discombobulate"
-    bl_options = {'REGISTER', 'UNDO'}    
+    bl_options = {'REGISTER', 'UNDO'}  
    
     def execute(self, context):
         scn = context.scene
@@ -567,10 +567,10 @@ class discombobulator(bpy.types.Operator):
 class VIEW3D_PT_tools_discombobulate(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
- 
     bl_label = "Discombobulator"
     bl_context = "objectmode"
- 
+    bl_options = {'DEFAULT_CLOSED'}
+	
     def draw(self, context):
         layout = self.layout
         row = layout.row()
