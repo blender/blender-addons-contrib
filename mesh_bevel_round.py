@@ -29,10 +29,10 @@ bl_info = {
     "location": "View3D > Tools",
     "description": "Bevel selected edges, possibly rounded",
     "warning": "",
-    "wiki_url": \
-      "TODO",
-    "tracker_url": \
-      "TODO",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+        "Scripts",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=32582",
     "category": "Mesh"}
 
 import math
