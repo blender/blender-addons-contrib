@@ -333,8 +333,10 @@ def createcustomprops(context):
     Ob.custom_scac3d = BoolProperty(name="scac3d", default=False)
     Ob.custom_expand = BoolProperty(name="expand", default=True)
     Ob.custom_active_view = StringProperty(name = "custom_active_view",default = "View")
-    Ob.custom_active_object = StringProperty(name = "custom_active_object",default = context.object.name)
-    
+    try:
+        Ob.custom_active_object = StringProperty(name = "custom_active_object",default = context.object.name)
+    except:
+        Ob.custom_active_object = StringProperty(name = "custom_active_object",default = 'debut')    
     Ob.custom_props = CollectionProperty(type = custom_props)
 
 # Function to remove custom properties
@@ -514,8 +516,7 @@ class BProjection(Panel):
         return (context.image_paint_object or context.sculpt_object)
 
     def draw(self, context):        
-        layout = self.layout
-                
+        layout = self.layout        
         if  'Empty for BProjection' in [ob.name for ob in bpy.data.objects]:
             
             
@@ -1151,13 +1152,13 @@ class RotateView3D(Operator):
         return{'FINISHED'}
 
     def invoke(self, context, event):
+        context.window_manager.modal_handler_add(self)
         self.first_mouse = Vector((event.mouse_region_x,event.mouse_region_y))
         self.first_time = True
         for sub in context.object.modifiers:
-            if sub.type in {'SUBSURF', 'MULTIRES'}:
+            if sub.type in ['SUBSURF', 'MULTIRES']:
                 self.tmp_level = sub.levels
                 sub.levels = 0
-        context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
 # Oprerator Class to pan the view3D
@@ -1206,13 +1207,14 @@ class PanView3D(bpy.types.Operator):
         return {'RUNNING_MODAL'}
                 
     def invoke(self, context, event):
+        context.window_manager.modal_handler_add(self)
         self.first_mouse.x = event.mouse_region_x
         self.first_mouse.y = event.mouse_region_y   
         for sub in context.object.modifiers:
-            if sub.type in {'SUBSURF', 'MULTIRES'}:
+            if sub.type in ['SUBSURF', 'MULTIRES']:
                 self.tmp_level = sub.levels
-                sub.levels = 0
-        context.window_manager.modal_handler_add(self)
+                sub.levels = 0  
+                      
         return {'RUNNING_MODAL'}
 
     def execute(self, context):        
