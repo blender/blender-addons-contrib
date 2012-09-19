@@ -24,8 +24,10 @@ bl_info = {
     "location": "Properties > Object data > Face info / select",
     "description": "Displays triangle, quad and ngon count of the active object. Allows to select faces by these types.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Mesh/Face_Info_Select",
-    "tracker_url": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+        "Scripts/Mesh/Face_Info_Select",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=31926",
     "support": 'TESTING',
     "category": "Mesh"
 }
