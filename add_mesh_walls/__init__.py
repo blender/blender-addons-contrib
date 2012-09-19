@@ -32,7 +32,7 @@ bl_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Add_Mesh/WallFactory",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=111",
+        "func=detail&aid=24980",
     "category": "Add Mesh"}
 
 """
