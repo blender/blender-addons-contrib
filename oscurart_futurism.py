@@ -24,9 +24,10 @@ bl_info = {
     "location": "Object > Futurism",
     "description": "Adds a new Mesh Object",
     "warning": "",
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-                   'func=detail&aid=31911',
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+        "Scripts/Object/Oscurart_Futurism",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+                   "unc=detail&aid=31911",
     "category": "Add Mesh"}
 
 

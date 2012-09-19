@@ -30,7 +30,7 @@ bl_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/3D interaction/Align_Tools",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid==22389",
+        "func=detail&aid=22389",
     "category": "3D View"}
 
 """Align Selected Objects"""
