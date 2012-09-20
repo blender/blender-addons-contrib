@@ -24,7 +24,7 @@ bl_info = {
     'description': 'Drop selected objects on active object',
     'warning': '',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/Drop_to_ground',
-    "tracker_url": "http://projects.blender.org/tracker/?func=detail&atid=467&aid=25349",
+    "tracker_url": "http://projects.blender.org/tracker/?func=detail&atid=25349",
     'category': 'Object'}
 #################################################################
 import bpy, bmesh
