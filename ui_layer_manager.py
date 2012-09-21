@@ -27,7 +27,7 @@ bl_info = {
     'warning': '',
     'description': 'Display and Edit Layer Name',
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
-                "Scripts",
+                "Scripts/3D_interaction/layer_manager",
     'tracker_url': "http://projects.blender.org/tracker/index.php?"\
                    "func=detail&aid=32472",
     'category': '3D View'}
