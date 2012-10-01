@@ -9,6 +9,7 @@
                    handle_auto="#30b6e5"
                    handle_sel_auto="#ffffff"
                    bone_pose="#50c8ff"
+                   bone_pose_active="#8cffff"
                    bone_solid="#c8c8c8"
                    bundle_solid="#c8c8c8"
                    camera="#000000"
