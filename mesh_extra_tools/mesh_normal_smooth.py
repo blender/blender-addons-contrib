@@ -157,6 +157,22 @@ def normal_smooth(context):
             
     bpy.ops.object.mode_set(mode='EDIT')
 
+class nsmooth_help(bpy.types.Operator):
+	bl_idname = 'help.normal_smooth'
+	bl_label = ''
+
+	def draw(self, context):
+		layout = self.layout
+		layout.label('To use:')
+		layout.label('Select A vertex or group of verts.')
+		layout.label('Smooth the vertex position based on the normals')
+
+	
+	def execute(self, context):
+		return {'FINISHED'}
+
+	def invoke(self, context, event):
+		return context.window_manager.invoke_popup(self, width = 300)
     
 class NormalSmooth(bpy.types.Operator):
     """Smoothes verticle position based on vertex normals"""

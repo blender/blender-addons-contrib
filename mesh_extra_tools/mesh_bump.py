@@ -149,9 +149,9 @@ class Bump():
 	
 
 class Bump_init(bpy.types.Operator):
-	"""Bump by extruding and moving/rotating/scaling multiple times"""
+	'''Bump by extruding and moving/rotating/scaling multiple times'''
 	bl_idname = 'mesh.bump'
-	bl_label = 'Bump'
+	bl_label = 'Inset Extrude Bump'
 	bl_options = {'REGISTER', 'UNDO'}
 	
 	# The falloffs we use
@@ -178,8 +178,23 @@ class Bump_init(bpy.types.Operator):
 		BUMP = Bump(context, self.type, self.scale, self.steps) 
 		return {'FINISHED'}
 
-		
+class bump_help(bpy.types.Operator):
+	bl_idname = 'help.bump'
+	bl_label = ''
 
+	def draw(self, context):
+		layout = self.layout
+		layout.label('To use:')
+		layout.label('Make a selection or selection of Faces ')
+		layout.label('Choose from the bump types in the menu.')
+		layout.label('Keep extrusions small to prevent overlapping.')
+	
+	def execute(self, context):
+		return {'FINISHED'}
+
+	def invoke(self, context, event):
+		return context.window_manager.invoke_popup(self, width = 300)		
+'''
 def menu_func(self, context):
 	self.layout.operator(Bump_init.bl_idname, text="Bump")
 
@@ -193,3 +208,4 @@ def unregister():
 
 if __name__ == "__main__":
 	register()
+'''

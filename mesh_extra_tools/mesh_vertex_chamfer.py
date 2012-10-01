@@ -37,6 +37,7 @@ import bmesh
 class VertexChamfer(bpy.types.Operator):
     bl_idname = "mesh.vertex_chamfer"
     bl_label = "Chamfer Vertex"
+    bl_description = "Tri chamfer selected vertices"
     bl_options = {'REGISTER', 'UNDO'}
 
     factor = bpy.props.FloatProperty(name="Factor",
@@ -123,6 +124,22 @@ class VertexChamfer(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class chamfer_help(bpy.types.Operator):
+	bl_idname = 'help.vertexchamfer'
+	bl_label = ''
+
+	def draw(self, context):
+		layout = self.layout
+		layout.label('To use:')
+		layout.label('Make a selection or selection of verts ')
+		layout.label('Result is triangle chamfer, works on single vert.')
+		layout.label('In some cases may need to press F to fill result.')
+	
+	def execute(self, context):
+		return {'FINISHED'}
+
+	def invoke(self, context, event):
+		return context.window_manager.invoke_popup(self, width = 300)
 
 def register():
     bpy.utils.register_module(__name__)

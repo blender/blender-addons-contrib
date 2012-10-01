@@ -182,6 +182,23 @@ class MExtrude(bpy.types.Operator):
             self.report({'INFO'}, 'Select one or more faces...')
         return{'FINISHED'}
 
+class mextrude_help(bpy.types.Operator):
+	bl_idname = 'help.mextrude'
+	bl_label = ''
+
+	def draw(self, context):
+		layout = self.layout
+		layout.label('To use:')
+		layout.label('Make a selection or selection of Faces.')
+		layout.label('Extrude, rotate extrusions & more.')
+		layout.label('For rigging capabilities, see Multi Extrude panel.')
+	
+	def execute(self, context):
+		return {'FINISHED'}
+
+	def invoke(self, context, event):
+		return context.window_manager.invoke_popup(self, width = 300)
+		
 class BB(bpy.types.Operator):
     bl_idname = 'object.mesh2bones'
     bl_label = 'Create Armature'
@@ -348,7 +365,7 @@ class BB(bpy.types.Operator):
         scn.objects.active = obj
         volver(obj, copia, om, msm, msv)
         return{'FINISHED'}
-
+'''
 def register():
     bpy.utils.register_class(MExtrude)
 
@@ -362,3 +379,4 @@ def unregister():
 
 if __name__ == '__main__':
     register()
+'''

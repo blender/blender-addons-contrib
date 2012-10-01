@@ -127,6 +127,22 @@ class BevelRound(bpy.types.Operator):
         bpy.ops.object.editmode_toggle()
         bpy.ops.object.editmode_toggle()
 
+class rbevel_help(bpy.types.Operator):
+	bl_idname = 'help.bevelround'
+	bl_label = ''
+
+	def draw(self, context):
+		layout = self.layout
+		layout.label('To use:')
+		layout.label('Select edges or faces to bevel with the option of rounded bevels.')
+		layout.label('best used on flat edges & simple edgeflow')
+		layout.label('may error if vert joins multiple edges/complex edge selection.')
+	
+	def execute(self, context):
+		return {'FINISHED'}
+
+	def invoke(self, context, event):
+		return context.window_manager.invoke_popup(self, width = 400)
 
 class BevelRoundAlgo(object):
     def __init__(self, bm, kind, offset, num_seg, strict, round):
