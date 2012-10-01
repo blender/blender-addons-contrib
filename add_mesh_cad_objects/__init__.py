@@ -38,11 +38,13 @@ if "bpy" in locals():
     imp.reload(add_mesh_balcony)
     imp.reload(add_mesh_sove)
     imp.reload(add_mesh_window)
+    imp.reload(add_mesh_beam_builder)
 
 else:
     from . import add_mesh_balcony
     from . import add_mesh_sove
     from . import add_mesh_window
+    from . import add_mesh_beam_builder
 
 import bpy
 
@@ -55,6 +57,8 @@ class INFO_MT_mesh_objects_add(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.menu("INFO_MT_mesh_beambuilder_add",
+            text="Beam Builder")
         layout.operator("mesh.add_say3d_balcony",
             text="Balcony")
         layout.operator("mesh.add_say3d_sove",
