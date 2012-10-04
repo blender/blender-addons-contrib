@@ -17,10 +17,14 @@ from math import *
 import mathutils
 from mathutils import *
 
+BProjection_Empty    = 'Empty for BProjection'
+BProjection_Material = 'Material for BProjection'
+BProjection_Texture  = 'Texture for BProjection'
+
 # Main function for align the plan to view
 def align_to_view(context):
     ob = context.object
-    em = bpy.data.objects['Empty for BProjection']       
+    em = bpy.data.objects[BProjection_Empty]       
     rotation = em.custom_rotation
     scale = em.custom_scale
     z = em.custom_location.z
@@ -38,8 +42,8 @@ def align_to_view(context):
     v = Vector((pos[0],pos[1],z))
     v.rotate(vr)
 
-    em = bpy.data.objects['Empty for BProjection']
-    img = bpy.data.textures['Texture for BProjection'].image
+    em = bpy.data.objects[BProjection_Empty]
+    img = bpy.data.textures[BProjection_Texture].image
     if img and img.size[1] != 0:
         prop = img.size[0]/img.size[1]
     else: prop = 1    
@@ -63,8 +67,8 @@ def align_to_view(context):
         sd.cursor_location =  v
 
 def applyimage(context):        
-        img = bpy.data.textures['Texture for BProjection'].image
-        em = bpy.data.objects['Empty for BProjection']
+        img = bpy.data.textures[BProjection_Texture].image
+        em = bpy.data.objects[BProjection_Empty]
         ob = context.object
                
         face = ob.data.polygons
@@ -104,7 +108,7 @@ def find_uv(context):
 # Function to update the scaleUV
 def update_UVScale(self, context):
     ob = context.object
-    em = bpy.data.objects['Empty for BProjection']
+    em = bpy.data.objects[BProjection_Empty]
     v = Vector((em.custom_offsetuv[0]/10 + 0.5, em.custom_offsetuv[1]/10 + 0.5))
     l = Vector((0.0,0.0))
     s = em.custom_scaleuv
@@ -123,12 +127,12 @@ def update_UVScale(self, context):
     applyimage(context)
 
 def update_PropUVScale(self, context):
-    em = bpy.data.objects['Empty for BProjection']
+    em = bpy.data.objects[BProjection_Empty]
     if em.custom_linkscaleuv:
         em.custom_scaleuv = [em.custom_propscaleuv,em.custom_propscaleuv]
 
 def update_LinkUVScale(self, context):
-    em = bpy.data.objects['Empty for BProjection']
+    em = bpy.data.objects[BProjection_Empty]
     if em.custom_linkscaleuv:
         em.custom_propscaleuv = em.custom_scaleuv.x
         update_PropUVScale(self, context)
@@ -138,7 +142,7 @@ def update_LinkUVScale(self, context):
 # Function to update the offsetUV
 def update_UVOffset(self, context):
     ob = context.object
-    em = bpy.data.objects['Empty for BProjection']
+    em = bpy.data.objects[BProjection_Empty]
     o = em.custom_offsetuv
     oo = em.custom_old_offsetuv 
     l = find_uv(context)
@@ -175,13 +179,13 @@ def update_FlipUVY(self, context):
 # Function to update
 def update_Rotation(self, context):              
     ob = context.object
-    em = bpy.data.objects['Empty for BProjection']
+    em = bpy.data.objects[BProjection_Empty]
     if em.custom_rotc3d:
         angle = em.custom_rotation - em.custom_old_rotation
         sd = context.space_data
         vr = sd.region_3d.view_rotation.copy()        
         c = sd.cursor_location - ob.location
-        e = bpy.data.objects['Empty for BProjection'].location - ob.location
+        e = bpy.data.objects[BProjection_Empty].location - ob.location
         vo = Vector((0.0, 0.0, 1.0))
         vo.rotate(vr)
         quat = mathutils.Quaternion(vo, math.radians(angle))
@@ -199,7 +203,7 @@ def update_Rotation(self, context):
 # Function to update scale
 def update_Scale(self, context):              
     ob = context.object
-    em = bpy.data.objects['Empty for BProjection']
+    em = bpy.data.objects[BProjection_Empty]
     
     if em.custom_scac3d:
         sd = context.space_data
@@ -215,7 +219,7 @@ def update_Scale(self, context):
         c.rotate(vr)
         ce.rotate(vr)
         
-        img = bpy.data.textures['Texture for BProjection'].image
+        img = bpy.data.textures[BProjection_Texture].image
         if img and img.size[1] != 0:
             prop = img.size[0]/img.size[1]
         else: prop = 1
@@ -231,12 +235,12 @@ def update_Scale(self, context):
     em.custom_old_scale = em.custom_scale
 
 def update_PropScale(self, context):
-    em = bpy.data.objects['Empty for BProjection']
+    em = bpy.data.objects[BProjection_Empty]
     if em.custom_linkscale:
         em.custom_scale = [em.custom_propscale,em.custom_propscale]
     
 def update_LinkScale(self, context):
-    em = bpy.data.objects['Empty for BProjection']
+    em = bpy.data.objects[BProjection_Empty]
     if em.custom_linkscale:
         em.custom_propscale = em.custom_scale.x
         update_PropScale(self, context)
@@ -244,7 +248,7 @@ def update_LinkScale(self, context):
         update_Scale(self, context) 
 
 def update_activeviewname(self, context):
-    em = bpy.data.objects['Empty for BProjection']
+    em = bpy.data.objects[BProjection_Empty]
     if self.custom_active:
         em.custom_active_view = self.custom_active_view
 
@@ -347,12 +351,12 @@ def removecustomprops():
                  'custom_expand', 'custom_active_view', 'custom_propscaleuv', 'custom_props', 'custom_propscale']
     for prop in list_prop:
         try:
-            del bpy.data.objects['Empty for BProjection'][prop]
+            del bpy.data.objects[BProjection_Empty][prop]
         except:
             pass
         
 def clear_props(context):
-    em = bpy.data.objects['Empty for BProjection'] 
+    em = bpy.data.objects[BProjection_Empty] 
     em.custom_scale = [1,1]
     em.custom_rotation = 0
     em.custom_scaleuv =[1.0,1.0]
@@ -371,7 +375,7 @@ class CreateView(Operator):
 
     def execute(self, context):              
         ob = context.object
-        em = bpy.data.objects['Empty for BProjection']
+        em = bpy.data.objects[BProjection_Empty]
         new_props = em.custom_props.add()        
         em.custom_active_view = new_props.custom_active_view               
         ob.data.shape_keys.key_blocks[ob.active_shape_key_index].mute = True
@@ -389,7 +393,7 @@ class SaveView(Operator):
     index = IntProperty(default = 0)
     
     def execute(self, context):              
-        em = bpy.data.objects['Empty for BProjection']
+        em = bpy.data.objects[BProjection_Empty]
         prop = em.custom_props[self.index]                            
         prop.custom_rotation =  em.custom_rotation                    
         prop.custom_scale =  em.custom_scale                  
@@ -402,7 +406,7 @@ class SaveView(Operator):
         prop.custom_flipuvx = em.custom_flipuvx
         prop.custom_flipuvy = em.custom_flipuvy
         try:
-            prop.custom_image = bpy.data.textures['Texture for BProjection'].image.name
+            prop.custom_image = bpy.data.textures[BProjection_Texture].image.name
         except:
             pass
         
@@ -416,7 +420,7 @@ class PasteView(Operator):
     index = IntProperty(default = 0)
     
     def execute(self, context):              
-        em = bpy.data.objects['Empty for BProjection']
+        em = bpy.data.objects[BProjection_Empty]
         tmp_scac3d = em.custom_scac3d
         tmp_rotc3d = em.custom_rotc3d
         em.custom_scac3d = False
@@ -431,8 +435,8 @@ class PasteView(Operator):
         em.custom_scale =  prop.custom_scale
         em.custom_propscale = prop.custom_propscale                     
         if prop.custom_image != '':
-            if bpy.data.textures['Texture for BProjection'].image.name != prop.custom_image:
-                bpy.data.textures['Texture for BProjection'].image = bpy.data.images[prop.custom_image]
+            if bpy.data.textures[BProjection_Texture].image.name != prop.custom_image:
+                bpy.data.textures[BProjection_Texture].image = bpy.data.images[prop.custom_image]
                 applyimage(context)
         if em.custom_flipuvx != prop.custom_flipuvx:
             em.custom_flipuvx = prop.custom_flipuvx
@@ -451,7 +455,7 @@ class RemoveView(Operator):
     
     def execute(self, context):              
         ob = context.object
-        em = bpy.data.objects['Empty for BProjection']
+        em = bpy.data.objects[BProjection_Empty]
         
         ob.active_shape_key_index =  self.index + 1
         bpy.ops.object.shape_key_remove()
@@ -488,7 +492,7 @@ class ActiveView(Operator):
     
     def execute(self, context):
         ob = context.object
-        em = bpy.data.objects['Empty for BProjection']
+        em = bpy.data.objects[BProjection_Empty]
         for item in (item for item in em.custom_props if item.custom_active == True):
             bpy.ops.object.save_view(index = item.custom_index)
             item.custom_active = False
@@ -515,14 +519,13 @@ class BProjection(Panel):
     def poll(cls, context):
         return (context.image_paint_object or context.sculpt_object)
 
-    def draw(self, context):        
+    def draw(self, context):
         layout = self.layout        
-        if  'Empty for BProjection' in [ob.name for ob in bpy.data.objects]:
-            
-            
-            tex = bpy.data.textures['Texture for BProjection']
+        if  BProjection_Empty in [ob.name for ob in bpy.data.objects]:
+            tex = bpy.data.textures[BProjection_Texture]
+
             ob = context.object
-            em = bpy.data.objects['Empty for BProjection']
+            em = bpy.data.objects[BProjection_Empty]
             if ob == bpy.data.objects[em.custom_active_object]:            
                 col = layout.column(align =True)
                 col.operator("object.removebprojectionplane", text="Remove BProjection plane")           
@@ -620,7 +623,7 @@ class IntuitiveScale(Operator):
 
     def invoke(self, context, event):
         ob = context.object
-        em = bpy.data.objects['Empty for BProjection']
+        em = bpy.data.objects[BProjection_Empty]
         x = event.mouse_region_x
         y = event.mouse_region_y                
         if len(ob.grease_pencil.layers.active.frames) == 0: 
@@ -687,7 +690,7 @@ class AddBProjectionPlane(Operator):
         ob.data.update()
             
     def execute(self, context):    
-        if  'Empty for BProjection' not in [ob.name for ob in bpy.data.objects]:                
+        if  BProjection_Empty not in [ob.name for ob in bpy.data.objects]:                
             
             cm = bpy.context.object.mode
             '''tmp = context.object
@@ -704,7 +707,7 @@ class AddBProjectionPlane(Operator):
         
             bpy.ops.object.add()
             em = context.object
-            em.name = "Empty for BProjection"
+            em.name = BProjection_Empty
                         
             context.scene.objects.active = ob
             ob.select = True
@@ -775,7 +778,7 @@ class AddBProjectionPlane(Operator):
             context.space_data.cursor_location = em.location
             
             bpy.ops.object.mode_set(mode = cm, toggle=False)
-            bpy.data.objects['Empty for BProjection'].custom_active_object = context.object.name
+            bpy.data.objects[BProjection_Empty].custom_active_object = context.object.name
             
         return {'FINISHED'}
 
@@ -789,7 +792,7 @@ class RemoveBProjectionPlane(Operator):
         i = 0
 
         for ms in ob.material_slots:
-            if ms.name == 'Material for BProjection':
+            if ms.name == BProjection_Material:
                 index = i
             i+=1
                 
@@ -824,7 +827,7 @@ class RemoveBProjectionPlane(Operator):
    
             ob.select = False
                 
-            em = bpy.data.objects['Empty for BProjection']
+            em = bpy.data.objects[BProjection_Empty]
             context.scene.objects.active = em
             em.hide = False
             em.select = True
@@ -891,7 +894,7 @@ class ChangeObject(Operator):
         i = 0
 
         for ms in ob.material_slots:
-            if ms.name == 'Material for BProjection':
+            if ms.name == BProjection_Material:
                 index = i
             i+=1
                 
@@ -900,7 +903,7 @@ class ChangeObject(Operator):
     
     def execute(self, context):
             new_ob = context.object
-            em = bpy.data.objects['Empty for BProjection']              
+            em = bpy.data.objects[BProjection_Empty]              
             context.scene.objects.active = bpy.data.objects[em.custom_active_object]
             ob = context.object
             if ob != new_ob:
@@ -943,7 +946,7 @@ class ChangeObject(Operator):
                 
                 bplane.select = True            
                 context.scene.objects.active = bplane
-                for ms in (ms for ms in bplane.material_slots if ms.name != 'Material for BProjection'):
+                for ms in (ms for ms in bplane.material_slots if ms.name != BProjection_Material):
                     bplane.active_material = ms.material
                     bpy.ops.object.material_slot_remove()
                 
@@ -1035,7 +1038,7 @@ class RotateView3D(Operator):
     def tracball(self, context, mx, my, origine):
         sd = context.space_data
         ob = context.object
-        em = bpy.data.objects['Empty for BProjection']        
+        em = bpy.data.objects[BProjection_Empty]
             
         vr_b = sd.region_3d.view_rotation.copy()
         vr_b.invert()
@@ -1171,7 +1174,7 @@ class PanView3D(bpy.types.Operator):
 
     def modal(self, context, event):
         ob = context.object
-        em = bpy.data.objects['Empty for BProjection']
+        em = bpy.data.objects[BProjection_Empty]
         width = context.area.regions[4].width
         height = context.area.regions[4].height
 
@@ -1235,7 +1238,7 @@ class ZoomView3D(Operator):
 
     def invoke(self, context, event):                   
         ob = context.object
-        em = bpy.data.objects['Empty for BProjection']
+        em = bpy.data.objects[BProjection_Empty]
         sd = context.space_data
 
         width = context.area.regions[4].width
@@ -1284,7 +1287,7 @@ class PresetView3D(Operator):
     view = StringProperty(name="View", description="Select the view", default='TOP')
     def invoke(self, context, event):                   
         ob = context.object
-        em = bpy.data.objects['Empty for BProjection']
+        em = bpy.data.objects[BProjection_Empty]
         origine = ob.location
         sd = context.space_data
 
