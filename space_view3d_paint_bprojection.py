@@ -54,7 +54,7 @@ def align_to_view(context):
         em.scale = Vector((prop*scale[0], scale[1], 1))
     pos_cur = em.location - sd.cursor_location
     rot_cur1 = em.rotation_euler.to_quaternion()
-    em.location = v + ob.location            
+    em.location = v + ob.location
     em.rotation_euler = Quaternion.to_euler(vr*quat)   
     if em.custom_c3d:
         if em.custom_old_scale != em.custom_scale:
@@ -608,9 +608,15 @@ class BProjection(Panel):
         else:
             ob = context.object
             col = layout.column(align = True)
-            col.operator("object.addbprojectionplane", text="Add BProjection plane")
-            col = layout.column(align = True)
-            col.prop(ob, "custom_sub",text="Subdivision level")
+            
+            if ob.active_material is None:
+                col.label(text="Add a material first!", icon="ERROR")
+            elif ob.data.uv_textures.active is None:
+                col.label(text="Create UVMap first!!", icon="ERROR")
+            else:
+                col.operator("object.addbprojectionplane", text="Add BProjection plane")
+                col = layout.column(align = True)
+                col.prop(ob, "custom_sub",text="Subdivision level")
                    
 
 # Oprerator Class to apply the image to the plane             
@@ -1011,7 +1017,7 @@ class RotateView3D(Operator):
  
     first_time = True
     tmp_level = -1
-    
+
     def vect_sphere(self, context, mx, my):
         width = context.area.regions[4].width
         height = context.area.regions[4].height
