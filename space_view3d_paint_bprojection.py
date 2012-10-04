@@ -529,7 +529,12 @@ class BProjection(Panel):
             if ob == bpy.data.objects[em.custom_active_object]:            
                 col = layout.column(align =True)
                 col.operator("object.removebprojectionplane", text="Remove BProjection plane")           
-                
+
+            try:
+                matBProjection = bpy.data.materials[BProjection_Material]
+            except:
+                matBProjection = None
+            
             box = layout.box()
 
             row = box.row()
@@ -578,9 +583,11 @@ class BProjection(Panel):
                     else: 
                         row.prop(em,'custom_scaleuv',text='')
                         row.prop(em, "custom_linkscaleuv",text="",icon='UNLINKED')            
-                    row = box.column(align =True)
-                    row.prop(ob.material_slots['Material for BProjection'].material,'alpha', slider = True)
-                    row = box.column(align =True)
+                    
+                    if matBProjection:
+                        row = box.column(align =True)
+                        row.prop(matBProjection,'alpha', slider = True)
+                        row = box.column(align =True)
     
                 if ob == bpy.data.objects[em.custom_active_object]:    
                     for item in em.custom_props:
