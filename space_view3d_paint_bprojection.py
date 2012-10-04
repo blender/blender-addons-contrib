@@ -601,7 +601,7 @@ class BProjection(Panel):
         else:
             ob = context.object
             col = layout.column(align = True)
-            col.operator("object.addbprojectionplane", text="Add BProjection plan")
+            col.operator("object.addbprojectionplane", text="Add BProjection plane")
             col = layout.column(align = True)
             col.prop(ob, "custom_sub",text="Subdivision level")
                    
