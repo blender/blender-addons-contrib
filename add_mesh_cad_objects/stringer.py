@@ -13,11 +13,11 @@
 # 
 # Paul "BrikBot" Marshall
 # Created: September 19, 2011
-# Last Modified: February 16, 2011
+# Last Modified: January 29, 2011
 # Homepage (blog): http://post.darkarsenic.com/
 #                       //blog.darkarsenic.com/
 #
-# Coded in IDLE, tested in Blender 2.62.
+# Coded in IDLE, tested in Blender 2.61.
 # Search for "@todo" to quickly find sections that need work.
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
@@ -174,70 +174,50 @@ class Stringer:
                     coords.append(coords[j] + Vector([0,self.wT,0]))
                 self.G.Make_mesh(coords, self.G.faces, 'stringer')
         elif self.typ == "id4":
-            if self.typ_s == "sId1":
-                # Center of the strigner:
-                offset = (self.wT / (self.nS + 1))
-                for s in range(self.nS):
-                    # Base location for the stringer:
-                    base = self.tO + (offset * (s + 1)) - (self.w / 2)
-                    start = [Vector([0, -base, -self.hT]),
-                             Vector([0, -base, -self.hT - self.rise]),
-                             Vector([0, -base - self.w, -self.hT]),
-                             Vector([0, -base - self.w, -self.hT - self.rise])]
-                    self.d = radians(self.run) / self.nT
-                    for i in range(self.nT):
-                        coords = []
-                        # Base faces.  Should be able to append more sections:
-                        tId4_faces = [[0, 1, 3, 2]]
-                        # Generate inner coordinates:
-                        t_inner = Matrix.Rotation(self.d * i, 3, 'Z')
-                        coords.append((t_inner * start[0]) + Vector([0, 0, self.rise * i]))
-                        coords.append((t_inner * start[1]) + Vector([0, 0, self.rise * i]))
-                        # Generate outer coordinates:
-                        t_outer = Matrix.Rotation(self.d * i, 3, 'Z')
-                        coords.append((t_outer * start[2]) + Vector([0, 0, self.rise * i]))
-                        coords.append((t_outer * start[3]) + Vector([0, 0, self.rise * i]))
-                        # Vert tracking variable:
-                        k = 0
-                        for j in range(self.deg):
-                            k = (j * 4) + 4
-                            tId4_faces.append([k, k - 4, k - 3, k + 1])
-                            tId4_faces.append([k - 2, k - 1, k + 3, k + 2])
-                            tId4_faces.append([k + 1, k - 3, k - 1, k + 3])
-                            tId4_faces.append([k, k - 4, k - 2, k + 2])
-                            rot = Matrix.Rotation(((self.d * (j + 1)) / self.deg) + (self.d * i), 3, 'Z')
-                            for v in start:
-                                coords.append((rot * v) + Vector([0, 0, self.rise * i]))
-                        for j in range(self.deg):
-                            k = ((j + self.deg) * 4) + 4
-                            tId4_faces.append([k, k - 4, k - 3, k + 1])
-                            tId4_faces.append([k - 2, k - 1, k + 3, k + 2])
-                            tId4_faces.append([k + 1, k - 3, k - 1, k + 3])
-                            tId4_faces.append([k, k - 4, k - 2, k + 2])
-                            rot = Matrix.Rotation(((self.d * ((j + self.deg) + 1)) / self.deg) + (self.d * i), 3, 'Z')
-                            for v in range(4):
-                                if v in [1, 3]:
-                                    incline = (self.rise * i) + (self.rise / self.deg) * (j + 1)
-                                    coords.append((rot * start[v]) + Vector([0, 0, incline]))
-                                else:
-                                    coords.append((rot * start[v]) + Vector([0, 0, self.rise * i]))
-                        self.G.Make_mesh(coords, tId4_faces, 'treads')
-            elif self.typ_s == "sId2":
-                self.circular_I_Beam()
+            offset = (self.wT / (self.nS + 1)) - (self.w / 2)
+            for s in range(self.nS):
+                base = self.tO + (offset * (s + 1))
+                start = [Vector([0, -base, -self.hT]),
+                         Vector([0, -base, -self.hT - self.rise]),
+                         Vector([0, -base - self.w, -self.hT]),
+                         Vector([0, -base - self.w, -self.hT - self.rise])]
+                self.d = radians(self.run) / self.nT
+                for i in range(self.nT):
+                    coords = []
+                    # Base faces.  Should be able to append more sections:
+                    tId4_faces = [[0, 1, 3, 2]]
+                    t_inner = Matrix.Rotation(self.d * i, 3, 'Z')
+                    coords.append((t_inner * start[0]) + Vector([0, 0, self.rise * i]))
+                    coords.append((t_inner * start[1]) + Vector([0, 0, self.rise * i]))
+                    t_outer = Matrix.Rotation(self.d * i, 3, 'Z')
+                    coords.append((t_outer * start[2]) + Vector([0, 0, self.rise * i]))
+                    coords.append((t_outer * start[3]) + Vector([0, 0, self.rise * i]))
+                    k = 0
+                    for j in range(self.deg):
+                        k = (j * 4) + 4
+                        tId4_faces.append([k, k - 4, k - 3, k + 1])
+                        tId4_faces.append([k - 2, k - 1, k + 3, k + 2])
+                        tId4_faces.append([k + 1, k - 3, k - 1, k + 3])
+                        tId4_faces.append([k, k - 4, k - 2, k + 2])
+                        rot = Matrix.Rotation(((self.d * (j + 1)) / self.deg) + (self.d * i), 3, 'Z')
+                        for v in start:
+                            coords.append((rot * v) + Vector([0, 0, self.rise * i]))
+                    for j in range(self.deg):
+                        k = ((j + self.deg) * 4) + 4
+                        tId4_faces.append([k, k - 4, k - 3, k + 1])
+                        tId4_faces.append([k - 2, k - 1, k + 3, k + 2])
+                        tId4_faces.append([k + 1, k - 3, k - 1, k + 3])
+                        tId4_faces.append([k, k - 4, k - 2, k + 2])
+                        rot = Matrix.Rotation(((self.d * ((j + self.deg) + 1)) / self.deg) + (self.d * i), 3, 'Z')
+                        for v in range(4):
+                            if v in [1, 3]:
+                                incline = (self.rise * i) + (self.rise / self.deg) * (j + 1)
+                                coords.append((rot * start[v]) + Vector([0, 0, incline]))
+                            else:
+                                coords.append((rot * start[v]) + Vector([0, 0, self.rise * i]))
+                    self.G.Make_mesh(coords, tId4_faces, 'treads')
 
         return {'FINISHED'}
-
-
-    # Adds a scalar to the given list.
-    # Util method to implement addition for use in generating the circular
-    # stringer.  Uses recursion to deal with multi-dimensional lists.
-    def add(self, scalar, matrix):
-        if matrix.__class__.__name__ == 'list':
-            for i in range(len(matrix)):
-                matrix[i] = self.add(scalar, matrix[i])
-        elif matrix.__class__.__name__ in ('int', 'float'):
-            matrix = matrix + scalar
-        return matrix
 
 
     def I_beam(self):
@@ -382,68 +362,6 @@ class Stringer:
 
         # @TODO Taper = 100%
         
-        return {'FINISHED'}
-
-
-    def circular_I_Beam(self):
-        # Mesh face definitions.  Add "'slice #' * 16" to each for actual vert:
-        loop = [[0, 1, -15, -16], [1, 2, -14, -15], [2, 3, -13, -14], [3, 4, -12, -13],
-                [4, 5, -11, -12], [5, 6, -10, -11], [6, 7, -9, -10], [7, 8, -8, -9],
-                [8, 9, -7, -8], [9, 10, -6, -7], [10, 11, -5, -6], [11, 12, -4, -5],
-                [12, 13, -3, -4], [13, 14, -2, -3], [14, 15, -1, -2], [15, 0, -16, -1]]
-        end = [[0, 1, 14, 15], [1, 2, 5, 14], [2, 3, 4, 5], [5, 6, 13, 14],
-               [6, 7, 8, 9], [6, 9, 10, 13], [10, 11, 12, 13]]
-        # Center of stringer calculation:
-        offset = (self.wT / (self.nS + 1)) - (self.w / 2)
-        for s in range(self.nS):
-            base = -self.tO - (offset * (s + 1))
-            baseZ = -self.rise - self.hT
-            start = [Vector([0, base, baseZ]),
-                     Vector([0, base - (self.w - self.tw) / 2, baseZ]),
-                     Vector([0, base - (self.w - self.tw), baseZ]),
-                     Vector([0, base - self.w, baseZ]),
-                     Vector([0, base - self.w, baseZ - self.tp]),
-                     Vector([0, base - (self.w - self.tw), baseZ - self.tf]),
-                     Vector([0, base - (self.w - self.tw), baseZ - self.h + self.tf]),
-                     Vector([0, base - self.w, baseZ - self.h + self.tp]),
-                     Vector([0, base - self.w, baseZ - self.h]),
-                     Vector([0, base - (self.w - self.tw), baseZ - self.h]),
-                     Vector([0, base - (self.w - self.tw) / 2, baseZ - self.h]),
-                     Vector([0, base, baseZ - self.h]),
-                     Vector([0, base, baseZ - self.h + self.tp]),
-                     Vector([0, base - (self.w - self.tw) / 2, baseZ - self.h + self.tf]),
-                     Vector([0, base - (self.w - self.tw) / 2, baseZ - self.tf]),
-                     Vector([0, base, baseZ - self.tp])]
-            
-            # Add first end:
-            for f in end:
-                tId4_faces.append(f)
-            
-            self.d = radians(self.run) / self.nT
-            for i in range(self.nS):
-                # Coordinate list:
-                coords = []
-                # Base faces.  Should be able to append more sections:
-                tId4_faces = []
-
-                # Shift verts over and rotate:
-                rot = Matrix.Rotation(self.d * i, 3, 'Z')
-                for v in range(len(start)):
-                    start[v][1] = start[v][1] + (offset * i)
-                    coords.append((rot * start[v]) + Vector([0, 0, self.rise * i]))
-                
-                k = 0
-                for j in range(self.deg):
-                    k = (j * 4) + 4
-                    for l in self.add(k, loop):
-                        tId4_faces.append(l)
-                    rot = Matrix.Rotation(((self.d * (j + 1)) / self.deg) + (self.d * i), 3, 'Z')
-                    for v in start:
-                        coords.append((rot * v) + Vector([0, 0, self.rise * i]))
-                for f in self.add(k, end):
-                    tId4_faces.append(f)
-                self.G.Make_mesh(coords, tId4_faces, 'stringer')
-
         return {'FINISHED'}
 
 

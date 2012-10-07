@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 # Contributed to by
-# SAYproductions, meta-androcto #
+# SAYproductions, meta-androcto, jambay, brikbot#
 
 bl_info = {
     "name": "Cad Objects",
@@ -39,12 +39,16 @@ if "bpy" in locals():
     imp.reload(add_mesh_sove)
     imp.reload(add_mesh_window)
     imp.reload(add_mesh_beam_builder)
+    imp.reload(Wallfactory)
+    imp.reload(stairbuilder)
 
 else:
     from . import add_mesh_balcony
     from . import add_mesh_sove
     from . import add_mesh_window
     from . import add_mesh_beam_builder
+    from . import Wallfactory
+    from . import stairbuilder
 
 import bpy
 
@@ -65,6 +69,10 @@ class INFO_MT_mesh_objects_add(bpy.types.Menu):
             text="Sove")
         layout.operator("mesh.add_say3d_pencere",
             text="Window")
+        layout.operator("mesh.wall_add",
+            text="Wall Factory")
+        layout.operator("mesh.stairs",
+            text="Stair Builder")
 
 
 # Register all operators and panels

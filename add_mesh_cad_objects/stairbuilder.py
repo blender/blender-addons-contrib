@@ -69,12 +69,12 @@
 #-----------------------------------------------------------
 # BEGIN NEW B2.5/Py3.2 CODE
 import bpy
-from add_mesh_stairs.general import General
-from add_mesh_stairs.post import Posts
-from add_mesh_stairs.rail import Rails
-from add_mesh_stairs.retainer import Retainers
-from add_mesh_stairs.stringer import Stringer
-from add_mesh_stairs.tread import Treads
+from add_mesh_cad_objects.general import General
+from add_mesh_cad_objects.post import Posts
+from add_mesh_cad_objects.rail import Rails
+from add_mesh_cad_objects.retainer import Retainers
+from add_mesh_cad_objects.stringer import Stringer
+from add_mesh_cad_objects.tread import Treads
 from bpy.props import (BoolProperty,
                        EnumProperty,
                        IntProperty,
@@ -397,8 +397,6 @@ class stairs(bpy.types.Operator):
                 if self.typ_s in ["sId2", "sId3"]:
                     box.prop(self, 'string_tw')
                     box.prop(self, 'string_tf')
-            elif self.typ == "id4":
-                box.prop(self, 'string_n')
 
         # Tread support:
 ##        if self.make_stringer and typ_s in ["sId2", "sId3"]:
