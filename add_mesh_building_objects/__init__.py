@@ -19,12 +19,12 @@
 # SAYproductions, meta-androcto, jambay, brikbot#
 
 bl_info = {
-    "name": "Cad Objects",
-    "author": "SAYproductions, meta-androcto",
+    "name": "Building Objects",
+    "author": "Multiple Authors",
     "version": (0, 2),
     "blender": (2, 6, 4),
     "location": "View3D > Add > Mesh > Cad Objects",
-    "description": "Add cad object types",
+    "description": "Add building object types",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts",
@@ -56,7 +56,7 @@ import bpy
 class INFO_MT_mesh_objects_add(bpy.types.Menu):
     # Define the "mesh objects" menu
     bl_idname = "INFO_MT_cad_objects_add"
-    bl_label = "Cad Objects"
+    bl_label = "Building Objects"
 
     def draw(self, context):
         layout = self.layout
