@@ -254,14 +254,20 @@ def update_activeviewname(self, context):
 
 class custom_props(bpy.types.PropertyGroup):
     custom_location = FloatVectorProperty(name="Location", description="Location of the plane",
-                                           default=(0,0,-1.0),
-                                           subtype = 'XYZ', size=3)
+                                          default=(0,0,-1.0),
+                                          subtype = 'XYZ', 
+                                          step=0.1,
+                                          size=3)
                                            
     custom_rotation = FloatProperty(name="Rotation", description="Rotate the plane",
-                                     min=-180, max=180, default=0)
+                                    min=-180, max=180, default=0)
                                          
     custom_scale = FloatVectorProperty(name="Scales", description="Scale the planes",
-                                       subtype = 'XYZ', default=(1.0, 1.0),min = 0.1, size=2)
+                                       default=(1.0, 1.0),
+                                       subtype = 'XYZ',
+                                       min = 0.1,
+                                       step=0.1,
+                                       size=2)
     custom_propscale = FloatProperty(name="PropScale", description="Scale the Plane",
                                            default=1.0,min = 0.1)
                                                                                     
@@ -294,19 +300,32 @@ def createcustomprops(context):
     
     # plane properties 
     Ob.custom_location = FloatVectorProperty(name="Location", description="Location of the plane",
-                                           default=(0, 0, -1.0),
-                                           subtype = 'XYZ', size=3, update = update_Location)
+                                           default = (0, 0, -1.0),
+                                           subtype = 'XYZ', 
+                                           size    = 3,
+                                           step    = 0.5,
+                                           update  = update_Location)
                                            
     Ob.custom_rotation = FloatProperty(name="Rotation", description="Rotate the plane",
-                                     min=-180, max=180, default=0,update = update_Rotation)
+                                       min=-180, max=180, default=0,update = update_Rotation)
                                      
     Ob.custom_old_rotation = FloatProperty(name="old_Rotation", description="Old Rotate the plane",
-                                         min=-180, max=180, default=0)
+                                           min=-180, max=180, default=0)
                                          
     Ob.custom_scale = FloatVectorProperty(name="Scales", description="Scale the planes",
-                                          subtype = 'XYZ', default=(1.0, 1.0),min = 0.1, size=2,update = update_Scale)
+                                          subtype = 'XYZ',
+                                          default=(1.0, 1.0),
+                                          min = 0.1,
+                                          size=2,
+                                          step=0.5,
+                                          update = update_Scale)
+                                          
     Ob.custom_propscale = FloatProperty(name="PropScale", description="Scale the Plane",
-                                           default=1.0,min = 0.1,update = update_PropScale)
+                                        default=1.0,
+                                        min = 0.1,
+                                        step=0.5,
+                                        update = update_PropScale)
+                                           
     Ob.custom_old_scale = FloatVectorProperty(name="old_Scales", description="Old Scale the planes",
                                           subtype = 'XYZ', default=(1.0, 1.0),min = 0.1, size=2)
                                           
