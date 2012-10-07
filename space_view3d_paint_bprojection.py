@@ -256,6 +256,8 @@ class custom_props(bpy.types.PropertyGroup):
     custom_location = FloatVectorProperty(name="Location", description="Location of the plane",
                                           default=(0,0,-1.0),
                                           subtype = 'XYZ', 
+                                          soft_min = -10,
+                                          soft_max = 10,
                                           step=0.1,
                                           size=3)
                                            
@@ -266,6 +268,7 @@ class custom_props(bpy.types.PropertyGroup):
                                        default=(1.0, 1.0),
                                        subtype = 'XYZ',
                                        min = 0.1,
+                                       max = 10,
                                        step=0.1,
                                        size=2)
     custom_propscale = FloatProperty(name="PropScale", description="Scale the Plane",
@@ -300,11 +303,13 @@ def createcustomprops(context):
     
     # plane properties 
     Ob.custom_location = FloatVectorProperty(name="Location", description="Location of the plane",
-                                           default = (0, 0, -1.0),
-                                           subtype = 'XYZ', 
-                                           size    = 3,
-                                           step    = 0.5,
-                                           update  = update_Location)
+                                           default  = (0, 0, -1.0),
+                                           subtype  = 'XYZ', 
+                                           size     = 3,
+                                           step     = 0.5,
+                                           soft_min = -10,
+                                           soft_max = 10,
+                                           update   = update_Location)
                                            
     Ob.custom_rotation = FloatProperty(name="Rotation", description="Rotate the plane",
                                        min=-180, max=180, default=0,update = update_Rotation)
@@ -316,6 +321,7 @@ def createcustomprops(context):
                                           subtype = 'XYZ',
                                           default=(1.0, 1.0),
                                           min = 0.1,
+                                          max = 10,
                                           size=2,
                                           step=0.5,
                                           update = update_Scale)
