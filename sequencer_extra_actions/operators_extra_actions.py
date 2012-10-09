@@ -1532,12 +1532,13 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
     def execute(self, context):
         strip = functions.act_strip(context)
         scn = context.scene
-        data_exists = False
+        
 
         if strip.type == 'MOVIE':
             print("movie", strip.frame_start)
             path = strip.filepath
-
+            #print(path)
+            data_exists = False
             for i in bpy.data.movieclips:
                 if i.filepath == path:
                     data_exists = True
@@ -1589,12 +1590,15 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
             # for hard cutted sequence strips to be correctly converted, 
             # avoiding to create a new movie clip if not needed
             filename = sorted(os.listdir(base_dir))[0]
-            path = base_dir + filename
-
-            for i in bpy.data.images:
+            path = os.path.join(base_dir,filename)
+            print(path)
+            data_exists = False
+            for i in bpy.data.movieclips:
+                print(i.filepath, path)
                 if i.filepath == path:
                     data_exists = True
                     data = i
+            print(data_exists)
             if data_exists == False:
                 try:
                     data = bpy.data.movieclips.load(filepath=path)
@@ -1603,12 +1607,14 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
                     newstrip = functions.act_strip(context)
                     newstrip.frame_start = strip.frame_start\
                         - strip.animation_offset_start
+                    
+                    clip = bpy.context.scene.sequence_editor.sequences[newstrip.name]
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
                     print(newstrip.frame_start, strip.frame_start, tin, tout)
-                    functions.triminout(newstrip, tin, tout)
+                    functions.triminout(clip, tin, tout)
                 except:
-                    self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
+                    self.report({'ERROR_INVALID_INPUT'}, 'Error loading filetin')
                     return {'CANCELLED'}
                 
             else:
@@ -1630,18 +1636,15 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
                     print(newstrip.frame_start, strip.frame_start, tin, tout)
                     functions.triminout(clip, tin, tout)
                 except:
-                    self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
+                    self.report({'ERROR_INVALID_INPUT'}, 'Error loading filete')
                     return {'CANCELLED'}
 
         # to show the new clip in a movie clip editor, if available.
-        if strip.type == 'MOVIE':
+        if strip.type == 'MOVIE' or 'IMAGE':
             for a in context.window.screen.areas:
                 if a.type == 'CLIP_EDITOR':
                     a.spaces[0].clip = data
-        elif strip.type == 'IMAGE':
-            for a in context.window.screen.areas:
-                if a.type == 'IMAGE_EDITOR':
-                    a.spaces[0].image = data
+        
 
         return {'FINISHED'}
 
