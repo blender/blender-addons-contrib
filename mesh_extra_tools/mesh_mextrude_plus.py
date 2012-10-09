@@ -161,7 +161,7 @@ class MExtrude(bpy.types.Operator):
                 r2q = rot.to_quaternion()
                 bpy.ops.mesh.extrude_faces_move()
                 bpy.ops.transform.translate(value = norm * loc)
-                bpy.ops.transform.rotate(value = [r2q.angle], axis = r2q.axis)
+                bpy.ops.transform.rotate(value = r2q.angle, axis = r2q.axis)
                 bpy.ops.transform.resize(value = vsca(self, i + a))
             bpy.ops.object.vertex_group_remove_from()
             bpy.ops.mesh.hide()
