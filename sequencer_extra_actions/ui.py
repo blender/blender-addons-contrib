@@ -31,6 +31,9 @@ class SEQUENCER_EXTRA_MT_input(bpy.types.Menu):
         text='Open with External Editor', icon='PLUGIN')
         self.layout.operator('sequencerextra.edit',
         text='Open with Editor', icon='PLUGIN')
+        self.layout.operator('sequencerextra.createmovieclip',
+        text='Create a Movieclip strip', icon='PLUGIN')
+
 
 
 class AddRecursiveLoadPanel(bpy.types.Panel):

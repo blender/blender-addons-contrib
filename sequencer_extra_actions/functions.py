@@ -148,3 +148,28 @@ def sortlist(filelist):
     '''
     filelist_sorted = sorted(filelist, key=operator.itemgetter(1))
     return filelist_sorted
+
+
+#------------ jump to cut functions...
+
+
+def triminout(strip,sin,sout):
+    start = strip.frame_start+strip.frame_offset_start 
+    end = start+strip.frame_final_duration
+    if end > sin:
+        if start < sin:
+            strip.select_right_handle = False            
+            strip.select_left_handle = True
+            bpy.ops.sequencer.snap(frame=sin)
+            strip.select_left_handle = False
+    if start < sout:
+        if end > sout:
+            strip.select_left_handle = False            
+            strip.select_right_handle = True
+            bpy.ops.sequencer.snap(frame=sout)
+            strip.select_right_handle = False    
+    return {'FINISHED'}
+
+
+
+
