@@ -32,7 +32,7 @@ class SEQUENCER_EXTRA_MT_input(bpy.types.Menu):
         self.layout.operator('sequencerextra.edit',
         text='Open with Editor', icon='PLUGIN')
         self.layout.operator('sequencerextra.createmovieclip',
-        text='Create a Movieclip strip', icon='PLUGIN')
+        text='Create Movieclip strip', icon='PLUGIN')
 
 
 
@@ -40,6 +40,14 @@ class AddRecursiveLoadPanel(bpy.types.Panel):
     bl_label = "Recursive Load"
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
+    
+    @staticmethod
+    def has_sequencer(context):
+        return (context.space_data.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'})
+
+    @classmethod
+    def poll(cls, context):
+        return cls.has_sequencer(context)
 
     def draw_header(self, context):
         layout = self.layout
@@ -67,9 +75,6 @@ class AddRecursiveLoadPanel(bpy.types.Panel):
 def sequencer_select_menu_func(self, context):
     self.layout.operator_menu_enum('sequencerextra.select_all_by_type',
     'type', text='All by Type', icon='PLUGIN')
-    self.layout.separator()
-    self.layout.operator('sequencerextra.selectinverse',
-    text='Inverse', icon='PLUGIN')
     self.layout.separator()
     self.layout.operator('sequencerextra.selectcurrentframe',
     text='Before Current Frame', icon='PLUGIN').mode = 'BEFORE'
@@ -104,18 +109,18 @@ def sequencer_strip_menu_func(self, context):
 
 def sequencer_header_func(self, context):
     self.layout.menu("SEQUENCER_EXTRA_MT_input")
-    if context.space_data.view_type in ('SEQUENCER', 'SEQUENCER_PREVIEW'):
-        self.layout.operator('sequencerextra.placefromfilebrowser',
-        text='File Place', icon='TRIA_DOWN').insert = False
-    if context.space_data.view_type in ('SEQUENCER', 'SEQUENCER_PREVIEW'):
-        self.layout.operator('sequencerextra.placefromfilebrowser',
-        text='File Insert', icon='TRIA_RIGHT').insert = True
     if context.space_data.view_type in ('PREVIEW', 'SEQUENCER_PREVIEW'):
         self.layout.operator('sequencerextra.jogshuttle',
         text='Jog/Shuttle', icon='NDOF_TURN')
     if context.space_data.view_type in ('SEQUENCER', 'SEQUENCER_PREVIEW'):
         self.layout.operator('sequencerextra.navigateup',
         text='Navigate Up', icon='FILE_PARENT')
+    if context.space_data.view_type in ('SEQUENCER', 'SEQUENCER_PREVIEW'):
+        self.layout.operator('sequencerextra.placefromfilebrowser',
+        text='File Place', icon='TRIA_DOWN').insert = False
+    if context.space_data.view_type in ('SEQUENCER', 'SEQUENCER_PREVIEW'):
+        self.layout.operator('sequencerextra.placefromfilebrowser',
+        text='File Insert', icon='TRIA_RIGHT').insert = True
     if context.space_data.view_type in ('SEQUENCER', 'SEQUENCER_PREVIEW'):
         self.layout.operator('sequencerextra.placefromfilebrowserproxy',
         text='Proxy Place', icon='TRIA_DOWN')

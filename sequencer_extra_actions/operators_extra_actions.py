@@ -755,41 +755,6 @@ class Sequencer_Extra_SelectCurrentFrame(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# SELECT INVERSE
-class Sequencer_Extra_SelectInverse(bpy.types.Operator):
-    bl_label = 'Inverse'
-    bl_idname = 'sequencerextra.selectinverse'
-    bl_description = 'Inverse selection of strips'
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(self, context):
-        scn = context.scene
-        if scn and scn.sequence_editor:
-            return scn.sequence_editor.sequences
-        else:
-            return False
-
-    def execute(self, context):
-        scn = context.scene
-        seq = scn.sequence_editor
-        meta_level = len(seq.meta_stack)
-        if meta_level > 0:
-            seq = seq.meta_stack[meta_level - 1]
-
-        for i in seq.sequences:
-            try:
-                if (i.select == False
-                and not i.mute):
-                    i.select = True
-                else:
-                    i.select = False
-            except AttributeError:
-                    pass
-
-        return {'FINISHED'}
-
-
 # OPEN IMAGE WITH EXTERNAL EDITOR
 class Sequencer_Extra_EditExternally(bpy.types.Operator):
     bl_label = 'Open with External Editor'
@@ -1510,7 +1475,7 @@ class Sequencer_Extra_PlaceFromFileBrowserProxy(bpy.types.Operator):
 class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
     bl_label = 'Create a Movieclip from selected strip'
     bl_idname = 'sequencerextra.createmovieclip'
-    bl_description = 'create a Movieclip strip from a MOVIE or IMAGE strip.'
+    bl_description = 'Create a Movieclip strip from a MOVIE or IMAGE strip'
 
     """
     When a movie or image strip is selected, this operator creates a movieclip 
