@@ -91,6 +91,7 @@ class ExtrasPanel(bpy.types.Panel):
     bl_label = 'Mesh Extra Tools'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_context = 'mesh_edit'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
