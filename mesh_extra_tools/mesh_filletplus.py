@@ -345,12 +345,14 @@ class f_op1(bpy.types.Operator):
 		layout = self.layout
 		layout.label('To use:')
 		layout.label('Select two adjacent edges and press Fillet button.')
+		layout.label('To Help:')
+		layout.label('best used on flat plane.')
 	
 	def execute(self, context):
 		return {'FINISHED'}
 
 	def invoke(self, context, event):
-		return context.window_manager.invoke_popup(self, width = 400)
+		return context.window_manager.invoke_popup(self, width = 350)
 
 # ------ operator 2 ------
 class f_op2(bpy.types.Operator):

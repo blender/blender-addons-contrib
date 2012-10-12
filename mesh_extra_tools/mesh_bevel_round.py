@@ -134,9 +134,11 @@ class rbevel_help(bpy.types.Operator):
 	def draw(self, context):
 		layout = self.layout
 		layout.label('To use:')
-		layout.label('Select edges or faces to bevel with the option of rounded bevels.')
+		layout.label('Select edges or faces to bevel with the option of rounded bevels')
 		layout.label('best used on flat edges & simple edgeflow')
-		layout.label('may error if vert joins multiple edges/complex edge selection.')
+		layout.label('To Help:')
+		layout.label('may error if vert joins multiple edges/complex edge selection')
+		layout.label('Round may need Recalc Normals')
 	
 	def execute(self, context):
 		return {'FINISHED'}

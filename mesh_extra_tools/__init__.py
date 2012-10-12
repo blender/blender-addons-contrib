@@ -72,7 +72,7 @@ class VIEW3D_MT_edit_mesh_extras(bpy.types.Menu):
         layout.operator("fif.op0_id",
             text="Face Inset Fillet")
         layout.operator("mesh.mbevel",
-            text="Edge Bevel")
+            text="Bevel Selected")
         layout.operator("f.op0_id",
             text="Edge Fillet Plus")
         layout.operator("normal.smooth",
@@ -106,7 +106,7 @@ class ExtrasPanel(bpy.types.Panel):
         row.operator('mesh.bevel_round', text = 'Bevel Round')
         row.operator('help.bevelround', text = '?')
         row = layout.split(0.80)
-        row.operator('mesh.mbevel', text = 'Edge Bevel')
+        row.operator('mesh.mbevel', text = 'Bevel Selected')
         row.operator('help.edge_bevel', text = '?')
         row = layout.split(0.80)
         row.operator('f.op0_id', text = 'Edge Fillet plus')
@@ -123,6 +123,9 @@ class ExtrasPanel(bpy.types.Panel):
         row = layout.split(0.80)
         row.operator('object.mextrude', text = 'Multi Face Extrude')
         row.operator('help.mextrude', text = '?')
+        row = layout.split(0.50)
+        row.operator('mesh.normals_make_consistent', text = 'Normals Recalc')
+        row.operator('mesh.remove_doubles', text = 'Remove Doubles')
 
 
 # Multi Extrude Panel

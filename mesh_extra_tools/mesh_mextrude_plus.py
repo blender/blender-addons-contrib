@@ -84,7 +84,7 @@ class MExtrude(bpy.types.Operator):
     rotz = FloatProperty(name='Rot Z', min=-85, soft_min=-30, \
         soft_max=30, max=85, default=-0, description='Z rotation')
     sca = FloatProperty(name='Scale', min=0.1, soft_min=0.5, \
-        soft_max=1.2, max =2, default=.9, description='Scaling')
+        soft_max=1.2, max =2, default=1.0, description='Scaling')
     var1 = FloatProperty(name='Offset Var', min=-5, soft_min=-1, \
         soft_max=1, max=5, default=0, description='Offset variation')
     var2 = FloatProperty(name='Rotation Var', min=-5, soft_min=-1, \

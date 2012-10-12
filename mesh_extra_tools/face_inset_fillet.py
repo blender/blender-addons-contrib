@@ -152,10 +152,9 @@ def f_(bme, list_0, opp, adj1, n_, out, radius, en0, kp):
                     bme.faces.new( [ dict_0[k_][kk], dict_0[k_][(kk + 1) % n3_], q_ ] )
                     bme.faces.index_update()
 
+
     del_ = [bme.faces.remove(f) for f in list_del]
     del del_
-
-
 
 # ------ operator 0 ------
 class fif_op0(bpy.types.Operator):
@@ -228,15 +227,17 @@ class inset_help(bpy.types.Operator):
 	def draw(self, context):
 		layout = self.layout
 		layout.label('To use:')
-		layout.label('Select A face or Faces & inset.')
-		layout.label('Inset on a per face basis')
+		layout.label('Select a face or faces & inset.')
 		layout.label('Inset square, circle or outside.')
+		layout.label('To Help:')
+		layout.label('Circle: use remove doubles to tidy joins.')
+		layout.label('Outset: select & use recalc normals before extruding.')
 	
 	def execute(self, context):
 		return {'FINISHED'}
 
 	def invoke(self, context, event):
-		return context.window_manager.invoke_popup(self, width = 300)
+		return context.window_manager.invoke_popup(self, width = 350)
 '''
 # ------ ------
 class_list = [ fif_op0, fif_p0 ]
