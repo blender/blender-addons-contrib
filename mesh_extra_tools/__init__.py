@@ -138,16 +138,16 @@ class ExtrudePanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        prop = layout.operator("wm.context_set_value", text="Face Select",
-            icon='FACESEL')
-        prop.value = "(False, False, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-        layout.operator('object.mextrude')
-        layout.operator('mesh.bump')
+        row = layout.split(0.80)
+        row.operator('object.mextrude', text = 'Multi Face Extrude')
+        row.operator('help.mextrude', text = '?')
+        row = layout.split(0.80)
+        row.operator('mesh.bump', text = 'Inset Bump')
+        row.operator('help.bump', text = '?')
         layout.operator('object.mesh2bones')
 # Define "Extras" menu
 def menu_func(self, context):
-    self.layout.menu("VIEW3D_MT_edit_mesh_extras", icon="PLUGIN")
+    self.layout.menu('VIEW3D_MT_edit_mesh_extras', icon='PLUGIN')
 
 
 def register():
