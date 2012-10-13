@@ -23,10 +23,9 @@ import os
 from math import pi, cos, sin
 from mathutils import Vector, Matrix
 
-# These are variables, which contain the name of the XYZ file and
-# the path of the XYZ file.
-# They are used almost everywhere, which is the reason why they
-# should stay global. First, they are empty and get 'filled' directly
+# This variable contains the path of the XYZ file.
+# It is used almost everywhere, which explains why it
+# should stay global. First, it is empty and gets 'filled' directly
 # after having chosen the XYZ file (see 'class LoadXYZ' further below).
 
 ATOM_XYZ_FILEPATH = ""
@@ -755,7 +754,7 @@ def DEF_atom_xyz_main(use_mesh,
 
         # Rotate the camera around its axis by 90° such that we have a nice
         # camera position and view onto the object.
-        bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0,),
+        bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0),
                                  axis=object_camera_vec,
                                  constraint_axis=(False, False, False),
                                  constraint_orientation='GLOBAL',
