@@ -21,11 +21,11 @@
 #  Authors           : Clemens Barth (Blendphys@root-1.de), ...
 #
 #  Homepage(Wiki)    : http://development.root-1.de/Atomic_Blender.php
-#  Tracker           : ... soon
+#  Tracker           : http://projects.blender.org/tracker/index.php?func=detail&aid=29646&group_id=153&atid=468
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2011-12-18
-#  Last modified                 : 2012-10-13
+#  Last modified                 : 2012-10-14
 #
 #  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
 #  dairin0d, PKHG, Valter, etc
@@ -51,7 +51,7 @@ import io
 import bpy
 import bmesh
 from bpy.types import Operator, Panel
-from bpy_extras.io_utils import ImportHelper
+from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.props import (StringProperty,
                        BoolProperty,
                        EnumProperty,
@@ -59,6 +59,8 @@ from bpy.props import (StringProperty,
                        FloatProperty)
 
 from . import import_xyz
+from . import export_xyz
+
 ATOM_XYZ_ERROR = ""
 ATOM_XYZ_NOTE  = ""
 ATOM_XYZ_PANEL = ""
@@ -829,21 +831,56 @@ class CLASS_ImportXYZ(Operator, ImportHelper):
         return {'FINISHED'}
         
 
+# This is the class for the file dialog of the exporter.
+class CLASS_ExportXYZ(Operator, ExportHelper):
+    bl_idname = "export_mesh.xyz"
+    bl_label  = "Export XYZ (*.xyz)"
+    filename_ext = ".xyz"
+
+    filter_glob  = StringProperty(
+        default="*.xyz", options={'HIDDEN'},)
+
+    atom_xyz_export_type = EnumProperty(
+        name="Type of Objects",
+        description="Choose type of objects",
+        items=(('0', "All", "Export all active objects"),
+               ('1', "Elements", "Export only those active objects which have"
+                                 " a proper element name")),
+               default='1',) 
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.prop(self, "atom_xyz_export_type")
+
+    def execute(self, context):
+        # This is in order to solve this strange 'relative path' thing.
+        export_xyz.ATOM_XYZ_FILEPATH = bpy.path.abspath(self.filepath)
+        export_xyz.DEF_atom_xyz_export(self.atom_xyz_export_type)
+
+        return {'FINISHED'}
+
+
 # The entry into the menu 'file -> import'
-def menu_func(self, context):
+def DEF_menu_func(self, context):
     self.layout.operator(CLASS_ImportXYZ.bl_idname, text="XYZ (.xyz)")
 
+# The entry into the menu 'file -> export'
+def DEF_menu_func_export(self, context):
+    self.layout.operator(CLASS_ExportXYZ.bl_idname, text="XYZ (.xyz)")
 
 def register():
     DEF_panel_yes_no()
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_import.append(menu_func)
+    bpy.types.INFO_MT_file_import.append(DEF_menu_func)
+    bpy.types.INFO_MT_file_export.append(DEF_menu_func_export)
     bpy.types.Scene.atom_xyz = bpy.props.CollectionProperty(type=CLASS_atom_xyz_Properties)    
     bpy.context.scene.atom_xyz.add()
     
 def unregister():
     bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(menu_func)
+    bpy.types.INFO_MT_file_import.remove(DEF_menu_func)
+    bpy.types.INFO_MT_file_export.remove(DEF_menu_func_export)
 
 if __name__ == "__main__":
 
