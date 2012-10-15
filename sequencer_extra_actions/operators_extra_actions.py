@@ -872,7 +872,6 @@ class Sequencer_Extra_CopyProperties(bpy.types.Operator):
     ('crop', 'Input - Image Crop', ''),
     ('proxy', 'Proxy / Timecode', ''),
     ('strobe', 'Filter - Strobe', ''),
-    ('color_balance', 'Filter - Color Balance', ''),
     ('color_multiply', 'Filter - Multiply', ''),
     ('color_saturation', 'Filter - Saturation', ''),
     ('deinterlace', 'Filter - De-Interlace', ''),
@@ -959,18 +958,6 @@ class Sequencer_Extra_CopyProperties(bpy.types.Operator):
                         i.proxy.timecode = strip.proxy.timecode
                     elif self.prop == 'strobe':
                         i.strobe = strip.strobe
-                    elif self.prop == 'color_balance':
-                        i.use_color_balance = strip.use_color_balance
-                        i.use_color_balance = strip.use_color_balance
-                        i.color_balance.lift = strip.color_balance.lift
-                        i.color_balance.gamma = strip.color_balance.gamma
-                        i.color_balance.gain = strip.color_balance.gain
-                        p = strip.color_balance.invert_lift  # pep80
-                        i.color_balance.invert_lift = p
-                        p = strip.color_balance.invert_gamma  # pep80
-                        i.color_balance.invert_gamma = p
-                        p = strip.color_balance.invert_gain  # pep80
-                        i.color_balance.invert_gain = p
                     elif self.prop == 'color_multiply':
                         i.color_multiply = strip.color_multiply
                     elif self.prop == 'color_saturation':
