@@ -814,23 +814,23 @@ class AddBProjectionPlane(Operator):
             # XXX, this isnt future proof, DON'T USE INDEX's - campbell                    
             km = bpy.data.window_managers['WinMan'].keyconfigs['Blender'].keymaps['3D View']
             km.keymap_items[3-1].idname = 'view3d.rotate_view3d'
-            km.keymap_items[19-1].idname = 'view3d.zoom_view3d'
-            km.keymap_items[19-1].properties.delta = 1.0
-            km.keymap_items[20-1].idname = 'view3d.zoom_view3d'
-            km.keymap_items[20-1].properties.delta = -1.0
+            km.keymap_items[21-1].idname = 'view3d.zoom_view3d'
+            km.keymap_items[21-1].properties.delta = 1.0
+            km.keymap_items[22-1].idname = 'view3d.zoom_view3d'
+            km.keymap_items[22-1].properties.delta = -1.0
             km.keymap_items[4-1].idname = 'view3d.pan_view3d'
-            km.keymap_items[28-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[28-1].properties.view = 'FRONT'
-            km.keymap_items[30-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[30-1].properties.view = 'RIGHT'            
-            km.keymap_items[34-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[34-1].properties.view = 'TOP'
-            km.keymap_items[36-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[36-1].properties.view = 'BACK'
+            km.keymap_items[29-1].idname = 'view3d.preset_view3d'
+            km.keymap_items[29-1].properties.view = 'FRONT'
+            km.keymap_items[31-1].idname = 'view3d.preset_view3d'
+            km.keymap_items[31-1].properties.view = 'RIGHT'            
+            km.keymap_items[35-1].idname = 'view3d.preset_view3d'
+            km.keymap_items[35-1].properties.view = 'TOP'
             km.keymap_items[37-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[37-1].properties.view = 'LEFT'            
+            km.keymap_items[37-1].properties.view = 'BACK'
             km.keymap_items[38-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[38-1].properties.view = 'BOTTOM'                                   
+            km.keymap_items[38-1].properties.view = 'LEFT'            
+            km.keymap_items[39-1].idname = 'view3d.preset_view3d'
+            km.keymap_items[39-1].properties.view = 'BOTTOM'                                   
             km = context.window_manager.keyconfigs.default.keymaps['Image Paint']
             kmi = km.keymap_items.new("object.intuitivescale", 'LEFTMOUSE', 'PRESS', shift=True)
                         
@@ -901,23 +901,23 @@ class RemoveBProjectionPlane(Operator):
             # ----------------------------------------------
             # XXX, this isnt future proof, DON'T USE INDEX's - campbell
             km.keymap_items[3-1].idname = 'view3d.rotate'
-            km.keymap_items[19-1].idname = 'view3d.zoom'
-            km.keymap_items[19-1].properties.delta = 1.0
-            km.keymap_items[20-1].idname = 'view3d.zoom'
-            km.keymap_items[20-1].properties.delta = -1.0
+            km.keymap_items[21-1].idname = 'view3d.zoom'
+            km.keymap_items[21-1].properties.delta = 1.0
+            km.keymap_items[22-1].idname = 'view3d.zoom'
+            km.keymap_items[22-1].properties.delta = -1.0
             km.keymap_items[4-1].idname = 'view3d.move'
-            km.keymap_items[28-1].idname = 'view3d.viewnumpad'
-            km.keymap_items[28-1].properties.type = 'FRONT'
-            km.keymap_items[30-1].idname = 'view3d.viewnumpad'
-            km.keymap_items[30-1].properties.type = 'RIGHT'            
-            km.keymap_items[34-1].idname = 'view3d.viewnumpad'
-            km.keymap_items[34-1].properties.type = 'TOP'
-            km.keymap_items[36-1].idname = 'view3d.viewnumpad'
-            km.keymap_items[36-1].properties.type = 'BACK'
+            km.keymap_items[29-1].idname = 'view3d.viewnumpad'
+            km.keymap_items[29-1].properties.type = 'FRONT'
+            km.keymap_items[31-1].idname = 'view3d.viewnumpad'
+            km.keymap_items[31-1].properties.type = 'RIGHT'            
+            km.keymap_items[35-1].idname = 'view3d.viewnumpad'
+            km.keymap_items[35-1].properties.type = 'TOP'
             km.keymap_items[37-1].idname = 'view3d.viewnumpad'
-            km.keymap_items[37-1].properties.type = 'LEFT'            
+            km.keymap_items[37-1].properties.type = 'BACK'
             km.keymap_items[38-1].idname = 'view3d.viewnumpad'
-            km.keymap_items[38-1].properties.type = 'BOTTOM'            
+            km.keymap_items[38-1].properties.type = 'LEFT'            
+            km.keymap_items[39-1].idname = 'view3d.viewnumpad'
+            km.keymap_items[39-1].properties.type = 'BOTTOM'            
             
             km = context.window_manager.keyconfigs.default.keymaps['Image Paint']
             #to do
