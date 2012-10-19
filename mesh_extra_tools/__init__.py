@@ -73,7 +73,7 @@ class VIEW3D_MT_edit_mesh_extras(bpy.types.Menu):
             text="Face Inset Fillet")
         layout.operator("mesh.mbevel",
             text="Bevel Selected")
-        layout.operator("f.op0_id",
+        layout.operator("fillet.op0_id",
             text="Edge Fillet Plus")
         layout.operator("normal.smooth",
             text="Normal Smooth")
@@ -109,8 +109,8 @@ class ExtrasPanel(bpy.types.Panel):
         row.operator('mesh.mbevel', text = 'Bevel Selected')
         row.operator('help.edge_bevel', text = '?')
         row = layout.split(0.80)
-        row.operator('f.op0_id', text = 'Edge Fillet plus')
-        row.operator('f.op1_id', text = '?')
+        row.operator('fillet.op0_id', text = 'Edge Fillet plus')
+        row.operator('help.edge_fillet', text = '?')
         row = layout.split(0.80)
         row.operator('normal.smooth', text = 'Normal Smooth')
         row.operator('help.normal_smooth', text = '?')
