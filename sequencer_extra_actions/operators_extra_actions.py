@@ -1419,7 +1419,7 @@ class Sequencer_Extra_PlaceFromFileBrowserProxy(bpy.types.Operator):
                 strip.proxy.build_50 = self.build_50
                 strip.proxy.build_75 = self.build_75
                 strip.proxy.build_100 = self.build_100
-                print("----------------", proxypath)
+                #print("----------------", proxypath)
                 if os.path.isfile(proxypath):
                     strip.use_proxy_custom_file = True
                     strip.proxy.filepath = proxypath
@@ -1487,7 +1487,7 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
         
 
         if strip.type == 'MOVIE':
-            print("movie", strip.frame_start)
+            #print("movie", strip.frame_start)
             path = strip.filepath
             #print(path)
             data_exists = False
@@ -1506,7 +1506,7 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
                         - strip.animation_offset_start
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
-                    print(newstrip.frame_start, strip.frame_start, tin, tout)
+                    #print(newstrip.frame_start, strip.frame_start, tin, tout)
                     functions.triminout(newstrip, tin, tout)
                 except:
                     self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
@@ -1528,14 +1528,14 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
                     #clip.frame_final_duration = strip.frame_final_duration 
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
-                    print(newstrip.frame_start, strip.frame_start, tin, tout)
+                    #print(newstrip.frame_start, strip.frame_start, tin, tout)
                     functions.triminout(clip, tin, tout)
                 except:
                     self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
                     return {'CANCELLED'}
                  
         elif strip.type == 'IMAGE':
-            print("image")
+            #print("image")
             base_dir = bpy.path.abspath(strip.directory)
             scn.frame_current = strip.frame_start - strip.animation_offset_start
             # searching for the first frame of the sequencer. This is mandatory 
@@ -1543,14 +1543,14 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
             # avoiding to create a new movie clip if not needed
             filename = sorted(os.listdir(base_dir))[0]
             path = os.path.join(base_dir,filename)
-            print(path)
+            #print(path)
             data_exists = False
             for i in bpy.data.movieclips:
-                print(i.filepath, path)
+                #print(i.filepath, path)
                 if i.filepath == path:
                     data_exists = True
                     data = i
-            print(data_exists)
+            #print(data_exists)
             if data_exists == False:
                 try:
                     data = bpy.data.movieclips.load(filepath=path)
@@ -1563,7 +1563,7 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
                     clip = bpy.context.scene.sequence_editor.sequences[newstrip.name]
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
-                    print(newstrip.frame_start, strip.frame_start, tin, tout)
+                    #print(newstrip.frame_start, strip.frame_start, tin, tout)
                     functions.triminout(clip, tin, tout)
                 except:
                     self.report({'ERROR_INVALID_INPUT'}, 'Error loading filetin')
@@ -1585,7 +1585,7 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
                     #clip.frame_final_duration = strip.frame_final_duration 
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
-                    print(newstrip.frame_start, strip.frame_start, tin, tout)
+                    #print(newstrip.frame_start, strip.frame_start, tin, tout)
                     functions.triminout(clip, tin, tout)
                 except:
                     self.report({'ERROR_INVALID_INPUT'}, 'Error loading filete')

@@ -89,8 +89,8 @@ def getpathfrombrowser():
     try:
         params
     except UnboundLocalError:
-        print("no browser")
-        #self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
+        #print("no browser")
+        self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
         return {'CANCELLED'}
     path = params.directory
     return path
@@ -108,13 +108,13 @@ def getfilepathfrombrowser():
     try:
         params
     except UnboundLocalError:
-        print("no browser")
-        #self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
+        #print("no browser")
+        self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
         return {'CANCELLED'}
 
     if params.filename == '':
-        print("no file selected")
-        #self.report({'ERROR_INVALID_INPUT'}, 'No file selected')
+        #print("no file selected")
+        self.report({'ERROR_INVALID_INPUT'}, 'No file selected')
         return {'CANCELLED'}
     path = params.directory
     filename = params.filename
@@ -133,8 +133,8 @@ def setpathinbrowser(path, file):
     try:
         params
     except UnboundLocalError:
-        print("no browser")
-        #self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
+        #print("no browser")
+        self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
         return {'CANCELLED'}
 
     params.directory = path
