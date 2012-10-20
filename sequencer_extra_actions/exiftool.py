@@ -171,7 +171,7 @@ class ExifTool(object):
         with open(os.devnull, "w") as devnull:
             self._process = subprocess.Popen(
                 [self.executable, "-stay_open", "True",  "-@", "-",
-                 "-common_args", "-G", "-n"],
+                 "-common_args", "-G", "-u", "-a", "-n"],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=devnull)
         self.running = True
