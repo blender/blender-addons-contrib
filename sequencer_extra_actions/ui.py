@@ -158,3 +158,55 @@ def clip_clip_menu_func(self, context):
     self.layout.operator('clipextra.openfromfilebrowser',
     text='Open from File Browser', icon='PLUGIN')
     self.layout.separator()
+
+class ExifInfoPanel(bpy.types.Panel):
+    """Creates a Panel in the Object properties window"""
+    bl_label = "EXIF Info Panel"
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'UI'
+    
+    @staticmethod
+    def has_sequencer(context):
+        return (context.space_data.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'})
+
+    @classmethod
+    def poll(cls, context):
+        return cls.has_sequencer(context)
+
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(text="", icon="NLA")
+
+    def draw(self, context):
+        layout = self.layout
+        sce = context.scene
+        row = layout.row()
+        row.operator("sequencerextra.read_exif")
+        row = layout.row()
+        row.label(text="Exif Data!", icon='RENDER_REGION')
+        row = layout.row()
+        
+        strip = context.scene.sequence_editor.active_strip
+        
+        f=strip.frame_start
+        frame=sce.frame_current
+        try:
+            if len(sce['metadata']) == 1:
+                for d in sce['metadata'][0]:
+                    split = layout.split(percentage=0.5)
+                    col = split.column()
+                    row = col.row()
+                    col.label(text=d) 
+                    col = split.column()
+                    col.label(str(sce['metadata'][0][d]))
+            else:    
+                for d in sce['metadata'][frame-f]:
+                    split = layout.split(percentage=0.5)
+                    col = split.column()
+                    row = col.row()
+                    col.label(text=d) 
+                    col = split.column()
+                    col.label(str(sce['metadata'][frame-f][d]))
+        except IndexError:
+            pass
+        

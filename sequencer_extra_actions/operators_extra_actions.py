@@ -34,6 +34,8 @@ from bpy.props import BoolProperty
 from bpy.props import StringProperty
 
 from . import functions
+from . import functions
+from . import exiftool
 
 
 # Initialization
@@ -1599,4 +1601,62 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
         
 
         return {'FINISHED'}
+    
+    
+# READ EXIF DATA
+class Sequencer_Extra_ReadExifData(bpy.types.Operator):
+    # load exifdata from strip to scene['metadata'] property
+    bl_label = 'Read EXIF Data'
+    bl_idname = 'sequencerextra.read_exif'
+    bl_description = 'load exifdata from strip to metadata property in scene'
+    bl_options = {'REGISTER', 'UNDO'}
+    
 
+    
+    def execute(self, context):
+        
+        def getexifdata(strip):
+            
+            def getlist(lista):
+                for root, dirs, files in os.walk(path):
+                    for f in files:
+                        if "."+f.rpartition(".")[2].lower() in functions.imb_ext_image:
+                            lista.append(f)
+                        #if "."+f.rpartition(".")[2] in imb_ext_movie:
+                        #    lista.append(f)
+                strip.elements
+                
+                lista.sort()
+                return lista
+            
+            def getexifvalues(lista):
+                metadata=[]
+                with exiftool.ExifTool() as et:
+                    try:
+                        metadata = et.get_metadata_batch(lista)
+                    except UnicodeDecodeError as Err:
+                        print(Err)
+                return metadata
+            
+            #print("----------------------------")
+            
+            if strip.type == "IMAGE":
+                path = bpy.path.abspath(strip.directory)
+            if strip.type == "MOVIE":
+                path = bpy.path.abspath(strip.filepath.rpartition("/")[0])
+            os.chdir(path)
+            #get a list of files
+            lista = []
+            
+            for i in strip.elements:
+                lista.append(i.filename)
+            
+            return getexifvalues(lista)
+        
+        
+        sce = bpy.context.scene
+        frame=sce.frame_current
+        text= bpy.context.active_object
+        strip = context.scene.sequence_editor.active_strip
+        sce['metadata'] = getexifdata(strip)
+        return {'FINISHED'}
