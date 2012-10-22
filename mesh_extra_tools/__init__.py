@@ -124,7 +124,7 @@ class ExtrasPanel(bpy.types.Panel):
         row.operator('object.mextrude', text = 'Multi Face Extrude')
         row.operator('help.mextrude', text = '?')
         row = layout.split(0.50)
-        row.operator('mesh.normals_make_consistent', text = 'Normals Recalc')
+        row.operator('mesh.flip_normals', text = 'Normals Flip')
         row.operator('mesh.remove_doubles', text = 'Remove Doubles')
 
 
