@@ -94,6 +94,8 @@ from bpy.props import (BoolProperty,
                        FloatProperty,
                        EnumProperty)
 
+integrated = False
+
 # Quick an dirty method for getting the sign of a number:
 def sign(number):
     return (number > 0) - (number < 0)
@@ -1360,6 +1362,8 @@ class Shaft(bpy.types.Operator):
 
 
 # "Slices" edges crossing a plane defined by a face.
+# @todo Selecting a face as the cutting plane will cause Blender to crash when
+#   using "Rip".
 class Slice(bpy.types.Operator):
     bl_idname = "mesh.edgetools_slice"
     bl_label = "Slice"
@@ -1450,13 +1454,6 @@ class Slice(bpy.types.Operator):
         if bpy.app.debug:
             print(len(bEdges))
 
-        # Deletion array:
-        # We cannot delete the edges while we are iterating over them, else we
-        # end up skiping edges (this needs to be for-sure confirmed - this
-        # behavior seems to be new). Instead we'll put the edges to remove into
-        # a list to delete after we are done iterating over them.
-        toDel = []
-
         # Iterate over the edges:
         for e in bEdges:
             # @todo DEBUG TRACKER - DELETE WHEN FINISHED:
@@ -1464,8 +1461,11 @@ class Slice(bpy.types.Operator):
                 print(dbg)
                 dbg = dbg + 1
 
+            # Get the end verts on the edge:
             v1 = e.verts[0]
             v2 = e.verts[1]
+            
+            # Make sure that verts are not a part of the cutting plane:
             if e.select and (v1 not in face.verts and v2 not in face.verts):
                 if len(face.verts) < 5:  # Not an n-gon
                     intersection = intersect_line_face(e, face, True)
@@ -1513,8 +1513,7 @@ class Slice(bpy.types.Operator):
                             if bpy.app.debug:
                                 print("new edges created", end = '; ')
 
-##                            bEdges.remove(e)
-                            toDel.append(e)
+                            bEdges.remove(e)
 
                             if bpy.app.debug:
                                 print("old edge removed.")
@@ -1525,15 +1524,9 @@ class Slice(bpy.types.Operator):
                             e.select = False
                             new[0].select = False
                             if self.pos:
-##                                bEdges.remove(new[0])
-                                toDel.append(new[0])
+                                bEdges.remove(new[0])
                             if self.neg:
-##                                bEdges.remove(e)
-                                toDel.append(e)
-
-        # Blast away the old edges
-        for e in toDel:
-            bEdges.remove(e)
+                                bEdges.remove(e)
 
         bm.to_mesh(context.active_object.data)
         bpy.ops.object.editmode_toggle()
@@ -1906,6 +1899,7 @@ class VIEW3D_MT_edit_mesh_edgetools(bpy.types.Menu):
     bl_label = "EdgeTools"
     
     def draw(self, context):
+        global integrated
         layout = self.layout
         
         layout.operator("mesh.edgetools_extend")
@@ -1920,6 +1914,12 @@ class VIEW3D_MT_edit_mesh_edgetools(bpy.types.Menu):
             layout.operator("mesh.edgetools_fillet")
             ## For internal testing ONLY:
             layout.operator("mesh.edgetools_ilf")
+        # If TinyCAD VTX exists, add it to the menu.
+        # @todo This does not work.
+        if integrated and bpy.app.debug:
+            layout.operator(EdgeIntersections.bl_idname, text="Edges V Intersection").mode = -1
+            layout.operator(EdgeIntersections.bl_idname, text="Edges T Intersection").mode = 0
+            layout.operator(EdgeIntersections.bl_idname, text="Edges X Intersection").mode = 1
 
 
 def menu_func(self, context):
@@ -1942,13 +1942,27 @@ classes = [VIEW3D_MT_edit_mesh_edgetools,
 
 # registering and menu integration
 def register():
+    global integrated
     if int(bpy.app.build_revision[0:5]) < 44800:
         print("Error in Edgetools:")
         print("This version of Blender does not support the necessary BMesh API.")
         print("Please download Blender 2.63 or newer.")
         return {'ERROR'}
+        
     for c in classes:
         bpy.utils.register_class(c)
+
+    # I would like this script to integrate the TinyCAD VTX menu options into
+    # the edge tools menu if it exists.  This should make the UI a little nicer
+    # for users.
+    # @todo Remove TinyCAD VTX menu entries and add them too EdgeTool's menu
+    import inspect, os.path
+
+    path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+    if os.path.isfile(path + "\mesh_edge_intersection_tools.py"):
+        print("EdgeTools UI integration test - TinyCAD VTX Found")
+        integrated = True
+    
     bpy.types.VIEW3D_MT_edit_mesh_specials.prepend(menu_func)
 
 
@@ -1956,6 +1970,7 @@ def register():
 def unregister():
     for c in classes:
         bpy.utils.unregister_class(c)
+
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func)
 
 
