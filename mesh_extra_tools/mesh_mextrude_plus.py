@@ -181,14 +181,27 @@ class mextrude_help(bpy.types.Operator):
 		layout.label('To use:')
 		layout.label('Make a selection or selection of Faces.')
 		layout.label('Extrude, rotate extrusions & more.')
-		layout.label('For rigging capabilities, see Multi Extrude panel.')
-	
+		layout.label('For rigging capabilities, see Multi Extrude Plus panel.')
+	def invoke(self, context, event):
+		return context.window_manager.invoke_popup(self, width = 300)
+
+class addarm_help(bpy.types.Operator):
+	bl_idname = 'help.addarm'
+	bl_label = ''
+
+	def draw(self, context):
+		layout = self.layout
+		layout.label('To use:')
+		layout.label('With Multi extrude to rig extrusions.')
+		layout.label('Adds Empty to control rig.')
+		layout.label('Based on selected face/s & object center.')
+
 	def execute(self, context):
 		return {'FINISHED'}
 
 	def invoke(self, context, event):
 		return context.window_manager.invoke_popup(self, width = 300)
-		
+
 class BB(bpy.types.Operator):
     bl_idname = 'object.mesh2bones'
     bl_label = 'Create Armature'
