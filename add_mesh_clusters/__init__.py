@@ -511,7 +511,7 @@ def DEF_atom_cluster_radius_all(scale, how):
 
 # The entry into the menu 'file -> import'
 def DEF_menu_func(self, context):
-    self.layout.operator(CLASS_ImportCluster.bl_idname, icon='MESH_CUBE')
+    self.layout.operator(CLASS_ImportCluster.bl_idname, icon='PLUGIN')
 
 def register_atom_class():
     bpy.types.Scene.atom_cluster = bpy.props.CollectionProperty(type=CLASS_atom_cluster_Properties)    
