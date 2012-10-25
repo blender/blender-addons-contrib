@@ -25,7 +25,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2011-12-18
-#  Last modified                 : 2012-10-14
+#  Last modified                 : 2012-10-25
 #
 #  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
 #  dairin0d, PKHG, Valter, etc
@@ -35,7 +35,7 @@ bl_info = {
     "name": "XYZ Atomic Blender",
     "description": "Loading and manipulating atoms from XYZ files",
     "author": "Clemens Barth",
-    "version": (0,6),
+    "version": (0,7),
     "blender": (2,6),
     "location": "File -> Import -> XYZ (.xyz), Panel: View 3D - Tools",
     "warning": "",

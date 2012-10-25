@@ -906,7 +906,7 @@ def DEF_atom_xyz_build_frames(frame_delta, frame_skip):
         bpy.ops.object.select_all(action='DESELECT')   
         bpy.context.scene.objects.active = element
         element.select = True
-        bpy.ops.object.shape_key_add(None)
+        bpy.ops.object.shape_key_add(True)
         
     frame_skip += 1    
 
