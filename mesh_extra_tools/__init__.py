@@ -69,7 +69,7 @@ class VIEW3D_MT_edit_mesh_extras(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.bump",
             text="Inset Extrude Bump")
-        layout.operator("fif.op0_id",
+        layout.operator("faceinfillet.op0_id",
             text="Face Inset Fillet")
         layout.operator("mesh.mbevel",
             text="Bevel Selected")
