@@ -18,21 +18,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-
-# ------ ------
-bl_info = {
-    'name': 'face_inset_fillet',
-    'author': '',
-    'version': (0, 1, 7),
-    'blender': (2, 6, 3),
-    'api': 46962,
-    'location': 'View3D > Tool Shelf',
-    'description': '',
-    'warning': '',
-    'wiki_url': '',
-    'tracker_url': '',
-    'category': 'Mesh' }
-
+# based completely on addon by zmj100
 # ------ ------
 import bpy
 import bmesh
@@ -157,8 +143,8 @@ def f_(bme, list_0, opp, adj1, n_, out, radius, en0, kp):
     del del_
 
 # ------ operator 0 ------
-class fif_op0(bpy.types.Operator):
-    bl_idname = 'fif.op0_id'
+class faceinfillet_op0(bpy.types.Operator):
+    bl_idname = 'faceinfillet.op0_id'
     bl_label = 'Face Inset Fillet'
     bl_description = 'inset selected faces'
     bl_options = {'REGISTER', 'UNDO'}
@@ -231,28 +217,10 @@ class inset_help(bpy.types.Operator):
 		layout.label('Inset square, circle or outside.')
 		layout.label('To Help:')
 		layout.label('Circle: use remove doubles to tidy joins.')
-		layout.label('Outset: select & use recalc normals before extruding.')
+		layout.label('Outset: select & use normals flip before extruding.')
 	
 	def execute(self, context):
 		return {'FINISHED'}
 
 	def invoke(self, context, event):
 		return context.window_manager.invoke_popup(self, width = 350)
-'''
-# ------ ------
-class_list = [ fif_op0, fif_p0 ]
-
-# ------ register ------
-def register():
-    for c in class_list:
-        bpy.utils.register_class(c)
-
-# ------ unregister ------
-def unregister():
-    for c in class_list:
-        bpy.utils.unregister_class(c)
-
-# ------ ------
-if __name__ == "__main__":
-    register()
-'''
