@@ -425,6 +425,9 @@ class CLASS_atom_xyz_delete_keys(Operator):
     bl_description = "Delete the shape keys"
 
     def execute(self, context):
+
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
         for element in import_xyz.STRUCTURE:
             if element.data.shape_keys == None:
                 break
@@ -448,6 +451,8 @@ class CLASS_atom_xyz_load_frames(Operator):
     def execute(self, context):
         global ATOM_XYZ_ERROR
         scn = bpy.context.scene.atom_xyz[0]
+
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         
         KEYS_PRESENT = False
         for element in import_xyz.STRUCTURE:
