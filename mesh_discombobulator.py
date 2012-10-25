@@ -593,8 +593,8 @@ class VIEW3D_PT_tools_discombobulate(bpy.types.Panel):
         layout = self.layout
         row = layout.row()
         row = layout.split(0.80)
-        row.operator('object.discombobulate', text = 'Discombobulate')
-        row.operator('help.discombobulator', text = '?')
+        row.operator('object.discombobulate', text = 'Discombobulate', icon = 'PLUGIN')
+        row.operator('help.discombobulator', icon = 'INFO')
         box = layout.box()
         box.label("Protusions settings")
         row = box.row()

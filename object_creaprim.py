@@ -183,7 +183,7 @@ def panel_func(self, context):
 	scn = bpy.context.scene
 		
 	self.layout.label(text="CreaPrim:")
-	self.layout.operator("object.creaprim", text="Create primitive")
+	self.layout.operator("object.creaprim", text="Create primitive", icon = 'PLUGIN')
 	self.layout.prop(scn, "Name")
 	self.layout.prop(scn, "Apply")
 
