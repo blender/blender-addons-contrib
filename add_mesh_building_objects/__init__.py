@@ -67,7 +67,7 @@ class INFO_MT_mesh_objects_add(bpy.types.Menu):
             text="Balcony")
         layout.operator("mesh.add_say3d_sove",
             text="Sove")
-        layout.operator("mesh.add_say3d_pencere",
+        layout.operator("mesh.add_say3d_pencere2",
             text="Window")
         layout.operator("mesh.wall_add",
             text="Wall Factory")
