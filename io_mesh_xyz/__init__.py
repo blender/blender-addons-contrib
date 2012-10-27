@@ -430,14 +430,28 @@ class CLASS_atom_xyz_delete_keys(Operator):
 
         if bpy.context.object == None:
             return False
-        else:
-            return True
+        if len(import_xyz.STRUCTURE) == 0:
+            return False
+
+        EMPTY = True
+        for element in import_xyz.STRUCTURE:
+            if element.name != '':
+                EMPTY = False
+
+        if EMPTY == True:
+            return False
+
+        return True
 
     def execute(self, context):
 
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         for element in import_xyz.STRUCTURE:
+
+            if element.name == '':
+                continue
+
             if element.data.shape_keys == None:
                 break
         
@@ -463,17 +477,31 @@ class CLASS_atom_xyz_load_frames(Operator):
 
         if bpy.context.object == None:
             return False
-        else:
-            return True
+        if len(import_xyz.STRUCTURE) == 0:
+            return False
+
+        EMPTY = True
+        for element in import_xyz.STRUCTURE:
+            if element.name != '':
+                EMPTY = False
+
+        if EMPTY == True:
+            return False
+
+        return True
 
     def execute(self, context):
         global ATOM_XYZ_ERROR
         scn = bpy.context.scene.atom_xyz[0]
 
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-        
+
         KEYS_PRESENT = False
         for element in import_xyz.STRUCTURE:
+
+            if element.name == '':
+                continue
+
             bpy.ops.object.select_all(action='DESELECT')
             bpy.context.scene.objects.active = element
             element.select = True
@@ -508,7 +536,6 @@ class CLASS_atom_xyz_datafile_apply(Operator):
 
         import_xyz.DEF_atom_xyz_custom_datafile(scn.datafile)
 
-        # TODO, move this into 'import_xyz' and call the function
         for obj in bpy.context.selected_objects:
             if len(obj.children) != 0:
                 child = obj.children[0]
