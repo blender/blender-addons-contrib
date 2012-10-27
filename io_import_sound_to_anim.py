@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Import: Sound to Animation",
     "author": "Vlassius",
-    "version": (0, 50),
+    "version": (0, 60),
     "blender": (2, 57, 0),
     "api": 37023,
     "location": "Select a object -> go to the Object tab ->  Import Movement From Wav File",
@@ -38,6 +38,12 @@ bl_info = {
 - This script takes a wav file and get sound "movement" to help you in sync the movement to words in the wave file. <br>
 - Supported Audio: .wav (wave) 8 bits and 16 bits <br>
 - At least Blender 2.5.7 is necessary to run this program.
+
+-v 0.60Beta- 
+    Included: Option to use just the beat from the audio sound
+    Included: Option to exclude the beat from the audio sound
+    Included: More or less sensibility options when using the beat
+    Included: Audio Channel Select option
 
 -v 0.50Beta- 
     Included: Auto Adjust Audio Sensity option    
@@ -137,11 +143,6 @@ from bpy.props import *
 import wave
 
 #TODO
-#    Arrumar - não tem rotacao para objeto - so transformacao
-#    alterar OBJETO NOMEADO
-
-#    Colocar Escolha do Canal!!
-#
 #
 #   colocar CANCELAR com ESC
 #
@@ -173,7 +174,7 @@ def wavimport(context):
 
     iMaxValue= context.scene.imp_sound_to_anim.action_max_value
     iMinValue= context.scene.imp_sound_to_anim.action_min_value
-    
+                
     bEscala=bRotacao=bEixo=False   
     if context.scene.imp_sound_to_anim.import_type=='imp_t_Scale':
         bEscala=True;
@@ -529,7 +530,7 @@ def wavimport(context):
 # Sound Converter
 #================================================================================================== 
 
-def SoundConv(File, DivSens, Sensibil, Resol, context, bAutoSense):
+def SoundConv(File, DivSens, Sensibil, Resol, context, bAutoSense, bRemoveBeat, bUseBeat, bMoreSensible, bLessSensible, AudioChannel):
 
     try:
         Wave_read= wave.open(File, 'rb')
@@ -538,8 +539,8 @@ def SoundConv(File, DivSens, Sensibil, Resol, context, bAutoSense):
         return False
 
     NumCh=      Wave_read.getnchannels()
-    SampW=      Wave_read.getsampwidth() // NumCh # 8, 16, 24 32 bits
-    FrameR=     Wave_read.getframerate() // NumCh
+    SampW=      Wave_read.getsampwidth() # 8, 16, 24 32 bits
+    FrameR=     Wave_read.getframerate() 
     NumFr=      Wave_read.getnframes()
     ChkCompr=   Wave_read.getcomptype()
     
@@ -554,6 +555,17 @@ def SoundConv(File, DivSens, Sensibil, Resol, context, bAutoSense):
         return False
 
     context.scene.imp_sound_to_anim.Info_Import=""
+    
+    # controla numero do canal
+    if AudioChannel > NumCh:
+        print("Channel number " + str(AudioChannel) + " is selected but this audio file has just " + str(NumCh) + " channels, so selecting channel "  + str(NumCh) + "!")
+        AudioChannel = NumCh
+    
+    tmpAudioChannel= AudioChannel # apenas para por na tela
+        
+    AudioChannel -= 1  #used in index sum to find the channe, adjust to first byte sample index
+    
+    if SampW ==2:  AudioChannel*=2   # se dois canais, AudioChannel=4 porque são 4 bytes    
     
     # usado para achar contorno da onda - achando picos 
     # numero de audio frames para cada video frame
@@ -577,7 +589,7 @@ def SoundConv(File, DivSens, Sensibil, Resol, context, bAutoSense):
     print('Total Audio Frames: \t', NumFr)
     print('Frames/s: \t\t ' + str(FrameR))
     print('# Chanels in File: \t', NumCh)
-    print('Channel in use:\t\t 1')
+    print('Channel to use:\t\t', tmpAudioChannel)    
     print('Bit/Sample/Chanel: \t ' + str(SampW*8))
     print('# Frames/Act: \t\t', DivSens)
     
@@ -604,65 +616,76 @@ def SoundConv(File, DivSens, Sensibil, Resol, context, bAutoSense):
         # caso de 2 canais (esterio)
         # uso apenas 2 bytes em 16 bits, ie, apenas canal esquerdo
         # [0] e [1] para CH L
-        # [2] e [3] para CH R      
-        # uso 1 byte se em 8 bits
+        # [2] e [3] para CH R   and so on   
+        # mono:1 byte to 8 bits, 2 bytes to 16 bits
+        # sterio: 2 byte to 8 bits, 4 bytes to 16 bits
         ValorPico=0
         for i in range(BytesResol):    # leio o numero de frames de audio para cada frame de video, valor em torno de 1000
             frame = Wave_read.readframes(DivSens) #loop exterior copia DivSens frames a cada frame calculado
+
             if len(frame)==0: break
 
             if bAutoSense==0:    # AutoAudioSense Desligado
-
                 if SampW ==1:
-                    if frame[0]> ValorPico: 
-                        ValorPico= frame[0]               
+                    if Sensibil ==5:
+                        frame0= frame[AudioChannel] << 6 & 255
 
-                if SampW ==2:                # frame[0] baixa       frame[1] ALTA BIT 1 TEM SINAL
-                    if Sensibil ==0:
-                        if frame[1] <127:    # se bit1 =0, usa o valor - se bit1=1 quer dizer numero negativo
-                            if frame[1] > ValorPico: 
-                                ValorPico= frame[1]               
-                            
                     elif Sensibil ==4:
-                        if frame[1] < 127:     # se bit1 =0, usa o valor
-                            frame0= ((frame[0] & 0b11111100) >> 2) | ((frame[1] & 0b00000011) << 6)                        
-                            if frame0 > ValorPico: 
-                                    ValorPico= frame0               
-
+                        frame0= frame[AudioChannel] << 5 & 255
+                        
                     elif Sensibil ==3:
-                        if frame[1] < 127:    # se bit1 =0, usa o valor
-                            frame0= ((frame[0] & 0b11110000) >> 4) | ((frame[1] & 0b00001111) << 4)                        
-                            if frame0 > ValorPico: 
-                                    ValorPico= frame0               
-
+                        frame0= frame[AudioChannel] << 4 & 255
+                        
                     elif Sensibil ==2:
-                        if frame[1] < 127:    # se bit1 =0, usa o valor
-                            frame0= ((frame[0] & 0b11100000) >> 5) | ((frame[1] & 0b00011111) << 3)                        
-                            if frame0 > ValorPico: 
-                                    ValorPico= frame0               
-
+                        frame0= frame[AudioChannel] << 3 & 255
+                        
                     elif Sensibil ==1:
-                        if frame[1] < 127:    # se bit1 =0, usa o valor
-                            frame0= ((frame[0] & 0b11000000) >> 6) | ((frame[1] & 0b00111111) << 2)                        
-                            if frame0 > ValorPico: 
-                                    ValorPico= frame0               
+                        frame0= frame[AudioChannel] << 2 & 255
+                        
+                    elif Sensibil ==0:
+                        frame0= frame[AudioChannel]
 
-                    elif Sensibil ==5:
-                        if frame[0] > ValorPico: 
-                            ValorPico= frame[0]    
+                    if frame0> ValorPico: 
+                        ValorPico= frame0    
+
+                if SampW ==2:                # frame[0] baixa       frame[1] ALTA BIT 1 TEM SINAL!
+                    if Sensibil ==5:
+                        frame0=frame[AudioChannel]                    
+                    
+                    elif frame[1+AudioChannel] <127:    # se bit1 =0, usa o valor - se bit1=1 quer dizer numero negativo
+                        if Sensibil ==0:
+                            frame0= frame[1+AudioChannel]
+
+                        elif Sensibil ==4:
+                            frame0= ((frame[AudioChannel] & 0b11111100) >> 2) | ((frame[1+AudioChannel] & 0b00000011) << 6)                        
+
+                        elif Sensibil ==3:
+                            frame0= ((frame[AudioChannel] & 0b11110000) >> 4) | ((frame[1+AudioChannel] & 0b00001111) << 4)                        
+
+                        elif Sensibil ==2:
+                            frame0= ((frame[AudioChannel] & 0b11100000) >> 5) | ((frame[1+AudioChannel] & 0b00011111) << 3)                        
+
+                        elif Sensibil ==1:
+                            frame0= ((frame[AudioChannel] & 0b11000000) >> 6) | ((frame[1+AudioChannel] & 0b00111111) << 2)                        
+
+                    if frame0 > ValorPico: 
+                        ValorPico= frame0
+                    
 
             else:   # AutoAudioSense Ligado
                 if SampW ==1:
-                    if frame[0]> MaxAudio:                         
-                        MaxAudio = frame[0] 
+                    if frame[AudioChannel]> MaxAudio:                   
+                        MaxAudio = frame[AudioChannel] 
                         
-                    if frame[0]> ValorPico: 
-                        ValorPico=frame[0]
+                    if frame[AudioChannel]> ValorPico: 
+                        ValorPico=frame[AudioChannel]
+                
+                    #print("0-> " + str(frame[0]) + "  1-> " + str(frame[1]))
                 
                 if SampW ==2:   
-                    if frame[1] < 127:
-                        tmpValorPico= frame[1] << 8
-                        tmpValorPico+=  frame[0]
+                    if frame[1+AudioChannel] < 127:
+                        tmpValorPico= frame[1+AudioChannel] << 8
+                        tmpValorPico+=  frame[AudioChannel]
                         
                         if tmpValorPico > MaxAudio:
                             MaxAudio = tmpValorPico 
@@ -711,8 +734,31 @@ def SoundConv(File, DivSens, Sensibil, Resol, context, bAutoSense):
         print("================================================================")           
         print('Calculating Auto Audio Sentivity, pass 2 of 2.')
         print("================================================================")           
-        print(".")           
         
+        # caso usar batida, procurar por valores próximos do maximo e zerar restante.
+        # caso retirar batida, zerar valores próximos do maximo
+        
+        UseMinim=0
+        UseMax=0
+   
+        if bUseBeat==1:
+            print("Trying to use just the beat.")           
+            UseMinim= MaxAudio*0.8
+            if bMoreSensible:            
+                UseMinim= MaxAudio*0.7
+            elif bLessSensible:            
+                UseMinim= MaxAudio*0.9
+                    
+        if bRemoveBeat==1:
+            print("Trying to exclude the beat.")           
+            UseMax= MaxAudio*0.7            
+            if bMoreSensible:            
+                UseMax= MaxAudio*0.8
+            elif bLessSensible:            
+                UseMax= MaxAudio*0.7
+       
+        print(".")
+
         # para transformar 15 bits em 8 calibrando valor maximo -> fazer regra de 3
         # MaxAudio -> 255
         # outros valores => valor calibrado= (255 * Valor) / MaxAudio    
@@ -730,8 +776,17 @@ def SoundConv(File, DivSens, Sensibil, Resol, context, bAutoSense):
             
             ValorOriginal= arrayAutoSense[j+1] << 8
             ValorOriginal+= arrayAutoSense[j]
-            ValorOriginal= ((round(ValorOriginal * scale)) & 0b11111111)
-                       
+                                 
+            if bUseBeat==1:
+                if ValorOriginal < UseMinim:
+                    ValorOriginal = 0
+                
+            elif bRemoveBeat==1:
+                if ValorOriginal > UseMax:
+                    ValorOriginal = 0 
+                      
+            ValorOriginal= ((round(ValorOriginal * scale)) & 0b11111111)    #aplica a escala
+
             for ii in range(DivSens):
                 array[jj] = ValorOriginal
                 jj += 1   # se autoaudiosense, o array tem dois bytes para cada valor
@@ -831,7 +886,25 @@ class VIEW3D_PT_CustomMenuPanel(bpy.types.Panel):
                 row=layout.row()        
                 if context.scene.imp_sound_to_anim.action_auto_audio_sense == 0:   # se auto audio sense desligado
                     row.prop(context.scene.imp_sound_to_anim,"audio_sense")
-                    row=layout.row()                
+                    row=layout.row()  
+                
+                else: #somente se autosense ligado
+                    if context.scene.imp_sound_to_anim.remove_beat == 0 :   
+                        row.prop(context.scene.imp_sound_to_anim,"use_just_beat")
+                    
+                    if context.scene.imp_sound_to_anim.use_just_beat == 0:    
+                        row.prop(context.scene.imp_sound_to_anim,"remove_beat")
+                 
+                    if context.scene.imp_sound_to_anim.use_just_beat or context.scene.imp_sound_to_anim.remove_beat:
+                        if not context.scene.imp_sound_to_anim.beat_less_sensible and not context.scene.imp_sound_to_anim.beat_more_sensible:                  
+                            row=layout.row()
+                        if context.scene.imp_sound_to_anim.beat_less_sensible ==0:
+                            row.prop(context.scene.imp_sound_to_anim,"beat_more_sensible")
+                            
+                        if context.scene.imp_sound_to_anim.beat_more_sensible ==0:
+                            row.prop(context.scene.imp_sound_to_anim,"beat_less_sensible")                  
+                    
+                row=layout.row()                          
                 row.prop(context.scene.imp_sound_to_anim,"action_per_second")
                 row=layout.row()
                 row.prop(context.scene.imp_sound_to_anim,"action_escale")
@@ -880,7 +953,8 @@ class VIEW3D_PT_CustomMenuPanel(bpy.types.Panel):
                 row.prop(context.scene.imp_sound_to_anim,"action_offset_y")
                 row.prop(context.scene.imp_sound_to_anim,"action_offset_z")
                 
-                row=layout.row()
+                row=layout.row()                
+                row.prop(context.scene.imp_sound_to_anim,"audio_channel_select") 
                 row.prop(context.scene.imp_sound_to_anim,"action_valor_igual")        
                 
                 #operator button
@@ -984,6 +1058,13 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
             step=1,                             
             default= 0)
         
+        audio_channel_select = IntProperty(name="Audio Channel",        
+            description="Choose the audio channel to use",
+            min=1,
+            max=10,
+            step=1,                             
+            default= 1)
+        
         
         #########  ADICIONAIS ################
         
@@ -1064,6 +1145,23 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
             description="Try to discover best audio scale. ",
             default=1)
         
+        use_just_beat=BoolProperty(name="Just Use The Beat",
+            description="Try to use just the beat to extract movement.",
+            default=0)    
+        
+        remove_beat=BoolProperty(name="Remove The Beat",
+            description="Try to remove the beat to extract movement.",
+            default=0)
+        
+        beat_more_sensible=BoolProperty(name="More Sensible",
+            description="Try To be more sensible about the beat.",
+            default=0)
+        
+        beat_less_sensible=BoolProperty(name="Less Sensible",
+            description="Try to be less sensible about the beat.",
+            default=0)
+        
+        
         #
         #  Optimization
         #                 
@@ -1073,6 +1171,7 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
             max=254,
             step=10,
             default= 10)
+            
 
         # import as driver or direct
         # not defined
@@ -1196,8 +1295,20 @@ class OBJECT_OT_Botao_Go(bpy.types.Operator):
             if iFramesPorSeg/iDivMovPorSeg >=iMovPorSeg:
                 break    
 
+    
+        if context.scene.imp_sound_to_anim.remove_beat == 1: bRemoveBeat=1
+        else:  bRemoveBeat=0
+        if context.scene.imp_sound_to_anim.use_just_beat == 1:  bUseBeat=1
+        else:  bUseBeat=0
+        if context.scene.imp_sound_to_anim.beat_less_sensible ==1: bLessSensible=1
+        else:  bLessSensible=0
+        if context.scene.imp_sound_to_anim.beat_more_sensible ==1:  bMoreSensible=1
+        else:  bMoreSensible=0
+                
+        AudioChannel=context.scene.imp_sound_to_anim.audio_channel_select        
+            
         # chama funcao de converter som, retorna preenchendo _Interna_Globals.array
-        SoundConv(f, int(iDivMovPorSeg), iAudioSensib, iFramesPorSeg, context, context.scene.imp_sound_to_anim.action_auto_audio_sense)
+        SoundConv(f, int(iDivMovPorSeg), iAudioSensib, iFramesPorSeg, context, context.scene.imp_sound_to_anim.action_auto_audio_sense, bRemoveBeat, bUseBeat, bMoreSensible, bLessSensible, AudioChannel)
         return {'FINISHED'}
 
       
