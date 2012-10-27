@@ -25,7 +25,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2011-12-18
-#  Last modified                 : 2012-10-25
+#  Last modified                 : 2012-10-27
 #
 #  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
 #  dairin0d, PKHG, Valter, etc
@@ -424,6 +424,15 @@ class CLASS_atom_xyz_delete_keys(Operator):
     bl_label = "Delete keys"
     bl_description = "Delete the shape keys"
 
+    # If no object is in the scene, do nothing (return False).
+    @classmethod
+    def poll(self, context):
+
+        if bpy.context.object == None:
+            return False
+        else:
+            return True
+
     def execute(self, context):
 
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
@@ -447,6 +456,15 @@ class CLASS_atom_xyz_load_frames(Operator):
     bl_idname = "atom_xyz.load_frames"
     bl_label = "Load frames"
     bl_description = "Load the frames"
+
+    # If no object is in the scene, do nothing (return False).
+    @classmethod
+    def poll(self, context):
+
+        if bpy.context.object == None:
+            return False
+        else:
+            return True
 
     def execute(self, context):
         global ATOM_XYZ_ERROR
