@@ -432,6 +432,8 @@ class CLASS_atom_xyz_delete_keys(Operator):
             return False
         if len(import_xyz.STRUCTURE) == 0:
             return False
+        if len(import_xyz.ALL_FRAMES) < 2:
+            return False
 
         EMPTY = True
         for element in import_xyz.STRUCTURE:
@@ -478,6 +480,8 @@ class CLASS_atom_xyz_load_frames(Operator):
         if bpy.context.object == None:
             return False
         if len(import_xyz.STRUCTURE) == 0:
+            return False
+        if len(import_xyz.ALL_FRAMES) < 2:
             return False
 
         EMPTY = True
