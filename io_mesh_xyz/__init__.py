@@ -280,6 +280,27 @@ class CLASS_atom_xyz_create_command(Operator):
     bl_label = "Create command"
     bl_description = "Create a shell command for rendering the scene"
 
+    # If no object is in the scene, do nothing (return False).
+    @classmethod
+    def poll(self, context):
+
+        if bpy.context.object == None:
+            return False
+        if len(import_xyz.STRUCTURE) == 0:
+            return False
+        if len(import_xyz.ALL_FRAMES) < 2:
+            return False
+
+        EMPTY = True
+        for element in import_xyz.STRUCTURE:
+            if element.name != '':
+                EMPTY = False
+
+        if EMPTY == True:
+            return False
+
+        return True
+
     def execute(self, context):
         global ATOM_XYZ_ERROR
         global ATOM_XYZ_NOTE
@@ -356,6 +377,27 @@ class CLASS_atom_xyz_render(Operator):
     bl_idname = "atom_xyz.render"
     bl_label = "Render"
     bl_description = "Render the scene"
+
+    # If no object is in the scene, do nothing (return False).
+    @classmethod
+    def poll(self, context):
+
+        if bpy.context.object == None:
+            return False
+        if len(import_xyz.STRUCTURE) == 0:
+            return False
+        if len(import_xyz.ALL_FRAMES) < 2:
+            return False
+
+        EMPTY = True
+        for element in import_xyz.STRUCTURE:
+            if element.name != '':
+                EMPTY = False
+
+        if EMPTY == True:
+            return False
+
+        return True
 
     def execute(self, context):
         global ATOM_XYZ_ERROR
