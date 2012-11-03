@@ -186,27 +186,29 @@ class ExifInfoPanel(bpy.types.Panel):
         row.label(text="Exif Data!", icon='RENDER_REGION')
         row = layout.row()
         
-        strip = context.scene.sequence_editor.active_strip
-        
-        f=strip.frame_start
-        frame=sce.frame_current
         try:
-            if len(sce['metadata']) == 1:
-                for d in sce['metadata'][0]:
-                    split = layout.split(percentage=0.5)
-                    col = split.column()
-                    row = col.row()
-                    col.label(text=d) 
-                    col = split.column()
-                    col.label(str(sce['metadata'][0][d]))
-            else:    
-                for d in sce['metadata'][frame-f]:
-                    split = layout.split(percentage=0.5)
-                    col = split.column()
-                    row = col.row()
-                    col.label(text=d) 
-                    col = split.column()
-                    col.label(str(sce['metadata'][frame-f][d]))
-        except IndexError:
-            pass
+            strip = context.scene.sequence_editor.active_strip
         
+            f=strip.frame_start
+            frame=sce.frame_current
+            try:
+                if len(sce['metadata']) == 1:
+                    for d in sce['metadata'][0]:
+                        split = layout.split(percentage=0.5)
+                        col = split.column()
+                        row = col.row()
+                        col.label(text=d) 
+                        col = split.column()
+                        col.label(str(sce['metadata'][0][d]))
+                else:    
+                    for d in sce['metadata'][frame-f]:
+                        split = layout.split(percentage=0.5)
+                        col = split.column()
+                        row = col.row()
+                        col.label(text=d) 
+                        col = split.column()
+                        col.label(str(sce['metadata'][frame-f][d]))
+            except KeyError:
+                pass
+        except AttributeError:
+            pass
