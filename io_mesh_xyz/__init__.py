@@ -21,23 +21,26 @@
 #  Authors           : Clemens Barth (Blendphys@root-1.de), ...
 #
 #  Homepage(Wiki)    : http://development.root-1.de/Atomic_Blender.php
-#  Tracker           : http://projects.blender.org/tracker/index.php?func=detail&aid=29646&group_id=153&atid=468
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2011-12-18
-#  Last modified                 : 2012-10-30
+#  Last modified                 : 2012-11-03
 #
-#  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
-#  dairin0d, PKHG, Valter, etc
+#  Acknowledgements 
+#  ================
+#
+#  Blender: ideasman, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG, 
+#           Valter, ...
+#  Other: Frank Palmino
 #
 
 bl_info = {
-    "name": "XYZ Atomic Blender",
-    "description": "Loading and manipulating atoms from XYZ files",
+    "name": "Atomic Blender - XYZ",
+    "description": "Import/export of atoms described in .xyz files",
     "author": "Clemens Barth",
-    "version": (0,7),
+    "version": (1,0),
     "blender": (2,6),
-    "location": "File -> Import -> XYZ (.xyz), Panel: View 3D - Tools",
+    "location": "File -> Import -> XYZ (.xyz)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/"
                 "Import-Export/XYZ",
@@ -61,10 +64,8 @@ from bpy.props import (StringProperty,
 from . import import_xyz
 from . import export_xyz
 
-
 # -----------------------------------------------------------------------------
 #                                                                           GUI
-
 
 
 # This is the class for the file dialog.
@@ -76,13 +77,6 @@ class CLASS_ImportXYZ(Operator, ImportHelper):
     filename_ext = ".xyz"
     filter_glob  = StringProperty(default="*.xyz", options={'HIDDEN'},)
 
-    bpy.types.Scene.use_panel = EnumProperty(
-        name="Panel",
-        description="Choose whether the panel shall appear or not in the View 3D.",
-        items=(('0', "Once", "The panel appears only in this session"),
-               ('1', "Always", "The panel always appears when Blender is started"),
-               ('2', "Never", "The panel never appears")),
-               default='0') 
     use_camera = BoolProperty(
         name="Camera", default=False,
         description="Do you need a camera?")
@@ -130,7 +124,6 @@ class CLASS_ImportXYZ(Operator, ImportHelper):
         name="", default=1, min=1,
         description="Choose the number of images between 2 keys.")
 
-
     def draw(self, context):
         layout = self.layout
         row = layout.row()
@@ -170,7 +163,6 @@ class CLASS_ImportXYZ(Operator, ImportHelper):
         col = row.column()
         col.prop(self, "images_per_key")            
         
-
     def execute(self, context):
 
         import_xyz.ALL_FRAMES[:] = []

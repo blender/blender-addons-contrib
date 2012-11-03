@@ -23,11 +23,6 @@ import os
 from math import pi, cos, sin
 from mathutils import Vector, Matrix
 
-# This variable contains the path of the XYZ file.
-# It is used almost everywhere, which explains why it
-# should stay global. First, it is empty and gets 'filled' directly
-# after having chosen the XYZ file (see 'class LoadXYZ' further below).
-
 # -----------------------------------------------------------------------------
 #                                                  Atom and element data
 
@@ -191,7 +186,10 @@ class CLASS_atom_xyz_atom(object):
         self.radius = radius
         self.color = color
         self.material = material
-        
+
+
+# -----------------------------------------------------------------------------
+#                                                           Some basic routines        
 
 def DEF_atom_xyz_read_elements():
 
@@ -210,6 +208,10 @@ def DEF_atom_xyz_read_elements():
         ATOM_XYZ_ELEMENTS.append(li)
 
 
+# filepath_pdb: path to pdb file
+# radiustype  : '0' default
+#               '1' atomic radii
+#               '2' van der Waals
 def DEF_atom_xyz_read_xyz_file(filepath_xyz,radiustype):
 
     number_frames = 0
