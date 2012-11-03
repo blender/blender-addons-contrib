@@ -36,14 +36,16 @@
 
 bl_info = {
     "name": "Atomic Blender - Utilities",
-    "description": "Manipulating atoms",
+    "description": "Utilities for manipulating atom structures",
     "author": "Clemens Barth",
     "version": (0,5),
     "blender": (2,6),
     "location": "Panel: View 3D - Tools",
     "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/Import-Export/PDB",
+    "tracker_url": "http://projects.blender.org/tracker/"
+                   "index.php?func=detail&aid=33071&group_id=153&atid=467",
     "category": "Import-Export"
 }
 
