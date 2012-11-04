@@ -542,14 +542,22 @@ def DEF_atom_xyz_main(use_mesh,
         axis_vec               = z_axis_vec.cross(object_camera_vec)
         # Rotate 'axis_vec' by 'angle' and convert this to euler parameters.
         # 4 is the size of the matrix.
-        euler                  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
-        camera.rotation_euler  = euler
+        camera.rotation_euler  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
 
-        # This does not work, I don't know why.
-        #
-        #for area in bpy.context.screen.areas:
-        #    if area.type == 'VIEW_3D':
-        #        area.spaces[0].region_3d.view_perspective = 'CAMERA'
+        # Rotate the camera around its axis by 90° such that we have a nice
+        # camera position and view onto the object.
+        bpy.ops.object.select_all(action='DESELECT')        
+        camera.select = True         
+        bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0),
+                                 axis=object_camera_vec,
+                                 constraint_axis=(False, False, False),
+                                 constraint_orientation='GLOBAL',
+                                 mirror=False, proportional='DISABLED',
+                                 proportional_edit_falloff='SMOOTH',
+                                 proportional_size=1, snap=False,
+                                 snap_target='CLOSEST', snap_point=(0, 0, 0),
+                                 snap_align=False, snap_normal=(0, 0, 0),
+                                 release_confirm=False)
 
     # Here a lamp is put into the scene, if chosen.
     if use_lamp == True:
