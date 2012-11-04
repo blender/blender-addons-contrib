@@ -21,11 +21,10 @@
 #  Authors           : Clemens Barth, Christine Mottet (Icosahedra), ...
 #
 #  Homepage(Wiki)    : http://development.root-1.de/Atomic_Blender.php
-#  Tracker           : ...
 #
 #  Start of project              : 2012-03-25 by Clemens Barth
 #  First publication in Blender  : 2012-05-27 by Clemens Barth
-#  Last modified                 : 2012-06-08
+#  Last modified                 : 2012-11-03
 #
 #
 #
