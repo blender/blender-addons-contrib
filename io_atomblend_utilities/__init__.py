@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2012-11-03
+#  Last modified                 : 2012-11-08
 #
 #  Acknowledgements 
 #  ================
@@ -211,7 +211,8 @@ class CLASS_atom_blend_datafile_apply(Operator):
 class CLASS_atom_blend_separate_atom(Operator):
     bl_idname = "atom_blend.separate_atom"
     bl_label = "Separate atoms"
-    bl_description = "Separate atoms you have selected. You have to be in the 'Edit Mode'"
+    bl_description = ("Separate atoms you have selected. "
+                      "You have to be in the 'Edit Mode'")
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend[0]
@@ -306,12 +307,12 @@ class CLASS_atom_blend_distance_button(Operator):
         dist = io_atomblend_utilities.DEF_atom_blend_distance()
 
         if dist != "N.A.":
-           # The string length is cut, 3 digits after the first 3 digits
-           # after the '.'. Append also "Angstrom".
-           # Remember: 1 Angstrom = 10^(-10) m
-           pos    = str.find(dist, ".")
-           dist   = dist[:pos+4]
-           dist   = dist + " A"
+            # The string length is cut, 3 digits after the first 3 digits
+            # after the '.'. Append also "Angstrom".
+            # Remember: 1 Angstrom = 10^(-10) m
+            pos    = str.find(dist, ".")
+            dist   = dist[:pos+4]
+            dist   = dist + " A"
 
         # Put the distance into the string of the output field.
         scn.distance = dist
@@ -353,7 +354,8 @@ class CLASS_atom_blend_radius_all_smaller_button(Operator):
 def register():
     io_atomblend_utilities.DEF_atom_blend_read_elements()  
     bpy.utils.register_module(__name__)
-    bpy.types.Scene.atom_blend = bpy.props.CollectionProperty(type=CLASS_atom_blend_Properties)
+    bpy.types.Scene.atom_blend = bpy.props.CollectionProperty(type=
+                                                   CLASS_atom_blend_Properties)
     bpy.context.scene.atom_blend.add()
 
 
