@@ -75,10 +75,6 @@ class CLASS_atom_blend_prepare_panel(Panel):
 
     def draw(self, context):
         layout = self.layout
-
-        if len(context.scene.atom_blend) == 0:
-            bpy.context.scene.atom_blend.add()
-
         scn    = context.scene.atom_blend[0]
 
         row = layout.row()
@@ -215,7 +211,7 @@ class CLASS_atom_blend_datafile_apply(Operator):
 class CLASS_atom_blend_separate_atom(Operator):
     bl_idname = "atom_blend.separate_atom"
     bl_label = "Separate atoms"
-    bl_description = "Separate the atom you have chosen. You have to be in the 'Edit Mode'"
+    bl_description = "Separate atoms you have selected. You have to be in the 'Edit Mode'"
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend[0]
@@ -223,6 +219,11 @@ class CLASS_atom_blend_separate_atom(Operator):
         # Get first all important properties from the atoms, which the user
         # has chosen: location, color, scale
         obj = bpy.context.edit_object
+        
+        # Do nothing if it is not a dupliverts structure.
+        if not obj.dupli_type == "VERTS":
+            return {'FINISHED'}
+        
         bm = bmesh.from_edit_mesh(obj.data)
 
         locations = []
@@ -353,6 +354,7 @@ def register():
     io_atomblend_utilities.DEF_atom_blend_read_elements()  
     bpy.utils.register_module(__name__)
     bpy.types.Scene.atom_blend = bpy.props.CollectionProperty(type=CLASS_atom_blend_Properties)
+    bpy.context.scene.atom_blend.add()
 
 
     
