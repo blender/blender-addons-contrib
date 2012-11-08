@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2012-11-08
+#  Last modified                 : 2012-11-09
 #
 #  Acknowledgements 
 #  ================
@@ -126,13 +126,13 @@ class PanelProperties(bpy.types.PropertyGroup):
 
     def Callback_radius_type(self, context):
         scn = bpy.context.scene.atom_blend[0]
-        io_atomblend_utilities.DEF_atom_blend_radius_type(
+        io_atomblend_utilities.radius_type(
                 scn.radius_type,
                 scn.radius_how,)
 
     def Callback_radius_pm(self, context):
         scn = bpy.context.scene.atom_blend[0]
-        io_atomblend_utilities.DEF_atom_blend_radius_pm(
+        io_atomblend_utilities.radius_pm(
                 scn.radius_pm_name,
                 scn.radius_pm,
                 scn.radius_how,)
@@ -187,7 +187,7 @@ class DatafileApply(Operator):
         if scn.datafile == "":
             return {'FINISHED'}
 
-        io_atomblend_utilities.DEF_atom_blend_custom_datafile(scn.datafile)
+        io_atomblend_utilities.custom_datafile(scn.datafile)
 
         for obj in bpy.context.selected_objects:
             if len(obj.children) != 0:
@@ -304,7 +304,7 @@ class DistanceButton(Operator):
 
     def execute(self, context):
         scn  = bpy.context.scene.atom_blend[0]
-        dist = io_atomblend_utilities.DEF_atom_blend_distance()
+        dist = io_atomblend_utilities.distance()
 
         if dist != "N.A.":
             # The string length is cut, 3 digits after the first 3 digits
@@ -327,7 +327,7 @@ class RadiusAllBiggerButton(Operator):
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend[0]
-        io_atomblend_utilities.DEF_atom_blend_radius_all(
+        io_atomblend_utilities.radius_all(
                 scn.radius_all,
                 scn.radius_how,
                 )
@@ -342,7 +342,7 @@ class RadiusAllSmallerButton(Operator):
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend[0]
-        io_atomblend_utilities.DEF_atom_blend_radius_all(
+        io_atomblend_utilities.radius_all(
                 1.0/scn.radius_all,
                 scn.radius_how,
                 )
@@ -352,7 +352,7 @@ class RadiusAllSmallerButton(Operator):
 
 
 def register():
-    io_atomblend_utilities.DEF_atom_blend_read_elements()  
+    io_atomblend_utilities.read_elements()  
     bpy.utils.register_module(__name__)
     bpy.types.Scene.atom_blend = bpy.props.CollectionProperty(type=
                                                    PanelProperties)

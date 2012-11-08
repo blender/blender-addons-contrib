@@ -180,7 +180,7 @@ class ElementProp(object):
 
 # This function measures the distance between two objects (atoms),
 # which are active.
-def DEF_atom_blend_distance():
+def distance():
 
     if len(bpy.context.selected_bases) > 1:
         object_1 = bpy.context.selected_objects[0]
@@ -197,7 +197,7 @@ def DEF_atom_blend_distance():
 #        pre-defined, atomic or van der Waals
 #
 # Explanations here are also valid for the next 3 DEFs.
-def DEF_atom_blend_radius_type(rtype,how):
+def radius_type(rtype,how):
 
     if how == "ALL_IN_LAYER":
 
@@ -242,7 +242,7 @@ def DEF_atom_blend_radius_type(rtype,how):
 
 
 # Routine to modify the radii in picometer of a specific type of atom
-def DEF_atom_blend_radius_pm(atomname, radius_pm, how):
+def radius_pm(atomname, radius_pm, how):
 
     if how == "ALL_IN_LAYER":
 
@@ -278,7 +278,7 @@ def DEF_atom_blend_radius_pm(atomname, radius_pm, how):
 
 
 # Routine to scale the radii of all atoms
-def DEF_atom_blend_radius_all(scale, how):
+def radius_all(scale, how):
 
     if how == "ALL_IN_LAYER":
 
@@ -309,7 +309,7 @@ def DEF_atom_blend_radius_all(scale, how):
                     obj.scale *= scale
 
 
-def DEF_atom_blend_read_elements():
+def read_elements():
 
     ATOM_BLEND_ELEMENTS[:] = []
 
@@ -328,7 +328,7 @@ def DEF_atom_blend_read_elements():
 
 
 # This reads a custom data file.
-def DEF_atom_blend_custom_datafile(path_datafile):
+def custom_datafile(path_datafile):
 
     if path_datafile == "":
         return False
