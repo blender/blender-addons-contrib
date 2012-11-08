@@ -156,14 +156,14 @@ ATOM_BLEND_ELEMENTS_DEFAULT = (
 # This list here contains all data of the elements and will be used during
 # runtime. It is a list of classes.
 # During executing Atomic Blender, the list will be initialized with the fixed
-# data from above via the class structure below (CLASS_atom_blend_Elements). We
+# data from above via the class structure below (ElementProp). We
 # have then one fixed list (above), which will never be changed, and a list of
 # classes with same data. The latter can be modified via loading a separate
 # custom data file for instance.
 ATOM_BLEND_ELEMENTS = []
 
 # This is the class, which stores the properties for one element.
-class CLASS_atom_blend_Elements(object):
+class ElementProp(object):
     __slots__ = ('number', 'name', 'short_name', 'color', 'radii', 'radii_ionic')
     def __init__(self, number, name, short_name, color, radii, radii_ionic):
         self.number = number
@@ -173,21 +173,9 @@ class CLASS_atom_blend_Elements(object):
         self.radii = radii
         self.radii_ionic = radii_ionic
 
-# This is the class, which stores the properties of one atom.
-class CLASS_atom_blend_atom(object):  
-    __slots__ = ('element', 'name', 'location', 'radius', 'color', 'material')
-    def __init__(self, element, name, location, radius, color, material):
-        self.element = element
-        self.name = name
-        self.location = location
-        self.radius = radius
-        self.color = color
-        self.material = material
-        
 
 # -----------------------------------------------------------------------------
 #                                                          Some small routines
-
 
 
 # This function measures the distance between two objects (atoms),
@@ -333,7 +321,7 @@ def DEF_atom_blend_read_elements():
         # empty list.
         radii_ionic = []
 
-        li = CLASS_atom_blend_Elements(item[0],item[1],item[2],item[3],
+        li = ElementProp(item[0],item[1],item[2],item[3],
                                      radii,radii_ionic)
         ATOM_BLEND_ELEMENTS.append(li)
 
@@ -389,7 +377,7 @@ def DEF_atom_blend_custom_datafile(path_datafile):
             radii = [radius_used,radius_atomic,radius_vdW]
             radii_ionic = []
 
-            element = CLASS_atom_blend_Elements(number,name,short_name,color,
+            element = ElementProp(number,name,short_name,color,
                                               radii, radii_ionic)
 
             ATOM_BLEND_ELEMENTS.append(element)

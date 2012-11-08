@@ -68,7 +68,7 @@ from . import io_atomblend_utilities
 
 # This is the panel, which can be used to prepare the scene.
 # It is loaded after the file has been chosen via the menu 'File -> Import'
-class CLASS_atom_blend_prepare_panel(Panel):
+class PreparePanel(Panel):
     bl_label       = "Atomic Blender Utilities"
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOL_PROPS"
@@ -122,7 +122,7 @@ class CLASS_atom_blend_prepare_panel(Panel):
 
 
 
-class CLASS_atom_blend_Properties(bpy.types.PropertyGroup):
+class PanelProperties(bpy.types.PropertyGroup):
 
     def Callback_radius_type(self, context):
         scn = bpy.context.scene.atom_blend[0]
@@ -176,7 +176,7 @@ class CLASS_atom_blend_Properties(bpy.types.PropertyGroup):
 
 
 # Button loading a custom data file
-class CLASS_atom_blend_datafile_apply(Operator):
+class DatafileApply(Operator):
     bl_idname = "atom_blend.datafile_apply"
     bl_label = "Apply"
     bl_description = "Use color and radii values stored in the custom file"
@@ -208,7 +208,7 @@ class CLASS_atom_blend_datafile_apply(Operator):
 
 
 # Button for separating a single atom from a structure
-class CLASS_atom_blend_separate_atom(Operator):
+class SeparateAtom(Operator):
     bl_idname = "atom_blend.separate_atom"
     bl_label = "Separate atoms"
     bl_description = ("Separate atoms you have selected. "
@@ -297,7 +297,7 @@ class CLASS_atom_blend_separate_atom(Operator):
 
 
 # Button for measuring the distance of the active objects
-class CLASS_atom_blend_distance_button(Operator):
+class DistanceButton(Operator):
     bl_idname = "atom_blend.button_distance"
     bl_label = "Measure ..."
     bl_description = "Measure the distance between two objects"
@@ -320,7 +320,7 @@ class CLASS_atom_blend_distance_button(Operator):
 
 
 # Button for increasing the radii of all atoms
-class CLASS_atom_blend_radius_all_bigger_button(Operator):
+class RadiusAllBiggerButton(Operator):
     bl_idname = "atom_blend.radius_all_bigger"
     bl_label = "Bigger ..."
     bl_description = "Increase the radii of the atoms"
@@ -335,7 +335,7 @@ class CLASS_atom_blend_radius_all_bigger_button(Operator):
 
 
 # Button for decreasing the radii of all atoms
-class CLASS_atom_blend_radius_all_smaller_button(Operator):
+class RadiusAllSmallerButton(Operator):
     bl_idname = "atom_blend.radius_all_smaller"
     bl_label = "Smaller ..."
     bl_description = "Decrease the radii of the atoms"
@@ -355,7 +355,7 @@ def register():
     io_atomblend_utilities.DEF_atom_blend_read_elements()  
     bpy.utils.register_module(__name__)
     bpy.types.Scene.atom_blend = bpy.props.CollectionProperty(type=
-                                                   CLASS_atom_blend_Properties)
+                                                   PanelProperties)
     bpy.context.scene.atom_blend.add()
 
 
