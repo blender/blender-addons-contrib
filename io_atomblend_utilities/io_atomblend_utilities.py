@@ -16,13 +16,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import io
 import os
 import bpy
 import bmesh
-
-from math import pi, cos, sin
-from mathutils import Vector, Matrix
 
 # This variable contains the path of the XYZ file.
 # It is used almost everywhere, which explains why it
@@ -45,7 +41,7 @@ from mathutils import Vector, Matrix
 # charge states for any atom are listed, if existing.
 # The list is fixed and cannot be changed ... (see below)
 
-ATOM_BLEND_ELEMENTS_DEFAULT = (
+ELEMENTS_DEFAULT = (
 ( 1,      "Hydrogen",        "H", (  1.0,   1.0,   1.0), 0.32, 0.32, 0.79 , -1 , 1.54 ),
 ( 2,        "Helium",       "He", ( 0.85,   1.0,   1.0), 0.93, 0.93, 0.49 ),
 ( 3,       "Lithium",       "Li", (  0.8,  0.50,   1.0), 1.23, 1.23, 2.05 ,  1 , 0.68 ),
@@ -161,7 +157,7 @@ ATOM_BLEND_ELEMENTS_DEFAULT = (
 # have then one fixed list (above), which will never be changed, and a list of
 # classes with same data. The latter can be modified via loading a separate
 # custom data file for instance.
-ATOM_BLEND_ELEMENTS = []
+ELEMENTS = []
 
 # This is the class, which stores the properties for one element.
 class ElementProp(object):
@@ -177,7 +173,6 @@ class ElementProp(object):
 
 # -----------------------------------------------------------------------------
 #                                                          Some small routines
-
 
 # This function measures the distance between two objects (atoms),
 # which are active.
@@ -231,7 +226,6 @@ def choose_objects(how, who, radius_all, radius_pm, radius_type):
                                    radius_all, 
                                    radius_pm, 
                                    radius_type)
-
     if who == "ALL_ACTIVE":
         for obj in bpy.context.selected_objects:
             if len(obj.children) != 0:
@@ -265,7 +259,7 @@ def modify_objects(how, obj, radius_all, radius_pm, radius_type):
               
     # Radius type 
     if how == "radius_type":
-        for element in ATOM_BLEND_ELEMENTS:
+        for element in ELEMENTS:
             if element.name in obj.name:
                 obj.scale = (element.radii[int(radius_type)],) * 3
 
@@ -273,9 +267,9 @@ def modify_objects(how, obj, radius_all, radius_pm, radius_type):
 # Read the default element list.
 def read_elements():
 
-    ATOM_BLEND_ELEMENTS[:] = []
+    ELEMENTS[:] = []
 
-    for item in ATOM_BLEND_ELEMENTS_DEFAULT:
+    for item in ELEMENTS_DEFAULT:
 
         # All three radii into a list
         radii = [item[4],item[5],item[6]]
@@ -285,7 +279,7 @@ def read_elements():
 
         li = ElementProp(item[0],item[1],item[2],item[3],
                                      radii,radii_ionic)
-        ATOM_BLEND_ELEMENTS.append(li)
+        ELEMENTS.append(li)
 
 
 # Change color and radii by uisnf the list of elements.
@@ -295,13 +289,13 @@ def custom_datafile_change_atom_props():
         if len(obj.children) != 0:
             child = obj.children[0]
             if child.type in {'SURFACE', 'MESH'}:
-                for element in ATOM_BLEND_ELEMENTS:
+                for element in ELEMENTS:
                     if element.name in obj.name:
                         child.scale = (element.radii[0],) * 3
                         child.active_material.diffuse_color = element.color
         else:
             if obj.type in {'SURFACE', 'MESH'}:
-                for element in ATOM_BLEND_ELEMENTS:
+                for element in ELEMENTS:
                     if element.name in obj.name:
                         obj.scale = (element.radii[0],) * 3
                         obj.active_material.diffuse_color = element.color
@@ -319,11 +313,11 @@ def custom_datafile(path_datafile):
         return False
 
     # The whole list gets deleted! We build it new.
-    ATOM_BLEND_ELEMENTS[:] = []
+    ELEMENTS[:] = []
 
     # Read the data file, which contains all data
     # (atom name, radii, colors, etc.)
-    data_file_p = io.open(path_datafile, "r")
+    data_file_p = open(path_datafile, "r")
 
     for line in data_file_p:
 
@@ -360,12 +354,11 @@ def custom_datafile(path_datafile):
             element = ElementProp(number,name,short_name,color,
                                               radii, radii_ionic)
 
-            ATOM_BLEND_ELEMENTS.append(element)
+            ELEMENTS.append(element)
 
     data_file_p.close()
 
     return True
-
 
 
 # Routine for separating atoms from a dupliverts strucutre.

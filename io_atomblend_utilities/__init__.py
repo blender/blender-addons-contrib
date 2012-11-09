@@ -49,8 +49,6 @@ bl_info = {
     "category": "Import-Export"
 }
 
-import os
-import io
 import bpy
 from bpy.types import Operator, Panel
 from bpy.props import (StringProperty,
@@ -60,7 +58,6 @@ from bpy.props import (StringProperty,
                        FloatProperty)
 
 from . import io_atomblend_utilities
-
 
 # -----------------------------------------------------------------------------
 #                                                                           GUI
@@ -120,7 +117,6 @@ class PreparePanel(Panel):
         row.operator( "atom_blend.separate_atom" )
 
 
-
 class PanelProperties(bpy.types.PropertyGroup):
 
     def Callback_radius_type(self, context):
@@ -130,7 +126,6 @@ class PanelProperties(bpy.types.PropertyGroup):
                                               None,
                                               None,
                                               scn.radius_type) 
-
     def Callback_radius_pm(self, context):
         scn = bpy.context.scene.atom_blend[0]
         io_atomblend_utilities.choose_objects("radius_pm", 
@@ -258,8 +253,6 @@ class RadiusAllSmallerButton(Operator):
         return {'FINISHED'}
 
 
-
-
 def register():
     io_atomblend_utilities.read_elements()  
     bpy.utils.register_module(__name__)
@@ -267,8 +260,6 @@ def register():
                                                    PanelProperties)
     bpy.context.scene.atom_blend.add()
 
-
-    
 def unregister():
     bpy.utils.unregister_module(__name__)
 
