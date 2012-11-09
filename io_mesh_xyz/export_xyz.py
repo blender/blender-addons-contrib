@@ -17,30 +17,17 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import io
-import math
-import os
-import copy
-from math import pi, cos, sin
-from mathutils import Vector, Matrix
-from copy import copy
-
 from . import import_xyz
 
-ATOM_XYZ_FILEPATH = ""
-ATOM_XYZ_XYZTEXT  = (  "This XYZ file has been created with Blender "
-                       "and the addon Atomic Blender - XYZ. "
-                       "For more details see: wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/XYZ\n")
 
-
-class CLASS_atom_xyz_atoms_export(object):  
+class AtomsExport(object):  
     __slots__ = ('element', 'location')
     def __init__(self, element, location):
         self.element  = element
         self.location = location
 
 
-def DEF_atom_xyz_export(obj_type):
+def export_xyz(obj_type, filepath_xyz):
 
     list_atoms = []
     counter = 0
@@ -53,7 +40,7 @@ def DEF_atom_xyz_export(obj_type):
             continue 
        
         name = ""
-        for element in import_xyz.ATOM_XYZ_ELEMENTS_DEFAULT:
+        for element in import_xyz.ELEMENTS_DEFAULT:
             if element[1] in obj.name:
                 if element[2] == "Vac":
                     name = "X"
@@ -69,21 +56,20 @@ def DEF_atom_xyz_export(obj_type):
         if len(obj.children) != 0:
             for vertex in obj.data.vertices:
                 location = obj.matrix_world*vertex.co
-                list_atoms.append(CLASS_atom_xyz_atoms_export(
-                                                       name,
-                                                       location))
+                list_atoms.append(AtomsExport(name, location))
                 counter += 1                                       
         else:
             if not obj.parent:
                 location = obj.location
-                list_atoms.append(CLASS_atom_xyz_atoms_export(
-                                                       name,
-                                                       location))                                   
+                list_atoms.append(AtomsExport(name, location))                                   
                 counter += 1                                               
 
-    xyz_file_p = open(ATOM_XYZ_FILEPATH, "w")
+    xyz_file_p = open(filepath_xyz, "w")
     xyz_file_p.write("%d\n" % counter)
-    xyz_file_p.write(ATOM_XYZ_XYZTEXT)
+    xyz_file_p.write("This XYZ file has been created with Blender "
+                     "and the addon Atomic Blender - XYZ. "
+                     "For more details see: wiki.blender.org/index.php/"
+                     "Extensions:2.6/Py/Scripts/Import-Export/XYZ\n")
 
     for i, atom in enumerate(list_atoms):
         string = "%3s%15.5f%15.5f%15.5f\n" % (

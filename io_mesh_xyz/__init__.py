@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2011-12-18
-#  Last modified                 : 2012-11-03
+#  Last modified                 : 2012-11-09
 #
 #  Acknowledgements 
 #  ================
@@ -49,10 +49,7 @@ bl_info = {
     "category": "Import-Export"
 }
 
-import os
-import io
 import bpy
-import bmesh
 from bpy.types import Operator, Panel
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.props import (StringProperty,
@@ -69,7 +66,7 @@ from . import export_xyz
 
 
 # This is the class for the file dialog.
-class CLASS_ImportXYZ(Operator, ImportHelper):
+class ImportXYZ(Operator, ImportHelper):
     bl_idname = "import_mesh.xyz"
     bl_label  = "Import XYZ (*.xyz)"
     bl_options = {'PRESET', 'UNDO'}
@@ -166,14 +163,14 @@ class CLASS_ImportXYZ(Operator, ImportHelper):
     def execute(self, context):
 
         import_xyz.ALL_FRAMES[:] = []
-        import_xyz.ATOM_XYZ_ELEMENTS[:] = []
+        import_xyz.ELEMENTS[:] = []
         import_xyz.STRUCTURE[:] = []
 
         # This is to determine the path.
         filepath_xyz = bpy.path.abspath(self.filepath)
 
         # Execute main routine
-        import_xyz.DEF_atom_xyz_main(
+        import_xyz.import_xyz(
                       self.use_mesh,
                       self.mesh_azimuth,
                       self.mesh_zenith,
@@ -189,14 +186,14 @@ class CLASS_ImportXYZ(Operator, ImportHelper):
         # Load frames                  
         if len(import_xyz.ALL_FRAMES) > 1 and self.use_frames:  
                   
-            import_xyz.DEF_atom_xyz_build_frames(self.images_per_key, 
-                                                 self.skip_frames)
+            import_xyz.build_frames(self.images_per_key, 
+                                    self.skip_frames)
         
         return {'FINISHED'}
         
 
 # This is the class for the file dialog of the exporter.
-class CLASS_ExportXYZ(Operator, ExportHelper):
+class ExportXYZ(Operator, ExportHelper):
     bl_idname = "export_mesh.xyz"
     bl_label  = "Export XYZ (*.xyz)"
     filename_ext = ".xyz"
@@ -218,30 +215,29 @@ class CLASS_ExportXYZ(Operator, ExportHelper):
         row.prop(self, "atom_xyz_export_type")
 
     def execute(self, context):
-        # This is in order to solve this strange 'relative path' thing.
-        export_xyz.ATOM_XYZ_FILEPATH = bpy.path.abspath(self.filepath)
-        export_xyz.DEF_atom_xyz_export(self.atom_xyz_export_type)
+        export_xyz.export_xyz(self.atom_xyz_export_type, 
+                              bpy.path.abspath(self.filepath))
 
         return {'FINISHED'}
 
 
 # The entry into the menu 'file -> import'
-def DEF_menu_func(self, context):
-    self.layout.operator(CLASS_ImportXYZ.bl_idname, text="XYZ (.xyz)")
+def menu_func(self, context):
+    self.layout.operator(ImportXYZ.bl_idname, text="XYZ (.xyz)")
 
 # The entry into the menu 'file -> export'
-def DEF_menu_func_export(self, context):
-    self.layout.operator(CLASS_ExportXYZ.bl_idname, text="XYZ (.xyz)")
+def menu_func_export(self, context):
+    self.layout.operator(ExportXYZ.bl_idname, text="XYZ (.xyz)")
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_import.append(DEF_menu_func)
-    bpy.types.INFO_MT_file_export.append(DEF_menu_func_export) 
+    bpy.types.INFO_MT_file_import.append(menu_func)
+    bpy.types.INFO_MT_file_export.append(menu_func_export) 
     
 def unregister():
     bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(DEF_menu_func)
-    bpy.types.INFO_MT_file_export.remove(DEF_menu_func_export)
+    bpy.types.INFO_MT_file_import.remove(menu_func)
+    bpy.types.INFO_MT_file_export.remove(menu_func_export)
 
 if __name__ == "__main__":
 

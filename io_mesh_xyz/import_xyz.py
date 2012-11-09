@@ -17,10 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import io
-import math
 import os
-from math import pi, cos, sin
+from math import pi, cos, sin, sqrt
 from mathutils import Vector, Matrix
 
 # -----------------------------------------------------------------------------
@@ -38,7 +36,7 @@ from mathutils import Vector, Matrix
 # charge states for any atom are listed, if existing.
 # The list is fixed and cannot be changed ... (see below)
 
-ATOM_XYZ_ELEMENTS_DEFAULT = (
+ELEMENTS_DEFAULT = (
 ( 1,      "Hydrogen",        "H", (  1.0,   1.0,   1.0), 0.32, 0.32, 0.79 , -1 , 1.54 ),
 ( 2,        "Helium",       "He", ( 0.85,   1.0,   1.0), 0.93, 0.93, 0.49 ),
 ( 3,       "Lithium",       "Li", (  0.8,  0.50,   1.0), 1.23, 1.23, 2.05 ,  1 , 0.68 ),
@@ -150,15 +148,15 @@ ATOM_XYZ_ELEMENTS_DEFAULT = (
 # This list here contains all data of the elements and will be used during
 # runtime. It is a list of classes.
 # During executing Atomic Blender, the list will be initialized with the fixed
-# data from above via the class structure below (CLASS_atom_xyz_Elements). We
+# data from above via the class structure below (ElementProp). We
 # have then one fixed list (above), which will never be changed, and a list of
 # classes with same data. The latter can be modified via loading a separate
 # custom data file for instance.
-ATOM_XYZ_ELEMENTS = []
+ELEMENTS = []
 
 # This is the list, which contains all atoms of all frames! Each item is a 
 # list which contains the atoms of a single frame. It is a list of  
-# 'CLASS_atom_xyz_atom'.
+# 'AtomProp'.
 ALL_FRAMES = []
 
 # A list of ALL balls which are put into the scene
@@ -166,7 +164,7 @@ STRUCTURE = []
 
 
 # This is the class, which stores the properties for one element.
-class CLASS_atom_xyz_Elements(object):
+class ElementProp(object):
     __slots__ = ('number', 'name', 'short_name', 'color', 'radii', 'radii_ionic')
     def __init__(self, number, name, short_name, color, radii, radii_ionic):
         self.number = number
@@ -177,7 +175,7 @@ class CLASS_atom_xyz_Elements(object):
         self.radii_ionic = radii_ionic
 
 # This is the class, which stores the properties of one atom.
-class CLASS_atom_xyz_atom(object):  
+class AtomProp(object):  
     __slots__ = ('element', 'name', 'location', 'radius', 'color', 'material')
     def __init__(self, element, name, location, radius, color, material):
         self.element = element
@@ -191,11 +189,11 @@ class CLASS_atom_xyz_atom(object):
 # -----------------------------------------------------------------------------
 #                                                           Some basic routines        
 
-def DEF_atom_xyz_read_elements():
+def read_elements():
 
-    ATOM_XYZ_ELEMENTS[:] = []
+    ELEMENTS[:] = []
 
-    for item in ATOM_XYZ_ELEMENTS_DEFAULT:
+    for item in ELEMENTS_DEFAULT:
 
         # All three radii into a list
         radii = [item[4],item[5],item[6]]
@@ -203,21 +201,21 @@ def DEF_atom_xyz_read_elements():
         # empty list.
         radii_ionic = []
 
-        li = CLASS_atom_xyz_Elements(item[0],item[1],item[2],item[3],
+        li = ElementProp(item[0],item[1],item[2],item[3],
                                      radii,radii_ionic)
-        ATOM_XYZ_ELEMENTS.append(li)
+        ELEMENTS.append(li)
 
 
 # filepath_pdb: path to pdb file
 # radiustype  : '0' default
 #               '1' atomic radii
 #               '2' van der Waals
-def DEF_atom_xyz_read_xyz_file(filepath_xyz,radiustype):
+def read_xyz_file(filepath_xyz,radiustype):
 
     number_frames = 0
 
     # Open the file ...
-    filepath_xyz_p = io.open(filepath_xyz, "r")
+    filepath_xyz_p = open(filepath_xyz, "r")
 
     #Go through the whole file.
     FLAG = False
@@ -262,7 +260,7 @@ def DEF_atom_xyz_read_xyz_file(filepath_xyz,radiustype):
                      
                 # Go through all elements and find the element of the current atom.
                 FLAG_FOUND = False
-                for element in ATOM_XYZ_ELEMENTS:
+                for element in ELEMENTS:
                     if str.upper(short_name) == str.upper(element.short_name):
                         # Give the atom its proper name, color and radius:
                         name = element.name
@@ -280,15 +278,15 @@ def DEF_atom_xyz_read_xyz_file(filepath_xyz,radiustype):
                     if "X" in short_name:
                         short_name = "VAC"
                         name = "Vacancy"
-                        radius = float(ATOM_XYZ_ELEMENTS[-3].radii[int(radiustype)])
-                        color = ATOM_XYZ_ELEMENTS[-3].color
+                        radius = float(ELEMENTS[-3].radii[int(radiustype)])
+                        color = ELEMENTS[-3].color
                     # ... take what is written in the xyz file. These are somewhat
                     # unknown atoms. This should never happen, the element list is
                     # almost complete. However, we do this due to security reasons.
                     else:
                         name = str.upper(short_name)
-                        radius = float(ATOM_XYZ_ELEMENTS[-2].radii[int(radiustype)])
-                        color = ATOM_XYZ_ELEMENTS[-2].color
+                        radius = float(ELEMENTS[-2].radii[int(radiustype)])
+                        color = ELEMENTS[-2].color
               
                 x = float(split_list[1])
                 y = float(split_list[2])
@@ -333,7 +331,7 @@ def DEF_atom_xyz_read_xyz_file(filepath_xyz,radiustype):
                 atoms_one_type = []
                 for atom in all_atoms:
                     if atom[1] == element:
-                        atoms_one_type.append(CLASS_atom_xyz_atom(
+                        atoms_one_type.append(AtomProp(
                                                            atom[0],
                                                            atom[1],
                                                            atom[2],
@@ -353,7 +351,7 @@ def DEF_atom_xyz_read_xyz_file(filepath_xyz,radiustype):
 # -----------------------------------------------------------------------------
 #                                                            The main routine
 
-def DEF_atom_xyz_main(use_mesh,
+def import_xyz(use_mesh,
                       Ball_azimuth,
                       Ball_zenith,
                       Ball_radius_factor,
@@ -371,12 +369,12 @@ def DEF_atom_xyz_main(use_mesh,
     # ------------------------------------------------------------------------
     # INITIALIZE THE ELEMENT LIST
 
-    DEF_atom_xyz_read_elements()
+    read_elements()
 
     # ------------------------------------------------------------------------
     # READING DATA OF ATOMS
 
-    Number_of_total_atoms = DEF_atom_xyz_read_xyz_file(filepath_xyz, 
+    Number_of_total_atoms = read_xyz_file(filepath_xyz, 
                                                        radiustype)
                                                
     # We show the atoms of the first frame.
@@ -515,12 +513,12 @@ def DEF_atom_xyz_main(use_mesh,
 
         # Assume that the object is put into the global origin. Then, the
         # camera is moved in x and z direction, not in y. The object has its
-        # size at distance math.sqrt(object_size) from the origin. So, move the
+        # size at distance sqrt(object_size) from the origin. So, move the
         # camera by this distance times a factor of camera_factor in x and z.
         # Then add x, y and z of the origin of the object.
-        object_camera_vec = Vector((math.sqrt(object_size) * camera_factor,
+        object_camera_vec = Vector((sqrt(object_size) * camera_factor,
                                     0.0,
-                                    math.sqrt(object_size) * camera_factor))
+                                    sqrt(object_size) * camera_factor))
         camera_xyz_vec = object_center_vec + object_camera_vec
 
         # Create the camera
@@ -548,7 +546,7 @@ def DEF_atom_xyz_main(use_mesh,
         # camera position and view onto the object.
         bpy.ops.object.select_all(action='DESELECT')        
         camera.select = True         
-        bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0),
+        bpy.ops.transform.rotate(value=(90.0*2*pi/360.0),
                                  axis=object_camera_vec,
                                  constraint_axis=(False, False, False),
                                  constraint_orientation='GLOBAL',
@@ -564,7 +562,7 @@ def DEF_atom_xyz_main(use_mesh,
 
         # This is the distance from the object measured in terms of %
         # of the camera distance. It is set onto 50% (1/2) distance.
-        lamp_dl = math.sqrt(object_size) * 15 * 0.5
+        lamp_dl = sqrt(object_size) * 15 * 0.5
         # This is a factor to which extend the lamp shall go to the right
         # (from the camera  point of view).
         lamp_dy_right = lamp_dl * (3.0/4.0)
@@ -663,7 +661,7 @@ def DEF_atom_xyz_main(use_mesh,
 
 
 
-def DEF_atom_xyz_build_frames(frame_delta, frame_skip):
+def build_frames(frame_delta, frame_skip):
 
     scn = bpy.context.scene
     current_layers = scn.layers
