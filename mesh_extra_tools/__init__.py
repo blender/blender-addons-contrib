@@ -43,7 +43,6 @@ if "bpy" in locals():
     imp.reload(mesh_polyredux)
     imp.reload(mesh_vertex_chamfer)
     imp.reload(mesh_mextrude_plus)
-    imp.reload(mesh_bevel_round)
 
 else:
     from . import mesh_bump
@@ -54,10 +53,8 @@ else:
     from . import mesh_polyredux
     from . import mesh_vertex_chamfer
     from . import mesh_mextrude_plus
-    from . import mesh_bevel_round
 
 import bpy
-
 
 class VIEW3D_MT_edit_mesh_extras(bpy.types.Menu):
     # Define the "Extras" menu
@@ -67,24 +64,22 @@ class VIEW3D_MT_edit_mesh_extras(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.bump",
-            text="Inset Extrude Bump")
         layout.operator("faceinfillet.op0_id",
             text="Face Inset Fillet")
-        layout.operator("mesh.mbevel",
-            text="Bevel Selected")
         layout.operator("fillet.op0_id",
             text="Edge Fillet Plus")
-        layout.operator("normal.smooth",
-            text="Normal Smooth")
         layout.operator("object.mextrude",
             text="Multi Extrude")
-        layout.operator("mesh.polyredux",
-            text="Poly Redux")
+        layout.operator("mesh.bump",
+            text="Inset Extrude Bump")
+        layout.operator("mesh.mbevel",
+            text="Bevel Selected")
         layout.operator("mesh.vertex_chamfer",
             text="Vertex Chamfer")
-        layout.operator("mesh.bevel_round",
-            text="Bevel Round")
+        layout.operator("mesh.polyredux",
+            text="Poly Redux")
+        layout.operator("normal.smooth",
+            text="Normal Smooth")
 
 
 class ExtrasPanel(bpy.types.Panel):
@@ -97,32 +92,29 @@ class ExtrasPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         row = layout.split(0.80)
-        row.operator('mesh.bump', text = 'Inset Bump', icon = 'PLUGIN')
-        row.operator('help.bump', text = '', icon = 'INFO')
-        row = layout.split(0.80)
         row.operator('faceinfillet.op0_id', text = 'Face Inset Fillet', icon = 'PLUGIN')
         row.operator('help.face_inset', text = '', icon = 'INFO')
-        row = layout.split(0.80)
-        row.operator('mesh.bevel_round', text = 'Bevel Round', icon = 'PLUGIN')
-        row.operator('help.bevelround', text = '', icon = 'INFO')
-        row = layout.split(0.80)
-        row.operator('mesh.mbevel', text = 'Bevel Selected', icon = 'PLUGIN')
-        row.operator('help.edge_bevel', text = '', icon = 'INFO')
         row = layout.split(0.80)
         row.operator('fillet.op0_id', text = 'Edge Fillet plus', icon = 'PLUGIN')
         row.operator('help.edge_fillet', text = '', icon = 'INFO')
         row = layout.split(0.80)
-        row.operator('normal.smooth', text = 'Normal Smooth', icon = 'PLUGIN')
-        row.operator('help.normal_smooth', text = '', icon = 'INFO')
+        row.operator('object.mextrude', text = 'Multi Face Extrude', icon = 'PLUGIN')
+        row.operator('help.mextrude', text = '', icon = 'INFO')
         row = layout.split(0.80)
-        row.operator('mesh.polyredux', text = 'Poly Redux', icon = 'PLUGIN')
-        row.operator('help.polyredux', text = '', icon = 'INFO')
+        row.operator('mesh.bump', text = 'Inset Bump', icon = 'PLUGIN')
+        row.operator('help.bump', text = '', icon = 'INFO')
+        row = layout.split(0.80)
+        row.operator('mesh.mbevel', text = 'Bevel Selected', icon = 'PLUGIN')
+        row.operator('help.edge_bevel', text = '', icon = 'INFO')
         row = layout.split(0.80)
         row.operator('mesh.vertex_chamfer', text = 'Vertex Chamfer' , icon = 'PLUGIN')
         row.operator('help.vertexchamfer', text = '', icon = 'INFO')
         row = layout.split(0.80)
-        row.operator('object.mextrude', text = 'Multi Face Extrude', icon = 'PLUGIN')
-        row.operator('help.mextrude', text = '', icon = 'INFO')
+        row.operator('mesh.polyredux', text = 'Poly Redux', icon = 'PLUGIN')
+        row.operator('help.polyredux', text = '', icon = 'INFO')
+        row = layout.split(0.80)
+        row.operator('normal.smooth', text = 'Normal Smooth', icon = 'PLUGIN')
+        row.operator('help.normal_smooth', text = '', icon = 'INFO')
         row = layout.split(0.50)
         row.operator('mesh.flip_normals', text = 'Normals Flip')
         row.operator('mesh.remove_doubles', text = 'Remove Doubles')
