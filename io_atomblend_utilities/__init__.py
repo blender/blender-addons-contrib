@@ -38,7 +38,7 @@ bl_info = {
     "name": "Atomic Blender - Utilities",
     "description": "Utilities for manipulating atom structures",
     "author": "Clemens Barth",
-    "version": (0,5),
+    "version": (0,6),
     "blender": (2,6),
     "location": "Panel: View 3D - Tools",
     "warning": "",
@@ -52,7 +52,6 @@ bl_info = {
 import os
 import io
 import bpy
-import bmesh
 from bpy.types import Operator, Panel
 from bpy.props import (StringProperty,
                        BoolProperty,
@@ -126,17 +125,21 @@ class PanelProperties(bpy.types.PropertyGroup):
 
     def Callback_radius_type(self, context):
         scn = bpy.context.scene.atom_blend[0]
-        io_atomblend_utilities.radius_type(
-                scn.radius_type,
-                scn.radius_how,)
+        io_atomblend_utilities.choose_objects("radius_type", 
+                                              scn.radius_how, 
+                                              None,
+                                              None,
+                                              scn.radius_type) 
 
     def Callback_radius_pm(self, context):
         scn = bpy.context.scene.atom_blend[0]
-        io_atomblend_utilities.radius_pm(
-                scn.radius_pm_name,
-                scn.radius_pm,
-                scn.radius_how,)
-
+        io_atomblend_utilities.choose_objects("radius_pm", 
+                                              scn.radius_how, 
+                                              None,
+                                              [scn.radius_pm_name,
+                                              scn.radius_pm],
+                                              None) 
+        
     datafile = StringProperty(
         name = "", description="Path to your custom data file",
         maxlen = 256, default = "", subtype='FILE_PATH')
@@ -188,21 +191,7 @@ class DatafileApply(Operator):
             return {'FINISHED'}
 
         io_atomblend_utilities.custom_datafile(scn.datafile)
-
-        for obj in bpy.context.selected_objects:
-            if len(obj.children) != 0:
-                child = obj.children[0]
-                if child.type in {'SURFACE', 'MESH'}:
-                    for element in io_atomblend_utilities.ATOM_BLEND_ELEMENTS:
-                        if element.name in obj.name:
-                            child.scale = (element.radii[0],) * 3
-                            child.active_material.diffuse_color = element.color
-            else:
-                if obj.type in {'SURFACE', 'MESH'}:
-                    for element in io_atomblend_utilities.ATOM_BLEND_ELEMENTS:
-                        if element.name in obj.name:
-                            obj.scale = (element.radii[0],) * 3
-                            obj.active_material.diffuse_color = element.color
+        io_atomblend_utilities.custom_datafile_change_atom_props()
 
         return {'FINISHED'}
 
@@ -217,81 +206,7 @@ class SeparateAtom(Operator):
     def execute(self, context):
         scn = bpy.context.scene.atom_blend[0]
 
-        # Get first all important properties from the atoms, which the user
-        # has chosen: location, color, scale
-        obj = bpy.context.edit_object
-        
-        # Do nothing if it is not a dupliverts structure.
-        if not obj.dupli_type == "VERTS":
-            return {'FINISHED'}
-        
-        bm = bmesh.from_edit_mesh(obj.data)
-
-        locations = []
-
-        for v in bm.verts:
-            if v.select:
-                locations.append(obj.matrix_world * v.co)
-
-        bm.free()
-        del(bm)
-
-        name  = obj.name
-        scale = obj.children[0].scale
-        material = obj.children[0].active_material
-
-        # Separate the vertex from the main mesh and create a new mesh.
-        bpy.ops.mesh.separate()
-        new_object = bpy.context.scene.objects[0]
-        # And now, switch to the OBJECT mode such that we can ...
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-        # ... delete the new mesh including the separated vertex
-        bpy.ops.object.select_all(action='DESELECT')
-        new_object.select = True
-        bpy.ops.object.delete()  
-
-        # Create new atoms/vacancies at the position of the old atoms
-        current_layers=bpy.context.scene.layers
-
-        # For all selected positions do:
-        for location in locations:
-            # For any ball do ...
-            if "Vacancy" not in name:
-                # NURBS ball
-                if obj.children[0].type == "SURFACE":
-                    bpy.ops.surface.primitive_nurbs_surface_sphere_add(
-                                    view_align=False, enter_editmode=False,
-                                    location=location,
-                                    rotation=(0.0, 0.0, 0.0),
-                                    layers=current_layers)
-                # Mesh ball                    
-                elif obj.children[0].type == "MESH":
-                    bpy.ops.mesh.primitive_uv_sphere_add(
-                                segments=32,
-                                ring_count=32,                    
-                                #segments=scn.mesh_azimuth,
-                                #ring_count=scn.mesh_zenith,
-                                size=1, view_align=False, enter_editmode=False,
-                                location=location,
-                                rotation=(0, 0, 0),
-                                layers=current_layers)
-            # If it is a vacancy create a cube ...                    
-            else:
-                bpy.ops.mesh.primitive_cube_add(
-                               view_align=False, enter_editmode=False,
-                               location=location,
-                               rotation=(0.0, 0.0, 0.0),
-                               layers=current_layers)
-
-            new_atom = bpy.context.scene.objects.active
-            # Scale, material and name it.
-            new_atom.scale = scale
-            new_atom.active_material = material
-            new_atom.name = name + "_sep"
-            new_atom.select = True
-
-        bpy.context.scene.objects.active = obj
-        #bpy.ops.object.select_all(action='DESELECT')
+        io_atomblend_utilities.separate_atoms(scn)
 
         return {'FINISHED'}
 
@@ -306,14 +221,6 @@ class DistanceButton(Operator):
         scn  = bpy.context.scene.atom_blend[0]
         dist = io_atomblend_utilities.distance()
 
-        if dist != "N.A.":
-            # The string length is cut, 3 digits after the first 3 digits
-            # after the '.'. Append also "Angstrom".
-            # Remember: 1 Angstrom = 10^(-10) m
-            pos    = str.find(dist, ".")
-            dist   = dist[:pos+4]
-            dist   = dist + " A"
-
         # Put the distance into the string of the output field.
         scn.distance = dist
         return {'FINISHED'}
@@ -326,11 +233,12 @@ class RadiusAllBiggerButton(Operator):
     bl_description = "Increase the radii of the atoms"
 
     def execute(self, context):
-        scn = bpy.context.scene.atom_blend[0]
-        io_atomblend_utilities.radius_all(
-                scn.radius_all,
-                scn.radius_how,
-                )
+        scn = bpy.context.scene.atom_blend[0]     
+        io_atomblend_utilities.choose_objects("radius_all", 
+                                              scn.radius_how, 
+                                              scn.radius_all, 
+                                              None,
+                                              None)        
         return {'FINISHED'}
 
 
@@ -342,10 +250,11 @@ class RadiusAllSmallerButton(Operator):
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend[0]
-        io_atomblend_utilities.radius_all(
-                1.0/scn.radius_all,
-                scn.radius_how,
-                )
+        io_atomblend_utilities.choose_objects("radius_all", 
+                                              scn.radius_how, 
+                                              1.0/scn.radius_all, 
+                                              None,
+                                              None)                                     
         return {'FINISHED'}
 
 

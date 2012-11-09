@@ -16,10 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy
 import io
-import math
 import os
+import bpy
+import bmesh
+
 from math import pi, cos, sin
 from mathutils import Vector, Matrix
 
@@ -189,22 +190,22 @@ def distance():
         return "N.A."
 
     dv = object_2.location - object_1.location
-    return str(dv.length)
+    dist = str(dv.length)
+    pos = str.find(dist, ".")
+    dist = dist[:pos+4]
+    dist = dist + " A"
+  
+    return dist
 
 
-# Routine to modify the radii via the type:
-#
-#        pre-defined, atomic or van der Waals
-#
-# Explanations here are also valid for the next 3 DEFs.
-def radius_type(rtype,how):
+def choose_objects(how, who, radius_all, radius_pm, radius_type):
 
-    if how == "ALL_IN_LAYER":
+    if who == "ALL_IN_LAYER":
 
-        # Note all layers that are active.
+        # Determine all selected layers.
         layers = []
-        for i in range(20):
-            if bpy.context.scene.layers[i] == True:
+        for i, layer in enumerate(bpy.context.scene.layers):
+            if layer == True:
                 layers.append(i)
                 
         # Put all objects, which are in the layers, into a list.
@@ -218,97 +219,58 @@ def radius_type(rtype,how):
         for obj in change_objects:
             if len(obj.children) != 0:
                 if obj.children[0].type in {'SURFACE', 'MESH'}:
-                    for element in ATOM_BLEND_ELEMENTS:
-                        if element.name in obj.name:
-                            obj.children[0].scale = (element.radii[int(rtype)],) * 3
+                    modify_objects(how, 
+                                   obj.children[0],
+                                   radius_all, 
+                                   radius_pm, 
+                                   radius_type)
             else:
                 if obj.type in {'SURFACE', 'MESH'}:
-                    for element in ATOM_BLEND_ELEMENTS:
-                        if element.name in obj.name:
-                            obj.scale = (element.radii[int(rtype)],) * 3
+                    modify_objects(how, 
+                                   obj,  
+                                   radius_all, 
+                                   radius_pm, 
+                                   radius_type)
 
-    if how == "ALL_ACTIVE":
+    if who == "ALL_ACTIVE":
         for obj in bpy.context.selected_objects:
             if len(obj.children) != 0:
                 if obj.children[0].type in {'SURFACE', 'MESH'}:
-                    for element in ATOM_BLEND_ELEMENTS:
-                        if element.name in obj.name:
-                            obj.children[0].scale = (element.radii[int(rtype)],) * 3
+                    modify_objects(how, 
+                                   obj.children[0],
+                                   radius_all, 
+                                   radius_pm, 
+                                   radius_type)
             else:
                 if obj.type in {'SURFACE', 'MESH'}:
-                    for element in ATOM_BLEND_ELEMENTS:
-                        if element.name in obj.name:
-                            obj.scale = (element.radii[int(rtype)],) * 3
+                    modify_objects(how, 
+                                   obj,
+                                   radius_all, 
+                                   radius_pm, 
+                                   radius_type)
+
 
 
 # Routine to modify the radii in picometer of a specific type of atom
-def radius_pm(atomname, radius_pm, how):
+def modify_objects(how, obj, radius_all, radius_pm, radius_type):
 
-    if how == "ALL_IN_LAYER":
-
-        layers = []
-        for i in range(20):
-            if bpy.context.scene.layers[i] == True:
-                layers.append(i)
-        change_objects = []
-        for obj in bpy.context.scene.objects:
-            for layer in layers:
-                if obj.layers[layer] == True:
-                    change_objects.append(obj)
-        for obj in change_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type in {'SURFACE', 'MESH'}:
-                    if atomname in obj.name:
-                        obj.children[0].scale = (radius_pm/100,) * 3
-            else:
-                if obj.type == "SURFACE" or obj.type == "MESH":
-                    if atomname in obj.name:
-                        obj.scale = (radius_pm/100,) * 3
-
-    if how == "ALL_ACTIVE":
-        for obj in bpy.context.selected_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type in {'SURFACE', 'MESH'}:
-                    if atomname in obj.name:
-                        obj.children[0].scale = (radius_pm/100,) * 3
-            else:
-                if obj.type in {'SURFACE', 'MESH'}:
-                    if atomname in obj.name:
-                        obj.scale = (radius_pm/100,) * 3
+    # Radius pm 
+    if how == "radius_pm":
+        if radius_pm[0] in obj.name:
+            obj.scale = (radius_pm[1]/100,) * 3
+            
+    # Radius all 
+    if how == "radius_all":
+        obj.scale *= radius_all      
+              
+    # Radius type 
+    if how == "radius_type":
+        for element in ATOM_BLEND_ELEMENTS:
+            if element.name in obj.name:
+                obj.scale = (element.radii[int(radius_type)],) * 3
 
 
-# Routine to scale the radii of all atoms
-def radius_all(scale, how):
-
-    if how == "ALL_IN_LAYER":
-
-        layers = []
-        for i in range(20):
-            if bpy.context.scene.layers[i] == True:
-                layers.append(i)
-        change_objects = []
-        for obj in bpy.context.scene.objects:
-            for layer in layers:
-                if obj.layers[layer] == True:
-                    change_objects.append(obj)
-        for obj in change_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type in {'SURFACE', 'MESH'}:
-                    obj.children[0].scale *= scale
-            else:
-                if obj.type in {'SURFACE', 'MESH'}:
-                    obj.scale *= scale
-
-    if how == "ALL_ACTIVE":
-        for obj in bpy.context.selected_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type in {'SURFACE', 'MESH'}:
-                    obj.children[0].scale *= scale
-            else:
-                if obj.type in {'SURFACE', 'MESH'}:
-                    obj.scale *= scale
-
-
+# Read the default element list.
 def read_elements():
 
     ATOM_BLEND_ELEMENTS[:] = []
@@ -325,6 +287,24 @@ def read_elements():
                                      radii,radii_ionic)
         ATOM_BLEND_ELEMENTS.append(li)
 
+
+# Change color and radii by uisnf the list of elements.
+def custom_datafile_change_atom_props():
+
+    for obj in bpy.context.selected_objects:
+        if len(obj.children) != 0:
+            child = obj.children[0]
+            if child.type in {'SURFACE', 'MESH'}:
+                for element in ATOM_BLEND_ELEMENTS:
+                    if element.name in obj.name:
+                        child.scale = (element.radii[0],) * 3
+                        child.active_material.diffuse_color = element.color
+        else:
+            if obj.type in {'SURFACE', 'MESH'}:
+                for element in ATOM_BLEND_ELEMENTS:
+                    if element.name in obj.name:
+                        obj.scale = (element.radii[0],) * 3
+                        obj.active_material.diffuse_color = element.color
 
 
 # This reads a custom data file.
@@ -388,3 +368,81 @@ def custom_datafile(path_datafile):
 
 
 
+# Routine for separating atoms from a dupliverts strucutre.
+def separate_atoms(scn):
+
+    # Get first all important properties from the atoms, which the user
+    # has chosen: location, color, scale
+    obj = bpy.context.edit_object
+        
+    # Do nothing if it is not a dupliverts structure.
+    if not obj.dupli_type == "VERTS":
+       return {'FINISHED'}
+        
+    bm = bmesh.from_edit_mesh(obj.data)
+
+    locations = []
+
+    for v in bm.verts:
+        if v.select:
+            locations.append(obj.matrix_world * v.co)
+
+    bm.free()
+    del(bm)
+
+    name  = obj.name
+    scale = obj.children[0].scale
+    material = obj.children[0].active_material
+
+    # Separate the vertex from the main mesh and create a new mesh.
+    bpy.ops.mesh.separate()
+    new_object = bpy.context.scene.objects[0]
+    # And now, switch to the OBJECT mode such that we can ...
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+    # ... delete the new mesh including the separated vertex
+    bpy.ops.object.select_all(action='DESELECT')
+    new_object.select = True
+    bpy.ops.object.delete()  
+
+    # Create new atoms/vacancies at the position of the old atoms
+    current_layers=bpy.context.scene.layers
+
+    # For all selected positions do:
+    for location in locations:
+        # For any ball do ...
+        if "Vacancy" not in name:
+            # NURBS ball
+            if obj.children[0].type == "SURFACE":
+                bpy.ops.surface.primitive_nurbs_surface_sphere_add(
+                                view_align=False, enter_editmode=False,
+                                location=location,
+                                rotation=(0.0, 0.0, 0.0),
+                                layers=current_layers)
+            # Mesh ball                    
+            elif obj.children[0].type == "MESH":
+                bpy.ops.mesh.primitive_uv_sphere_add(
+                                segments=32,
+                                ring_count=32,                    
+                                #segments=scn.mesh_azimuth,
+                                #ring_count=scn.mesh_zenith,
+                                size=1, view_align=False, enter_editmode=False,
+                                location=location,
+                                rotation=(0, 0, 0),
+                                layers=current_layers)
+        # If it is a vacancy create a cube ...                    
+        else:
+            bpy.ops.mesh.primitive_cube_add(
+                           view_align=False, enter_editmode=False,
+                           location=location,
+                           rotation=(0.0, 0.0, 0.0),
+                           layers=current_layers)
+                               
+        new_atom = bpy.context.scene.objects.active
+        # Scale, material and name it.
+        new_atom.scale = scale
+        new_atom.active_material = material
+        new_atom.name = name + "_sep"
+        new_atom.select = True
+
+    bpy.context.scene.objects.active = obj
+    #bpy.ops.object.select_all(action='DESELECT')
