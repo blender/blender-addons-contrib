@@ -52,9 +52,7 @@ bl_info = {
 import bpy
 from bpy.types import Operator, Panel
 from bpy.props import (StringProperty,
-                       BoolProperty,
                        EnumProperty,
-                       IntProperty,
                        FloatProperty)
 
 from . import io_atomblend_utilities

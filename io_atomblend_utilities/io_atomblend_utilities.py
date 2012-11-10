@@ -213,14 +213,14 @@ def choose_objects(how, who, radius_all, radius_pm, radius_type):
         # Consider all objects, which are in the list 'change_objects'.
         for obj in change_objects:
             if len(obj.children) != 0:
-                if obj.children[0].type in {'SURFACE', 'MESH'}:
+                if obj.children[0].type in {'SURFACE', 'MESH', 'META'}:
                     modify_objects(how, 
                                    obj.children[0],
                                    radius_all, 
                                    radius_pm, 
                                    radius_type)
             else:
-                if obj.type in {'SURFACE', 'MESH'}:
+                if obj.type in {'SURFACE', 'MESH', 'META'}:
                     modify_objects(how, 
                                    obj,  
                                    radius_all, 
@@ -229,14 +229,14 @@ def choose_objects(how, who, radius_all, radius_pm, radius_type):
     if who == "ALL_ACTIVE":
         for obj in bpy.context.selected_objects:
             if len(obj.children) != 0:
-                if obj.children[0].type in {'SURFACE', 'MESH'}:
+                if obj.children[0].type in {'SURFACE', 'MESH', 'META'}:
                     modify_objects(how, 
                                    obj.children[0],
                                    radius_all, 
                                    radius_pm, 
                                    radius_type)
             else:
-                if obj.type in {'SURFACE', 'MESH'}:
+                if obj.type in {'SURFACE', 'MESH', 'META'}:
                     modify_objects(how, 
                                    obj,
                                    radius_all, 
@@ -288,13 +288,13 @@ def custom_datafile_change_atom_props():
     for obj in bpy.context.selected_objects:
         if len(obj.children) != 0:
             child = obj.children[0]
-            if child.type in {'SURFACE', 'MESH'}:
+            if child.type in {'SURFACE', 'MESH', 'META'}:
                 for element in ELEMENTS:
                     if element.name in obj.name:
                         child.scale = (element.radii[0],) * 3
                         child.active_material.diffuse_color = element.color
         else:
-            if obj.type in {'SURFACE', 'MESH'}:
+            if obj.type in {'SURFACE', 'MESH', 'META'}:
                 for element in ELEMENTS:
                     if element.name in obj.name:
                         obj.scale = (element.radii[0],) * 3
@@ -407,11 +407,11 @@ def separate_atoms(scn):
             # NURBS ball
             if obj.children[0].type == "SURFACE":
                 bpy.ops.surface.primitive_nurbs_surface_sphere_add(
-                                view_align=False, enter_editmode=False,
-                                location=location,
-                                rotation=(0.0, 0.0, 0.0),
-                                layers=current_layers)
-            # Mesh ball                    
+                                    view_align=False, enter_editmode=False,
+                                    location=location,
+                                    rotation=(0.0, 0.0, 0.0),
+                                    layers=current_layers)
+                # Mesh ball                    
             elif obj.children[0].type == "MESH":
                 bpy.ops.mesh.primitive_uv_sphere_add(
                                 segments=32,
@@ -422,6 +422,11 @@ def separate_atoms(scn):
                                 location=location,
                                 rotation=(0, 0, 0),
                                 layers=current_layers)
+                # Metaball
+            elif obj.children[0].type == "META":
+                bpy.ops.object.metaball_add(type='BALL', view_align=False, 
+                            enter_editmode=False, location=location, 
+                            rotation=(0, 0, 0), layers=current_layers)
         # If it is a vacancy create a cube ...                    
         else:
             bpy.ops.mesh.primitive_cube_add(
