@@ -17,8 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import os
-from math import pi, cos, sin, sqrt
+from math import pi, sqrt
 from mathutils import Vector, Matrix
 
 # -----------------------------------------------------------------------------
@@ -213,6 +212,7 @@ def read_elements():
 def read_xyz_file(filepath_xyz,radiustype):
 
     number_frames = 0
+    total_number_atoms = 0
 
     # Open the file ...
     filepath_xyz_p = open(filepath_xyz, "r")
@@ -331,12 +331,11 @@ def read_xyz_file(filepath_xyz,radiustype):
                 atoms_one_type = []
                 for atom in all_atoms:
                     if atom[1] == element:
-                        atoms_one_type.append(AtomProp(
-                                                           atom[0],
-                                                           atom[1],
-                                                           atom[2],
-                                                           atom[3],
-                                                           atom[4],[]))
+                        atoms_one_type.append(AtomProp(atom[0],
+                                                       atom[1],
+                                                       atom[2],
+                                                       atom[3],
+                                                       atom[4],[]))
                 structure.append(atoms_one_type)
 
             ALL_FRAMES.append(structure)
@@ -351,17 +350,17 @@ def read_xyz_file(filepath_xyz,radiustype):
 # -----------------------------------------------------------------------------
 #                                                            The main routine
 
-def import_xyz(use_mesh,
-                      Ball_azimuth,
-                      Ball_zenith,
-                      Ball_radius_factor,
-                      radiustype,
-                      Ball_distance_factor,
-                      put_to_center, 
-                      put_to_center_all,
-                      use_camera,
-                      use_lamp,
-                      filepath_xyz):
+def import_xyz(Ball_type,
+               Ball_azimuth,
+               Ball_zenith,
+               Ball_radius_factor,
+               radiustype,
+               Ball_distance_factor,
+               put_to_center, 
+               put_to_center_all,
+               use_camera,
+               use_lamp,
+               filepath_xyz):
 
     # List of materials
     atom_material_list = []
@@ -621,18 +620,23 @@ def import_xyz(use_mesh,
                             layers=current_layers)
         else:
             # NURBS balls
-            if use_mesh == False:
+            if Ball_type == "0":
                 bpy.ops.surface.primitive_nurbs_surface_sphere_add(
                             view_align=False, enter_editmode=False,
                             location=(0,0,0), rotation=(0.0, 0.0, 0.0),
                             layers=current_layers)
             # UV balls
-            else:
+            elif Ball_type == "1":
                 bpy.ops.mesh.primitive_uv_sphere_add(
                             segments=Ball_azimuth, ring_count=Ball_zenith,
                             size=1, view_align=False, enter_editmode=False,
                             location=(0,0,0), rotation=(0, 0, 0),
                             layers=current_layers)
+            # Meta balls
+            elif Ball_type == "2":
+                bpy.ops.object.metaball_add(type='BALL', view_align=False, 
+                            enter_editmode=False, location=(0, 0, 0), 
+                            rotation=(0, 0, 0), layers=current_layers)
 
         ball = bpy.context.scene.objects.active
         ball.scale  = (atom.radius*Ball_radius_factor,) * 3
@@ -664,7 +668,6 @@ def import_xyz(use_mesh,
 def build_frames(frame_delta, frame_skip):
 
     scn = bpy.context.scene
-    current_layers = scn.layers
 
     # Introduce the basis for all elements that appear in the structure.     
     for element in STRUCTURE:

@@ -36,7 +36,7 @@ def export_xyz(obj_type, filepath_xyz):
         if "Stick" in obj.name:
             continue
             
-        if obj.type not in {'MESH', 'SURFACE'}:
+        if obj.type not in {'MESH', 'SURFACE', 'META'}:
             continue 
        
         name = ""
