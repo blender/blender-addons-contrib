@@ -9,7 +9,7 @@
 		<node type="BSDF_GLOSSY" distribution="BECKMANN" color="rgba(0.80000, 0.80000, 0.80000, 1.0)" roughness="0.19999" loc="-115, 70" />
 		<node type="BSDF_GLOSSY" distribution="BECKMANN" color="rgba(0.80000, 0.80000, 0.80000, 1.0)" roughness="0.39999" loc="-209, -61" />
 		<node type="MIX_RGB" blend_type="MIX" use_clamp="False" fac="0.5" color1="rgba(0.5, 0.5, 0.5, 1.0)" color2="rgba(0.5, 0.5, 0.5, 1.0)" loc="-345, 69" />
-		<node type="BRIGHTCONTRAST" color="rgba(1.0, 1.0, 1.0, 1.0)" bright="2.60770" contrast="0.0" loc="-523, -58" />
+		<node type="BRIGHTCONTRAST" color="rgba(1.0, 1.0, 1.0, 1.0)" bright="0.0" contrast="0.0" loc="-523, -58" />
 		<node type="BRIGHTCONTRAST" color="rgba(1.0, 1.0, 1.0, 1.0)" bright="-0.39999" contrast="0.0" loc="-526, 71" />
 		<node type="FRESNEL" ior="8.0" loc="-884, 228" />
 		<node type="RGB" color="rgba(0.5, 0.15069, 0.0, 1.0)" loc="-785, 95" />

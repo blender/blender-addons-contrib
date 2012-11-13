@@ -50,18 +50,18 @@
 	<category title="Stones" folder="stones" addon="0.4">
 		<material name="Diamond" href="diamond" stars="3" fireflies="high" speed="slow" addon="0.4" />
 		<material name="Malachite" href="malachite" by="moony" stars="3" addon="0.4" />
-		<material name="Polished Haematite" href="polished_haematite" by="moony" stars="5" complexity="medium" addon="0.4" />
+		<material name="Polished Haematite" href="polished_haematite" by="moony" stars="5" complexity="intermediate" addon="0.4" />
 	</category>
 	<category title="Synthetic" folder="synthetic" addon="0.4">
 		<material name="Carbon Fiber" href="carbon_fiber" stars="5" complexity="complex" addon="0.4" />
 		<material name="Carbon Fiber (Glossy)" href="carbon_fiber_glossy" stars="3" complexity="complex" addon="0.4" />
-		<material name="Polystyrene Foam" href="polystyrene_foam" by="Peter Cassetta" stars="3" complexity="intermediate" addon="0.4" />
+		<material name="Polystyrene Foam" href="polystyrene_foam" by="Peter Cassetta" stars="4" complexity="intermediate" addon="0.4" />
 		<material name="Rubber" href="rubber" stars="3" addon="0.4" />
 	</category>
 	<category title="Textiles" folder="textiles" addon="0.4">
 		<material name="Denim" href="denim" by="Peter Cassetta" stars="4" complexity="complex" addon="0.4" />
-		<material name="Weave Test" href="weave_test" by="niabot" stars="4" complexity="complex" addon="0.4" />
 		<material name="Velvet (Edged)" href="velvet_edged" stars="4" addon="0.4" />
+		<material name="Weave Test" href="weave_test" by="niabot" stars="4" complexity="complex" addon="0.4" />
 		<material name="Woven Wool" href="woven_wool" by="meta-androcto" stars="3" addon="0.4" />
 	</category>
 	<category title="Wood" folder="wood" addon="0.4">
