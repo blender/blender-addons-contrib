@@ -181,7 +181,7 @@ class CLASS_atom_cluster_atom(object):
         
 def DEF_atom_read_atom_data():
 
-    ATOM_CLUSTER_ELEMENTS[:] = []
+    del ATOM_CLUSTER_ELEMENTS[:]
 
     for item in ATOM_CLUSTER_ELEMENTS_DEFAULT:
 

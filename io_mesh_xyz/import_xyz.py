@@ -190,7 +190,7 @@ class AtomProp(object):
 
 def read_elements():
 
-    ELEMENTS[:] = []
+    del ELEMENTS[:]
 
     for item in ELEMENTS_DEFAULT:
 

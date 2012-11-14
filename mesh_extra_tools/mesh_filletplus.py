@@ -42,7 +42,7 @@ from math import cos, pi, degrees, sin, tan
 
 
 def list_clear_(l):
-	l[:] = []
+	del l[:]
 	return l
 
 def get_adj_v_(list_):

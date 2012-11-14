@@ -262,7 +262,7 @@ class CLASS_atom_cluster_load_button(Operator):
         scn    = context.scene.atom_cluster[0]
 
         add_mesh_cluster.DEF_atom_read_atom_data()
-        add_mesh_cluster.ATOM_CLUSTER_ALL_ATOMS[:] = []
+        del add_mesh_cluster.ATOM_CLUSTER_ALL_ATOMS[:]
 
         if scn.shape in ["parabolid_ab", "parabolid_abc", "parabolid_square"]:
             parameter1 = scn.parabol_height

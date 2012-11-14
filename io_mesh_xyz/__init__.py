@@ -168,9 +168,9 @@ class ImportXYZ(Operator, ImportHelper):
         
     def execute(self, context):
 
-        import_xyz.ALL_FRAMES[:] = []
-        import_xyz.ELEMENTS[:] = []
-        import_xyz.STRUCTURE[:] = []
+        del import_xyz.ALL_FRAMES[:]
+        del import_xyz.ELEMENTS[:]
+        del import_xyz.STRUCTURE[:]
 
         # This is to determine the path.
         filepath_xyz = bpy.path.abspath(self.filepath)

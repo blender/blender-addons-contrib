@@ -267,7 +267,7 @@ def modify_objects(how, obj, radius_all, radius_pm, radius_type):
 # Read the default element list.
 def read_elements():
 
-    ELEMENTS[:] = []
+    del ELEMENTS[:]
 
     for item in ELEMENTS_DEFAULT:
 
@@ -313,7 +313,7 @@ def custom_datafile(path_datafile):
         return False
 
     # The whole list gets deleted! We build it new.
-    ELEMENTS[:] = []
+    del ELEMENTS[:]
 
     # Read the data file, which contains all data
     # (atom name, radii, colors, etc.)
