@@ -258,6 +258,7 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                     row.label(text="No cached files.")
                 elif mat_lib_cached_files == 1:
                     row.label(text=str(mat_lib_cached_files) + " cached file.")
+                    row.operator("material.libraryclearcache", text="Clear Cache", icon='CANCEL')
                 elif mat_lib_cached_files != -1:
                     row.label(text=str(mat_lib_cached_files) + " cached files.")
                     row.operator("material.libraryclearcache", text="Clear Cache", icon='CANCEL')
@@ -1414,7 +1415,7 @@ class AddLibraryMaterial(bpy.types.Operator):
                     self.mat_name = ""
                     self.report({'ERROR'}, "Material file is either outdated or invalid.")
                     return {'CANCELLED'}
-            elif os.path.exists(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm"):
+            elif library == "bundled" and os.path.exists(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm"):
                 bcm_file = open(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
@@ -1597,7 +1598,7 @@ class ApplyLibraryMaterial(bpy.types.Operator):
                     self.filename = ""
                     self.report({'ERROR'}, "Material file is either outdated or invalid.")
                     return {'CANCELLED'}
-            elif os.path.exists(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm"):
+            elif library == "bundled" and os.path.exists(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm"):
                 bcm_file = open(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
@@ -1612,6 +1613,13 @@ class ApplyLibraryMaterial(bpy.types.Operator):
                 connection.request("GET", mat_lib_location + "cycles/" + category_filename + "/" + self.filename + ".bcm")
                 response = connection.getresponse().read()
                 
+                #Check file for validitity
+                if '<?xml version="1.0" encoding="UTF-8"?>' not in str(response)[2:40]:
+                    self.report({'ERROR'}, "Material file is either outdated or invalid.")
+                    self.mat_name = ""
+                    self.filename = ""
+                    return {'CANCELLED'}
+                
                 #Cache material
                 if library == "composite":
                     bcm_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="w+b")
@@ -1622,12 +1630,6 @@ class ApplyLibraryMaterial(bpy.types.Operator):
                     bcm_file.write(response)
                     bcm_file.close()
                 
-                #Check file for validitity
-                if '<?xml version="1.0" encoding="UTF-8"?>' not in str(response)[2:40]:
-                    self.report({'ERROR'}, "Material file is either outdated or invalid.")
-                    self.mat_name = ""
-                    self.filename = ""
-                    return {'CANCELLED'}
                 material_file_contents = ""
                 material_file_contents = str(response)[str(response).index("<material"):str(response).index("/material>") + 10]
             else:
@@ -1818,7 +1820,7 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
             bcm_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + library + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r+b")
             response = bcm_file.read()
             bcm_file.close()
-        elif os.path.exists(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + save_filename + ".bcm"):
+        elif library == "bundled" and os.path.exists(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + save_filename + ".bcm"):
             bcm_file = open(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r+b")
             response = bcm_file.read()
             bcm_file.close()
