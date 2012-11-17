@@ -533,9 +533,9 @@ def MapAdd_View3D_Global(kc):
     
 
     # Basics with mouse
-    kmi = km.keymap_items.new('view3d.move', 'MIDDLEMOUSE', 'PRESS')
+    kmi = km.keymap_items.new('view3d.rotate', 'MIDDLEMOUSE', 'PRESS')
+    kmi = km.keymap_items.new('view3d.move', 'MIDDLEMOUSE', 'PRESS', shift=True)
     kmi = km.keymap_items.new('view3d.zoom', 'MIDDLEMOUSE', 'PRESS', ctrl=True)
-    kmi = km.keymap_items.new('view3d.rotate', 'MIDDLEMOUSE', 'PRESS', shift=True)
     #kmi = km.keymap_items.new('view3d.dolly', 'MIDDLEMOUSE', 'PRESS', shift=True, ctrl=True)
 
     # Basics with mouse wheel
