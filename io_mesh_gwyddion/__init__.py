@@ -74,14 +74,7 @@ class ImportGwyddion(Operator, ImportHelper):
         description="Do you need a camera?")
     use_lamp = BoolProperty(
         name="Lamp", default=False,
-        description = "Do you need a lamp?")
-    fit = EnumProperty(
-        name="Processing",
-        description="Choose the image processing routine",
-        items=(('0', "None", "Load raw data"),
-               ('1', "Plane" , "Perform a plane fit"),
-               ('2', "Line" , "Perform a line fit")),
-               default='0',)             
+        description = "Do you need a lamp?")             
     use_smooth = BoolProperty(
         name="Smooth image data", default=False,
         description = "Smooth the images")
@@ -123,9 +116,7 @@ class ImportGwyddion(Operator, ImportHelper):
         layout = self.layout
         row = layout.row()
         row.prop(self, "use_camera")
-        row.prop(self, "use_lamp")
-        row = layout.row()
-        row.prop(self, "fit")     
+        row.prop(self, "use_lamp")   
         row = layout.row()
         row.prop(self, "use_smooth")
         row = layout.row()
@@ -162,12 +153,6 @@ class ImportGwyddion(Operator, ImportHelper):
         images, AFMdata = import_gwyddion.load_gwyddion_images(filepath_par, 
                                                                channels) 
 
-        #print("passed - 2")               
-        if self.fit == '1':
-            images = import_gwyddion.plane_fit(images, AFMdata)
-        if self.fit == '2':
-            images = import_gwyddion.line_fit(images, AFMdata) 
-
         #print("passed - 3")
         import_gwyddion.create_mesh(images, 
                                  AFMdata,
@@ -187,7 +172,6 @@ def menu_func_import(self, context):
 
 
 def register():
-    import_gwyddion.initialize_linalg()
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     

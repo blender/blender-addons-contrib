@@ -21,7 +21,6 @@ import os
 import re
 from math import pi, sqrt
 from mathutils import Vector, Matrix
-import numpy as np
 import struct
 
 # All data for the images. Basically, each variable is a list with a length,
@@ -61,153 +60,6 @@ class AFMData(object):
         self.spec_acquisition = spec_acquisition
         self.spec_delay = spec_delay     
       
-class LinAlg(object):
-    def __init__(self, plane_M512, plane_M1024, 
-                       plane_x_vec512, plane_y_vec512, 
-                       plane_x_vec1024, plane_y_vec1024,
-                       line_M512, line_M1024,
-                       line_x_vec512,line_x_vec1024):
-        self.plane_M512  = plane_M512
-        self.plane_M1024 = plane_M1024  
-        self.plane_x_vec512  = plane_x_vec512
-        self.plane_y_vec512  = plane_y_vec512 
-        self.plane_x_vec1024 = plane_x_vec1024
-        self.plane_y_vec1024 = plane_y_vec1024
-
-
-LINALG = LinAlg(None,None,None,None,None,None,None,None,None,None) 
-
-# Some important matrices are pre-calculated here. They are used for plane and 
-# line fits for images with 512x512 and 1024x1024 px²
-def initialize_linalg():
-
-    # Plane
-    x_vec = np.arange(512)
-    y_vec = np.arange(512)
-    x   = x_vec.sum() * 512
-    y   = y_vec.sum() * 512
-    xx  = (x_vec * x_vec).sum() * 512
-    yy  = (y_vec * y_vec).sum() * 512
-    xy  = (y_vec * (x / 512)).sum()
-
-    LINALG.plane_M512 = np.mat([[xx,xy,x],
-                                [xy,yy,y],
-                                [x,y,512*512]])
-    LINALG.plane_x_vec512 = x_vec
-    LINALG.plane_y_vec512 = y_vec                             
-                             
-    x_vec = np.arange(1024)
-    y_vec = np.arange(1024)
-    x   = x_vec.sum() * 1024
-    y   = y_vec.sum() * 1024
-    xx  = (x_vec * x_vec).sum() * 1024
-    yy  = (y_vec * y_vec).sum() * 1024
-    xy  = (y_vec * (x / 1024)).sum()
-
-    LINALG.plane_M1024 = np.mat([[xx,xy,x],
-                                 [xy,yy,y],
-                                 [x,y,1024*1024]])
-    LINALG.plane_x_vec1024 = x_vec
-    LINALG.plane_y_vec1024 = y_vec
-    
-    # Line
-    x_vec = np.arange(512)
-    x   = x_vec.sum()
-    xx  = (x_vec * x_vec).sum()
-    LINALG.line_M512 = np.mat([[xx,x],
-                               [x,float(512)]])
-    LINALG.line_x_vec512 = x_vec
-
-    x_vec = np.arange(1024)
-    x   = x_vec.sum()
-    xx  = (x_vec * x_vec).sum()
-    LINALG.line_M1024 = np.mat([[xx,x],
-                                [x,float(1024)]])
-    LINALG.line_x_vec1024 = x_vec
-        
-# The plane fit routine      
-def plane_fit(data_list, AFMdata):    
-    
-    data_list_new = []
-    for size_x, size_y, data in zip(AFMdata.x_pixel, AFMdata.y_pixel, data_list):
-        
-        if size_x == 512 and size_y == 512:
-            M     = LINALG.plane_M512
-            x_vec = LINALG.plane_x_vec512
-            y_vec = LINALG.plane_y_vec512
-        elif size_x == 1024 and size_y == 1024:
-            M     = LINALG.plane_M1024
-            x_vec = LINALG.plane_x_vec1024
-            y_vec = LINALG.plane_y_vec1024
-        else:
-            x_vec = np.arange(size_x)
-            y_vec = np.arange(size_y)
-    
-            x   = x_vec.sum() * size_x
-            y   = y_vec.sum() * size_y
-            xx  = (x_vec * x_vec).sum() * size_x
-            yy  = (y_vec * y_vec).sum() * size_y
-            xy  = (y_vec * (x / size_x)).sum()
-    
-            M = np.mat([[xx,xy,x],
-                        [xy,yy,y],
-                        [x,y,size_x*size_y]])
-    
-        z  = data.sum()
-        xz = (data * x_vec).sum()
-        yz = (data * y_vec.reshape(size_y,1)).sum()
-        B  = np.mat([[xz], [yz], [z]])
-        
-        c,resid,rank,sigma = np.linalg.lstsq(M,B)
-    
-        array_one = np.array([[1 for i in range(size_x)] for j in range(size_y)])
-    
-        plane_const = array_one * float(c[2][0])
-        plane_x     = array_one * x_vec * float(c[0][0])
-        plane_y     = array_one * y_vec.reshape(size_y,1) *float(c[1][0])
-        plane       = plane_const + plane_x + plane_y          
-    
-        # The plane substraction
-        data = data - plane
-        data_list_new.append(data)
-        
-    return (data_list_new)  
-    
-# The line fit routine    
-def line_fit(data_list, AFMdata):
-    
-    data_list_new = []
-    for size_x, size_y, data in zip(AFMdata.x_pixel, AFMdata.y_pixel, data_list):
-            
-        if size_x == 512 and size_y == 512:
-            M = LINALG.line_M512
-            x_vec = LINALG.line_x_vec512          
-        elif size_x == 1024 and size_y == 1024:
-            M = LINALG.line_M1024
-            x_vec = LINALG.line_x_vec1024                                 
-        else:                
-            x_vec = np.arange(size_x)
-            x   = x_vec.sum()
-            xx  = (x_vec * x_vec).sum()
-            M   = np.mat([[xx,x],
-                          [x,float(size_x)]])
-                          
-        plane = []
-        for line in data:
-            y  = sum(line)
-            xy = sum(line*x_vec)            
-                    
-            B  = np.mat([[xy],[y]])
-            c,resid,rank,sigma = np.linalg.lstsq(M,B)
-                                    
-            plane.append([i * float(c[0][0]) + float(c[1][0]) 
-                          for i in range(size_x)])
-                    
-        # The plane substraction
-        data = data - plane    
-        data_list_new.append(data)
-        
-    return (data_list_new)
 
 # For loading the Gwyddion images. I basically have followed rules described 
 # here: http://gwyddion.net/documentation/user-guide-en/gwyfile-format.html
@@ -289,7 +141,7 @@ def load_gwyddion_images(data_file, channels):
                 line.append(struct.unpack("d",data[k:l])[0]*factor)
             image.append(line)     
             
-        images.append(np.array(image))
+        images.append(image)
    
         # Note all parameters of the image.
         AFMdata.x_pixel.append(int(size_x_pixel))
