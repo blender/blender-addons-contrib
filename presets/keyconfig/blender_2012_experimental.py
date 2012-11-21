@@ -1091,21 +1091,30 @@ def MapAdd_View3D_MeshEditMode(kc):
     #-----------
     
     # Shortest path
-    kmi = km.keymap_items.new('mesh.select_shortest_path', 'LEFTMOUSE', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('mesh.select_shortest_path', 'LEFTMOUSE', 'CLICK', alt=True) # Replace
+    # TODO: add, remove
     
     # Edge loop
     kmi = km.keymap_items.new('mesh.loop_select', 'LEFTMOUSE', 'DOUBLE_CLICK') # Replace
     kmi.properties.extend = False
-    kmi = km.keymap_items.new('mesh.loop_select', 'LEFTMOUSE', 'DOUBLE_CLICK', shift=True) # Extend (TODO: Add)
+    kmi.properties.deselect = False
+    kmi = km.keymap_items.new('mesh.loop_select', 'LEFTMOUSE', 'DOUBLE_CLICK', shift=True) # Add
     kmi.properties.extend = True
-    # TODO: Remove
+    kmi.properties.deselect = False
+    kmi = km.keymap_items.new('mesh.loop_select', 'LEFTMOUSE', 'DOUBLE_CLICK', ctrl=True) # Remove
+    kmi.properties.extend = False
+    kmi.properties.deselect = True
     
     # Edge ring
     kmi = km.keymap_items.new('mesh.edgering_select', 'LEFTMOUSE', 'DOUBLE_CLICK', alt=True) # Replace
     kmi.properties.extend = False
-    kmi = km.keymap_items.new('mesh.edgering_select', 'LEFTMOUSE', 'DOUBLE_CLICK', alt=True, shift=True) # Extend (TODO: Add)
+    kmi.properties.deselect = False
+    kmi = km.keymap_items.new('mesh.edgering_select', 'LEFTMOUSE', 'DOUBLE_CLICK', alt=True, shift=True) # Add
     kmi.properties.extend = True
-    # TODO: Remove
+    kmi.properties.deselect = False
+    kmi = km.keymap_items.new('mesh.edgering_select', 'LEFTMOUSE', 'DOUBLE_CLICK', alt=True, ctrl=True) # Remove
+    kmi.properties.extend = False
+    kmi.properties.deselect = True
     
     kmi = km.keymap_items.new('mesh.select_all', 'A', 'PRESS')
     kmi.properties.action = 'TOGGLE'
