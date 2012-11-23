@@ -1062,6 +1062,7 @@ class RotateView3D(Operator):
     pan = Vector((0,0))
 
     key = ['']
+    block = 0
  
     first_time = True
     tmp_level = -1
@@ -1127,24 +1128,24 @@ class RotateView3D(Operator):
         ob = context.object
         em = bpy.data.objects['Empty for BProjection'] 
         reg = context.area.regions[4]        
-        if event.value == 'PRESS':
-            self.pan = Vector((event.mouse_region_x, event.mouse_region_y))
+            
                     
+        if event.type not in {'MOUSEMOVE','INBETWEEN_MOUSEMOVE'}:
+            self.pan = Vector((event.mouse_region_x, event.mouse_region_y))
             self.key = [event.type]
-        """str = event.value+" "+event.type
-        for s in self.key:
-            str+=" "+s
-        print(str)"""
+            self.block = 1
+            
         if event.value == 'RELEASE':
             self.key = [''] 
+            self.block = 0
 
         if event.type == 'MOUSEMOVE':                        
-            
-            self.key = [event.type]
-            if 'MOUSEMOVE' in self.key:
+            if self.block == 0:
                 self.tracball(context, event.mouse_region_x, event.mouse_region_y,ob.location)
                 align_to_view(context)
+                self.first_mouse = Vector((event.mouse_region_x, self.first_mouse.y))
                 if self.first_time:
+                    
                     rot_ang = context.user_preferences.view.rotation_angle            
                     context.user_preferences.view.rotation_angle = 0
                     bpy.ops.view3d.view_orbit(type='ORBITLEFT')
@@ -1152,52 +1153,53 @@ class RotateView3D(Operator):
                     bpy.ops.view3d.view_persportho()         
                     bpy.ops.view3d.view_persportho()
                     self.first_time = False
-          
-            deltax = event.mouse_region_x - round(self.pan.x)
-            deltay = event.mouse_region_y - round(self.pan.y)          
-
-            """if 'G' in self.key:       
-                sd = context.space_data              
-                l =  sd.region_3d
-                vr = l.view_rotation.copy()
-                vr.invert()
-                
-                v_init = Vector((0.0,0.0,1.0))
-                
-                pos = [-deltax,-deltay]
-                v = view3d_utils.region_2d_to_location_3d(context.region, l, pos, v_init)
-                pos = [0,0]
-                vbl = view3d_utils.region_2d_to_location_3d(context.region, l, pos, v_init)        
-                loc = vbl - v            
-                loc.rotate(vr)
-                em.custom_location += loc              
-                                   
-            if 'S' in self.key:                
-                s = em.custom_scale
-                if em.custom_linkscale:
-                    em.custom_propscale += deltax/20
-                else:
-                    em.custom_scale = [s[0] + deltax/20, s[1] + deltay/20]
-                                          
-            if 'Z' in self.key:                
-                em.custom_location.z+=deltax/10
-                      
-            if 'R' in self.key:
-                em.custom_rotation+=deltax
+            else:          
+                deltax = event.mouse_region_x - round(self.pan.x)
+                deltay = event.mouse_region_y - round(self.pan.y)          
+     
+                if 'G' in self.key:     
+                    sd = context.space_data              
+                    l =  sd.region_3d
+                    vr = l.view_rotation.copy()
+                    vr.invert()
                     
-            if 'U' in self.key:
-                suv = em.custom_scaleuv
-                if em.custom_linkscaleuv:    
-                    em.custom_propscaleuv += deltax/50
-                else:
-                    em.custom_scaleuv= [suv[0] + deltax/50 , suv[1] + deltay/50]               
-
-            if 'Y' in self.key:       
-                ouv = em.custom_offsetuv
-                em.custom_offsetuv = [ouv[0] - deltax/50,ouv[1] - deltay/50] 
-
-            self.pan = Vector((event.mouse_region_x, event.mouse_region_y))
-            self.first_mouse = Vector((event.mouse_region_x, self.first_mouse.y))"""
+                    v_init = Vector((0.0,0.0,1.0))
+                    
+                    pos = [-deltax,-deltay]
+                    v = view3d_utils.region_2d_to_location_3d(context.region, l, pos, v_init)
+                    pos = [0,0]
+                    vbl = view3d_utils.region_2d_to_location_3d(context.region, l, pos, v_init)        
+                    loc = vbl - v 
+              
+                    loc.rotate(vr)
+                    em.custom_location += loc              
+                                       
+                if 'S' in self.key:                
+                    s = em.custom_scale
+                    if em.custom_linkscale:
+                        em.custom_propscale += deltax/20
+                    else:
+                        em.custom_scale = [s[0] + deltax/20, s[1] + deltay/20]
+                                              
+                if 'Z' in self.key:                
+                    em.custom_location.z+=deltax/10
+                          
+                if 'R' in self.key:
+                    em.custom_rotation+=deltax
+                        
+                if 'U' in self.key:
+                    suv = em.custom_scaleuv
+                    if em.custom_linkscaleuv:    
+                        em.custom_propscaleuv += deltax/50
+                    else:
+                        em.custom_scaleuv= [suv[0] + deltax/50 , suv[1] + deltay/50]               
+    
+                if 'Y' in self.key:       
+                    ouv = em.custom_offsetuv
+                    em.custom_offsetuv = [ouv[0] - deltax/50,ouv[1] - deltay/50] 
+    
+                self.pan = Vector((event.mouse_region_x, event.mouse_region_y))
+                
                         
         elif event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':
             if self.tmp_level > -1:
@@ -1207,11 +1209,11 @@ class RotateView3D(Operator):
             
             return {'FINISHED'}
         
-        """if 'C' in self.key:
+        if 'C' in self.key:
             clear_props(context)
         
         if 'O' in self.key:
-            bpy.ops.object.change_object()"""            
+            bpy.ops.object.change_object()           
         return {'RUNNING_MODAL'}
     
     def execute(self, context):        
