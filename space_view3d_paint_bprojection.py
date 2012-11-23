@@ -1136,16 +1136,14 @@ class RotateView3D(Operator):
             self.block = 1
             
         if event.value == 'RELEASE':
-            self.key = [''] 
-            self.block = 0
+            return {'FINISHED'}
 
         if event.type == 'MOUSEMOVE':                        
             if self.block == 0:
                 self.tracball(context, event.mouse_region_x, event.mouse_region_y,ob.location)
                 align_to_view(context)
-                self.first_mouse = Vector((event.mouse_region_x, self.first_mouse.y))
-                if self.first_time:
-                    
+                #to unlock the camera
+                if self.first_time:                    
                     rot_ang = context.user_preferences.view.rotation_angle            
                     context.user_preferences.view.rotation_angle = 0
                     bpy.ops.view3d.view_orbit(type='ORBITLEFT')
