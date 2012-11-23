@@ -1131,13 +1131,17 @@ class RotateView3D(Operator):
             self.pan = Vector((event.mouse_region_x, event.mouse_region_y))
                     
             self.key = [event.type]
-
+        """str = event.value+" "+event.type
+        for s in self.key:
+            str+=" "+s
+        print(str)"""
         if event.value == 'RELEASE':
             self.key = [''] 
 
         if event.type == 'MOUSEMOVE':                        
             
-            if '' in self.key:
+            self.key = [event.type]
+            if 'MOUSEMOVE' in self.key:
                 self.tracball(context, event.mouse_region_x, event.mouse_region_y,ob.location)
                 align_to_view(context)
                 if self.first_time:
@@ -1152,7 +1156,7 @@ class RotateView3D(Operator):
             deltax = event.mouse_region_x - round(self.pan.x)
             deltay = event.mouse_region_y - round(self.pan.y)          
 
-            if 'G' in self.key:       
+            """if 'G' in self.key:       
                 sd = context.space_data              
                 l =  sd.region_3d
                 vr = l.view_rotation.copy()
@@ -1193,7 +1197,7 @@ class RotateView3D(Operator):
                 em.custom_offsetuv = [ouv[0] - deltax/50,ouv[1] - deltay/50] 
 
             self.pan = Vector((event.mouse_region_x, event.mouse_region_y))
-            self.first_mouse = Vector((event.mouse_region_x, self.first_mouse.y))
+            self.first_mouse = Vector((event.mouse_region_x, self.first_mouse.y))"""
                         
         elif event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':
             if self.tmp_level > -1:
@@ -1203,11 +1207,11 @@ class RotateView3D(Operator):
             
             return {'FINISHED'}
         
-        if 'C' in self.key:
+        """if 'C' in self.key:
             clear_props(context)
         
         if 'O' in self.key:
-            bpy.ops.object.change_object()            
+            bpy.ops.object.change_object()"""            
         return {'RUNNING_MODAL'}
     
     def execute(self, context):        
