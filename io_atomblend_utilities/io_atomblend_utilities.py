@@ -178,13 +178,32 @@ class ElementProp(object):
 # which are active.
 def distance():
 
-    if len(bpy.context.selected_bases) > 1:
-        object_1 = bpy.context.selected_objects[0]
-        object_2 = bpy.context.selected_objects[1]
-    else:
-        return "N.A."
+    # In the 'Edit mode'
+    if bpy.context.mode == 'EDIT_MESH':
 
-    dv = object_2.location - object_1.location
+        obj = bpy.context.edit_object
+        bm = bmesh.from_edit_mesh(obj.data)
+        locations = []
+
+        for v in bm.verts:
+            if v.select:
+                locations.append(obj.matrix_world * v.co)
+                
+        if len(locations) > 1:
+            location1 = locations[0]
+            location2 = locations[1]        
+        else:
+            return "N.A"
+    # In the object mode
+    else:
+
+        if len(bpy.context.selected_bases) > 1:
+            location1 = bpy.context.selected_objects[0].location
+            location2 = bpy.context.selected_objects[1].location
+        else:
+            return "N.A."
+
+    dv = location2 - location1
     dist = str(dv.length)
     pos = str.find(dist, ".")
     dist = dist[:pos+4]
