@@ -40,6 +40,8 @@
 	</category>
 	<category title="Nature" folder="nature" addon="0.4">
 		<material name="Pearl" href="pearl" by="moony" stars="4" addon="0.4" />
+		<material name="Forest" href="forest" by="Jonathan L" stars="4" complexity="complex" addon="0.4" />
+		<material name="Lava" href="lava" by="monsterdog" stars="4" complexity="intermediate" addon="0.4" />
 	</category>
 	<category title="Plastics" folder="plastics" addon="0.4">
 		<material name="Toy Brick (Red)" href="toy_brick_red" by="Peter Cassetta" stars="4" addon="0.4" />
