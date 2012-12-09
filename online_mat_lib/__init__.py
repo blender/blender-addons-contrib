@@ -30,10 +30,10 @@
 bl_info = {
     "name": "Online Material Library",
     "author": "Peter Cassetta",
-    "version": (0, 4),
+    "version": (0, 5),
     "blender": (2, 6, 3),
     "location": "Properties > Material > Online Material Library",
-    "description": "Browse and download materials from a online CC0 library.",
+    "description": "Browse and download materials from online CC0 libraries.",
     "warning": "Beta version",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Material/Online_Material_Library",
     "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=31802",
@@ -101,17 +101,26 @@ material_ratings = []
 material_fireflies = []
 material_speeds = []
 material_complexities = []
+material_scripts = []
+material_images = []
 
 material_file_contents = ""
 
 current_material_number = -1
 current_material_cached = False
 current_material_previewed = False
+material_detail_view = "RENDER"
 preview_message = []
 node_message = []
 save_filename = ""
+script_stack = []
+osl_scripts = []
 
 bpy.types.Scene.mat_lib_auto_preview = bpy.props.BoolProperty(name = "Auto-download previews", description = "Automatically download material previews in online mode", default = True, options = {'SKIP_SAVE'})
+bpy.types.Scene.mat_lib_show_osl_materials = bpy.props.BoolProperty(name = "Show OSL materials", description = "Enable to show materials with OSL shading scripts", default = False, options = {'SKIP_SAVE'})
+bpy.types.Scene.mat_lib_show_textured_materials = bpy.props.BoolProperty(name = "Show textured materials", description = "Enable to show materials with image textures", default = True, options = {'SKIP_SAVE'})
+bpy.types.Scene.mat_lib_osl_only_trusted = bpy.props.BoolProperty(name = "Use OSL scripts from trusted sources only", description = "Disable to allow downloading OSL scripts from anywhere on the web (Not recommended)", default = True, options = {'SKIP_SAVE'})
+bpy.types.Scene.mat_lib_images_only_trusted = bpy.props.BoolProperty(name = "Use image textures from trusted sources only", description = "Disable to allow downloading image textures from anywhere on the web (Not recommended)", default = True, options = {'SKIP_SAVE'})
 
 bpy.types.Scene.mat_lib_bcm_write = bpy.props.StringProperty(name = "Text Datablock", description = "Name of text datablock to write .bcm data to", default="bcm_file", options = {'SKIP_SAVE'})
 bpy.types.Scene.mat_lib_bcm_read = bpy.props.StringProperty(name = "Text Datablock", description = "Name of text datablock to read .bcm data from", default="bcm_file", options = {'SKIP_SAVE'})
@@ -155,7 +164,7 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                         row.label(text="ERROR: Could not find installation path!", icon='ERROR')
                     else:
                         #Material Library Contents variable is empty -- show welcome message
-                        row.label(text="Online material library add-on -- Version 0.4", icon='SMOOTH')
+                        row.label(text="Online Material Library Add-on -- Version 0.5", icon='SMOOTH')
                         
                         row = layout.row()
                         rowcol = row.column(align=True)
@@ -249,6 +258,10 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                 
                 row = layout.row()
                 row.prop(bpy.context.scene, "mat_lib_auto_preview")
+                row = layout.row()
+                row.prop(bpy.context.scene, "mat_lib_osl_only_trusted")
+                row = layout.row()
+                row.prop(bpy.context.scene, "mat_lib_images_only_trusted")
                 
                 row = layout.row()
                 row.label(text="Cached data for active library:")
@@ -410,14 +423,14 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                     #Close button
                     inforow.operator("material.libraryviewmaterial", text="", icon='PANEL_CLOSE').material = -1
                     
-                    inforow = infobox.row()
+                    #inforow = infobox.row()
+                    inforowsplit = infobox.split(percentage=0.5)
                     
                     #Display a preview
                     if bpy.data.textures.find("mat_lib_preview_texture") == -1:
                         bpy.data.textures.new("mat_lib_preview_texture", "IMAGE")
                         preview_texture = bpy.data.textures["mat_lib_preview_texture"]
-                        inforowcol = inforow.column(align=True)
-                        inforowcol.alignment = 'EXPAND'
+                        inforowcol = inforowsplit.column()
                         
                         if material_contributors[current_material_number] != "Unknown" and material_contributors[current_material_number] != "Anonymous":
                             inforowcolrow = inforowcol.row()
@@ -429,8 +442,7 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                         inforowcolrow.template_preview(preview_texture)
                     else:
                         preview_texture = bpy.data.textures['mat_lib_preview_texture']
-                        inforowcol = inforow.column(align=True)
-                        inforowcol.alignment = 'EXPAND'
+                        inforowcol = inforowsplit.column()
                         if material_contributors[current_material_number] != "Unknown" and material_contributors[current_material_number] != "Anonymous":
                             inforowcolrow = inforowcol.row()
                             inforowcolrow.label(text="By %s." % material_contributors[current_material_number])
@@ -440,54 +452,87 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                         inforowcolrow = inforowcol.row()
                         inforowcolrow.template_preview(preview_texture)
                     
-                    inforowcol = inforow.column()
+                    inforowcol = inforowsplit.column()
                     inforowcolrow = inforowcol.row()
                     inforowcolcol = inforowcol.column(align=True)
                     inforowcolcol.alignment = 'EXPAND'
                     inforowcolcolrow = inforowcolcol.row()
-                    
-                    if material_fireflies[current_material_number] == "high":
-                        inforowcolcolrow.label(text="Firefly Level: High")
-                        inforowcolcolrow.label(text="", icon='PARTICLES')
-                    elif material_fireflies[current_material_number] == "medium":
-                        inforowcolcolrow.label(text="Firefly Level: Medium")
-                        inforowcolcolrow.label(text="", icon='MOD_PARTICLES')
-                    else:
-                        inforowcolcolrow.label(text="Firefly Level: Low")
-                    inforowcolcolrow = inforowcolcol.row()
-                    
-                    if material_speeds[current_material_number] == "slow":
-                        inforowcolcolrow.label(text="Render Speed: Slow")
-                        inforowcolcolrow.label(text="", icon='PREVIEW_RANGE')
-                    elif material_speeds[current_material_number] == "fair":
-                        inforowcolcolrow.label(text="Render Speed: Fair")
-                        inforowcolcolrow.label(text="", icon='TIME')
-                    else:
-                        inforowcolcolrow.label(text="Render Speed: Good")
-                    inforowcolcolrow = inforowcolcol.row()
+                    if material_detail_view == 'RENDER':
+                        if material_fireflies[current_material_number] == "high":
+                            inforowcolcolrow.label(text="Firefly Level: High")
+                            inforowcolcolrow.label(text="", icon='PARTICLES')
+                        elif material_fireflies[current_material_number] == "medium":
+                            inforowcolcolrow.label(text="Firefly Level: Medium")
+                            inforowcolcolrow.label(text="", icon='MOD_PARTICLES')
+                        else:
+                            inforowcolcolrow.label(text="Firefly Level: Low")
+                        inforowcolcolrow = inforowcolcol.row()
+                            
+                        if material_complexities[current_material_number] == "simple":
+                            inforowcolcolrow.label(text="Complexity: Simple")
+                        elif material_complexities[current_material_number] == "intermediate":
+                            inforowcolcolrow.label(text="Complexity: Intermediate")
+                        elif material_complexities[current_material_number] == "complex":
+                            inforowcolcolrow.label(text="Complexity: Complex")
+                        inforowcolcolrow = inforowcolcol.row()
                         
-                    if material_complexities[current_material_number] == "simple":
-                        inforowcolcolrow.label(text="Complexity: Simple")
-                    elif material_complexities[current_material_number] == "intermediate":
-                        inforowcolcolrow.label(text="Complexity: Intermediate")
-                    elif material_complexities[current_material_number] == "complex":
-                        inforowcolcolrow.label(text="Complexity: Complex")
-                    inforowcolcolrow = inforowcolcol.row()
+                        if material_speeds[current_material_number] == "slow":
+                            inforowcolcolrow.label(text="Render Speed: Slow")
+                            inforowcolcolrow.label(text="", icon='PREVIEW_RANGE')
+                        elif material_speeds[current_material_number] == "fair":
+                            inforowcolcolrow.label(text="Render Speed: Fair")
+                            inforowcolcolrow.label(text="", icon='TIME')
+                        else:
+                            inforowcolcolrow.label(text="Render Speed: Good")
+                        inforowcolcolrow = inforowcolcol.row()
+                        details = inforowcolcolrow.row(align=True)
+                        details.alignment = 'RIGHT'
+                        detailshidden = details.row()
+                        detailshidden.enabled = False
+                        detailshidden.operator("material.librarydetailview", text="", icon='PLAY_REVERSE').mode = "PREVIOUS"
+                        details.operator("material.librarydetailview", text="", icon='PLAY').mode = "NEXT"
+                    elif material_detail_view == "DATA":
+                        if material_scripts[current_material_number] == "0":
+                            inforowcolcolrow.label(text="OSL Scripts: 0")
+                        else:
+                            inforowcolcolrow.label(text="OSL Scripts: %s" % material_scripts[current_material_number])
+                            inforowcolcolrow.label(text="", icon='TEXT')
+                        inforowcolcolrow = inforowcolcol.row()
                     
+                        if material_images[current_material_number] == "0":
+                            inforowcolcolrow.label(text="Images: 0")
+                        else:
+                            inforowcolcolrow.label(text="Images: %s" % material_images[current_material_number])
+                            inforowcolcolrow.label(text="", icon='IMAGE_RGB')
+                            
+                        inforowcolcolrow = inforowcolcol.row()
+                        inforowcolcolrow.label(text=" ")
+                        
+                        inforowcolcolrow = inforowcolcol.row()
+                        details = inforowcolcolrow.row(align=True)
+                        details.alignment = 'RIGHT'
+                        details.operator("material.librarydetailview", text="", icon='PLAY_REVERSE').mode = "PREVIOUS"
+                        detailshidden = details.row()
+                        detailshidden.enabled = False
+                        detailshidden.operator("material.librarydetailview", text="", icon='PLAY').mode = "NEXT"
+                        
+                    inforowcolcolcol = inforowcolcol.column(align=True)
+                    inforowcolcolcol.alignment = 'EXPAND'
+                    functions = inforowcolcolcol.row()
                     #Display "Add" button
-                    mat_button = inforowcolcolrow.operator("material.libraryadd", text="Add to materials", icon='ZOOMIN')
+                    mat_button = functions.operator("material.libraryadd", text="Add to materials", icon='ZOOMIN')
                     mat_button.mat_name = material_names[current_material_number]
                     mat_button.filename = material_filenames[current_material_number]
-                    inforowcolcolrow = inforowcolcol.row()
+                    functions = inforowcolcolcol.row()
                     
                     #Display "Apply" button
-                    mat_button = inforowcolcolrow.operator("material.libraryapply", text="Apply to active", icon='PASTEDOWN')
+                    mat_button = functions.operator("material.libraryapply", text="Apply to active", icon='PASTEDOWN')
                     mat_button.mat_name = material_names[current_material_number]
                     mat_button.filename = material_filenames[current_material_number]
-                    inforowcolcolrow = inforowcolcol.row()
+                    functions = inforowcolcolcol.row()
                     
                     #Display "Save" button
-                    mat_button = inforowcolcolrow.operator("material.librarysave", text="Save as...", icon='DISK_DRIVE')
+                    mat_button = functions.operator("material.librarysave", text="Save as...", icon='DISK_DRIVE')
                     mat_button.filepath = mat_lib_folder + os.sep + "my-materials" + os.sep + material_filenames[current_material_number] + ".bcm"
                     mat_button.filename = material_filenames[current_material_number]
                     save_filename = material_filenames[current_material_number]
@@ -628,7 +673,7 @@ class libraryCategory:
         self.materials = []
 
 class libraryMaterial:
-    def __init__(self, name, href, contrib, stars, fireflies, speed, complexity):
+    def __init__(self, name, href, contrib, stars, fireflies, speed, complexity, scripts, images):
         self.name = name
         self.href = href
         self.contrib = contrib
@@ -636,6 +681,8 @@ class libraryMaterial:
         self.fireflies = fireflies
         self.speed = speed
         self.complexity = complexity
+        self.scripts = scripts
+        self.images = images
 
 def handleCategories(categories):
     for index, category in enumerate(categories):
@@ -803,6 +850,16 @@ def handleMaterial(material, index):
     else:
         complexity = 'simple'
     
+    if 'scripts' in material.attributes:
+        scripts = material.attributes['scripts'].value
+    else:
+        scripts = '0'
+    
+    if 'images' in material.attributes:
+        images = material.attributes['images'].value
+    else:
+        images = '0'
+    
     library_data[index].materials.append(
         libraryMaterial(
         material.attributes['name'].value,
@@ -811,7 +868,9 @@ def handleMaterial(material, index):
         int(stars),
         fireflies,
         speed,
-        complexity))
+        complexity,
+        scripts,
+        images))
     print ('\n  -Material "' + 
         material.attributes['name'].value + 
         '"\n    -Filename: "' + 
@@ -870,12 +929,28 @@ class LibraryConnect(bpy.types.Operator):
                 response = connection.getresponse().read()
                 
                 #Cache the index.xml file for offline use
-                library_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + "release" + os.sep + "cycles" + os.sep + "index.xml", mode="w+b")
+                library_file = open(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "index.xml"), mode="w+b")
                 library_file.write(response)
                 library_file.close()
+                
+                #Create /textures/ folder
+                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "textures")):
+                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "textures"))
+                
+                #Create /scripts/ folder
+                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "scripts")):
+                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "scripts"))
                 library = "release"
             elif "testing" in context.scene.mat_lib_library:
                 response = connection.getresponse().read()
+                
+                #Create /textures/ folder
+                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "testing", "cycles", "textures")):
+                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "testing", "cycles", "textures"))
+                
+                #Create /scripts/ folder
+                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "testing", "cycles", "scripts")):
+                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "testing", "cycles", "scripts"))
                 library = "testing"
             else:
                 response = connection.getresponse().read()
@@ -884,6 +959,14 @@ class LibraryConnect(bpy.types.Operator):
                 library_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep + "index.xml", mode="w+b")
                 library_file.write(response)
                 library_file.close()
+                
+                #Create /textures/ folder
+                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures")):
+                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures"))
+                
+                #Create /scripts/ folder
+                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts")):
+                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts"))
                 library = "composite"
                 
             #Convert the response to a string
@@ -911,6 +994,14 @@ class LibraryConnect(bpy.types.Operator):
                 else:
                     self.report({'ERROR'}, "No cached library exists!")
                     return {'CANCELLED'}
+                
+                #Create /textures/ folder
+                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "textures")):
+                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "textures"))
+                
+                #Create /scripts/ folder
+                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "scripts")):
+                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "scripts"))
                 library = "release"
             elif context.scene.mat_lib_library == "bundled":
                 #Check for index.xml file
@@ -931,6 +1022,14 @@ class LibraryConnect(bpy.types.Operator):
                 else:
                     self.report({'ERROR'}, "No cached library exists!")
                     return {'CANCELLED'}
+                
+                #Create /textures/ folder
+                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures")):
+                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures"))
+                
+                #Create /scripts/ folder
+                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts")):
+                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts"))
                 library = "composite"
             
             if '<?xml version="1.0" encoding="UTF-8"?>' not in mat_lib_contents:
@@ -1063,7 +1162,13 @@ class LibrarySettings(bpy.types.Operator):
         mat_lib_cached_files = 0
         for root, dirs, files in os.walk(cached_data_path):
             for name in files:
-                if ".jpg" in name:
+                if ".jpg" in name.lower():
+                    mat_lib_cached_files += 1
+                elif ".png" in name.lower():
+                    mat_lib_cached_files += 1
+                elif ".osl" in name.lower():
+                    mat_lib_cached_files += 1
+                elif ".osl" in name.lower():
                     mat_lib_cached_files += 1
                 elif ".bcm" in name:
                     mat_lib_cached_files += 1
@@ -1100,6 +1205,8 @@ def libraryCategoryUpdate():
         global material_fireflies
         global material_speeds
         global material_complexities
+        global material_scripts
+        global material_images
         
         global current_material_number
                 
@@ -1125,6 +1232,8 @@ def libraryCategoryUpdate():
             material_fireflies = []
             material_speeds = []
             material_complexities = []
+            material_scripts = []
+            material_images = []
             
             for mat in library_data[category_index].materials:
                 #Get material names
@@ -1141,6 +1250,10 @@ def libraryCategoryUpdate():
                 material_speeds.append(mat.speed)
                 #Get material complexities
                 material_complexities.append(mat.complexity)
+                #Get material image textures
+                material_images.append(mat.images)
+                #Get material OSL scripts
+                material_scripts.append(mat.scripts)
             
             #Set amount of materials in selected category
             category_materials = len(material_names)
@@ -1253,6 +1366,24 @@ class ViewMaterial(bpy.types.Operator):
                 self.report({preview_message[0]}, preview_message[1])
         return {'FINISHED'}
 
+class MaterialDetailView(bpy.types.Operator):
+    '''Change detail view'''
+    bl_idname = "material.librarydetailview"
+    bl_label = "change detail view"
+    mode = bpy.props.StringProperty()
+
+    def execute(self, context):
+        global material_detail_view
+        
+        if self.mode == "NEXT":
+            if material_detail_view == "RENDER":
+                material_detail_view = "DATA"
+        else:
+            if material_detail_view == "DATA":
+                material_detail_view = "RENDER"
+        return {'FINISHED'}
+            
+
 class LibraryClearCache(bpy.types.Operator):
     '''Delete active library's cached previews and/or materials'''
     bl_idname = "material.libraryclearcache"
@@ -1268,19 +1399,37 @@ class LibraryClearCache(bpy.types.Operator):
         if library == "composite":
             for root, dirs, files in os.walk(mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep):
                 for name in files:
-                    if ".jpg" in name:
+                    if name[-4:].lower() == ".jpg":
                         print("Deleting \"" + os.path.join(root, name) + "\".")
                         os.remove(os.path.join(root, name))
-                    elif ".bcm" in name:
+                    elif name[-4:].lower() == ".png":
+                        print("Deleting \"" + os.path.join(root, name) + "\".")
+                        os.remove(os.path.join(root, name))
+                    elif name[-4:].lower() == ".osl":
+                        print("Deleting \"" + os.path.join(root, name) + "\".")
+                        os.remove(os.path.join(root, name))
+                    elif name[-4:].lower() == ".oso":
+                        print("Deleting \"" + os.path.join(root, name) + "\".")
+                        os.remove(os.path.join(root, name))
+                    elif name[-4:].lower() == ".bcm":
                         print("Deleting \"" + os.path.join(root, name) + "\".")
                         os.remove(os.path.join(root, name))
         else:
             for root, dirs, files in os.walk(mat_lib_folder + os.sep + mat_lib_host + os.sep + library + os.sep + "cycles" + os.sep):
                 for name in files:
-                    if ".jpg" in name:
+                    if name[-4:].lower() == ".jpg":
                         print("Deleting \"" + os.path.join(root, name) + "\".")
                         os.remove(os.path.join(root, name))
-                    elif ".bcm" in name:
+                    elif name[-4:].lower() == ".png":
+                        print("Deleting \"" + os.path.join(root, name) + "\".")
+                        os.remove(os.path.join(root, name))
+                    elif name[-4:].lower() == ".osl":
+                        print("Deleting \"" + os.path.join(root, name) + "\".")
+                        os.remove(os.path.join(root, name))
+                    elif name[-4:].lower() == ".oso":
+                        print("Deleting \"" + os.path.join(root, name) + "\".")
+                        os.remove(os.path.join(root, name))
+                    elif name[-4:].lower() == ".bcm":
                         print("Deleting \"" + os.path.join(root, name) + "\".")
                         os.remove(os.path.join(root, name))
         
@@ -1520,10 +1669,20 @@ class AddLibraryMaterial(bpy.types.Operator):
         new_mat.use_nodes = True
         new_mat.node_tree.nodes.clear()
         
-        #Add nodes
+        #Parse file
         dom = xml.dom.minidom.parseString(material_file_contents)
+        
+        #Create internal OSL scripts
+        scripts = dom.getElementsByTagName("script")
+        for s in scripts:
+            osl_datablock = bpy.data.texts.new(name=s.attributes['name'].value)
+            osl_text = s.toxml()[s.toxml().index(">"):s.toxml().rindex("<")]
+            osl_text = osl_text[1:].replace("<br/>","\n")
+            osl_datablock.write(osl_text)
+            osl_scripts.append(osl_datablock)
+        
+        #Add nodes
         nodes = dom.getElementsByTagName("node")
-        print(dom.getElementsByTagName("material")[0].attributes['view_color'].value)
         addNodes(nodes, new_mat)
         if node_message:
             self.report({node_message[0]}, node_message[1])
@@ -1538,11 +1697,13 @@ class AddLibraryMaterial(bpy.types.Operator):
         links = dom.getElementsByTagName("link")
         createLinks(links, new_mat)
         
+        m = dom.getElementsByTagName("material")[0]
+        
         #Set viewport color
-        new_mat.diffuse_color = color(dom.getElementsByTagName("material")[0].attributes["view_color"].value)
+        new_mat.diffuse_color = color(m.attributes["view_color"].value)
             
         #Set sample-as-lamp-ness
-        if dom.getElementsByTagName("material")[0].attributes["sample_lamp"].value == "True":
+        if m.attributes["sample_lamp"].value == "True":
             sample_lamp = True
         else:
             sample_lamp = False
@@ -1571,6 +1732,7 @@ class ApplyLibraryMaterial(bpy.types.Operator):
         global library
         global node_message
         global current_material_cached
+        global osl_scripts
         
         mat_name = ""
         material_file_contents = ""
@@ -1713,10 +1875,20 @@ class ApplyLibraryMaterial(bpy.types.Operator):
         material_file_contents = material_file_contents.replace("\t",'')
         material_file_contents = material_file_contents.replace("\\",'')
         
-        #Add nodes
+        #Parse file
         dom = xml.dom.minidom.parseString(material_file_contents)
+        
+        #Create internal OSL scripts
+        scripts = dom.getElementsByTagName("script")
+        for s in scripts:
+            osl_datablock = bpy.data.texts.new(name=s.attributes['name'].value)
+            osl_text = s.toxml()[s.toxml().index(">"):s.toxml().rindex("<")]
+            osl_text = osl_text[1:].replace("<br/>","\n")
+            osl_datablock.write(osl_text)
+            osl_scripts.append(osl_datablock)
+        
+        #Add nodes
         nodes = dom.getElementsByTagName("node")
-        print(dom.getElementsByTagName("material")[0].attributes['view_color'].value)
         addNodes(nodes, context.active_object.active_material)
         if node_message:
             self.report({node_message[0]}, node_message[1])
@@ -1731,11 +1903,13 @@ class ApplyLibraryMaterial(bpy.types.Operator):
         links = dom.getElementsByTagName("link")
         createLinks(links, context.active_object.active_material)
         
+        m = dom.getElementsByTagName("material")[0]
+        
         #Set viewport color
-        context.active_object.active_material.diffuse_color = color(dom.getElementsByTagName("material")[0].attributes["view_color"].value)
+        context.active_object.active_material.diffuse_color = color(m.attributes["view_color"].value)
             
         #Set sample-as-lamp-ness
-        if boolean(dom.getElementsByTagName("material")[0].attributes["sample_lamp"].value):
+        if boolean(m.attributes["sample_lamp"].value):
             sample_lamp = True
         else:
             sample_lamp = False
@@ -1770,11 +1944,98 @@ class CacheLibraryMaterial(bpy.types.Operator):
         
         material_file_contents = str(response)
         if '<?xml version="1.0" encoding="UTF-8"?>' in material_file_contents[2:40]:
-            material_file_contents = material_file_contents[40:-1]
+            material_file_contents = material_file_contents[material_file_contents.index("<material"):(material_file_contents.rindex("</material>") + 11)]
         else:
             self.report({'ERROR'}, "Invalid material file.")
             print(material_file_contents)
             return {'CANCELLED'}
+        
+        #Parse file
+        dom = xml.dom.minidom.parseString(material_file_contents)
+        
+        #Create internal OSL scripts and cache image textures
+        nodes = dom.getElementsByTagName("node")
+        for node in nodes:
+            node_data = node.attributes
+            if node_data['type'].value == "TEX_IMAGE":
+                if node_data['image'].value:
+                    if "file://" in node_data['image'].value:
+                        self.report({'ERROR'}, "Cannot cache image texture located at %s." % node_data['image'].value)
+                    elif "http://" in node_data['image'].value:
+                        self.report({'ERROR'}, "Cannot cache image texture hosted at %s." % node_data['image'].value)
+                    else:
+                        ext = "." + node_data['image'].value.split(".")[-1]
+                        image_name = node_data['image'].value[:-4]
+                        
+                        if ext.lower() != ".jpg" and ext.lower() != ".png":
+                            node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
+                            return
+                            
+                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)
+                        elif working_mode == "online":
+                            connection = http.client.HTTPConnection(mat_lib_host)
+                            connection.request("GET", mat_lib_location + "cycles/textures/" + image_name + ext)
+                            response = connection.getresponse().read()
+                            
+                            #Cache image texture
+                            if library == "composite":
+                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                                image_file = open(image_filepath, mode="w+b")
+                                image_file.write(response)
+                                image_file.close()
+                            else:
+                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                                image_file = open(image_filepath, mode="w+b")
+                                image_file.write(response)
+                                image_file.close()
+                        else:
+                            node_message = ['ERROR', "The image texture, \"%s\", is not cached; cannot download in offline mode." % (image_name + ext)]
+                            image_filepath = ""
+            elif node_data['type'].value == "SCRIPT":
+                if node_data['script'].value:
+                    if "file://" in node_data['script'].value:
+                        self.report({'ERROR'}, "Cannot cache OSL script located at %s." % node_data['script'].value)
+                    elif "http://" in node_data['script'].value:
+                        self.report({'ERROR'}, "Cannot cache OSL script hosted at %s." % node_data['script'].value)
+                    else:
+                        ext = "." + node_data['script'].value.split(".")[-1]
+                        script_name = node_data['script'].value[:-4]
+                        
+                        if ext.lower() != ".osl" and ext.lower() != ".oso":
+                            node_message = ['ERROR', "The OSL script file referenced by this script node is not .osl or .oso; not downloading."]
+                            return
+                            
+                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)
+                        elif working_mode == "online":
+                            connection = http.client.HTTPConnection(mat_lib_host)
+                            connection.request("GET", mat_lib_location + "cycles/scripts/" + script_name + ext)
+                            response = connection.getresponse().read()
+                            
+                            #Cache image texture
+                            if library == "composite":
+                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
+                                script_file = open(script_filepath, mode="w+b")
+                                script_file.write(response)
+                                script_file.close()
+                            else:
+                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                                script_file = open(script_filepath, mode="w+b")
+                                script_file.write(response)
+                                script_file.close()
+                        else:
+                            node_message = ['ERROR', "The OSL script, \"%s\", is not cached; cannot download in offline mode." % (script_name + ext)]
+                            script_filepath = ""
+                    
         
         if library == "composite":
             bcm_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="w+b")
@@ -1812,21 +2073,21 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
         global save_filename
         global current_material_cached
         
-        if library == "composite" and os.path.exists(mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep + category_filename + os.sep + save_filename + ".bcm"):
-            bcm_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r+b")
+        if library == "composite" and os.path.exists(mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep + category_filename + os.sep + save_filename):
+            bcm_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename, mode="r+b")
             response = bcm_file.read()
             bcm_file.close()
-        elif library != "bundled" and os.path.exists(mat_lib_folder + os.sep + mat_lib_host + os.sep + library + os.sep + "cycles" + os.sep + category_filename + os.sep + save_filename + ".bcm"):
-            bcm_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + library + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r+b")
+        elif library != "bundled" and os.path.exists(mat_lib_folder + os.sep + mat_lib_host + os.sep + library + os.sep + "cycles" + os.sep + category_filename + os.sep + save_filename):
+            bcm_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + library + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename, mode="r+b")
             response = bcm_file.read()
             bcm_file.close()
-        elif library == "bundled" and os.path.exists(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + save_filename + ".bcm"):
-            bcm_file = open(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r+b")
+        elif library == "bundled" and os.path.exists(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + save_filename):
+            bcm_file = open(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename, mode="r+b")
             response = bcm_file.read()
             bcm_file.close()
         elif working_mode == "online":
             connection = http.client.HTTPConnection(mat_lib_host)
-            connection.request("GET", mat_lib_location + "cycles/" + category_filename + "/" + self.filename + ".bcm")
+            connection.request("GET", mat_lib_location + "cycles/" + category_filename + "/" + self.filename)
             response = connection.getresponse().read()
             
             #Cache material
@@ -1844,14 +2105,166 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
         
         material_file_contents = str(response)
         
-        if '<?xml version="1.0" encoding="UTF-8"?>' not in material_file_contents[0:38]:
-            self.report({'ERROR'}, "Material data is either outdated or invalid.")
-            return {'FINISHED'}
-        
-        material_file_contents = material_file_contents[material_file_contents.index("cyclesmat"):-1]
-        
         bcm_file = open(self.filepath, mode="w+b")
         bcm_file.write(response)
+        bcm_file.close()
+        
+        if '<?xml version="1.0" encoding="UTF-8"?>' in material_file_contents[2:40]:
+            material_file_contents = material_file_contents[material_file_contents.index("<material"):(material_file_contents.rindex("</material>") + 11)]
+        else:
+            self.report({'ERROR'}, "Invalid material file.")
+            print(material_file_contents)
+            return {'CANCELLED'}
+        
+        #Parse file
+        dom = xml.dom.minidom.parseString(material_file_contents)
+        
+        bcm_file = open(self.filepath, mode="r", encoding="UTF-8")
+        material_file_contents = bcm_file.read()
+        bcm_file.close()
+        
+        #Create internal OSL scripts and cache image textures
+        nodes = dom.getElementsByTagName("node")
+        for node in nodes:
+            node_data = node.attributes
+            if node_data['type'].value == "TEX_IMAGE":
+                if node_data['image'].value:
+                    node_attributes = (
+                        node_data['image'].value,
+                        node_data['source'].value,
+                        node_data['color_space'].value,
+                        node_data['projection'].value,
+                        node_data['loc'].value)
+                    original_xml = ("<node type=\"TEX_IMAGE\" image=\"%s\" source=\"%s\" color_space=\"%s\" projection=\"%s\" loc=\"%s\" />" % node_attributes)
+                    if "file://" in node_data['image'].value:
+                        if os.path.exists(node_data['image'].value[7:]):
+                            image_file = open(node_data['image'].value[7:], mode="r+b")
+                            image_data = image_file.read()
+                            image_file.close()
+                            copied_image = open(self.filepath[:-len(self.filename)] + node_data['image'].value.split(os.sep)[-1], mode="w+b")
+                            copied_image.write(image_data)
+                            copied_image.close()
+                            image_location = ("file://" + self.filepath[:-len(self.filename)] + node_data['image'].value.split(os.sep)[-1])
+                        else:
+                            image_location = ""
+                    elif "http://" in node_data['image'].value:
+                        self.report({'ERROR'}, "Cannot save image texture hosted at %s." % node_data['image'].value)
+                        image_location = ""
+                    else:
+                        ext = "." + node_data['image'].value.split(".")[-1]
+                        image_name = node_data['image'].value[:-4]
+                        
+                        if ext.lower() != ".jpg" and ext.lower() != ".png":
+                            node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
+                            return
+                            
+                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)
+                        elif working_mode == "online":
+                            connection = http.client.HTTPConnection(mat_lib_host)
+                            connection.request("GET", mat_lib_location + "cycles/textures/" + image_name + ext)
+                            response = connection.getresponse().read()
+                            
+                            #Cache image texture
+                            if library == "composite":
+                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                                image_file = open(image_filepath, mode="w+b")
+                                image_file.write(response)
+                                image_file.close()
+                            else:
+                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                                image_file = open(image_filepath, mode="w+b")
+                                image_file.write(response)
+                                image_file.close()
+                        else:
+                            node_message = ['ERROR', "The image texture, \"%s\", is not cached; cannot download in offline mode." % (image_name + ext)]
+                            image_filepath = ""
+                        image_location = ("file://" + self.filepath[:-len(self.filename)] + node_data['image'].value)
+                        
+                        if image_filepath:
+                            print(image_filepath)
+                            image_file = open(image_filepath, mode="r+b")
+                            image_data = image_file.read()
+                            image_file.close()
+                            saved_image = open(self.filepath[:-len(self.filename)] + node_data['image'].value, mode="w+b")
+                            saved_image.write(image_data)
+                            saved_image.close()
+                
+                    updated_xml = original_xml.replace(node_data['image'].value, image_location)
+                    material_file_contents = material_file_contents.replace(original_xml, updated_xml)
+            elif node_data['type'].value == "SCRIPT":
+                if node_data['script'].value:
+                    node_attributes = (
+                        node_data['mode'].value,
+                        node_data['script'].value,
+                        node_data['loc'].value)
+                    original_xml = ("<node type=\"SCRIPT\" mode=\"%s\" script=\"%s\" loc=\"%s\" />" % node_attributes)
+                    if "file://" in node_data['script'].value:
+                        if os.path.exists(node_data['script'].value[7:]):
+                            script_file = open(node_data['script'].value[7:], mode="r+b")
+                            script_data = script_file.read()
+                            script_file.close()
+                            copied_script = open(self.filepath[:-len(self.filename)] + node_data['script'].value.split(os.sep)[-1], mode="w+b")
+                            copied_script.write(script_data)
+                            copied_script.close()
+                            script_location = ("file://" + self.filepath[:-len(self.filename)] + node_data['script'].value.split(os.sep)[-1])
+                        else:
+                            script_location = ""
+                    elif "http://" in node_data['script'].value:
+                        self.report({'ERROR'}, "Cannot save OSL script hosted at %s." % node_data['script'].value)
+                        script_location = ""
+                    else:
+                        ext = "." + node_data['script'].value.split(".")[-1]
+                        script_name = node_data['script'].value[:-4]
+                        
+                        if ext.lower() != ".osl" and ext.lower() != ".oso":
+                            node_message = ['ERROR', "The OSL script file referenced by this script node is not .osl or .oso; not downloading."]
+                            return
+                            
+                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)
+                        elif working_mode == "online":
+                            connection = http.client.HTTPConnection(mat_lib_host)
+                            connection.request("GET", mat_lib_location + "cycles/scripts/" + script_name + ext)
+                            response = connection.getresponse().read()
+                            
+                            #Cache OSL script
+                            if library == "composite":
+                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
+                                script_file = open(script_filepath, mode="w+b")
+                                script_file.write(response)
+                                script_file.close()
+                            else:
+                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                                script_file = open(script_filepath, mode="w+b")
+                                script_file.write(response)
+                                script_file.close()
+                        else:
+                            node_message = ['ERROR', "The OSL script, \"%s\", is not cached; cannot download in offline mode." % (script_name + ext)]
+                            script_filepath = ""
+                        
+                        if script_filepath:
+                            print(script_filepath)
+                            script_file = open(script_filepath, mode="r+b")
+                            script_data = script_file.read()
+                            script_file.close()
+                            saved_script = open(self.filepath[:-len(self.filename)] + node_data['script'].value, mode="w+b")
+                            saved_script.write(script_data)
+                            saved_script.close()
+                    
+                    updated_xml = original_xml.replace(node_data['script'].value, script_location)
+                    material_file_contents = material_file_contents.replace(original_xml, updated_xml)
+        
+        bcm_file = open(self.filepath, mode="w", encoding="UTF-8")
+        bcm_file.write(material_file_contents)
         bcm_file.close()
         
         self.report({'INFO'}, "Material saved.")
@@ -1873,6 +2286,8 @@ def createLinks(links, mat):
 
 def addNodes(nodes, mat):
     global node_message
+    global osl_scripts
+    
     for dom_node in nodes:
         node_type = dom_node.attributes['type'].value
         loc = dom_node.attributes['loc'].value
@@ -1935,9 +2350,22 @@ You may need a newer version of Blender for this material to work properly.""" %
             node = node_tree.nodes.new(node_type)
             node.outputs['Color'].default_value = color(node_data['color'].value)
         
+        elif node_type == "TANGENT":
+            print ("TANGENT")
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.65:
+                node_message = ['ERROR', """The material file contains the node \"%s\".
+This node is not available in the Blender version you are currently using.
+You may need a newer version of Blender for this material to work properly.""" % node_type]
+                return
+            node = node_tree.nodes.new(node_type)
+            node.direction_type = node_data['direction'].value
+            node.axis = node_data['axis'].value
+        
         elif node_type == "TEX_COORD":
             print ("TEX_COORD")
             node = node_tree.nodes.new(node_type)
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.64 and "dupli" in node_data:
+                node.from_dupli = boolean(node_data['dupli'].value)
         
         elif node_type == "VALUE":
             print ("VALUE")
@@ -1961,12 +2389,35 @@ You may need a newer version of Blender for this material to work properly.""" %
         elif node_type == "ADD_SHADER":
             print ("ADD_SHADER")
             node = node_tree.nodes.new(node_type)
+            
+        elif node_type == "AMBIENT_OCCLUSION":
+            print ("AMBIENT_OCCLUSION")
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.65:
+                node_message = ['ERROR', """The material file contains the node \"%s\".
+This node is not available in the Blender version you are currently using.
+You may need a newer version of Blender for this material to work properly.""" % node_type]
+                return
+            node = node_tree.nodes.new(node_type)
+            node.inputs['Color'].default_value = color(node_data['color'].value)
         
         elif node_type == "BACKGROUND":
             print ("BACKGROUND")
             node = node_tree.nodes.new(node_type)
             node.inputs['Color'].default_value = color(node_data['color'].value)
             node.inputs['Strength'].default_value = float(node_data['strength'].value)
+            
+        elif node_type == "BSDF_ANISOTROPIC":
+            print ("BSDF_ANISOTROPIC")
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.65:
+                node_message = ['ERROR', """The material file contains the node \"%s\".
+This node is not available in the Blender version you are currently using.
+You may need a newer version of Blender for this material to work properly.""" % node_type]
+                return
+            node = node_tree.nodes.new(node_type)
+            node.inputs['Color'].default_value = color(node_data['color'].value)
+            node.inputs['Roughness'].default_value = float(node_data['roughness'].value)
+            node.inputs['Anisotropy'].default_value = float(node_data['anisotropy'].value)
+            node.inputs['Rotation'].default_value = float(node_data['rotation'].value)
             
         elif node_type == "BSDF_DIFFUSE":
             print ("BSDF_DIFFUSE")
@@ -1988,6 +2439,19 @@ You may need a newer version of Blender for this material to work properly.""" %
             node.distribution = node_data['distribution'].value
             node.inputs['Color'].default_value = color(node_data['color'].value)
             node.inputs['Roughness'].default_value = float(node_data['roughness'].value)
+        
+        elif node_type == "BSDF_REFRACTION":
+            print ("BSDF_REFRACTION")
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.65:
+                node_message = ['ERROR', """The material file contains the node \"%s\".
+This node is not available in the Blender version you are currently using.
+You may need a newer version of Blender for this material to work properly.""" % node_type]
+                return
+            node = node_tree.nodes.new(node_type)
+            node.distribution = node_data['distribution'].value
+            node.inputs['Color'].default_value = color(node_data['color'].value)
+            node.inputs['Roughness'].default_value = float(node_data['roughness'].value)
+            node.inputs['IOR'].default_value = float(node_data['ior'].value)
         
         elif node_type == "BSDF_TRANSLUCENT":
             print ("BSDF_TRANSLUCENT")
@@ -2059,11 +2523,92 @@ You may need a newer version of Blender for this material to work properly.""" %
             node = node_tree.nodes.new(node_type)
             node.color_space = node_data['color_space'].value
             node.projection = node_data['projection'].value
-            #TODO: Add code to download image
-            if "http://" in node_data['image'].value:
-                node.image = node_data['image'].value
-            elif "file://" in node_data['image'].value:
-                node.image = node_data['image'].value
+            if 'image' in node_data:
+                if "file://" in node_data['image'].value:
+                    image_filepath = node_data['image'].value[7:]
+                    image_name = node_data['image'].value.split(os.sep)[-1]
+                    image_datablock = bpy.data.images.new(name=image_name, width=4, height=4)
+                    image_datablock.source = node_data['source'].value
+                    image_datablock.filepath = image_filepath
+                    node.image = image_datablock
+                    if node_data['source'].value == 'MOVIE' or node_data['source'].value == 'SEQUENCE':
+                        node.image_user.frame_duration = int(node_data['frame_duration'].value)
+                        node.image_user.frame_start = int(node_data['frame_start'].value)
+                        node.image_user.frame_offset = int(node_data['frame_offset'].value)
+                        node.image_user.use_cyclic = boolean(node_data['cyclic'].value)
+                        node.image_user.use_auto_refresh = boolean(node_data['auto_refresh'].value)
+                elif "http://" in node_data['image'].value and bpy.context.scene.mat_lib_images_only_trusted == False:
+                    ext = "." + node_data['image'].value.split(".")[-1]
+                    image_name = node_data['image'].value.split("/")[-1][:-4]
+                    image_host = node_data['image'].value[7:].split("/")[0]
+                    image_location = node_data['image'].value[(7 + len(image_host)):]
+                    
+                    if ext.lower() != ".jpg" and ext.lower() != ".png":
+                        node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
+                        return
+                    
+                    connection = http.client.HTTPConnection(image_host)
+                    connection.request("GET", image_location)
+                    response = connection.getresponse().read()
+                    #Save image texture
+                    image_filepath = os.path.join(mat_lib_folder, "my-materials", image_name + ext)
+                    image_file = open(image_filepath, mode="w+b")
+                    image_file.write(response)
+                    image_file.close()
+                    image_datablock = bpy.data.images.new(name=(image_name + ext), width=4, height=4)
+                    image_datablock.source = node_data['source'].value
+                    image_datablock.filepath = image_filepath
+                    node.image = image_datablock
+                    if node_data['source'].value == 'MOVIE' or node_data['source'].value == 'SEQUENCE':
+                        node.image_user.frame_duration = int(node_data['frame_duration'].value)
+                        node.image_user.frame_start = int(node_data['frame_start'].value)
+                        node.image_user.frame_offset = int(node_data['frame_offset'].value)
+                        node.image_user.use_cyclic = boolean(node_data['cyclic'].value)
+                        node.image_user.use_auto_refresh = boolean(node_data['auto_refresh'].value)
+                else:
+                    ext = "." + node_data['image'].value.split(".")[-1]
+                    image_name = node_data['image'].value[:-4]
+                    
+                    if ext.lower() != ".jpg" and ext.lower() != ".png":
+                        node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
+                        return
+                        
+                    if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                    elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                    elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)
+                    elif working_mode == "online":
+                        connection = http.client.HTTPConnection(mat_lib_host)
+                        connection.request("GET", mat_lib_location + "cycles/textures/" + image_name + ext)
+                        response = connection.getresponse().read()
+                        
+                        #Cache image texture
+                        if library == "composite":
+                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                            image_file = open(image_filepath, mode="w+b")
+                            image_file.write(response)
+                            image_file.close()
+                        else:
+                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                            image_file = open(image_filepath, mode="w+b")
+                            image_file.write(response)
+                            image_file.close()
+                    else:
+                        node_message = ['ERROR', "The image texture, \"%s\", is not cached; cannot download in offline mode." % (image_name + ext)]
+                        image_filepath = ""
+                    if image_filepath != "":
+                        image_datablock = bpy.data.images.new(name=(image_name + ext), width=4, height=4)
+                        image_datablock.source = node_data['source'].value
+                        image_datablock.filepath = image_filepath
+                        node.image = image_datablock
+                        if node_data['source'].value == 'MOVIE' or node_data['source'].value == 'SEQUENCE':
+                            node.image_user.frame_duration = int(node_data['frame_duration'].value)
+                            node.image_user.frame_start = int(node_data['frame_start'].value)
+                            node.image_user.frame_offset = int(node_data['frame_offset'].value)
+                            node.image_user.use_cyclic = boolean(node_data['cyclic'].value)
+                            node.image_user.use_auto_refresh = boolean(node_data['auto_refresh'].value)
             
         elif node_type == "TEX_GRADIENT":
             print ("TEX_GRADIENT")
@@ -2074,13 +2619,94 @@ You may need a newer version of Blender for this material to work properly.""" %
             print ("TEX_IMAGE")
             node = node_tree.nodes.new(node_type)
             node.color_space = node_data['color_space'].value
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63:
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63 and "projection" in node_data:
                 node.projection = node_data['projection'].value
-            #TODO: Add code to download image
-            if "http://" in node_data['image'].value:
-                node.image = node_data['image'].value
-            elif "file://" in node_data['image'].value:
-                node.image = node_data['image'].value
+            if 'image' in node_data:
+                if "file://" in node_data['image'].value:
+                    image_filepath = node_data['image'].value[7:]
+                    image_name = node_data['image'].value.split(os.sep)[-1]
+                    image_datablock = bpy.data.images.new(name=image_name, width=4, height=4)
+                    image_datablock.source = node_data['source'].value
+                    image_datablock.filepath = image_filepath
+                    node.image = image_datablock
+                    if node_data['source'].value == 'MOVIE' or node_data['source'].value == 'SEQUENCE':
+                        node.image_user.frame_duration = int(node_data['frame_duration'].value)
+                        node.image_user.frame_start = int(node_data['frame_start'].value)
+                        node.image_user.frame_offset = int(node_data['frame_offset'].value)
+                        node.image_user.use_cyclic = boolean(node_data['cyclic'].value)
+                        node.image_user.use_auto_refresh = boolean(node_data['auto_refresh'].value)
+                elif "http://" in node_data['image'].value and bpy.context.scene.mat_lib_images_only_trusted == False:
+                    ext = "." + node_data['image'].value.split(".")[-1]
+                    image_name = node_data['image'].value.split("/")[-1][:-4]
+                    image_host = node_data['image'].value[7:].split("/")[0]
+                    image_location = node_data['image'].value[(7 + len(image_host)):]
+                    
+                    if ext.lower() != ".jpg" and ext.lower() != ".png":
+                        node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
+                        return
+                    
+                    connection = http.client.HTTPConnection(image_host)
+                    connection.request("GET", image_location)
+                    response = connection.getresponse().read()
+                    #Save image texture
+                    image_filepath = os.path.join(mat_lib_folder, "my-materials", image_name + ext)
+                    image_file = open(image_filepath, mode="w+b")
+                    image_file.write(response)
+                    image_file.close()
+                    image_datablock = bpy.data.images.new(name=(image_name + ext), width=4, height=4)
+                    image_datablock.source = node_data['source'].value
+                    image_datablock.filepath = image_filepath
+                    node.image = image_datablock
+                    if node_data['source'].value == 'MOVIE' or node_data['source'].value == 'SEQUENCE':
+                        node.image_user.frame_duration = int(node_data['frame_duration'].value)
+                        node.image_user.frame_start = int(node_data['frame_start'].value)
+                        node.image_user.frame_offset = int(node_data['frame_offset'].value)
+                        node.image_user.use_cyclic = boolean(node_data['cyclic'].value)
+                        node.image_user.use_auto_refresh = boolean(node_data['auto_refresh'].value)
+                else:
+                    ext = "." + node_data['image'].value.split(".")[-1]
+                    image_name = node_data['image'].value[:-4]
+                    
+                    if ext.lower() != ".jpg" and ext.lower() != ".png":
+                        node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
+                        return
+                        
+                    if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                    elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                    elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)
+                    elif working_mode == "online":
+                        connection = http.client.HTTPConnection(mat_lib_host)
+                        connection.request("GET", mat_lib_location + "cycles/textures/" + image_name + ext)
+                        response = connection.getresponse().read()
+                        
+                        #Cache image texture
+                        if library == "composite":
+                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                            image_file = open(image_filepath, mode="w+b")
+                            image_file.write(response)
+                            image_file.close()
+                        else:
+                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                            image_file = open(image_filepath, mode="w+b")
+                            image_file.write(response)
+                            image_file.close()
+                    else:
+                        node_message = ['ERROR', "The image texture, \"%s\", is not cached; cannot download in offline mode." % (image_name + ext)]
+                        image_filepath = ""
+                    if image_filepath != "":
+                        image_datablock = bpy.data.images.new(name=(image_name + ext), width=4, height=4)
+                        image_datablock.source = node_data['source'].value
+                        image_datablock.filepath = image_filepath
+                        node.image = image_datablock
+                        if node_data['source'].value == 'MOVIE' or node_data['source'].value == 'SEQUENCE':
+                            node.image_user.frame_duration = int(node_data['frame_duration'].value)
+                            node.image_user.frame_start = int(node_data['frame_start'].value)
+                            node.image_user.frame_offset = int(node_data['frame_offset'].value)
+                            node.image_user.use_cyclic = boolean(node_data['cyclic'].value)
+                            node.image_user.use_auto_refresh = boolean(node_data['auto_refresh'].value)
                 
         elif node_type == "TEX_MAGIC":
             print ("TEX_MAGIC")
@@ -2172,14 +2798,23 @@ You may need a newer version of Blender for this material to work properly.""" %
             print ("MIX_RGB")
             node = node_tree.nodes.new(node_type)
             node.blend_type = node_data['blend_type'].value
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63:
-                if 'clamp' in node_data:
-                    node.use_clamp = boolean(node_data['clamp'].value)
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63 and "clamp" in node_data:
+                node.use_clamp = boolean(node_data['clamp'].value)
             node.inputs['Fac'].default_value = float(node_data['fac'].value)
             node.inputs['Color1'].default_value = color(node_data['color1'].value)
             node.inputs['Color2'].default_value = color(node_data['color2'].value)
         
             #VECTOR TYPES
+        elif node_type == "BUMP":
+            print ("BUMP")
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.65:
+                node_message = ['ERROR', """The material file contains the node \"%s\".
+This node is not available in the Blender version you are currently using.
+You may need a newer version of Blender for this material to work properly.""" % node_type]
+                return
+            node = node_tree.nodes.new(node_type)
+            node.inputs["Strength"].default_value = float(node_data['strength'].value)
+            
         elif node_type == "MAPPING":
             print ("MAPPING")
             node = node_tree.nodes.new(node_type)
@@ -2200,6 +2835,19 @@ You may need a newer version of Blender for this material to work properly.""" %
             node.outputs['Normal'].default_value = vector(node_data['vector_output'].value)
             node.inputs['Normal'].default_value = vector(node_data['vector_input'].value)
             
+        elif node_type == "NORMAL_MAP":
+            print ("NORMAL_MAP")
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.65:
+                node_message = ['ERROR', """The material file contains the node \"%s\".
+This node is not available in the Blender version you are currently using.
+You may need a newer version of Blender for this material to work properly.""" % node_type]
+                return
+            node = node_tree.nodes.new(node_type)
+            node.space = node_data['space'].value
+            node.uv_map = node_data['uv_map'].value
+            node.inputs["Strength"].default_value = float(node_data['strength'].value)
+            node.inputs['Color'].default_value = color(node_data['color'].value)
+            
             #CONVERTOR TYPES
         elif node_type == "COMBRGB":
             print ("COMBRGB")
@@ -2212,9 +2860,8 @@ You may need a newer version of Blender for this material to work properly.""" %
             print ("MATH")
             node = node_tree.nodes.new(node_type)
             node.operation = node_data['operation'].value
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63:
-                if 'clamp' in node_data:
-                    node.use_clamp = boolean(node_data['clamp'].value)
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63 and "clamp" in node_data:
+                node.use_clamp = boolean(node_data['clamp'].value)
             node.inputs[0].default_value = float(node_data['value1'].value)
             node.inputs[1].default_value = float(node_data['value2'].value)
         
@@ -2260,6 +2907,14 @@ You may need a newer version of Blender for this material to work properly.""" %
             node.inputs[1].default_value = vector(node_data['vector2'].value)
             
             #MISCELLANEOUS NODE TYPES
+        elif node_type == "FRAME":
+            #Don't attempt to add frame nodes in builds previous
+            #to rev51926, as Blender's nodes.new() operator was
+            #unable to add FRAME nodes. Was fixed with rev51926.
+            if int(bpy.app.build_revision.decode()) > 51925:
+                print("FRAME")
+                node = node_tree.nodes.new(node_type)
+        
         elif node_type == "REROUTE":
             if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.64:
                 node_message = ['ERROR', """The material file contains the node \"%s\".
@@ -2268,17 +2923,80 @@ You may need a newer version of Blender for this material to work properly.""" %
                 return
             print ("REROUTE")
             node = node_tree.nodes.new(node_type)
-            
-        elif node_type == "FRAME":
-            #Don't attempt to add frame nodes in builds previous
-            #to rev51926, as Blender's nodes.new() operator was
-            #unable to add FRAME nodes. Was fixed with rev51926.
-            if int(bpy.app.build_revision.decode()) > 51925:
-                print("FRAME")
-                node = node_tree.nodes.new(node_type)
+        
+        elif node_type == "SCRIPT":
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.65:
+                node_message = ['ERROR', """The material file contains an OSL script node.
+This node is not available in the Blender version you are currently using.
+You may need a newer version of Blender for this material to work properly."""]
+                return
+            print ("SCRIPT")
+            node = node_tree.nodes.new(node_type)
+            node.mode = node_data['mode'].value
+            if node_data['mode'] == 'EXTERNAL':
+                if 'script' in node_data:
+                    if "file://" in node_data['script'].value:
+                        node.filepath = node_data['script'].value[7:]
+                    elif "http://" in node_data['script'].value and bpy.context.scene.mat_lib_osl_only_trusted == False:
+                        ext = "." + node_data['script'].value.split(".")[-1]
+                        script_name = node_data['script'].value.split("/")[-1][:-4]
+                        osl_host = node_data['script'].value[7:].split("/")[0]
+                        script_location = node_data['script'].value[(7 + len(osl_host)):]
+                        
+                        if ext.lower() != ".osl" and ext.lower() != ".oso":
+                            node_message = ['ERROR', "The OSL script file referenced by this script node is not .osl or .oso; not downloading."]
+                            return
+                        
+                        connection = http.client.HTTPConnection(osl_host)
+                        connection.request("GET", script_location + script_name + ext)
+                        response = connection.getresponse().read()
+                        #Save OSL script
+                        osl_filepath = os.path.join(mat_lib_folder, "my-materials", script_name + ext)
+                        osl_file = open(osl_filepath, mode="w+b")
+                        osl_file.write(response)
+                        osl_file.close()
+                        node.filepath = osl_filepath
+                        
+                    else:
+                        ext = "." + node_data['script'].value.split(".")[-1]
+                        script_name = node_data['script'].value[:-4]
+                        
+                        if ext.lower() != ".osl" and ext.lower() != ".oso":
+                            node_message = ['ERROR', "The OSL script file referenced by this script node is not .osl or .oso; not downloading."]
+                            return
+                        
+                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)):
+                            osl_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
+                            osl_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)):
+                            osl_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)
+                        elif working_mode == "online":
+                            connection = http.client.HTTPConnection(mat_lib_host)
+                            connection.request("GET", mat_lib_location + "cycles/scripts/" + script_name + ext)
+                            response = connection.getresponse().read()
+                            
+                            #Cache OSL script
+                            if library == "composite":
+                                osl_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
+                                osl_file = open(osl_filepath, mode="w+b")
+                                osl_file.write(response)
+                                osl_file.close()
+                            else:
+                                osl_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                                osl_file = open(osl_filepath, mode="w+b")
+                                osl_file.write(response)
+                                osl_file.close()
+                        else:
+                            node_message = ['ERROR', "The OSL script, \"%s\", is not cached; cannot download in offline mode." % (script_name + ext)]
+                            osl_filepath = ""
+                        node.filepath = osl_filepath
+            else:
+                if 'script' in node_data:
+                    node.script = osl_scripts[int(node_data['script'].value)]
             
         else:
-            node_message = ["""The material file contains the node name \"%s\", which is not known.
+            node_message = ['ERROR', """The material file contains the node name \"%s\", which is not known.
 The material file may contain an error, or you may need to check for updates to this add-on.""" % node_type]
             return
         node.location = node_location
@@ -2352,6 +3070,8 @@ class MaterialConvert(bpy.types.Operator):
 
     def execute(self, context):
         global material_file_contents
+        global script_stack
+        
         if self.all_materials:
             #For all_materials, access the materials with an index
             mat = 0
@@ -2464,7 +3184,7 @@ class MaterialConvert(bpy.types.Operator):
                     if node.label:
                         write(" label=\"%s\"" % node.label)
                     
-                    #Write node label
+                    #Write node hidden-ness
                     if node.hide:
                         write(" hide=\"True\"")
                         
@@ -2479,6 +3199,22 @@ class MaterialConvert(bpy.types.Operator):
             write("\n\t<links>")
             writeNodeLinks(bpy.data.materials[mat].node_tree)
             write("\n\t</links>")
+            if script_stack:
+                write("\n\t<scripts>")
+                i = 0
+                while i < len(script_stack):
+                    write("\n\t\t<script name=\"%s\" id=\"%s\">\n" % (script_stack[i], str(i)))
+                    first_line = True
+                    for l in bpy.data.texts[script_stack[i]].lines:
+                        if first_line == True:
+                            write(l.body)
+                            first_line = False
+                        else:
+                            write("<br />" + l.body)
+                    write("\n\t\t</script>")
+                    i += 1
+                write("\n\t</scripts>")
+                script_stack = []
             write("\n</material>")
             
             if self.save_location == "":
@@ -2518,6 +3254,7 @@ class MaterialConvert(bpy.types.Operator):
 
 def writeNodeData(node):
     global material_file_contents
+    global script_stack
     
     I = node.inputs
     O = node.outputs
@@ -2563,8 +3300,17 @@ def writeNodeData(node):
         print("RGB")
         write(" color=\"%s\"" % rgba(O['Color'].default_value))
     
+    elif node_type == "TANGENT":
+        print("TANGENT")
+        write(" direction=\"%s\"" % node.direction_type)
+        write(" axis=\"%s\"" % node.axis)
+    
     elif node_type == "TEX_COORD":
         print("TEX_COORD")
+        if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.64:
+            write(" dupli=\"%s\"" % node.from_dupli)
+        else:
+            write(" dupli=\"False\"")
     
     elif node_type == "VALUE":
         print("VALUE")
@@ -2584,10 +3330,21 @@ def writeNodeData(node):
     elif node_type == "ADD_SHADER":
         print("ADD_SHADER")
     
+    elif node_type == "AMBIENT_OCCLUSION":
+        print("AMBIENT_OCCLUSION")
+        write(" color=\"%s\"" % rgba(I['Color'].default_value))
+    
     elif node_type == "BACKGROUND":
         print("BACKGROUND")
         write(" color=\"%s\"" % rgba(I['Color'].default_value))
         write(" strength=\"%s\"" % smallFloat(I['Strength'].default_value))
+    
+    elif node_type == "BSDF_ANISOTROPIC":
+        print("BSDF_ANISOTROPIC")
+        write(" color=\"%s\"" % rgba(I['Color'].default_value))
+        write(" roughness=\"%s\"" % smallFloat(I['Roughness'].default_value))
+        write(" anisotropy=\"%s\"" % smallFloat(I['Anisotropy'].default_value))
+        write(" rotation=\"%s\"" % smallFloat(I['Rotation'].default_value))
     
     elif node_type == "BSDF_DIFFUSE":
         print("BSDF_DIFFUSE")
@@ -2606,6 +3363,13 @@ def writeNodeData(node):
         write(" distribution=\"%s\"" % node.distribution)
         write(" color=\"%s\"" % rgba(I['Color'].default_value))
         write(" roughness=\"%s\"" % smallFloat(I['Roughness'].default_value))
+    
+    elif node_type == "BSDF_REFRACTION":
+        print("BSDF_REFRACTION")
+        write(" distribution=\"%s\"" % node.distribution)
+        write(" color=\"%s\"" % rgba(I['Color'].default_value))
+        write(" roughness=\"%s\"" % smallFloat(I['Roughness'].default_value))
+        write(" ior=\"%s\"" % smallFloat(I['IOR'].default_value))
     
     elif node_type == "BSDF_TRANSLUCENT":
         print("BSDF_TRANSLUCENT")
@@ -2656,8 +3420,17 @@ def writeNodeData(node):
     
     elif node_type == "TEX_ENVIRONMENT":
         print("TEX_ENVIRONMENT")
-        write(" image=\"\"")
-        #Need to upload image somehow?
+        if node.image:
+            write(" image=\"file://%s\"" % os.path.realpath(bpy.path.abspath(node.image.filepath)))
+            write(" source=\"%s\"" % node.image.source)
+            if node.image.source == "SEQUENCE" or node.image.source == "MOVIE":
+                write(" frame_duration=\"%s\"" % str(node.image_user.frame_duration))
+                write(" frame_start=\"%s\"" % str(node.image_user.frame_start))
+                write(" frame_offset=\"%s\"" % str(node.image_user.frame_offset))
+                write(" cyclic=\"%s\"" % str(node.image_user.use_cyclic))
+                write(" auto_refresh=\"%s\"" % str(node.image_user.use_auto_refresh))
+        else:
+            write(" image=\"\"")
         write(" color_space=\"%s\"" % node.color_space)
         write(" projection=\"%s\"" % node.projection)
     
@@ -2667,11 +3440,24 @@ def writeNodeData(node):
     
     elif node_type == "TEX_IMAGE":
         print("TEX_IMAGE")
-        write(" image=\"\"")
-        #Need to upload image somehow?
+        if node.image:
+            write(" image=\"file://%s\"" % os.path.realpath(bpy.path.abspath(node.image.filepath)))
+            write(" source=\"%s\"" % node.image.source)
+            if node.image.source == "SEQUENCE" or node.image.source == "MOVIE":
+                write(" frame_duration=\"%s\"" % str(node.image_user.frame_duration))
+                write(" frame_start=\"%s\"" % str(node.image_user.frame_start))
+                write(" frame_offset=\"%s\"" % str(node.image_user.frame_offset))
+                write(" cyclic=\"%s\"" % str(node.image_user.use_cyclic))
+                write(" auto_refresh=\"%s\"" % str(node.image_user.use_auto_refresh))
+        else:
+            write(" image=\"\"")
         write(" color_space=\"%s\"" % node.color_space)
         if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63:
             write(" projection=\"%s\"" % node.projection)
+            if node.projection == "BOX":
+                write(" blend=\"%s\"" % smallFloat(node.projection_blend))
+        else:
+            write(" projection=\"FLAT\"")
     
     elif node_type == "TEX_MAGIC":
         print("TEX_MAGIC")
@@ -2753,6 +3539,10 @@ def writeNodeData(node):
         write(" color=\"%s\"" % rgba(I['Color'].default_value))
         
         #VECTOR TYPES
+    elif node_type == "BUMP":
+        print("BUMP")
+        write(" strength=\"%s\"" % smallFloat(I['Strength'].default_value))
+        
     elif node_type == "MAPPING":
         print("MAPPING")
         write(" translation=\"%s\"" % smallVector(node.translation))
@@ -2774,6 +3564,13 @@ def writeNodeData(node):
         print("NORMAL")
         write(" vector_output=\"%s\"" % smallVector(O['Normal'].default_value))
         write(" vector_input=\"%s\"" % smallVector(I['Normal'].default_value))
+        
+    elif node_type == "NORMAL_MAP":
+        print("NORMAL_MAP")
+        write(" space=\"%s\"" % node.space)
+        write(" uv_map=\"%s\"" % node.uv_map)
+        write(" strength=\"%s\"" % smallFloat(I['Strength'].default_value))
+        write(" color=\"%s\"" % rgba(I['Color'].default_value))
         
         #CONVERTER TYPES
     elif node_type == "COMBRGB":
@@ -2821,11 +3618,22 @@ def writeNodeData(node):
         write(" vector2=\"%s\"" % smallVector(I[1].default_value))
         
         #MISCELLANEOUS NODE TYPES
-    elif node_type == "REROUTE":
-        print("REROUTE")
-        
     elif node_type == "FRAME":
         print("FRAME")
+    
+    elif node_type == "REROUTE":
+        print("REROUTE")
+    
+    elif node_type == "SCRIPT":
+        print("SCRIPT")
+        write(" mode=\"%s\"" % node.mode)
+        if node.mode == 'EXTERNAL':
+            if node.filepath:
+                write(" script=\"file://%s\"" % os.path.realpath(bpy.path.abspath(node.filepath)))
+        else:
+            if node.script:
+                write(" script=\"%s\"" % len(script_stack))
+                script_stack.append(node.script.name)
         
     else:
         write(" ERROR: UNKNOWN NODE TYPE. ")
@@ -2907,6 +3715,7 @@ def register():
     bpy.utils.register_class(LibraryTools)
     bpy.utils.register_class(LibraryHome)
     bpy.utils.register_class(ViewMaterial)
+    bpy.utils.register_class(MaterialDetailView)
     bpy.utils.register_class(LibraryClearCache)
     bpy.utils.register_class(LibraryPreview)
     bpy.utils.register_class(AddLibraryMaterial)
@@ -2924,6 +3733,7 @@ def unregister():
     bpy.utils.unregister_class(LibraryTools)
     bpy.utils.unregister_class(LibraryHome)
     bpy.utils.unregister_class(ViewMaterial)
+    bpy.utils.unregister_class(MaterialDetailView)
     bpy.utils.unregister_class(LibraryClearCache)
     bpy.utils.unregister_class(LibraryPreview)
     bpy.utils.unregister_class(AddLibraryMaterial)
