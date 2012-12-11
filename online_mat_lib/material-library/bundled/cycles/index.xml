@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <library>
 	<category title="Car Paint" folder="car-paint" addon="0.4">
-		<material name="Basic Blue" href="basic_blue" stars="3" addon="0.4" />
 		<material name="Dull Coral" href="dull_coral" by="monsterdog" stars="4" addon="0.4" />
 		<material name="Dull Olive" href="dull_olive" stars="5" addon="0.4" />
 		<material name="Flaky Green" href="flaky_green" stars="5" fireflies="medium" addon="0.4" />
@@ -41,7 +40,6 @@
 	<category title="Nature" folder="nature" addon="0.4">
 		<material name="Pearl" href="pearl" by="moony" stars="4" addon="0.4" />
 		<material name="Forest" href="forest" by="Jonathan L" stars="4" complexity="complex" addon="0.4" />
-		<material name="Lava" href="lava" by="monsterdog" stars="4" complexity="intermediate" addon="0.4" />
 	</category>
 	<category title="Plastics" folder="plastics" addon="0.4">
 		<material name="Toy Brick (Red)" href="toy_brick_red" by="Peter Cassetta" stars="4" addon="0.4" />

@@ -46,11 +46,6 @@ import http.client
 import xml.dom.minidom
 
 library = ""
-#editions = [("Release0", "Release", "(recommended) Stable; gets updated with high-quality materials every one or two months."),
-#            ("Testing1", "Testing", "(online only) Volatile; gets updated with new materials continually."),
-#            ("Bundled2", "Bundled", "(offline only) Contains a small amount of materials bundled with this add-on.")]
-#bpy.types.Scene.mat_lib_edition = bpy.props.EnumProperty(name = "Library Edition", items = editions, description = "Choose an edition", options = {'SKIP_SAVE'})
-
 library_data = []
 update_data = ["Up-to-date.", ""]
 
@@ -63,12 +58,14 @@ working_mode = "none"
 mat_lib_host = ""
 mat_lib_location = ""
 mat_lib_cached_files = -1
-if os.path.exists(bpy.utils.user_resource('SCRIPTS', path="addons" + os.sep + "online_mat_lib" + os.sep + "material-library")):
-    mat_lib_folder = bpy.utils.user_resource('SCRIPTS', path="addons" + os.sep + "online_mat_lib" + os.sep + "material-library")
-elif os.path.exists(bpy.utils.script_paths()[0] + os.sep + "addons" + os.sep + "online_mat_lib" + os.sep + "material-library"):
-    mat_lib_folder = bpy.utils.script_paths()[0] + os.sep + "addons" + os.sep + "online_mat_lib" + os.sep + "material-library"
-elif bpy.utils.script_paths()[0] + os.sep + "addons_contrib" + os.sep + "online_mat_lib" + os.sep + "material-library":
-    mat_lib_folder = bpy.utils.script_paths()[0] + os.sep + "addons_contrib" + os.sep + "online_mat_lib" + os.sep + "material-library"
+if os.path.exists(os.path.join(bpy.context.user_preferences.filepaths.script_directory, "addons", "online_mat_lib", "material-library")):
+    mat_lib_folder = os.path.join(bpy.context.user_preferences.filepaths.script_directory, "addons", "online_mat_lib", "material-library")
+elif os.path.exists(os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")):
+    mat_lib_folder = os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")
+elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")):
+    mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")
+elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")):
+    mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")
 else:
     print("ONLINE MATERIAL LIBRARY -- MAJOR PROBLEM:"\
     "COULD NOT LOCATE ADD-ON INSTALLATION PATH.")
@@ -269,8 +266,10 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                 row = layout.row()
                 if mat_lib_cached_files == 0:
                     row.label(text="No cached files.")
+                elif mat_lib_cached_files == -2:
+                    row.label(text="The Bundled library contains no cached files.")
                 elif mat_lib_cached_files == 1:
-                    row.label(text=str(mat_lib_cached_files) + " cached file.")
+                    row.label(text="1 cached file.")
                     row.operator("material.libraryclearcache", text="Clear Cache", icon='CANCEL')
                 elif mat_lib_cached_files != -1:
                     row.label(text=str(mat_lib_cached_files) + " cached files.")
@@ -1154,6 +1153,7 @@ class LibrarySettings(bpy.types.Operator):
         if library == "":
             return {'FINISHED'}
         elif library == "bundled":
+            mat_lib_cached_files = -2
             return {'FINISHED'}
         elif library == "composite":
             cached_data_path = mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep
@@ -1504,7 +1504,7 @@ class LibraryPreview(bpy.types.Operator):
         
         #Check if has texture
         if bpy.data.images.find("mat_lib_preview_image.jpg") == -1:
-            bpy.ops.image.open(filepath=mat_lib_folder + os.sep + "mat_lib_preview_image.jpg")
+            bpy.ops.image.open(filepath=os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg"))
         
         if "mat_lib_preview_texture" not in bpy.data.textures:
              bpy.data.textures.new("mat_lib_preview_texture", "IMAGE")
@@ -1512,6 +1512,9 @@ class LibraryPreview(bpy.types.Operator):
         if bpy.data.textures["mat_lib_preview_texture"].image != bpy.data.images["mat_lib_preview_image.jpg"]:
             bpy.data.textures["mat_lib_preview_texture"].image = bpy.data.images["mat_lib_preview_image.jpg"]
         
+        if bpy.data.images["mat_lib_preview_image.jpg"].filepath != os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg"):
+            bpy.data.images["mat_lib_preview_image.jpg"].filepath != os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg")
+            
         #Do everything possible to get Blender to reload the preview.
         bpy.data.images["mat_lib_preview_image.jpg"].reload()
         bpy.ops.wm.redraw_timer()
@@ -2933,7 +2936,7 @@ You may need a newer version of Blender for this material to work properly."""]
             print ("SCRIPT")
             node = node_tree.nodes.new(node_type)
             node.mode = node_data['mode'].value
-            if node_data['mode'] == 'EXTERNAL':
+            if node_data['mode'].value == 'EXTERNAL':
                 if 'script' in node_data:
                     if "file://" in node_data['script'].value:
                         node.filepath = node_data['script'].value[7:]
