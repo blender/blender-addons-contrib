@@ -1680,7 +1680,7 @@ class AddLibraryMaterial(bpy.types.Operator):
         for s in scripts:
             osl_datablock = bpy.data.texts.new(name=s.attributes['name'].value)
             osl_text = s.toxml()[s.toxml().index(">"):s.toxml().rindex("<")]
-            osl_text = osl_text[1:].replace("<br/>","\n")
+            osl_text = osl_text[1:].replace("<br/>","\n").replace("lt;", "<").replace("gt;", ">")
             osl_datablock.write(osl_text)
             osl_scripts.append(osl_datablock)
         
@@ -3210,10 +3210,10 @@ class MaterialConvert(bpy.types.Operator):
                     first_line = True
                     for l in bpy.data.texts[script_stack[i]].lines:
                         if first_line == True:
-                            write(l.body)
+                            write(l.body.replace("<", "lt;").replace(">", "gt;"))
                             first_line = False
                         else:
-                            write("<br />" + l.body)
+                            write("<br />" + l.body.replace("<", "lt;").replace(">", "gt;"))
                     write("\n\t\t</script>")
                     i += 1
                 write("\n\t</scripts>")
