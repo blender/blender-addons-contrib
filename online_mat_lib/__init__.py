@@ -1886,7 +1886,7 @@ class ApplyLibraryMaterial(bpy.types.Operator):
         for s in scripts:
             osl_datablock = bpy.data.texts.new(name=s.attributes['name'].value)
             osl_text = s.toxml()[s.toxml().index(">"):s.toxml().rindex("<")]
-            osl_text = osl_text[1:].replace("<br/>","\n")
+            osl_text = osl_text[1:].replace("<br/>","\n").replace("lt;", "<").replace("gt;", ">")
             osl_datablock.write(osl_text)
             osl_scripts.append(osl_datablock)
         
