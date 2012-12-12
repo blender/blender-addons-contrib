@@ -1550,37 +1550,25 @@ class AddLibraryMaterial(bpy.types.Operator):
                 material_file_contents = ""
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
-                #Check file for validitity
-                if '<?xml version="1.0" encoding="UTF-8"?>' not in material_file_contents:
-                    self.filename = ""
-                    self.mat_name = ""
-                    self.report({'ERROR'}, "Material file is either outdated or invalid.")
-                    return {'CANCELLED'}
             elif library != "bundled" and os.path.exists(mat_lib_folder + os.sep + mat_lib_host + os.sep + library + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm"):
                 bcm_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + library + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r", encoding="UTF-8")
                 material_file_contents = ""
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
-                #Check file for validitity
-                if '<?xml version="1.0" encoding="UTF-8"?>' not in material_file_contents:
-                    self.filename = ""
-                    self.mat_name = ""
-                    self.report({'ERROR'}, "Material file is either outdated or invalid.")
-                    return {'CANCELLED'}
             elif library == "bundled" and os.path.exists(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm"):
                 bcm_file = open(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
-                #Check file for validitity
-                if '<?xml version="1.0" encoding="UTF-8"?>' not in material_file_contents:
-                    self.filename = ""
-                    self.mat_name = ""
-                    self.report({'ERROR'}, "Material file is either outdated or invalid.")
-                    return {'CANCELLED'}
             elif working_mode == "online":
                 connection = http.client.HTTPConnection(mat_lib_host)
                 connection.request("GET", mat_lib_location + "cycles/" + category_filename + "/" + self.filename + ".bcm")
                 response = connection.getresponse().read()
+                
+                #Check file for validitity
+                if '<?xml version="1.0" encoding="UTF-8"?>' not in str(response)[2:40]:
+                    self.report({'ERROR'}, "Material file is either outdated or invalid.")
+                    self.filename = ""
+                    return {'CANCELLED'}
                 
                 #Cache material
                 if library == "composite":
@@ -1592,13 +1580,7 @@ class AddLibraryMaterial(bpy.types.Operator):
                     bcm_file.write(response)
                     bcm_file.close()
                 
-                #Check file for validitity
-                if '<?xml version="1.0" encoding="UTF-8"?>' not in str(response)[2:40]:
-                    self.report({'ERROR'}, "Material file is either outdated or invalid.")
-                    self.filename = ""
-                    return {'CANCELLED'}
-                material_file_contents = ""
-                material_file_contents = str(response)[str(response).index("<material"):str(response).index("/material>") + 10]
+                material_file_contents = str(response)
             else:
                 self.report({'ERROR'}, "Material is not cached; cannot download in offline mode!")
                 return {'CANCELLED'}
@@ -1660,12 +1642,16 @@ class AddLibraryMaterial(bpy.types.Operator):
             else:
                 mat_name = context.scene.mat_lib_bcm_name
         
-        #Format nicely
-        material_file_contents = material_file_contents.replace('<?xml version="1.0" encoding="UTF-8"?>', '')
-        material_file_contents = material_file_contents.replace("\r\n",'')
-        material_file_contents = material_file_contents.replace("\n",'')
-        material_file_contents = material_file_contents.replace("\t",'')
-        material_file_contents = material_file_contents.replace("\\",'')
+        if '<?xml version="1.0" encoding="UTF-8"?>' in material_file_contents[0:40]:
+            material_file_contents = material_file_contents[material_file_contents.index("<material"):(material_file_contents.rindex("</material>") + 11)]
+        else:
+            self.mat_name = ""
+            self.filename = ""
+            self.text_block = ""
+            self.open_location = ""
+            self.report({'ERROR'}, "Material file is either invalid or outdated.")
+            print(material_file_contents)
+            return {'CANCELLED'}
         
         #Create new material
         new_mat = bpy.data.materials.new(mat_name)
@@ -1680,7 +1666,7 @@ class AddLibraryMaterial(bpy.types.Operator):
         for s in scripts:
             osl_datablock = bpy.data.texts.new(name=s.attributes['name'].value)
             osl_text = s.toxml()[s.toxml().index(">"):s.toxml().rindex("<")]
-            osl_text = osl_text[1:].replace("<br/>","\n").replace("lt;", "<").replace("gt;", ">")
+            osl_text = osl_text[1:].replace("<br/>","\n").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&amp;", "&")
             osl_datablock.write(osl_text)
             osl_scripts.append(osl_datablock)
         
@@ -1747,32 +1733,14 @@ class ApplyLibraryMaterial(bpy.types.Operator):
                 bcm_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
-                #Check file for validitity
-                if '<?xml version="1.0" encoding="UTF-8"?>' not in material_file_contents:
-                    self.mat_name = ""
-                    self.filename = ""
-                    self.report({'ERROR'}, "Material file is either outdated or invalid.")
-                    return {'CANCELLED'}
             elif library != "bundled" and os.path.exists(mat_lib_folder + os.sep + mat_lib_host + os.sep + library + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm"):
                 bcm_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + library + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
-                #Check file for validitity
-                if '<?xml version="1.0" encoding="UTF-8"?>' not in material_file_contents:
-                    self.mat_name = ""
-                    self.filename = ""
-                    self.report({'ERROR'}, "Material file is either outdated or invalid.")
-                    return {'CANCELLED'}
             elif library == "bundled" and os.path.exists(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm"):
                 bcm_file = open(mat_lib_folder + os.sep + "bundled" + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename + ".bcm", mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
-                #Check file for validitity
-                if '<?xml version="1.0" encoding="UTF-8"?>' not in material_file_contents:
-                    self.mat_name = ""
-                    self.filename = ""
-                    self.report({'ERROR'}, "Material file is either outdated or invalid.")
-                    return {'CANCELLED'}
             elif working_mode == "online":
                 connection = http.client.HTTPConnection(mat_lib_host)
                 connection.request("GET", mat_lib_location + "cycles/" + category_filename + "/" + self.filename + ".bcm")
@@ -1795,8 +1763,7 @@ class ApplyLibraryMaterial(bpy.types.Operator):
                     bcm_file.write(response)
                     bcm_file.close()
                 
-                material_file_contents = ""
-                material_file_contents = str(response)[str(response).index("<material"):str(response).index("/material>") + 10]
+                material_file_contents = str(response)
             else:
                 self.report({'ERROR'}, "Material is not cached; cannot download in offline mode!")
                 self.mat_name = ""
@@ -1810,11 +1777,6 @@ class ApplyLibraryMaterial(bpy.types.Operator):
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
                 
-                #Check file for validitity
-                if '<?xml version="1.0" encoding="UTF-8"?>' not in material_file_contents:
-                    self.open_location = ""
-                    self.report({'ERROR'}, "Material file is either outdated or invalid.")
-                    return {'CANCELLED'}
                 mat_name = ""
                 for word in self.open_location.split(os.sep)[-1][:-4].split("_"):
                     if mat_name is not "":
@@ -1834,11 +1796,6 @@ class ApplyLibraryMaterial(bpy.types.Operator):
                 self.text_block = "";
                 return {'CANCELLED'}
             
-            #Check file for validitity
-            if '<?xml version="1.0" encoding="UTF-8"?>' not in material_file_contents[0:38]:
-                self.report({'ERROR'}, "Material data is either outdated or invalid.")
-                self.text_block = ""
-                return {'CANCELLED'}
             if context.scene.mat_lib_bcm_name is "":
                 separator = ""
                 if "_" in self.text_block:
@@ -1871,12 +1828,16 @@ class ApplyLibraryMaterial(bpy.types.Operator):
         context.active_object.active_material.use_nodes = True
         context.active_object.active_material.node_tree.nodes.clear()
         
-        #Format nicely
-        material_file_contents = material_file_contents.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", '')
-        material_file_contents = material_file_contents.replace("\r\n",'')
-        material_file_contents = material_file_contents.replace("\n",'')
-        material_file_contents = material_file_contents.replace("\t",'')
-        material_file_contents = material_file_contents.replace("\\",'')
+        if '<?xml version="1.0" encoding="UTF-8"?>' in material_file_contents[0:40]:
+            material_file_contents = material_file_contents[material_file_contents.index("<material"):(material_file_contents.rindex("</material>") + 11)]
+        else:
+            self.mat_name = ""
+            self.filename = ""
+            self.text_block = ""
+            self.open_location = ""
+            self.report({'ERROR'}, "Material file is either invalid or outdated.")
+            print(material_file_contents)
+            return {'CANCELLED'}
         
         #Parse file
         dom = xml.dom.minidom.parseString(material_file_contents)
@@ -1886,7 +1847,7 @@ class ApplyLibraryMaterial(bpy.types.Operator):
         for s in scripts:
             osl_datablock = bpy.data.texts.new(name=s.attributes['name'].value)
             osl_text = s.toxml()[s.toxml().index(">"):s.toxml().rindex("<")]
-            osl_text = osl_text[1:].replace("<br/>","\n").replace("lt;", "<").replace("gt;", ">")
+            osl_text = osl_text[1:].replace("<br/>","\n").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&amp;", "&")
             osl_datablock.write(osl_text)
             osl_scripts.append(osl_datablock)
         
@@ -2112,7 +2073,7 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
         bcm_file.write(response)
         bcm_file.close()
         
-        if '<?xml version="1.0" encoding="UTF-8"?>' in material_file_contents[2:40]:
+        if '<?xml version="1.0" encoding="UTF-8"?>' in material_file_contents[0:40]:
             material_file_contents = material_file_contents[material_file_contents.index("<material"):(material_file_contents.rindex("</material>") + 11)]
         else:
             self.report({'ERROR'}, "Invalid material file.")
@@ -3213,7 +3174,7 @@ class MaterialConvert(bpy.types.Operator):
                             write(l.body.replace("<", "lt;").replace(">", "gt;"))
                             first_line = False
                         else:
-                            write("<br />" + l.body.replace("<", "lt;").replace(">", "gt;"))
+                            write("<br />" + l.body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"))
                     write("\n\t\t</script>")
                     i += 1
                 write("\n\t</scripts>")
