@@ -245,7 +245,7 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                 row.operator("wm.url_open", text="All materials are CC0 - learn more.", emboss=False).url = "http://creativecommons.org/publicdomain/zero/1.0/"
                 
                 row = layout.row()
-                row.operator("wm.url_open", text="Material previews generated with B.M.P.S.", emboss=False).url = "https://svn.blender.org/svnroot/bf-blender/trunk/lib/tests/rendering/cycles/bmps.blend"
+                row.operator("wm.url_open", text="Material previews generated with B.M.P.S.", emboss=False).url = "https://svn.blender.org/svnroot/bf-blender/trunk/lib/tests/rendering/cycles/blend_files/bmps.blend"
                 row = layout.row()
                 row.operator("wm.url_open", text="B.M.P.S. created by Robin \"tuqueque\" Marín", emboss=False).url = "http://blenderartists.org/forum/showthread.php?151903-b.m.p.s.-1.5!"
             
@@ -1663,6 +1663,7 @@ class AddLibraryMaterial(bpy.types.Operator):
         
         #Create internal OSL scripts
         scripts = dom.getElementsByTagName("script")
+        osl_scripts = []
         for s in scripts:
             osl_datablock = bpy.data.texts.new(name=s.attributes['name'].value)
             osl_text = s.toxml()[s.toxml().index(">"):s.toxml().rindex("<")]
@@ -1844,6 +1845,7 @@ class ApplyLibraryMaterial(bpy.types.Operator):
         
         #Create internal OSL scripts
         scripts = dom.getElementsByTagName("script")
+        osl_scripts = []
         for s in scripts:
             osl_datablock = bpy.data.texts.new(name=s.attributes['name'].value)
             osl_text = s.toxml()[s.toxml().index(">"):s.toxml().rindex("<")]
@@ -1917,7 +1919,7 @@ class CacheLibraryMaterial(bpy.types.Operator):
         #Parse file
         dom = xml.dom.minidom.parseString(material_file_contents)
         
-        #Create internal OSL scripts and cache image textures
+        #Create external OSL scripts and cache image textures
         nodes = dom.getElementsByTagName("node")
         for node in nodes:
             node_data = node.attributes
@@ -2087,7 +2089,7 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
         material_file_contents = bcm_file.read()
         bcm_file.close()
         
-        #Create internal OSL scripts and cache image textures
+        #Create external OSL scripts and cache image textures
         nodes = dom.getElementsByTagName("node")
         for node in nodes:
             node_data = node.attributes
@@ -2958,7 +2960,24 @@ You may need a newer version of Blender for this material to work properly."""]
             else:
                 if 'script' in node_data:
                     node.script = osl_scripts[int(node_data['script'].value)]
-            
+            if node.inputs:
+                for input in node.inputs:
+                    if input.name.lower() in node_data:
+                        if input.type == 'RGBA':
+                            input.default_value = color(node_data[input.name.lower()].value)
+                        elif input.type == 'VECTOR':
+                            input.default_value = vector(node_data[input.name.lower()].value)
+                        elif input.type == 'VALUE':
+                            input.default_value = float(node_data[input.name.lower()].value)
+                        elif input.type == 'INT':
+                            input.default_value = int(node_data[input.name.lower()].value)
+                        elif input.type == 'BOOL':
+                            input.default_value = boolean(node_data[input.name.lower()].value)
+                        else:
+                            input.default_value = str(node_data[input.name.lower()].value)
+                    else:
+                        node_message = ['WARNING', "There was no value specified for input \"%s\", leaving at default." % input.name]
+                
         else:
             node_message = ['ERROR', """The material file contains the node name \"%s\", which is not known.
 The material file may contain an error, or you may need to check for updates to this add-on.""" % node_type]
@@ -3598,7 +3617,22 @@ def writeNodeData(node):
             if node.script:
                 write(" script=\"%s\"" % len(script_stack))
                 script_stack.append(node.script.name)
-        
+        if node.inputs:
+            for input in node.inputs:
+                if input.type == 'RGBA':
+                    input_value = rgba(input.default_value)
+                elif input.type == 'VECTOR':
+                    input_value = smallVector(input.default_value)
+                elif input.type == 'VALUE':
+                    input_value = smallFloat(input.default_value)
+                elif input.type == 'INT':
+                    input_value = str(input.default_value)
+                elif input.type == 'BOOL':
+                    input_value = str(input.default_value)
+                else:
+                    input_value = str(input.default_value)
+                
+                write(" %s=\"%s\"" % (input.name.lower(), input_value))
     else:
         write(" ERROR: UNKNOWN NODE TYPE. ")
         return
