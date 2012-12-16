@@ -254,6 +254,8 @@ def update_activeviewname(self, context):
         em.custom_active_view = self.custom_active_view
 
 class custom_props(bpy.types.PropertyGroup):
+    custom_fnlevel = IntProperty(name="Fast navigate level", description="Increase or decrease the SubSurf level, decrease make navigation faster", default=0)
+    
     custom_location = FloatVectorProperty(name="Location", description="Location of the plane",
                                           default=(0,0,-1.0),
                                           subtype = 'XYZ', 
@@ -308,6 +310,8 @@ class custom_props(bpy.types.PropertyGroup):
 # Function to create custom properties
 def createcustomprops(context):
     Ob = bpy.types.Object
+    
+    Ob.custom_fnlevel = IntProperty(name="Fast navigate level", description="Increase or decrease the SubSurf level, decrease make navigation faster", default=0)
     
     # plane properties 
     Ob.custom_location = FloatVectorProperty(name="Location", description="Location of the plane",
@@ -637,6 +641,10 @@ class BProjection(Panel):
                         row = box.column(align =True)
                         row.prop(matBProjection,'alpha', slider = True)
                         row = box.column(align =True)
+                    
+                    row.prop(ob,"custom_fnlevel")
+                    row = box.column(align =True)
+                        
     
                 if ob == bpy.data.objects[em.custom_active_object]:    
                     for item in em.custom_props:
@@ -1226,7 +1234,10 @@ class RotateView3D(Operator):
         for sub in context.object.modifiers:
             if sub.type in ['SUBSURF', 'MULTIRES']:
                 self.tmp_level = sub.levels
-                sub.levels = 0
+                if sub.levels - self.tmp_level <0:
+                    sub.levels = 0
+                else:
+                    sub.levels += bpy.context.object.custom_fnlevel
         return {'RUNNING_MODAL'}
             
 
@@ -1283,7 +1294,10 @@ class PanView3D(bpy.types.Operator):
         for sub in context.object.modifiers:
             if sub.type in ['SUBSURF', 'MULTIRES']:
                 self.tmp_level = sub.levels
-                sub.levels = 0  
+                if sub.levels - self.tmp_level <0:
+                    sub.levels = 0
+                else:
+                    sub.levels += bpy.context.object.custom_fnlevel 
                       
         return {'RUNNING_MODAL'}
         
