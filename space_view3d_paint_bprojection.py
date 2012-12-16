@@ -1140,6 +1140,10 @@ class RotateView3D(Operator):
             self.block = 1
             
         if event.value == 'RELEASE':
+            if self.tmp_level > -1:
+                for sub in context.object.modifiers:
+                    if sub.type in ['SUBSURF','MULTIRES']:
+                        sub.levels = self.tmp_level 
             return {'FINISHED'}
 
         if event.type == 'MOUSEMOVE':                        
@@ -1201,15 +1205,6 @@ class RotateView3D(Operator):
                     em.custom_offsetuv = [ouv[0] - deltax/50,ouv[1] - deltay/50] 
     
                 self.pan = Vector((event.mouse_region_x, event.mouse_region_y))
-                
-                        
-        elif event.type == 'MIDDLEMOUSE'and event.value == 'RELEASE':
-            if self.tmp_level > -1:
-                for sub in context.object.modifiers:
-                    if sub.type in ['SUBSURF','MULTIRES']:
-                        sub.levels = self.tmp_level   
-            
-            return {'FINISHED'}
         
         if 'C' in self.key:
             clear_props(context)
