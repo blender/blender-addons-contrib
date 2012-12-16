@@ -815,10 +815,10 @@ class AddBProjectionPlane(Operator):
             # XXX, this isnt future proof, DON'T USE INDEX's - campbell                    
             km = bpy.data.window_managers['WinMan'].keyconfigs['Blender'].keymaps['3D View']
             km.keymap_items[3-1].idname = 'view3d.rotate_view3d'
-            km.keymap_items[21-1].idname = 'view3d.zoom_view3d'
-            km.keymap_items[21-1].properties.delta = 1.0
             km.keymap_items[22-1].idname = 'view3d.zoom_view3d'
-            km.keymap_items[22-1].properties.delta = -1.0
+            km.keymap_items[22-1].properties.delta = 1.0
+            km.keymap_items[23-1].idname = 'view3d.zoom_view3d'
+            km.keymap_items[23-1].properties.delta = -1.0
             km.keymap_items[4-1].idname = 'view3d.pan_view3d'
             km.keymap_items[29-1].idname = 'view3d.preset_view3d'
             km.keymap_items[29-1].properties.view = 'FRONT'
@@ -926,10 +926,10 @@ def reinitkey():
     # ----------------------------------------------
     # XXX, this isnt future proof, DON'T USE INDEX's - campbell
     km.keymap_items[3-1].idname = 'view3d.rotate'
-    km.keymap_items[21-1].idname = 'view3d.zoom'
-    km.keymap_items[21-1].properties.delta = 1.0
     km.keymap_items[22-1].idname = 'view3d.zoom'
-    km.keymap_items[22-1].properties.delta = -1.0
+    km.keymap_items[22-1].properties.delta = 1.0
+    km.keymap_items[23-1].idname = 'view3d.zoom'
+    km.keymap_items[23-1].properties.delta = -1.0
     km.keymap_items[4-1].idname = 'view3d.move'
     km.keymap_items[29-1].idname = 'view3d.viewnumpad'
     km.keymap_items[29-1].properties.type = 'FRONT'
