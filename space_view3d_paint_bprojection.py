@@ -257,7 +257,7 @@ class custom_props(bpy.types.PropertyGroup):
     custom_fnlevel = IntProperty(name="Fast navigate level", description="Increase or decrease the SubSurf level, decrease make navigation faster", default=0)
     
     custom_location = FloatVectorProperty(name="Location", description="Location of the plane",
-                                          default=(0,0,-1.0),
+                                          default=(1.0,0,-1.0),
                                           subtype = 'XYZ', 
                                           soft_min = -10,
                                           soft_max = 10,
@@ -315,7 +315,7 @@ def createcustomprops(context):
     
     # plane properties 
     Ob.custom_location = FloatVectorProperty(name="Location", description="Location of the plane",
-                                           default  = (0, 0, -1.0),
+                                           default  = (1.0, 0, -1.0),
                                            subtype  = 'XYZ', 
                                            size     = 3,
                                            step     = 0.5,
@@ -819,8 +819,7 @@ class AddBProjectionPlane(Operator):
             bpy.ops.object.shape_key_add(from_mix = False)
             
             bpy.ops.object.create_view()
-            # ----------------------------------------------
-            # XXX, this isnt future proof, DON'T USE INDEX's - campbell                    
+                    
             km = bpy.data.window_managers['WinMan'].keyconfigs['Blender'].keymaps['3D View']
             l = ['view3d.rotate','view3d.move','view3d.zoom','view3d.viewnumpad','MOUSE','KEYBOARD','MIDDLEMOUSE','WHEELINMOUSE','WHEELOUTMOUSE','NUMPAD_1','NUMPAD_3','NUMPAD_7']
             for kmi in km.keymap_items:
