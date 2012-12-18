@@ -822,24 +822,26 @@ class AddBProjectionPlane(Operator):
             # ----------------------------------------------
             # XXX, this isnt future proof, DON'T USE INDEX's - campbell                    
             km = bpy.data.window_managers['WinMan'].keyconfigs['Blender'].keymaps['3D View']
-            km.keymap_items[6-1].idname = 'view3d.rotate_view3d'
-            km.keymap_items[25-1].idname = 'view3d.zoom_view3d'
-            km.keymap_items[25-1].properties.delta = 1.0
-            km.keymap_items[26-1].idname = 'view3d.zoom_view3d'
-            km.keymap_items[26-1].properties.delta = -1.0
-            km.keymap_items[7-1].idname = 'view3d.pan_view3d'
-            km.keymap_items[34-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[34-1].properties.view = 'FRONT'
-            km.keymap_items[36-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[36-1].properties.view = 'RIGHT'            
-            km.keymap_items[40-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[40-1].properties.view = 'TOP'
-            km.keymap_items[42-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[42-1].properties.view = 'BACK'
-            km.keymap_items[43-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[43-1].properties.view = 'LEFT'            
-            km.keymap_items[44-1].idname = 'view3d.preset_view3d'
-            km.keymap_items[44-1].properties.view = 'BOTTOM'                                   
+            l = ['view3d.rotate','view3d.move','view3d.zoom','view3d.viewnumpad','MOUSE','KEYBOARD','MIDDLEMOUSE','WHEELINMOUSE','WHEELOUTMOUSE','NUMPAD_1','NUMPAD_3','NUMPAD_7']
+            for kmi in km.keymap_items:
+                if kmi.idname in l and kmi.map_type in l and kmi.type in l:
+                    try:
+                        p = kmi.properties.delta
+                        if p == -1 or p == 1:
+                            kmi.idname = 'view3d.zoom_view3d'
+                            kmi.properties.delta = p
+                    except:
+                        try:
+                            p = kmi.properties.type
+                            if kmi.shift == False :
+                                kmi.idname = 'view3d.preset_view3d'
+                                kmi.properties.view = p
+                        except:
+                            if kmi.idname == 'view3d.rotate':
+                                kmi.idname = 'view3d.rotate_view3d'  
+                            if kmi.idname == 'view3d.move':
+                                kmi.idname = 'view3d.pan_view3d' 
+                                                       
             km = context.window_manager.keyconfigs.default.keymaps['Image Paint']
             kmi = km.keymap_items.new("object.intuitivescale", 'LEFTMOUSE', 'PRESS', shift=True)
                         
@@ -931,26 +933,25 @@ class RemoveBProjectionPlane(Operator):
 
 def reinitkey():
     km = bpy.data.window_managers['WinMan'].keyconfigs['Blender'].keymaps['3D View']
-    # ----------------------------------------------
-    # XXX, this isnt future proof, DON'T USE INDEX's - campbell
-    km.keymap_items[6-1].idname = 'view3d.rotate'
-    km.keymap_items[25-1].idname = 'view3d.zoom'
-    km.keymap_items[25-1].properties.delta = 1.0
-    km.keymap_items[26-1].idname = 'view3d.zoom'
-    km.keymap_items[26-1].properties.delta = -1.0
-    km.keymap_items[7-1].idname = 'view3d.move'
-    km.keymap_items[34-1].idname = 'view3d.viewnumpad'
-    km.keymap_items[34-1].properties.type = 'FRONT'
-    km.keymap_items[36-1].idname = 'view3d.viewnumpad'
-    km.keymap_items[36-1].properties.type = 'RIGHT'            
-    km.keymap_items[40-1].idname = 'view3d.viewnumpad'
-    km.keymap_items[40-1].properties.type = 'TOP'
-    km.keymap_items[42-1].idname = 'view3d.viewnumpad'
-    km.keymap_items[42-1].properties.type = 'BACK'
-    km.keymap_items[43-1].idname = 'view3d.viewnumpad'
-    km.keymap_items[43-1].properties.type = 'LEFT'            
-    km.keymap_items[44-1].idname = 'view3d.viewnumpad'
-    km.keymap_items[44-1].properties.type = 'BOTTOM'            
+    l = ['view3d.zoom_view3d','view3d.preset_view3d','view3d.rotate_view3d','view3d.pan_view3d','MOUSE','KEYBOARD','MIDDLEMOUSE','WHEELINMOUSE','WHEELOUTMOUSE','NUMPAD_1','NUMPAD_3','NUMPAD_7']
+    for kmi in km.keymap_items:
+        if kmi.idname in l and kmi.map_type in l and kmi.type in l:
+            try:
+                p = kmi.properties.delta
+                if p == -1 or p == 1:
+                    kmi.idname = 'view3d.zoom'
+                    kmi.properties.delta = p
+            except:
+                try:
+                    p = kmi.properties.view
+                    if kmi.shift == False :
+                        kmi.idname = 'view3d.viewnumpad'
+                        kmi.properties.type = p
+                except:
+                    if kmi.idname == 'view3d.rotate_view3d':
+                        kmi.idname = 'view3d.rotate'  
+                    if kmi.idname == 'view3d.pan_view3d':
+                        kmi.idname = 'view3d.move'            
             
     km = bpy.context.window_manager.keyconfigs.default.keymaps['Image Paint']
     #to do
