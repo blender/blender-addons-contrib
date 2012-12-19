@@ -20,7 +20,7 @@ bl_info = {
     "name": "Select Vertex Groups",
     "author": "Martin Ellison",
     "version": (1, 0),
-    "blender": (2, 5, 9),
+    "blender": (2, 59, 0),
     "location": "Toolbox",
     "description": "Finds all the vertex groups that chosen verts are in, & any verts that are not in any group",
     "warning": "Buggy", # used for warning icon and text in addons panel

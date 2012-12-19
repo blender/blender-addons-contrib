@@ -52,7 +52,7 @@ bl_info = {
     "name": "import BrushSet",
     "author": "Daniel Grauer",
     "version": (1, 1, 5),
-    "blender": (2, 5, 6),
+    "blender": (2, 56, 0),
     "category": "Import-Export",
     "location": "File > Import > BrushSet",
     "description": "imports all image files from a folder",

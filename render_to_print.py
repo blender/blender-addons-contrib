@@ -22,7 +22,7 @@ bl_info = {
     "name": "Render to Print",
     "author": "Marco Crippa <thekrypt77@tiscali.it>, Dealga McArdle",
     "version": (0, 2),
-    "blender": (2, 5, 8),
+    "blender": (2, 58, 0),
     "location": "Render > Render to Print",
     "description": "Set the size of the render for a print",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"

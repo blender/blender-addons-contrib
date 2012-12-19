@@ -22,7 +22,7 @@ bl_info = {
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
     "version": (2, 8, 7),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\

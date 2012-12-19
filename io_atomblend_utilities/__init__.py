@@ -38,8 +38,8 @@ bl_info = {
     "name": "Atomic Blender - Utilities",
     "description": "Utilities for manipulating atom structures",
     "author": "Clemens Barth",
-    "version": (0,6),
-    "blender": (2,6),
+    "version": (0, 6),
+    "blender": (2, 60, 0),
     "location": "Panel: View 3D - Tools",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/"

@@ -21,7 +21,7 @@ bl_info = {
     "name": "Intellisense for Text Editor",
     "author": "Mackraken",
     "version": (0, 2),
-    "blender": (2, 6, 0),
+    "blender": (2, 60, 0),
     "api": 41851,
     "location": "Ctrl + Space at Text Editor",
     "description": "Adds intellense to the Text Editor",

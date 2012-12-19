@@ -21,7 +21,7 @@ bl_info = {
     "name": "Jump to Cut",
     "author": "Carlos Padial",
     "version": (5, 0, 2),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "api": 44539,
     "category": "Sequencer",
     "location": "Sequencer > UI > Jump to Cut",

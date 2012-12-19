@@ -20,7 +20,7 @@ bl_info = {
     "name": "Btrace",
     "author": "liero, crazycourier, Atom, Meta-Androcto, MacKracken",
     "version": (1, 1, ),
-    "blender": (2, 6, 2),
+    "blender": (2, 62, 0),
     "location": "View3D > Tools",
     "description": "Tools for converting/animating objects/particles into curves",
     "warning": "Still under development, bug reports appreciated",

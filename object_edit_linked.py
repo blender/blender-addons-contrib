@@ -21,7 +21,7 @@ bl_info = {
     "name": "Edit Linked Library",
     "author": "Jason van Gumster (Fweeb)",
     "version": (0, 7, 1),
-    "blender": (2, 6, 0),
+    "blender": (2, 60, 0),
     "location": "View3D > Toolshelf > Edit Linked Library",
     "description": "Allows editing of objects linked from a .blend library.",
     "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/Scripts/Object/Edit_Linked_Library",

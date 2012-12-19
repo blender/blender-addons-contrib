@@ -31,7 +31,7 @@ bl_info = {
     "name": "Online Material Library",
     "author": "Peter Cassetta",
     "version": (0, 5),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "Properties > Material > Online Material Library",
     "description": "Browse and download materials from online CC0 libraries.",
     "warning": "Beta version",

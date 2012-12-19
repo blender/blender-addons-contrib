@@ -19,7 +19,7 @@ bl_info = {
     'name': 'Drop to Ground',
     'author': 'Unnikrishnan(kodemax), Florian Meyer(testscreenings)',
     'version': (1,2),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     'location': '3D View -> Tool Shelf -> Object Tools Panel (at the bottom)',
     'description': 'Drop selected objects on active object',
     'warning': '',

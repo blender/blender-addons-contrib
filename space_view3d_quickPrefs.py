@@ -20,7 +20,7 @@ bl_info = {
     "name": "QuickPrefs",
     "author": "Sean Olson",
     "version": (2,1),
-    "blender": (2, 6, 4),
+    "blender": (2, 64, 0),
     "location": "3DView->Properties Panel (N-Key)",
     "description": "Add often changed User Preference options to Properties panel.",
     "warning": "",

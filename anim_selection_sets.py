@@ -34,7 +34,7 @@ bl_info = {
   "name": "Selection Set",
   "author": "Dan Eicher",
   "version": (0, 1, 0),
-  "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
   "location": "Properties -> Object Data -> Selection Sets",
   "description": "Selection Sets to select groups of bones",
   "warning": "Proxy armatures need to export sets and run generated script on re-opening file",

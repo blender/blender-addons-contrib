@@ -20,7 +20,7 @@ bl_info = {
     "name": "Topokit 2",
     "author": "dustractor",
     "version": (2, 0),
-    "blender": (2, 6, 0),
+    "blender": (2, 60, 0),
     "api": 41935,
     "location": "edit mesh vertices/edges/faces menus",
     "description": "",

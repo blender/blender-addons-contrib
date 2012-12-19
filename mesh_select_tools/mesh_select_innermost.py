@@ -25,7 +25,7 @@ bl_info = {
     "name": "Select innermost",
     "author": "Dolf Veenvliet",
     "version": (0,3),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "api": 35851,
     "location": "Select > Innermost",
     "description": "Select the innermost faces",

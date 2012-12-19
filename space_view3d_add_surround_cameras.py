@@ -25,7 +25,7 @@ bl_info = {
     "tracker_url": "https://projects.blender.org/tracker/index.php?"
                    "func=detail&aid=29266",
     "version": (0, 1, 2),
-    "blender": (2, 6, 0),
+    "blender": (2, 60, 0),
     "category": "3D View"
 }
 

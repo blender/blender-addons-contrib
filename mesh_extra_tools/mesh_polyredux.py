@@ -22,7 +22,7 @@ bl_info = {
     "name": "PolyRedux",
     "author": "Campbell J Barton - updated by Gert De Roost",
     "version": (2, 0, 4),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "View3D > Tools",
     "description": "predictable mesh simplifaction maintaining face loops",
     "warning": "",

@@ -23,7 +23,7 @@ bl_info = {
     "name": "Marmalade Cross-platform Apps (.group)",
     "author": "Benoit Muller",
     "version": (0, 6, 2),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "File > Export > Marmalade cross-platform Apps (.group)",
     "description": "Export Marmalade Format files (.group)",
     "warning": "",

@@ -22,7 +22,7 @@ bl_info = {
     "name": "Layer Management",
     "author": "Alfonso Annarumma",
     "version": (1,4),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "View3D > Properties panel > Layer Management",
     "warning": "",
     "description": "Display and Edit Layer Name",

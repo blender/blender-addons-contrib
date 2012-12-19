@@ -20,7 +20,7 @@ bl_info = {
     "name": "Quake Model 3 (.md3)",
     "author": "Xembie",
     "version": (0, 7),
-    "blender": (2, 5, 3),
+    "blender": (2, 53, 0),
     "location": "File > Export",
     "description": "Save a Quake Model 3 File)",
     "warning": "", # used for warning icon and text in addons panel

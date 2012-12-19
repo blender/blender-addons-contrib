@@ -23,7 +23,7 @@ bl_info = {
     "name": "Game Property Visualizer",
     "author": "Bartius Crouch/Vilem Novak",
     "version": (2,5),
-    "blender": (2, 5, 3),
+    "blender": (2, 53, 0),
     "location": "View3D > Properties panel > Display tab",
     "description": "Display the game properties next to selected objects "
                    "in the 3d-view",

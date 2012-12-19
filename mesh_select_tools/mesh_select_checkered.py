@@ -25,7 +25,7 @@ bl_info = {
     "name": "Select checkered",
     "author": "Dolf Veenvliet",
     "version": 1,
-    "blender": (2, 5, 6),
+    "blender": (2, 56, 0),
     "api": 31847,
     "location": "View3D > Select",
     "description": "Select checkered",

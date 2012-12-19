@@ -24,7 +24,7 @@ bl_info = {
     "name": "Cursor Control",
     "author": "Morgan Mörtsell (Seminumerical)",
     "version": (0, 7, 0),
-    "blender": (2, 5, 9),
+    "blender": (2, 59, 0),
     "location": "View3D > Properties > Cursor",
     "description": "Control the Cursor",
     "warning": "buggy, may crash other addons", # used for warning icon and text in addons panel

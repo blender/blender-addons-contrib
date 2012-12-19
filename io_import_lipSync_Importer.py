@@ -20,7 +20,7 @@ bl_info = {
     "name": "LipSync Importer & Blinker",
     "author": "Yousef Harfoush - bat3a ;)",
     "version": (0, 5, 0),
-    "blender": (2, 6, 2),
+    "blender": (2, 62, 0),
     "location": "3D window > Tool Shelf",
     "description": "Plot Moho (Papagayo, Jlipsync, Yolo) file to frames and adds automatic blinking",
     "warning": "",

@@ -23,7 +23,7 @@ bl_info = {
     "name": "Show Vertex Groups/Weights",
     "author": "Jason van Gumster (Fweeb), Bartius Crouch",
     "version": (0, 7, 1),
-    "blender": (2, 6, 2),
+    "blender": (2, 62, 0),
     "location": "3D View > Properties Region > Show Weights",
     "description": "Finds the vertex groups of a selected vertex and displays the corresponding weights",
     "warning": "Requires bmesh",

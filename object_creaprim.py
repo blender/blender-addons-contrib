@@ -45,7 +45,7 @@ bl_info = {
     "name": "CreaPrim",
     "author": "Gert De Roost",
     "version": (0, 3, 9),
-    "blender": (2, 6, 4),
+    "blender": (2, 64, 0),
     "location": "View3D > Object Tools",
     "description": "Create primitive addon",
     "warning": "",

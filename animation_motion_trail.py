@@ -23,7 +23,7 @@ bl_info = {
     "name": "Motion Trail",
     "author": "Bart Crouch",
     "version": (3, 1, 1),
-    "blender": (2, 6, 1),
+    "blender": (2, 61, 0),
     "location": "View3D > Toolbar > Motion Trail tab",
     "warning": "",
     "description": "Display and edit motion trails in the 3d-view",
