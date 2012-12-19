@@ -22,7 +22,7 @@ bl_info = {
     "groups contained in linked libraries",
     "author": "Olivier Amrein, Francesco Siddi",
     "version": (0, 5),
-    "blender": (2, 53, 0),
+    "blender": (2, 5, 3),
     "location": "Properties Panel",
     "warning": "",  # used for warning icon and text in addons panel
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/PowerLib",
