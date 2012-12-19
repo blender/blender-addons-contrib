@@ -23,18 +23,18 @@
 
 
 bl_info = {
-    'name': "Carnegie Mellon University Mocap Library Browser",
-    'author': "Daniel Monteiro Basso <daniel@basso.inf.br>",
-    'version': (2012, 6, 1, 1),
-    'blender': (2, 6, 3),
-    'location': "View3D > Tools",
-    'description': "Assistant for using CMU Motion Capture data",
-    'warning': '',
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "name": "Carnegie Mellon University Mocap Library Browser",
+    "author": "Daniel Monteiro Basso <daniel@basso.inf.br>",
+    "version": (2012, 6, 1, 1),
+    "blender": (2, 6, 3),
+    "location": "View3D > Tools",
+    "description": "Assistant for using CMU Motion Capture data",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
                 "Scripts/3D_interaction/CMU_Mocap_Library_Browser",
-    'tracker_url': "http://projects.blender.org/tracker/index.php?"\
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
                    "func=detail&aid=29086",
-    'category': '3D View'}
+    "category": "3D View"}
 
 
 import os

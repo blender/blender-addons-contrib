@@ -19,18 +19,18 @@
 # <pep8 compliant>
 #
 bl_info = {
-    'name': 'Layer Management',
-    'author': 'Alfonso Annarumma',
-    'version': (1,4),
-    'blender': (2, 6, 3),
-    'location': 'View3D > Properties panel > Layer Management',
-    'warning': '',
-    'description': 'Display and Edit Layer Name',
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "name": "Layer Management",
+    "author": "Alfonso Annarumma",
+    "version": (1,4),
+    "blender": (2, 6, 3),
+    "location": "View3D > Properties panel > Layer Management",
+    "warning": "",
+    "description": "Display and Edit Layer Name",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D_interaction/layer_manager",
-    'tracker_url': "http://projects.blender.org/tracker/index.php?"\
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"
                    "func=detail&aid=32472",
-    'category': '3D View'}
+    "category": "3D View"}
     
 import bpy
 from bpy.props import StringProperty, BoolProperty, IntProperty, CollectionProperty, BoolVectorProperty

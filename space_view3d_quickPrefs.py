@@ -17,18 +17,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    'name': "QuickPrefs",
-    'author': "Sean Olson",
-    'version': (2,1),
-    'blender': (2, 6, 4),
-    'location': "3DView->Properties Panel (N-Key)",
-    'description': "Add often changed User Preference options to Properties panel.",
-    'warning': "",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "name": "QuickPrefs",
+    "author": "Sean Olson",
+    "version": (2,1),
+    "blender": (2, 6, 4),
+    "location": "3DView->Properties Panel (N-Key)",
+    "description": "Add often changed User Preference options to Properties panel.",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
                 "Scripts/3D_interaction/QuickPrefs",
-    'tracker_url': "http://projects.blender.org/tracker/index.php?"\
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
                    "func=detail&aid=27822",
-    'category': "3D View"}
+    "category": "3D View"}
 
 import os
     

@@ -17,19 +17,19 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    'name': 'Extra Sequencer Actions',
-    'author': 'Turi Scandurra, Carlos Padial',
-    'version': (3, 4),
-    'blender': (2, 6, 3, 17),
-    'api': 49500,
-    'category': 'Sequencer',
-    'location': 'Sequencer',
-    'description': 'Collection of extra operators to manipulate VSE strips',
-    'wiki_url': 'http://wiki.blender.org/index.php/'
-    'Extensions:2.6/Py/Scripts/Sequencer/Extra_Sequencer_Actions',
-    'tracker_url': 'http://projects.blender.org/tracker/index.php?func=detail'\
-        '&aid=30474',
-    'support': 'COMMUNITY'}
+    "name": "Extra Sequencer Actions",
+    "author": "Turi Scandurra, Carlos Padial",
+    "version": (3, 4),
+    "blender": (2, 6, 3),
+    "api": 49500,
+    "category": "Sequencer",
+    "location": "Sequencer",
+    "description": "Collection of extra operators to manipulate VSE strips",
+    "wiki_url": "http://wiki.blender.org/index.php/"
+    "Extensions:2.6/Py/Scripts/Sequencer/Extra_Sequencer_Actions",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail"
+                   "&aid=30474",
+    "support": "COMMUNITY"}
 
 if "bpy" in locals():
     import imp
