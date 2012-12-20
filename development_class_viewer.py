@@ -23,7 +23,7 @@ bl_info = {
     "blender": (2, 58, 0),
     "location": "Text Editor > Toolbar, Text Editor > Right Click",
     "warning": "",
-    "description": "List text"s classes and definitions",
+    "description": "List classes and definitions of a text block",
     "wiki_url": "https://sites.google.com/site/aleonserra/home/scripts/class-viewer",
     "category": "Development"}
 
