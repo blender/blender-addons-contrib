@@ -26,7 +26,7 @@ bl_info = {
     "blender": (2, 62, 0),
     "location": "3D View > Properties Region > Show Weights",
     "description": "Finds the vertex groups of a selected vertex and displays the corresponding weights",
-    "warning": "Requires bmesh",
+    "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Modeling/Show_Vertex_Group_Weights",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"\
@@ -188,19 +188,6 @@ class ShowVGroupWeights(bpy.types.Operator):
         else:
             self.report({'WARNING'}, "View3D not found, can't run operator")
             return {'CANCELLED'}
-
-
-# properties used by the script
-class InitProperties(bpy.types.Operator):
-    bl_idname = "view3d.init_find_weights"
-    bl_label = "Initialize properties for vgroup weights finder"
-    
-    def execute(self, context):
-        bpy.types.Scene.display_indices = bpy.props.IntProperty(
-            name="Display indices",
-            default=0)
-        context.scene.display_indices = 0
-        return {'FINISHED'}
 
 
 # removal of ID-properties when script is disabled
@@ -448,8 +435,9 @@ def register():
         default = False)
     bpy.types.Mesh.assign_vgroup = bpy.props.StringProperty()
     bpy.utils.register_class(ShowVGroupWeights)
-    bpy.utils.register_class(InitProperties)
-    bpy.ops.view3d.init_find_weights()
+    bpy.types.Scene.display_indices = bpy.props.IntProperty(
+        name="Display indices",
+        default=0)
     bpy.utils.register_class(AssignVertexWeight)
     bpy.utils.register_class(RemoveFromVertexGroup)
     bpy.utils.register_class(AddToVertexGroup)
@@ -458,7 +446,6 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(ShowVGroupWeights)
-    bpy.utils.unregister_class(InitProperties)
     clear_properties()
     bpy.utils.unregister_class(AssignVertexWeight)
     bpy.utils.unregister_class(RemoveFromVertexGroup)
