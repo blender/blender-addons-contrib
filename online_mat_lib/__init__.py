@@ -58,18 +58,25 @@ working_mode = "none"
 mat_lib_host = ""
 mat_lib_location = ""
 mat_lib_cached_files = -1
-if os.path.exists(os.path.join(bpy.context.user_preferences.filepaths.script_directory, "addons", "online_mat_lib", "material-library")):
-    mat_lib_folder = os.path.join(bpy.context.user_preferences.filepaths.script_directory, "addons", "online_mat_lib", "material-library")
-elif os.path.exists(os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")):
-    mat_lib_folder = os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")
-elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")):
-    mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")
-elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")):
-    mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")
-else:
-    print("ONLINE MATERIAL LIBRARY -- MAJOR PROBLEM:"\
-    "COULD NOT LOCATE ADD-ON INSTALLATION PATH.")
-    mat_lib_folder = "error"
+
+mat_lib_folder = ""
+
+def findLibrary():
+    global mat_lib_folder
+    if os.path.exists(os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")):
+        mat_lib_folder = os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")
+    elif os.path.exists(os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")):
+        mat_lib_folder = os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")
+    elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")):
+        mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")
+    elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")):
+        mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")
+    else:
+        print("ONLINE MATERIAL LIBRARY -- MAJOR PROBLEM:"\
+        "COULD NOT LOCATE ADD-ON INSTALLATION PATH.")
+        mat_lib_folder = "error"
+
+findLibrary()
 
 mat_lib_contents = "Please refresh."
 mat_lib_category_filenames = []
@@ -906,6 +913,8 @@ class LibraryConnect(bpy.types.Operator):
         global mat_lib_location
         global working_mode
         
+        findLibrary()
+        
         if self.mode == "online":
             mat_lib_host = context.scene.mat_lib_library[:context.scene.mat_lib_library.index("/")]
             mat_lib_location = context.scene.mat_lib_library[(context.scene.mat_lib_library.index(mat_lib_host) + len(mat_lib_host)):]
@@ -1211,6 +1220,8 @@ def libraryCategoryUpdate():
         global current_material_number
                 
         global category_type
+        
+        findLibrary()
     
         i = 0
         while i < len(category_enum_items):
@@ -1328,6 +1339,8 @@ class ViewMaterial(bpy.types.Operator):
         global current_material_cached
         global current_material_previewed
         
+        findLibrary()
+        
         if current_material_number == self.material:
             if current_material_previewed:
                 current_material_previewed = True
@@ -1391,7 +1404,7 @@ class LibraryClearCache(bpy.types.Operator):
     
     def execute(self, context):
         global mat_lib_cached_files
-        
+        findLibrary()
         
         if library == "bundled":
             self.report({'ERROR'}, "The bundled library is local only and contains no cached online data.")
@@ -1465,6 +1478,8 @@ class LibraryPreview(bpy.types.Operator):
         global preview_message
         global library
         global current_material_previewed
+        
+        findLibrary()
         
         #Check for a cached preview
         if library == "bundled":
@@ -1541,6 +1556,8 @@ class AddLibraryMaterial(bpy.types.Operator):
         global library
         global node_message
         global current_material_cached
+        
+        findLibrary()
         
         if not bpy.context.active_object:
             self.report({'ERROR'}, "No object selected!")
@@ -1724,6 +1741,8 @@ class ApplyLibraryMaterial(bpy.types.Operator):
         global current_material_cached
         global osl_scripts
         
+        findLibrary()
+        
         mat_name = ""
         material_file_contents = ""
         if not bpy.context.active_object:
@@ -1900,6 +1919,8 @@ class CacheLibraryMaterial(bpy.types.Operator):
         global material_file_contents
         global current_material_cached
         
+        findLibrary()
+        
         if working_mode == "online":
             connection = http.client.HTTPConnection(mat_lib_host)
             connection.request("GET", mat_lib_location + "cycles/" + category_filename + "/" + self.filename + ".bcm")
@@ -2038,6 +2059,8 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
         global material_file_contents
         global save_filename
         global current_material_cached
+        
+        findLibrary()
         
         if library == "composite" and os.path.exists(mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep + category_filename + os.sep + save_filename):
             bcm_file = open(mat_lib_folder + os.sep + mat_lib_host + os.sep + "cycles" + os.sep + category_filename + os.sep + self.filename, mode="r+b")
