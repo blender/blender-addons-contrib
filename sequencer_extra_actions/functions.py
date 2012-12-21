@@ -33,16 +33,15 @@ imb_ext_image = [
     ".rgba", ".tif", ".tiff", ".tx", ".jp2", ".hdr", ".dds",
     ".dpx", ".cin", ".exr", ".rw2",
     # IMG QT
-    ".gif", ".psd", ".pct", ".pict", ".pntg", ".qtif"]  
+    ".gif", ".psd", ".pct", ".pict", ".pntg", ".qtif"]
 
 
 imb_ext_movie = [
     ".avi", ".flc", ".mov", ".movie", ".mp4", ".m4v", ".m2v",
     ".m2t", ".m2ts", ".mts", ".mv", ".avs", ".wmv", ".ogv",
     ".dv", ".mpeg", ".mpg", ".mpg2", ".vob", ".mkv", ".flv",
-    ".divx", ".xvid", ".mxf",
-    ]    
-  
+    ".divx", ".xvid", ".mxf"]
+
 
 # Functions
 
@@ -73,8 +72,7 @@ def detect_strip_type(filepath):
     ".avi", ".flc", ".mov", ".movie", ".mp4", ".m4v", ".m2v",
     ".m2t", ".m2ts", ".mts", ".mv", ".avs", ".wmv", ".ogv",
     ".dv", ".mpeg", ".mpg", ".mpg2", ".vob", ".mkv", ".flv",
-    ".divx", ".xvid", ".mxf",
-    ]
+    ".divx", ".xvid", ".mxf"]
 
     imb_ext_audio = [
     ".wav", ".ogg", ".oga", ".mp3", ".mp2", ".ac3", ".aac",
@@ -167,26 +165,20 @@ def sortlist(filelist):
     return filelist_sorted
 
 
-#------------ jump to cut functions...
-
-
-def triminout(strip,sin,sout):
-    start = strip.frame_start+strip.frame_offset_start 
-    end = start+strip.frame_final_duration
+# jump to cut functions
+def triminout(strip, sin, sout):
+    start = strip.frame_start + strip.frame_offset_start
+    end = start + strip.frame_final_duration
     if end > sin:
         if start < sin:
-            strip.select_right_handle = False            
+            strip.select_right_handle = False
             strip.select_left_handle = True
             bpy.ops.sequencer.snap(frame=sin)
             strip.select_left_handle = False
     if start < sout:
         if end > sout:
-            strip.select_left_handle = False            
+            strip.select_left_handle = False
             strip.select_right_handle = True
             bpy.ops.sequencer.snap(frame=sout)
-            strip.select_right_handle = False    
+            strip.select_right_handle = False
     return {'FINISHED'}
-
-
-
-

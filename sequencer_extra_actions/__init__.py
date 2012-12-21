@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Extra Sequencer Actions",
     "author": "Turi Scandurra, Carlos Padial",
-    "version": (3, 4),
+    "version": (3, 5),
     "blender": (2, 63, 0),
     "api": 49500,
     "category": "Sequencer",

@@ -35,15 +35,15 @@ class SEQUENCER_EXTRA_MT_input(bpy.types.Menu):
         text='Create Movieclip strip', icon='PLUGIN')
 
 
-
 class AddRecursiveLoadPanel(bpy.types.Panel):
     bl_label = "Recursive Load"
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
-    
+
     @staticmethod
     def has_sequencer(context):
-        return (context.space_data.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'})
+        return (context.space_data.view_type\
+        in {'SEQUENCER', 'SEQUENCER_PREVIEW'})
 
     @classmethod
     def poll(cls, context):
@@ -86,6 +86,8 @@ def sequencer_select_menu_func(self, context):
 
 
 def sequencer_strip_menu_func(self, context):
+    self.layout.operator('sequencerextra.extendtofill',
+    text='Extend to Fill', icon='PLUGIN')
     self.layout.operator('sequencerextra.distribute',
     text='Distribute', icon='PLUGIN')
     self.layout.operator_menu_enum('sequencerextra.fadeinout',
@@ -159,15 +161,17 @@ def clip_clip_menu_func(self, context):
     text='Open from File Browser', icon='PLUGIN')
     self.layout.separator()
 
+
 class ExifInfoPanel(bpy.types.Panel):
     """Creates a Panel in the Object properties window"""
     bl_label = "EXIF Info Panel"
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
-    
+
     @staticmethod
     def has_sequencer(context):
-        return (context.space_data.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'})
+        return (context.space_data.view_type\
+        in {'SEQUENCER', 'SEQUENCER_PREVIEW'})
 
     @classmethod
     def poll(cls, context):
@@ -183,31 +187,31 @@ class ExifInfoPanel(bpy.types.Panel):
         row = layout.row()
         row.operator("sequencerextra.read_exif")
         row = layout.row()
-        row.label(text="Exif Data!", icon='RENDER_REGION')
+        row.label(text="Exif Data", icon='RENDER_REGION')
         row = layout.row()
-        
+
         try:
             strip = context.scene.sequence_editor.active_strip
-        
-            f=strip.frame_start
-            frame=sce.frame_current
+
+            f = strip.frame_start
+            frame = sce.frame_current
             try:
                 if len(sce['metadata']) == 1:
                     for d in sce['metadata'][0]:
                         split = layout.split(percentage=0.5)
                         col = split.column()
                         row = col.row()
-                        col.label(text=d) 
+                        col.label(text=d)
                         col = split.column()
                         col.label(str(sce['metadata'][0][d]))
-                else:    
-                    for d in sce['metadata'][frame-f]:
+                else:
+                    for d in sce['metadata'][frame - f]:
                         split = layout.split(percentage=0.5)
                         col = split.column()
                         row = col.row()
-                        col.label(text=d) 
+                        col.label(text=d)
                         col = split.column()
-                        col.label(str(sce['metadata'][frame-f][d]))
+                        col.label(str(sce['metadata'][frame - f][d]))
             except KeyError:
                 pass
         except AttributeError:

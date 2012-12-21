@@ -22,7 +22,8 @@ align strip to the left (shift-s + -lenght)
 
 '''
 
-import random, math
+import random
+import math
 
 
 import bpy
@@ -424,7 +425,7 @@ class Sequencer_Extra_RippleDelete(bpy.types.Operator):
         if meta_level > 0:
             seq = seq.meta_stack[meta_level - 1]
         #strip = functions.act_strip(context)
-        for strip in context.selected_editable_sequences:       
+        for strip in context.selected_editable_sequences:
             cut_frame = strip.frame_final_start
             next_edit = 300000
             bpy.ops.sequencer.select_all(action='DESELECT')
@@ -1129,6 +1130,50 @@ class Sequencer_Extra_FadeInOut(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
 
+# EXTEND TO FILL
+class Sequencer_Extra_ExtendToFill(bpy.types.Operator):
+    bl_idname = 'sequencerextra.extendtofill'
+    bl_label = 'Extend to Fill'
+    bl_description = 'Extend active strip forward to fill adjacent space'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        scn = context.scene
+        if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
+            return True
+        else:
+            return False
+
+    def execute(self, context):
+        scn = context.scene
+        seq = scn.sequence_editor
+        meta_level = len(seq.meta_stack)
+        if meta_level > 0:
+            seq = seq.meta_stack[meta_level - 1]
+        strip = functions.act_strip(context)
+        chn = strip.channel
+        stf = strip.frame_final_end
+        enf = 300000
+
+        for i in seq.sequences:
+            ffs = i.frame_final_start
+            if (i.channel == chn and ffs > stf):
+                if ffs < enf:
+                    enf = ffs
+        if enf == 300000 and stf < scn.frame_end:
+            enf = scn.frame_end
+
+        if enf == 300000 or enf == stf:
+            self.report({'ERROR_INVALID_INPUT'}, 'Unable to extend')
+            return {'CANCELLED'}
+        else:
+            strip.frame_final_end = enf
+
+        bpy.ops.sequencer.reload()
+        return {'FINISHED'}
+
+
 # DISTRIBUTE
 class Sequencer_Extra_Distribute(bpy.types.Operator):
     bl_idname = 'sequencerextra.distribute'
@@ -1467,9 +1512,9 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
     bl_description = 'Create a Movieclip strip from a MOVIE or IMAGE strip'
 
     """
-    When a movie or image strip is selected, this operator creates a movieclip 
-    or find the correspondent movieclip that already exists for this footage, 
-    and add a VSE clip strip with same cuts the original strip has. 
+    When a movie or image strip is selected, this operator creates a movieclip
+    or find the correspondent movieclip that already exists for this footage,
+    and add a VSE clip strip with same cuts the original strip has.
     It can convert movie strips and image sequences, both with hard cuts or
     soft cuts.
     """
@@ -1486,7 +1531,6 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
     def execute(self, context):
         strip = functions.act_strip(context)
         scn = context.scene
-        
 
         if strip.type == 'MOVIE':
             #print("movie", strip.frame_start)
@@ -1502,7 +1546,7 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
                 try:
                     data = bpy.data.movieclips.load(filepath=path)
                     newstrip = bpy.ops.sequencer.movieclip_strip_add(\
-                        replace_sel = True, overlap=False, clip=data.name)
+                        replace_sel=True, overlap=False, clip=data.name)
                     newstrip = functions.act_strip(context)
                     newstrip.frame_start = strip.frame_start\
                         - strip.animation_offset_start
@@ -1513,21 +1557,23 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
                 except:
                     self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
                     return {'CANCELLED'}
-                
+
             else:
                 try:
                     newstrip = bpy.ops.sequencer.movieclip_strip_add(\
-                        replace_sel = True, overlap=False, clip=data.name)
+                        replace_sel=True, overlap=False, clip=data.name)
                     newstrip = functions.act_strip(context)
                     newstrip.frame_start = strip.frame_start\
                         - strip.animation_offset_start
-                    #i need to declare the strip this way in order to get triminout() working
-                    clip = bpy.context.scene.sequence_editor.sequences[newstrip.name]
-                    # i cannot change this movie clip atributes via scripts... 
+                    # i need to declare the strip this way in order
+                    # to get triminout() working
+                    clip = bpy.context.scene.sequence_editor.sequences[\
+                        newstrip.name]
+                    # i cannot change these movie clip attributes via scripts
                     # but it works in the python console...
                     #clip.animation_offset_start = strip.animation.offset_start
                     #clip.animation_offset_end = strip.animation.offset_end
-                    #clip.frame_final_duration = strip.frame_final_duration 
+                    #clip.frame_final_duration = strip.frame_final_duration
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
                     #print(newstrip.frame_start, strip.frame_start, tin, tout)
@@ -1535,16 +1581,17 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
                 except:
                     self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
                     return {'CANCELLED'}
-                 
+
         elif strip.type == 'IMAGE':
             #print("image")
             base_dir = bpy.path.abspath(strip.directory)
-            scn.frame_current = strip.frame_start - strip.animation_offset_start
-            # searching for the first frame of the sequencer. This is mandatory 
-            # for hard cutted sequence strips to be correctly converted, 
+            scn.frame_current = strip.frame_start -\
+                strip.animation_offset_start
+            # searching for the first frame of the sequencer. This is mandatory
+            # for hard cutted sequence strips to be correctly converted,
             # avoiding to create a new movie clip if not needed
             filename = sorted(os.listdir(base_dir))[0]
-            path = os.path.join(base_dir,filename)
+            path = os.path.join(base_dir, filename)
             #print(path)
             data_exists = False
             for i in bpy.data.movieclips:
@@ -1557,89 +1604,100 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
                 try:
                     data = bpy.data.movieclips.load(filepath=path)
                     newstrip = bpy.ops.sequencer.movieclip_strip_add(\
-                        replace_sel = True, overlap=False, clip=data.name)
+                        replace_sel=True, overlap=False,\
+                        clip=data.name)
                     newstrip = functions.act_strip(context)
                     newstrip.frame_start = strip.frame_start\
                         - strip.animation_offset_start
-                    
-                    clip = bpy.context.scene.sequence_editor.sequences[newstrip.name]
+                    clip = bpy.context.scene.sequence_editor.sequences[\
+                    newstrip.name]
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
                     #print(newstrip.frame_start, strip.frame_start, tin, tout)
                     functions.triminout(clip, tin, tout)
                 except:
-                    self.report({'ERROR_INVALID_INPUT'}, 'Error loading filetin')
+                    self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
                     return {'CANCELLED'}
-                
+
             else:
                 try:
                     newstrip = bpy.ops.sequencer.movieclip_strip_add(\
-                        replace_sel = True, overlap=False, clip=data.name)
+                        replace_sel=True, overlap=False, clip=data.name)
                     newstrip = functions.act_strip(context)
                     newstrip.frame_start = strip.frame_start\
                         - strip.animation_offset_start
-                    # need to declare the strip this way in order to get triminout() working
-                    clip = bpy.context.scene.sequence_editor.sequences[newstrip.name]
-                    # cannot change this atributes via scripts... 
+                    # need to declare the strip this way in order
+                    # to get triminout() working
+                    clip = bpy.context.scene.sequence_editor.sequences[\
+                    newstrip.name]
+                    # cannot change this atributes via scripts...
                     # but it works in the python console...
                     #clip.animation_offset_start = strip.animation.offset_start
                     #clip.animation_offset_end = strip.animation.offset_end
-                    #clip.frame_final_duration = strip.frame_final_duration 
+                    #clip.frame_final_duration = strip.frame_final_duration
                     tin = strip.frame_offset_start + strip.frame_start
                     tout = tin + strip.frame_final_duration
                     #print(newstrip.frame_start, strip.frame_start, tin, tout)
                     functions.triminout(clip, tin, tout)
                 except:
-                    self.report({'ERROR_INVALID_INPUT'}, 'Error loading filete')
+                    self.report({'ERROR_INVALID_INPUT'}, 'Error loading file')
                     return {'CANCELLED'}
 
-        # to show the new clip in a movie clip editor, if available.
+        # show the new clip in a movie clip editor, if available.
         if strip.type == 'MOVIE' or 'IMAGE':
             for a in context.window.screen.areas:
                 if a.type == 'CLIP_EDITOR':
                     a.spaces[0].clip = data
-        
 
         return {'FINISHED'}
-    
-    
+
+
 # READ EXIF DATA
 class Sequencer_Extra_ReadExifData(bpy.types.Operator):
     # load exifdata from strip to scene['metadata'] property
     bl_label = 'Read EXIF Data'
     bl_idname = 'sequencerextra.read_exif'
-    bl_description = 'load exifdata from strip to metadata property in scene'
+    bl_description = 'Load exifdata from strip to metadata property in scene'
     bl_options = {'REGISTER', 'UNDO'}
-    
 
-    
+    @classmethod
+    def poll(self, context):
+        strip = functions.act_strip(context)
+        scn = context.scene
+        if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
+            return (strip.type == 'IMAGE')
+        else:
+            return False
+
     def execute(self, context):
-        
+        try:
+            exiftool.ExifTool().start()
+        except:
+            self.report({'ERROR_INVALID_INPUT'},
+            'exiftool not found in PATH')
+            return {'CANCELLED'}
+
         def getexifdata(strip):
-            
             def getlist(lista):
                 for root, dirs, files in os.walk(path):
                     for f in files:
-                        if "."+f.rpartition(".")[2].lower() in functions.imb_ext_image:
+                        if "." + f.rpartition(".")[2].lower() \
+                            in functions.imb_ext_image:
                             lista.append(f)
                         #if "."+f.rpartition(".")[2] in imb_ext_movie:
                         #    lista.append(f)
                 strip.elements
-                
                 lista.sort()
                 return lista
-            
+
             def getexifvalues(lista):
-                metadata=[]
+                metadata = []
                 with exiftool.ExifTool() as et:
                     try:
                         metadata = et.get_metadata_batch(lista)
                     except UnicodeDecodeError as Err:
                         print(Err)
                 return metadata
-            
-            #print("----------------------------")
-            
             if strip.type == "IMAGE":
                 path = bpy.path.abspath(strip.directory)
             if strip.type == "MOVIE":
@@ -1647,16 +1705,13 @@ class Sequencer_Extra_ReadExifData(bpy.types.Operator):
             os.chdir(path)
             #get a list of files
             lista = []
-            
             for i in strip.elements:
                 lista.append(i.filename)
-            
             return getexifvalues(lista)
-        
-        
+
         sce = bpy.context.scene
-        frame=sce.frame_current
-        text= bpy.context.active_object
+        frame = sce.frame_current
+        text = bpy.context.active_object
         strip = context.scene.sequence_editor.active_strip
         sce['metadata'] = getexifdata(strip)
         return {'FINISHED'}
