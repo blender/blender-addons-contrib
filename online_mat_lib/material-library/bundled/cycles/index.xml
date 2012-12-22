@@ -41,7 +41,8 @@
 		<material name="Pearl" href="pearl" by="moony" stars="4" addon="0.4" />
 		<material name="Forest" href="forest" by="Jonathan L" stars="4" complexity="complex" addon="0.4" />
 	</category>
-	<category title="OSL_Textures" folder="osl_textures" addon="0.4">
+	<category title="Patterns" folder="patterns" addon="0.4">
+		<material name="Barb Wire OSL" href="barbwire_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
 		<material name="Hex Tile" href="hex_tile" by="varkenvarken" stars="4" addon="0.4" />
 		<material name="Hex Wire" href="hex_wire" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
 		<material name="Hex Color" href="hex_color" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
@@ -65,11 +66,13 @@
 	</category>
 	<category title="Textiles" folder="textiles" addon="0.4">
 		<material name="Denim" href="denim" by="Peter Cassetta" stars="4" complexity="complex" addon="0.4" />
+		<material name="Hessian OSL" href="hessian_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
 		<material name="Velvet (Edged)" href="velvet_edged" stars="4" addon="0.4" />
+		<material name="Weave OSL" href="weave_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
 		<material name="Weave Test" href="weave_test" by="niabot" stars="4" complexity="complex" addon="0.4" />
-		<material name="Woven Wool" href="woven_wool" by="meta-androcto" stars="3" addon="0.4" />
 	</category>
 	<category title="Wood" folder="wood" addon="0.4">
+		<material name="Parquete Tile Osl" href="parquete_tile_osl" by="sambler" stars="4" complexity="intermediate" addon="0.4" />
 		<material name="Polished Walnut" href="polished_walnut" by="Peter Cassetta" stars="4" complexity="intermediate" addon="0.4" />
 		<material name="Rough Pine" href="rough_pine" by="Peter Cassetta" stars="4" complexity="intermediate" addon="0.4" />
 		<material name="Rough Walnut" href="rough_walnut" by="Peter Cassetta" stars="3" complexity="intermediate" addon="0.4" />
