@@ -13,6 +13,7 @@
 		<material name="Blaster Bolt (Red)" href="blaster_bolt_red" stars="3" addon="0.4" />
 		<material name="Invisible Light" href="invisible_light" stars="4" addon="0.4" />
 		<material name="Fake Shading" href="fake_shading" by="Ace Dragon" stars="3" addon="0.4" />
+		<material name="Fingerprint OSL" href="fingerprint_osl" by="varkenvarken" stars="4" complexity="intermediate" addon="0.4" bl="2.65-" />
 		<material name="Simulated SSS" href="simulated_sss" by="ZetShandow" stars="4" complexity="intermediate" addon="0.4" bl="2.64-" />
 		<material name="Volumetric Light" href="volumetric_light" by="ZetShandow" stars="4" complexity="intermediate" fireflies="medium" addon="0.4" bl="2.64-" />
 	</category>
@@ -43,9 +44,10 @@
 	</category>
 	<category title="Patterns" folder="patterns" addon="0.4">
 		<material name="Barb Wire OSL" href="barbwire_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
-		<material name="Hex Tile" href="hex_tile" by="varkenvarken" stars="4" addon="0.4" />
-		<material name="Hex Wire" href="hex_wire" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
-		<material name="Hex Color" href="hex_color" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
+		<material name="Chain Link OSL" href="chain_link_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
+		<material name="Hex Tile OSL" href="hex_tile_osl" by="varkenvarken" stars="4" addon="0.4" />
+		<material name="Hex Wire OSL" href="hex_wire_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
+		<material name="Hex Color OSL" href="hex_color_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
 	</category>
 	<category title="Plastics" folder="plastics" addon="0.4">
 		<material name="Toy Brick (Red)" href="toy_brick_red" by="Peter Cassetta" stars="4" addon="0.4" />
