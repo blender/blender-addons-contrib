@@ -49,6 +49,7 @@
 		<material name="Hex Tile OSL" href="hex_tile_osl" by="varkenvarken" stars="4" addon="0.4" />
 		<material name="Hex Wire OSL" href="hex_wire_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
 		<material name="Hex Color OSL" href="hex_color_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
+		<material name="Sierpinski Squares OSL" href="sierpinski_squares_osl" by="elbrujodelatribu" stars="4" complexity="complex" addon="0.4" />
 	</category>
 	<category title="Plastics" folder="plastics" addon="0.4">
 		<material name="Toy Brick (Red)" href="toy_brick_red" by="Peter Cassetta" stars="4" addon="0.4" />
@@ -75,7 +76,7 @@
 		<material name="Weave Test" href="weave_test" by="niabot" stars="4" complexity="complex" addon="0.4" />
 	</category>
 	<category title="Wood" folder="wood" addon="0.4">
-		<material name="Parquete Tile Osl" href="parquete_tile_osl" by="sambler" stars="4" complexity="intermediate" addon="0.4" />
+		<material name="Parquete Tile OSL" href="parquete_tile_osl" by="sambler" stars="4" complexity="intermediate" addon="0.4" />
 		<material name="Polished Walnut" href="polished_walnut" by="Peter Cassetta" stars="4" complexity="intermediate" addon="0.4" />
 		<material name="Rough Pine" href="rough_pine" by="Peter Cassetta" stars="4" complexity="intermediate" addon="0.4" />
 		<material name="Rough Walnut" href="rough_walnut" by="Peter Cassetta" stars="3" complexity="intermediate" addon="0.4" />
