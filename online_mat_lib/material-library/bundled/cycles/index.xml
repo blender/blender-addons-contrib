@@ -47,8 +47,7 @@
 		<material name="Barb Wire OSL" href="barbwire_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
 		<material name="Chain Link OSL" href="chain_link_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
 		<material name="Hex Tile OSL" href="hex_tile_osl" by="varkenvarken" stars="4" addon="0.4" />
-		<material name="Hex Wire OSL" href="hex_wire_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
-		<material name="Hex Color OSL" href="hex_color_osl" by="varkenvarken" stars="4" complexity="complex" addon="0.4" />
+
 		<material name="Sierpinski Squares OSL" href="sierpinski_squares_osl" by="elbrujodelatribu" stars="4" complexity="complex" addon="0.4" />
 	</category>
 	<category title="Plastics" folder="plastics" addon="0.4">
@@ -56,6 +55,7 @@
 	</category>
 	<category title="Skin" folder="skin" addon="0.4">
 		<material name="Pox" href="pox" by="moony" stars="4" addon="0.4" />
+		<material name="Dragon Scales OSL" href="dragon_scales_osl" by="varken/androcto" stars="4" complexity="complex" addon="0.4" />
 	</category>
 	<category title="Stones" folder="stones" addon="0.4">
 		<material name="Diamond" href="diamond" stars="3" fireflies="high" speed="slow" addon="0.4" />
