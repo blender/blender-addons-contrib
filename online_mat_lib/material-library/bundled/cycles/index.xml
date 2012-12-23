@@ -16,6 +16,7 @@
 		<material name="Fingerprint OSL" href="fingerprint_osl" by="varkenvarken" stars="4" complexity="intermediate" addon="0.4" bl="2.65-" />
 		<material name="Simulated SSS" href="simulated_sss" by="ZetShandow" stars="4" complexity="intermediate" addon="0.4" bl="2.64-" />
 		<material name="Volumetric Light" href="volumetric_light" by="ZetShandow" stars="4" complexity="intermediate" fireflies="medium" addon="0.4" bl="2.64-" />
+		<material name="Wireframe OSL" href="wireframe_osl" by="DingTo" stars="4" complexity="intermediate" fireflies="medium" addon="0.4" />
 	</category>
 	<category title="Food" folder="food" addon="0.4">
 		<material name="Gummy Worm" href="gummy_worm" by="Jimmy Gunawan" stars="4" addon="0.4" />
