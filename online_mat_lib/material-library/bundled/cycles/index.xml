@@ -61,6 +61,7 @@
 		<material name="Diamond" href="diamond" stars="3" fireflies="high" speed="slow" addon="0.4" />
 		<material name="Malachite" href="malachite" by="moony" stars="3" addon="0.4" />
 		<material name="Polished Haematite" href="polished_haematite" by="moony" stars="5" complexity="intermediate" addon="0.4" />
+		<material name="Veined Marble OSL" href="veined_marble_osl" by="sambler" stars="4" complexity="intermediate" addon="0.4" />
 	</category>
 	<category title="Synthetic" folder="synthetic" addon="0.4">
 		<material name="Carbon Fiber" href="carbon_fiber" stars="5" complexity="complex" addon="0.4" />
