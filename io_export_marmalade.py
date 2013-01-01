@@ -127,7 +127,6 @@ def ExportMadeWithMarmaladeGroup(Config):
             print(bpy.context.scene)
             print(bpy.context.scene.frame_current)
         CurrentFrame = bpy.context.scene.frame_current
-        #comment because it crashes Blender on some old blend file: bpy.context.scene.frame_current = bpy.context.scene.frame_current
     if Config.Verbose:
         print("Done")
     
@@ -1400,15 +1399,11 @@ class MarmaladeExporter(bpy.types.Operator):
                     "However if you have defined several animations on the same armature,"\
                     "you can select to export all animations. You can see the list of animation actions in the DopeSheet window.",
         items=AnimationActions,
-        default="0")
-    if bpy.context.scene:
-        defFPS = bpy.context.scene.render.fps
-    else:
-        defFPS = 30                 
+        default="0")           
     AnimFPS = IntProperty(
         name="Animation FPS",
         description="Frame rate used to export animation in seconds (can be used to artficially slow down the exported animation, or to speed up it",
-        default=defFPS, min=1, max=300)
+        default=30, min=1, max=300)
 
     #Advance Options
     CoordinateSystem = EnumProperty(
