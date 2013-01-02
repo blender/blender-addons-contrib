@@ -63,18 +63,33 @@ mat_lib_folder = ""
 
 def findLibrary():
     global mat_lib_folder
-    if os.path.exists(os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")):
-        mat_lib_folder = os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")
-    elif os.path.exists(os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")):
-        mat_lib_folder = os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")
-    elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")):
-        mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")
-    elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")):
-        mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")
+    
+    if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.64:
+        if len(bpy.utils.script_paths()) > 2 and os.path.exists(os.path.join(str(bpy.utils.script_paths()[2]), "addons", "online_mat_lib", "material-library")):
+            mat_lib_folder = os.path.join(str(bpy.utils.script_paths()[2]), "addons", "online_mat_lib", "material-library")
+        elif len(bpy.utils.script_paths()) > 1 and os.path.exists(os.path.join(bpy.utils.script_paths()[1], "addons", "online_mat_lib", "material-library")):
+            mat_lib_folder = os.path.join(bpy.utils.script_paths()[1], "addons", "online_mat_lib", "material-library")
+        elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")):
+            mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")
+        elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")):
+            mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")
+        else:
+            print("ONLINE MATERIAL LIBRARY -- MAJOR PROBLEM:"\
+            "COULD NOT LOCATE ADD-ON INSTALLATION PATH.")
+            mat_lib_folder = "error"
     else:
-        print("ONLINE MATERIAL LIBRARY -- MAJOR PROBLEM:"\
-        "COULD NOT LOCATE ADD-ON INSTALLATION PATH.")
-        mat_lib_folder = "error"
+        if os.path.exists(os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")):
+            mat_lib_folder = os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")
+        elif os.path.exists(os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")):
+            mat_lib_folder = os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")
+        elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")):
+            mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")
+        elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")):
+            mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")
+        else:
+            print("ONLINE MATERIAL LIBRARY -- MAJOR PROBLEM:"\
+            "COULD NOT LOCATE ADD-ON INSTALLATION PATH.")
+            mat_lib_folder = "error"
 
 findLibrary()
 
