@@ -802,7 +802,7 @@ class Sequencer_Extra_EditExternally(bpy.types.Operator):
         strip = functions.act_strip(context)
         scn = context.scene
         base_dir = bpy.path.abspath(strip.directory)
-        strip_elem = strip.getStripElem(scn.frame_current)
+        strip_elem = strip.strip_elem_from_frame(scn.frame_current)
         path = base_dir + strip_elem.filename
 
         try:
@@ -852,7 +852,7 @@ class Sequencer_Extra_Edit(bpy.types.Operator):
 
         elif strip.type == 'IMAGE':
             base_dir = bpy.path.abspath(strip.directory)
-            strip_elem = strip.getStripElem(scn.frame_current)
+            strip_elem = strip.strip_elem_from_frame(scn.frame_current)
             elem_name = strip_elem.filename
             path = base_dir + elem_name
 
