@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Extra Sequencer Actions",
     "author": "Turi Scandurra, Carlos Padial",
-    "version": (3, 5),
-    "blender": (2, 63, 0),
-    "api": 49500,
+    "version": (3, 6),
+    "blender": (2, 65, 0),
+    "api": 53177,
     "category": "Sequencer",
     "location": "Sequencer",
     "description": "Collection of extra operators to manipulate VSE strips",
@@ -35,11 +35,11 @@ if "bpy" in locals():
     import imp
     imp.reload(operators_extra_actions)
     imp.reload(ui)
-    imp.reload(operators_recursive)
+    #imp.reload(operators_recursive)
 else:
     from . import operators_extra_actions
     from . import ui
-    from . import operators_recursive
+    #from . import operators_recursive
 
 import bpy
 import os.path

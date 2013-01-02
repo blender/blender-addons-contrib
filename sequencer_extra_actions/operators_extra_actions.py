@@ -22,19 +22,18 @@ align strip to the left (shift-s + -lenght)
 
 '''
 
+import bpy
+
 import random
 import math
+import os, sys
 
-
-import bpy
-import os.path
 from bpy.props import IntProperty
 from bpy.props import FloatProperty
 from bpy.props import EnumProperty
 from bpy.props import BoolProperty
 from bpy.props import StringProperty
 
-from . import functions
 from . import functions
 from . import exiftool
 
@@ -48,17 +47,17 @@ def initSceneProperties(scn):
         pass
 
     bpy.types.Scene.default_slide_offset = IntProperty(
-    name='Offset',
-    description='Number of frames to slide',
-    min=-250, max=250,
-    default=0)
+        name='Offset',
+        description='Number of frames to slide',
+        min=-250, max=250,
+        default=0)
     scn.default_slide_offset = 0
 
     bpy.types.Scene.default_fade_duration = IntProperty(
-    name='Duration',
-    description='Number of frames to fade',
-    min=1, max=250,
-    default=scn.render.fps)
+        name='Duration',
+        description='Number of frames to fade',
+        min=1, max=250,
+        default=scn.render.fps)
     scn.default_fade_duration = scn.render.fps
 
     bpy.types.Scene.default_fade_amount = FloatProperty(
@@ -124,11 +123,37 @@ def initSceneProperties(scn):
         description='default build_100',
         default=False)
     scn.default_build_100 = False
+    
+    bpy.types.Scene.default_recursive = BoolProperty(
+        name='Recursive',
+        description='Load in recursive folders',
+        default=False)
+    scn.default_recursive = False
+
+    bpy.types.Scene.default_recursive_ext = BoolProperty(
+        name='Recursive ext',
+        description='Load only clips with selected extension',
+        default=False)
+    scn.default_recursive_ext = False
+
+    bpy.types.Scene.default_recursive_proxies = BoolProperty(
+        name='Recursive proxies',
+        description='Load in recursive folders + proxies',
+        default=False)
+    scn.default_recursive_proxies = False
+    
+    bpy.types.Scene.default_ext = EnumProperty(
+        items=functions.movieextdict,
+        name="ext enum",
+        default="3")
+    scn.default_ext = "3"
 
     bpy.types.Scene.scene_initialized = BoolProperty(
         name='Init',
         default=False)
     scn.scene_initialized = True
+    
+    
 
     return True
 
@@ -1649,6 +1674,22 @@ class Sequencer_Extra_CreateMovieclip(bpy.types.Operator):
                 if a.type == 'CLIP_EDITOR':
                     a.spaces[0].clip = data
 
+        return {'FINISHED'}
+        
+        
+# RECURSIVE LOADER
+
+class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
+    bl_idname = "sequencerextra.recursiveload"
+    bl_label = "recursive load"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        scn = bpy.context.scene
+        if scn["default_recursive"] == True:
+            functions.loader(functions.sortlist(functions.recursive()))
+        else:
+            functions.loader(functions.sortlist(functions.onefolder()))
         return {'FINISHED'}
 
 

@@ -41,6 +41,31 @@ imb_ext_movie = [
     ".m2t", ".m2ts", ".mts", ".mv", ".avs", ".wmv", ".ogv",
     ".dv", ".mpeg", ".mpg", ".mpg2", ".vob", ".mkv", ".flv",
     ".divx", ".xvid", ".mxf"]
+    
+movieextdict = [("1", ".avi", ""),
+            ("2", ".flc", ""),
+            ("3", ".mov", ""),
+            ("4", ".movie", ""),
+            ("5", ".mp4", ""),
+            ("6", ".m4v", ""),
+            ("7", ".m2v", ""),
+            ("8", ".m2t", ""),
+            ("9", ".m2ts", ""),
+            ("10", ".mts", ""),
+            ("11", ".mv", ""),
+            ("12", ".avs", ""),
+            ("13", ".wmv", ""),
+            ("14", ".ogv", ""),
+            ("15", ".dv", ""),
+            ("16", ".mpeg", ""),
+            ("17", ".mpg", ""),
+            ("18", ".mpg2", ""),
+            ("19", ".vob", ""),
+            ("20", ".mkv", ""),
+            ("21", ".flv", ""),
+            ("22", ".divx", ""),
+            ("23", ".xvid", ""),
+            ("24", ".mxf", "")]
 
 
 # Functions
@@ -70,7 +95,7 @@ def detect_strip_type(filepath):
 
     imb_ext_movie = [
     ".avi", ".flc", ".mov", ".movie", ".mp4", ".m4v", ".m2v",
-    ".m2t", ".m2ts", ".mts", ".mv", ".avs", ".wmv", ".ogv",
+    ".m2t", ".m2ts", ".mts", ".mv", ".avs", ".wmv", ".ogv", ".ogg",
     ".dv", ".mpeg", ".mpg", ".mpg2", ".vob", ".mkv", ".flv",
     ".divx", ".xvid", ".mxf"]
 
@@ -163,6 +188,73 @@ def sortlist(filelist):
     '''
     filelist_sorted = sorted(filelist, key=operator.itemgetter(1))
     return filelist_sorted
+    
+# recursive load functions 
+
+def loader(filelist):
+    scn = bpy.context.scene
+    if filelist:
+        for i in filelist:
+            setpathinbrowser(i[0], i[1])
+            try:
+                if scn.default_recursive_proxies:
+                    bpy.ops.sequencerextra.placefromfilebrowserproxy(
+                        proxy_suffix=scn.default_proxy_suffix,
+                        proxy_extension=scn.default_proxy_extension,
+                        proxy_path=scn.default_proxy_path,
+                        build_25=scn.default_build_25,
+                        build_50=scn.default_build_50,
+                        build_75=scn.default_build_75,
+                        build_100=scn.default_build_100)
+                else:
+                    bpy.ops.sequencerextra.placefromfilebrowser()
+            except:
+                print("Error loading file (recursive loader error): ", i[1])
+                add_marker(i[1])
+                #self.report({'ERROR_INVALID_INPUT'}, 'Error loading file ')
+                #return {'CANCELLED'}
+                pass
+
+def onefolder():
+    '''
+    returns a list of MOVIE type files from folder selected in file browser
+    '''
+    filelist = []
+    path, filename = getfilepathfrombrowser()
+    extension = filename.rpartition(".")[2]
+    #extension = scn.default_ext
+    scn = bpy.context.scene
+
+    if detect_strip_type(path + filename) == 'MOVIE':
+        if scn.default_recursive_ext == True:
+            for file in os.listdir(path):
+                if file.rpartition(".")[2] == extension:
+                    filelist.append((path, file))
+        else:
+            for file in os.listdir(path):
+                filelist.append((path, file))
+    return (filelist)
+
+def recursive():
+    '''
+    returns a list of MOVIE type files recursively from file browser
+    '''
+    filelist = []
+    path = getpathfrombrowser()
+    scn = bpy.context.scene
+    for i in movieextlist:
+        if i[0] == scn.default_ext:
+            extension = i[1].rpartition(".")[2]
+    #pythonic way to magic:
+    for root, dirs, files in os.walk(path):
+        for f in files:
+            if scn.default_recursive_ext == True:
+                if f.rpartition(".")[2] == extension:
+                    filelist.append((root, f))
+            else:
+                filelist.append((root, f))
+    return filelist   
+
 
 
 # jump to cut functions
@@ -182,3 +274,28 @@ def triminout(strip, sin, sout):
             bpy.ops.sequencer.snap(frame=sout)
             strip.select_right_handle = False
     return {'FINISHED'}
+
+
+#------------ random edit functions...
+
+def randompartition(lst,n,rand):
+    division = len(lst) / float(n)
+    lista = []
+    for i in range(n):	lista.append(division)
+    var=0
+    for i in range(n-1):
+        lista[i]+= random.randint(-int(rand*division),int(rand*division))
+        var+=lista[i]
+    if lista[n-1] != len(lst)-var:
+        lista[n-1] = len(lst)-var
+    random.shuffle(lista)
+    division = len(lst) / float(n)
+    count = 0
+    newlist=[]
+    for i in range(n):
+        print(lst[count : int(lista[i]-1)+count])
+        newlist.append([lst[count : int(lista[i]-1)+count]])
+        count += int(lista[i]) 
+    return newlist
+
+
