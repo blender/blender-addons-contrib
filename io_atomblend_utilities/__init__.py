@@ -69,7 +69,7 @@ class PreparePanel(Panel):
 
     def draw(self, context):
         layout = self.layout
-        scn    = context.scene.atom_blend[0]
+        scn    = context.scene.atom_blend
 
         row = layout.row()
         row.label(text="Custom data file")
@@ -118,14 +118,14 @@ class PreparePanel(Panel):
 class PanelProperties(bpy.types.PropertyGroup):
 
     def Callback_radius_type(self, context):
-        scn = bpy.context.scene.atom_blend[0]
+        scn = bpy.context.scene.atom_blend
         io_atomblend_utilities.choose_objects("radius_type", 
                                               scn.radius_how, 
                                               None,
                                               None,
                                               scn.radius_type) 
     def Callback_radius_pm(self, context):
-        scn = bpy.context.scene.atom_blend[0]
+        scn = bpy.context.scene.atom_blend
         io_atomblend_utilities.choose_objects("radius_pm", 
                                               scn.radius_how, 
                                               None,
@@ -178,7 +178,7 @@ class DatafileApply(Operator):
     bl_description = "Use color and radii values stored in the custom file"
 
     def execute(self, context):
-        scn = bpy.context.scene.atom_blend[0]
+        scn = bpy.context.scene.atom_blend
 
         if scn.datafile == "":
             return {'FINISHED'}
@@ -197,7 +197,7 @@ class SeparateAtom(Operator):
                       "You have to be in the 'Edit Mode'")
 
     def execute(self, context):
-        scn = bpy.context.scene.atom_blend[0]
+        scn = bpy.context.scene.atom_blend
 
         io_atomblend_utilities.separate_atoms(scn)
 
@@ -211,7 +211,7 @@ class DistanceButton(Operator):
     bl_description = "Measure the distance between two objects"
 
     def execute(self, context):
-        scn  = bpy.context.scene.atom_blend[0]
+        scn  = bpy.context.scene.atom_blend
         dist = io_atomblend_utilities.distance()
 
         # Put the distance into the string of the output field.
@@ -226,7 +226,7 @@ class RadiusAllBiggerButton(Operator):
     bl_description = "Increase the radii of the atoms"
 
     def execute(self, context):
-        scn = bpy.context.scene.atom_blend[0]     
+        scn = bpy.context.scene.atom_blend     
         io_atomblend_utilities.choose_objects("radius_all", 
                                               scn.radius_how, 
                                               scn.radius_all, 
@@ -242,7 +242,7 @@ class RadiusAllSmallerButton(Operator):
     bl_description = "Decrease the radii of the atoms"
 
     def execute(self, context):
-        scn = bpy.context.scene.atom_blend[0]
+        scn = bpy.context.scene.atom_blend
         io_atomblend_utilities.choose_objects("radius_all", 
                                               scn.radius_how, 
                                               1.0/scn.radius_all, 
@@ -254,7 +254,7 @@ class RadiusAllSmallerButton(Operator):
 def register():
     io_atomblend_utilities.read_elements()  
     bpy.utils.register_module(__name__)
-    bpy.types.Scene.atom_blend = bpy.props.CollectionProperty(type=
+    bpy.types.Scene.atom_blend = bpy.props.PointerProperty(type=
                                                    PanelProperties)
 
 def unregister():
