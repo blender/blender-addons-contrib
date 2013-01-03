@@ -253,8 +253,6 @@ class Sequencer_Extra_SlideStrip(bpy.types.Operator):
         options={'HIDDEN'})
     bl_options = {'REGISTER', 'UNDO'}
 
-    initSceneProperties(bpy.context.scene)
-
     @classmethod
     def poll(self, context):
         strip = functions.act_strip(context)
@@ -263,8 +261,6 @@ class Sequencer_Extra_SlideStrip(bpy.types.Operator):
             return strip.type in ('MOVIE', 'IMAGE', 'META', 'SCENE')
         else:
             return False
-
-    slide_offset = bpy.types.Scene.default_slide_offset
 
     def execute(self, context):
         strip = functions.act_strip(context)
@@ -298,6 +294,7 @@ class Sequencer_Extra_SlideStrip(bpy.types.Operator):
 
     def invoke(self, context, event):
         scn = context.scene
+        initSceneProperties(scn)
         self.slide_offset = scn.default_slide_offset
         if self.mode == 'INPUT':
             return context.window_manager.invoke_props_dialog(self)
@@ -1065,8 +1062,6 @@ class Sequencer_Extra_FadeInOut(bpy.types.Operator):
             )
     bl_options = {'REGISTER', 'UNDO'}
 
-    initSceneProperties(bpy.context.scene)
-
     @classmethod
     def poll(cls, context):
         scn = context.scene
@@ -1074,9 +1069,6 @@ class Sequencer_Extra_FadeInOut(bpy.types.Operator):
             return True
         else:
             return False
-
-    fade_duration = bpy.types.Scene.default_fade_duration
-    fade_amount = bpy.types.Scene.default_fade_amount
 
     def execute(self, context):
         seq = context.scene.sequence_editor
@@ -1150,6 +1142,7 @@ class Sequencer_Extra_FadeInOut(bpy.types.Operator):
 
     def invoke(self, context, event):
         scn = context.scene
+        initSceneProperties(scn)
         self.fade_duration = scn.default_fade_duration
         self.fade_amount = scn.default_fade_amount
         return context.window_manager.invoke_props_dialog(self)
@@ -1214,11 +1207,6 @@ class Sequencer_Extra_Distribute(bpy.types.Operator):
         else:
             return False
 
-    initSceneProperties(bpy.context.scene)
-
-    distribute_offset = bpy.types.Scene.default_distribute_offset
-    distribute_reverse = bpy.types.Scene.default_distribute_reverse
-
     def execute(self, context):
         scn = context.scene
         seq = scn.sequence_editor
@@ -1253,6 +1241,7 @@ class Sequencer_Extra_Distribute(bpy.types.Operator):
 
     def invoke(self, context, event):
         scn = context.scene
+        initSceneProperties(scn)
         self.distribute_offset = scn.default_distribute_offset
         self.distribute_reverse = scn.default_distribute_reverse
         return context.window_manager.invoke_props_dialog(self)
@@ -1423,14 +1412,6 @@ class Sequencer_Extra_PlaceFromFileBrowserProxy(bpy.types.Operator):
     insert = BoolProperty(
     name='Insert',
     default=False)
-
-    proxy_suffix = bpy.types.Scene.default_proxy_suffix
-    proxy_extension = bpy.types.Scene.default_proxy_extension
-    proxy_path = bpy.types.Scene.default_proxy_path
-    build_25 = bpy.types.Scene.default_build_25
-    build_50 = bpy.types.Scene.default_build_50
-    build_75 = bpy.types.Scene.default_build_75
-    build_100 = bpy.types.Scene.default_build_100
 
     bl_options = {'REGISTER', 'UNDO'}
 
