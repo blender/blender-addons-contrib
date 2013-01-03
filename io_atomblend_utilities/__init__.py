@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2012-11-09
+#  Last modified                 : 2013-01-03
 #
 #  Acknowledgements 
 #  ================
@@ -256,7 +256,6 @@ def register():
     bpy.utils.register_module(__name__)
     bpy.types.Scene.atom_blend = bpy.props.CollectionProperty(type=
                                                    PanelProperties)
-    bpy.context.scene.atom_blend.add()
 
 def unregister():
     bpy.utils.unregister_module(__name__)
