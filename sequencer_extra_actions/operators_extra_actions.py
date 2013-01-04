@@ -902,7 +902,7 @@ class Sequencer_Extra_CopyProperties(bpy.types.Operator):
     ('deinterlace', 'Filter - De-Interlace', ''),
     ('flip', 'Filter - Flip', ''),
     ('float', 'Filter - Convert Float', ''),
-    ('premultiply', 'Filter - Premultiply', ''),
+    ('alpha_mode', 'Filter - Alpha Mode', ''),
     ('reverse', 'Filter - Backwards', ''),
     # SOUND
     ('pan', 'Sound - Pan', ''),
@@ -994,8 +994,8 @@ class Sequencer_Extra_CopyProperties(bpy.types.Operator):
                         i.use_flip_y = strip.use_flip_y
                     elif self.prop == 'float':
                         i.use_float = strip.use_float
-                    elif self.prop == 'premultiply':
-                        i.use_premultiply = strip.use_premultiply
+                    elif self.prop == 'alpha_mode':
+                        i.alpha_mode = strip.alpha_mode
                     elif self.prop == 'reverse':
                         i.use_reverse_frames = strip.use_reverse_frames
                     elif self.prop == 'pan':
