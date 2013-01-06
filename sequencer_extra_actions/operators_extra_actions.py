@@ -251,6 +251,12 @@ class Sequencer_Extra_SlideStrip(bpy.types.Operator):
         default='INPUT',
         options={'HIDDEN'})
     bl_options = {'REGISTER', 'UNDO'}
+    
+    slide_offset = IntProperty(
+        name='Offset',
+        description='Number of frames to slide',
+        min=-250, max=250,
+        default=0)
 
     @classmethod
     def poll(self, context):
