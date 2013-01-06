@@ -54,22 +54,9 @@ class AddRecursiveLoadPanel(bpy.types.Panel):
         layout.label(text="", icon="NLA")
 
     def draw(self, context):
-
-        scn = bpy.context.scene
-        self.layout.prop(scn, "default_recursive_ext", text="Same extension")
-        if scn.default_recursive_ext:
-            split = self.layout.split()
-            col = split.column()
-            col.prop(scn, "default_ext", text="extension: ")
-
-        self.layout.prop(scn, "default_recursive", text="Recursive Folders")
-        split = self.layout.split(percentage=0.3)
-
-        split.label(text="")
-        split.prop(scn, "default_recursive_proxies", text="Proxies")
-
         self.layout.operator("sequencerextra.recursiveload",
             text="Import from Browser")
+
 
 
 def sequencer_select_menu_func(self, context):

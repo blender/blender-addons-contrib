@@ -39,9 +39,10 @@ from . import exiftool
 
 
 # Initialization
-def initSceneProperties(scn):
+
+def initSceneProperties(context, scn):
     try:
-        if bpy.context.scene.scene_initialized == True:
+        if context.scene.scene_initialized == True:
             return False
     except AttributeError:
         pass
@@ -129,13 +130,13 @@ def initSceneProperties(scn):
         description='Load in recursive folders',
         default=False)
     scn.default_recursive = False
-
+    
     bpy.types.Scene.default_recursive_ext = BoolProperty(
         name='Recursive ext',
         description='Load only clips with selected extension',
         default=False)
     scn.default_recursive_ext = False
-
+    
     bpy.types.Scene.default_recursive_proxies = BoolProperty(
         name='Recursive proxies',
         description='Load in recursive folders + proxies',
@@ -147,17 +148,15 @@ def initSceneProperties(scn):
         name="ext enum",
         default="3")
     scn.default_ext = "3"
-
+    
     bpy.types.Scene.scene_initialized = BoolProperty(
         name='Init',
         default=False)
     scn.scene_initialized = True
-    
-    
 
     return True
 
-
+   
 # TRIM TIMELINE
 class Sequencer_Extra_TrimTimeline(bpy.types.Operator):
     bl_label = 'Trim to Timeline Content'
@@ -294,7 +293,7 @@ class Sequencer_Extra_SlideStrip(bpy.types.Operator):
 
     def invoke(self, context, event):
         scn = context.scene
-        initSceneProperties(scn)
+        initSceneProperties(context,scn)
         self.slide_offset = scn.default_slide_offset
         if self.mode == 'INPUT':
             return context.window_manager.invoke_props_dialog(self)
@@ -1061,6 +1060,18 @@ class Sequencer_Extra_FadeInOut(bpy.types.Operator):
             default='IN',
             )
     bl_options = {'REGISTER', 'UNDO'}
+    
+    fade_duration = IntProperty(
+        name='Duration',
+        description='Number of frames to fade',
+        min=1, max=250,
+        default=25)
+    fade_amount = FloatProperty(
+        name='Amount',
+        description='Maximum value of fade',
+        min=0.0,
+        max=100.0,
+        default=1.0)
 
     @classmethod
     def poll(cls, context):
@@ -1142,7 +1153,7 @@ class Sequencer_Extra_FadeInOut(bpy.types.Operator):
 
     def invoke(self, context, event):
         scn = context.scene
-        initSceneProperties(scn)
+        initSceneProperties(context, scn)
         self.fade_duration = scn.default_fade_duration
         self.fade_amount = scn.default_fade_amount
         return context.window_manager.invoke_props_dialog(self)
@@ -1241,7 +1252,7 @@ class Sequencer_Extra_Distribute(bpy.types.Operator):
 
     def invoke(self, context, event):
         scn = context.scene
-        initSceneProperties(scn)
+        initSceneProperties(context, scn)
         self.distribute_offset = scn.default_distribute_offset
         self.distribute_reverse = scn.default_distribute_reverse
         return context.window_manager.invoke_props_dialog(self)
@@ -1409,14 +1420,37 @@ class Sequencer_Extra_PlaceFromFileBrowserProxy(bpy.types.Operator):
     bl_idname = 'sequencerextra.placefromfilebrowserproxy'
     bl_description = 'Place or insert active file from File Browser, '\
     'and add proxy file with according suffix and extension'
-    insert = BoolProperty(
-    name='Insert',
-    default=False)
+    insert = BoolProperty(name='Insert', default=False)
+    build_25 = BoolProperty(name='default_build_25',
+        description='default build_25',
+        default=True)
+    build_50 = BoolProperty(name='default_build_50',
+        description='default build_50',
+        default=True)
+    build_75 = BoolProperty(name='default_build_75',
+        description='default build_75',
+        default=True)
+    build_100 = BoolProperty(name='default_build_100',
+        description='default build_100',
+        default=True)
+    proxy_suffix = StringProperty(
+        name='default proxy suffix',
+        description='default proxy filename suffix',
+        default="-25")
+    proxy_extension = StringProperty(
+        name='default proxy extension',
+        description='default proxy extension',
+        default=".mkv")
+    proxy_path = StringProperty(
+        name='default proxy path',
+        description='default proxy path',
+        default="")
 
     bl_options = {'REGISTER', 'UNDO'}
 
     def invoke(self, context, event):
         scn = context.scene
+        initSceneProperties(context, scn)
         self.build_25 = scn.default_build_25
         self.build_50 = scn.default_build_50
         self.build_75 = scn.default_build_75
@@ -1664,13 +1698,109 @@ class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
     bl_idname = "sequencerextra.recursiveload"
     bl_label = "recursive load"
     bl_options = {'REGISTER', 'UNDO'}
+    
+    default_recursive = BoolProperty(
+        name='Recursive',
+        description='Load in recursive folders',
+        default=False)
+        
+    default_recursive_ext = BoolProperty(
+        name='Recursive extension',
+        description='Load in recursive folders',
+        default=False)
+        
+    default_ext = EnumProperty(
+        items=functions.movieextdict,
+        name="ext enum",
+        default="3")
+        
+    default_recursive_proxies = BoolProperty(
+        name='Recursive proxies',
+        description='Load in recursive folders',
+        default=False)
+    build_25 = BoolProperty(name='default_build_25',
+        description='default build_25',
+        default=True)
+    build_50 = BoolProperty(name='default_build_50',
+        description='default build_50',
+        default=True)
+    build_75 = BoolProperty(name='default_build_75',
+        description='default build_75',
+        default=True)
+    build_100 = BoolProperty(name='default_build_100',
+        description='default build_100',
+        default=True)
+    proxy_suffix = StringProperty(
+        name='default proxy suffix',
+        description='default proxy filename suffix',
+        default="-25")
+    proxy_extension = StringProperty(
+        name='default proxy extension',
+        description='default proxy extension',
+        default=".mkv")
+    proxy_path = StringProperty(
+        name='default proxy path',
+        description='default proxy path',
+        default="")
+    
+       
+    
+    @classmethod
+    def poll(self, context):
+        scn = context.scene
+        if scn and scn.sequence_editor:
+            return (scn.sequence_editor)
+        else:
+            return False
+        
+    def invoke(self, context, event):
+        scn = context.scene
+        initSceneProperties(context, scn)
+        self.build_25 = scn.default_build_25
+        self.build_50 = scn.default_build_50
+        self.build_75 = scn.default_build_75
+        self.build_100 = scn.default_build_100
+        self.proxy_suffix = scn.default_proxy_suffix
+        self.proxy_extension = scn.default_proxy_extension
+        self.proxy_path = scn.default_proxy_path
+        self.default_recursive = scn.default_recursive
+        self.default_recursive_ext = scn.default_recursive_ext
+        self.default_recursive_proxies = scn.default_recursive_proxies
+        self.default_ext = scn.default_ext 
+        
+        return context.window_manager.invoke_props_dialog(self)  
+        
+    def loader(self, context, filelist):
+        scn = context.scene
+        if filelist:
+            for i in filelist:
+                functions.setpathinbrowser(i[0], i[1])
+                try:
+                    if self.default_recursive_proxies:
+                        bpy.ops.sequencerextra.placefromfilebrowserproxy(
+                            proxy_suffix=self.default_proxy_suffix,
+                            proxy_extension=self.default_proxy_extension,
+                            proxy_path=self.default_proxy_path,
+                            build_25=self.default_build_25,
+                            build_50=self.default_build_50,
+                            build_75=self.default_build_75,
+                            build_100=self.default_build_100)
+                    else:
+                        bpy.ops.sequencerextra.placefromfilebrowser()
+                except:
+                    print("Error loading file (recursive loader error): ", i[1])
+                    functions.add_marker(i[1], context)
+                    #self.report({'ERROR_INVALID_INPUT'}, 'Error loading file ')
+                    pass
+
 
     def execute(self, context):
-        scn = bpy.context.scene
+        scn = context.scene
+        initSceneProperties(context, scn)
         if scn["default_recursive"] == True:
-            functions.loader(functions.sortlist(functions.recursive()))
+            self.loader(context, functions.sortlist(functions.recursive(context, self.default_recursive_ext)))
         else:
-            functions.loader(functions.sortlist(functions.onefolder()))
+            self.loader(context, functions.sortlist(functions.onefolder(context, self.default_recursive_ext)))
         return {'FINISHED'}
 
 

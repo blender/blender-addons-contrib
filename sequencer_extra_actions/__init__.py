@@ -35,11 +35,9 @@ if "bpy" in locals():
     import imp
     imp.reload(operators_extra_actions)
     imp.reload(ui)
-    #imp.reload(operators_recursive)
 else:
     from . import operators_extra_actions
     from . import ui
-    #from . import operators_recursive
 
 import bpy
 import os.path
