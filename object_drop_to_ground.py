@@ -51,7 +51,7 @@ def transform_ground_to_world(sc, ground):
 
 def get_lowest_world_co_from_mesh(ob, mat_parent=None):
     bme = bmesh.new()
-    bme.from_object(ob)
+    bme.from_mesh(ob.data)
     mat_to_world = ob.matrix_world.copy()
     if mat_parent:
         mat_to_world = mat_parent * mat_to_world
