@@ -40,6 +40,7 @@ from . import exiftool
 
 # Initialization
 
+
 def initSceneProperties(context, scn):
     try:
         if context.scene.scene_initialized == True:
@@ -1706,22 +1707,22 @@ class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     default_recursive = BoolProperty(
-        name='Recursive',
+        name='recursive',
         description='Load in recursive folders',
         default=False)
         
     default_recursive_ext = BoolProperty(
-        name='Recursive extension',
-        description='Load in recursive folders',
+        name='select by extension',
+        description='Load by extension',
         default=False)
         
     default_ext = EnumProperty(
         items=functions.movieextdict,
-        name="ext enum",
+        name="extension",
         default="3")
         
     default_recursive_proxies = BoolProperty(
-        name='Recursive proxies',
+        name='use proxies',
         description='Load in recursive folders',
         default=False)
     build_25 = BoolProperty(name='default_build_25',
@@ -1769,10 +1770,10 @@ class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
         self.proxy_suffix = scn.default_proxy_suffix
         self.proxy_extension = scn.default_proxy_extension
         self.proxy_path = scn.default_proxy_path
-        self.default_recursive = scn.default_recursive
-        self.default_recursive_ext = scn.default_recursive_ext
-        self.default_recursive_proxies = scn.default_recursive_proxies
-        self.default_ext = scn.default_ext 
+        self.recursive = scn.default_recursive
+        self.recursive_ext = scn.default_recursive_ext
+        self.recursive_proxies = scn.default_recursive_proxies
+        self.ext = scn.default_ext 
         
         return context.window_manager.invoke_props_dialog(self)  
         
@@ -1784,18 +1785,18 @@ class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
                 try:
                     if self.default_recursive_proxies:
                         bpy.ops.sequencerextra.placefromfilebrowserproxy(
-                            proxy_suffix=self.default_proxy_suffix,
-                            proxy_extension=self.default_proxy_extension,
-                            proxy_path=self.default_proxy_path,
-                            build_25=self.default_build_25,
-                            build_50=self.default_build_50,
-                            build_75=self.default_build_75,
-                            build_100=self.default_build_100)
+                            proxy_suffix=self.proxy_suffix,
+                            proxy_extension=self.proxy_extension,
+                            proxy_path=self.proxy_path,
+                            build_25=self.build_25,
+                            build_50=self.build_50,
+                            build_75=self.build_75,
+                            build_100=self.build_100)
                     else:
                         bpy.ops.sequencerextra.placefromfilebrowser()
                 except:
                     print("Error loading file (recursive loader error): ", i[1])
-                    functions.add_marker(i[1], context)
+                    functions.add_marker(context, i[1])
                     #self.report({'ERROR_INVALID_INPUT'}, 'Error loading file ')
                     pass
 
@@ -1804,9 +1805,11 @@ class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
         scn = context.scene
         initSceneProperties(context, scn)
         if scn["default_recursive"] == True:
-            self.loader(context, functions.sortlist(functions.recursive(context, self.default_recursive_ext)))
+            self.loader(context, functions.sortlist(\
+            functions.recursive(context, self.default_recursive_ext)))
         else:
-            self.loader(context, functions.sortlist(functions.onefolder(context, self.default_recursive_ext)))
+            self.loader(context, functions.sortlist(functions.onefolder(\
+            context, self.default_recursive_ext)))
         return {'FINISHED'}
 
 
@@ -1823,7 +1826,7 @@ class Sequencer_Extra_ReadExifData(bpy.types.Operator):
         strip = functions.act_strip(context)
         scn = context.scene
         if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
-            return (strip.type == 'IMAGE')
+            return (strip.type == 'IMAGE' or 'MOVIE')
         else:
             return False
 

@@ -149,12 +149,12 @@ def getfilepathfrombrowser():
         params
     except UnboundLocalError:
         #print("no browser")
-        self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
+        #self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
         return {'CANCELLED'}
 
     if params.filename == '':
         #print("no file selected")
-        self.report({'ERROR_INVALID_INPUT'}, 'No file selected')
+        #self.report({'ERROR_INVALID_INPUT'}, 'No file selected')
         return {'CANCELLED'}
     path = params.directory
     filename = params.filename

@@ -50,6 +50,7 @@ def register():
     bpy.utils.register_module(__name__)
 
     # Append menu entries
+    bpy.types.SEQUENCER_MT_add.prepend(ui.sequencer_add_menu_func)
     bpy.types.SEQUENCER_MT_select.prepend(ui.sequencer_select_menu_func)
     bpy.types.SEQUENCER_MT_strip.prepend(ui.sequencer_strip_menu_func)
     bpy.types.SEQUENCER_HT_header.append(ui.sequencer_header_func)
@@ -73,6 +74,7 @@ def unregister():
     bpy.utils.unregister_module(__name__)
 
     #  Remove menu entries
+    bpy.types.SEQUENCER_MT_add.remove(ui.sequencer_add_menu_func)
     bpy.types.SEQUENCER_MT_select.remove(ui.sequencer_select_menu_func)
     bpy.types.SEQUENCER_MT_strip.remove(ui.sequencer_strip_menu_func)
     bpy.types.SEQUENCER_HT_header.remove(ui.sequencer_header_func)
