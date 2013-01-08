@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-01-03
+#  Last modified                 : 2013-01-08
 #
 #  Acknowledgements 
 #  ================
@@ -60,8 +60,7 @@ from . import io_atomblend_utilities
 # -----------------------------------------------------------------------------
 #                                                                           GUI
 
-# This is the panel, which can be used to prepare the scene.
-# It is loaded after the file has been chosen via the menu 'File -> Import'
+# The panel.
 class PreparePanel(Panel):
     bl_label       = "Atomic Blender Utilities"
     bl_space_type  = "VIEW_3D"
@@ -72,7 +71,6 @@ class PreparePanel(Panel):
         scn    = context.scene.atom_blend
 
         row = layout.row()
-        row.label(text="Custom data file")
         box = layout.box()
         row = box.row()
         row.label(text="Custom data file")
@@ -95,6 +93,9 @@ class PreparePanel(Panel):
         row = box.row()
         row.prop(scn, "radius_type")
         row = box.row()
+        row.active = (scn.radius_type == '3')
+        row.prop(scn, "radius_type_ionic")
+        row = box.row()
         row.label(text="2. Change atom radii in pm")
         row = box.row()
         row.prop(scn, "radius_pm_name")
@@ -115,6 +116,7 @@ class PreparePanel(Panel):
         row.operator( "atom_blend.separate_atom" )
 
 
+# The properties of buttons etc. in the panel.
 class PanelProperties(bpy.types.PropertyGroup):
 
     def Callback_radius_type(self, context):
@@ -123,7 +125,8 @@ class PanelProperties(bpy.types.PropertyGroup):
                                               scn.radius_how, 
                                               None,
                                               None,
-                                              scn.radius_type) 
+                                              scn.radius_type,
+                                              scn.radius_type_ionic) 
     def Callback_radius_pm(self, context):
         scn = bpy.context.scene.atom_blend
         io_atomblend_utilities.choose_objects("radius_pm", 
@@ -131,6 +134,7 @@ class PanelProperties(bpy.types.PropertyGroup):
                                               None,
                                               [scn.radius_pm_name,
                                               scn.radius_pm],
+                                              None,
                                               None) 
         
     datafile = StringProperty(
@@ -152,12 +156,28 @@ class PanelProperties(bpy.types.PropertyGroup):
                ('ALL_IN_LAYER',"all"," in active layer(s)")),
                default='ALL_ACTIVE',)
     radius_type = EnumProperty(
-        name="Type",
+        name="Type of radius",
         description="Which type of atom radii?",
         items=(('0',"predefined", "Use pre-defined radii"),
                ('1',"atomic", "Use atomic radii"),
-               ('2',"van der Waals","Use van der Waals radii")),
+               ('2',"van der Waals","Use van der Waals radii"),
+               ('3',"ionic radii", "Use ionic radii")),
                default='0',update=Callback_radius_type)
+    radius_type_ionic = EnumProperty(
+        name="Charge state",
+        description="Charge state of the ions if existing.",
+        items=(('0',"-4", "Charge state -4"),
+               ('1',"-3", "Charge state -3"),
+               ('2',"-2", "Charge state -2"),
+               ('3',"-1", "Charge state -1"),
+               ('5',"+1", "Charge state +1"),
+               ('6',"+2", "Charge state +2"),
+               ('7',"+3", "Charge state +3"),
+               ('8',"+4", "Charge state +4"),
+               ('9',"+5", "Charge state +5"),
+               ('10',"+6", "Charge state +6"),
+               ('11',"+7", "Charge state +7")),
+               default='3',update=Callback_radius_type)           
     radius_pm_name = StringProperty(
         name="", default="Atom name",
         description="Put in the name of the atom (e.g. Hydrogen)")

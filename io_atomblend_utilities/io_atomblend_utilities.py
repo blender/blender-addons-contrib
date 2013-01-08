@@ -20,14 +20,8 @@ import os
 import bpy
 import bmesh
 
-# This variable contains the path of the XYZ file.
-# It is used almost everywhere, which explains why it
-# should stay global. First, it is empty and gets 'filled' directly
-# after having chosen the XYZ file (see 'class LoadXYZ' further below).
-
-
 # -----------------------------------------------------------------------------
-#                                                  Atom and element data
+#                                                         Atom and element data
 
 
 # This is a list that contains some data of all possible elements. The structure
@@ -150,13 +144,12 @@ ELEMENTS_DEFAULT = (
 (106,         "Stick",    "Stick", (  0.5,   0.5,   0.5), 1.00, 1.00, 1.00),
 )
 
-# This list here contains all data of the elements and will be used during
-# runtime. It is a list of classes.
-# During executing Atomic Blender, the list will be initialized with the fixed
-# data from above via the class structure below (ElementProp). We
-# have then one fixed list (above), which will never be changed, and a list of
-# classes with same data. The latter can be modified via loading a separate
-# custom data file for instance.
+# The list 'ELEMENTS' contains all data of the elements and will be used during
+# runtime. The list will be initialized with the fixed
+# data from above via the class below (ElementProp). One fixed list (above), 
+# which cannot be changed, and a list of classes with same data (ELEMENTS) exist.
+# The list 'ELEMENTS' can be modified by e.g. loading a separate custom
+# data file.
 ELEMENTS = []
 
 # This is the class, which stores the properties for one element.
@@ -170,9 +163,6 @@ class ElementProp(object):
         self.radii = radii
         self.radii_ionic = radii_ionic
 
-
-# -----------------------------------------------------------------------------
-#                                                          Some small routines
 
 # This function measures the distance between two objects (atoms),
 # which are active.
@@ -212,7 +202,12 @@ def distance():
     return dist
 
 
-def choose_objects(how, who, radius_all, radius_pm, radius_type):
+def choose_objects(how, 
+                   who, 
+                   radius_all, 
+                   radius_pm, 
+                   radius_type, 
+                   radius_type_ionic):
 
     if who == "ALL_IN_LAYER":
 
@@ -237,14 +232,16 @@ def choose_objects(how, who, radius_all, radius_pm, radius_type):
                                    obj.children[0],
                                    radius_all, 
                                    radius_pm, 
-                                   radius_type)
+                                   radius_type,
+                                   radius_type_ionic)
             else:
                 if obj.type in {'SURFACE', 'MESH', 'META'}:
                     modify_objects(how, 
                                    obj,  
                                    radius_all, 
                                    radius_pm, 
-                                   radius_type)
+                                   radius_type,
+                                   radius_type_ionic)
     if who == "ALL_ACTIVE":
         for obj in bpy.context.selected_objects:
             if len(obj.children) != 0:
@@ -253,19 +250,26 @@ def choose_objects(how, who, radius_all, radius_pm, radius_type):
                                    obj.children[0],
                                    radius_all, 
                                    radius_pm, 
-                                   radius_type)
+                                   radius_type,
+                                   radius_type_ionic)
             else:
                 if obj.type in {'SURFACE', 'MESH', 'META'}:
                     modify_objects(how, 
                                    obj,
                                    radius_all, 
                                    radius_pm, 
-                                   radius_type)
+                                   radius_type,
+                                   radius_type_ionic)
 
 
 
-# Routine to modify the radii in picometer of a specific type of atom
-def modify_objects(how, obj, radius_all, radius_pm, radius_type):
+# Modifying the radii in picometer of a specific type of atom
+def modify_objects(how, 
+                   obj, 
+                   radius_all, 
+                   radius_pm, 
+                   radius_type, 
+                   radius_type_ionic):
 
     # Radius pm 
     if how == "radius_pm":
@@ -278,12 +282,30 @@ def modify_objects(how, obj, radius_all, radius_pm, radius_type):
               
     # Radius type 
     if how == "radius_type":
-        for element in ELEMENTS:
+        for element in ELEMENTS:                
             if element.name in obj.name:
-                obj.scale = (element.radii[int(radius_type)],) * 3
+                # For ionic radii
+                if radius_type == '3':
+                    charge_states = element.radii_ionic[::2]
+                    charge_radii =  element.radii_ionic[1::2]
+                    charge_state_chosen = int(radius_type_ionic) - 4
+                    
+                    find = (lambda searchList, elem: 
+                            [[i for i, x in enumerate(searchList) if x == e] 
+                            for e in elem])
+                    index = find(charge_states,[charge_state_chosen])[0]
+
+                    # Is there a charge state?                    
+                    if index != []:
+                        #print(element.name, index[0], charge_radii[index[0]])
+                        obj.scale = (charge_radii[index[0]],) * 3
+                                            
+                # For atomic and van der Waals radii.
+                else:        
+                    obj.scale = (element.radii[int(radius_type)],) * 3
 
 
-# Read the default element list.
+# Initialization of the list 'ELEMENTS'.
 def read_elements():
 
     del ELEMENTS[:]
@@ -294,14 +316,14 @@ def read_elements():
         radii = [item[4],item[5],item[6]]
         # The handling of the ionic radii will be done later. So far, it is an
         # empty list.
-        radii_ionic = []
-
+        radii_ionic = item[7:]
+        
         li = ElementProp(item[0],item[1],item[2],item[3],
                                      radii,radii_ionic)
         ELEMENTS.append(li)
 
 
-# Change color and radii by uisnf the list of elements.
+# Changing color and radii by using the list of elements.
 def custom_datafile_change_atom_props():
 
     for obj in bpy.context.selected_objects:
@@ -320,7 +342,7 @@ def custom_datafile_change_atom_props():
                         obj.active_material.diffuse_color = element.color
 
 
-# This reads a custom data file.
+# Reading a custom data file.
 def custom_datafile(path_datafile):
 
     if path_datafile == "":
@@ -380,7 +402,7 @@ def custom_datafile(path_datafile):
     return True
 
 
-# Routine for separating atoms from a dupliverts strucutre.
+# Separating atoms from a dupliverts strucutre.
 def separate_atoms(scn):
 
     # Get first all important properties from the atoms, which the user
