@@ -52,6 +52,8 @@ def sequencer_select_menu_func(self, context):
     self.layout.operator('sequencerextra.selectcurrentframe',
     text='On Current Frame', icon='PLUGIN').mode = 'ON'
     self.layout.separator()
+    self.layout.operator('sequencerextra.selectsamechannel',
+    text='Same Channel', icon='PLUGIN')
 
 
 def sequencer_strip_menu_func(self, context):

@@ -786,6 +786,34 @@ class Sequencer_Extra_SelectCurrentFrame(bpy.types.Operator):
         return {'FINISHED'}
 
 
+# SELECT STRIPS ON SAME CHANNEL
+class Sequencer_Extra_SelectSameChannel(bpy.types.Operator):
+    bl_label = 'Select Strips on the Same Channel'
+    bl_idname = 'sequencerextra.selectsamechannel'
+    bl_description = 'Select strips on the same channel as active one'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(self, context):
+        strip = functions.act_strip(context)
+        scn = context.scene
+        if scn and scn.sequence_editor and scn.sequence_editor.active_strip:
+            return True
+        else:
+            return False
+
+    def execute(self, context):
+        scn = context.scene
+        seq = scn.sequence_editor
+        meta_level = len(seq.meta_stack)
+        if meta_level > 0:
+            seq = seq.meta_stack[meta_level - 1]
+        bpy.ops.sequencer.select_active_side(side="LEFT")
+        bpy.ops.sequencer.select_active_side(side="RIGHT")
+
+        return {'FINISHED'}
+
+
 # OPEN IMAGE WITH EXTERNAL EDITOR
 class Sequencer_Extra_EditExternally(bpy.types.Operator):
     bl_label = 'Open with External Editor'
