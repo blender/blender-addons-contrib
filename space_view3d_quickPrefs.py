@@ -614,12 +614,10 @@ def gllightpreset_chooseLoadLocation(context):
                else:                                                                                        #the folder is not empty
                     print('quickprefs: loading preset folder')
                     gllightpreset_loadpresets(1)                                                #go ahead and load it
-    else:
-        pass
-        #print('quickprefs: loading from bpy')
+    #print('quickprefs: loading from bpy')
 
 #This function scans for changes of the index of the selected preset and updates the selection if needed
-#@persistent
+@persistent
 def gllightpreset_scan(context):
     global lastindex
     if debug==0:
@@ -628,7 +626,7 @@ def gllightpreset_scan(context):
             gllightpreset_select()
 
 #This function loads all the presets from a given folder (stored in bpy)
-#@persistent
+@persistent
 def gllightpreset_loadpresets(context):
        gllightpreset_importall()
        bpy.context.scene['gllightpreset_index']=0
@@ -934,9 +932,11 @@ class quickprefproperties(bpy.types.PropertyGroup):
     def unregister(cls):
         del bpy.types.Scene.quickprefs 
 
+@persistent
 def setup(s):
 	#let the fun begin!
     gllightpreset_chooseLoadLocation(1)
+    gllightpreset_scan(bpy.context)
 
 def register():
     #aliases
@@ -948,10 +948,9 @@ def register():
     bpy.utils.register_class(SCENE_OT_gllightpreset)
     bpy.utils.register_class(quickprefproperties)
 
-    #handlers    
-    #handler.load_post.append(gllightpreset_chooseLoadLocation)     #was crashing blender on new file load - comment for now
-    handler.scene_update_pre.append(gllightpreset_scan)
+    #handler.scene_update_pre.append(gllightpreset_scan)
     handler.scene_update_pre.append(setup)
+    #handler.load_post.append(setup)     #was crashing blender on new file load - comment for now
     
     
     
