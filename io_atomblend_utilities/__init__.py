@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-01-08
+#  Last modified                 : 2013-01-13
 #
 #  Acknowledgements 
 #  ================
@@ -38,7 +38,7 @@ bl_info = {
     "name": "Atomic Blender - Utilities",
     "description": "Utilities for manipulating atom structures",
     "author": "Clemens Barth",
-    "version": (0, 6),
+    "version": (0, 7),
     "blender": (2, 60, 0),
     "location": "Panel: View 3D - Tools",
     "warning": "",
@@ -251,6 +251,7 @@ class RadiusAllBiggerButton(Operator):
                                               scn.radius_how, 
                                               scn.radius_all, 
                                               None,
+                                              None,
                                               None)        
         return {'FINISHED'}
 
@@ -266,6 +267,7 @@ class RadiusAllSmallerButton(Operator):
         io_atomblend_utilities.choose_objects("radius_all", 
                                               scn.radius_how, 
                                               1.0/scn.radius_all, 
+                                              None,
                                               None,
                                               None)                                     
         return {'FINISHED'}
