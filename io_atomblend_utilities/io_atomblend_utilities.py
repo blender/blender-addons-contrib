@@ -228,7 +228,8 @@ def choose_objects(how,
         for obj in change_objects:
             if len(obj.children) != 0:
                 if obj.children[0].type in {'SURFACE', 'MESH', 'META'}:
-                    modify_objects(how, 
+                    if "Stick" not in obj.name:    
+                        modify_objects(how, 
                                    obj.children[0],
                                    radius_all, 
                                    radius_pm, 
@@ -236,7 +237,8 @@ def choose_objects(how,
                                    radius_type_ionic)
             else:
                 if obj.type in {'SURFACE', 'MESH', 'META'}:
-                    modify_objects(how, 
+                    if "Stick" not in obj.name:
+                        modify_objects(how, 
                                    obj,  
                                    radius_all, 
                                    radius_pm, 
@@ -246,7 +248,8 @@ def choose_objects(how,
         for obj in bpy.context.selected_objects:
             if len(obj.children) != 0:
                 if obj.children[0].type in {'SURFACE', 'MESH', 'META'}:
-                    modify_objects(how, 
+                    if "Stick" not in obj.name:
+                        modify_objects(how, 
                                    obj.children[0],
                                    radius_all, 
                                    radius_pm, 
@@ -254,7 +257,8 @@ def choose_objects(how,
                                    radius_type_ionic)
             else:
                 if obj.type in {'SURFACE', 'MESH', 'META'}:
-                    modify_objects(how, 
+                    if "Stick" not in obj.name:
+                        modify_objects(how, 
                                    obj,
                                    radius_all, 
                                    radius_pm, 
