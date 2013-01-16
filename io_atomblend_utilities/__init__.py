@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-01-13
+#  Last modified                 : 2013-01-16
 #
 #  Acknowledgements 
 #  ================
@@ -170,6 +170,7 @@ class PanelProperties(bpy.types.PropertyGroup):
                ('1',"-3", "Charge state -3"),
                ('2',"-2", "Charge state -2"),
                ('3',"-1", "Charge state -1"),
+               ('4'," 0", "Charge state  0: nothing is done"),              
                ('5',"+1", "Charge state +1"),
                ('6',"+2", "Charge state +2"),
                ('7',"+3", "Charge state +3"),
@@ -177,7 +178,7 @@ class PanelProperties(bpy.types.PropertyGroup):
                ('9',"+5", "Charge state +5"),
                ('10',"+6", "Charge state +6"),
                ('11',"+7", "Charge state +7")),
-               default='3',update=Callback_radius_type)           
+               default='4',update=Callback_radius_type)           
     radius_pm_name = StringProperty(
         name="", default="Atom name",
         description="Put in the name of the atom (e.g. Hydrogen)")
