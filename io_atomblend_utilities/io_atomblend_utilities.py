@@ -19,6 +19,8 @@
 import os
 import bpy
 import bmesh
+from mathutils import Vector
+from math import sqrt
 
 # -----------------------------------------------------------------------------
 #                                                         Atom and element data
@@ -164,11 +166,10 @@ class ElementProp(object):
         self.radii_ionic = radii_ionic
 
 
-# This function measures the distance between two objects (atoms),
-# which are active.
+# This function measures the distance between two selected objects.
 def distance():
 
-    # In the 'Edit mode'
+    # In the 'EDIT' mode
     if bpy.context.mode == 'EDIT_MESH':
 
         obj = bpy.context.edit_object
@@ -184,7 +185,7 @@ def distance():
             location2 = locations[1]        
         else:
             return "N.A"
-    # In the object mode
+    # In the 'OBJECT' mode
     else:
 
         if len(bpy.context.selected_bases) > 1:
@@ -207,10 +208,10 @@ def choose_objects(how,
                    radius_all, 
                    radius_pm, 
                    radius_type, 
-                   radius_type_ionic):
-
+                   radius_type_ionic,
+                   sticks_all):
+    # For selected objects of all selected layers
     if who == "ALL_IN_LAYER":
-
         # Determine all selected layers.
         layers = []
         for i, layer in enumerate(bpy.context.scene.layers):
@@ -224,68 +225,72 @@ def choose_objects(how,
                 if obj.layers[layer] == True:
                     change_objects.append(obj)
                     
-        # Consider all objects, which are in the list 'change_objects'.
+        # Consider all objects, which are in the latter list.
         for obj in change_objects:
             if len(obj.children) != 0:
-                if obj.children[0].type in {'SURFACE', 'MESH', 'META'}:
-                    if "Stick" not in obj.name:    
-                        modify_objects(how, 
-                                   obj.children[0],
+                for obj_child in obj.children:
+                    if obj_child.type in {'SURFACE', 'MESH', 'META'}: 
+                            modify_objects(how, 
+                                   obj_child,
                                    radius_all, 
                                    radius_pm, 
                                    radius_type,
-                                   radius_type_ionic)
+                                   radius_type_ionic,
+                                   sticks_all)
             else:
                 if obj.type in {'SURFACE', 'MESH', 'META'}:
-                    if "Stick" not in obj.name:
                         modify_objects(how, 
                                    obj,  
                                    radius_all, 
                                    radius_pm, 
                                    radius_type,
-                                   radius_type_ionic)
+                                   radius_type_ionic,
+                                   sticks_all)
+    # For selected objects of the visible layer                               
     if who == "ALL_ACTIVE":
         for obj in bpy.context.selected_objects:
             if len(obj.children) != 0:
-                if obj.children[0].type in {'SURFACE', 'MESH', 'META'}:
-                    if "Stick" not in obj.name:
-                        modify_objects(how, 
-                                   obj.children[0],
+                for obj_child in obj.children:
+                    if obj_child.type in {'SURFACE', 'MESH', 'META'}:
+                            modify_objects(how, 
+                                   obj_child,
                                    radius_all, 
                                    radius_pm, 
                                    radius_type,
-                                   radius_type_ionic)
+                                   radius_type_ionic,
+                                   sticks_all)
             else:
                 if obj.type in {'SURFACE', 'MESH', 'META'}:
-                    if "Stick" not in obj.name:
                         modify_objects(how, 
                                    obj,
                                    radius_all, 
                                    radius_pm, 
                                    radius_type,
-                                   radius_type_ionic)
+                                   radius_type_ionic,
+                                   sticks_all)
 
 
 
-# Modifying the radii in picometer of a specific type of atom
+# Modifying the radius of a selected atom or stick
 def modify_objects(how, 
                    obj, 
                    radius_all, 
                    radius_pm, 
                    radius_type, 
-                   radius_type_ionic):
+                   radius_type_ionic,
+                   sticks_all):
 
     # Radius pm 
-    if how == "radius_pm":
+    if how == "radius_pm" and "Stick" not in obj.name:
         if radius_pm[0] in obj.name:
             obj.scale = (radius_pm[1]/100,) * 3
             
     # Radius all 
-    if how == "radius_all":
+    if how == "radius_all" and "Stick" not in obj.name:
         obj.scale *= radius_all      
               
     # Radius type 
-    if how == "radius_type":
+    if how == "radius_type" and "Stick" not in obj.name:
         for element in ELEMENTS:                
             if element.name in obj.name:
                 # For ionic radii
@@ -301,12 +306,38 @@ def modify_objects(how,
 
                     # Is there a charge state?                    
                     if index != []:
-                        #print(element.name, index[0], charge_radii[index[0]])
                         obj.scale = (charge_radii[index[0]],) * 3
                                             
                 # For atomic and van der Waals radii.
                 else:        
                     obj.scale = (element.radii[int(radius_type)],) * 3
+
+
+    # Sticks 
+    if how == "sticks_all" and ('Sticks_Cups'     in obj.name or 
+                                'Sticks_Cylinder' in obj.name):
+    
+        bpy.context.scene.objects.active = obj
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        bm = bmesh.from_edit_mesh(obj.data)
+        
+        locations = []
+        for v in bm.verts:
+            locations.append(v.co)
+
+        center = Vector((0.0,0.0,0.0))
+        center = sum([location for location in locations], center)/len(locations)
+        
+        radius = sum([(loc[0]-center[0])**2+(loc[1]-center[1])**2 
+                     for loc in locations], 0)
+        radius_new = radius * sticks_all
+
+        for v in bm.verts:
+            v.co[0] = ((v.co[0] - center[0]) / radius) * radius_new + center[0]
+            v.co[1] = ((v.co[1] - center[1]) / radius) * radius_new + center[1]
+
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        bpy.context.scene.objects.active = None
 
 
 # Initialization of the list 'ELEMENTS'.
@@ -327,7 +358,7 @@ def read_elements():
         ELEMENTS.append(li)
 
 
-# Changing color and radii by using the list of elements.
+# Custom data file: changing color and radii by using the list 'ELEMENTS'.
 def custom_datafile_change_atom_props():
 
     for obj in bpy.context.selected_objects:
@@ -346,7 +377,7 @@ def custom_datafile_change_atom_props():
                         obj.active_material.diffuse_color = element.color
 
 
-# Reading a custom data file.
+# Reading a custom data file and modifying the list 'ELEMENTS'.
 def custom_datafile(path_datafile):
 
     if path_datafile == "":
