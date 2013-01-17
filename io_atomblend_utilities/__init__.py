@@ -103,8 +103,8 @@ class PreparePanel(Panel):
         col.label(text="3. Radii by scale")
         col.prop(scn, "radius_all")
         row = col.row()
-        row.operator( "atom_blend.radius_all_smaller" )
-        row.operator( "atom_blend.radius_all_bigger" )
+        row.operator("atom_blend.radius_all_smaller")
+        row.operator("atom_blend.radius_all_bigger")
         
         box = layout.box()
         col = box.column(align=True)
@@ -119,7 +119,9 @@ class PreparePanel(Panel):
         col.label(text="Separate atoms")
         col2 = col.column()
         col2.active = (bpy.context.mode == 'EDIT_MESH')
-        col2.operator( "atom_blend.separate_atom" )
+        col2.prop(scn, "separate_objs")
+        col2.operator("atom_blend.separate_atom")
+        
 
 
 # The properties of buttons etc. in the panel.
@@ -201,7 +203,18 @@ class PanelProperties(bpy.types.PropertyGroup):
     sticks_all = FloatProperty(
         name="Scale", default = 1.05, min=1.0, max=5.0,
         description="Put in the scale factor")
-
+    separate_objs = EnumProperty(
+        name="Object",
+        description="Replace ball by another object.",
+        items=(('0',"Unchanged", "Use again a ball"),
+               ('1',"Cube", "Replace with a cube"),
+               ('2',"Plane", "Replace with a plane"),
+               ('3',"Circle", "Replace with a circle"),
+               ('4',"Icosphere", "Replace with a icosphere"),              
+               ('5',"Cylinder", "Replace with a cylinder"),
+               ('6',"Cone", "Replace with a cone"),
+               ('7',"Torus", "Replace with a torus")),
+               default='0',)     
 
 # Button loading a custom data file
 class DatafileApply(Operator):

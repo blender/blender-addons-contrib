@@ -437,6 +437,7 @@ def custom_datafile(path_datafile):
     return True
 
 
+
 # Separating atoms from a dupliverts strucutre.
 def separate_atoms(scn):
 
@@ -479,44 +480,146 @@ def separate_atoms(scn):
     # For all selected positions do:
     for location in locations:
         # For any ball do ...
-        if "Vacancy" not in name:
-            # NURBS ball
-            if obj.children[0].type == "SURFACE":
-                bpy.ops.surface.primitive_nurbs_surface_sphere_add(
+        
+        # Draw same object
+        if scn.separate_objs in {'0'}:
+            separate_draw_regular(
+                                name, 
+                                obj.children[0], 
+                                location,
+                                scale, 
+                                material)
+        if scn.separate_objs in {'1','2','3','4','5','6','7'}:       
+            separate_draw_other_standard(
+                                scn.separate_objs, 
+                                name, 
+                                location, 
+                                scale, 
+                                material)                   
+
+    bpy.context.scene.objects.active = obj
+    #bpy.ops.object.select_all(action='DESELECT')
+    
+
+def separate_draw_other_standard(obj_type, name, location, scale, material):
+
+    current_layers=bpy.context.scene.layers
+
+    if obj_type =='1': #Cube
+        bpy.ops.mesh.primitive_cube_add(
+            view_align=False, 
+            enter_editmode=False,
+            location=location,
+            rotation=(0.0, 0.0, 0.0),
+            layers=current_layers)
+    if obj_type =='2': #Plane       
+        bpy.ops.mesh.primitive_plane_add(
+            view_align=False, 
+            enter_editmode=False, 
+            location=location, 
+            rotation=(0.0, 0.0, 0.0), 
+            layers=current_layers)
+    if obj_type =='3': #Circle
+        bpy.ops.mesh.primitive_circle_add(
+            vertices=32, 
+            radius=1, 
+            fill_type='NOTHING', 
+            view_align=False, 
+            enter_editmode=False, 
+            location=location, 
+            rotation=(0, 0, 0), 
+            layers=current_layers)      
+    if obj_type =='4': #Icosphere         
+        bpy.ops.mesh.primitive_ico_sphere_add(
+            subdivisions=2, 
+            size=1, 
+            view_align=False, 
+            enter_editmode=False, 
+            location=location, 
+            rotation=(0, 0, 0), 
+            layers=current_layers)                
+    if obj_type =='5': #Cylinder
+        bpy.ops.mesh.primitive_cylinder_add(
+            vertices=32, 
+            radius=1, 
+            depth=2, 
+            end_fill_type='NGON', 
+            view_align=False, 
+            enter_editmode=False, 
+            location=location, 
+            rotation=(0, 0, 0), 
+            layers=current_layers)
+    if obj_type =='6': #Cone
+        bpy.ops.mesh.primitive_cone_add(
+            vertices=32, 
+            radius1=1, 
+            radius2=0, 
+            depth=2, 
+            end_fill_type='NGON', 
+            view_align=False, 
+            enter_editmode=False, 
+            location=location, 
+            rotation=(0, 0, 0), 
+            layers=current_layers)
+    if obj_type =='7': #Torus
+        bpy.ops.mesh.primitive_torus_add(
+            rotation=(0, 0, 0), 
+            location=location, 
+            view_align=False, 
+            major_radius=1, 
+            minor_radius=0.25, 
+            major_segments=48, 
+            minor_segments=12, 
+            use_abso=False, 
+            abso_major_rad=1, 
+            abso_minor_rad=0.5)     
+
+    new_atom = bpy.context.scene.objects.active
+    # Scale, material and name it.
+    new_atom.scale = scale
+    new_atom.active_material = material
+    new_atom.name = name + "_sep"
+    new_atom.select = True        
+
+
+
+def separate_draw_regular(name, child, location, scale, material):
+
+    current_layers=bpy.context.scene.layers
+    if "Vacancy" not in name:
+        # NURBS ball
+        if child.type == "SURFACE":
+            bpy.ops.surface.primitive_nurbs_surface_sphere_add(
                                     view_align=False, enter_editmode=False,
                                     location=location,
                                     rotation=(0.0, 0.0, 0.0),
                                     layers=current_layers)
-                # Mesh ball                    
-            elif obj.children[0].type == "MESH":
-                bpy.ops.mesh.primitive_uv_sphere_add(
+        # Mesh ball                    
+        elif child.type == "MESH":
+            bpy.ops.mesh.primitive_uv_sphere_add(
                                 segments=32,
                                 ring_count=32,                    
-                                #segments=scn.mesh_azimuth,
-                                #ring_count=scn.mesh_zenith,
                                 size=1, view_align=False, enter_editmode=False,
                                 location=location,
                                 rotation=(0, 0, 0),
                                 layers=current_layers)
-                # Metaball
-            elif obj.children[0].type == "META":
-                bpy.ops.object.metaball_add(type='BALL', view_align=False, 
+        # Metaball
+        elif child.type == "META":
+            bpy.ops.object.metaball_add(type='BALL', view_align=False, 
                             enter_editmode=False, location=location, 
                             rotation=(0, 0, 0), layers=current_layers)
-        # If it is a vacancy create a cube ...                    
-        else:
-            bpy.ops.mesh.primitive_cube_add(
+    # If it is a vacancy create a cube ...                    
+    else:
+        bpy.ops.mesh.primitive_cube_add(
                            view_align=False, enter_editmode=False,
                            location=location,
                            rotation=(0.0, 0.0, 0.0),
                            layers=current_layers)
-                               
-        new_atom = bpy.context.scene.objects.active
-        # Scale, material and name it.
-        new_atom.scale = scale
-        new_atom.active_material = material
-        new_atom.name = name + "_sep"
-        new_atom.select = True
-
-    bpy.context.scene.objects.active = obj
-    #bpy.ops.object.select_all(action='DESELECT')
+                           
+    new_atom = bpy.context.scene.objects.active
+    # Scale, material and name it.
+    new_atom.scale = scale
+    new_atom.active_material = material
+    new_atom.name = name + "_sep"
+    new_atom.select = True
+                           
