@@ -24,12 +24,12 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-01-17
+#  Last modified                 : 2013-01-18
 #
 #  Acknowledgements 
 #  ================
 #
-#  Blender: ideasman, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG, 
+#  Blender: ideasman_42, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG, 
 #           Valter, ...
 #  Other: Frank Palmino
 #
@@ -53,7 +53,8 @@ import bpy
 from bpy.types import Operator, Panel
 from bpy.props import (StringProperty,
                        EnumProperty,
-                       FloatProperty)
+                       FloatProperty,
+                       BoolProperty)
 
 from . import io_atomblend_utilities
 
@@ -119,10 +120,9 @@ class PreparePanel(Panel):
         col.label(text="Separate atoms")
         col2 = col.column()
         col2.active = (bpy.context.mode == 'EDIT_MESH')
-        col2.prop(scn, "separate_objs")
+        col2.prop(scn, "draw_objs")
         col2.operator("atom_blend.separate_atom")
         
-
 
 # The properties of buttons etc. in the panel.
 class PanelProperties(bpy.types.PropertyGroup):
@@ -203,18 +203,29 @@ class PanelProperties(bpy.types.PropertyGroup):
     sticks_all = FloatProperty(
         name="Scale", default = 1.05, min=1.0, max=5.0,
         description="Put in the scale factor")
-    separate_objs = EnumProperty(
-        name="Object",
-        description="Replace ball by another object.",
-        items=(('0',"Unchanged", "Use again a ball"),
+    draw_objs = EnumProperty(
+        name="Type",
+        description="Replace the balls by another type of object.",
+        items=(('-1',"Unchanged", "Use again a ball"),
+               ('0a',"Sphere", "Replace with a sphere"),
+               ('0b',"Sphere (NURBS)", "Replace with a sphere (NURBS)"),        
                ('1',"Cube", "Replace with a cube"),
                ('2',"Plane", "Replace with a plane"),
-               ('3',"Circle", "Replace with a circle"),
+               ('3a',"Circle", "Replace with a circle"),
+               ('3b',"Circle (NURBS)", "Replace with a circle (NURBS)"),               
                ('4',"Icosphere", "Replace with a icosphere"),              
-               ('5',"Cylinder", "Replace with a cylinder"),
+               ('5a',"Cylinder", "Replace with a cylinder"),
+               ('5b',"Cylinder (NURBS)", "Replace with a cylinder (NURBS)"),               
                ('6',"Cone", "Replace with a cone"),
-               ('7',"Torus", "Replace with a torus")),
-               default='0',)     
+               ('7a',"Torus", "Replace with a torus"),
+               ('7b',"Torus (NURBS)", "Replace with a torus (NURBS)"),
+               ('8',"Transparent cube", "Replace with a transparent cube"),      
+               ('9',"Transparent sphere", "Replace with a transparent sphere"),
+               ('10',"Transparent sphere (NURBS)", 
+                                  "Replace with a transparent sphere (NURBS)"),               
+               ('11',"Halo cloud", "Replace with a halo cloud")),
+               default='-1',)     
+
 
 # Button loading a custom data file
 class DatafileApply(Operator):
@@ -237,8 +248,8 @@ class DatafileApply(Operator):
 # Button for separating single atoms from a dupliverts structure
 class SeparateAtom(Operator):
     bl_idname = "atom_blend.separate_atom"
-    bl_label = "Separate atoms"
-    bl_description = ("Separate atoms you have selected. "
+    bl_label = "Separate"
+    bl_description = ("Separate selected atoms in a dupliverts structure. "
                       "You have to be in the 'Edit Mode'")
 
     def execute(self, context):
@@ -299,6 +310,7 @@ class RadiusAllSmallerButton(Operator):
                                               None)                                     
         return {'FINISHED'}
 
+
 # Button for increasing the radii of all selected sticks
 class SticksAllBiggerButton(Operator):
     bl_idname = "atom_blend.sticks_all_bigger"
@@ -338,8 +350,7 @@ class SticksAllSmallerButton(Operator):
 def register():
     io_atomblend_utilities.read_elements()  
     bpy.utils.register_module(__name__)
-    bpy.types.Scene.atom_blend = bpy.props.PointerProperty(type=
-                                                   PanelProperties)
+    bpy.types.Scene.atom_blend = bpy.props.PointerProperty(type=PanelProperties)
 
 def unregister():
     bpy.utils.unregister_module(__name__)

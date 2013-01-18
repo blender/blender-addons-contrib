@@ -154,6 +154,7 @@ ELEMENTS_DEFAULT = (
 # data file.
 ELEMENTS = []
 
+
 # This is the class, which stores the properties for one element.
 class ElementProp(object):
     __slots__ = ('number', 'name', 'short_name', 'color', 'radii', 'radii_ionic')
@@ -437,7 +438,6 @@ def custom_datafile(path_datafile):
     return True
 
 
-
 # Separating atoms from a dupliverts strucutre.
 def separate_atoms(scn):
 
@@ -479,47 +479,55 @@ def separate_atoms(scn):
 
     # For all selected positions do:
     for location in locations:
-        # For any ball do ...
-        
+        # For any selected ball do ...
+      
         # Draw same object
-        if scn.separate_objs in {'0'}:
-            separate_draw_regular(
-                                name, 
-                                obj.children[0], 
-                                location,
-                                scale, 
-                                material)
-        if scn.separate_objs in {'1','2','3','4','5','6','7'}:       
-            separate_draw_other_standard(
-                                scn.separate_objs, 
-                                name, 
-                                location, 
-                                scale, 
-                                material)                   
+        if scn.draw_objs == '-1':
+            draw_regular_obj(name,obj.children[0],location,scale,material)                
+        # Draw selected standard object
+        if scn.draw_objs in {'0a','0b','1','2','3a','3b','4','5a','5b','6',
+                             '7a','7b','8', '9', '10', '11'}:       
+            draw_obj(scn.draw_objs,name,location,scale,material)  
 
     bpy.context.scene.objects.active = obj
-    #bpy.ops.object.select_all(action='DESELECT')
-    
 
-def separate_draw_other_standard(obj_type, name, location, scale, material):
+
+# Draw an object (e.g. cube, sphere, cylinder, ...)
+def draw_obj(obj_type, name, location, scale, material):
 
     current_layers=bpy.context.scene.layers
 
-    if obj_type =='1': #Cube
+    if obj_type == '0a': #Sphere mesh
+        bpy.ops.mesh.primitive_uv_sphere_add(
+            segments=32,
+            ring_count=32,                    
+            size=1, view_align=False, 
+            enter_editmode=False,
+            location=location,
+            rotation=(0, 0, 0),
+            layers=current_layers)
+    if obj_type == '0b': #Sphere NURBS
+        bpy.ops.surface.primitive_nurbs_surface_sphere_add(
+            view_align=False, 
+            enter_editmode=False,
+            location=location,
+            rotation=(0.0, 0.0, 0.0),
+            layers=current_layers)
+    if obj_type == '1': #Cube
         bpy.ops.mesh.primitive_cube_add(
             view_align=False, 
             enter_editmode=False,
             location=location,
             rotation=(0.0, 0.0, 0.0),
             layers=current_layers)
-    if obj_type =='2': #Plane       
+    if obj_type == '2': #Plane       
         bpy.ops.mesh.primitive_plane_add(
             view_align=False, 
             enter_editmode=False, 
             location=location, 
             rotation=(0.0, 0.0, 0.0), 
             layers=current_layers)
-    if obj_type =='3': #Circle
+    if obj_type == '3a': #Circle
         bpy.ops.mesh.primitive_circle_add(
             vertices=32, 
             radius=1, 
@@ -529,7 +537,14 @@ def separate_draw_other_standard(obj_type, name, location, scale, material):
             location=location, 
             rotation=(0, 0, 0), 
             layers=current_layers)      
-    if obj_type =='4': #Icosphere         
+    if obj_type == '3b': #Circle NURBS
+        bpy.ops.surface.primitive_nurbs_surface_circle_add(
+            view_align=False, 
+            enter_editmode=False, 
+            location=location, 
+            rotation=(0, 0, 0), 
+            layers=current_layers)                
+    if obj_type == '4': #Icosphere         
         bpy.ops.mesh.primitive_ico_sphere_add(
             subdivisions=2, 
             size=1, 
@@ -538,7 +553,7 @@ def separate_draw_other_standard(obj_type, name, location, scale, material):
             location=location, 
             rotation=(0, 0, 0), 
             layers=current_layers)                
-    if obj_type =='5': #Cylinder
+    if obj_type == '5a': #Cylinder
         bpy.ops.mesh.primitive_cylinder_add(
             vertices=32, 
             radius=1, 
@@ -549,7 +564,14 @@ def separate_draw_other_standard(obj_type, name, location, scale, material):
             location=location, 
             rotation=(0, 0, 0), 
             layers=current_layers)
-    if obj_type =='6': #Cone
+    if obj_type == '5b': #Cylinder NURBS
+        bpy.ops.surface.primitive_nurbs_surface_cylinder_add(
+            view_align=False, 
+            enter_editmode=False, 
+            location=location, 
+            rotation=(0, 0, 0), 
+            layers=current_layers)          
+    if obj_type == '6': #Cone
         bpy.ops.mesh.primitive_cone_add(
             vertices=32, 
             radius1=1, 
@@ -561,7 +583,7 @@ def separate_draw_other_standard(obj_type, name, location, scale, material):
             location=location, 
             rotation=(0, 0, 0), 
             layers=current_layers)
-    if obj_type =='7': #Torus
+    if obj_type == '7a': #Torus
         bpy.ops.mesh.primitive_torus_add(
             rotation=(0, 0, 0), 
             location=location, 
@@ -573,17 +595,86 @@ def separate_draw_other_standard(obj_type, name, location, scale, material):
             use_abso=False, 
             abso_major_rad=1, 
             abso_minor_rad=0.5)     
+    if obj_type == '7b': #Torus NURBS
+        bpy.ops.surface.primitive_nurbs_surface_torus_add(
+            view_align=False, 
+            enter_editmode=False, 
+            location=location, 
+            rotation=(0, 0, 0), 
+            layers=current_layers)
+    if obj_type in {'8','9','10'}:
+        #Transparent cube
+        if obj_type == '8':
+            bpy.ops.mesh.primitive_cube_add(
+                                            view_align=False, 
+                                            enter_editmode=False,
+                                            location=location,
+                                            rotation=(0.0, 0.0, 0.0),
+                                            layers=current_layers)
+        #Transparent mesh sphere                                    
+        if obj_type == '9':
+            bpy.ops.mesh.primitive_uv_sphere_add(
+                                            segments=32,
+                                            ring_count=32,                    
+                                            size=1, view_align=False, 
+                                            enter_editmode=False,
+                                            location=location,
+                                            rotation=(0, 0, 0),
+                                            layers=current_layers)
+        #Transparent NURBS sphere                                    
+        if obj_type == '10':
+            bpy.ops.surface.primitive_nurbs_surface_sphere_add(
+                                            view_align=False, 
+                                            enter_editmode=False,
+                                            location=location,
+                                            rotation=(0.0, 0.0, 0.0),
+                                            layers=current_layers)
+
+        material_new = bpy.data.materials.new(name + "_sep")
+        material_new.name = material.name + "_sep"
+        material_new.diffuse_color = material.diffuse_color
+        material_new.transparency_method = 'Z_TRANSPARENCY'
+        material_new.alpha = 1.3
+        material_new.raytrace_transparency.fresnel = 1.6
+        material_new.raytrace_transparency.fresnel_factor = 1.6
+        material_new.use_transparency = True   
+        new_atom = bpy.context.scene.objects.active
+        new_atom.scale = scale           
+        new_atom.active_material = material_new
+        new_atom.name = name + "_sep"
+        new_atom.select = True
+        return              
+    # Halo cloud
+    if obj_type == '11':
+        # Build one mesh point
+        new_mesh = bpy.data.meshes.new("Mesh_"+name)
+        new_mesh.from_pydata([Vector((0.0,0.0,0.0))], [], [])
+        new_mesh.update()
+        new_atom = bpy.data.objects.new(name + "_sep", new_mesh)
+        bpy.context.scene.objects.link(new_atom)
+        new_atom.location = location
+        material_new = bpy.data.materials.new(name + "_sep")
+        material_new.name = material.name + "_sep"
+        material_new.diffuse_color = material.diffuse_color        
+        material_new.type = 'HALO'
+        material_new.halo.size = scale[0]*1.5
+        material_new.halo.hardness = 25
+        material_new.halo.add = 0.7
+        new_atom.active_material = material_new
+        new_atom.name = name + "_sep"
+        new_atom.select = True
+        return
 
     new_atom = bpy.context.scene.objects.active
-    # Scale, material and name it.
     new_atom.scale = scale
     new_atom.active_material = material
     new_atom.name = name + "_sep"
     new_atom.select = True        
 
 
-
-def separate_draw_regular(name, child, location, scale, material):
+# This definition is for separating atoms from a dupliverts structure. Replace
+# balls by same type of balls
+def draw_regular_obj(name, child, location, scale, material):
 
     current_layers=bpy.context.scene.layers
     if "Vacancy" not in name:
