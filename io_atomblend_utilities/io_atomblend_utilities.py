@@ -485,8 +485,8 @@ def separate_atoms(scn):
         if scn.draw_objs == '-1':
             draw_regular_obj(name,obj.children[0],location,scale,material)                
         # Draw selected standard object
-        if scn.draw_objs in {'0a','0b','1','2','3a','3b','4','5a','5b','6',
-                             '7a','7b','8', '9', '10', '11'}:       
+        if scn.draw_objs in {'0a','0b','1','2','3a','3b','4a','4b','4c','5a',
+                             '5b','6','7a','7b','8', '9', '10', '11'}:       
             draw_obj(scn.draw_objs,name,location,scale,material)  
 
     bpy.context.scene.objects.active = obj
@@ -543,10 +543,28 @@ def draw_obj(obj_type, name, location, scale, material):
             enter_editmode=False, 
             location=location, 
             rotation=(0, 0, 0), 
+            layers=current_layers)
+    if obj_type == '4a': #Icosphere, subdivision=1        
+        bpy.ops.mesh.primitive_ico_sphere_add(
+            subdivisions=1, 
+            size=1, 
+            view_align=False, 
+            enter_editmode=False, 
+            location=location, 
+            rotation=(0, 0, 0), 
             layers=current_layers)                
-    if obj_type == '4': #Icosphere         
+    if obj_type == '4b': #Icosphere, subdivision=2
         bpy.ops.mesh.primitive_ico_sphere_add(
             subdivisions=2, 
+            size=1, 
+            view_align=False, 
+            enter_editmode=False, 
+            location=location, 
+            rotation=(0, 0, 0), 
+            layers=current_layers)                
+    if obj_type == '4c': #Icosphere, subdivision=3
+        bpy.ops.mesh.primitive_ico_sphere_add(
+            subdivisions=3, 
             size=1, 
             view_align=False, 
             enter_editmode=False, 
