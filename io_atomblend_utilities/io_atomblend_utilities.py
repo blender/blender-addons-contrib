@@ -204,13 +204,14 @@ def distance():
     return dist
 
 
-def choose_objects(how, 
+def choose_objects(action_type, 
                    who, 
                    radius_all, 
                    radius_pm, 
                    radius_type, 
                    radius_type_ionic,
                    sticks_all):
+
     # For selected objects of all selected layers
     if who == "ALL_IN_LAYER":
         # Determine all selected layers.
@@ -220,18 +221,34 @@ def choose_objects(how,
                 layers.append(i)
                 
         # Put all objects, which are in the layers, into a list.
-        change_objects = []
+        change_objects_all = []
         for obj in bpy.context.scene.objects:
             for layer in layers:
                 if obj.layers[layer] == True:
+                    change_objects_all.append(obj)
+                    
+        # This is very important now: If there are dupliverts structures, note 
+        # only the parents and NOT the children! Otherwise the double work is 
+        # done or the system can even crash if objects are deleted. - The 
+        # chidlren are accessed anyways (see below).
+        change_objects = []
+        for obj in change_objects_all:
+            if obj.parent != None:
+                FLAG = False
+                for obj2 in change_objects:
+                    if obj2 == obj.parent:
+                        FLAG = True
+                if FLAG == False:        
                     change_objects.append(obj)
+            else:
+                change_objects.append(obj)
                     
         # Consider all objects, which are in the latter list.
         for obj in change_objects:
             if len(obj.children) != 0:
                 for obj_child in obj.children:
                     if obj_child.type in {'SURFACE', 'MESH', 'META'}: 
-                            modify_objects(how, 
+                            modify_objects(action_type, 
                                    obj_child,
                                    radius_all, 
                                    radius_pm, 
@@ -240,7 +257,7 @@ def choose_objects(how,
                                    sticks_all)
             else:
                 if obj.type in {'SURFACE', 'MESH', 'META'}:
-                        modify_objects(how, 
+                        modify_objects(action_type, 
                                    obj,  
                                    radius_all, 
                                    radius_pm, 
@@ -249,11 +266,33 @@ def choose_objects(how,
                                    sticks_all)
     # For selected objects of the visible layer                               
     if who == "ALL_ACTIVE":
+        change_objects_all = []
+        # Note all selected objects first.
         for obj in bpy.context.selected_objects:
+            change_objects_all.append(obj)   
+            
+        # This is very important now: If there are dupliverts structures, note 
+        # only the parents and NOT the children! Otherwise the double work is 
+        # done or the system can even crash if objects are deleted. - The 
+        # chidlren are accessed anyways (see below).
+        change_objects = []
+        for obj in change_objects_all:
+            if obj.parent != None:
+                FLAG = False
+                for obj2 in change_objects:
+                    if obj2 == obj.parent:
+                        FLAG = True
+                if FLAG == False:        
+                    change_objects.append(obj)
+            else:
+                change_objects.append(obj)
+
+        # ... and do then your different kind of jobs ...    
+        for obj in change_objects:     
             if len(obj.children) != 0:
                 for obj_child in obj.children:
                     if obj_child.type in {'SURFACE', 'MESH', 'META'}:
-                            modify_objects(how, 
+                        modify_objects(action_type, 
                                    obj_child,
                                    radius_all, 
                                    radius_pm, 
@@ -262,7 +301,7 @@ def choose_objects(how,
                                    sticks_all)
             else:
                 if obj.type in {'SURFACE', 'MESH', 'META'}:
-                        modify_objects(how, 
+                    modify_objects(action_type, 
                                    obj,
                                    radius_all, 
                                    radius_pm, 
@@ -273,7 +312,7 @@ def choose_objects(how,
 
 
 # Modifying the radius of a selected atom or stick
-def modify_objects(how, 
+def modify_objects(action_type, 
                    obj, 
                    radius_all, 
                    radius_pm, 
@@ -281,17 +320,17 @@ def modify_objects(how,
                    radius_type_ionic,
                    sticks_all):
 
-    # Radius pm 
-    if how == "radius_pm" and "Stick" not in obj.name:
+    # Modify atom radius (in pm) 
+    if action_type == "ATOM_RADIUS_PM" and "Stick" not in obj.name:
         if radius_pm[0] in obj.name:
             obj.scale = (radius_pm[1]/100,) * 3
             
-    # Radius all 
-    if how == "radius_all" and "Stick" not in obj.name:
+    # Modify atom radius (all selected)
+    if action_type == "ATOM_RADIUS_ALL" and "Stick" not in obj.name:
         obj.scale *= radius_all      
               
-    # Radius type 
-    if how == "radius_type" and "Stick" not in obj.name:
+    # Modify atom radius (type, van der Waals, atomic or ionic) 
+    if action_type == "ATOM_RADIUS_TYPE" and "Stick" not in obj.name:
         for element in ELEMENTS:                
             if element.name in obj.name:
                 # For ionic radii
@@ -314,9 +353,9 @@ def modify_objects(how,
                     obj.scale = (element.radii[int(radius_type)],) * 3
 
 
-    # Sticks 
-    if how == "sticks_all" and ('Sticks_Cups'     in obj.name or 
-                                'Sticks_Cylinder' in obj.name):
+    # Modify atom sticks 
+    if action_type == "STICKS_RADIUS_ALL" and ('Sticks_Cups' in obj.name or 
+                                       'Sticks_Cylinder' in obj.name):
     
         bpy.context.scene.objects.active = obj
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -340,6 +379,31 @@ def modify_objects(how,
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         bpy.context.scene.objects.active = None
 
+    # Replace atom objects
+    if action_type == "ATOM_REPLACE_OBJ" and "Stick" not in obj.name:
+
+        scn = bpy.context.scene.atom_blend
+        
+        # Copy all details from the object to be replaced.
+        name = obj.name
+        scale = Vector((0.0,0.0,0.0))
+        scale += obj.scale
+        material = obj.active_material
+        location = obj.location
+        parent = obj.parent       
+        
+        new_obj = draw_obj(scn.replace_objs,name,location,scale,material)
+        new_obj.parent = parent
+        if "_repl" not in new_obj.name:
+            new_obj.name = new_obj.name + "_repl"
+        if "_repl" not in new_obj.active_material.name:    
+            new_obj.active_material.name += "_repl"
+            
+        # Delete the old object.
+        bpy.ops.object.select_all(action='DESELECT')
+        obj.select = True
+        bpy.ops.object.delete()            
+                   
 
 # Initialization of the list 'ELEMENTS'.
 def read_elements():
@@ -441,8 +505,6 @@ def custom_datafile(path_datafile):
 # Separating atoms from a dupliverts strucutre.
 def separate_atoms(scn):
 
-    # Get first all important properties from the atoms, which the user
-    # has chosen: location, color, scale
     obj = bpy.context.edit_object
         
     # Do nothing if it is not a dupliverts structure.
@@ -450,9 +512,7 @@ def separate_atoms(scn):
        return {'FINISHED'}
         
     bm = bmesh.from_edit_mesh(obj.data)
-
     locations = []
-
     for v in bm.verts:
         if v.select:
             locations.append(obj.matrix_world * v.co)
@@ -487,7 +547,9 @@ def separate_atoms(scn):
         # Draw selected standard object
         if scn.draw_objs in {'0a','0b','1','2','3a','3b','4a','4b','4c','5a',
                              '5b','6','7a','7b','8', '9', '10', '11'}:       
-            draw_obj(scn.draw_objs,name,location,scale,material)  
+            new_obj = draw_obj(scn.draw_objs,name,location,scale,material)
+            new_obj.name += "_sep"
+            new_obj.active_material.name += "_sep"
 
     bpy.context.scene.objects.active = obj
 
@@ -501,7 +563,8 @@ def draw_obj(obj_type, name, location, scale, material):
         bpy.ops.mesh.primitive_uv_sphere_add(
             segments=32,
             ring_count=32,                    
-            size=1, view_align=False, 
+            size=1, 
+            view_align=False, 
             enter_editmode=False,
             location=location,
             rotation=(0, 0, 0),
@@ -634,7 +697,8 @@ def draw_obj(obj_type, name, location, scale, material):
             bpy.ops.mesh.primitive_uv_sphere_add(
                                             segments=32,
                                             ring_count=32,                    
-                                            size=1, view_align=False, 
+                                            size=1, 
+                                            view_align=False, 
                                             enter_editmode=False,
                                             location=location,
                                             rotation=(0, 0, 0),
@@ -649,7 +713,7 @@ def draw_obj(obj_type, name, location, scale, material):
                                             layers=current_layers)
 
         material_new = bpy.data.materials.new(name + "_sep")
-        material_new.name = material.name + "_sep"
+        material_new.name = material.name
         material_new.diffuse_color = material.diffuse_color
         material_new.transparency_method = 'Z_TRANSPARENCY'
         material_new.alpha = 1.3
@@ -659,9 +723,8 @@ def draw_obj(obj_type, name, location, scale, material):
         new_atom = bpy.context.scene.objects.active
         new_atom.scale = scale           
         new_atom.active_material = material_new
-        new_atom.name = name + "_sep"
+        new_atom.name = name
         new_atom.select = True
-        return              
     # Halo cloud
     if obj_type == '11':
         # Build one mesh point
@@ -672,22 +735,25 @@ def draw_obj(obj_type, name, location, scale, material):
         bpy.context.scene.objects.link(new_atom)
         new_atom.location = location
         material_new = bpy.data.materials.new(name + "_sep")
-        material_new.name = material.name + "_sep"
+        material_new.name = material.name
         material_new.diffuse_color = material.diffuse_color        
         material_new.type = 'HALO'
         material_new.halo.size = scale[0]*1.5
         material_new.halo.hardness = 25
         material_new.halo.add = 0.7
         new_atom.active_material = material_new
-        new_atom.name = name + "_sep"
+        new_atom.name = name
         new_atom.select = True
-        return
 
-    new_atom = bpy.context.scene.objects.active
-    new_atom.scale = scale
-    new_atom.active_material = material
-    new_atom.name = name + "_sep"
-    new_atom.select = True        
+    if obj_type in {'0a','0b','1','2','3a','3b','4a','4b','4c','5a',
+                    '5b','6','7a','7b'}:
+        new_atom = bpy.context.scene.objects.active
+        new_atom.scale = scale
+        new_atom.active_material = material
+        new_atom.name = name
+        new_atom.select = True   
+        
+    return new_atom
 
 
 # This definition is for separating atoms from a dupliverts structure. Replace

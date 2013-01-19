@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-01-18
+#  Last modified                 : 2013-01-19
 #
 #  Acknowledgements 
 #  ================
@@ -81,7 +81,7 @@ class PreparePanel(Panel):
         col = box.column(align=True)   
         col.label(text="Measure distances")
         col.operator("atom_blend.button_distance")
-        col.prop(scn, "distance")
+        col.prop(scn, "distance")      
         
         box = layout.box()
         col = box.column(align=True)
@@ -117,6 +117,12 @@ class PreparePanel(Panel):
 
         box = layout.box()
         col = box.column(align=True)
+        col.label(text="Change atom shape")
+        col.prop(scn, "replace_objs")
+        col.operator("atom_blend.replace_atom")  
+
+        box = layout.box()
+        col = box.column(align=True)
         col.label(text="Separate atoms")
         col2 = col.column()
         col2.active = (bpy.context.mode == 'EDIT_MESH')
@@ -129,7 +135,7 @@ class PanelProperties(bpy.types.PropertyGroup):
 
     def Callback_radius_type(self, context):
         scn = bpy.context.scene.atom_blend
-        io_atomblend_utilities.choose_objects("radius_type", 
+        io_atomblend_utilities.choose_objects("ATOM_RADIUS_TYPE", 
                                               scn.obj_who, 
                                               None,
                                               None,
@@ -138,7 +144,7 @@ class PanelProperties(bpy.types.PropertyGroup):
                                               None) 
     def Callback_radius_pm(self, context):
         scn = bpy.context.scene.atom_blend
-        io_atomblend_utilities.choose_objects("radius_pm", 
+        io_atomblend_utilities.choose_objects("ATOM_RADIUS_PM", 
                                               scn.obj_who, 
                                               None,
                                               [scn.radius_pm_name,
@@ -159,6 +165,30 @@ class PanelProperties(bpy.types.PropertyGroup):
     distance = StringProperty(
         name="", default="Distance (A)",
         description="Distance of 2 objects in Angstrom")
+    replace_objs = EnumProperty(
+        name="Shape",
+        description="Choose a different shape.",
+        items=(('-1',"Unchanged", "Use again a ball"),
+               ('0a',"Sphere", "Replace with a sphere"),
+               ('0b',"Sphere (NURBS)", "Replace with a sphere (NURBS)"),        
+               ('1',"Cube", "Replace with a cube"),
+               ('2',"Plane", "Replace with a plane"),
+               ('3a',"Circle", "Replace with a circle"),
+               ('3b',"Circle (NURBS)", "Replace with a circle (NURBS)"),               
+               ('4a',"Icosphere 1", "Replace with a icosphere, subd=1"),  
+               ('4b',"Icosphere 2", "Replace with a icosphere, subd=2"),  
+               ('4c',"Icosphere 3", "Replace with a icosphere, subd=3"),                             
+               ('5a',"Cylinder", "Replace with a cylinder"),
+               ('5b',"Cylinder (NURBS)", "Replace with a cylinder (NURBS)"),               
+               ('6',"Cone", "Replace with a cone"),
+               ('7a',"Torus", "Replace with a torus"),
+               ('7b',"Torus (NURBS)", "Replace with a torus (NURBS)"),
+               ('8',"Transparent cube", "Replace with a transparent cube"),      
+               ('9',"Transparent sphere", "Replace with a transparent sphere"),
+               ('10',"Transparent sphere (NURBS)", 
+                                  "Replace with a transparent sphere (NURBS)"),               
+               ('11',"Halo cloud", "Replace with a halo cloud")),
+               default='-1',)          
     obj_who = EnumProperty(
         name="",
         description="Which objects shall be modified?",
@@ -204,8 +234,8 @@ class PanelProperties(bpy.types.PropertyGroup):
         name="Scale", default = 1.05, min=1.0, max=5.0,
         description="Put in the scale factor")
     draw_objs = EnumProperty(
-        name="Type",
-        description="Replace the balls by another type of object.",
+        name="Shape",
+        description="Choose a different shape.",
         items=(('-1',"Unchanged", "Use again a ball"),
                ('0a',"Sphere", "Replace with a sphere"),
                ('0b',"Sphere (NURBS)", "Replace with a sphere (NURBS)"),        
@@ -248,6 +278,24 @@ class DatafileApply(Operator):
 
 
 # Button for separating single atoms from a dupliverts structure
+class ReplaceAtom(Operator):
+    bl_idname = "atom_blend.replace_atom"
+    bl_label = "Replace"
+    bl_description = ("Replace selected atoms with atoms of different shape.")
+
+    def execute(self, context):
+        scn = bpy.context.scene.atom_blend
+        io_atomblend_utilities.choose_objects("ATOM_REPLACE_OBJ", 
+                                              scn.obj_who, 
+                                              None, 
+                                              None,
+                                              None,
+                                              None,
+                                              None) 
+        return {'FINISHED'}
+
+
+# Button for separating single atoms from a dupliverts structure
 class SeparateAtom(Operator):
     bl_idname = "atom_blend.separate_atom"
     bl_label = "Separate"
@@ -266,7 +314,7 @@ class SeparateAtom(Operator):
 class DistanceButton(Operator):
     bl_idname = "atom_blend.button_distance"
     bl_label = "Measure ..."
-    bl_description = "Measure the distance between two objects"
+    bl_description = "Measure the distance between two atoms (objects)."
 
     def execute(self, context):
         scn  = bpy.context.scene.atom_blend
@@ -281,11 +329,11 @@ class DistanceButton(Operator):
 class RadiusAllBiggerButton(Operator):
     bl_idname = "atom_blend.radius_all_bigger"
     bl_label = "Bigger ..."
-    bl_description = "Increase the radii of the atoms"
+    bl_description = "Increase the radii of selected atoms"
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend     
-        io_atomblend_utilities.choose_objects("radius_all", 
+        io_atomblend_utilities.choose_objects("ATOM_RADIUS_ALL", 
                                               scn.obj_who, 
                                               scn.radius_all, 
                                               None,
@@ -299,11 +347,11 @@ class RadiusAllBiggerButton(Operator):
 class RadiusAllSmallerButton(Operator):
     bl_idname = "atom_blend.radius_all_smaller"
     bl_label = "Smaller ..."
-    bl_description = "Decrease the radii of the atoms"
+    bl_description = "Decrease the radii of selected atoms"
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend
-        io_atomblend_utilities.choose_objects("radius_all", 
+        io_atomblend_utilities.choose_objects("ATOM_RADIUS_ALL", 
                                               scn.obj_who, 
                                               1.0/scn.radius_all, 
                                               None,
@@ -317,11 +365,11 @@ class RadiusAllSmallerButton(Operator):
 class SticksAllBiggerButton(Operator):
     bl_idname = "atom_blend.sticks_all_bigger"
     bl_label = "Bigger ..."
-    bl_description = "Increase the radii of the sticks"
+    bl_description = "Increase the radii of selected sticks"
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend     
-        io_atomblend_utilities.choose_objects("sticks_all", 
+        io_atomblend_utilities.choose_objects("STICKS_RADIUS_ALL", 
                                               scn.obj_who, 
                                               None, 
                                               None,
@@ -335,11 +383,11 @@ class SticksAllBiggerButton(Operator):
 class SticksAllSmallerButton(Operator):
     bl_idname = "atom_blend.sticks_all_smaller"
     bl_label = "Smaller ..."
-    bl_description = "Decrease the radii of the sticks"
+    bl_description = "Decrease the radii of selected sticks"
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend
-        io_atomblend_utilities.choose_objects("sticks_all", 
+        io_atomblend_utilities.choose_objects("STICKS_RADIUS_ALL", 
                                               scn.obj_who, 
                                               None, 
                                               None,
