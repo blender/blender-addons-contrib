@@ -225,90 +225,51 @@ def choose_objects(action_type,
         for obj in bpy.context.scene.objects:
             for layer in layers:
                 if obj.layers[layer] == True:
-                    change_objects_all.append(obj)
+                    change_objects_all.append(obj)                                  
+    # For selected objects of the visible layer                               
+    elif who == "ALL_ACTIVE":
+        change_objects_all = []
+        # Note all selected objects first.
+        for obj in bpy.context.selected_objects:
+            change_objects_all.append(obj)   
                     
-        # This is very important now: If there are dupliverts structures, note 
-        # only the parents and NOT the children! Otherwise the double work is 
-        # done or the system can even crash if objects are deleted. - The 
-        # chidlren are accessed anyways (see below).
-        change_objects = []
-        for obj in change_objects_all:
-            if obj.parent != None:
-                FLAG = False
-                for obj2 in change_objects:
-                    if obj2 == obj.parent:
-                        FLAG = True
-                if FLAG == False:        
-                    change_objects.append(obj)
-            else:
+    # This is very important now: If there are dupliverts structures, note 
+    # only the parents and NOT the children! Otherwise the double work is 
+    # done or the system can even crash if objects are deleted. - The 
+    # chidlren are accessed anyways (see below).
+    change_objects = []
+    for obj in change_objects_all:
+        if obj.parent != None:
+            FLAG = False
+            for obj2 in change_objects:
+                if obj2 == obj.parent:
+                   FLAG = True
+            if FLAG == False:        
                 change_objects.append(obj)
-                    
-        # Consider all objects, which are in the latter list.
-        for obj in change_objects:
-            if len(obj.children) != 0:
-                for obj_child in obj.children:
-                    if obj_child.type in {'SURFACE', 'MESH', 'META'}: 
-                            modify_objects(action_type, 
+        else:
+            change_objects.append(obj)
+        
+    # Consider all objects, which are in the latter list.
+    for obj in change_objects:
+        if len(obj.children) != 0:
+            for obj_child in obj.children:
+                if obj_child.type in {'SURFACE', 'MESH', 'META'}: 
+                    modify_objects(action_type, 
                                    obj_child,
                                    radius_all, 
                                    radius_pm, 
                                    radius_type,
                                    radius_type_ionic,
                                    sticks_all)
-            else:
-                if obj.type in {'SURFACE', 'MESH', 'META'}:
-                        modify_objects(action_type, 
+        else:
+            if obj.type in {'SURFACE', 'MESH', 'META'}:
+                modify_objects(action_type, 
                                    obj,  
                                    radius_all, 
                                    radius_pm, 
                                    radius_type,
                                    radius_type_ionic,
                                    sticks_all)
-    # For selected objects of the visible layer                               
-    if who == "ALL_ACTIVE":
-        change_objects_all = []
-        # Note all selected objects first.
-        for obj in bpy.context.selected_objects:
-            change_objects_all.append(obj)   
-            
-        # This is very important now: If there are dupliverts structures, note 
-        # only the parents and NOT the children! Otherwise the double work is 
-        # done or the system can even crash if objects are deleted. - The 
-        # chidlren are accessed anyways (see below).
-        change_objects = []
-        for obj in change_objects_all:
-            if obj.parent != None:
-                FLAG = False
-                for obj2 in change_objects:
-                    if obj2 == obj.parent:
-                        FLAG = True
-                if FLAG == False:        
-                    change_objects.append(obj)
-            else:
-                change_objects.append(obj)
-
-        # ... and do then your different kind of jobs ...    
-        for obj in change_objects:     
-            if len(obj.children) != 0:
-                for obj_child in obj.children:
-                    if obj_child.type in {'SURFACE', 'MESH', 'META'}:
-                        modify_objects(action_type, 
-                                   obj_child,
-                                   radius_all, 
-                                   radius_pm, 
-                                   radius_type,
-                                   radius_type_ionic,
-                                   sticks_all)
-            else:
-                if obj.type in {'SURFACE', 'MESH', 'META'}:
-                    modify_objects(action_type, 
-                                   obj,
-                                   radius_all, 
-                                   radius_pm, 
-                                   radius_type,
-                                   radius_type_ionic,
-                                   sticks_all)
-
 
 
 # Modifying the radius of a selected atom or stick
@@ -558,6 +519,10 @@ def separate_atoms(scn):
 def draw_obj(obj_type, name, location, scale, material):
 
     current_layers=bpy.context.scene.layers
+    
+    # F+  center: halo cloud + small sphere
+    # F++ center: halo cloud + 2 small spheres
+    # defect: halo cloud + circle
 
     if obj_type == '0a': #Sphere mesh
         bpy.ops.mesh.primitive_uv_sphere_add(
@@ -740,7 +705,7 @@ def draw_obj(obj_type, name, location, scale, material):
         material_new.type = 'HALO'
         material_new.halo.size = scale[0]*1.5
         material_new.halo.hardness = 25
-        material_new.halo.add = 0.7
+        material_new.halo.add = 0.0
         new_atom.active_material = material_new
         new_atom.name = name
         new_atom.select = True
