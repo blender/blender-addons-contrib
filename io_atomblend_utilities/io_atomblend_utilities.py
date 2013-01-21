@@ -249,7 +249,7 @@ def choose_objects(action_type,
         else:
             change_objects.append(obj)
         
-    # Consider all objects, which are in the latter list.
+    # And now, consider all objects, which are in the list 'change_objects'.
     for obj in change_objects:
         if len(obj.children) != 0:
             for obj_child in obj.children:
@@ -313,7 +313,6 @@ def modify_objects(action_type,
                 else:        
                     obj.scale = (element.radii[int(radius_type)],) * 3
 
-
     # Modify atom sticks 
     if action_type == "STICKS_RADIUS_ALL" and ('Sticks_Cups' in obj.name or 
                                        'Sticks_Cylinder' in obj.name):
@@ -364,7 +363,40 @@ def modify_objects(action_type,
         bpy.ops.object.select_all(action='DESELECT')
         obj.select = True
         bpy.ops.object.delete()            
-                   
+
+    # Default shapes and colors for atoms
+    if action_type == "ATOM_DEFAULT_OBJ" and "Stick" not in obj.name:
+
+        scn = bpy.context.scene.atom_blend
+        
+        # Copy important details from the object.
+        name = obj.name
+        location = obj.location
+        parent = obj.parent       
+
+        # Remove the "_repl" if existing
+        if "_repl" in name:
+            name = name[:name.find("_repl")]
+
+        # Create new material
+        material = bpy.data.materials.new(name)
+        material.name = material.name
+        
+        # Create new object
+        new_obj = draw_obj('0b',name,location,Vector((1.0,1.0,1.0)),material)
+        new_obj.parent = parent
+
+        # Change size and color of the new object            
+        for element in ELEMENTS:
+            if element.name in obj.name:
+                new_obj.scale = (element.radii[0],) * 3
+                new_obj.active_material.diffuse_color = element.color
+                
+        # Finally, delete the old object
+        bpy.ops.object.select_all(action='DESELECT')
+        obj.select = True
+        bpy.ops.object.delete()    
+                           
 
 # Initialization of the list 'ELEMENTS'.
 def read_elements():

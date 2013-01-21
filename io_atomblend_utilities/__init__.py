@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-01-20
+#  Last modified                 : 2013-01-21
 #
 #  Acknowledgements 
 #  ================
@@ -120,6 +120,11 @@ class PreparePanel(Panel):
         col.label(text="Change atom shape")
         col.prop(scn, "replace_objs")
         col.operator("atom_blend.replace_atom")  
+
+        box = layout.box()
+        col = box.column(align=True)
+        col.label(text="Default values")
+        col.operator("atom_blend.default_atoms") 
 
         box = layout.box()
         col = box.column(align=True)
@@ -274,6 +279,24 @@ class DatafileApply(Operator):
         io_atomblend_utilities.custom_datafile(scn.datafile)
         io_atomblend_utilities.custom_datafile_change_atom_props()
 
+        return {'FINISHED'}
+
+
+# Button for separating single atoms from a dupliverts structure
+class DefaultAtom(Operator):
+    bl_idname = "atom_blend.default_atoms"
+    bl_label = "Default"
+    bl_description = ("Use default shapes and colors for atoms.")
+
+    def execute(self, context):
+        scn = bpy.context.scene.atom_blend
+        io_atomblend_utilities.choose_objects("ATOM_DEFAULT_OBJ", 
+                                              scn.obj_who, 
+                                              None, 
+                                              None,
+                                              None,
+                                              None,
+                                              None) 
         return {'FINISHED'}
 
 
