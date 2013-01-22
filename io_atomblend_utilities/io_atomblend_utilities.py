@@ -604,33 +604,17 @@ def draw_obj(obj_type, name, location, scale, material):
             location=location, 
             rotation=(0, 0, 0), 
             layers=current_layers)
-    if obj_type == '4a': #Icosphere, subdivision=1        
+    if obj_type in {'4a','4b','4c','4d','4e'}: #Icosphere        
+        index = {'4a':1,'4b':2,'4c':3,'4d':4,'4e':5}  
+        print(obj_type, index[obj_type])
         bpy.ops.mesh.primitive_ico_sphere_add(
-            subdivisions=1, 
+            subdivisions=int(index[obj_type]), 
             size=1, 
             view_align=False, 
             enter_editmode=False, 
             location=location, 
             rotation=(0, 0, 0), 
-            layers=current_layers)                
-    if obj_type == '4b': #Icosphere, subdivision=2
-        bpy.ops.mesh.primitive_ico_sphere_add(
-            subdivisions=2, 
-            size=1, 
-            view_align=False, 
-            enter_editmode=False, 
-            location=location, 
-            rotation=(0, 0, 0), 
-            layers=current_layers)                
-    if obj_type == '4c': #Icosphere, subdivision=3
-        bpy.ops.mesh.primitive_ico_sphere_add(
-            subdivisions=3, 
-            size=1, 
-            view_align=False, 
-            enter_editmode=False, 
-            location=location, 
-            rotation=(0, 0, 0), 
-            layers=current_layers)                
+            layers=current_layers)
     if obj_type == '5a': #Cylinder
         bpy.ops.mesh.primitive_cylinder_add(
             vertices=32, 
@@ -742,8 +726,8 @@ def draw_obj(obj_type, name, location, scale, material):
         new_atom.name = name
         new_atom.select = True
 
-    if obj_type in {'0a','0b','1','2','3a','3b','4a','4b','4c','5a',
-                    '5b','6','7a','7b'}:
+    if obj_type in {'0a','0b','1','2','3a','3b','4a','4b','4c','4d','4e',
+                    '5a','5b','6','7a','7b'}:
         new_atom = bpy.context.scene.objects.active
         new_atom.scale = scale
         new_atom.active_material = material

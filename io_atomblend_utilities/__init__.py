@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-01-21
+#  Last modified                 : 2013-01-22
 #
 #  Acknowledgements 
 #  ================
@@ -183,6 +183,8 @@ class PanelProperties(bpy.types.PropertyGroup):
                ('4a',"Icosphere 1", "Replace with a icosphere, subd=1"),  
                ('4b',"Icosphere 2", "Replace with a icosphere, subd=2"),  
                ('4c',"Icosphere 3", "Replace with a icosphere, subd=3"),                             
+               ('4d',"Icosphere 4", "Replace with a icosphere, subd=4"),                             
+               ('4e',"Icosphere 5", "Replace with a icosphere, subd=5"),                             
                ('5a',"Cylinder", "Replace with a cylinder"),
                ('5b',"Cylinder (NURBS)", "Replace with a cylinder (NURBS)"),               
                ('6',"Cone", "Replace with a cone"),
