@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-01-22
+#  Last modified                 : 2013-01-23
 #
 #  Acknowledgements 
 #  ================
@@ -119,10 +119,8 @@ class PreparePanel(Panel):
         col = box.column(align=True)
         col.label(text="Change atom shape")
         col.prop(scn, "replace_objs")
+        col.prop(scn, "replace_objs_material")
         col.operator("atom_blend.replace_atom")  
-
-        box = layout.box()
-        col = box.column(align=True)
         col.label(text="Default values")
         col.operator("atom_blend.default_atoms") 
 
@@ -131,7 +129,8 @@ class PreparePanel(Panel):
         col.label(text="Separate atoms")
         col2 = col.column()
         col2.active = (bpy.context.mode == 'EDIT_MESH')
-        col2.prop(scn, "draw_objs")
+        col2.prop(scn, "separate_objs")
+        col2.prop(scn, "separate_objs_material")        
         col2.operator("atom_blend.separate_atom")
         
 
@@ -173,29 +172,33 @@ class PanelProperties(bpy.types.PropertyGroup):
     replace_objs = EnumProperty(
         name="Shape",
         description="Choose a different shape.",
-        items=(('-1',"Unchanged", "Use again a ball"),
-               ('0a',"Sphere", "Replace with a sphere"),
-               ('0b',"Sphere (NURBS)", "Replace with a sphere (NURBS)"),        
-               ('1',"Cube", "Replace with a cube"),
-               ('2',"Plane", "Replace with a plane"),
-               ('3a',"Circle", "Replace with a circle"),
-               ('3b',"Circle (NURBS)", "Replace with a circle (NURBS)"),               
-               ('4a',"Icosphere 1", "Replace with a icosphere, subd=1"),  
-               ('4b',"Icosphere 2", "Replace with a icosphere, subd=2"),  
-               ('4c',"Icosphere 3", "Replace with a icosphere, subd=3"),                             
-               ('4d',"Icosphere 4", "Replace with a icosphere, subd=4"),                             
-               ('4e',"Icosphere 5", "Replace with a icosphere, subd=5"),                             
-               ('5a',"Cylinder", "Replace with a cylinder"),
-               ('5b',"Cylinder (NURBS)", "Replace with a cylinder (NURBS)"),               
-               ('6',"Cone", "Replace with a cone"),
-               ('7a',"Torus", "Replace with a torus"),
-               ('7b',"Torus (NURBS)", "Replace with a torus (NURBS)"),
-               ('8',"Transparent cube", "Replace with a transparent cube"),      
-               ('9',"Transparent sphere", "Replace with a transparent sphere"),
-               ('10',"Transparent sphere (NURBS)", 
-                                  "Replace with a transparent sphere (NURBS)"),               
-               ('11',"Halo cloud", "Replace with a halo cloud")),
-               default='-1',)          
+        items=(('0',"Unchanged", "Do not change the shape"),
+               ('1a',"Sphere (Mesh)", "Replace with a sphere (Mesh)"),
+               ('1b',"Sphere (NURBS)", "Replace with a sphere (NURBS)"),        
+               ('2',"Cube", "Replace with a cube"),
+               ('3',"Plane", "Replace with a plane"),
+               ('4a',"Circle (Mesh)", "Replace with a circle (Mesh)"),
+               ('4b',"Circle (NURBS)", "Replace with a circle (NURBS)"),               
+               ('5a',"Icosphere 1", "Replace with a icosphere, subd=1"),  
+               ('5b',"Icosphere 2", "Replace with a icosphere, subd=2"),  
+               ('5c',"Icosphere 3", "Replace with a icosphere, subd=3"),  
+               ('5d',"Icosphere 4", "Replace with a icosphere, subd=4"),
+               ('5e',"Icosphere 5", "Replace with a icosphere, subd=5"),                                                         
+               ('6a',"Cylinder (Mesh)", "Replace with a cylinder (Mesh)"),
+               ('6b',"Cylinder (NURBS)", "Replace with a cylinder (NURBS)"),               
+               ('7',"Cone", "Replace with a cone"),
+               ('8a',"Torus (Mesh)", "Replace with a torus (Mesh)"),
+               ('8b',"Torus (NURBS)", "Replace with a torus (NURBS)")),
+               default='0',)     
+    replace_objs_material = EnumProperty(
+        name="Material",
+        description="Choose a different material.",
+        items=(('0',"Unchanged", "Leave the material unchanged"),
+               ('1',"Normal", "Use normal material (no transparency and reflection)"),
+               ('2',"Transparent", "Use transparent material"),
+               ('3',"Reflecting", "Use reflecting material"),
+               ('4',"Transparent + reflecting", "Use transparent and reflecting material")),
+               default='0',)                           
     obj_who = EnumProperty(
         name="",
         description="Which objects shall be modified?",
@@ -240,31 +243,36 @@ class PanelProperties(bpy.types.PropertyGroup):
     sticks_all = FloatProperty(
         name="Scale", default = 1.05, min=1.0, max=5.0,
         description="Put in the scale factor")
-    draw_objs = EnumProperty(
+    separate_objs = EnumProperty(
         name="Shape",
         description="Choose a different shape.",
-        items=(('-1',"Unchanged", "Use again a ball"),
-               ('0a',"Sphere", "Replace with a sphere"),
-               ('0b',"Sphere (NURBS)", "Replace with a sphere (NURBS)"),        
-               ('1',"Cube", "Replace with a cube"),
-               ('2',"Plane", "Replace with a plane"),
-               ('3a',"Circle", "Replace with a circle"),
-               ('3b',"Circle (NURBS)", "Replace with a circle (NURBS)"),               
-               ('4a',"Icosphere 1", "Replace with a icosphere, subd=1"),  
-               ('4b',"Icosphere 2", "Replace with a icosphere, subd=2"),  
-               ('4c',"Icosphere 3", "Replace with a icosphere, subd=3"),                             
-               ('5a',"Cylinder", "Replace with a cylinder"),
-               ('5b',"Cylinder (NURBS)", "Replace with a cylinder (NURBS)"),               
-               ('6',"Cone", "Replace with a cone"),
-               ('7a',"Torus", "Replace with a torus"),
-               ('7b',"Torus (NURBS)", "Replace with a torus (NURBS)"),
-               ('8',"Transparent cube", "Replace with a transparent cube"),      
-               ('9',"Transparent sphere", "Replace with a transparent sphere"),
-               ('10',"Transparent sphere (NURBS)", 
-                                  "Replace with a transparent sphere (NURBS)"),               
-               ('11',"Halo cloud", "Replace with a halo cloud")),
-               default='-1',)     
-
+        items=(('0',"Unchanged", "Do not change the shape"),
+               ('1a',"Sphere (Mesh)", "Replace with a sphere (Mesh)"),
+               ('1b',"Sphere (NURBS)", "Replace with a sphere (NURBS)"),        
+               ('2',"Cube", "Replace with a cube"),
+               ('3',"Plane", "Replace with a plane"),
+               ('4a',"Circle (Mesh)", "Replace with a circle (Mesh)"),
+               ('4b',"Circle (NURBS)", "Replace with a circle (NURBS)"),               
+               ('5a',"Icosphere 1", "Replace with a icosphere, subd=1"),  
+               ('5b',"Icosphere 2", "Replace with a icosphere, subd=2"),  
+               ('5c',"Icosphere 3", "Replace with a icosphere, subd=3"),  
+               ('5d',"Icosphere 4", "Replace with a icosphere, subd=4"),
+               ('5e',"Icosphere 5", "Replace with a icosphere, subd=5"),                                                         
+               ('6a',"Cylinder (Mesh)", "Replace with a cylinder (Mesh)"),
+               ('6b',"Cylinder (NURBS)", "Replace with a cylinder (NURBS)"),               
+               ('7',"Cone", "Replace with a cone"),
+               ('8a',"Torus (Mesh)", "Replace with a torus (Mesh)"),
+               ('8b',"Torus (NURBS)", "Replace with a torus (NURBS)")),
+               default='0',)     
+    separate_objs_material = EnumProperty(
+        name="Material",
+        description="Choose a different material.",
+        items=(('0',"Unchanged", "Leave the material unchanged"),
+               ('1',"Normal", "Use normal material (no transparency and reflection)"),
+               ('2',"Transparent", "Use transparent material"),
+               ('3',"Reflecting", "Use reflecting material"),
+               ('4',"Transparent + reflecting", "Use transparent and reflecting material")),
+               default='0',)  
 
 # Button loading a custom data file
 class DatafileApply(Operator):
