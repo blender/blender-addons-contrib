@@ -21,6 +21,7 @@ import bpy
 import bmesh
 from mathutils import Vector
 from math import sqrt
+from copy import copy
 
 # -----------------------------------------------------------------------------
 #                                                         Atom and element data
@@ -347,26 +348,33 @@ def modify_objects(action_type,
         new_material = draw_obj_material(scn.replace_objs_material, 
                                          obj.active_material)
         
-        # If the atom shape shall not be changed
-        if scn.replace_objs == '0':
-            obj.active_material = new_material 
-            if "_repl" not in obj.active_material.name:    
-                obj.active_material.name += "_repl"
-        # If the atom shape shall change
-        else:
-            new_atom = draw_obj(scn.replace_objs, obj)
-            new_atom.active_material = new_material                
+        # Special object (like halo, etc.)
+        if scn.replace_objs_special != '0':
+            new_atom = draw_obj_special(scn.replace_objs_special, obj)
             new_atom.parent = obj.parent
+        # Standard geomtrical objects    
+        else:
+            # If the atom shape shall not be changed, then:
+            if scn.replace_objs == '0':
+                obj.active_material = new_material 
+                if "_repl" not in obj.active_material.name:    
+                    obj.active_material.name += "_repl"
+                return {'FINISHED'}
+            # If the atom shape shall change, then:
+            else:
+                new_atom = draw_obj(scn.replace_objs, obj)
+                new_atom.active_material = new_material                
+                new_atom.parent = obj.parent
         
-            if "_repl" not in new_atom.name:
-                new_atom.name = new_atom.name + "_repl"
-            if "_repl" not in new_atom.active_material.name:    
-                new_atom.active_material.name += "_repl"
+                if "_repl" not in new_atom.name:
+                    new_atom.name = new_atom.name + "_repl"
+                if "_repl" not in new_atom.active_material.name:    
+                    new_atom.active_material.name += "_repl"
             
-            # Delete the old object.
-            bpy.ops.object.select_all(action='DESELECT')
-            obj.select = True
-            bpy.ops.object.delete()            
+        # Delete the old object.
+        bpy.ops.object.select_all(action='DESELECT')
+        obj.select = True
+        bpy.ops.object.delete()            
 
     # Default shapes and colors for atoms
     if action_type == "ATOM_DEFAULT_OBJ" and "Stick" not in obj.name:
@@ -395,8 +403,9 @@ def modify_objects(action_type,
         # Finally, delete the old object
         bpy.ops.object.select_all(action='DESELECT')
         obj.select = True
-        bpy.ops.object.delete()    
-                           
+        #bpy.ops.object.delete()    
+        bpy.context.scene.objects.unlink(obj)                   
+
 
 # Separating atoms from a dupliverts strucutre.
 def separate_atoms(scn):
@@ -437,21 +446,7 @@ def separate_atoms(scn):
     for location in locations:
         # For any selected ball do ...
       
-        # Draw same object
-        if scn.separate_objs == '0':
-            draw_regular_obj(name,obj.children[0],location,scale,material)                
-        # Draw selected standard object
-        if scn.separate_objs in {'1a','1b','2','3','4a','4b',
-                             '5a','5b','5c','5d','5e',
-                             '6a','6b','7','8a','8b','100'}:   
-                                 
-            new_material = draw_obj_material(scn.replace_objs_materials, 
-                                         obj.active_material)
-            new_atom = draw_obj(scn.replace_objs, obj)
-            new_atom.active_material = new_material                            
-                             
-            new_atom.name += "_sep"
-            new_atom.active_material.name += "_sep"
+        draw_regular_obj(name,obj.children[0],location,scale,material)                
 
     bpy.context.scene.objects.active = obj
 
@@ -512,10 +507,6 @@ def draw_obj(obj_type, obj):
         return None
 
     current_layers=bpy.context.scene.layers
-    
-    # F+  center: halo cloud + small sphere
-    # F++ center: halo cloud + 2 small spheres
-    # defect: halo cloud + circle
 
     if obj_type == '1a': #Sphere mesh
         bpy.ops.mesh.primitive_uv_sphere_add(
@@ -629,6 +620,37 @@ def draw_obj(obj_type, obj):
     new_atom.scale = obj.scale + Vector((0.0,0.0,0.0))
     new_atom.name = obj.name    
     new_atom.select = True
+        
+    return new_atom
+
+
+# Draw a special object (e.g. halo, etc. ...)
+#
+# To do:
+# F+  center: halo cloud + small sphere
+# F++ center: halo cloud + 2 small spheres
+# defect: halo cloud + circle
+def draw_obj_special(obj_type, obj):
+
+    # Halo cloud
+    if obj_type == '1':
+        # Build one mesh point
+        new_mesh = bpy.data.meshes.new("Mesh_"+obj.name)
+        new_mesh.from_pydata([Vector((0.0,0.0,0.0))], [], [])
+        new_mesh.update()
+        new_atom = bpy.data.objects.new(obj.name + "_sep", new_mesh)
+        bpy.context.scene.objects.link(new_atom)
+        new_atom.location = obj.location
+        material_new = bpy.data.materials.new(obj.name + "_sep")
+        material_new.name = obj.name + "_halo"
+        material_new.diffuse_color = obj.active_material.diffuse_color       
+        material_new.type = 'HALO'
+        material_new.halo.size = obj.scale[0]*1.5
+        material_new.halo.hardness = 25
+        material_new.halo.add = 0.0
+        new_atom.active_material = material_new
+        new_atom.name = obj.name
+        new_atom.select = True
         
     return new_atom
 
