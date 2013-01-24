@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-01-23
+#  Last modified                 : 2013-01-24
 #
 #  Acknowledgements 
 #  ================
