@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-01-24
+#  Last modified                 : 2013-01-25
 #
 #  Acknowledgements 
 #  ================
@@ -204,7 +204,10 @@ class PanelProperties(bpy.types.PropertyGroup):
         name="Special",
         description="Choose a special atom shape.",
         items=(('0',"None", "Use no special shape."),
-               ('1',"Halo cloud", "Replace with a halo cloud")),
+               ('1',"Halo cloud", "Replace with a halo cloud"),
+               ('2',"F2+ center", "Replace with a F2+ center"),
+               ('3',"F+ center", "Replace with a F+ center"),
+               ('4',"F0 center", "Replace with a F0 center")),
                default='0',)                                     
     action_type = EnumProperty(
         name="",

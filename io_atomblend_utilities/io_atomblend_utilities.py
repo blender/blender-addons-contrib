@@ -456,6 +456,7 @@ def separate_atoms(scn):
         new_atom = bpy.context.scene.objects.active
         new_atom.parent = None
         new_atom.location = location
+        new_atom.name = atom.name + "_sep"    
         
     bpy.context.scene.objects.active = atom
 
@@ -643,12 +644,9 @@ def draw_obj(atom_shape, atom):
 
 
 # Draw a special object (e.g. halo, etc. ...)
-#
-# To do:
-# F+  center: halo cloud + small sphere
-# F++ center: halo cloud + 2 small spheres
-# defect: halo cloud + circle
 def draw_obj_special(atom_shape, atom):
+
+    current_layers=bpy.context.scene.layers
 
     # Halo cloud
     if atom_shape == '1':
@@ -669,6 +667,175 @@ def draw_obj_special(atom_shape, atom):
         new_atom.active_material = material_new
         new_atom.name = atom.name
         new_atom.select = True
+    # F2+ center
+    if atom_shape == '2':
+        # Create first a cube
+        bpy.ops.mesh.primitive_cube_add(view_align=False, 
+                                        enter_editmode=False,
+                                        location=atom.location,
+                                        rotation=(0.0, 0.0, 0.0),
+                                        layers=current_layers)
+        cube = bpy.context.scene.objects.active
+        cube.scale = atom.scale + Vector((0.0,0.0,0.0))
+        cube.name = atom.name + "_F2+-center"   
+        cube.select = True                                        
+        # New material for this cube
+        material_cube = bpy.data.materials.new(atom.name + "_F2+-center")
+        material_cube.diffuse_color = [0.8,0.0,0.0]     
+        material_cube.use_transparency = True        
+        material_cube.transparency_method = 'Z_TRANSPARENCY'
+        material_cube.alpha = 1.0
+        material_cube.raytrace_transparency.fresnel = 1.6
+        material_cube.raytrace_transparency.fresnel_factor = 1.1
+        cube.active_material = material_cube
+        # Put a nice point lamp inside the defect
+        lamp_data = bpy.data.lamps.new(name="F2+_lamp", type="POINT")
+        lamp_data.distance = atom.scale[0] * 2.0
+        lamp_data.energy = 20.0     
+        lamp_data.use_sphere = True   
+        lamp_data.color = [0.8,0.8,0.8]           
+        lamp = bpy.data.objects.new("F2+_lamp", lamp_data)
+        lamp.location = Vector((0.0, 0.0, 0.0))
+        lamp.layers = current_layers
+        bpy.context.scene.objects.link(lamp) 
+        lamp.parent = cube
+        # The new 'atom' is the F2+ defect 
+        new_atom = cube        
+    # F+ center
+    if atom_shape == '3':
+        # Create first a cube
+        bpy.ops.mesh.primitive_cube_add(view_align=False, 
+                                        enter_editmode=False,
+                                        location=atom.location,
+                                        rotation=(0.0, 0.0, 0.0),
+                                        layers=current_layers)
+        cube = bpy.context.scene.objects.active
+        cube.scale = atom.scale + Vector((0.0,0.0,0.0))
+        cube.name = atom.name + "_F+-center"   
+        cube.select = True                                        
+        # New material for this cube
+        material_cube = bpy.data.materials.new(atom.name + "_F+-center")
+        material_cube.diffuse_color = [0.8,0.8,0.0]     
+        material_cube.use_transparency = True        
+        material_cube.transparency_method = 'Z_TRANSPARENCY'
+        material_cube.alpha = 1.0
+        material_cube.raytrace_transparency.fresnel = 1.6
+        material_cube.raytrace_transparency.fresnel_factor = 1.1
+        cube.active_material = material_cube
+        # Create now an electron
+        scale = atom.scale / 10.0
+        bpy.ops.surface.primitive_nurbs_surface_sphere_add(
+                                        view_align=False, 
+                                        enter_editmode=False,
+                                        location=(0.0, 0.0, 0.0),
+                                        rotation=(0.0, 0.0, 0.0),
+                                        layers=current_layers)     
+        electron = bpy.context.scene.objects.active
+        electron.scale = scale
+        electron.name = atom.name + "_F+_electron"   
+        electron.parent = cube 
+        # New material for the electron
+        material_electron = bpy.data.materials.new(atom.name + "_F+-center")
+        material_electron.diffuse_color = [0.0,0.0,0.8]
+        material_electron.specular_hardness = 200
+        material_electron.emit = 1.0
+        material_electron.use_transparency = True        
+        material_electron.transparency_method = 'Z_TRANSPARENCY'
+        material_electron.alpha = 1.3
+        material_electron.raytrace_transparency.fresnel = 1.2
+        material_electron.raytrace_transparency.fresnel_factor = 1.2
+        electron.active_material = material_electron
+        # Put a nice point lamp inside the electron
+        lamp_data = bpy.data.lamps.new(name="F+_lamp", type="POINT")
+        lamp_data.distance = atom.scale[0] * 2.0
+        lamp_data.energy = 20.0     
+        lamp_data.use_sphere = True   
+        lamp_data.color = [0.8,0.8,0.8]           
+        lamp = bpy.data.objects.new("F+_lamp", lamp_data)
+        lamp.location = Vector((0.0, 0.0, 0.0))
+        lamp.layers = current_layers
+        bpy.context.scene.objects.link(lamp) 
+        lamp.parent = cube
+        # The new 'atom' is the F+ defect complex + lamp
+        new_atom = cube
+    # F0 center
+    if atom_shape == '4':
+        # Create first a cube
+        bpy.ops.mesh.primitive_cube_add(view_align=False, 
+                                        enter_editmode=False,
+                                        location=atom.location,
+                                        rotation=(0.0, 0.0, 0.0),
+                                        layers=current_layers)
+        cube = bpy.context.scene.objects.active
+        cube.scale = atom.scale + Vector((0.0,0.0,0.0))
+        cube.name = atom.name + "_F0-center"   
+        cube.select = True                                        
+        # New material for this cube
+        material_cube = bpy.data.materials.new(atom.name + "_F0-center")
+        material_cube.diffuse_color = [0.8,0.8,0.8]     
+        material_cube.use_transparency = True        
+        material_cube.transparency_method = 'Z_TRANSPARENCY'
+        material_cube.alpha = 1.0
+        material_cube.raytrace_transparency.fresnel = 1.6
+        material_cube.raytrace_transparency.fresnel_factor = 1.1
+        cube.active_material = material_cube
+        # Create now two electrons
+        scale = atom.scale / 10.0
+        bpy.ops.surface.primitive_nurbs_surface_sphere_add(
+                                        view_align=False, 
+                                        enter_editmode=False,
+                                        location=(scale[0]*1.5,0.0,0.0),
+                                        rotation=(0.0, 0.0, 0.0),
+                                        layers=current_layers)     
+        electron1 = bpy.context.scene.objects.active
+        electron1.scale = scale
+        electron1.name = atom.name + "_F0_electron1"   
+        electron1.parent = cube 
+        bpy.ops.surface.primitive_nurbs_surface_sphere_add(
+                                        view_align=False, 
+                                        enter_editmode=False,
+                                        location=(-scale[0]*1.5,0.0,0.0),
+                                        rotation=(0.0, 0.0, 0.0),
+                                        layers=current_layers)     
+        electron2 = bpy.context.scene.objects.active
+        electron2.scale = scale
+        electron2.name = atom.name + "_F0_electron2"   
+        electron2.parent = cube 
+        # New material for the electrons
+        material_electron = bpy.data.materials.new(atom.name + "_F0-center")
+        material_electron.diffuse_color = [0.0,0.0,0.8]
+        material_electron.specular_hardness = 200
+        material_electron.emit = 1.0
+        material_electron.use_transparency = True        
+        material_electron.transparency_method = 'Z_TRANSPARENCY'
+        material_electron.alpha = 1.3
+        material_electron.raytrace_transparency.fresnel = 1.2
+        material_electron.raytrace_transparency.fresnel_factor = 1.2
+        electron1.active_material = material_electron
+        electron2.active_material = material_electron
+        # Put two nice point lamps inside the electrons
+        lamp1_data = bpy.data.lamps.new(name="F0_lamp1", type="POINT")
+        lamp1_data.distance = atom.scale[0] * 2.0
+        lamp1_data.energy = 8.0     
+        lamp1_data.use_sphere = True   
+        lamp1_data.color = [0.8,0.8,0.8]           
+        lamp1 = bpy.data.objects.new("F0_lamp", lamp1_data)
+        lamp1.location = Vector((scale[0]*1.5, 0.0, 0.0))
+        lamp1.layers = current_layers
+        bpy.context.scene.objects.link(lamp1) 
+        lamp1.parent = cube
+        lamp2_data = bpy.data.lamps.new(name="F0_lamp2", type="POINT")
+        lamp2_data.distance = atom.scale[0] * 2.0
+        lamp2_data.energy = 8.0     
+        lamp2_data.use_sphere = True   
+        lamp2_data.color = [0.8,0.8,0.8]           
+        lamp2 = bpy.data.objects.new("F0_lamp", lamp2_data)
+        lamp2.location = Vector((-scale[0]*1.5, 0.0, 0.0))
+        lamp2.layers = current_layers
+        bpy.context.scene.objects.link(lamp2) 
+        lamp2.parent = cube        
+        # The new 'atom' is the F0 defect complex + lamps
+        new_atom = cube
         
     return new_atom
                      
