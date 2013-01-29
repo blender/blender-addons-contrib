@@ -661,6 +661,8 @@
                        operator_node="#6c696f"
                        group_node="#69756e"
                        frame_node="#9a9b9ba0"
+                       matte_node="#977474"
+                       distor_node="#749797"
                        noodle_curving="5">
         <space>
           <ThemeSpaceGeneric back="#9098a0"
