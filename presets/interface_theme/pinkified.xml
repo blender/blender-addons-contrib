@@ -225,7 +225,7 @@
       </ThemeUserInterface>
     </user_interface>
     <view_3d>
-      <ThemeView3D grid="#1c1c1c"
+      <ThemeView3D grid="#0f0f0f"
                    wire="#000000"
                    lamp="#66666628"
                    speaker="#666666"
@@ -296,8 +296,8 @@
             </panelcolors>
             <gradients>
               <ThemeGradientColors show_grad="TRUE"
-                                   gradient="#333333"
-                                   high_gradient="#404040">
+                                   gradient="#1b1b1b"
+                                   high_gradient="#3a3a3a">
               </ThemeGradientColors>
             </gradients>
           </ThemeSpaceGradient>
