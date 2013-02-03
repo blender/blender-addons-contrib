@@ -1,6 +1,5 @@
 import bpy
 import math
-import sys
 import os
 import stat
 import bmesh
@@ -290,7 +289,7 @@ class renderCrop (bpy.types.Operator):
 
 ##---------------------------BATCH MAKER------------------
 def defoscBatchMaker(TYPE):
-    if sys.platform.startswith("w"):
+    if os.sys.platform.startswith("w"):
         print("PLATFORM: WINDOWS")
         SYSBAR = "\\"
         EXTSYS = ".bat"
@@ -300,44 +299,44 @@ def defoscBatchMaker(TYPE):
         SYSBAR = "/"
         EXTSYS = ".sh"
         QUOTES = ''
-
+    
     FILENAME = bpy.data.filepath.rpartition(SYSBAR)[-1].rpartition(".")[0]
     BINDIR = bpy.app[4]
-    SHFILE = bpy.data.filepath.rpartition(SYSBAR)[0] + SYSBAR + FILENAME + EXTSYS
-    FILEBATCH = open(SHFILE,"w")
-
-    if EXTSYS == ".sh":
-        try:
-            os.chmod(SHFILE, stat.S_IRWXU)
-        except:
-            print("** Oscurart Batch maker can not modify the permissions.")    
-
-    FILEBATCH.writelines("%s%s%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" % (QUOTES,BINDIR,QUOTES,bpy.data.filepath,bpy.context.scene.render.filepath,bpy.data.filepath.rpartition(SYSBAR)[0]+SYSBAR,TYPE,str(bpy.context.scene.frame_start),str(bpy.context.scene.frame_end)) )
-    FILEBATCH.close()  
+    SHFILE = os.path.join (bpy.data.filepath.rpartition(SYSBAR)[0] , FILENAME + EXTSYS)
+    
+    with open(SHFILE,"W") as FILE:
+        # assign permission in linux
+        if EXTSYS == ".sh":
+            try:
+                os.chmod(SHFILE, stat.S_IRWXU)
+            except:
+                print("** Oscurart Batch maker can not modify the permissions.")    
+    
+        FILE.writelines("%s%s%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" % (QUOTES,BINDIR,QUOTES,bpy.data.filepath,bpy.context.scene.render.filepath,bpy.data.filepath.rpartition(SYSBAR)[0]+SYSBAR,TYPE,str(bpy.context.scene.frame_start),str(bpy.context.scene.frame_end)) )
+        FILEBATCH.close()  
     
     RLATFILE =  "%s%sosRlat.py" % (bpy.data.filepath.rpartition(SYSBAR)[0] , SYSBAR )
     if not os.path.isfile(RLATFILE):
-        FILESC = open(RLATFILE,"w")        
-        if EXTSYS == ".sh":
-            try:
-                os.chmod(RLATFILE, stat.S_IRWXU)  
-            except:
-                print("** Oscurart Batch maker can not modify the permissions.")                             
-        FILESC.writelines("import bpy \nbpy.ops.render.render_all_scenes_osc()\nbpy.ops.wm.quit_blender()")
-        FILESC.close()
+        with open(RLATFILE,"w")  as file:      
+            if EXTSYS == ".sh":
+                try:
+                    os.chmod(RLATFILE, stat.S_IRWXU)  
+                except:
+                    print("** Oscurart Batch maker can not modify the permissions.")                             
+            file.writelines("import bpy \nbpy.ops.render.render_all_scenes_osc()\nbpy.ops.wm.quit_blender()")
+
     else:
         print("The All Python files Skips: Already exist!")   
          
     RSLATFILE = "%s%sosRSlat.py" % (bpy.data.filepath.rpartition(SYSBAR)[0] , SYSBAR)    
-    if not os.path.isfile(RSLATFILE):          
-        FILESSC = open(RSLATFILE,"w")          
-        if EXTSYS == ".sh":
-            try:
-                os.chmod(RSLATFILE, stat.S_IRWXU)   
-            except:
-                print("** Oscurart Batch maker can not modify the permissions.")                            
-        FILESSC.writelines("import bpy \nbpy.ops.render.render_selected_scenes_osc()\nbpy.ops.wm.quit_blender()")
-        FILESSC.close()
+    if not os.path.isfile(RSLATFILE):  
+        with  open(RSLATFILE,"w")  as file:          
+            if EXTSYS == ".sh":
+                try:
+                    os.chmod(RSLATFILE, stat.S_IRWXU)   
+                except:
+                    print("** Oscurart Batch maker can not modify the permissions.")                            
+            file.writelines("import bpy \nbpy.ops.render.render_selected_scenes_osc()\nbpy.ops.wm.quit_blender()")
     else:
         print("The Selected Python files Skips: Already exist!")          
 
@@ -362,7 +361,7 @@ class oscBatchMaker (bpy.types.Operator):
 ## --------------------------------------PYTHON BATCH--------------------------------------------------------
 def defoscPythonBatchMaker(BATCHTYPE,SIZE):
     # REVISO SISTEMA
-    if sys.platform.startswith("w"):
+    if os.sys.platform.startswith("w"):
         print("PLATFORM: WINDOWS")
         SYSBAR = "\\"
         EXTSYS = ".bat"
