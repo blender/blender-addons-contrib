@@ -80,7 +80,7 @@ class OscRestoreOverrides(bpy.types.Operator):
         DefOscRestoreOverrides(self)        
         return {'FINISHED'}
 
-OVERRIDESSTATUS = False
+bpy.use_overrides = False
     
 class OscOverridesOn(bpy.types.Operator):
     bl_idname = "render.overrides_on"
@@ -88,18 +88,15 @@ class OscOverridesOn(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute (self, context):
-        
-        global OVERRIDESSTATUS
-        
-        if OVERRIDESSTATUS == False:
+        if bpy.use_overrides == False:
             bpy.app.handlers.render_pre.append(DefOscApplyOverrides)
             bpy.app.handlers.render_post.append(DefOscRestoreOverrides)  
-            OVERRIDESSTATUS = True
+            bpy.use_overrides = True
             print("Overrides on!")
         else:    
             bpy.app.handlers.render_pre.remove(DefOscApplyOverrides)
             bpy.app.handlers.render_post.remove(DefOscRestoreOverrides)    
-            OVERRIDESSTATUS = False
+            bpy.use_overrides = False
             print("Overrides off!")           
         return {'FINISHED'}  
 

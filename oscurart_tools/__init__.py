@@ -248,7 +248,8 @@ class OscPanelOverrides(OscPollOverrides, bpy.types.Panel):
         col.label(text="Example: [[Group,Material]]")
         col.prop(bpy.context.scene, '["OVERRIDE"]', text="")
         col.operator("render.check_overrides", text="Check List", icon="ZOOM_ALL")
-        col.operator("render.overrides_on", text="On / Off", icon="QUIT")                
+        col.operator("render.overrides_on", text="On / Off", icon="QUIT")   
+        col.label(text=str("OVERRIDES: ON" if bpy.use_overrides else "OVERRIDES: OFF"))             
 
         boxcol=layout.box().column(align=1)
         boxcol.label(text="Danger Zone")
