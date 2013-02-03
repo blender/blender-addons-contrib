@@ -304,7 +304,7 @@ def defoscBatchMaker(TYPE):
     BINDIR = bpy.app[4]
     SHFILE = os.path.join (bpy.data.filepath.rpartition(SYSBAR)[0] , FILENAME + EXTSYS)
     
-    with open(SHFILE,"W") as FILE:
+    with open(SHFILE,"w") as FILE:
         # assign permission in linux
         if EXTSYS == ".sh":
             try:
@@ -313,7 +313,7 @@ def defoscBatchMaker(TYPE):
                 print("** Oscurart Batch maker can not modify the permissions.")    
     
         FILE.writelines("%s%s%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" % (QUOTES,BINDIR,QUOTES,bpy.data.filepath,bpy.context.scene.render.filepath,bpy.data.filepath.rpartition(SYSBAR)[0]+SYSBAR,TYPE,str(bpy.context.scene.frame_start),str(bpy.context.scene.frame_end)) )
-        FILEBATCH.close()  
+
     
     RLATFILE =  "%s%sosRlat.py" % (bpy.data.filepath.rpartition(SYSBAR)[0] , SYSBAR )
     if not os.path.isfile(RLATFILE):
@@ -399,7 +399,7 @@ def defoscPythonBatchMaker(BATCHTYPE,SIZE):
     
     # DEFINO ARCHIVO DE BATCH
     FILEBATCH.writelines(SCRIPT)
-    FILEBATCH.close()  
+
     
     
     # ARCHIVO CALL
