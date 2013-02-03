@@ -19,18 +19,19 @@
 
 bl_info = {
     "name": "Edit Linked Library",
-    "author": "Jason van Gumster (Fweeb)",
-    "version": (0, 7, 1),
-    "blender": (2, 60, 0),
+    "author": "Jason van Gumster (Fweeb), Bassam Kurdali, Pablo Vazquez",
+    "version": (0, 7, 2),
+    "blender": (2, 65, 0),
     "location": "View3D > Toolshelf > Edit Linked Library",
     "description": "Allows editing of objects linked from a .blend library.",
     "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/Scripts/Object/Edit_Linked_Library",
     "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=29630",
     "category": "Object"}
-    
+
 
 import bpy
 from bpy.app.handlers import persistent
+import subprocess, traceback
 
 settings = {
     "original_file": "",
@@ -42,6 +43,7 @@ settings = {
 def linked_file_check(context):
     if settings["linked_file"] != "":
         if settings["linked_file"] in {bpy.data.filepath, bpy.path.abspath(bpy.data.filepath)}:
+
             print("Editing a linked library.")
             bpy.ops.object.select_all(action = 'DESELECT')
             for ob_name in settings["linked_objects"]:
@@ -49,7 +51,9 @@ def linked_file_check(context):
             if len(settings["linked_objects"]) == 1:
                 bpy.context.scene.objects.active = bpy.data.objects[settings["linked_objects"][0]]
         else:
-            # For some reason, the linked editing session ended (failed to find a file or opened a different file before returning to the originating .blend)
+            # For some reason, the linked editing session ended
+            # (failed to find a file or opened a different file
+            # before returning to the originating .blend)
             settings["original_file"] = ""
             settings["linked_file"] = ""
 
@@ -60,7 +64,14 @@ class EditLinked(bpy.types.Operator):
     bl_idname = "object.edit_linked"
     bl_label = "Edit Linked Library"
 
-    autosave = bpy.props.BoolProperty(name = "Autosave", description = "Automatically save the current file before opening the linked library", default = True)
+    use_autosave = bpy.props.BoolProperty(
+            name = "Autosave",
+            description = "Save the current file before opening the linked library",
+            default = True)
+    use_instance = bpy.props.BoolProperty(
+            name = "New Blender Instance",
+            description = "Open in a new Blender instance",
+            default = False)
 
     @classmethod
     def poll(cls, context):
@@ -80,7 +91,7 @@ class EditLinked(bpy.types.Operator):
         if targetpath:
             print(target.name + " is linked to " + targetpath)
 
-            if self.properties.autosave == True:
+            if self.use_autosave:
                 bpy.ops.wm.save_mainfile()
 
             settings["original_file"] = bpy.data.filepath
@@ -88,7 +99,15 @@ class EditLinked(bpy.types.Operator):
             # XXX: need to test for proxied rigs
             settings["linked_file"] = bpy.path.abspath(targetpath)
 
-            bpy.ops.wm.open_mainfile(filepath=settings["linked_file"])
+            if self.use_instance:
+                try:
+                    subprocess.Popen([bpy.app.binary_path,settings["linked_file"]])
+                except:
+                    print("Error on the new Blender instance")
+                    traceback.print_exc()
+            else:
+                bpy.ops.wm.open_mainfile(filepath=settings["linked_file"])
+
             print("Opened linked file!")
         else:
             self.report({'WARNING'}, target.name + " is not linked")
@@ -102,7 +121,10 @@ class ReturnToOriginal(bpy.types.Operator):
     bl_idname = "wm.return_to_original"
     bl_label = "Return to Original File"
 
-    autosave = bpy.props.BoolProperty(name = "Autosave", description = "Automatically save the current file before opening original file", default = True)
+    use_autosave = bpy.props.BoolProperty(
+            name = "Autosave",
+            description = "Save the current file before opening original file",
+            default = True)
 
     @classmethod
     def poll(cls, context):
@@ -110,9 +132,11 @@ class ReturnToOriginal(bpy.types.Operator):
         return context.active_object is not None
     
     def execute(self, context):
-        if self.properties.autosave == True:
+        if self.use_autosave:
             bpy.ops.wm.save_mainfile()
+
         bpy.ops.wm.open_mainfile(filepath=settings["original_file"])
+
         settings["original_file"] = ""
         settings["linked_objects"] = []
         print("Back to the original!")
@@ -120,7 +144,8 @@ class ReturnToOriginal(bpy.types.Operator):
 
 
 # UI
-# TODO: Add operators to the File menu? Hide the entire panel for non-linked objects?
+# TODO:Add operators to the File menu?
+#      Hide the entire panel for non-linked objects?
 class PanelLinkedEdit(bpy.types.Panel):
     bl_label = "Edit Linked Library"
     bl_space_type = "VIEW_3D"
@@ -132,21 +157,47 @@ class PanelLinkedEdit(bpy.types.Panel):
         km = kc.keymaps["3D View"]
         kmi_edit = km.keymap_items["object.edit_linked"]
         kmi_return = km.keymap_items["wm.return_to_original"]
+        layout = self.layout
 
-        if settings["original_file"] == "" and ((context.active_object.dupli_group and context.active_object.dupli_group.library is not None) or context.active_object.library is not None):
+        if settings["original_file"] == "" and (
+        (context.active_object.dupli_group and
+                context.active_object.dupli_group.library is not None)
+                or context.active_object.library is not None):
             kmi_edit.active = True
             kmi_return.active = False
-            self.layout.operator("object.edit_linked").autosave = context.scene.edit_linked_autosave
-            self.layout.prop(context.scene, "edit_linked_autosave")
+
+            op =  layout.operator("object.edit_linked", icon="LINK_BLEND")
+            op.use_autosave = context.scene.use_autosave
+            op.use_instance = context.scene.use_instance
+
+            layout.prop(context.scene, "use_autosave")
+            layout.prop(context.scene, "use_instance")
+
         elif settings["original_file"] != "":
             kmi_edit.active = False
             kmi_return.active = True
-            self.layout.operator("wm.return_to_original").autosave = context.scene.edit_linked_autosave
-            self.layout.prop(context.scene, "edit_linked_autosave")
+
+            if context.scene.use_instance:
+                op =  layout.operator("wm.return_to_original",
+                text="Reload Current File", icon="FILE_REFRESH").use_autosave = False
+
+                layout.separator()
+
+                op =  layout.operator("object.edit_linked", icon="LINK_BLEND")
+                op.use_autosave = context.scene.use_autosave
+                op.use_instance = context.scene.use_instance
+                layout.prop(context.scene, "use_autosave")
+                layout.prop(context.scene, "use_instance")
+            else:
+                op =  layout.operator("wm.return_to_original", icon="LOOP_BACK")
+                op.use_autosave = context.scene.use_autosave
+                
+                layout.prop(context.scene, "use_autosave")
+
         else:
             kmi_edit.active = False
             kmi_return.active = False
-            self.layout.label(text = "Active object is not linked")
+            layout.label(text = "{} is not linked".format(context.active_object.name))
 
 
 def register():
@@ -155,8 +206,15 @@ def register():
     bpy.utils.register_class(ReturnToOriginal)
     bpy.utils.register_class(PanelLinkedEdit)
 
-    # Is there a better place to store this property?
-    bpy.types.Scene.edit_linked_autosave = bpy.props.BoolProperty(name = "Autosave", description = "Automatically save the current file before opening a linked file", default = True)
+    # Is there a better place to store this properties?
+    bpy.types.Scene.use_autosave = bpy.props.BoolProperty(
+            name = "Autosave",
+            description = "Save the current file before opening a linked file",
+            default = True)
+    bpy.types.Scene.use_instance = bpy.props.BoolProperty(
+            name = "New Blender Instance", 
+            description = "Open in a new Blender instance", 
+            default = False)
 
     # Keymapping (deactivated by default; activated when a library object is selected)
     kc = bpy.context.window_manager.keyconfigs.addon
@@ -173,7 +231,8 @@ def unregister():
     bpy.utils.unregister_class(PanelLinkedEdit)
     bpy.app.handlers.load_post.remove(linked_file_check)
 
-    del bpy.types.Scene.edit_linked_autosave
+    del bpy.types.Scene.use_autosave
+    del bpy.types.Scene.use_instance
 
     kc = bpy.context.window_manager.keyconfigs.addon
     km = kc.keymaps["3D View"]
