@@ -117,7 +117,7 @@ class EditLinked(bpy.types.Operator):
 
 
 class ReturnToOriginal(bpy.types.Operator):
-    """Return to the original file after editing the linked library .blend"""
+    """Load the original file"""
     bl_idname = "wm.return_to_original"
     bl_label = "Return to Original File"
 
@@ -188,7 +188,8 @@ class PanelLinkedEdit(bpy.types.Panel):
 
                 layout.separator()
 
-                op =  layout.operator("object.edit_linked", icon="LINK_BLEND")
+                op =  layout.operator("object.edit_linked", icon="LINK_BLEND",
+                    text="Edit Library: {}".format(context.active_object.dupli_group.name))
                 op.use_autosave = context.scene.use_autosave
                 op.use_instance = context.scene.use_instance
                 layout.prop(context.scene, "use_autosave")
