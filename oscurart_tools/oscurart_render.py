@@ -24,9 +24,7 @@ def defRenderAll (frametype):
             if OBJECT.type=="MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
                 for SLOT in OBJECT.material_slots[:]:
                     SLOTLIST.append(SLOT.material)
-
                 LISTMAT.append((OBJECT,SLOTLIST))
-
         except:
             pass
     for SCENE in SCENES:
@@ -60,12 +58,11 @@ def defRenderAll (frametype):
             print("SCENE: "+CURSC)
             print("LAYER: "+layers.name)
             print("OVERRIDE: "+str(PROPTOLIST))
-            SCENE.render.filepath = "%s/%s/%s/%s/%s_%s_%s_" % (PATH,SCENENAME,CURSC,layers.name,SCENENAME,SCENE.name,layers.name)
+            SCENE.render.filepath = os.path.join(PATH,SCENENAME,CURSC,layers.name,"%s_%s_%s" % (SCENENAME,SCENE.name,layers.name))
             SCENE.render.layers[layers.name].use = 1
             bpy.ops.render.render(animation=True, write_still=True, layer=layers.name, scene= SCENE.name)
             print("DONE")
             print("---------------------")
-
         for layer in LAYERLIST:
             layer.use = 1
         SCENE.render.filepath = ENDPATH
@@ -91,7 +88,6 @@ class renderAll (bpy.types.Operator):
 
     frametype=bpy.props.BoolProperty(default=False)
 
-
     def execute(self,context):
         defRenderAll(self.frametype)
         return {'FINISHED'}
@@ -99,9 +95,7 @@ class renderAll (bpy.types.Operator):
 
 ##--------------------------------RENDER SELECTED SCENES----------------------------
 
-
 bpy.types.Scene.use_render_scene = bpy.props.BoolProperty()
-
 
 def defRenderSelected(frametype):
     ACTSCENE = bpy.context.scene
@@ -153,7 +147,7 @@ def defRenderSelected(frametype):
                 print("SCENE: "+CURSC)
                 print("LAYER: "+layers.name)
                 print("OVERRIDE: "+str(PROPTOLIST))
-                SCENE.render.filepath = "%s/%s/%s/%s/%s_%s_%s_" % (PATH,SCENENAME,CURSC,layers.name,SCENENAME,SCENE.name,layers.name)
+                SCENE.render.filepath = os.path.join(PATH,SCENENAME,CURSC,layers.name,"%s_%s_%s" % (SCENENAME,SCENE.name,layers.name))
                 SCENE.render.layers[layers.name].use = 1
                 bpy.ops.render.render(animation=True, layer=layers.name, write_still=True, scene= SCENE.name)
                 print("DONE")
@@ -176,7 +170,6 @@ def defRenderSelected(frametype):
                 SCENE.frame_start = FS
     bpy.context.window.screen.scene = ACTSCENE
 
-
 class renderSelected (bpy.types.Operator):
     bl_idname="render.render_selected_scenes_osc"
     bl_label="Render Selected Scenes"
@@ -187,11 +180,7 @@ class renderSelected (bpy.types.Operator):
         defRenderSelected(self.frametype)
         return {'FINISHED'}
 
-
-
-
 ##--------------------------------RENDER CURRENT SCENE----------------------------
-
 
 def defRenderCurrent (frametype):
     LISTMAT = []
@@ -239,7 +228,7 @@ def defRenderCurrent (frametype):
         print("SCENE: "+CURSC)
         print("LAYER: "+layers.name)
         print("OVERRIDE: "+str(PROPTOLIST))
-        SCENE.render.filepath = "%s/%s/%s/%s/%s_%s_%s_" % (PATH,SCENENAME,CURSC,layers.name,SCENENAME,SCENE.name,layers.name)
+        SCENE.render.filepath = os.path.join(PATH,SCENENAME,CURSC,layers.name,"%s_%s_%s" % (SCENENAME,SCENE.name,layers.name))
         SCENE.render.layers[layers.name].use = 1
         bpy.ops.render.render(animation=True, layer=layers.name, write_still=1, scene= SCENE.name)
         print("DONE")
@@ -260,7 +249,6 @@ def defRenderCurrent (frametype):
         SCENE.frame_end = FE
         SCENE.frame_end = FE
         SCENE.frame_start = FS
-
 
 class renderCurrent (bpy.types.Operator):
     bl_idname="render.render_current_scene_osc"
@@ -299,8 +287,6 @@ class renderCrop (bpy.types.Operator):
     def execute(self,context):
         OscRenderCropFunc()
         return {'FINISHED'}
-
-
 
 ##---------------------------BATCH MAKER------------------
 def defoscBatchMaker(TYPE):
