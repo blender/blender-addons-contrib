@@ -158,6 +158,7 @@ class PanelLinkedEdit(bpy.types.Panel):
         kmi_edit = km.keymap_items["object.edit_linked"]
         kmi_return = km.keymap_items["wm.return_to_original"]
         layout = self.layout
+        icon = "OUTLINER_DATA_" + context.active_object.type
 
         if settings["original_file"] == "" and (
         (context.active_object.dupli_group and
@@ -166,12 +167,16 @@ class PanelLinkedEdit(bpy.types.Panel):
             kmi_edit.active = True
             kmi_return.active = False
 
-            op =  layout.operator("object.edit_linked", icon="LINK_BLEND")
+            op =  layout.operator("object.edit_linked", icon="LINK_BLEND",
+                text="Edit Library: {}".format(context.active_object.dupli_group.name))
             op.use_autosave = context.scene.use_autosave
             op.use_instance = context.scene.use_instance
 
             layout.prop(context.scene, "use_autosave")
             layout.prop(context.scene, "use_instance")
+
+            layout.label(text="Path: {}".format(
+            context.active_object.dupli_group.library.filepath))
 
         elif settings["original_file"] != "":
             kmi_edit.active = False
@@ -188,6 +193,10 @@ class PanelLinkedEdit(bpy.types.Panel):
                 op.use_instance = context.scene.use_instance
                 layout.prop(context.scene, "use_autosave")
                 layout.prop(context.scene, "use_instance")
+
+                layout.label(text="Path: {}".format(
+                context.active_object.dupli_group.library.filepath))
+
             else:
                 op =  layout.operator("wm.return_to_original", icon="LOOP_BACK")
                 op.use_autosave = context.scene.use_autosave
@@ -197,7 +206,8 @@ class PanelLinkedEdit(bpy.types.Panel):
         else:
             kmi_edit.active = False
             kmi_return.active = False
-            layout.label(text = "{} is not linked".format(context.active_object.name))
+            layout.label(icon=icon,
+            text = "{} is not linked".format(context.active_object.name))
 
 
 def register():
