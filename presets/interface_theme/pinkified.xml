@@ -51,14 +51,14 @@
                              item="#b63e4fff"
                              text="#e6e6e6"
                              text_sel="#ffffff"
-                             show_shaded="TRUE"
+                             show_shaded="FALSE"
                              shadetop="-12"
                              shadedown="0">
           </ThemeWidgetColors>
         </wcol_text>
         <wcol_option>
           <ThemeWidgetColors outline="#303030"
-                             inner="#4e4e4eff"
+                             inner="#333333ff"
                              inner_sel="#b63e4fff"
                              item="#ffffffff"
                              text="#b8b8b8"
@@ -94,9 +94,9 @@
         </wcol_num>
         <wcol_numslider>
           <ThemeWidgetColors outline="#303030"
-                             inner="#373737ff"
-                             inner_sel="#333333ff"
-                             item="#79404bff"
+                             inner="#303030ff"
+                             inner_sel="#b63e4fff"
+                             item="#414141ff"
                              text="#a2a2a2"
                              text_sel="#ffffff"
                              show_shaded="TRUE"
@@ -232,7 +232,7 @@
                    camera="#666666"
                    empty="#666666"
                    object_selected="#ff374a"
-                   object_active="#ffced2"
+                   object_active="#ffe6e8"
                    object_grouped="#083008"
                    object_grouped_active="#55bb55"
                    transform="#ffffff"
@@ -265,7 +265,7 @@
                    extra_edge_len="#200000"
                    extra_face_angle="#000080"
                    extra_face_area="#002000"
-                   editmesh_active="#ffffff80"
+                   editmesh_active="#ffcccc80"
                    normal="#22dddd"
                    vertex_normal="#2361dd"
                    bone_solid="#c8c8c8"
@@ -289,15 +289,15 @@
                               button_text_hi="#ffffff">
             <panelcolors>
               <ThemePanelColors header="#1a1a1a99"
-                                back="#1a1a1a4d"
+                                back="#1a1a1a99"
                                 show_header="TRUE"
                                 show_back="TRUE">
               </ThemePanelColors>
             </panelcolors>
             <gradients>
               <ThemeGradientColors show_grad="TRUE"
-                                   gradient="#333333"
-                                   high_gradient="#404040">
+                                   gradient="#232323"
+                                   high_gradient="#444444">
               </ThemeGradientColors>
             </gradients>
           </ThemeSpaceGradient>
