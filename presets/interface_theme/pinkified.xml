@@ -142,13 +142,13 @@
         </wcol_pulldown>
         <wcol_menu_back>
           <ThemeWidgetColors outline="#494949"
-                             inner="#242424ff"
-                             inner_sel="#2d2d2de6"
+                             inner="#282828e6"
+                             inner_sel="#2d2d2dff"
                              item="#2c2c2cff"
                              text="#c7c7c7"
                              text_sel="#ffffff"
                              show_shaded="TRUE"
-                             shadetop="2"
+                             shadetop="6"
                              shadedown="-5">
           </ThemeWidgetColors>
         </wcol_menu_back>
@@ -166,7 +166,7 @@
         </wcol_tooltip>
         <wcol_menu_item>
           <ThemeWidgetColors outline="#000000"
-                             inner="#0000001a"
+                             inner="#00000000"
                              inner_sel="#b63e4fff"
                              item="#ffffffff"
                              text="#b8b8b8"
@@ -225,7 +225,7 @@
       </ThemeUserInterface>
     </user_interface>
     <view_3d>
-      <ThemeView3D grid="#0f0f0f"
+      <ThemeView3D grid="#1c1c1c"
                    wire="#000000"
                    lamp="#66666628"
                    speaker="#666666"
@@ -296,8 +296,8 @@
             </panelcolors>
             <gradients>
               <ThemeGradientColors show_grad="TRUE"
-                                   gradient="#1b1b1b"
-                                   high_gradient="#3a3a3a">
+                                   gradient="#333333"
+                                   high_gradient="#404040">
               </ThemeGradientColors>
             </gradients>
           </ThemeSpaceGradient>
