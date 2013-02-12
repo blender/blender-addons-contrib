@@ -1324,7 +1324,7 @@ def libraryCategoryUpdate(self, context):
         material_lines = []
         
         for mat in library_data[category_index].materials:
-            if (bpy.context.scene.mat_lib_show_osl_materials and mat.scripts == '0') or (bpy.context.scene.mat_lib_show_textured_materials and mat.images == '0'):
+            if (bpy.context.scene.mat_lib_show_osl_materials or mat.scripts == '0') and (bpy.context.scene.mat_lib_show_textured_materials or mat.images == '0'):
                 #Get material names
                 material_names.append(mat.name)
                 #Get material filenames
