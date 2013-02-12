@@ -64,32 +64,18 @@ mat_lib_folder = ""
 def findLibrary():
     global mat_lib_folder
     
-    if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.64:
-        if len(bpy.utils.script_paths()) > 2 and os.path.exists(os.path.join(str(bpy.utils.script_paths()[2]), "addons", "online_mat_lib", "material-library")):
-            mat_lib_folder = os.path.join(str(bpy.utils.script_paths()[2]), "addons", "online_mat_lib", "material-library")
-        elif len(bpy.utils.script_paths()) > 1 and os.path.exists(os.path.join(bpy.utils.script_paths()[1], "addons", "online_mat_lib", "material-library")):
-            mat_lib_folder = os.path.join(bpy.utils.script_paths()[1], "addons", "online_mat_lib", "material-library")
-        elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")):
-            mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")
-        elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")):
-            mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")
-        else:
-            print("ONLINE MATERIAL LIBRARY -- MAJOR PROBLEM:"\
-            "COULD NOT LOCATE ADD-ON INSTALLATION PATH.")
-            mat_lib_folder = "error"
+    if os.path.exists(os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")):
+        mat_lib_folder = os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")
+    elif os.path.exists(os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")):
+        mat_lib_folder = os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")
+    elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")):
+        mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")
+    elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")):
+        mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")
     else:
-        if os.path.exists(os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")):
-            mat_lib_folder = os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")
-        elif os.path.exists(os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")):
-            mat_lib_folder = os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")
-        elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")):
-            mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")
-        elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")):
-            mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")
-        else:
-            print("ONLINE MATERIAL LIBRARY -- MAJOR PROBLEM:"\
-            "COULD NOT LOCATE ADD-ON INSTALLATION PATH.")
-            mat_lib_folder = "error"
+        print("ONLINE MATERIAL LIBRARY -- MAJOR PROBLEM:"\
+        "COULD NOT LOCATE ADD-ON INSTALLATION PATH.")
+        mat_lib_folder = "error"
 
 findLibrary()
 
@@ -3867,20 +3853,10 @@ You may need a newer version of Blender for this material to work properly.""" %
             node = node_tree.nodes.new(node_type)
         
         elif node_type == "OBJECT_INFO":
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.64:
-                node_message = ['ERROR', """The material file contains the node \"%s\".
-This node is not available in the Blender version you are currently using.
-You may need a newer version of Blender for this material to work properly.""" % node_type]
-                return
             print ("OBJECT_INFO")
             node = node_tree.nodes.new(node_type)
         
         elif node_type == "PARTICLE_INFO":
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.64:
-                node_message = ['ERROR', """The material file contains the node \"%s\".
-This node is not available in the Blender version you are currently using.
-You may need a newer version of Blender for this material to work properly.""" % node_type]
-                return
             print ("PARTICLE_INFO")
             node = node_tree.nodes.new(node_type)
         
@@ -4026,11 +4002,6 @@ You may need a newer version of Blender for this material to work properly.""" %
             #TEXTURE TYPES
         elif node_type == "TEX_BRICK":
             print ("TEX_BRICK")
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.64:
-                node_message = ['ERROR', """The material file contains the node \"%s\".
-This node is not available in the Blender version you are currently using.
-You may need a newer version of Blender for this material to work properly.""" % node_type]
-                return
             node = node_tree.nodes.new(node_type)
             node.offset = float(node_data['offset'].value)
             node.offset_frequency = float(node_data['offset_freq'].value)
@@ -4054,11 +4025,6 @@ You may need a newer version of Blender for this material to work properly.""" %
             
         elif node_type == "TEX_ENVIRONMENT":
             print ("TEX_ENVIRONMENT")
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.64:
-                node_message = ['ERROR', """The material file contains the node \"%s\".
-This node is not available in the Blender version you are currently using.
-You may need a newer version of Blender for this material to work properly.""" % node_type]
-                return
             node = node_tree.nodes.new(node_type)
             node.color_space = node_data['color_space'].value
             node.projection = node_data['projection'].value
@@ -4158,7 +4124,7 @@ You may need a newer version of Blender for this material to work properly.""" %
             print ("TEX_IMAGE")
             node = node_tree.nodes.new(node_type)
             node.color_space = node_data['color_space'].value
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63 and "projection" in node_data:
+            if "projection" in node_data:
                 node.projection = node_data['projection'].value
             if 'image' in node_data:
                 if "file://" in node_data['image'].value:
@@ -4323,11 +4289,6 @@ You may need a newer version of Blender for this material to work properly.""" %
             node.inputs['Color'].default_value = color(node_data['color'].value)
         
         elif node_type == "LIGHT_FALLOFF":
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.64:
-                node_message = ['ERROR', """The material file contains the node \"%s\".
-This node is not available in the Blender version you are currently using.
-You may need a newer version of Blender for this material to work properly.""" % node_type]
-                return
             print ("LIGHT_FALLOFF")
             node = node_tree.nodes.new(node_type)
             node.inputs['Strength'].default_value = float(node_data['strength'].value)
@@ -4337,8 +4298,8 @@ You may need a newer version of Blender for this material to work properly.""" %
             print ("MIX_RGB")
             node = node_tree.nodes.new(node_type)
             node.blend_type = node_data['blend_type'].value
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63 and "clamp" in node_data:
-                node.use_clamp = boolean(node_data['clamp'].value)
+            if "use_clamp" in node_data:
+                node.use_clamp = boolean(node_data['use_clamp'].value)
             node.inputs['Fac'].default_value = float(node_data['fac'].value)
             node.inputs['Color1'].default_value = color(node_data['color1'].value)
             node.inputs['Color2'].default_value = color(node_data['color2'].value)
@@ -4399,8 +4360,8 @@ You may need a newer version of Blender for this material to work properly.""" %
             print ("MATH")
             node = node_tree.nodes.new(node_type)
             node.operation = node_data['operation'].value
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63 and "clamp" in node_data:
-                node.use_clamp = boolean(node_data['clamp'].value)
+            if "use_clamp" in node_data:
+                node.use_clamp = boolean(node_data['use_clamp'].value)
             node.inputs[0].default_value = float(node_data['value1'].value)
             node.inputs[1].default_value = float(node_data['value2'].value)
         
@@ -4455,11 +4416,6 @@ You may need a newer version of Blender for this material to work properly.""" %
                 node = node_tree.nodes.new(node_type)
         
         elif node_type == "REROUTE":
-            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.64:
-                node_message = ['ERROR', """The material file contains the node \"%s\".
-This node is not available in the Blender version you are currently using.
-You may need a newer version of Blender for this material to work properly.""" % node_type]
-                return
             print ("REROUTE")
             node = node_tree.nodes.new(node_type)
         
@@ -5371,10 +5327,9 @@ def getNodeData(node):
         else:
             text += (" image=\"\"")
         text += (" color_space=\"%s\"" % node.color_space)
-        if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63:
-            text += (" projection=\"%s\"" % node.projection)
-            if node.projection == "BOX":
-                text += (" blend=\"%s\"" % smallFloat(node.projection_blend))
+        text += (" projection=\"%s\"" % node.projection)
+        if node.projection == "BOX":
+            text += (" blend=\"%s\"" % smallFloat(node.projection_blend))
         else:
             text += (" projection=\"FLAT\"")
     
@@ -5446,8 +5401,7 @@ def getNodeData(node):
     elif node_type == "MIX_RGB":
         print("MIX_RGB")
         text += (" blend_type=\"%s\"" % node.blend_type)
-        if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63:
-            text += (" use_clamp=\"%s\"" % str(node.use_clamp))
+        text += (" use_clamp=\"%s\"" % str(node.use_clamp))
         text += (" fac=\"%s\"" % smallFloat(I['Fac'].default_value))
         text += (" color1=\"%s\"" % rgba(I[1].default_value))
         text += (" color2=\"%s\"" % rgba(I[2].default_value))
@@ -5501,8 +5455,7 @@ def getNodeData(node):
     elif node_type == "MATH":
         print("MATH")
         text += (" operation=\"%s\"" % node.operation)
-        if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.63:
-            text += (" use_clamp=\"%s\"" % str(node.use_clamp))
+        text += (" use_clamp=\"%s\"" % str(node.use_clamp))
         text += (" value1=\"%s\"" % smallFloat(I[0].default_value))
         text += (" value2=\"%s\"" % smallFloat(I[1].default_value))
         
