@@ -4577,19 +4577,19 @@ You may need a newer version of Blender for this material to work properly."""]
                 node = node_tree.nodes.new(node_type, node_group)
             if node.inputs:
                 for input in node.inputs:
-                    if input.name.lower() in node_data:
+                    if input.name.lower().replace(" ", "_") in node_data:
                         if input.type == 'RGBA':
-                            input.default_value = color(node_data[input.name.lower()].value)
+                            input.default_value = color(node_data[input.name.lower().replace(" ", "_")].value)
                         elif input.type == 'VECTOR':
-                            input.default_value = vector(node_data[input.name.lower()].value)
+                            input.default_value = vector(node_data[input.name.lower().replace(" ", "_")].value)
                         elif input.type == 'VALUE':
-                            input.default_value = float(node_data[input.name.lower()].value)
+                            input.default_value = float(node_data[input.name.lower().replace(" ", "_")].value)
                         elif input.type == 'INT':
-                            input.default_value = int(node_data[input.name.lower()].value)
+                            input.default_value = int(node_data[input.name.lower().replace(" ", "_")].value)
                         elif input.type == 'BOOL':
-                            input.default_value = boolean(node_data[input.name.lower()].value)
+                            input.default_value = boolean(node_data[input.name.lower().replace(" ", "_")].value)
                         elif input.type != 'SHADER':
-                            input.default_value = str(node_data[input.name.lower()].value)
+                            input.default_value = str(node_data[input.name.lower().replace(" ", "_")].value)
                     elif input.type != 'SHADER':
                         node_message = ['WARNING', "There was no value specified for input \"%s\", leaving at default." % input.name]
                     print(input.type)
@@ -4819,7 +4819,7 @@ class MaterialConvert(bpy.types.Operator):
                                 input_value = str(input.default_value)
                             
                             if input.type != 'SHADER':
-                                write(" %s=\"%s\"" % (input.name.lower(), input_value))
+                                write(" %s=\"%s\"" % (input.name.lower().replace(" ", "_"), input_value))
                     write(getLocation(node))
                     write(" />")
                     

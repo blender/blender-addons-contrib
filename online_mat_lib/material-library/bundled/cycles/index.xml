@@ -60,6 +60,7 @@
 		<!--<material name="Hexagonal Tiles" href="hexagonal_tiles" by="varkenvarken" stars="4" scripts="1" addon="0.5" bl="2.65-" />-->
 		<material name="Malachite" href="malachite" by="moony" stars="3" addon="0.4" />
 		<material name="Polished Haematite" href="polished_haematite" by="moony" stars="5" complexity="intermediate" addon="0.4" />
+		<material name="Pool Tiles" href="pool_tiles" by="elbrujodelatribu" stars="5" fireflies="medium" groups="1" addon="0.4" />
 		<!--<material name="Veined Marble" href="veined_marble" by="sambler" stars="4" complexity="intermediate" scripts="1" addon="0.5" bl="2.65-" />-->
 	</category>
 	<category title="Synthetic" folder="synthetic" addon="0.4">
@@ -81,6 +82,9 @@
 		<material name="Polished Walnut" href="polished_walnut" by="Peter Cassetta" stars="4" complexity="intermediate" addon="0.4" />
 		<material name="Rough Pine" href="rough_pine" by="Peter Cassetta" stars="4" complexity="intermediate" addon="0.4" />
 		<material name="Rough Walnut" href="rough_walnut" by="Peter Cassetta" stars="3" complexity="intermediate" addon="0.4" />
+	</category>
+	<category title="Nodegroups" folder="groups" addon="0.6">
+		<group name="Square Tiles" href="square_tiles.bcg" by="elbrujodelatribu" filesize="3.7kB" complexity="intermediate" tileable="yes" addon="0.6" bl="2.64-" />
 	</category>
 	<category title="OSL Scripts" folder="scripts" addon="0.6">
 		<script name="Barbwire Texture" href="barbwire_texture.osl" by="varkenvarken" filesize="2.0kB" complexity="complex" lines="75" addon="0.6" />

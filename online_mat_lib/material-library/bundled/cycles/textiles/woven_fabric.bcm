@@ -14,7 +14,7 @@
 		<node type="MATH" operation="ADD" use_clamp="False" value1="0.5" value2="0.5" loc="650, 142" />
 		<node type="TEX_COORD" dupli="False" loc="-764, 427" />
 		<node type="TEX_NOISE" scale="545.0" detail="2.0" distortion="5.0" loc="-477, 122" />
-		<node type="SCRIPT" mode="EXTERNAL" script="weave_test.osl" warpcolor="rgba(0.80000, 0.0, 0.0, 1.0)" weftcolor="rgba(0.0, 0.80000, 0.0, 1.0)" skip="1" underrun="2" overrun="1" warpwidth="0.80000" weftwidth="0.79999" coordinates="Vector(0.0, 0.0, 0.0)" loc="-37, 410" />
+		<node type="SCRIPT" mode="EXTERNAL" script="weave_shader.osl" warpcolor="rgba(0.80000, 0.0, 0.0, 1.0)" weftcolor="rgba(0.0, 0.80000, 0.0, 1.0)" skip="1" underrun="2" overrun="1" warpwidth="0.80000" weftwidth="0.79999" coordinates="Vector(0.0, 0.0, 0.0)" loc="-37, 410" />
 	</nodes>
 	<links>
 		<link to="2" input="0" from="11" output="0" />
