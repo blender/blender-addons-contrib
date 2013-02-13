@@ -6,10 +6,25 @@ import bmesh
 import time
 import random
 
+## ------------- CHECK OVERRIDE LIST EXIST -----------------
+
+def checkOverridesExist():
+    for scene in bpy.data.scenes[:]:
+        try:
+            scene["OVERRIDE"]
+        except:
+            bpy.ops.render.overrides_set_list()
+
+
 ##-------------------------------- RENDER ALL SCENES ----------------------------
 
 
+
+
 def defRenderAll (frametype):
+    
+    checkOverridesExist()
+    
     LISTMAT=[]
     SCENES=bpy.data.scenes[:]
     ACTSCENE=bpy.context.scene
@@ -97,6 +112,9 @@ class renderAll (bpy.types.Operator):
 bpy.types.Scene.use_render_scene = bpy.props.BoolProperty()
 
 def defRenderSelected(frametype):
+    
+    checkOverridesExist()
+    
     ACTSCENE = bpy.context.scene
     LISTMAT = []
     SCENES = bpy.data.scenes[:]
@@ -182,6 +200,9 @@ class renderSelected (bpy.types.Operator):
 ##--------------------------------RENDER CURRENT SCENE----------------------------
 
 def defRenderCurrent (frametype):
+    
+    checkOverridesExist()
+    
     LISTMAT = []
     SCENE = bpy.context.scene
     FC = bpy.context.scene.frame_current
@@ -266,6 +287,9 @@ class renderCurrent (bpy.types.Operator):
 bpy.types.Scene.rcPARTS = bpy.props.IntProperty(default=0, min=2, max=50, step=1)
 
 def OscRenderCropFunc():
+    
+    checkOverridesExist()
+    
     SCENENAME = os.path.split(bpy.data.filepath)[-1].partition(".")[0]
     PARTS = bpy.context.scene.rcPARTS
     CHUNKYSIZE = 1/PARTS
@@ -289,6 +313,9 @@ class renderCrop (bpy.types.Operator):
 
 ##---------------------------BATCH MAKER------------------
 def defoscBatchMaker(TYPE):
+    
+    checkOverridesExist() # overrides list exist
+    
     if os.sys.platform.startswith("w"):
         print("PLATFORM: WINDOWS")
         SYSBAR = "\\"
@@ -360,6 +387,9 @@ class oscBatchMaker (bpy.types.Operator):
 
 ## --------------------------------------PYTHON BATCH--------------------------------------------------------
 def defoscPythonBatchMaker(BATCHTYPE,SIZE):
+    
+    checkOverridesExist() # overrides list exist
+    
     # REVISO SISTEMA
     if os.sys.platform.startswith("w"):
         print("PLATFORM: WINDOWS")
