@@ -15,8 +15,8 @@
 		<node type="BSDF_TRANSPARENT" color="rgba(1.0, 1.0, 1.0, 1.0)" loc="376, -48" />
 		<node type="MATH" operation="SINE" use_clamp="False" value1="0.5" value2="1.0" loc="-272, 138" />
 		<node type="MATH" operation="MULTIPLY" use_clamp="False" value1="0.5" value2="24.0" loc="-419, 137" />
-		<node type="SCRIPT" mode="INTERNAL" script="0" vector="Vector(0.0, 0.0, 0.0)" scale="1.0" ridges="50" seed="42" loc="-588, 137" />
-		<node type="SCRIPT" mode="INTERNAL" script="1" vector="Vector(0.0, 0.0, 0.0)" center="Vector(0.5, 0.5, 0.5)" radius="0.15000" ellipse="0.90000" rotation="10.0" blur="1.0" loc="-593, 388" />
+		<node type="SCRIPT" mode="EXTERNAL" script="fingerprint_texture.osl" vector="Vector(0.0, 0.0, 0.0)" scale="1.0" ridges="50" seed="42" loc="-588, 137" />
+		<node type="SCRIPT" mode="EXTERNAL" script="ellipse_mask.osl" vector="Vector(0.0, 0.0, 0.0)" center="Vector(0.5, 0.5, 0.5)" radius="0.15000" ellipse="0.90000" rotation="10.0" blur="1.0" loc="-593, 388" />
 		<node type="TEX_COORD" dupli="False" loc="-1050, 186" />
 		<node type="MAPPING" translation="Vector(-0.49999, 0.09999, 0.0)" rotation="Vector(0.08726, 0.10471, 0.03490)" scale="Vector(1.89999, 1.89999, 1.89999)" use_min="False" use_max="False" vector="Vector(0.0, 0.0, 0.0)" loc="-865, 265" />
 		<node type="OUTPUT_MATERIAL" loc="811, 307" />
@@ -44,12 +44,4 @@
 		<link to="14" input="0" from="17" output="0" />
 		<link to="15" input="0" from="17" output="0" />
 	</links>
-	<scripts>
-		<script name="MAFingerprint.osl" id="0">
-/*<br />    fingerprint pattern by Michel J. Anders (c)2012<br />    license: cc-by-sa<br />    http://blenderthings.blogspot.com.au/2012/12/a-fingerprint-osl-shader-for-blender.html<br />*/<br /><br />#include &quot;stdosl.h&quot;<br />#include &quot;node_texture.h&quot;<br /><br />shader MAFingerprint(<br />        point Vector = P,<br />        float Scale = 1.0,<br />        int Ridges = 5,<br />        int Seed = 42,<br />        output float Fac = 0.0 )<br />{<br />    float da;<br />    point pa;<br />    float d;<br /><br />    vector up   = vector(0,0,1);<br />    vector tdir = 0;<br /><br />    int pi;<br /><br />    for(pi=0; pi&lt; Ridges; pi++){<br />        pa = Scale * point(<br />        cellnoise(point(pi,pi,pi)),<br />        cellnoise(point(pi,pi+Seed,pi)),<br />        cellnoise(point(pi,pi,pi+Seed)));<br />        da = pa[2];<br />        vector v = pa - Vector;<br />        float d = length(v);<br />        v[2]=0;<br />        v = normalize(v);<br />        tdir += cross(v,up)*da*d;<br />    }<br />    Fac = sqrt(dot(tdir,tdir));<br />}<br /><br />
-		</script>
-		<script name="MAEllipseMask.osl" id="1">
-/*<br />    ellipse mask by Michel J. Anders (c)2012<br />    license: cc-by-sa<br />    http://blenderthings.blogspot.com.au/2012/12/a-fingerprint-osl-shader-for-blender.html<br />*/<br /><br />#include &quot;stdosl.h&quot;<br /><br />shader MAEllipseMask(<br />        point Vector = P,<br />        point Center = 0.5,<br />        float Radius = 0.5,<br />        float Ellipse = 1.0,<br />        float Rotation = 0.0,<br />        float Blur = 0.0,<br />        output float Fac = 0.0 )<br />{<br />    point p = rotate(Vector,radians(Rotation),Center,Center+vector(0,0,1));<br />    vector d = p - Center;<br />    d[0] *= Ellipse;<br />    float r2 = d[0]*d[0]+d[1]*d[1];<br />    if (r2 &lt;= Radius*Radius) {<br />        Fac = 1-Blur*sqrt(r2/(Radius*Radius));<br />    }<br />}<br /><br />
-		</script>
-	</scripts>
 </material>
