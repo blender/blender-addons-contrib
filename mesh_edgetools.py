@@ -1943,12 +1943,7 @@ classes = [VIEW3D_MT_edit_mesh_edgetools,
 # registering and menu integration
 def register():
     global integrated
-    if int(bpy.app.build_revision[0:5]) < 44800:
-        print("Error in Edgetools:")
-        print("This version of Blender does not support the necessary BMesh API.")
-        print("Please download Blender 2.63 or newer.")
-        return {'ERROR'}
-        
+
     for c in classes:
         bpy.utils.register_class(c)
 
