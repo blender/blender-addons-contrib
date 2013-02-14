@@ -13,7 +13,7 @@ def checkOverridesExist():
         try:
             scene["OVERRIDE"]
         except:
-            bpy.ops.render.overrides_set_list()
+            scene["OVERRIDE"] = "[]"
 
 
 ##-------------------------------- RENDER ALL SCENES ----------------------------
