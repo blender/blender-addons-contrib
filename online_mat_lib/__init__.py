@@ -4514,11 +4514,16 @@ You may need a newer version of Blender for this material to work properly."""]
                     group_filepath = node_data['group'].value[7:]
                     
                     group_name = group_filepath.replace("_", " ")
+                    
+                    if node_data['group'].value[-4:].lower() != ".bcg":
+                        node_message = ['ERROR', "The node group file referenced by this group node is not .bcg."]
+                        return
+                    
                     if os.sep in group_name:
-                        group_name = group_name.split(os.sep)
-                    group_name = group_name.upper()
+                        group_name = group_name.split(os.sep)[-1]
+                    group_name = group_name[:-4].title()
                 elif "http://" in node_data['group'].value and bpy.context.scene.mat_lib_groups_only_trusted == False:
-                    group_name = node_data['group'].value.split("/")[-1][:-4]
+                    group_name = node_data['group'].value.replace("_", " ").split("/")[-1][:-4].title()
                     group_host = node_data['group'].value[7:].split("/")[0]
                     group_location = node_data['group'].value[(7 + len(group_host)):]
                     
@@ -4536,7 +4541,7 @@ You may need a newer version of Blender for this material to work properly."""]
                     group_file.close()
                     
                 else:
-                    group_name = node_data['group'].value[:-4]
+                    group_name = node_data['group'].value.replace("_", " ")[:-4].title()
                     
                     if node_data['group'].value[-4:].lower() != ".bcg":
                         node_message = ['ERROR', "The node group file referenced by this group node is not .bcg; not downloading."]
