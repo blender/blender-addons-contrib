@@ -378,5 +378,28 @@ class OscResymMesh (bpy.types.Operator):
     
 
 
+## -------------------------- OBJECT TO MESH --------------------------------------
+
+def DefOscObjectToMesh():
+    ACTOBJ = bpy.context.object
+    MESH = ACTOBJ.to_mesh(scene=bpy.context.scene, apply_modifiers=True, settings="RENDER", calc_tessface=True)
+    OBJECT = bpy.data.objects.new(("%s_Freeze") % (ACTOBJ.name), MESH)
+    bpy.context.scene.objects.link(OBJECT)
+
+class OscObjectToMesh(bpy.types.Operator):
+    bl_idname = "mesh.object_to_mesh_osc"
+    bl_label = "Object To Mesh"
+
+    @classmethod
+    def poll(cls, context):
+        return True if context.active_object is not None and context.object.type == "MESH" else False
+
+    def execute(self, context):
+        DefOscObjectToMesh()
+        return {'FINISHED'}
+
+
+
+
 
 
