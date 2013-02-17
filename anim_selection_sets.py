@@ -33,8 +33,8 @@ import bpy
 bl_info = {
   "name": "Selection Set",
   "author": "Dan Eicher",
-  "version": (0, 1, 0),
-    "blender": (2, 63, 0),
+  "version": (0, 1, 1),
+  "blender": (2, 65, 4),
   "location": "Properties -> Object Data -> Selection Sets",
   "description": "Selection Sets to select groups of bones",
   "warning": "Proxy armatures need to export sets and run generated script on re-opening file",
@@ -286,7 +286,7 @@ class DATA_PT_bone_sets(bpy.types.Panel):
 
         row = layout.row()
 
-        row.template_list(arm, "selection_sets", arm, "active_selection_set",
+        row.template_list("UI_UL_list", "", arm, "selection_sets", arm, "active_selection_set",
                           rows=(5 if len(arm.selection_sets) else 2))
 
         col = row.column(align=True)
