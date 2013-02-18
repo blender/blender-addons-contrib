@@ -286,7 +286,7 @@ class DATA_PT_bone_sets(bpy.types.Panel):
 
         row = layout.row()
 
-        row.template_list("UI_UL_list", "", arm, "selection_sets", arm, "active_selection_set",
+        row.template_list("UI_UL_list", "armature_selection_sets", arm, "selection_sets", arm, "active_selection_set",
                           rows=(5 if len(arm.selection_sets) else 2))
 
         col = row.column(align=True)

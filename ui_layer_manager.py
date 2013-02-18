@@ -701,7 +701,8 @@ class LayerGroupsUI(bpy.types.Panel):
         viewIcon = 'RESTRICT_VIEW_OFF'
         layout = self.layout
         row = layout.row()
-        row.template_list("UI_UL_list", "", context.scene, "layergroups", context.scene, "layergroups_index", rows=items)
+        row.template_list("UI_UL_list", "ui_layer_groups", context.scene, "layergroups",
+                          context.scene, "layergroups_index", rows=items)
         col =row.column(align =True)
         add = col.operator("object.layergroup_add", icon='ZOOMIN', text="")
         add.index= items

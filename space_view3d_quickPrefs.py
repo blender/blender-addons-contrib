@@ -777,7 +777,8 @@ class PANEL(bpy.types.Panel):
             split = box.split(percentage=0.7)
             col = split.row()
 			#original
-            col.template_list("UI_UL_list", "", scn, "gllightpreset", scn, "gllightpreset_index", rows=5, maxrows=5)
+            col.template_list("UI_UL_list", "gl_light_presets", scn, "gllightpreset",
+                              scn, "gllightpreset_index", rows=5, maxrows=5)
 
 #Draw the buttons
             split = split.split()
