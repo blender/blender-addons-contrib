@@ -126,8 +126,14 @@ node_message = []
 save_filename = ""
 script_stack = []
 group_stack = []
-osl_scripts = []
+curve_stack = []
+group_curve_stack = []
+group_script_stack = []
 node_groups = []
+osl_scripts = []
+mapping_curves = []
+group_scripts = []
+group_curves = []
 
 bpy.types.Scene.mat_lib_auto_preview = bpy.props.BoolProperty(name = "Auto-download previews", description = "Automatically download material previews in online mode", default = True, options = {'SKIP_SAVE'})
 bpy.types.Scene.mat_lib_show_osl_materials = bpy.props.BoolProperty(name = "Show OSL materials", description = "Enable to show materials with OSL shading scripts", default = False, options = {'SKIP_SAVE'})
@@ -1810,6 +1816,7 @@ class AddLibraryMaterial(bpy.types.Operator):
         global current_material_cached
         global osl_scripts
         global node_groups
+        global mapping_curves
         
         findLibrary()
         
@@ -1947,6 +1954,19 @@ class AddLibraryMaterial(bpy.types.Operator):
             group_datablock = addNodeGroup(g.attributes['name'].value, group_text)
             node_groups.append(group_datablock)
         
+        #Prepare curve data
+        mapping_curves = []
+        curves = dom.getElementsByTagName("curve")
+        for curve in curves:
+            curve_points = []
+            cdom = xml.dom.minidom.parseString(curve.toxml())
+            points = cdom.getElementsByTagName("point")
+            for point in points:
+                loc_x = float(point.attributes['loc'].value.replace(" ", "").split(",")[0])
+                loc_y = float(point.attributes['loc'].value.replace(" ", "").split(",")[1])
+                curve_points.append(curvePoint(point.attributes['type'].value, loc_x, loc_y))
+            mapping_curves.append(mappingCurve(curve.attributes['extend'].value, curve_points))
+        
         #Add nodes
         nodes = dom.getElementsByTagName("node")
         addNodes(nodes, new_mat.node_tree)
@@ -2006,6 +2026,7 @@ class ApplyLibraryMaterial(bpy.types.Operator):
         global current_material_cached
         global osl_scripts
         global node_groups
+        global mapping_curves
         
         findLibrary()
         
@@ -2150,6 +2171,19 @@ class ApplyLibraryMaterial(bpy.types.Operator):
             group_text = g.toxml()
             group_datablock = addNodeGroup(g.attributes['name'].value, group_text)
             node_groups.append(group_datablock)
+        
+        #Prepare curve data
+        mapping_curves = []
+        curves = dom.getElementsByTagName("curve")
+        for curve in curves:
+            curve_points = []
+            cdom = xml.dom.minidom.parseString(curve.toxml())
+            points = cdom.getElementsByTagName("point")
+            for point in points:
+                loc_x = float(point.attributes['loc'].value.replace(" ", "").split(",")[0])
+                loc_y = float(point.attributes['loc'].value.replace(" ", "").split(",")[1])
+                curve_points.append(curvePoint(point.attributes['type'].value, loc_x, loc_y))
+            mapping_curves.append(mappingCurve(curve.attributes['extend'].value, curve_points))
         
         #Add nodes
         nodes = dom.getElementsByTagName("node")
@@ -3746,14 +3780,51 @@ def createLinks(links, node_tree):
         
         node_tree.links.new(input, output)
 
+class curvePoint:
+    def __init__(self, type, loc_x, loc_y):
+        self.type = type
+        self.loc_x = loc_x
+        self.loc_y = loc_y
+
+class mappingCurve:
+    def __init__(self, extend, points):
+        self.extend = extend
+        self.points = points
+
 def addNodeGroup(name, group_text):
+    global group_curves
+    global group_scripts
+    
     group = bpy.data.node_groups.new(name, 'SHADER')
     
     group_text = group_text[group_text.index("<group"):group_text.rindex("</group>") + 8]
     gdom = xml.dom.minidom.parseString(group_text)
     
+    #Prepare curve data
+    curves = gdom.getElementsByTagName("groupcurve")
+    group_curves = []
+    for curve in curves:
+        curve_points = []
+        cdom = xml.dom.minidom.parseString(curve.toxml())
+        points = cdom.getElementsByTagName("point")
+        for point in points:
+            loc_x = float(point.attributes['loc'].value.replace(" ", "").split(",")[0])
+            loc_y = float(point.attributes['loc'].value.replace(" ", "").split(",")[1])
+            curve_points.append(curvePoint(point.attributes['type'].value, loc_x, loc_y))
+        group_curves.append(mappingCurve(curve.attributes['extend'].value, curve_points))
+    
+    #Create internal OSL scripts
+    scripts = gdom.getElementsByTagName("groupscript")
+    group_scripts = []
+    for s in scripts:
+        osl_datablock = bpy.data.texts.new(name=s.attributes['name'].value)
+        osl_text = s.toxml()[s.toxml().index(">"):s.toxml().rindex("<")]
+        osl_text = osl_text[1:].replace("<br/>","\n").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&amp;", "&")
+        osl_datablock.write(osl_text)
+        group_scripts.append(osl_datablock)
+    
     nodes = gdom.getElementsByTagName("groupnode")
-    addNodes(nodes, group)
+    addNodes(nodes, group, True)
     
     inputs = gdom.getElementsByTagName("groupinput")
     for input in inputs:
@@ -3800,7 +3871,7 @@ def addNodeGroup(name, group_text):
     
     return group
 
-def addNodes(nodes, node_tree):
+def addNodes(nodes, node_tree, group_mode = False):
     global node_message
     global osl_scripts
     global node_groups
@@ -4266,6 +4337,79 @@ You may need a newer version of Blender for this material to work properly.""" %
             node.inputs['Color'].default_value = color(node_data['color'].value)
             node.inputs['Bright'].default_value = float(node_data['bright'].value)
             node.inputs['Contrast'].default_value = float(node_data['contrast'].value)
+            
+        elif node_type == "CURVE_RGB":
+            print ("CURVE_RGB")
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.66:
+                node_message = ['ERROR', """The material file contains the node \"%s\".
+This node is not available in the Blender version you are currently using.
+You may need a newer version of Blender for this material to work properly.""" % node_type]
+                return
+            node = node_tree.nodes.new(node_type)
+            node.inputs['Fac'].default_value = float(node_data['fac'].value)
+            node.inputs['Color'].default_value = color(node_data['color'].value)
+            if group_mode:
+                curve_c = group_curves[int(node_data['curve_c'].value)]
+                curve_r = group_curves[int(node_data['curve_r'].value)]
+                curve_g = group_curves[int(node_data['curve_g'].value)]
+                curve_b = group_curves[int(node_data['curve_b'].value)]
+            else:
+                curve_c = mapping_curves[int(node_data['curve_c'].value)]
+                curve_r = mapping_curves[int(node_data['curve_r'].value)]
+                curve_g = mapping_curves[int(node_data['curve_g'].value)]
+                curve_b = mapping_curves[int(node_data['curve_b'].value)]
+            
+            #C Curve
+            node.mapping.curves[3].extend = curve_c.extend
+            if len(curve_c.points) > 2:
+                p = 2
+                while p < len(curve_c.points):
+                    node.mapping.curves[3].points.new(0.0, 0.0)
+                    p += 1
+            p = 0
+            while p < len(curve_c.points):
+                node.mapping.curves[3].points[p].location = (curve_c.points[p].loc_x, curve_c.points[p].loc_y)
+                node.mapping.curves[3].points[p].handle_type = curve_c.points[p].type
+                p += 1
+            
+            #R Curve
+            node.mapping.curves[0].extend = curve_r.extend
+            if len(curve_r.points) > 2:
+                p = 2
+                while p < len(curve_r.points):
+                    node.mapping.curves[0].points.new(0.0, 0.0)
+                    p += 1
+            p = 0
+            while p < len(curve_r.points):
+                node.mapping.curves[0].points[p].location = (curve_r.points[p].loc_x, curve_r.points[p].loc_y)
+                node.mapping.curves[0].points[p].handle_type = curve_r.points[p].type
+                p += 1
+            
+            #G Curve
+            node.mapping.curves[1].extend = curve_g.extend
+            if len(curve_g.points) > 2:
+                p = 2
+                while p < len(curve_g.points):
+                    node.mapping.curves[1].points.new(0.0, 0.0)
+                    p += 1
+            p = 0
+            while p < len(curve_g.points):
+                node.mapping.curves[1].points[p].location = (curve_g.points[p].loc_x, curve_g.points[p].loc_y)
+                node.mapping.curves[1].points[p].handle_type = curve_g.points[p].type
+                p += 1
+            
+            #B Curve
+            node.mapping.curves[2].extend = curve_b.extend
+            if len(curve_b.points) > 2:
+                p = 2
+                while p < len(curve_b.points):
+                    node.mapping.curves[2].points.new(0.0, 0.0)
+                    p += 1
+            p = 0
+            while p < len(curve_b.points):
+                node.mapping.curves[2].points[p].location = (curve_b.points[p].loc_x, curve_b.points[p].loc_y)
+                node.mapping.curves[2].points[p].handle_type = curve_b.points[p].type
+                p += 1
         
         elif node_type == "GAMMA":
             print ("GAMMA")
@@ -4315,6 +4459,64 @@ You may need a newer version of Blender for this material to work properly.""" %
             node = node_tree.nodes.new(node_type)
             node.inputs["Strength"].default_value = float(node_data['strength'].value)
             
+        elif node_type == "CURVE_VEC":
+            print ("CURVE_VEC")
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.66:
+                node_message = ['ERROR', """The material file contains the node \"%s\".
+This node is not available in the Blender version you are currently using.
+You may need a newer version of Blender for this material to work properly.""" % node_type]
+                return
+            node = node_tree.nodes.new(node_type)
+            node.inputs['Fac'].default_value = float(node_data['fac'].value)
+            node.inputs['Vector'].default_value = vector(node_data['vector'].value)
+            if group_mode:
+                curve_x = group_curves[int(node_data['curve_x'].value)]
+                curve_y = group_curves[int(node_data['curve_y'].value)]
+                curve_z = group_curves[int(node_data['curve_z'].value)]
+            else:
+                curve_x = mapping_curves[int(node_data['curve_x'].value)]
+                curve_y = mapping_curves[int(node_data['curve_y'].value)]
+                curve_z = mapping_curves[int(node_data['curve_z'].value)]
+            
+            #X Curve
+            node.mapping.curves[0].extend = curve_x.extend
+            if len(curve_x.points) > 2:
+                p = 2
+                while p < len(curve_x.points):
+                    node.mapping.curves[0].points.new(0.0, 0.0)
+                    p += 1
+            p = 0
+            while p < len(curve_x.points):
+                node.mapping.curves[0].points[p].location = (curve_x.points[p].loc_x, curve_x.points[p].loc_y)
+                node.mapping.curves[0].points[p].handle_type = curve_x.points[p].type
+                p += 1
+            
+            #Y Curve
+            node.mapping.curves[1].extend = curve_y.extend
+            if len(curve_y.points) > 2:
+                p = 2
+                while p < len(curve_y.points):
+                    node.mapping.curves[1].points.new(0.0, 0.0)
+                    p += 1
+            p = 0
+            while p < len(curve_y.points):
+                node.mapping.curves[1].points[p].location = (curve_y.points[p].loc_x, curve_y.points[p].loc_y)
+                node.mapping.curves[1].points[p].handle_type = curve_y.points[p].type
+                p += 1
+            
+            #Z Curve
+            node.mapping.curves[2].extend = curve_z.extend
+            if len(curve_z.points) > 2:
+                p = 2
+                while p < len(curve_z.points):
+                    node.mapping.curves[2].points.new(0.0, 0.0)
+                    p += 1
+            p = 0
+            while p < len(curve_z.points):
+                node.mapping.curves[2].points[p].location = (curve_z.points[p].loc_x, curve_z.points[p].loc_y)
+                node.mapping.curves[2].points[p].handle_type = curve_z.points[p].type
+                p += 1
+            
         elif node_type == "MAPPING":
             print ("MAPPING")
             node = node_tree.nodes.new(node_type)
@@ -4345,7 +4547,7 @@ You may need a newer version of Blender for this material to work properly.""" %
             node = node_tree.nodes.new(node_type)
             node.space = node_data['space'].value
             node.uv_map = node_data['uv_map'].value
-            node.inputs["Strength"].default_value = float(node_data['strength'].value)
+            node.inputs['Strength'].default_value = float(node_data['strength'].value)
             node.inputs['Color'].default_value = color(node_data['color'].value)
             
             #CONVERTOR TYPES
@@ -4488,7 +4690,10 @@ You may need a newer version of Blender for this material to work properly."""]
                         node.filepath = osl_filepath
             else:
                 if 'script' in node_data:
-                    node.script = osl_scripts[int(node_data['script'].value)]
+                    if group_mode:
+                        node.script = group_scripts[int(node_data['script'].value)]
+                    else:
+                        node.script = osl_scripts[int(node_data['script'].value)]
             if node.inputs:
                 for input in node.inputs:
                     if input.name.lower() in node_data:
@@ -4621,6 +4826,13 @@ The material file may contain an error, or you may need to check for updates to 
         #Mute node if needed and able to
         if 'mute' in node_data and hasattr(node, 'mute'):
             node.mute = boolean(node_data['mute'].value)
+        
+        #Set node width
+        if 'width' in node_data and bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.66:
+            if node.hide:
+                node.width = int(node_data['width'].value)
+            else:
+                node.width = int(node_data['width'].value)
 
 def boolean(string):
     if string == "True":
@@ -4679,6 +4891,7 @@ class MaterialConvert(bpy.types.Operator):
         global material_file_contents
         global script_stack
         global group_stack
+        global curve_stack
         
         if self.all_materials:
             #For all_materials, access the materials with an index
@@ -4825,6 +5038,11 @@ class MaterialConvert(bpy.types.Operator):
                             
                             if input.type != 'SHADER':
                                 write(" %s=\"%s\"" % (input.name.lower().replace(" ", "_"), input_value))
+                    if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.65:
+                        if node.hide:
+                            write(" width=\"%s\"" % int(node.width_hidden))
+                        else:
+                            write(" width=\"%s\"" % int(node.width))
                     write(getLocation(node))
                     write(" />")
                     
@@ -4872,6 +5090,16 @@ class MaterialConvert(bpy.types.Operator):
             write("\n\t<links>")
             writeNodeLinks(bpy.data.materials[mat].node_tree)
             write("\n\t</links>")
+            
+            #Add any curves if needed.
+            if curve_stack:
+                write("\n\t<curves>")
+                i = 0
+                while i < len(curve_stack):
+                    write(getCurveData(i))
+                    i += 1
+                write("\n\t</curves>")
+                curve_stack = []
             
             #Add any groups if needed.
             if group_stack:
@@ -5035,6 +5263,9 @@ class GroupConvert(bpy.types.Operator):
         return {'FINISHED'}
 
 def getGroupData(index):
+    global group_script_stack
+    global group_curve_stack
+    
     group_text = ("\n\t\t<group")
     if type(index) == int:
         group_text += (" name=\"%s\" id=\"%s\"" % (group_stack[index], str(index)))
@@ -5068,7 +5299,7 @@ def getGroupData(index):
             group_text += (" mute=\"True\"")
         
         #Write node data
-        group_text += getNodeData(node)
+        group_text += getNodeData(node, True)
         
         #Write node closing bracket
         group_text += (" />")
@@ -5124,11 +5355,56 @@ def getGroupData(index):
         group_text += getNodeGroupLinks(bpy.data.node_groups[index])
         group_text += ("\n\t\t\t</grouplinks>")
     
+    if group_curve_stack:
+        group_text += ("\n\t\t\t<groupcurves>")
+        i = 0
+        while i < len(group_curve_stack):
+            group_text += getCurveData(i, True).replace("\t<curve", "\t\t\t<groupcurve").replace("\t</curve", "\t\t\t</groupcurve").replace("<point", "\t\t<point")
+            i += 1
+        group_text += ("\n\t\t\t</groupcurves>")
+        group_curve_stack = []
+    
+    if group_script_stack:
+        group_text += ("\n\t\t\t<groupscripts>")
+        i = 0
+        while i < len(group_script_stack):
+            group_text += ("\n\t\t\t\t<groupscript name=\"%s\" id=\"%s\">\n" % (group_script_stack[i], str(i)))
+            first_line = True
+            for l in bpy.data.texts[group_script_stack[i]].lines:
+                if first_line == True:
+                    group_text += (l.body.replace("<", "lt;").replace(">", "gt;"))
+                    first_line = False
+                else:
+                    group_text += ("<br />" + l.body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"))
+            group_text += ("\n\t\t\t\t</groupscript>")
+            i += 1
+        group_text += ("\n\t\t\t</groupscripts>")
+        group_script_stack = []
+    
     group_text += ("\n\t\t</group>")
     return group_text
 
-def getNodeData(node):
+def getCurveData(index, group_mode = False):
+    text = ""
+    if group_mode:
+        text += ("\n\t\t<curve extend=\"%s\" id=\"%s\">" % (group_curve_stack[index].extend, index))
+        p = 0
+        while p < len(group_curve_stack[index].points):
+            text += ("\n\t\t\t<point type=\"%s\" loc=\"%s, %s\" />" % (group_curve_stack[index].points[p].handle_type, smallFloat(group_curve_stack[index].points[p].location.x), smallFloat(group_curve_stack[index].points[p].location.y)))
+            p += 1
+    else:
+        text += ("\n\t\t<curve extend=\"%s\" id=\"%s\">" % (curve_stack[index].extend, index))
+        p = 0
+        while p < len(curve_stack[index].points):
+            text += ("\n\t\t\t<point type=\"%s\" loc=\"%s, %s\" />" % (curve_stack[index].points[p].handle_type, smallFloat(curve_stack[index].points[p].location.x), smallFloat(curve_stack[index].points[p].location.y)))
+            p += 1
+    
+    text += ("\n\t\t</curve>")
+    return text
+
+def getNodeData(node, group_mode = False):
     global material_file_contents
+    global curve_stack
     global script_stack
     
     text = ""
@@ -5384,6 +5660,29 @@ def getNodeData(node):
         text += (" color=\"%s\"" % rgba(I['Color'].default_value))
         text += (" bright=\"%s\"" % smallFloat(I['Bright'].default_value))
         text += (" contrast=\"%s\"" % smallFloat(I['Contrast'].default_value))
+        
+    elif node_type == "CURVE_RGB":
+        print("CURVE_RGB")
+        text += (" fac=\"%s\"" % smallFloat(I['Fac'].default_value))
+        text += (" color=\"%s\"" % rgba(I['Color'].default_value))
+        if group_mode:
+            text += (" curve_c=\"%s\"" % len(group_curve_stack))
+            group_curve_stack.append(node.mapping.curves[3])
+            text += (" curve_r=\"%s\"" % len(group_curve_stack))
+            group_curve_stack.append(node.mapping.curves[0])
+            text += (" curve_g=\"%s\"" % len(group_curve_stack))
+            group_curve_stack.append(node.mapping.curves[1])
+            text += (" curve_b=\"%s\"" % len(group_curve_stack))
+            group_curve_stack.append(node.mapping.curves[2])
+        else:
+            text += (" curve_c=\"%s\"" % len(curve_stack))
+            curve_stack.append(node.mapping.curves[3])
+            text += (" curve_r=\"%s\"" % len(curve_stack))
+            curve_stack.append(node.mapping.curves[0])
+            text += (" curve_g=\"%s\"" % len(curve_stack))
+            curve_stack.append(node.mapping.curves[1])
+            text += (" curve_b=\"%s\"" % len(curve_stack))
+            curve_stack.append(node.mapping.curves[2])
     
     elif node_type == "GAMMA":
         print("GAMMA")
@@ -5420,6 +5719,26 @@ def getNodeData(node):
     elif node_type == "BUMP":
         print("BUMP")
         text += (" strength=\"%s\"" % smallFloat(I['Strength'].default_value))
+    
+    elif node_type == "CURVE_VEC":
+        print("CURVE_VEC")
+        text += (" fac=\"%s\"" % smallFloat(I['Fac'].default_value))
+        text += (" vector=\"%s\"" % smallVector(I['Vector'].default_value))
+        
+        if group_mode:
+            text += (" curve_x=\"%s\"" % len(group_curve_stack))
+            group_curve_stack.append(node.mapping.curves[0])
+            text += (" curve_y=\"%s\"" % len(group_curve_stack))
+            group_curve_stack.append(node.mapping.curves[1])
+            text += (" curve_z=\"%s\"" % len(group_curve_stack))
+            group_curve_stack.append(node.mapping.curves[2])
+        else:
+            text += (" curve_x=\"%s\"" % len(curve_stack))
+            curve_stack.append(node.mapping.curves[0])
+            text += (" curve_y=\"%s\"" % len(curve_stack))
+            curve_stack.append(node.mapping.curves[1])
+            text += (" curve_z=\"%s\"" % len(curve_stack))
+            curve_stack.append(node.mapping.curves[2])
         
     elif node_type == "MAPPING":
         print("MAPPING")
@@ -5509,11 +5828,18 @@ def getNodeData(node):
                 text += (" script=\"file://%s\"" % os.path.realpath(bpy.path.abspath(node.filepath)))
         else:
             if node.script:
-                if node.script.name in script_stack:
-                    text += (" script=\"%s\"" % script_stack.index(node.script.name))
+                if group_mode:
+                    if node.script.name in group_script_stack:
+                        text += (" script=\"%s\"" % group_script_stack.index(node.script.name))
+                    else:
+                        text += (" script=\"%s\"" % len(group_script_stack))
+                        group_script_stack.append(node.script.name)
                 else:
-                    text += (" script=\"%s\"" % len(script_stack))
-                    script_stack.append(node.script.name)
+                    if node.script.name in script_stack:
+                        text += (" script=\"%s\"" % script_stack.index(node.script.name))
+                    else:
+                        text += (" script=\"%s\"" % len(script_stack))
+                        script_stack.append(node.script.name)
         if node.inputs:
             for input in node.inputs:
                 if input.type == 'RGBA':
@@ -5533,6 +5859,12 @@ def getNodeData(node):
                     text += (" %s=\"%s\"" % (input.name.lower(), input_value))
     else:
         return " ERROR: UNKNOWN NODE TYPE. "
+    
+    if bpy.app.version[0] + (bpy.app.version[1] / 100.0) > 2.65:
+        if node.hide:
+            text += (" width=\"%s\"" % int(node.width_hidden))
+        else:
+            text += (" width=\"%s\"" % int(node.width))
     text += getLocation(node)
     return text
     
