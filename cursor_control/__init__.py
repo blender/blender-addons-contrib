@@ -23,8 +23,8 @@
 bl_info = {
     "name": "Cursor Control",
     "author": "Morgan Mörtsell (Seminumerical)",
-    "version": (0, 7, 0),
-    "blender": (2, 59, 0),
+    "version": (0, 7, 1),
+    "blender": (2, 65, 4),
     "location": "View3D > Properties > Cursor",
     "description": "Control the Cursor",
     "warning": "buggy, may crash other addons", # used for warning icon and text in addons panel
@@ -46,11 +46,11 @@ if "local_var" in locals():
     imp.reload(history)
     imp.reload(memory)
 else:
-    from cursor_control import data
-    from cursor_control import ui
-    from cursor_control import operators
-    from cursor_control import history
-    from cursor_control import memory
+    from . import data
+    from . import ui
+    from . import operators
+    from . import history
+    from . import memory
 
 local_var = True
 
@@ -64,7 +64,9 @@ def register():
     bpy.types.VIEW3D_MT_snap.append(ui.menu_callback)
 
 def unregister():
-    # Register menu
+    history.VIEW3D_PT_cursor_history_init.handle_remove()
+    memory.VIEW3D_PT_cursor_memory_init.handle_remove()
+    # Unregister menu
     bpy.types.VIEW3D_MT_snap.remove(ui.menu_callback)
     bpy.utils.unregister_module(__name__)
 
