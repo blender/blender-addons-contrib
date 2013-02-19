@@ -12,7 +12,7 @@
  #
  #  You should have received a copy of the GNU General Public License
  #  along with this program; if not, see <http://www.gnu.org/licenses/>
- #  and write to the Free Software Foundation, Inc., 51 Franklin Street, 
+ #  and write to the Free Software Foundation, Inc., 51 Franklin Street,
  #  Fifth Floor, Boston, MA  02110-1301, USA..
  #
  #  The Original Code is Copyright (C) 2012 Blender Foundation ###
@@ -35,8 +35,8 @@ bl_info = {
   "author": "Dan Eicher",
   "version": (0, 1, 1),
   "blender": (2, 65, 4),
-  "location": "Properties -> Object Data -> Selection Sets",
-  "description": "Selection Sets to select groups of bones",
+  "location": "Properties > Object data (Armature) > Selection Sets",
+  "description": "Selection Sets to select groups of posebones",
   "warning": "Proxy armatures need to export sets and run generated script on re-opening file",
   "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Animation/SelectionSets",
   "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=31492",
