@@ -136,21 +136,21 @@ class GamePropertyVisualizer(bpy.types.Operator):
     _handle_calc = None
     _handle_draw = None
 
-    @classmethod
-    def handle_add(cls, self, context):
-        cls._handle_calc = bpy.types.SpaceView3D.draw_handler_add(
+    @staticmethod
+    def handle_add(self, context):
+        GamePropertyVisualizer._handle_calc = bpy.types.SpaceView3D.draw_handler_add(
             calc_callback, (self, context), 'WINDOW', 'POST_VIEW')
-        cls._handle_draw = bpy.types.SpaceView3D.draw_handler_add(
+        GamePropertyVisualizer._handle_draw = bpy.types.SpaceView3D.draw_handler_add(
             draw_callback, (self, context), 'WINDOW', 'POST_PIXEL')
 
-    @classmethod
-    def handle_remove(cls):
-        if cls._handle_calc is not None:
-            bpy.types.SpaceView3D.draw_handler_remove(cls._handle_calc, 'WINDOW')
-        if cls._handle_draw is not None:
-            bpy.types.SpaceView3D.draw_handler_remove(cls._handle_draw, 'WINDOW')
-        cls._handle_calc = None
-        cls._handle_draw = None
+    @staticmethod
+    def handle_remove():
+        if GamePropertyVisualizer._handle_calc is not None:
+            bpy.types.SpaceView3D.draw_handler_remove(GamePropertyVisualizer._handle_calc, 'WINDOW')
+        if GamePropertyVisualizer._handle_draw is not None:
+            bpy.types.SpaceView3D.draw_handler_remove(GamePropertyVisualizer._handle_draw, 'WINDOW')
+        GamePropertyVisualizer._handle_calc = None
+        GamePropertyVisualizer._handle_draw = None
 
     @classmethod
     def poll(cls, context):

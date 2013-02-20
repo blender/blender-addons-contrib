@@ -227,16 +227,16 @@ class VIEW3D_PT_cursor_history_init(bpy.types.Panel):
     initDone = False
     _handle = None
 
-    @classmethod
-    def handle_add(cls, self, context):
-        cls._handle = bpy.types.SpaceView3D.draw_handler_add(
+    @staticmethod
+    def handle_add(self, context):
+        VIEW3D_PT_cursor_history_init._handle = bpy.types.SpaceView3D.draw_handler_add(
             cursor_history_draw, (self, context), 'WINDOW', 'POST_PIXEL')
 
-    @classmethod
-    def handle_remove(cls):
-        if cls._handle is not None:
-            bpy.types.SpaceView3D.draw_handler_remove(cls._handle, 'WINDOW')
-        cls._handle = None
+    @staticmethod
+    def handle_remove():
+        if VIEW3D_PT_cursor_history_init._handle is not None:
+            bpy.types.SpaceView3D.draw_handler_remove(VIEW3D_PT_cursor_history_init._handle, 'WINDOW')
+        VIEW3D_PT_cursor_history_init._handle = None
 
     @classmethod
     def poll(cls, context):

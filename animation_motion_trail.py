@@ -1308,21 +1308,21 @@ class MotionTrailOperator(bpy.types.Operator):
     _handle_calc = None
     _handle_draw = None
 
-    @classmethod
-    def handle_add(cls, self, context):
-        cls._handle_calc = bpy.types.SpaceView3D.draw_handler_add(
+    @staticmethod
+    def handle_add(self, context):
+        MotionTrailOperator._handle_calc = bpy.types.SpaceView3D.draw_handler_add(
             calc_callback, (self, context), 'WINDOW', 'POST_VIEW')
-        cls._handle_draw = bpy.types.SpaceView3D.draw_handler_add(
+        MotionTrailOperator._handle_draw = bpy.types.SpaceView3D.draw_handler_add(
             draw_callback, (self, context), 'WINDOW', 'POST_PIXEL')
 
-    @classmethod
-    def handle_remove(cls):
-        if cls._handle_calc is not None:
-            bpy.types.SpaceView3D.draw_handler_remove(cls._handle_calc, 'WINDOW')
-        if cls._handle_draw is not None:
-            bpy.types.SpaceView3D.draw_handler_remove(cls._handle_draw, 'WINDOW')
-        cls._handle_calc = None
-        cls._handle_draw = None
+    @staticmethod
+    def handle_remove():
+        if MotionTrailOperator._handle_calc is not None:
+            bpy.types.SpaceView3D.draw_handler_remove(MotionTrailOperator._handle_calc, 'WINDOW')
+        if MotionTrailOperator._handle_draw is not None:
+            bpy.types.SpaceView3D.draw_handler_remove(MotionTrailOperator._handle_draw, 'WINDOW')
+        MotionTrailOperator._handle_calc = None
+        MotionTrailOperator._handle_draw = None
 
 
     def modal(self, context, event):
