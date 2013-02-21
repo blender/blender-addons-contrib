@@ -994,6 +994,8 @@ def generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY, sigmaY,
     if scaleDisplace:
         bpy.data.objects[name].scale = Vector((averageX, averageY, averageZ))
 
+    print("RockGen Debug (generateObject): " + name)
+    
     # For a slight speed bump / Readability:
     mesh = bpy.data.meshes[name]
 
@@ -1244,8 +1246,7 @@ def generateRocks(context, scaleX, skewX, scaleY, skewY, scaleZ, skewZ,
         #   *** todo completed 4/19/2011 ***
         #   *** Code is notably slower at high rock counts ***
 
-        if bpy.app.debug:
-            print("RockGen Debug: " + str(i + lastRock))
+        print("RockGen Debug (generateRocks): " + str(i + lastRock))
 
         name = generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY,
                                sigmaY, scaleY, upperSkewY, muZ, sigmaZ, scaleZ,
