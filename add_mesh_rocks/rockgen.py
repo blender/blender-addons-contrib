@@ -1244,6 +1244,9 @@ def generateRocks(context, scaleX, skewX, scaleY, skewY, scaleZ, skewZ,
         #   *** todo completed 4/19/2011 ***
         #   *** Code is notably slower at high rock counts ***
 
+        if bpy.app.debug:
+            print("RockGen Debug: " + str(i + lastRock))
+
         name = generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY,
                                sigmaY, scaleY, upperSkewY, muZ, sigmaZ, scaleZ,
                                upperSkewZ, i, lastRock, scaleDisplace, scale_fac)
