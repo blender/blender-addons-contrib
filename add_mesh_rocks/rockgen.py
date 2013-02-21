@@ -994,7 +994,9 @@ def generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY, sigmaY,
     if scaleDisplace:
         bpy.data.objects[name].scale = Vector((averageX, averageY, averageZ))
 
-    print("RockGen Debug (generateObject): " + name)
+    print("RockGen Debug (generateObject.name): " + name)
+    for m in bpy.data.meshes:
+        print("RockGen Debug (generateObject): " + m.name)
     
     # For a slight speed bump / Readability:
     mesh = bpy.data.meshes[name]
