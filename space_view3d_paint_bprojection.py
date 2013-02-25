@@ -1542,13 +1542,13 @@ class RotateView3D(Operator):
         sd.region_3d.view_location = origine
         
         vz = Vector((0,0,1))
-        qz =  Quaternion(vz,-(mx-self.first_mouse.x)*pi/180)
+        qz =  Quaternion(vz,-8*(mx-self.first_mouse.x)/width)
         sd.region_3d.view_rotation.rotate(qz)
         sd.region_3d.update()
 
         vx = Vector((1,0,0))
         vx.rotate(sd.region_3d.view_rotation)        
-        qx =  Quaternion(vx,(my-self.first_mouse.y)*pi/180)        
+        qx =  Quaternion(vx,8*(my-self.first_mouse.y)/height)        
         sd.region_3d.view_rotation.rotate(qx)                
         sd.region_3d.update()
         
