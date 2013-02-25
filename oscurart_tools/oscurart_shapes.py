@@ -16,7 +16,7 @@ def DefSplitShapes(self,ACTIVESHAPE,LAYOUTCOMPAT):
     LENKB=len(ACTOBJ.data.shape_keys.key_blocks)
     INDEX=ACTOBJ.active_shape_key_index    
     
-    if not LAYOUTCOMPAT:
+    if  LAYOUTCOMPAT:
         for SHAPE in ACTOBJ.data.shape_keys.key_blocks:
             if len(SHAPE.name) > 7:
                 SHAPE.name=SHAPE.name[:8]
@@ -57,7 +57,7 @@ class CreaShapes(bpy.types.Operator):
         return context.object is not None
 
     activeshape=bpy.props.BoolProperty(name="Only Active Shape", default=False)  
-    layoutcompat=bpy.props.BoolProperty(name="Layout Compatible", default=False)
+    layoutcompat=bpy.props.BoolProperty(name="Layout Compatible", default=True)
 
     def execute(self, context):
 
