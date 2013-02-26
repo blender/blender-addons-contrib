@@ -170,7 +170,7 @@
                              inner_sel="#b63e4fff"
                              item="#ffffffff"
                              text="#e6e6e6"
-                             text_sel="#0a0a0a"
+                             text_sel="#ffffff"
                              show_shaded="TRUE"
                              shadetop="19"
                              shadedown="0">
@@ -800,7 +800,8 @@
                     line_input="#ffffff"
                     line_info="#e6006a"
                     line_error="#af2020"
-                    cursor="#80ce00">
+                    cursor="#80ce00"
+                    select="#ffffff30">
         <space>
           <ThemeSpaceGeneric back="#202020"
                              title="#ffffff"
