@@ -191,43 +191,58 @@ def sortlist(filelist):
     
 # recursive load functions 
 
-def onefolder(context, default_recursive_ext):
+def onefolder(context, recursive_select_by_extension, ext):
     '''
     returns a list of MOVIE type files from folder selected in file browser
     '''
     filelist = []
     path, filename = getfilepathfrombrowser()
-    extension = filename.rpartition(".")[2]
+    
+    for i in movieextdict: 
+        if i[0] == ext:
+            extension = i[1].rpartition(".")[2]
+            break
+
     scn = context.scene
 
     if detect_strip_type(path + filename) == 'MOVIE':
-        if default_recursive_ext == True:
+        if recursive_select_by_extension == True:
+            #filtering by extension...
             for file in os.listdir(path):
-                if file.rpartition(".")[2] == extension:
+                if file.rpartition(".")[2].lower() == extension:
                     filelist.append((path, file))
         else:
+            #looking for all known extensions
             for file in os.listdir(path):
-                filelist.append((path, file))
+                for i in movieextdict:
+                    if file.rpartition(".")[2].lower() == i[1].rpartition(".")[2]:
+                        filelist.append((path, file))
     return (filelist)
 
-def recursive(context, default_recursive_ext):
+def recursive(context, recursive_select_by_extension, ext):
     '''
     returns a list of MOVIE type files recursively from file browser
     '''
     filelist = []
     path = getpathfrombrowser()
-    scn = context.scene
-    for i in movieextlist:
-        if i[0] == scn.default_ext:
+    
+    for i in movieextdict:
+        if i[0] == ext:
             extension = i[1].rpartition(".")[2]
-    #pythonic way to magic:
+            break
+    
+    scn = context.scene        
     for root, dirs, files in os.walk(path):
-        for f in files:
-            if default_recursive_ext == True:
-                if f.rpartition(".")[2] == extension:
-                    filelist.append((root, f))
+        for file in files:
+            if recursive_select_by_extension == True:
+                #filtering by extension...
+                if file.rpartition(".")[2].lower() == extension:
+                    filelist.append((root, file))
             else:
-                filelist.append((root, f))
+                #looking for all known extensions
+                for i in movieextdict:
+                    if file.rpartition(".")[2].lower() == i[1].rpartition(".")[2]:
+                        filelist.append((root, file))
     return filelist   
 
 

@@ -131,18 +131,18 @@ def initSceneProperties(context, scn):
         description='Load in recursive folders',
         default=False)
     scn.default_recursive = False
-    
-    bpy.types.Scene.default_recursive_ext = BoolProperty(
-        name='Recursive ext',
-        description='Load only clips with selected extension',
-        default=False)
-    scn.default_recursive_ext = False
-    
+   
     bpy.types.Scene.default_recursive_proxies = BoolProperty(
         name='Recursive proxies',
         description='Load in recursive folders + proxies',
         default=False)
     scn.default_recursive_proxies = False
+    
+    bpy.types.Scene.default_recursive_select_by_extension = BoolProperty(
+        name='Recursive ext',
+        description='Load only clips with selected extension',
+        default=False)
+    scn.default_recursive_select_by_extension = False
     
     bpy.types.Scene.default_ext = EnumProperty(
         items=functions.movieextdict,
@@ -1734,48 +1734,48 @@ class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
     bl_label = "recursive load"
     bl_options = {'REGISTER', 'UNDO'}
     
-    default_recursive = BoolProperty(
+    recursive = BoolProperty(
         name='recursive',
         description='Load in recursive folders',
         default=False)
         
-    default_recursive_ext = BoolProperty(
+    recursive_select_by_extension = BoolProperty(
         name='select by extension',
-        description='Load by extension',
+        description='Load only clips with selected extension',
         default=False)
         
-    default_ext = EnumProperty(
+    ext = EnumProperty(
         items=functions.movieextdict,
         name="extension",
         default="3")
         
-    default_recursive_proxies = BoolProperty(
+    recursive_proxies = BoolProperty(
         name='use proxies',
         description='Load in recursive folders',
         default=False)
     build_25 = BoolProperty(name='default_build_25',
-        description='default build_25',
+        description='build_25',
         default=True)
     build_50 = BoolProperty(name='default_build_50',
-        description='default build_50',
-        default=True)
+        description='build_50',
+        default=False)
     build_75 = BoolProperty(name='default_build_75',
-        description='default build_75',
-        default=True)
+        description='build_75',
+        default=False)
     build_100 = BoolProperty(name='default_build_100',
-        description='default build_100',
-        default=True)
+        description='build_100',
+        default=False)
     proxy_suffix = StringProperty(
-        name='default proxy suffix',
-        description='default proxy filename suffix',
+        name='proxy suffix',
+        description='proxy filename suffix',
         default="-25")
     proxy_extension = StringProperty(
-        name='default proxy extension',
-        description='default proxy extension',
+        name='proxy extension',
+        description='proxy extension',
         default=".mkv")
     proxy_path = StringProperty(
-        name='default proxy path',
-        description='default proxy path',
+        name='proxy path',
+        description='proxy path',
         default="")
     
        
@@ -1790,19 +1790,32 @@ class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
         
     def invoke(self, context, event):
         scn = context.scene
-        initSceneProperties(context, scn)
-        self.build_25 = scn.default_build_25
-        self.build_50 = scn.default_build_50
-        self.build_75 = scn.default_build_75
-        self.build_100 = scn.default_build_100
-        self.proxy_suffix = scn.default_proxy_suffix
-        self.proxy_extension = scn.default_proxy_extension
-        self.proxy_path = scn.default_proxy_path
-        self.recursive = scn.default_recursive
-        self.recursive_ext = scn.default_recursive_ext
-        self.recursive_proxies = scn.default_recursive_proxies
-        self.ext = scn.default_ext 
-        
+        try:
+            self.build_25 = scn.default_build_25
+            self.build_50 = scn.default_build_50
+            self.build_75 = scn.default_build_75
+            self.build_100 = scn.default_build_100
+            self.proxy_suffix = scn.default_proxy_suffix
+            self.proxy_extension = scn.default_proxy_extension
+            self.proxy_path = scn.default_proxy_path
+            self.recursive = scn.default_recursive
+            self.recursive_select_by_extension = scn.default_recursive_select_by_extension
+            self.recursive_proxies = scn.default_recursive_proxies
+            self.ext = scn.default_ext 
+        except AttributeError:
+            initSceneProperties(context, scn)
+            self.build_25 = scn.default_build_25
+            self.build_50 = scn.default_build_50
+            self.build_75 = scn.default_build_75
+            self.build_100 = scn.default_build_100
+            self.proxy_suffix = scn.default_proxy_suffix
+            self.proxy_extension = scn.default_proxy_extension
+            self.proxy_path = scn.default_proxy_path
+            self.recursive = scn.default_recursive
+            self.recursive_select_by_extension = scn.default_recursive_select_by_extension
+            self.recursive_proxies = scn.default_recursive_proxies
+            self.ext = scn.default_ext 
+                
         return context.window_manager.invoke_props_dialog(self)  
         
     def loader(self, context, filelist):
@@ -1811,7 +1824,7 @@ class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
             for i in filelist:
                 functions.setpathinbrowser(i[0], i[1])
                 try:
-                    if self.default_recursive_proxies:
+                    if self.recursive_proxies:
                         bpy.ops.sequencerextra.placefromfilebrowserproxy(
                             proxy_suffix=self.proxy_suffix,
                             proxy_extension=self.proxy_extension,
@@ -1825,19 +1838,52 @@ class Sequencer_Extra_RecursiveLoader(bpy.types.Operator):
                 except:
                     print("Error loading file (recursive loader error): ", i[1])
                     functions.add_marker(context, i[1])
-                    #self.report({'ERROR_INVALID_INPUT'}, 'Error loading file ')
+                    self.report({'ERROR_INVALID_INPUT'}, 'Error loading file ')
                     pass
 
 
     def execute(self, context):
         scn = context.scene
-        initSceneProperties(context, scn)
-        if scn["default_recursive"] == True:
+        #initSceneProperties(context, scn)
+        if self.recursive == True:
+            #recursive
+            #print(functions.sortlist(functions.recursive(\
+            #context, self.recursive_select_by_extension, self.ext)))
             self.loader(context, functions.sortlist(\
-            functions.recursive(context, self.default_recursive_ext)))
+            functions.recursive(context, self.recursive_select_by_extension,\
+            self.ext)))
         else:
+            #non recursive
+            #print(functions.sortlist(functions.onefolder(\
+            #context, self.recursive_select_by_extension, self.ext)))
             self.loader(context, functions.sortlist(functions.onefolder(\
-            context, self.default_recursive_ext)))
+            context, self.recursive_select_by_extension, self.ext)))
+        try:   
+            scn.default_build_25 = self.build_25
+            scn.default_build_50 = self.build_50
+            scn.default_build_75 = self.build_75
+            scn.default_build_100 = self.build_100 
+            scn.default_proxy_suffix = self.proxy_suffix 
+            scn.default_proxy_extension = self.proxy_extension 
+            scn.default_proxy_path = self.proxy_path 
+            scn.default_recursive = self.recursive 
+            scn.default_recursive_select_by_extension = self.recursive_select_by_extension 
+            scn.default_recursive_proxies = self.recursive_proxies
+            scn.default_ext = self.ext 
+        except AttributeError:
+            initSceneProperties(context, scn)
+            self.build_25 = scn.default_build_25
+            self.build_50 = scn.default_build_50
+            self.build_75 = scn.default_build_75
+            self.build_100 = scn.default_build_100
+            self.proxy_suffix = scn.default_proxy_suffix
+            self.proxy_extension = scn.default_proxy_extension
+            self.proxy_path = scn.default_proxy_path
+            self.recursive = scn.default_recursive
+            self.recursive_select_by_extension = scn.default_recursive_select_by_extension
+            self.recursive_proxies = scn.default_recursive_proxies
+            self.ext = scn.default_ext
+            
         return {'FINISHED'}
 
 
