@@ -1126,7 +1126,6 @@ def move_bp(self,context,cm,fm):
 class BP_Paint(bpy.types.Operator):
     bl_idname = "paint.bp_paint"
     bl_label = "Paint BProjection Plane"
-    
     first_mouse = Vector((0,0))
     
     @classmethod
@@ -1141,8 +1140,6 @@ class BP_Paint(bpy.types.Operator):
         center = view3d_utils.location_3d_to_region_2d(context.region, sd.region_3d, em.location)
         vec_init = self.first_mouse - center        
         vec_act = Vector((event.mouse_region_x, event.mouse_region_y)) - center               
-        
-        print(event.type)
             
         if event.type == 'MOUSEMOVE':#'INBETWEEN_MOUSEMOVE':                
              
@@ -1179,6 +1176,7 @@ class BP_Paint(bpy.types.Operator):
         
         self.v_offset =  Vector((context.region.width, context.region.height)) - Vector((event.mouse_region_x, event.mouse_region_y))
         move_bp(self,context,Vector((event.mouse_region_x, event.mouse_region_y)) - self.v_offset,self.first_mouse)
+        
         em.custom_c3d = False
         self.alpha = bpy.data.materials['Material for BProjection'].alpha
         
@@ -1192,13 +1190,13 @@ class BP_Paint(bpy.types.Operator):
         return {'RUNNING_MODAL'}  
 
 # Oprerator Class toggle the alpha of the plane             
-temp_alpha = 1.0
+temp_alpha = 0
 class ApplyImage(Operator):
     bl_idname = "object.bp_toggle_alpha"
     bl_label = "Toggle Alpha of the BP"
     
     def execute(self, context):        
-        global temp_alpha
+        global temp_alpha  
         if temp_alpha != 0:
             bpy.data.materials['Material for BProjection'].alpha = temp_alpha 
             temp_alpha = 0
@@ -1778,7 +1776,8 @@ class PanView3D(bpy.types.Operator):
         loc = vbl - v       
         sd.region_3d.view_location += loc         
         loc.rotate(vr)
-        em.custom_location += loc
+        if not em.custom_style_clone:
+            em.custom_location += loc
 
         self.first_mouse.x = event.mouse_region_x
         self.first_mouse.y = event.mouse_region_y
@@ -1854,7 +1853,9 @@ class ZoomView3D(Operator):
         r3d.view_location *= fac
         r3d.view_location += ob.location
         vres = Vector((em.custom_location.x*fac,em.custom_location.y*fac,em.custom_location.z))
-        em.custom_location = vres
+        
+        if not em.custom_style_clone:
+            em.custom_location = vres
         
         
         align_to_view(context)
