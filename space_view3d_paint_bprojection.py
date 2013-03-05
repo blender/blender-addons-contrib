@@ -1142,12 +1142,14 @@ class BP_Paint(bpy.types.Operator):
         vec_act = Vector((event.mouse_region_x, event.mouse_region_y)) - center               
             
         if event.type == 'MOUSEMOVE':#'INBETWEEN_MOUSEMOVE':                
-             
-            move_bp(self,context,Vector((event.mouse_region_x, event.mouse_region_y)) - self.v_offset,self.first_mouse)   
-            
-            bpy.ops.paint.image_paint(stroke=[{"name":"", "location":(0, 0, 0), "mouse":(event.mouse_region_x, event.mouse_region_y),
-                                                   "pressure":1, "pen_flip":False, "time":0, "is_start":False}])
-
+            step_act = Vector((event.mouse_region_x, event.mouse_region_y)) - self.step_prev
+            if step_act.length >= context.scene.tool_settings.unified_paint_settings.size*bpy.data.brushes['Clone'].spacing/100 or bpy.data.brushes['Clone'].use_airbrush: 
+                move_bp(self,context,Vector((event.mouse_region_x, event.mouse_region_y)) - self.v_offset,self.first_mouse)   
+                
+                bpy.ops.paint.image_paint(stroke=[{"name":"", "location":(0, 0, 0), "mouse":(event.mouse_region_x, event.mouse_region_y),
+                                                       "pressure":1, "pen_flip":False, "time":0, "is_start":False}])
+                self.step_prev = Vector((event.mouse_region_x, event.mouse_region_y))
+                
         if event.type == 'LEFTMOUSE':
             em.custom_c3d = True
             bpy.data.materials['Material for BProjection'].alpha = self.alpha
@@ -1186,7 +1188,7 @@ class BP_Paint(bpy.types.Operator):
             
         bpy.ops.paint.image_paint(stroke=[{"name":"", "location":(0, 0, 0), "mouse":(event.mouse_region_x, event.mouse_region_y),
                                                    "pressure":1, "pen_flip":False, "time":0, "is_start":False}])
-                
+        self.step_prev = Vector((event.mouse_region_x, event.mouse_region_y))       
         return {'RUNNING_MODAL'}  
 
 # Oprerator Class toggle the alpha of the plane             
