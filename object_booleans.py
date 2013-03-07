@@ -12,8 +12,6 @@ bl_info = {
 
 import bpy
 
-scene = bpy.context.scene
-
 ###------ Create Boolean Operators -------###
    
 class boolean(bpy.types.Operator):
@@ -25,6 +23,8 @@ class boolean(bpy.types.Operator):
     modOp = bpy.props.StringProperty()
             
     def execute(self, context):
+ 
+        scene = bpy.context.scene
          
         modName = "Bool"
     
