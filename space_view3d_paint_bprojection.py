@@ -1,5 +1,5 @@
 bl_info = {
-    "name": "BProjection_mega_test",
+    "name": "BProjection",
     "description": "Help Clone tool",
     "author": "kgeogeo",
     "version": (2, 0),
