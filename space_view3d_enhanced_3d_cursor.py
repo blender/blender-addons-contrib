@@ -249,9 +249,8 @@ class EnhancedSetCursor(bpy.types.Operator):
             bpy.ops.view3d.cursor3d_monitor()
         
         # Don't interfere with these modes when only mouse is pressed
-        if ('PAINT' or 'SCULPT') in context.mode:
-            if "MOUSE" in event.type:
-                return {'CANCELLED'}
+        if ('SCULPT' in context.mode) or ('PAINT' in context.mode):
+            if "MOUSE" in event.type:                return {'CANCELLED'}
         
         CursorDynamicSettings.active_transform_operator = self
         
