@@ -21,7 +21,7 @@ bl_info = {
     "name": "Enhanced 3D Cursor",
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
-    "version": (2, 8, 8),
+    "version": (2, 8, 9),
     "blender": (2, 65, 4),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
@@ -249,8 +249,8 @@ class EnhancedSetCursor(bpy.types.Operator):
             bpy.ops.view3d.cursor3d_monitor()
         
         # Don't interfere with these modes when only mouse is pressed
-        if context.mode in ('SCULPT', 'PAINT'):
-            if event.type == "MOUSE":
+        if ('PAINT' or 'SCULPT') in context.mode:
+            if "MOUSE" in event.type:
                 return {'CANCELLED'}
         
         CursorDynamicSettings.active_transform_operator = self
@@ -550,7 +550,8 @@ class EnhancedSetCursor(bpy.types.Operator):
                 tool_settings.snap_element = snap_element
         # end if
         
-        if initial_run or event.type not in ('MOVE', 'TIMER'):
+        if initial_run or event.type not in ('MOUSEMOVE',
+                'INBETWEEN_MOUSEMOVE', 'TIMER'):
             use_snap = (tool_settings.use_snap != event.ctrl)
             if use_snap:
                 snap_type = tool_settings.snap_element
@@ -5103,7 +5104,7 @@ def draw_callback_view(self, context):
     
     update_stick_to_obj(context)
     
-    if context.mode != 'EDIT':
+    if "EDIT" not in context.mode:
         # It's nice to have bookmark position update interactively
         # However, this still can be slow if there are many
         # selected objects
