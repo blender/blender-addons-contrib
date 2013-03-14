@@ -19,8 +19,8 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 0.06),
-    'blender': (2, 6, 5),
+    'version': (2, 0.07),
+    'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
     'warning': "", 
@@ -38,7 +38,7 @@ from bpy.props import EnumProperty, StringProperty
 # with attributes determinig if pass is used,
 # and MultiLayer EXR outputs names and corresponding render engines
 #
-# rl_outputs entry = [render_pass, rl_output_name, exr_output_name, in_internal, in_cycles]
+# rl_outputs entry = (render_pass, rl_output_name, exr_output_name, in_internal, in_cycles)
 rl_outputs = (
     ('use_pass_ambient_occlusion', 'AO', 'AO', True, True),
     ('use_pass_color', 'Color', 'Color',True, False),
@@ -91,14 +91,11 @@ def set_convenience_variables(context):
     global links
 
     space = context.space_data
-    space_tree = space.node_tree
-    tree = space_tree
+    tree = space.node_tree
     nodes = tree.nodes
     links = tree.links
     active = nodes.active
-    selected = [node for node in nodes if node.select]
     context_active = context.active_node
-    context_selected = context.selected_nodes
     # check if we are working on regular node tree or node group is currently edited.
     # if group is edited - active node of space_tree is the group
     # if context.active_node != space active node - it means that the group is being edited.
@@ -160,50 +157,49 @@ class MergeNodes(bpy.types.Operator):
                     
 
         for the_list in [selected_mix, selected_shader, selected_math]:
-            if len(the_list) > 1:
+            if the_list:
                 count_before = len(nodes)
                 # sort list by loc_x - reversed
                 the_list.sort(key = lambda k: k[1], reverse = True)
                 # get maximum loc_x
-                loc_x = the_list[0][1] + 300.0
+                loc_x = the_list[0][1] + 350.0
                 the_list.sort(key = lambda k: k[2], reverse = True)
                 loc_y = the_list[len(the_list) - 1][2]
                 offset_y = 40.0
                 if the_list == selected_shader:
                     offset_y = 150.0
-                add_nodes = []
-                for i in range(len(the_list)-1):
+                the_range = len(the_list)-1
+                do_hide = True
+                if len(the_list) == 1:
+                    the_range = 1
+                    do_hide = False
+                for i in range(the_range):
                     if the_list == selected_mix:
                         add = nodes.new('MIX_RGB')
                         add.blend_type = mode
                         add.show_preview = False
-                        add.hide = True
+                        add.hide = do_hide
                         first = 1
                         second = 2
-                        if hasattr(add, 'width_hidden'):
-                            add.width_hidden = 100.0
+                        add.width_hidden = 100.0
                     elif the_list == selected_math:
                         add = nodes.new('MATH')
                         add.operation = mode
-                        add.hide = True
+                        add.hide = do_hide
                         first = 0
                         second = 1
-                        if hasattr(add, 'width_hidden'):
-                            add.width_hidden = 100.0
+                        add.width_hidden = 100.0
                     elif the_list == selected_shader:
                         if mode == 'MIX':
                             add = nodes.new('MIX_SHADER')
                             first = 1
                             second = 2
-                            if hasattr(add, 'width_hidden'):
-                                add.width_hidden = 100.0
+                            add.width_hidden = 100.0
                         elif mode == 'ADD':
                             add = nodes.new('ADD_SHADER')
                             first = 0
                             second = 1
-                            if hasattr(add, 'width_hidden'):
-                                add.width_hidden = 100.0
-                        
+                            add.width_hidden = 100.0
                     add.location.x = loc_x
                     add.location.y = loc_y
                     loc_y += offset_y
@@ -217,13 +213,14 @@ class MergeNodes(bpy.types.Operator):
                 for i in range(count_adds):
                     if i < count_adds - 1:
                         links.new(nodes[index-1].inputs[first], nodes[index].outputs[0])
-                    links.new(nodes[index].inputs[second], nodes[the_list[i+1][0]].outputs[0])
+                    if len(the_list) > 1:
+                        links.new(nodes[index].inputs[second], nodes[the_list[i+1][0]].outputs[0])
                     index -= 1
                 # set "last" of added nodes as active    
                 nodes.active = nodes[count_before]
                 for [i, x, y] in the_list:
                     nodes[i].select = False
-        
+                    
         return {'FINISHED'}
 
 
@@ -342,101 +339,59 @@ class NodesCopySettings(bpy.types.Operator):
     
     def execute(self, context):
         set_convenience_variables(context)
-        n_index = len(nodes)  # get index of new node when added
+        selected = [n for n in nodes if n.select]
+        reselect = []  # duplicated nodes will be selected after execution
         active = nodes.active
-        selected_i = []  # entry = node index
-        selected_same_type_i = []  # entry = node index
-        reconnects = []  #entry = [old index, new index]
-        old_links = []
-        new_links = []
+        if active.select:
+            reselect.append(active)
         
-        for si, node in enumerate(nodes):
-            if node.select:
-                selected_i.append(si)  # will be used to restore selection
-                if active.type == node.type and node != active:
-                    selected_same_type_i.append(si)
-        
-        for si in selected_same_type_i:
-            bpy.ops.node.select_all(action = 'DESELECT')
-            nodes.active = active
-            active.select = True
-            bpy.ops.node.duplicate()
-            copied = nodes.active
-            copied.hide = nodes[si].hide
-            copied.show_preview = nodes[si].show_preview
-            copied.mute = nodes[si].mute
-            copied.label = nodes[si].label
-            copied.use_custom_color = nodes[si].use_custom_color
-            copied.color = nodes[si].color
-            if copied.parent:
-                bpy.ops.node.parent_clear()
-            locx = nodes[si].location.x
-            locy = nodes[si].location.y
-            # get absolute nodes[si] location
-            parent = nodes[si].parent
-            while parent:
-                locx += parent.location.x
-                locy += parent.location.y
-                parent = parent.parent
-            copied.location = [locx, locy]
-            reconnects.append([si, n_index])
-            n_index += 1
-
-        for li, link in enumerate(links):
-            from_node = None
-            from_socket = None
-            to_node = None
-            to_socket = None
-            for ni in selected_same_type_i:
-                if link.from_node == nodes[ni]:
-                    from_node = ni
-                    for oi, output in enumerate(nodes[ni].outputs):
-                        if link.from_socket == output:
-                            from_socket = oi
-                            break
-                    for nj in range (len(nodes)):
-                        if link.to_node == nodes[nj]:
-                            to_node = nj
-                            for ii, input in enumerate(nodes[nj].inputs):
-                                if link.to_socket == input:
-                                    to_socket = ii
-                    entry = [from_node, from_socket, to_node, to_socket]
-                    if entry not in old_links:
-                        old_links.append(entry)
-                elif link.to_node == nodes[ni]:
-                    to_node = ni
-                    for ii, input in enumerate(nodes[ni].inputs):
-                        if link.to_socket == input:
-                            to_socket = ii
-                            break
-                    for nj in range (len(nodes)):
-                        if link.from_node == nodes[nj]:
-                            from_node = nj
-                            for oi, output in enumerate(nodes[nj].outputs):
-                                if link.from_socket == output:
-                                    from_socket = oi
-                    entry = [from_node, from_socket, to_node, to_socket]
-                    if entry not in old_links:
-                        old_links.append(entry)
-        
-        for i, [fn, fs, tn, ts] in enumerate(old_links):
-            for [old_i, new_i] in reconnects:
-                if fn == old_i:
-                    fn = new_i
-                if tn == old_i:
-                    tn = new_i
-            new_links.append([fn, fs, tn, ts])
-        
-        for [fn, fs, tn, ts] in new_links:
-            links.new(nodes[fn].outputs[fs], nodes[tn].inputs[ts])
-                       
+        for node in selected:
+            if node.type == active.type and node != active:
+                # duplicate active, relink links as in 'node', append copy to 'reselect', delete node
+                bpy.ops.node.select_all(action = 'DESELECT')
+                nodes.active = active
+                active.select = True
+                bpy.ops.node.duplicate()
+                copied = nodes.active
+                # Copied active should however inherit some properties from 'node'
+                attributes = (
+                    'hide', 'show_preview', 'mute', 'label',
+                    'use_custom_color', 'color', 'width', 'width_hidden',
+                    )
+                for attr in attributes:
+                    setattr(copied, attr, getattr(node, attr))
+                # Handle scenario when 'node' is in frame. 'copied' is in same frame then.
+                if copied.parent:
+                    bpy.ops.node.parent_clear()
+                locx = node.location.x
+                locy = node.location.y
+                # get absolute node location
+                parent = node.parent
+                while parent:
+                    locx += parent.location.x
+                    locy += parent.location.y
+                    parent = parent.parent
+                copied.location = [locx, locy]
+                # reconnect links from node to copied
+                for i, input in enumerate(node.inputs):
+                    if input.links:
+                        link = input.links[0]
+                        links.new(link.from_socket, copied.inputs[i])
+                for out, output in enumerate(node.outputs):
+                    if output.links:
+                        out_links = output.links
+                        for link in out_links:
+                            links.new(copied.outputs[out], link.to_socket)
+                bpy.ops.node.select_all(action = 'DESELECT')
+                node.select = True
+                bpy.ops.node.delete()
+                reselect.append(copied)
+            else:  # If selected wasn't copied, need to reselect it afterwards.
+                reselect.append(node)
         # clean up
         bpy.ops.node.select_all(action = 'DESELECT')
-        for i in selected_same_type_i:
-            nodes[i].select = True
-        bpy.ops.node.delete()
-        for i in selected_i:
-            nodes[i].select = True
+        for node in reselect:
+            node.select = True
         nodes.active = active
         
         return {'FINISHED'}
@@ -444,26 +399,65 @@ class NodesCopySettings(bpy.types.Operator):
 
 class NodesCopyLabel(bpy.types.Operator):
     bl_idname = "node.copy_label"
-    bl_label = "Copy Label of Active Node to Selected Nodes"
+    bl_label = "Copy Label"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    # option: 'from active', 'from node', 'from socket'
+    option = StringProperty()
+    
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+    
+    def execute(self, context):
+        set_convenience_variables(context)
+        option = self.option
+        active = nodes.active
+        if option == 'from active':
+            if active:
+                src_label = active.label
+                for node in [n for n in nodes if n.select and nodes.active != n]:
+                    node.label = src_label
+        elif option == 'from node':
+            selected = [n for n in nodes if n.select]
+            for node in selected:
+                for input in node.inputs:
+                    if input.links:
+                        src = input.links[0].from_node
+                        node.label = src.label
+                        break
+        elif option == 'from socket':
+            selected = [n for n in nodes if n.select]
+            for node in selected:
+                for input in node.inputs:
+                    if input.links:
+                        src = input.links[0].from_socket
+                        node.label = src.name
+                        break
+        
+        return {'FINISHED'}
+
+
+class NodesClearLabel(bpy.types.Operator):
+    bl_idname = "node.clear_label"
+    bl_label = "Clear Label"
     bl_options = {'REGISTER', 'UNDO'}
     
     @classmethod
     def poll(cls, context):
         space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None and context.active_node is not None
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def execute(self, context):
         set_convenience_variables(context)
-        selected = []
-        active = nodes.active
-        for si, node in enumerate(nodes):
-            if node.select and node != active:
-                selected.append(si)
-        src_label = active.label
-        for si in selected:
-            nodes[si].label = src_label
+        for node in [n for n in nodes if n.select]:
+            node.label = ''
         
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(self, event)
 
 
 class NodesAddTextureSetup(bpy.types.Operator):
@@ -519,58 +513,59 @@ class NodesAddTextureSetup(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class AddSwitchesToNodesOutputs(bpy.types.Operator):
-    bl_idname = "node.switches_to_outputs"
-    bl_label = "Add Switches to Links"
+class NodesAddReroutes(bpy.types.Operator):
+    bl_idname = "node.add_reroutes"
+    bl_label = "Add Reroutes to Outputs"
     bl_options = {'REGISTER', 'UNDO'}
     
-    name_options = ['Nodes names', 'Outputs names', 'Nodes and Outputs names']
-    naming = []
-    for n in name_options:
-        naming.append((n, n, n))
-    
-    naming = EnumProperty(
-        name = "naming",
-        description = "Name nodes using...",
-        items = naming
-        )
+    # option: 'all', 'loose'
+    option = StringProperty()
     
     @classmethod
     def poll(cls, context):
         space = context.space_data
-        valid = False
-        if space.type == 'NODE_EDITOR':
-            if space.tree_type == 'COMPOSITING' and space.node_tree is not None:
-                valid = True
-        return valid
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def execute(self, context):
+        option = self.option
         set_convenience_variables(context)
-        n_index = len(nodes) - 1  # get index of last node in nodes' list before script execution
-        selected_i = []  # entry = node index
-        new_links = []  # entry = [to node index, input index, from node index, output index]
-        reconnects = []  # entry [old from node index, old from output index, new node index] - used to reconnect links
-        
-        # append selected nodes' indexes to selected_i
-        for node_i, node in enumerate(nodes):
-            if node.select:
-                selected_i.append(node_i)
-        
-        # create new nodes and append entries for new links - from selected to new nodes
-        for si in selected_i:
-            node = nodes[si]
-            name = node.name
-            # if node has label - use it instead of its name
-            if node.label:
-                name = node.label
-            x = node.location.x + 400.0
-            y = node.location.y
-            y_offset = -50.0
-            loc = [x, y]
-            # if analyzed node's output is linked - add node and "connect" to output
+        # output valid when option is 'all' or when 'loose' output has no links
+        valid = False
+        post_select = []  # nodes to be selected after execution
+        # create reroutes and recreate links
+        for node in [n for n in nodes if n.select]:
+            if node.outputs:
+                x = node.location.x
+                y = node.location.y
+                width = node.width
+                # unhide 'REROUTE' nodes to avoid issues with location.y
+                if node.type == 'REROUTE':
+                    node.hide = False
+                # When node is hidden - width_hidden not usable.
+                # Hack needed to calculate real width
+                if node.hide:
+                    bpy.ops.node.select_all(action = 'DESELECT')
+                    helper = nodes.new('REROUTE')
+                    helper.select = True
+                    node.select = True
+                    # resize node and helper to zero. Then check locations to calculate width
+                    bpy.ops.transform.resize(value = (0.0, 0.0, 0.0))
+                    width = 2.0 * (helper.location.x - node.location.x)
+                    # restore node location
+                    node.location = [x,y]
+                    # delete helper
+                    node.select = False
+                    # only helper is selected now
+                    bpy.ops.node.delete()
+                x = node.location.x + width + 20.0
+                if node.type != 'REROUTE':
+                    y -= 35.0
+                y_offset = -20.0
+                loc = [x, y]
+            reroutes_count = 0  # will be used when aligning reroutes added to hidden nodes
             for out_i, output in enumerate(node.outputs):
                 pass_used = False  # initial value to be analyzed if 'R_LAYERS'
-                # if node is not 'R_LAYERS' - "is_pass_used" not needed, so set it to True
+                # if node is not 'R_LAYERS' - "pass_used" not needed, so set it to True
                 if node.type != 'R_LAYERS':
                     pass_used = True
                 else:  # if 'R_LAYERS' check if output represent used render pass
@@ -580,73 +575,89 @@ class AddSwitchesToNodesOutputs(bpy.types.Operator):
                     if output.name == 'Alpha':
                         pass_used = True
                     else:
+                        # check entries in global 'rl_outputs' variable
                         for [render_pass, out_name, exr_name, in_internal, in_cycles] in rl_outputs:
                             if output.name == out_name:
                                 pass_used = getattr(node_scene.render.layers[node_layer], render_pass)
                                 break
                 if pass_used:
-                    n = nodes.new('SWITCH')
-                    n.hide = True
-                    if self.naming == 'Nodes names':
-                        n.label = name
-                    elif self.naming == 'Outputs names':
-                        n.label = output.name
-                    else:
-                        n.label = name + '_' + output.name
-                    if hasattr(n, 'width_hidden'):
-                        n.width_hidden = 100.0
-                    n.location = loc
+                    valid = option == 'all' or (option == 'loose' and not output.links)
+                    # Add reroutes only if valid, but offset location in all cases.
+                    if valid:
+                        n = nodes.new('REROUTE')
+                        nodes.active = n
+                        for link in output.links:
+                            links.new(n.outputs[0], link.to_socket)
+                        links.new(output, n.inputs[0])
+                        n.location = loc
+                        post_select.append(n)
+                    reroutes_count += 1
                     y += y_offset 
                     loc = [x, y]
-                    n_index += 1  # new node appeared. It's given the index of previous last index plus 1
-                    to_node = n_index
-                    to_input = 0  # new node has only one input, so index of 0 will be used
-                    from_node = node.name  # get name of nodes[si]
-                    from_output = out_i
-                    # append entry to new_links. new links will be made afterwards in one loop
-                    new_links.append([to_node, to_input, from_node, from_output])
-                    # append entries to "reconnects" so that in next "for si" loop proper connections can be made
-                    reconnects.append([si, from_output, n_index])
             # disselect the node so that after execution of script only newly created nodes are selected
             node.select = False
+            # nicer reroutes distribution along y when node.hide
+            if node.hide:
+                y_translate = reroutes_count * y_offset / 2.0 - y_offset - 35.0
+                for reroute in [r for r in nodes if r.select]:
+                    reroute.location.y -= y_translate
+            for node in post_select:
+                node.select = True
         
-        # create entries for new links - from new nodes to old inputs
-        # analyze all for every link. len(links) is rather greater than len(selected_i),
-        # so less entries is required this way
-        for link in links:
-            for si in selected_i:
-                if link.from_node == nodes[si]:
-                    # if link "li" is linked from node "si" create new entry for new_links
-                    new_link = []
-                    to_node = link.to_node
-                    to_node_name = to_node.name
-                    # analyze "to_node" inputs
-                    for in_i, input in enumerate(to_node.inputs):
-                        if input == link.to_socket:
-                            # create first 2 of 4 entries in "new_link"
-                            # when creating links - nodes' indexes can be used, but names as well
-                            new_link.append(to_node_name)
-                            new_link.append(in_i)
-                    # analyze nodes[si] outputs if they are part of link "li"
-                    for out_i, output in enumerate(nodes[si].outputs):
-                        if link.from_socket == nodes[si].outputs[out_i]:
-                            # if so: check "new_nodes" entries and create last 2 of 4 entries in "new_link"
-                            for [old_node_i, old_out_i, new_node_i] in reconnects:
-                                if old_node_i == si:
-                                    if out_i == old_out_i:
-                                        new_link.append(new_node_i)
-                                        # new nodes have only one output, so index 0 will always be correct
-                                        new_link.append(0)
-                    # append newly created entry to "new_links" list
-                    new_links.append(new_link)
-        
-        # create all new links:
-        # From linked outs of selected nodes to newly created nodes (created in first loop when new nodes were added)
-        # From new nodes to old inputs (created in 2nd loop when links were analyzed and selected nodes for each link)
-        for [to_node, to_input, from_node, from_output] in new_links:
-            links.new(nodes[to_node].inputs[to_input], nodes[from_node].outputs[from_output])
-        
-        nodes.active = nodes[n_index]  # make the last of newly created nodes active
+        return {'FINISHED'}
+    
+
+class NodesReroutesSwitchesSwap(bpy.types.Operator):
+    bl_idname = "node.reroutes_switches_swap"
+    bl_label = "Swap Reroutes and Switches"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    # option: 'SWITCH', 'REROUTE'
+    # 'SWITCH' - change selected reroutes to switches
+    # 'REROUTE' - change selected switches to reroutes
+    option = StringProperty()
+    
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+    
+    def execute(self, context):
+        set_convenience_variables(context)
+        option = self.option
+        selected = [n for n in nodes if n.select]
+        reselect = []
+        if option == 'SWITCH':
+            replace_type = 'REROUTE'
+        elif option == 'REROUTE':
+            replace_type = 'SWITCH'
+        for node in selected:
+            if node.type == replace_type:
+                valid = True
+                if option == 'REROUTE':
+                    if node.inputs[1].links:
+                        valid = False
+                if valid:
+                    new_node = nodes.new(option)
+                    in_link = node.inputs[0].links[0]
+                    if in_link:
+                        links.new(in_link.from_socket, new_node.inputs[0])
+                    for out_link in node.outputs[0].links:
+                        links.new(new_node.outputs[0], out_link.to_socket)
+                    new_node.location = node.location
+                    new_node.label = node.label
+                    new_node.hide = True
+                    new_node.width_hidden = 100.0
+                    nodes.active = new_node
+                    reselect.append(new_node)
+                    bpy.ops.node.select_all(action = "DESELECT")
+                    node.select = True
+                    bpy.ops.node.delete()
+                else:
+                    reselect.append(node)
+        for node in reselect:
+            node.select = True
+            
         return {'FINISHED'}
 
 
@@ -655,30 +666,29 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
     bl_label = "Link Active Node to Selected"
     bl_options = {'REGISTER', 'UNDO'}
     
-    options = []
-    options_list = ['Nodes Names', 'Nodes Location', 'First Output Only',]
-    for opt in options_list:
-        options.append((opt, opt, opt))
-    
-    option = EnumProperty(
-        name = "option",
-        description = "Option",
-        items = options
-        )
+    # option: 'True/Nodes Names', 'True/Nodes Location', 'True/First Output Only'
+    #         'False/Nodes Names', 'False/Nodes Location', 'False/First Output Only'
+    option = StringProperty()    
     
     @classmethod
     def poll(cls, context):
         space = context.space_data
         valid = False
         if space.type == 'NODE_EDITOR':
-            if space.tree_type == 'COMPOSITING' and space.node_tree is not None and context.active_node is not None:
+            if space.node_tree is not None and context.active_node is not None:
                 valid = True
         return valid
     
     def execute(self, context):
         set_convenience_variables(context)
-        option = self.option
+        splitted_option = self.option.split('/')
+        # Will replace existing links or not
+        replace = eval(splitted_option[0])  # True or False
+        # basis for linking: 'Nodes Names', 'Nodes Location', 'First Output Only'
+        option = splitted_option[1]
+        # Links will be made from active node
         active = nodes.active
+        # create list of selected nodes. Links will be made to those nodes
         selected = []  # entry = [node index, node locacion.x, node.location.y]
         for i, node in enumerate(nodes):
             is_selected = node.select
@@ -687,37 +697,43 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
             is_valid = is_selected and is_not_active and has_inputs
             if is_valid:
                 selected.append([i, node.location.x, node.location.y])
+        # sort selected by location.y, then location.x. Easier handling of "Nodes Location" option
         selected.sort(key = lambda k: (-k[2], k[1]))
         if active:
             if active.select:
+                # create manageable list of active outputs
                 outputs = []
                 for i, out in enumerate(active.outputs):
                     if active.type != 'R_LAYERS':
                         outputs.append(i)
                     else:
+                        # 'R_LAYERS' node type needs special handling.
+                        # Check if pass represented by output is used.
+                        # global 'rl_outputs' list will be used for that
                         for [render_pass, out_name, exr_name, in_internal, in_cycles] in rl_outputs:
                             pass_used = False
                             if out.name == 'Alpha':
                                 pass_used = True
                             elif out.name == out_name:
+                                # example 'render_pass' entry: 'use_pass_uv' Check if True in scene render layers
                                 pass_used = getattr(node.scene.render.layers[node.layer], render_pass)
                                 break
                         if pass_used:
                             outputs.append(i)
-                if len(outputs) > 0:
+                if outputs:
                     if option == 'Nodes Names':
                         for i, out in enumerate(outputs):
-                            for [ni, x, y] in selected:
+                            for [ni, x, y] in selected:  # [node index, location.x, location.y]
                                 name = nodes[ni].name
                                 l = len(nodes[ni].inputs)
                                 if nodes[ni].label:
                                     name = nodes[ni].label
                                 for [render_pass, out_name, exr_name, in_internal, in_cycles] in rl_outputs:
                                     if name in {out_name, exr_name}:
-                                        names = [out_name, exr_name]
+                                        names = [out_name, exr_name]  # if out name matches any of those - valid
                                         break
                                     else:
-                                        names = [name]
+                                        names = [name]  # length of entry doesn't matter.
                                 if len(outputs) > 1:
                                     if active.outputs[out].name in names:
                                         out_type = active.outputs[out].type
@@ -952,16 +968,11 @@ class EfficiencyToolsPanel(bpy.types.Panel):
             box.operator(NodesAddTextureSetup.bl_idname, text = 'Add Image Texture (Ctrl T)')
         box.menu(BatchChangeNodesMenu.bl_idname, text = 'Batch Change...')
         box.operator_menu_enum(AlignNodes.bl_idname, "align_axis", text = "Align Nodes (Shift =)")
-        box.menu(CopyNodePropertiesMenu.bl_idname, text = 'Copy Active to Selected (Shift-C)')
-        if type == 'COMPOSITING':
-            box = layout.box()
-            box.label('Add Switches to Outputs (Ctrl /):')
-            row = box.row()
-            row.operator_menu_enum(AddSwitchesToNodesOutputs.bl_idname, "naming", text = 'Base Names on')
-            
-            box = layout.box()
-            box.label('Link Active to Selected (Shift F)')
-            box.operator_menu_enum(NodesLinkActiveToSelected.bl_idname, "option", text = "Basing on")
+        box.menu(CopyNodePropertiesMenu.bl_idname, text = 'Copy to Selected (Shift-C)')
+        box.operator(NodesClearLabel.bl_idname)
+        box.menu(AddReroutesMenu.bl_idname, text = 'Add Reroutes')
+        box.menu(ReroutesSwitchesSwapMenu.bl_idname, text = 'Swap Reroutes and Switches')
+        box.menu(LinkActiveToSelectedMenu.bl_idname, text = 'Link Active To Selected')
 
 
 #############################################################
@@ -989,18 +1000,10 @@ class EfficiencyToolsMenu(bpy.types.Menu):
             property="align_axis",
             text="Align Nodes",
             )
-        layout.menu(CopyNodePropertiesMenu.bl_idname, text = 'Copy Active to Selected       Shift C')
-        if type == 'COMPOSITING':
-            layout.operator_menu_enum(
-                AddSwitchesToNodesOutputs.bl_idname,
-                property = "naming",
-                text = 'Add Switches to Outputs. Names base:',
-                )
-            layout.operator_menu_enum(
-                NodesLinkActiveToSelected.bl_idname,
-                property = "option",
-                text = "Link Active to Selected basing on",
-                )
+        layout.menu(CopyNodePropertiesMenu.bl_idname, text = 'Copy to Selected')
+        layout.menu(AddReroutesMenu.bl_idname, text = 'Add Reroutes')
+        layout.menu(ReroutesSwitchesSwapMenu.bl_idname, text = 'Swap Reroutes and Switches')
+        layout.menu(LinkActiveToSelectedMenu.bl_idname, text = 'Link Active To Selected')
 
 
 class MergeNodesMenu(bpy.types.Menu):
@@ -1122,26 +1125,60 @@ class CopyNodePropertiesMenu(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(NodesCopySettings.bl_idname, text = 'Copy Settings')
-        layout.operator(NodesCopyLabel.bl_idname, text = 'Copy Label')
+        layout.operator(NodesCopySettings.bl_idname, text = 'Settings from Active')
+        layout.menu(CopyLabelMenu.bl_idname)
+
+
+class CopyLabelMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_copy_label_menu"
+    bl_label = "Copy Label"
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(NodesCopyLabel.bl_idname, text = 'from Active Node\'s Label').option = 'from active'
+        layout.operator(NodesCopyLabel.bl_idname, text = 'from Linked Node\'s Label').option = 'from node'
+        layout.operator(NodesCopyLabel.bl_idname, text = 'from Linked Output\'s Name').option = 'from socket'
+
+
+class AddReroutesMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_add_reroutes_menu"
+    bl_label = "Add Reroutes"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(NodesAddReroutes.bl_idname, text = 'to All Outputs').option = 'all'
+        layout.operator(NodesAddReroutes.bl_idname, text = 'to Loose Outputs').option = 'loose'
+
+
+class ReroutesSwitchesSwapMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_reroutes_switches_swap_menu"
+    bl_label = "Swap Reroutes and Switches"
+    
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(NodesReroutesSwitchesSwap.bl_idname, text = "Change to Switches").option = 'SWITCH'
+        layout.operator(NodesReroutesSwitchesSwap.bl_idname, text = "Change to Reroutes").option = 'REROUTE'
 
 
 class LinkActiveToSelectedMenu(bpy.types.Menu):
     bl_idname = "NODE_MT_link_active_to_selected_menu"
-    bl_label = "Link Active To Selected"
+    bl_label = "Link Active to Selected, base on..."
 
     @classmethod
     def poll(cls, context):
         space = context.space_data
         return space.type == 'NODE_EDITOR' and space.node_tree is not None
-
+    
     def draw(self, context):
         layout = self.layout
-        layout.operator_menu_enum(
-            NodesLinkActiveToSelected.bl_idname,
-            property="option",
-            text="Basing on...",
-            )
+        for opt in ('Nodes Names', 'Nodes Location', 'First Output Only'):
+            full_opt = 'True/' + opt
+            layout.operator(NodesLinkActiveToSelected.bl_idname, text=opt).option = full_opt
 
 
 class NodeAlignMenu(bpy.types.Menu):
@@ -1159,24 +1196,6 @@ class NodeAlignMenu(bpy.types.Menu):
             AlignNodes.bl_idname,
             property="align_axis",
             text="Direction...",
-            )
-
-
-class SwitchesToOutputsMenu(bpy.types.Menu):
-    bl_idname = "NODE_MT_switches_to_outputs_menu"
-    bl_label = "Add Switches to Outputs"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-    
-    def draw(self, context):
-        layout = self.layout
-        layout.operator_menu_enum(
-            AddSwitchesToNodesOutputs.bl_idname,
-            property="naming",
-            text="Name Switches using...",
             )
 
 #############################################################
@@ -1203,7 +1222,7 @@ def register():
     addon_keymaps.append((km, kmi))
     
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_0', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'MIX AUTO'
+    kmi.properties.combo = 'MIX MIX'
     addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl = True)
     kmi.properties.combo = 'ADD AUTO'
@@ -1216,6 +1235,12 @@ def register():
     addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl = True)
     kmi.properties.combo = 'DIVIDE AUTO'
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'COMMA', 'PRESS', ctrl = True)
+    kmi.properties.combo = 'LESS_THAN MATH'
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'PERIOD', 'PRESS', ctrl = True)
+    kmi.properties.combo = 'GREATER_THAN MATH'
     addon_keymaps.append((km, kmi))
     
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_0', 'PRESS', ctrl = True, alt = True)
@@ -1306,8 +1331,8 @@ def register():
     kmi.properties.change = '1.0'
     addon_keymaps.append((km, kmi))
     
-    kmi = km.keymap_items.new('wm.call_menu', 'SLASH', 'PRESS', ctrl = True)
-    kmi.properties.name = SwitchesToOutputsMenu.bl_idname
+    kmi = km.keymap_items.new('wm.call_menu', 'SLASH', 'PRESS')
+    kmi.properties.name = AddReroutesMenu.bl_idname
     addon_keymaps.append((km, kmi))
     
     kmi = km.keymap_items.new('wm.call_menu', 'EQUAL', 'PRESS', shift = True)
@@ -1321,10 +1346,14 @@ def register():
     kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS', shift = True)
     kmi.properties.name = CopyNodePropertiesMenu.bl_idname
     addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS', ctrl = True, shift = True)
-    kmi.properties.name = CopyNodePropertiesMenu.bl_idname
+    
+    kmi = km.keymap_items.new(NodesClearLabel.bl_idname, 'L', 'PRESS', alt = True)
     addon_keymaps.append((km, kmi))
     
+    kmi = km.keymap_items.new('wm.call_menu', 'S', 'PRESS', shift = True)
+    kmi.properties.name = ReroutesSwitchesSwapMenu.bl_idname
+    addon_keymaps.append((km, kmi))
+
     kmi = km.keymap_items.new(NodesAddTextureSetup.bl_idname, 'T', 'PRESS', ctrl = True)
     addon_keymaps.append((km, kmi))
     
