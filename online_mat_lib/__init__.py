@@ -272,7 +272,7 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                 row = layout.row()
                 row.operator("wm.url_open", text="Stay up-to-date on this add-on's development!", icon='TRIA_RIGHT', emboss=False).url = "http://blenderartists.org/forum/showthread.php?256334"
                 
-                if int(bpy.app.build_revision.decode()) < 54153:
+                if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.66:
                     row = layout.row()
                     row.operator("wm.url_open", text="Material previews generated with B.M.P.S.", icon='TRIA_RIGHT', emboss=False).url = "https://svn.blender.org/svnroot/bf-blender/trunk/lib/tests/rendering/cycles/blend_files/bmps.blend"
                     row = layout.row()
@@ -544,10 +544,10 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                     inforowcol = inforowsplit.column()
                     previewrow = inforowcol.row()
                     
-                    if int(bpy.app.build_revision.decode()) < 54153:
-                        #Use a texture preview in Blender versions before r54153,
+                    if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.66:
+                        #Use a texture preview in Blender versions before 2.66,
                         #in which the Cycles material preview was added.
-                        #Two previews in a single region does not work well together.
+                        #Two previews in a single region do not work well together.
                         if bpy.data.textures.find("mat_lib_preview_texture") == -1:
                             bpy.data.textures.new("mat_lib_preview_texture", "IMAGE")
                             
@@ -593,7 +593,7 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                     #Display material functions
                     inforow = infobox.row(align=True)
                     inforow.alignment = 'EXPAND'
-                    if int(bpy.app.build_revision.decode()) >= 54153 and category_special == "none":
+                    if bpy.app.version[0] + (bpy.app.version[1] / 100.0) >= 2.66 and category_special == "none":
                         inforowcol = inforow.column()
                         if previewing:
                             inforowcol.operator("material.libraryremovepreview", text="", icon='CANCEL')
@@ -1378,14 +1378,14 @@ def libraryCategoryUpdate(self, context):
         category_contents = "None"
         current_material_number = -1
         category_type = "none"
-    if int(bpy.app.build_revision.decode()) >= 54153 and context.active_object.material_slots[-1].material.name == "mat_lib_preview_material":
+    if bpy.app.version[0] + (bpy.app.version[1] / 100.0) >= 2.66 and context.active_object.material_slots[-1].material.name == "mat_lib_preview_material":
         bpy.ops.material.libraryremovepreview()
 
 category_enum_items = [("None0", "None", "No category selected")]
 bpy.types.Scene.mat_lib_material_category = bpy.props.EnumProperty(items = category_enum_items, name = "", description = "Choose a category", update=libraryCategoryUpdate)
 
 def matDetails(self, context, inforowcol):
-    if int(bpy.app.build_revision.decode()) < 54153 and (category_special == "none" or category_special == "Image Textures"):
+    if bpy.app.version[0] + (bpy.app.version[1] / 100.0) >= 2.66 and (category_special == "none" or category_special == "Image Textures"):
         inforowcolrow = inforowcol.row()
         if material_contributors[current_material_number] != "Unknown":
             inforowcolrow.label(text="By %s." % material_contributors[current_material_number])
@@ -1496,7 +1496,7 @@ class ViewMaterial(bpy.types.Operator):
         current_material_cached = False
         
         if self.material == -1:
-            if int(bpy.app.build_revision.decode()) >= 54153 and context.active_object.material_slots[-1].material.name == "mat_lib_preview_material":
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) >= 2.66 and context.active_object.material_slots[-1].material.name == "mat_lib_preview_material":
                 bpy.ops.material.libraryremovepreview()
             return {'FINISHED'}
         
@@ -1609,7 +1609,7 @@ class LibraryPreview(bpy.types.Operator):
         findLibrary()
         
         previewed = 'status_none'
-        if int(bpy.app.build_revision.decode()) < 54153 and category_special != "OSL Scripts" and category_special != "Nodegroups":
+        if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.66 and category_special != "OSL Scripts" and category_special != "Nodegroups":
             if category_special == "Image Textures":
                 self.filename = self.filename[:self.filename.rindex(".")] + "_preview"
             
@@ -4611,9 +4611,9 @@ You may need a newer version of Blender for this material to work properly.""" %
             #MISCELLANEOUS NODE TYPES
         elif node_type == "FRAME":
             #Don't attempt to add frame nodes in builds previous
-            #to r51926, as Blender's nodes.new() operator was
+            #to 2.65, as Blender's nodes.new() operator was
             #unable to add FRAME nodes. Was fixed with r51926.
-            if int(bpy.app.build_revision.decode()) > 51925:
+            if bpy.app.version[0] + (bpy.app.version[1] / 100.0) >= 2.65:
                 print("FRAME")
                 node = node_tree.nodes.new(node_type)
         
@@ -5046,13 +5046,13 @@ class MaterialConvert(bpy.types.Operator):
                     write(getLocation(node))
                     write(" />")
                     
-                elif node.type == 'FRAME' and int(bpy.app.build_revision.decode()) < 51926:
+                elif node.type == 'FRAME' and bpy.app.version[0] + (bpy.app.version[1] / 100.0) >= 2.65:
                     #Don't attempt to write frame nodes in builds previous
-                    #to r51926, as Blender's nodes.new() operator was
+                    #to 2.65, as Blender's nodes.new() operator was
                     #unable to add FRAME nodes. Was fixed with r51926.
                     frame_warning = True
                     print("Skipping frame node; this Blender version will not support adding it back."\
-                        "\nFrame nodes are not supported on builds prior to rev51926.")
+                        "\nFrame nodes are not supported prior to Blender 2.65.")
                 else:
                     #Write node opening bracket
                     write("\n\t\t<node ")
