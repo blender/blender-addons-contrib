@@ -200,7 +200,7 @@ def relinkObjects (self):
         OBJ.select=True
 
 class OscRelinkObjectsBetween (bpy.types.Operator):
-    bl_idname = "objects.relink_objects_between_scenes"
+    bl_idname = "object.relink_objects_between_scenes"
     bl_label = "Relink Objects Between Scenes"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -243,7 +243,7 @@ def CopyObjectGroupsAndLayers (self):
     bpy.context.scene.objects.active=ACTOBJ
     
 class OscCopyObjectGAL (bpy.types.Operator):
-    bl_idname = "objects.copy_objects_groups_layers"
+    bl_idname = "object.copy_objects_groups_layers"
     bl_label = "Copy Groups And Layers"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -335,3 +335,30 @@ class DialogDistributeOsc(bpy.types.Operator):
 
 
 
+## ======================== SET LAYERS TO OTHER SCENES =====================================
+
+
+def DefSetLayersToOtherScenes():
+    actsc = bpy.context.screen.scene
+    for object in bpy.context.selected_objects[:]:
+        lyrs = object.layers[:]
+        for scene in bpy.data.scenes[:]:
+            if object in scene.objects[:]:
+                bpy.context.screen.scene = scene
+                object.layers = lyrs  
+            else:
+                print ("* %s is not in %s" % (object.name, scene.name))    
+  
+        
+    bpy.context.screen.scene = actsc        
+    
+    
+class SetLayersToOtherScenes (bpy.types.Operator):
+    bl_idname = "object.set_layers_to_other_scenes"
+    bl_label = "Copy actual Layers to Other Scenes"
+    bl_options = {"REGISTER", "UNDO"}
+
+
+    def execute (self, context):
+        DefSetLayersToOtherScenes()
+        return {'FINISHED'}
