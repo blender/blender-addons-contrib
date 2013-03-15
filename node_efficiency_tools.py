@@ -1222,7 +1222,7 @@ def register():
     addon_keymaps.append((km, kmi))
     
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_0', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'MIX MIX'
+    kmi.properties.combo = 'MIX AUTO'
     addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl = True)
     kmi.properties.combo = 'ADD AUTO'
