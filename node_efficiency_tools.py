@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 0.07),
+    'version': (2, 0.08),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -128,6 +128,11 @@ class MergeNodes(bpy.types.Operator):
         return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def execute(self, context):
+        tree_type = context.space_data.node_tree.type
+        if tree_type == 'COMPOSITING':
+            node_type = 'CompositorNode'
+        elif tree_type == 'SHADER':
+            node_type = 'ShaderNode'
         set_convenience_variables(context)
         combo_split = self.combo.split( )
         mode = combo_split[0]
@@ -144,7 +149,17 @@ class MergeNodes(bpy.types.Operator):
                         ('RGBA', blend_types, selected_mix),
                         ('VALUE', operations, selected_math),
                         ):
-                        if node.outputs[0].type == type and mode in the_list:
+                        output_type = node.outputs[0].type
+                        valid_mode = mode in the_list
+                        # When mode is 'MIX' use mix node for both 'RGBA' and 'VALUE' output types.
+                        # Cheat that output type is 'RGBA',
+                        # and that 'MIX' exists in math operations list.
+                        # This way when selected_mix list is analyzed:
+                        # Node data will be appended even though it doesn't meet requirements.
+                        if output_type != 'SHADER' and mode == 'MIX':
+                            output_type = 'RGBA'
+                            valid_mode = True
+                        if output_type == type and valid_mode:
                             dst.append([i, node.location.x, node.location.y])
                 else:
                     for (kind, the_list, dst) in (
@@ -154,8 +169,13 @@ class MergeNodes(bpy.types.Operator):
                         ):
                         if node_kind == kind and mode in the_list:
                             dst.append([i, node.location.x, node.location.y])
-                    
-
+        # When nodes with output kinds 'RGBA' and 'VALUE' are selected at the same time
+        # use only 'Mix' nodes for merging.
+        # For that we add selected_math list to selected_mix list and clear selected_math.
+        if selected_mix and selected_math and node_kind == 'AUTO':
+            selected_mix += selected_math
+            selected_math = []
+        
         for the_list in [selected_mix, selected_shader, selected_math]:
             if the_list:
                 count_before = len(nodes)
@@ -175,7 +195,8 @@ class MergeNodes(bpy.types.Operator):
                     do_hide = False
                 for i in range(the_range):
                     if the_list == selected_mix:
-                        add = nodes.new('MIX_RGB')
+                        add_type = node_type + 'MixRGB'
+                        add = nodes.new(add_type)
                         add.blend_type = mode
                         add.show_preview = False
                         add.hide = do_hide
@@ -183,7 +204,8 @@ class MergeNodes(bpy.types.Operator):
                         second = 2
                         add.width_hidden = 100.0
                     elif the_list == selected_math:
-                        add = nodes.new('MATH')
+                        add_type = node_type + 'Math'
+                        add = nodes.new(add_type)
                         add.operation = mode
                         add.hide = do_hide
                         first = 0
@@ -191,12 +213,14 @@ class MergeNodes(bpy.types.Operator):
                         add.width_hidden = 100.0
                     elif the_list == selected_shader:
                         if mode == 'MIX':
-                            add = nodes.new('MIX_SHADER')
+                            add_type = node_type + 'MixShader'
+                            add = nodes.new(add_type)
                             first = 1
                             second = 2
                             add.width_hidden = 100.0
                         elif mode == 'ADD':
-                            add = nodes.new('ADD_SHADER')
+                            add_type = node_type + 'AddShader'
+                            add = nodes.new(add_type)
                             first = 0
                             second = 1
                             add.width_hidden = 100.0
@@ -470,7 +494,7 @@ class NodesAddTextureSetup(bpy.types.Operator):
         space = context.space_data
         valid = False
         if space.type == 'NODE_EDITOR':
-            if space.tree_type == 'SHADER' and space.node_tree is not None:
+            if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None:
                 valid = True
         return valid
     
@@ -497,11 +521,11 @@ class NodesAddTextureSetup(bpy.types.Operator):
         if valid:
             locx = active.location.x
             locy = active.location.y
-            tex = nodes.new('TEX_IMAGE')
+            tex = nodes.new('ShaderNodeTexImage')
             tex.location = [locx - 200.0, locy + 28.0]
-            map = nodes.new('MAPPING')
+            map = nodes.new('ShaderNodeMapping')
             map.location = [locx - 490.0, locy + 80.0]
-            coord = nodes.new('TEX_COORD')
+            coord = nodes.new('ShaderNodeTexCoord')
             coord.location = [locx - 700, locy + 40.0]
             active.select = False
             nodes.active = tex
@@ -527,6 +551,11 @@ class NodesAddReroutes(bpy.types.Operator):
         return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def execute(self, context):
+        tree_type = context.space_data.node_tree.type
+        if tree_type == 'COMPOSITING':
+            node_type = 'CompositorNode'
+        elif tree_type == 'SHADER':
+            node_type = 'ShaderNode'
         option = self.option
         set_convenience_variables(context)
         # output valid when option is 'all' or when 'loose' output has no links
@@ -545,7 +574,7 @@ class NodesAddReroutes(bpy.types.Operator):
                 # Hack needed to calculate real width
                 if node.hide:
                     bpy.ops.node.select_all(action = 'DESELECT')
-                    helper = nodes.new('REROUTE')
+                    helper = nodes.new('NodeReroute')
                     helper.select = True
                     node.select = True
                     # resize node and helper to zero. Then check locations to calculate width
@@ -584,7 +613,7 @@ class NodesAddReroutes(bpy.types.Operator):
                     valid = option == 'all' or (option == 'loose' and not output.links)
                     # Add reroutes only if valid, but offset location in all cases.
                     if valid:
-                        n = nodes.new('REROUTE')
+                        n = nodes.new('NodeReroute')
                         nodes.active = n
                         for link in output.links:
                             links.new(n.outputs[0], link.to_socket)
@@ -612,29 +641,36 @@ class NodesReroutesSwitchesSwap(bpy.types.Operator):
     bl_label = "Swap Reroutes and Switches"
     bl_options = {'REGISTER', 'UNDO'}
     
-    # option: 'SWITCH', 'REROUTE'
-    # 'SWITCH' - change selected reroutes to switches
-    # 'REROUTE' - change selected switches to reroutes
+    # option: 'CompositorNodeSwitch', 'NodeReroute'
+    # 'CompositorNodeSwitch' - change selected reroutes to switches
+    # 'NodeReroute' - change selected switches to reroutes
     option = StringProperty()
     
     @classmethod
     def poll(cls, context):
         space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+        valid = False
+        if space.type == 'NODE_EDITOR':
+            if space.tree_type == 'CompositorNodeTree' and space.node_tree is not None:
+                valid = True
+        return valid
     
     def execute(self, context):
         set_convenience_variables(context)
         option = self.option
         selected = [n for n in nodes if n.select]
         reselect = []
-        if option == 'SWITCH':
+        # If change to switches - replace reroutes
+        if option == 'CompositorNodeSwitch':
             replace_type = 'REROUTE'
-        elif option == 'REROUTE':
+        # If change to reroutes - replace switches
+        elif option == 'NodeReroute':
             replace_type = 'SWITCH'
         for node in selected:
             if node.type == replace_type:
                 valid = True
-                if option == 'REROUTE':
+                if option == 'NodeReroute':
+                    # If something is linked to second input of switch - don't replace.
                     if node.inputs[1].links:
                         valid = False
                 if valid:
@@ -827,7 +863,7 @@ class AlignNodes(bpy.types.Operator):
         count = len(selected)
         # add reroute node then scale all to 0.0 and calculate widths and heights of nodes
         if count > 1:  # aligning makes sense only if at least 2 nodes are selected
-            helper = nodes.new('REROUTE')
+            helper = nodes.new('NodeReroute')
             helper.select = True
             bpy.ops.transform.resize(value = (0.0, 0.0, 0.0))
             # store helper's location for further calculations
@@ -964,7 +1000,7 @@ class EfficiencyToolsPanel(bpy.types.Panel):
 
         box = layout.box()
         box.menu(MergeNodesMenu.bl_idname)
-        if type == 'SHADER':
+        if type == 'ShaderNodeTree':
             box.operator(NodesAddTextureSetup.bl_idname, text = 'Add Image Texture (Ctrl T)')
         box.menu(BatchChangeNodesMenu.bl_idname, text = 'Batch Change...')
         box.operator_menu_enum(AlignNodes.bl_idname, "align_axis", text = "Align Nodes (Shift =)")
@@ -992,7 +1028,7 @@ class EfficiencyToolsMenu(bpy.types.Menu):
         type = context.space_data.tree_type
         layout = self.layout
         layout.menu(MergeNodesMenu.bl_idname, text = 'Merge Selected Nodes')
-        if type == 'SHADER':
+        if type == 'ShaderNodeTree':
             layout.operator(NodesAddTextureSetup.bl_idname, text = 'Add Image Texture with coordinates')
         layout.menu(BatchChangeNodesMenu.bl_idname, text = 'Batch Change')
         layout.operator_menu_enum(
@@ -1018,7 +1054,7 @@ class MergeNodesMenu(bpy.types.Menu):
     def draw(self, context):
         type = context.space_data.tree_type
         layout = self.layout
-        if type == 'SHADER':
+        if type == 'ShaderNodeTree':
             layout.menu(MergeShadersMenu.bl_idname, text = 'Use Shaders')
         layout.menu(MergeMixMenu.bl_idname, text="Use Mix Nodes")
         layout.menu(MergeMathMenu.bl_idname, text="Use Math Nodes")
@@ -1161,8 +1197,8 @@ class ReroutesSwitchesSwapMenu(bpy.types.Menu):
     
     def draw(self, context):
         layout = self.layout
-        layout.operator(NodesReroutesSwitchesSwap.bl_idname, text = "Change to Switches").option = 'SWITCH'
-        layout.operator(NodesReroutesSwitchesSwap.bl_idname, text = "Change to Reroutes").option = 'REROUTE'
+        layout.operator(NodesReroutesSwitchesSwap.bl_idname, text = "Change to Switches").option = 'CompositorNodeSwitch'
+        layout.operator(NodesReroutesSwitchesSwap.bl_idname, text = "Change to Reroutes").option = 'NodeReroute'
 
 
 class LinkActiveToSelectedMenu(bpy.types.Menu):
