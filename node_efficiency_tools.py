@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 0.08),
+    'version': (2, 0.09),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -1260,16 +1260,31 @@ def register():
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_0', 'PRESS', ctrl = True)
     kmi.properties.combo = 'MIX AUTO'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'ZERO', 'PRESS', ctrl = True)
+    kmi.properties.combo = 'MIX AUTO'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl = True)
+    kmi.properties.combo = 'ADD AUTO'
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EQUAL', 'PRESS', ctrl = True)
     kmi.properties.combo = 'ADD AUTO'
     addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl = True)
     kmi.properties.combo = 'MULTIPLY AUTO'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EIGHT', 'PRESS', ctrl = True)
+    kmi.properties.combo = 'MULTIPLY AUTO'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl = True)
     kmi.properties.combo = 'SUBTRACT AUTO'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'MINUS', 'PRESS', ctrl = True)
+    kmi.properties.combo = 'SUBTRACT AUTO'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl = True)
+    kmi.properties.combo = 'DIVIDE AUTO'
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'SLASH', 'PRESS', ctrl = True)
     kmi.properties.combo = 'DIVIDE AUTO'
     addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'COMMA', 'PRESS', ctrl = True)
@@ -1282,29 +1297,56 @@ def register():
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_0', 'PRESS', ctrl = True, alt = True)
     kmi.properties.combo = 'MIX MIX'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'ZERO', 'PRESS', ctrl = True, alt = True)
+    kmi.properties.combo = 'MIX MIX'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl = True, alt = True)
+    kmi.properties.combo = 'ADD MIX'
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EQUAL', 'PRESS', ctrl = True, alt = True)
     kmi.properties.combo = 'ADD MIX'
     addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl = True, alt = True)
     kmi.properties.combo = 'MULTIPLY MIX'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EIGHT', 'PRESS', ctrl = True, alt = True)
+    kmi.properties.combo = 'MULTIPLY MIX'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl = True, alt = True)
     kmi.properties.combo = 'SUBTRACT MIX'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'MINUS', 'PRESS', ctrl = True, alt = True)
+    kmi.properties.combo = 'SUBTRACT MIX'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl = True, alt = True)
+    kmi.properties.combo = 'DIVIDE MIX'
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'SLASH', 'PRESS', ctrl = True, alt = True)
     kmi.properties.combo = 'DIVIDE MIX'
     addon_keymaps.append((km, kmi))
     
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl = True, shift = True)
     kmi.properties.combo = 'ADD MATH'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EQUAL', 'PRESS', ctrl = True, shift = True)
+    kmi.properties.combo = 'ADD MATH'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl = True, shift = True)
+    kmi.properties.combo = 'MULTIPLY MATH'
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EIGHT', 'PRESS', ctrl = True, shift = True)
     kmi.properties.combo = 'MULTIPLY MATH'
     addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl = True, shift = True)
     kmi.properties.combo = 'SUBTRACT MATH'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'MINUS', 'PRESS', ctrl = True, shift = True)
+    kmi.properties.combo = 'SUBTRACT MATH'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl = True, shift = True)
+    kmi.properties.combo = 'DIVIDE MATH'
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'SLASH', 'PRESS', ctrl = True, shift = True)
     kmi.properties.combo = 'DIVIDE MATH'
     addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(MergeNodes.bl_idname, 'COMMA', 'PRESS', ctrl = True, shift = True)
@@ -1317,16 +1359,31 @@ def register():
     kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'NUMPAD_0', 'PRESS', alt = True)
     kmi.properties.combo = 'MIX CURRENT'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'ZERO', 'PRESS', alt = True)
+    kmi.properties.combo = 'MIX CURRENT'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', alt = True)
+    kmi.properties.combo = 'ADD ADD'
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'EQUAL', 'PRESS', alt = True)
     kmi.properties.combo = 'ADD ADD'
     addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', alt = True)
     kmi.properties.combo = 'MULTIPLY MULTIPLY'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'EIGHT', 'PRESS', alt = True)
+    kmi.properties.combo = 'MULTIPLY MULTIPLY'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', alt = True)
     kmi.properties.combo = 'SUBTRACT SUBTRACT'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'MINUS', 'PRESS', alt = True)
+    kmi.properties.combo = 'SUBTRACT SUBTRACT'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', alt = True)
+    kmi.properties.combo = 'DIVIDE DIVIDE'
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'SLASH', 'PRESS', alt = True)
     kmi.properties.combo = 'DIVIDE DIVIDE'
     addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'DOWN_ARROW', 'PRESS', alt = True)
@@ -1363,11 +1420,20 @@ def register():
     kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'NUMPAD_0', 'PRESS', ctrl = True, alt = True, shift = True)
     kmi.properties.change = '0.0'
     addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'ZERO', 'PRESS', ctrl = True, alt = True, shift = True)
+    kmi.properties.change = '0.0'
+    addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'NUMPAD_1', 'PRESS', ctrl = True, alt = True, shift = True)
+    kmi.properties.change = '1.0'
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'ONE', 'PRESS', ctrl = True, alt = True, shift = True)
     kmi.properties.change = '1.0'
     addon_keymaps.append((km, kmi))
     
     kmi = km.keymap_items.new('wm.call_menu', 'SLASH', 'PRESS')
+    kmi.properties.name = AddReroutesMenu.bl_idname
+    addon_keymaps.append((km, kmi))
+    kmi = km.keymap_items.new('wm.call_menu', 'NUMPAD_SLASH', 'PRESS')
     kmi.properties.name = AddReroutesMenu.bl_idname
     addon_keymaps.append((km, kmi))
     
