@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 0.09),
+    'version': (2, 0.10),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -117,10 +117,8 @@ class MergeNodes(bpy.types.Operator):
     bl_label = "Merge Selected Nodes"
     bl_options = {'REGISTER', 'UNDO'}
     
-    combo = StringProperty(
-        name = "Combo",
-        description = "BlendType/ShaderKind/MathOperation and Node Kind",
-        )
+    # option: "BlendType/ShaderKind/MathOperation and Node Kind" separated with space
+    option = StringProperty()
     
     @classmethod
     def poll(cls, context):
@@ -134,9 +132,9 @@ class MergeNodes(bpy.types.Operator):
         elif tree_type == 'SHADER':
             node_type = 'ShaderNode'
         set_convenience_variables(context)
-        combo_split = self.combo.split( )
-        mode = combo_split[0]
-        node_kind = combo_split[1]  # kinds: 'AUTO', 'SHADER', 'MIX', 'MATH'
+        option_split = self.option.split( )
+        mode = option_split[0]
+        node_kind = option_split[1]  # kinds: 'AUTO', 'SHADER', 'MIX', 'MATH'
         selected_mix = []  # entry = [index, loc]
         selected_shader = []  # entry = [index, loc]
         selected_math = []  # entry = [index, loc]
@@ -253,10 +251,8 @@ class BatchChangeNodes(bpy.types.Operator):
     bl_label = "Batch Change Blend Type and Math Operation"
     bl_options = {'REGISTER', 'UNDO'}
     
-    combo = StringProperty(
-        name = "Combo",
-        description = "Mix Blend Type and Math Operation"
-        )
+    # Mix Blend Type and Math Operation separated with space.
+    option = StringProperty()
         
     @classmethod
     def poll(cls, context):
@@ -266,9 +262,9 @@ class BatchChangeNodes(bpy.types.Operator):
     def execute(self, context):
         set_convenience_variables(context)
         navs = ('CURRENT', 'NEXT', 'PREV')
-        combo_split = self.combo.split( )
-        blend_type = combo_split[0]
-        operation = combo_split[1]
+        option_split = self.option.split( )
+        blend_type = option_split[0]
+        operation = option_split[1]
         for node in context.selected_nodes:
             if node.type == 'MIX_RGB':
                 if not blend_type in navs:
@@ -314,10 +310,8 @@ class ChangeMixFactor(bpy.types.Operator):
     bl_label = "Change Factors of Mix Nodes and Mix Shader Nodes"
     bl_options = {'REGISTER', 'UNDO'}
     
-    change = StringProperty(
-        name = "Fac_Change",
-        description = "Factor Change",
-        )
+    # option: string indicating factor change. Example: '0.1'
+    option = StringProperty()
     
     @classmethod
     def poll(cls, context):
@@ -326,7 +320,7 @@ class ChangeMixFactor(bpy.types.Operator):
     
     def execute(self, context):
         set_convenience_variables(context)
-        change = float(self.change)
+        option = float(self.option)
         selected = []  # entry = index
         for si, node in enumerate(nodes):
             if node.select:
@@ -336,10 +330,10 @@ class ChangeMixFactor(bpy.types.Operator):
         for si in selected:
             fac = nodes[si].inputs[0]
             nodes[si].hide = False
-            if change in {0.0, 1.0}:
-                fac.default_value = change
+            if option in {0.0, 1.0}:
+                fac.default_value = option
             else:
-                fac.default_value += change
+                fac.default_value += option
         
         return {'FINISHED'}
 
@@ -468,6 +462,9 @@ class NodesClearLabel(bpy.types.Operator):
     bl_label = "Clear Label"
     bl_options = {'REGISTER', 'UNDO'}
     
+    # option: 'confirmed', 'not confirmed'
+    option = StringProperty()
+    
     @classmethod
     def poll(cls, context):
         space = context.space_data
@@ -481,13 +478,19 @@ class NodesClearLabel(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_confirm(self, event)
+        if self.option == 'confirmed':
+            return self.execute(context)
+        else:
+            return context.window_manager.invoke_confirm(self, event)
 
 
 class NodesAddTextureSetup(bpy.types.Operator):
     bl_idname = "node.add_texture"
     bl_label = "Add Texture Node to Active Node Input"
     bl_options = {'REGISTER', 'UNDO'}
+    
+    # placeholder
+    option = StringProperty()
 
     @classmethod
     def poll(cls, context):
@@ -825,16 +828,8 @@ class AlignNodes(bpy.types.Operator):
     bl_label = "Align nodes"
     bl_options = {'REGISTER', 'UNDO'}
     
-    axes = []
-    axes_list = ['Vertically', 'Horizontally']
-    for axis in axes_list:
-        axes.append((axis, axis, axis))
-    
-    align_axis = EnumProperty(
-        name = "align_axis",
-        description = "Align Axis",
-        items = axes
-        )
+    # option: 'Vertically', 'Horizontally'
+    option = StringProperty()
     
     @classmethod
     def poll(cls, context):
@@ -908,7 +903,7 @@ class AlignNodes(bpy.types.Operator):
             max_y_w = selected_sorted_y[count - 1][3]  # width of node with max loc.y
             max_y_h = selected_sorted_y[count - 1][4]  # height of node with max loc.y
             
-            if self.align_axis == 'Vertically':
+            if self.option == 'Vertically':
                 loc_x = min_x
                 #loc_y = (max_x_loc_y + min_x_loc_y) / 2.0
                 loc_y = (max_y - max_y_h / 2.0 + min_y - min_y_h / 2.0) / 2.0
@@ -951,10 +946,8 @@ class SelectParentChildren(bpy.types.Operator):
     bl_label = "Select Parent or Children"
     bl_options = {'REGISTER', 'UNDO'}
     
-    option = StringProperty(
-        name = "option",
-        description = "Parent/Children",
-        )
+    # option: 'Parent', 'Children'
+    option = StringProperty()
     
     @classmethod
     def poll(cls, context):
@@ -1003,9 +996,9 @@ class EfficiencyToolsPanel(bpy.types.Panel):
         if type == 'ShaderNodeTree':
             box.operator(NodesAddTextureSetup.bl_idname, text = 'Add Image Texture (Ctrl T)')
         box.menu(BatchChangeNodesMenu.bl_idname, text = 'Batch Change...')
-        box.operator_menu_enum(AlignNodes.bl_idname, "align_axis", text = "Align Nodes (Shift =)")
-        box.menu(CopyNodePropertiesMenu.bl_idname, text = 'Copy to Selected (Shift-C)')
-        box.operator(NodesClearLabel.bl_idname)
+        box.menu(NodeAlignMenu.bl_idname, text = "Align Nodes (Shift =)")
+        box.menu(CopyToSelectedMenu.bl_idname, text = 'Copy to Selected (Shift-C)')
+        box.operator(NodesClearLabel.bl_idname).option = 'confirmed'
         box.menu(AddReroutesMenu.bl_idname, text = 'Add Reroutes')
         box.menu(ReroutesSwitchesSwapMenu.bl_idname, text = 'Swap Reroutes and Switches')
         box.menu(LinkActiveToSelectedMenu.bl_idname, text = 'Link Active To Selected')
@@ -1031,12 +1024,9 @@ class EfficiencyToolsMenu(bpy.types.Menu):
         if type == 'ShaderNodeTree':
             layout.operator(NodesAddTextureSetup.bl_idname, text = 'Add Image Texture with coordinates')
         layout.menu(BatchChangeNodesMenu.bl_idname, text = 'Batch Change')
-        layout.operator_menu_enum(
-            AlignNodes.bl_idname,
-            property="align_axis",
-            text="Align Nodes",
-            )
-        layout.menu(CopyNodePropertiesMenu.bl_idname, text = 'Copy to Selected')
+        layout.menu(NodeAlignMenu.bl_idname, text="Align Nodes")
+        layout.menu(CopyToSelectedMenu.bl_idname, text = 'Copy to Selected')
+        layout.operator(NodesClearLabel.bl_idname).option = 'confirmed'
         layout.menu(AddReroutesMenu.bl_idname, text = 'Add Reroutes')
         layout.menu(ReroutesSwitchesSwapMenu.bl_idname, text = 'Swap Reroutes and Switches')
         layout.menu(LinkActiveToSelectedMenu.bl_idname, text = 'Link Active To Selected')
@@ -1072,8 +1062,8 @@ class MergeShadersMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         for type in merge_shaders:
-            combo = type + ' SHADER'
-            layout.operator(MergeNodes.bl_idname, text = type).combo = combo
+            option = type + ' SHADER'
+            layout.operator(MergeNodes.bl_idname, text = type).option = option
 
 
 class MergeMixMenu(bpy.types.Menu):
@@ -1088,8 +1078,8 @@ class MergeMixMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         for type in blend_types:
-            combo = type + ' MIX'
-            layout.operator(MergeNodes.bl_idname, text = type).combo = combo        
+            option = type + ' MIX'
+            layout.operator(MergeNodes.bl_idname, text = type).option = option        
 
 
 class MergeMathMenu(bpy.types.Menu):
@@ -1104,8 +1094,8 @@ class MergeMathMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         for type in operations:
-            combo = type + ' MATH'
-            layout.operator(MergeNodes.bl_idname, text = type).combo = combo
+            option = type + ' MATH'
+            layout.operator(MergeNodes.bl_idname, text = type).option = option
 
 
 class BatchChangeNodesMenu(bpy.types.Menu):
@@ -1135,8 +1125,8 @@ class BatchChangeBlendTypeMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         for blend_type in blend_types:
-            combo = blend_type + ' CURRENT'
-            layout.operator(BatchChangeNodes.bl_idname, text = blend_type).combo = combo
+            option = blend_type + ' CURRENT'
+            layout.operator(BatchChangeNodes.bl_idname, text = blend_type).option = option
 
 
 class BatchChangeOperationMenu(bpy.types.Menu):
@@ -1151,13 +1141,13 @@ class BatchChangeOperationMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         for operation in operations:
-            combo = 'CURRENT ' + operation
-            layout.operator(BatchChangeNodes.bl_idname, text = operation).combo = combo
+            option = 'CURRENT ' + operation
+            layout.operator(BatchChangeNodes.bl_idname, text = operation).option = option
                                   
 
-class CopyNodePropertiesMenu(bpy.types.Menu):
+class CopyToSelectedMenu(bpy.types.Menu):
     bl_idname = "NODE_MT_copy_node_properties_menu"
-    bl_label = "Copy Active Node's Properties to Selected"
+    bl_label = "Copy to Selected"
 
     def draw(self, context):
         layout = self.layout
@@ -1228,11 +1218,9 @@ class NodeAlignMenu(bpy.types.Menu):
     
     def draw(self, context):
         layout = self.layout
-        layout.operator_menu_enum(
-            AlignNodes.bl_idname,
-            property="align_axis",
-            text="Direction...",
-            )
+        for opt in {'Horizontally', 'Vartically'}:
+            layout.operator(AlignNodes.bl_idname, text=opt).option = opt
+
 
 #############################################################
 #  MENU ITEMS
@@ -1248,225 +1236,112 @@ def select_parent_children_buttons(self, context):
 #############################################################
 
 addon_keymaps = []
+# kmi_defs_operators entry: (operator, key, option_value, Ctrl, Shift, Alt)
+kmi_defs_operators = (
+    # MERGE NODES
+    # MergeNodes with Ctrl (AUTO).
+    (MergeNodes.bl_idname, 'NUMPAD_0', 'MIX AUTO', True, False, False),
+    (MergeNodes.bl_idname, 'ZERO', 'MIX AUTO', True, False, False),
+    (MergeNodes.bl_idname, 'NUMPAD_PLUS', 'ADD AUTO', True, False, False),
+    (MergeNodes.bl_idname, 'EQUAL', 'ADD AUTO', True, False, False),
+    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'MULTIPLY AUTO', True, False, False),
+    (MergeNodes.bl_idname, 'EIGHT', 'MULTIPLY AUTO', True, False, False),
+    (MergeNodes.bl_idname, 'NUMPAD_MINUS', 'SUBTRACT AUTO', True, False, False),
+    (MergeNodes.bl_idname, 'MINUS', 'SUBTRACT AUTO', True, False, False),
+    (MergeNodes.bl_idname, 'NUMPAD_SLASH', 'DIVIDE AUTO', True, False, False),
+    (MergeNodes.bl_idname, 'SLASH', 'DIVIDE AUTO', True, False, False),
+    (MergeNodes.bl_idname, 'COMMA', 'LESS_THAN MATH', True, False, False),
+    (MergeNodes.bl_idname, 'PERIOD', 'GREATER_THAN MATH', True, False, False),
+    # MergeNodes with Ctrl Alt (MIX)
+    (MergeNodes.bl_idname, 'NUMPAD_0', 'MIX MIX', True, False, True),
+    (MergeNodes.bl_idname, 'ZERO', 'MIX MIX', True, False, True),
+    (MergeNodes.bl_idname, 'NUMPAD_PLUS', 'ADD MIX', True, False, True),
+    (MergeNodes.bl_idname, 'EQUAL', 'ADD MIX', True, False, True),
+    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'MULTIPLY MIX', True, False, True),
+    (MergeNodes.bl_idname, 'EIGHT', 'MULTIPLY MIX', True, False, True),
+    (MergeNodes.bl_idname, 'NUMPAD_MINUS', 'SUBTRACT MIX', True, False, True),
+    (MergeNodes.bl_idname, 'MINUS', 'SUBTRACT MIX', True, False, True),
+    (MergeNodes.bl_idname, 'NUMPAD_SLASH', 'DIVIDE MIX', True, False, True),
+    (MergeNodes.bl_idname, 'SLASH', 'DIVIDE MIX', True, False, True),
+    # MergeNodes with Ctrl Shift (MATH)
+    (MergeNodes.bl_idname, 'NUMPAD_0', 'MIX MATH', True, True, False),
+    (MergeNodes.bl_idname, 'ZERO', 'MIX MATH', True, True, False),
+    (MergeNodes.bl_idname, 'NUMPAD_PLUS', 'ADD MATH', True, True, False),
+    (MergeNodes.bl_idname, 'EQUAL', 'ADD MATH', True, True, False),
+    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'MULTIPLY MATH', True, True, False),
+    (MergeNodes.bl_idname, 'EIGHT', 'MULTIPLY MATH', True, True, False),
+    (MergeNodes.bl_idname, 'NUMPAD_MINUS', 'SUBTRACT MATH', True, True, False),
+    (MergeNodes.bl_idname, 'MINUS', 'SUBTRACT MATH', True, True, False),
+    (MergeNodes.bl_idname, 'NUMPAD_SLASH', 'DIVIDE MATH', True, True, False),
+    (MergeNodes.bl_idname, 'SLASH', 'DIVIDE MATH', True, True, False),
+    (MergeNodes.bl_idname, 'COMMA', 'LESS_THAN MATH', True, True, False),
+    (MergeNodes.bl_idname, 'PERIOD', 'GREATER_THAN MATH', True, True, False),
+    # BATCH CHANGE NODES
+    # BatchChangeNodes with Alt
+    (BatchChangeNodes.bl_idname, 'NUMPAD_0', 'MIX CURRENT', False, False, True),
+    (BatchChangeNodes.bl_idname, 'ZERO', 'MIX CURRENT', False, False, True),
+    (BatchChangeNodes.bl_idname, 'NUMPAD_PLUS', 'ADD ADD', False, False, True),
+    (BatchChangeNodes.bl_idname, 'EQUAL', 'ADD ADD', False, False, True),
+    (BatchChangeNodes.bl_idname, 'NUMPAD_ASTERIX', 'MULTIPLY MULTIPLY', False, False, True),
+    (BatchChangeNodes.bl_idname, 'EIGHT', 'MULTIPLY MULTIPLY', False, False, True),
+    (BatchChangeNodes.bl_idname, 'NUMPAD_MINUS', 'SUBTRACT SUBTRACT', False, False, True),
+    (BatchChangeNodes.bl_idname, 'MINUS', 'SUBTRACT SUBTRACT', False, False, True),
+    (BatchChangeNodes.bl_idname, 'NUMPAD_SLASH', 'DIVIDE DIVIDE', False, False, True),
+    (BatchChangeNodes.bl_idname, 'SLASH', 'DIVIDE DIVIDE', False, False, True),
+    (BatchChangeNodes.bl_idname, 'COMMA', 'CURRENT LESS_THAN', False, False, True),
+    (BatchChangeNodes.bl_idname, 'PERIOD', 'CURRENT GREATER_THAN', False, False, True),
+    (BatchChangeNodes.bl_idname, 'DOWN_ARROW', 'NEXT NEXT', False, False, True),
+    (BatchChangeNodes.bl_idname, 'UP_ARROW', 'PREV PREV', False, False, True),
+    # CHANGE MIX FACTOR
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', '-0.1', False, False, True),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', '0.1',  False, False, True),
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', '-0.01', False, True, True),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', '0.01', False, True, True),
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', '0.0', True, True, True),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', '1.0', True, True, True),
+    (ChangeMixFactor.bl_idname, 'NUMPAD_0', '0.0', True, True, True),
+    (ChangeMixFactor.bl_idname, 'ZERO', '0.0', True, True, True),
+    (ChangeMixFactor.bl_idname, 'NUMPAD_1', '1.0', True, True, True),
+    (ChangeMixFactor.bl_idname, 'ONE', '1.0', True, True, True),
+    # CLEAR LABEL (Alt L)
+    (NodesClearLabel.bl_idname, 'L', 'not confirmed', False, False, True),
+    # ADD TEXTURE SETUP (Ctrl T)
+    (NodesAddTextureSetup.bl_idname, 'T', '', True, False, False),
+    # SELECT PARENT/CHILDREN
+    # Select Children
+    (SelectParentChildren.bl_idname, 'RIGHT_BRACKET', 'Children', False, False, False),
+    # Select Parent
+    (SelectParentChildren.bl_idname, 'LEFT_BRACKET', 'Parent', False, False, False),
+    )
+
+# kmi_defs_menus entry: (key, CTRL, SHIFT, ALT, menu_name)
+kmi_defs_menus = (
+    ('SPACE', True, False, False, EfficiencyToolsMenu.bl_idname),
+    ('SLASH', False, False, False, AddReroutesMenu.bl_idname),
+    ('NUMPAD_SLASH', False, False, False, AddReroutesMenu.bl_idname),
+    ('EQUAL', False, True, False, NodeAlignMenu.bl_idname),
+    ('F', False, True, False, LinkActiveToSelectedMenu.bl_idname),
+    ('C', False, True, False, CopyToSelectedMenu.bl_idname),
+    ('S', False, True, False, ReroutesSwitchesSwapMenu.bl_idname),
+    )
 
 def register():
     bpy.utils.register_module(__name__)
     km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name='Node Editor', space_type = "NODE_EDITOR")
-
-    kmi = km.keymap_items.new('wm.call_menu', 'SPACE', 'PRESS', ctrl = True)
-    kmi.properties.name = EfficiencyToolsMenu.bl_idname
-    addon_keymaps.append((km, kmi))
     
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_0', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'MIX AUTO'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'ZERO', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'MIX AUTO'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'ADD AUTO'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EQUAL', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'ADD AUTO'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'MULTIPLY AUTO'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EIGHT', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'MULTIPLY AUTO'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'SUBTRACT AUTO'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'MINUS', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'SUBTRACT AUTO'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'DIVIDE AUTO'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'SLASH', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'DIVIDE AUTO'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'COMMA', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'LESS_THAN MATH'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'PERIOD', 'PRESS', ctrl = True)
-    kmi.properties.combo = 'GREATER_THAN MATH'
-    addon_keymaps.append((km, kmi))
+    # keymap items for operators
+    for (operator, key, opt, CTRL, SHIFT, ALT) in kmi_defs_operators:
+        kmi = km.keymap_items.new(operator, key, 'PRESS', ctrl = CTRL, shift = SHIFT, alt = ALT)
+        kmi.properties.option = opt
+        addon_keymaps.append((km, kmi))
     
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_0', 'PRESS', ctrl = True, alt = True)
-    kmi.properties.combo = 'MIX MIX'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'ZERO', 'PRESS', ctrl = True, alt = True)
-    kmi.properties.combo = 'MIX MIX'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl = True, alt = True)
-    kmi.properties.combo = 'ADD MIX'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EQUAL', 'PRESS', ctrl = True, alt = True)
-    kmi.properties.combo = 'ADD MIX'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl = True, alt = True)
-    kmi.properties.combo = 'MULTIPLY MIX'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EIGHT', 'PRESS', ctrl = True, alt = True)
-    kmi.properties.combo = 'MULTIPLY MIX'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl = True, alt = True)
-    kmi.properties.combo = 'SUBTRACT MIX'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'MINUS', 'PRESS', ctrl = True, alt = True)
-    kmi.properties.combo = 'SUBTRACT MIX'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl = True, alt = True)
-    kmi.properties.combo = 'DIVIDE MIX'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'SLASH', 'PRESS', ctrl = True, alt = True)
-    kmi.properties.combo = 'DIVIDE MIX'
-    addon_keymaps.append((km, kmi))
+    # keymap items for menus
+    for (key, CTRL, SHIFT, ALT, menu_name) in kmi_defs_menus:
+        kmi = km.keymap_items.new('wm.call_menu', key, 'PRESS', ctrl = CTRL, shift = SHIFT, alt = ALT)
+        kmi.properties.name = menu_name
+        addon_keymaps.append((km, kmi))
     
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl = True, shift = True)
-    kmi.properties.combo = 'ADD MATH'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EQUAL', 'PRESS', ctrl = True, shift = True)
-    kmi.properties.combo = 'ADD MATH'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl = True, shift = True)
-    kmi.properties.combo = 'MULTIPLY MATH'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'EIGHT', 'PRESS', ctrl = True, shift = True)
-    kmi.properties.combo = 'MULTIPLY MATH'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl = True, shift = True)
-    kmi.properties.combo = 'SUBTRACT MATH'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'MINUS', 'PRESS', ctrl = True, shift = True)
-    kmi.properties.combo = 'SUBTRACT MATH'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl = True, shift = True)
-    kmi.properties.combo = 'DIVIDE MATH'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'SLASH', 'PRESS', ctrl = True, shift = True)
-    kmi.properties.combo = 'DIVIDE MATH'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'COMMA', 'PRESS', ctrl = True, shift = True)
-    kmi.properties.combo = 'LESS_THAN MATH'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(MergeNodes.bl_idname, 'PERIOD', 'PRESS', ctrl = True, shift = True)
-    kmi.properties.combo = 'GREATER_THAN MATH'
-    addon_keymaps.append((km, kmi))
-    
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'NUMPAD_0', 'PRESS', alt = True)
-    kmi.properties.combo = 'MIX CURRENT'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'ZERO', 'PRESS', alt = True)
-    kmi.properties.combo = 'MIX CURRENT'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', alt = True)
-    kmi.properties.combo = 'ADD ADD'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'EQUAL', 'PRESS', alt = True)
-    kmi.properties.combo = 'ADD ADD'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', alt = True)
-    kmi.properties.combo = 'MULTIPLY MULTIPLY'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'EIGHT', 'PRESS', alt = True)
-    kmi.properties.combo = 'MULTIPLY MULTIPLY'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', alt = True)
-    kmi.properties.combo = 'SUBTRACT SUBTRACT'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'MINUS', 'PRESS', alt = True)
-    kmi.properties.combo = 'SUBTRACT SUBTRACT'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', alt = True)
-    kmi.properties.combo = 'DIVIDE DIVIDE'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'SLASH', 'PRESS', alt = True)
-    kmi.properties.combo = 'DIVIDE DIVIDE'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'DOWN_ARROW', 'PRESS', alt = True)
-    kmi.properties.combo = 'NEXT NEXT'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'UP_ARROW', 'PRESS', alt = True)
-    kmi.properties.combo = 'PREV PREV'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'COMMA', 'PRESS', alt = True)
-    kmi.properties.combo = 'CURRENT LESS_THAN'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(BatchChangeNodes.bl_idname, 'PERIOD', 'PRESS', alt = True)
-    kmi.properties.combo = 'CURRENT GREATER_THAN'
-    addon_keymaps.append((km, kmi))
-    
-    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS', alt = True)
-    kmi.properties.change = '-0.1'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS', alt = True)
-    kmi.properties.change = '0.1'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS', alt = True, shift = True)
-    kmi.properties.change = '-0.01'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS', alt = True, shift = True)
-    kmi.properties.change = '0.01'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS', ctrl = True, alt = True, shift = True)
-    kmi.properties.change = '0.0'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS', ctrl = True, alt = True, shift = True)
-    kmi.properties.change = '1.0'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'NUMPAD_0', 'PRESS', ctrl = True, alt = True, shift = True)
-    kmi.properties.change = '0.0'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'ZERO', 'PRESS', ctrl = True, alt = True, shift = True)
-    kmi.properties.change = '0.0'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'NUMPAD_1', 'PRESS', ctrl = True, alt = True, shift = True)
-    kmi.properties.change = '1.0'
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(ChangeMixFactor.bl_idname, 'ONE', 'PRESS', ctrl = True, alt = True, shift = True)
-    kmi.properties.change = '1.0'
-    addon_keymaps.append((km, kmi))
-    
-    kmi = km.keymap_items.new('wm.call_menu', 'SLASH', 'PRESS')
-    kmi.properties.name = AddReroutesMenu.bl_idname
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new('wm.call_menu', 'NUMPAD_SLASH', 'PRESS')
-    kmi.properties.name = AddReroutesMenu.bl_idname
-    addon_keymaps.append((km, kmi))
-    
-    kmi = km.keymap_items.new('wm.call_menu', 'EQUAL', 'PRESS', shift = True)
-    kmi.properties.name = NodeAlignMenu.bl_idname
-    addon_keymaps.append((km, kmi))
-    
-    kmi = km.keymap_items.new('wm.call_menu', 'F', 'PRESS', shift = True)
-    kmi.properties.name = LinkActiveToSelectedMenu.bl_idname
-    addon_keymaps.append((km, kmi))
-    
-    kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS', shift = True)
-    kmi.properties.name = CopyNodePropertiesMenu.bl_idname
-    addon_keymaps.append((km, kmi))
-    
-    kmi = km.keymap_items.new(NodesClearLabel.bl_idname, 'L', 'PRESS', alt = True)
-    addon_keymaps.append((km, kmi))
-    
-    kmi = km.keymap_items.new('wm.call_menu', 'S', 'PRESS', shift = True)
-    kmi.properties.name = ReroutesSwitchesSwapMenu.bl_idname
-    addon_keymaps.append((km, kmi))
-
-    kmi = km.keymap_items.new(NodesAddTextureSetup.bl_idname, 'T', 'PRESS', ctrl = True)
-    addon_keymaps.append((km, kmi))
-    
-    kmi = km.keymap_items.new(SelectParentChildren.bl_idname, 'RIGHT_BRACKET', 'PRESS')
-    kmi.properties.option = 'Children'
-    addon_keymaps.append((km, kmi))
-    
-    kmi = km.keymap_items.new(SelectParentChildren.bl_idname, 'LEFT_BRACKET', 'PRESS')
-    kmi.properties.option = 'Parent'
-    addon_keymaps.append((km, kmi))
-    
+    # menu items
     bpy.types.NODE_MT_select.append(select_parent_children_buttons)
 
 def unregister():
@@ -1478,3 +1353,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+    
