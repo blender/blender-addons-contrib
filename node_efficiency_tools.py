@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 0.10),
+    'version': (2, 0.11),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -678,7 +678,9 @@ class NodesReroutesSwitchesSwap(bpy.types.Operator):
                         valid = False
                 if valid:
                     new_node = nodes.new(option)
-                    in_link = node.inputs[0].links[0]
+                    in_link = None
+                    if node.inputs[0].is_linked:
+                        in_link = node.inputs[0].links[0]
                     if in_link:
                         links.new(in_link.from_socket, new_node.inputs[0])
                     for out_link in node.outputs[0].links:
@@ -764,7 +766,7 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
                         for i, out in enumerate(outputs):
                             for [ni, x, y] in selected:  # [node index, location.x, location.y]
                                 name = nodes[ni].name
-                                l = len(nodes[ni].inputs)
+                                inputs_len = len(nodes[ni].inputs)
                                 if nodes[ni].label:
                                     name = nodes[ni].label
                                 for [render_pass, out_name, exr_name, in_internal, in_cycles] in rl_outputs:
@@ -777,8 +779,8 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
                                     if active.outputs[out].name in names:
                                         out_type = active.outputs[out].type
                                         input_i = 0
-                                        if (nodes[ni].inputs[0].type != out_type and l > 1):
-                                            for ii in range (1, l):
+                                        if (nodes[ni].inputs[0].type != out_type and inputs_len > 1):
+                                            for ii in range (1, inputs_len):
                                                 if nodes[ni].inputs[ii].type == out_type:
                                                     input_i = ii
                                                     break
@@ -790,8 +792,8 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
                                     if a_name in names:
                                         out_type = active.outputs[0].type
                                         input_i = 0
-                                        if (nodes[ni].inputs[0].type != out_type and l > 1):
-                                            for ii in range (1, l):
+                                        if (nodes[ni].inputs[0].type != out_type and inputs_len > 1):
+                                            for ii in range (1, inputs_len):
                                                 if nodes[ni].inputs[ii].type == out_type:
                                                     input_i = ii
                                                     break
@@ -800,10 +802,10 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
                         for i, out in enumerate(outputs):
                             if i < len(selected):
                                 out_type = active.outputs[out].type
-                                l = len(nodes[selected[i][0]].inputs)
+                                inputs_len = len(nodes[selected[i][0]].inputs)
                                 input_i = 0
-                                if (nodes[selected[i][0]].inputs[0].type != out_type and l > 1):
-                                    for ii in range (1, l):
+                                if (nodes[selected[i][0]].inputs[0].type != out_type and inputs_len > 1):
+                                    for ii in range (1, inputs_len):
                                         if nodes[selected[i][0]].inputs[ii].type == out_type:
                                             input_i = ii
                                             break
@@ -811,10 +813,10 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
                     elif option == 'First Output Only':
                         out_type = active.outputs[0].type
                         for [ni, x, y] in selected:
-                            l = len(nodes[ni].inputs)
+                            inputs_len = len(nodes[ni].inputs)
                             input_i = 0
-                            if (nodes[ni].inputs[0].type != out_type and l > 1):
-                                for ii in range (1, l):
+                            if (nodes[ni].inputs[0].type != out_type and inputs_len > 1):
+                                for ii in range (1, inputs_len):
                                     if nodes[ni].inputs[ii].type == out_type:
                                         input_i = ii
                                         break
