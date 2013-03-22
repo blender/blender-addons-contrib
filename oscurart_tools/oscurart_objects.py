@@ -341,6 +341,7 @@ class DialogDistributeOsc(bpy.types.Operator):
 def DefSetLayersToOtherScenes():
     actsc = bpy.context.screen.scene
     for object in bpy.context.selected_objects[:]:
+        bpy.context.screen.scene = actsc  
         lyrs = object.layers[:]
         for scene in bpy.data.scenes[:]:
             if object in scene.objects[:]:
