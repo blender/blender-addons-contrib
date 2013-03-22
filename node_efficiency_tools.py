@@ -594,7 +594,7 @@ class NodesAddReroutes(bpy.types.Operator):
                 x = node.location.x + width + 20.0
                 if node.type != 'REROUTE':
                     y -= 35.0
-                y_offset = -21.0
+                y_offset = -22.0
                 loc = [x, y]
             reroutes_count = 0  # will be used when aligning reroutes added to hidden nodes
             for out_i, output in enumerate(node.outputs):
