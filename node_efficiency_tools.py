@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 0.11),
+    'version': (2, 0.12),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -30,7 +30,7 @@ bl_info = {
     }
 
 import bpy
-from bpy.props import EnumProperty, StringProperty
+from bpy.props import EnumProperty, StringProperty, BoolProperty, FloatProperty
 
 #################
 # rl_outputs:
@@ -310,8 +310,10 @@ class ChangeMixFactor(bpy.types.Operator):
     bl_label = "Change Factors of Mix Nodes and Mix Shader Nodes"
     bl_options = {'REGISTER', 'UNDO'}
     
-    # option: string indicating factor change. Example: '0.1'
-    option = StringProperty()
+    # option: Change factor.
+    # If option is 1.0 or 0.0 - set to 1.0 or 0.0
+    # Else - change factor by option value.
+    option = FloatProperty()
     
     @classmethod
     def poll(cls, context):
@@ -320,7 +322,7 @@ class ChangeMixFactor(bpy.types.Operator):
     
     def execute(self, context):
         set_convenience_variables(context)
-        option = float(self.option)
+        option = self.option
         selected = []  # entry = index
         for si, node in enumerate(nodes):
             if node.select:
@@ -592,7 +594,7 @@ class NodesAddReroutes(bpy.types.Operator):
                 x = node.location.x + width + 20.0
                 if node.type != 'REROUTE':
                     y -= 35.0
-                y_offset = -20.0
+                y_offset = -21.0
                 loc = [x, y]
             reroutes_count = 0  # will be used when aligning reroutes added to hidden nodes
             for out_i, output in enumerate(node.outputs):
@@ -639,63 +641,102 @@ class NodesAddReroutes(bpy.types.Operator):
         return {'FINISHED'}
     
 
-class NodesReroutesSwitchesSwap(bpy.types.Operator):
-    bl_idname = "node.reroutes_switches_swap"
+class NodesSwap(bpy.types.Operator):
+    bl_idname = "node.swap_nodes"
     bl_label = "Swap Reroutes and Switches"
     bl_options = {'REGISTER', 'UNDO'}
     
-    # option: 'CompositorNodeSwitch', 'NodeReroute'
+    # option: 'CompositorNodeSwitch', 'NodeReroute', 'NodeMixRGB', 'NodeMath', 'CompositorNodeAlphaOver'
     # 'CompositorNodeSwitch' - change selected reroutes to switches
     # 'NodeReroute' - change selected switches to reroutes
+    # 'NodeMixRGB' - change selected switches to MixRGB (prefix 'Compositor' or 'Shader' will be added
+    # 'NodeMath' - change selected switches to Math (prefix 'Compositor' or 'Shader' will be added
+    # 'CompositorNodeAlphaOver'
     option = StringProperty()
     
     @classmethod
     def poll(cls, context):
         space = context.space_data
-        valid = False
-        if space.type == 'NODE_EDITOR':
-            if space.tree_type == 'CompositorNodeTree' and space.node_tree is not None:
-                valid = True
-        return valid
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def execute(self, context):
         set_convenience_variables(context)
+        tree_type = context.space_data.tree_type
+        if tree_type == 'CompositorNodeTree':
+            prefix = 'Compositor'
+        elif tree_type == 'ShaderNodeTree':
+            prefix = 'Shader'
         option = self.option
         selected = [n for n in nodes if n.select]
         reselect = []
-        # If change to switches - replace reroutes
+        mode = None  # will be used to set proper operation or blend type in new Math or Mix nodes.
         if option == 'CompositorNodeSwitch':
-            replace_type = 'REROUTE'
-        # If change to reroutes - replace switches
+            replace_types = ('REROUTE', 'MIX_RGB', 'MATH', 'ALPHAOVER')
+            new_type = option
         elif option == 'NodeReroute':
-            replace_type = 'SWITCH'
+            replace_types = ('SWITCH')
+            new_type = option
+        elif option == 'NodeMixRGB':
+            replace_types = ('REROUTE', 'SWITCH', 'MATH', 'ALPHAOVER')
+            new_type = prefix + option
+        elif option == 'NodeMath':
+            replace_types = ('REROUTE', 'SWITCH', 'MIX_RGB', 'ALPHAOVER')
+            new_type = prefix + option
+        elif option == 'CompositorNodeAlphaOver':
+            replace_types = ('REROUTE', 'SWITCH', 'MATH', 'MIX_RGB')
+            new_type = option
         for node in selected:
-            if node.type == replace_type:
-                valid = True
-                if option == 'NodeReroute':
-                    # If something is linked to second input of switch - don't replace.
-                    if node.inputs[1].links:
-                        valid = False
-                if valid:
-                    new_node = nodes.new(option)
-                    in_link = None
-                    if node.inputs[0].is_linked:
-                        in_link = node.inputs[0].links[0]
-                    if in_link:
-                        links.new(in_link.from_socket, new_node.inputs[0])
-                    for out_link in node.outputs[0].links:
-                        links.new(new_node.outputs[0], out_link.to_socket)
-                    new_node.location = node.location
-                    new_node.label = node.label
-                    new_node.hide = True
-                    new_node.width_hidden = 100.0
-                    nodes.active = new_node
-                    reselect.append(new_node)
-                    bpy.ops.node.select_all(action = "DESELECT")
-                    node.select = True
-                    bpy.ops.node.delete()
-                else:
-                    reselect.append(node)
+            if node.type in replace_types:
+                hide = node.hide
+                if node.type == 'REROUTE':
+                    hide = True
+                new_node = nodes.new(new_type)
+                # if swap Mix to Math of vice-verca - try to set blend type or operation accordingly
+                if new_node.type == 'MIX_RGB':
+                    if node.type == 'MATH':
+                        if node.operation in blend_types:
+                            new_node.blend_type = node.operation
+                elif new_node.type == 'MATH':
+                    if node.type == 'MIX_RGB':
+                        if node.blend_type in operations:
+                            new_node.operation = node.blend_type
+                old_inputs_count = len(node.inputs)
+                new_inputs_count = len(new_node.inputs)
+                if new_inputs_count == 1:
+                    replace = [[0, 0]]  # old input 0 (first of the entry) will be replaced by new input 0.
+                elif new_inputs_count == 2:
+                    if old_inputs_count == 1:
+                        replace = [[0, 0]]
+                    elif old_inputs_count == 2:
+                        replace = [[0, 0], [1, 1]]
+                    elif old_inputs_count == 3:
+                        replace = [[1, 0], [2, 1]]
+                elif new_inputs_count == 3:
+                    if old_inputs_count == 1:
+                        replace = [[0, 1]]
+                    elif old_inputs_count == 2:
+                        replace = [[0, 1], [1, 2]]
+                    elif old_inputs_count == 3:
+                        replace = [[0, 0], [1, 1], [2, 2]]
+                for [old, new] in replace:
+                    if node.inputs[old].links:
+                        in_link = node.inputs[old].links[0]
+                        links.new(in_link.from_socket, new_node.inputs[new])
+                for out_link in node.outputs[0].links:
+                    links.new(new_node.outputs[0], out_link.to_socket)
+                new_node.location = node.location
+                new_node.label = node.label
+                new_node.hide = hide
+                new_node.mute = node.mute
+                new_node.show_preview = node.show_preview
+                new_node.width_hidden = node.width_hidden
+                nodes.active = new_node
+                reselect.append(new_node)
+                bpy.ops.node.select_all(action = "DESELECT")
+                node.select = True
+                bpy.ops.node.delete()
+            else:
+                reselect.append(node)
         for node in reselect:
             node.select = True
             
@@ -707,9 +748,8 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
     bl_label = "Link Active Node to Selected"
     bl_options = {'REGISTER', 'UNDO'}
     
-    # option: 'True/Nodes Names', 'True/Nodes Location', 'True/First Output Only'
-    #         'False/Nodes Names', 'False/Nodes Location', 'False/First Output Only'
-    option = StringProperty()    
+    # option: 'bool bool bool' - replace, use node's name, use outputs' names
+    option = StringProperty()
     
     @classmethod
     def poll(cls, context):
@@ -717,112 +757,69 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
         valid = False
         if space.type == 'NODE_EDITOR':
             if space.node_tree is not None and context.active_node is not None:
-                valid = True
+                if context.active_node.select:
+                    valid = True
         return valid
     
     def execute(self, context):
         set_convenience_variables(context)
-        splitted_option = self.option.split('/')
-        # Will replace existing links or not
-        replace = eval(splitted_option[0])  # True or False
-        # basis for linking: 'Nodes Names', 'Nodes Location', 'First Output Only'
-        option = splitted_option[1]
-        # Links will be made from active node
+        option_split = self.option.split( )
+        replace = eval(option_split[0])
+        use_node_name = eval(option_split[1])
+        use_outputs_names = eval(option_split[2])
         active = nodes.active
-        # create list of selected nodes. Links will be made to those nodes
-        selected = []  # entry = [node index, node locacion.x, node.location.y]
-        for i, node in enumerate(nodes):
-            is_selected = node.select
-            is_not_active = node != active
-            has_inputs = len(node.inputs) > 0
-            is_valid = is_selected and is_not_active and has_inputs
-            if is_valid:
-                selected.append([i, node.location.x, node.location.y])
-        # sort selected by location.y, then location.x. Easier handling of "Nodes Location" option
-        selected.sort(key = lambda k: (-k[2], k[1]))
-        if active:
-            if active.select:
-                # create manageable list of active outputs
-                outputs = []
-                for i, out in enumerate(active.outputs):
-                    if active.type != 'R_LAYERS':
-                        outputs.append(i)
-                    else:
-                        # 'R_LAYERS' node type needs special handling.
-                        # Check if pass represented by output is used.
-                        # global 'rl_outputs' list will be used for that
-                        for [render_pass, out_name, exr_name, in_internal, in_cycles] in rl_outputs:
-                            pass_used = False
-                            if out.name == 'Alpha':
-                                pass_used = True
-                            elif out.name == out_name:
-                                # example 'render_pass' entry: 'use_pass_uv' Check if True in scene render layers
-                                pass_used = getattr(node.scene.render.layers[node.layer], render_pass)
-                                break
-                        if pass_used:
-                            outputs.append(i)
-                if outputs:
-                    if option == 'Nodes Names':
-                        for i, out in enumerate(outputs):
-                            for [ni, x, y] in selected:  # [node index, location.x, location.y]
-                                name = nodes[ni].name
-                                inputs_len = len(nodes[ni].inputs)
-                                if nodes[ni].label:
-                                    name = nodes[ni].label
-                                for [render_pass, out_name, exr_name, in_internal, in_cycles] in rl_outputs:
-                                    if name in {out_name, exr_name}:
-                                        names = [out_name, exr_name]  # if out name matches any of those - valid
-                                        break
-                                    else:
-                                        names = [name]  # length of entry doesn't matter.
-                                if len(outputs) > 1:
-                                    if active.outputs[out].name in names:
-                                        out_type = active.outputs[out].type
-                                        input_i = 0
-                                        if (nodes[ni].inputs[0].type != out_type and inputs_len > 1):
-                                            for ii in range (1, inputs_len):
-                                                if nodes[ni].inputs[ii].type == out_type:
-                                                    input_i = ii
-                                                    break
-                                        links.new(active.outputs[out], nodes[ni].inputs[input_i])
-                                else:
-                                    a_name = active.name
-                                    if active.label:
-                                        a_name = active.label
-                                    if a_name in names:
-                                        out_type = active.outputs[0].type
-                                        input_i = 0
-                                        if (nodes[ni].inputs[0].type != out_type and inputs_len > 1):
-                                            for ii in range (1, inputs_len):
-                                                if nodes[ni].inputs[ii].type == out_type:
-                                                    input_i = ii
-                                                    break
-                                        links.new(active.outputs[0], nodes[ni].inputs[input_i])
-                    elif option == 'Nodes Location':
-                        for i, out in enumerate(outputs):
-                            if i < len(selected):
-                                out_type = active.outputs[out].type
-                                inputs_len = len(nodes[selected[i][0]].inputs)
-                                input_i = 0
-                                if (nodes[selected[i][0]].inputs[0].type != out_type and inputs_len > 1):
-                                    for ii in range (1, inputs_len):
-                                        if nodes[selected[i][0]].inputs[ii].type == out_type:
-                                            input_i = ii
-                                            break
-                                links.new(active.outputs[out], nodes[selected[i][0]].inputs[input_i])
-                    elif option == 'First Output Only':
-                        out_type = active.outputs[0].type
-                        for [ni, x, y] in selected:
-                            inputs_len = len(nodes[ni].inputs)
-                            input_i = 0
-                            if (nodes[ni].inputs[0].type != out_type and inputs_len > 1):
-                                for ii in range (1, inputs_len):
-                                    if nodes[ni].inputs[ii].type == out_type:
-                                        input_i = ii
-                                        break
-                            links.new(active.outputs[0], nodes[ni].inputs[input_i])
-
-        return {'FINISHED'}            
+        selected = [node for node in nodes if node.select and node != active]
+        outputs = []  # Only usable outputs of active nodes will be stored here.
+        for out in active.outputs:
+            if active.type != 'R_LAYERS':
+                outputs.append(out)
+            else:
+                # 'R_LAYERS' node type needs special handling.
+                # outputs of 'R_LAYERS' are callable even if not seen in UI.
+                # Only outputs that represent used passes should be taken into account
+                # Check if pass represented by output is used.
+                # global 'rl_outputs' list will be used for that
+                for [render_pass, out_name, exr_name, in_internal, in_cycles] in rl_outputs:
+                    pass_used = False  # initial value. Will be set to True if pass is used
+                    if out.name == 'Alpha':
+                        # Alpha output is always present. Doesn't have representation in render pass. Assume it's used.
+                        pass_used = True
+                    elif out.name == out_name:
+                        # example 'render_pass' entry: 'use_pass_uv' Check if True in scene render layers
+                        pass_used = getattr(active.scene.render.layers[active.layer], render_pass)
+                        break
+                if pass_used:
+                    outputs.append(out)
+        doit = True  # Will be changed to False when links successfully added to previous output.
+        for out in outputs:
+            if doit:
+                for node in selected:
+                    dst_name = node.name  # Will be compared with src_name if needed.
+                    # When node has label - use it as dst_name
+                    if node.label:
+                        dst_name = node.label
+                    valid = True  # Initial value. Will be changed to False if names don't match.
+                    src_name = dst_name  # If names not used - this asignment will keep valid = True.
+                    if use_node_name:
+                        # Set src_name to source node name or label
+                        src_name = active.name
+                        if active.label:
+                            src_name = active.label
+                    elif use_outputs_names:
+                        # Set src_name to name of output currently analyzed.
+                        src_name = out.name
+                    if src_name != dst_name:
+                        valid = False
+                    if valid:
+                        for input in node.inputs:
+                            if input.type == out.type or node.type == 'REROUTE':
+                                if replace or not input.is_linked:
+                                    links.new(out, input)
+                                    if not use_node_name and not use_outputs_names:
+                                        doit = False
+                                    break
+        
+        return {'FINISHED'}
 
 
 class AlignNodes(bpy.types.Operator):
@@ -1002,7 +999,7 @@ class EfficiencyToolsPanel(bpy.types.Panel):
         box.menu(CopyToSelectedMenu.bl_idname, text = 'Copy to Selected (Shift-C)')
         box.operator(NodesClearLabel.bl_idname).option = 'confirmed'
         box.menu(AddReroutesMenu.bl_idname, text = 'Add Reroutes')
-        box.menu(ReroutesSwitchesSwapMenu.bl_idname, text = 'Swap Reroutes and Switches')
+        box.menu(NodesSwapMenu.bl_idname, text = 'Swap Nodes')
         box.menu(LinkActiveToSelectedMenu.bl_idname, text = 'Link Active To Selected')
 
 
@@ -1030,7 +1027,7 @@ class EfficiencyToolsMenu(bpy.types.Menu):
         layout.menu(CopyToSelectedMenu.bl_idname, text = 'Copy to Selected')
         layout.operator(NodesClearLabel.bl_idname).option = 'confirmed'
         layout.menu(AddReroutesMenu.bl_idname, text = 'Add Reroutes')
-        layout.menu(ReroutesSwitchesSwapMenu.bl_idname, text = 'Swap Reroutes and Switches')
+        layout.menu(NodesSwapMenu.bl_idname, text = 'Swap Nodes')
         layout.menu(LinkActiveToSelectedMenu.bl_idname, text = 'Link Active To Selected')
 
 
@@ -1178,9 +1175,9 @@ class AddReroutesMenu(bpy.types.Menu):
         layout.operator(NodesAddReroutes.bl_idname, text = 'to Loose Outputs').option = 'loose'
 
 
-class ReroutesSwitchesSwapMenu(bpy.types.Menu):
-    bl_idname = "NODE_MT_reroutes_switches_swap_menu"
-    bl_label = "Swap Reroutes and Switches"
+class NodesSwapMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_swap_menu"
+    bl_label = "Swap Nodes"
     
     @classmethod
     def poll(cls, context):
@@ -1188,14 +1185,20 @@ class ReroutesSwitchesSwapMenu(bpy.types.Menu):
         return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
+        type = context.space_data.tree_type
         layout = self.layout
-        layout.operator(NodesReroutesSwitchesSwap.bl_idname, text = "Change to Switches").option = 'CompositorNodeSwitch'
-        layout.operator(NodesReroutesSwitchesSwap.bl_idname, text = "Change to Reroutes").option = 'NodeReroute'
+        if type == 'CompositorNodeTree':
+            layout.operator(NodesSwap.bl_idname, text = "Change to Switches").option = 'CompositorNodeSwitch'
+            layout.operator(NodesSwap.bl_idname, text = "Change to Reroutes").option = 'NodeReroute'
+        layout.operator(NodesSwap.bl_idname, text = "Change to Mix Nodes").option = 'NodeMixRGB'
+        if type == 'CompositorNodeTree':
+            layout.operator(NodesSwap.bl_idname, text = "Change to Alpha Over").option = 'CompositorNodeAlphaOver'
+        layout.operator(NodesSwap.bl_idname, text = "Change to Math Nodes").option = 'NodeMath'
 
 
 class LinkActiveToSelectedMenu(bpy.types.Menu):
     bl_idname = "NODE_MT_link_active_to_selected_menu"
-    bl_label = "Link Active to Selected, base on..."
+    bl_label = "Link Active to Selected"
 
     @classmethod
     def poll(cls, context):
@@ -1204,9 +1207,69 @@ class LinkActiveToSelectedMenu(bpy.types.Menu):
     
     def draw(self, context):
         layout = self.layout
-        for opt in ('Nodes Names', 'Nodes Location', 'First Output Only'):
-            full_opt = 'True/' + opt
-            layout.operator(NodesLinkActiveToSelected.bl_idname, text=opt).option = full_opt
+        layout.menu(LinkStandardMenu.bl_idname)
+        layout.menu(LinkUseNamesMenu.bl_idname)
+
+
+class LinkStandardMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_link_standard_menu"
+    bl_label = "To All Selected"
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(NodesLinkActiveToSelected.bl_idname, text="Don't Replace Links (Shift-F)").option = 'False False False'
+        layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links (Ctrl-Shift-F)").option = 'True False False'
+
+
+
+class LinkUseNamesMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_link_use_names_menu"
+    bl_label = "Use Names/Labels..."
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.menu(LinkUseNodeNameMenu.bl_idname, text="Use Node Name/Label")
+        layout.menu(LinkUseOutputsNamesMenu.bl_idname, text="Use Outputs Names")
+
+
+class LinkUseNodeNameMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_link_use_node_name_menu"
+    bl_label = "Use Node Name/Label"
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links").option = 'True True False'
+        layout.operator(NodesLinkActiveToSelected.bl_idname, text="Don't Replace Links").option = 'False True False'
+
+
+class LinkUseOutputsNamesMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_link_use_outputs_names_menu"
+    bl_label = "Use Outputs Names"
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links").option = 'True False True'
+        layout.operator(NodesLinkActiveToSelected.bl_idname, text="Don't Replace Links").option = 'False False True'
 
 
 class NodeAlignMenu(bpy.types.Menu):
@@ -1295,16 +1358,16 @@ kmi_defs_operators = (
     (BatchChangeNodes.bl_idname, 'DOWN_ARROW', 'NEXT NEXT', False, False, True),
     (BatchChangeNodes.bl_idname, 'UP_ARROW', 'PREV PREV', False, False, True),
     # CHANGE MIX FACTOR
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', '-0.1', False, False, True),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', '0.1',  False, False, True),
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', '-0.01', False, True, True),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', '0.01', False, True, True),
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', '0.0', True, True, True),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', '1.0', True, True, True),
-    (ChangeMixFactor.bl_idname, 'NUMPAD_0', '0.0', True, True, True),
-    (ChangeMixFactor.bl_idname, 'ZERO', '0.0', True, True, True),
-    (ChangeMixFactor.bl_idname, 'NUMPAD_1', '1.0', True, True, True),
-    (ChangeMixFactor.bl_idname, 'ONE', '1.0', True, True, True),
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', -0.1, False, False, True),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', 0.1,  False, False, True),
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', -0.01, False, True, True),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', 0.01, False, True, True),
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', 0.0, True, True, True),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', 1.0, True, True, True),
+    (ChangeMixFactor.bl_idname, 'NUMPAD_0', 0.0, True, True, True),
+    (ChangeMixFactor.bl_idname, 'ZERO', 0.0, True, True, True),
+    (ChangeMixFactor.bl_idname, 'NUMPAD_1', 1.0, True, True, True),
+    (ChangeMixFactor.bl_idname, 'ONE', 1.0, True, True, True),
     # CLEAR LABEL (Alt L)
     (NodesClearLabel.bl_idname, 'L', 'not confirmed', False, False, True),
     # ADD TEXTURE SETUP (Ctrl T)
@@ -1314,17 +1377,22 @@ kmi_defs_operators = (
     (SelectParentChildren.bl_idname, 'RIGHT_BRACKET', 'Children', False, False, False),
     # Select Parent
     (SelectParentChildren.bl_idname, 'LEFT_BRACKET', 'Parent', False, False, False),
+    # LINK ACTIVE TO SELECTED
+    # Don't use names, replace links (Ctrl Shift F)
+    (NodesLinkActiveToSelected.bl_idname, 'F', 'True False False', True, True, False),
+    # Don't use names, don't replace links (Shift F)
+    (NodesLinkActiveToSelected.bl_idname, 'F', 'False False False', False, True, False),
     )
 
 # kmi_defs_menus entry: (key, CTRL, SHIFT, ALT, menu_name)
 kmi_defs_menus = (
-    ('SPACE', True, False, False, EfficiencyToolsMenu.bl_idname),
-    ('SLASH', False, False, False, AddReroutesMenu.bl_idname),
-    ('NUMPAD_SLASH', False, False, False, AddReroutesMenu.bl_idname),
-    ('EQUAL', False, True, False, NodeAlignMenu.bl_idname),
-    ('F', False, True, False, LinkActiveToSelectedMenu.bl_idname),
-    ('C', False, True, False, CopyToSelectedMenu.bl_idname),
-    ('S', False, True, False, ReroutesSwitchesSwapMenu.bl_idname),
+    ('SPACE', True, False, False, EfficiencyToolsMenu.bl_idname),  # (Ctrl Space) - Main Menu
+    ('SLASH', False, False, False, AddReroutesMenu.bl_idname),  # (Slash) - Add Reroutes Menu
+    ('NUMPAD_SLASH', False, False, False, AddReroutesMenu.bl_idname),  # (Numpad Slash) - Add Reroutes Menu
+    ('EQUAL', False, True, False, NodeAlignMenu.bl_idname),  # (Shift =) - Align Nodes Menu
+    ('F', False, False, True, LinkUseNamesMenu.bl_idname),  # (Alt F) - Link Active To Selected using names/labels
+    ('C', False, True, False, CopyToSelectedMenu.bl_idname),  # (Shift C) - Copy To Selected Menu
+    ('S', False, True, False, NodesSwapMenu.bl_idname),  # (Shift S) - Swap Nodes Menu
     )
 
 def register():
