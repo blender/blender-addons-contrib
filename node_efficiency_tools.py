@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 0.12),
+    'version': (2, 1.0),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -68,7 +68,6 @@ rl_outputs = (
     ('use_pass_vector', 'Speed', 'Vector', True, True),
     ('use_pass_z', 'Z', 'Depth', True, True),
     )
-
 # list of blend types of "Mix" nodes
 blend_types = (
     'MIX', 'ADD', 'MULTIPLY', 'SUBTRACT', 'SCREEN',
@@ -85,6 +84,21 @@ operations = (
     )
 # list of mixing shaders
 merge_shaders = ('MIX', 'ADD')
+# list of regular shaders. Entry: (identified, type, name for humans)
+regular_shaders = (
+    ('ShaderNodeBsdfTransparent', 'BSDF_TRANSPARENT', 'Transparent BSDF'),
+    ('ShaderNodeBsdfGlossy', 'BSDF_GLOSSY', 'Glossy BSDF'),
+    ('ShaderNodeBsdfGlass', 'BSDF_GLASS', 'Glass BSDF'),
+    ('ShaderNodeBsdfDiffuse', 'BSDF_DIFFUSE', 'Diffuse BSDF'),
+    ('ShaderNodeEmission', 'EMISSION', 'Emission'),
+    ('ShaderNodeBsdfVelvet', 'BSDF_VELVET', 'Velvet BSDF'),
+    ('ShaderNodeBsdfTranslucent', 'BSDF_TRANSLUCENT', 'Translucent BSDF'),
+    ('ShaderNodeAmbientOcclusion', 'AMBIENT_OCCLUSION', 'Ambient Occlusion'),
+    ('ShaderNodeBackground', 'BACKGROUND', 'Background'),
+    ('ShaderNodeBsdfRefraction', 'BSDF_REFRACTION', 'Refraction BSDF'),
+    ('ShaderNodeBsdfAnisotropic', 'BSDF_ANISOTROPIC', 'Anisotropic BSDF'),
+    ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
+    )
 
 def set_convenience_variables(context):
     global nodes
@@ -240,7 +254,7 @@ class MergeNodes(bpy.types.Operator):
                     index -= 1
                 # set "last" of added nodes as active    
                 nodes.active = nodes[count_before]
-                for [i, x, y] in the_list:
+                for i, x, y in the_list:
                     nodes[i].select = False
                     
         return {'FINISHED'}
@@ -610,7 +624,7 @@ class NodesAddReroutes(bpy.types.Operator):
                         pass_used = True
                     else:
                         # check entries in global 'rl_outputs' variable
-                        for [render_pass, out_name, exr_name, in_internal, in_cycles] in rl_outputs:
+                        for render_pass, out_name, exr_name, in_internal, in_cycles in rl_outputs:
                             if output.name == out_name:
                                 pass_used = getattr(node_scene.render.layers[node_layer], render_pass)
                                 break
@@ -646,12 +660,14 @@ class NodesSwap(bpy.types.Operator):
     bl_label = "Swap Reroutes and Switches"
     bl_options = {'REGISTER', 'UNDO'}
     
-    # option: 'CompositorNodeSwitch', 'NodeReroute', 'NodeMixRGB', 'NodeMath', 'CompositorNodeAlphaOver'
-    # 'CompositorNodeSwitch' - change selected reroutes to switches
-    # 'NodeReroute' - change selected switches to reroutes
-    # 'NodeMixRGB' - change selected switches to MixRGB (prefix 'Compositor' or 'Shader' will be added
-    # 'NodeMath' - change selected switches to Math (prefix 'Compositor' or 'Shader' will be added
-    # 'CompositorNodeAlphaOver'
+    # option: 'CompositorNodeSwitch', 'NodeReroute', 'NodeMixRGB', 'NodeMath', 'CompositorNodeAlphaOver',
+    # 'ShaderNodeBsdfDiffuse' or any other shader)
+    # 'CompositorNodeSwitch' - change selected nodes to switches.
+    # 'NodeReroute' - change selected switches to reroutes.
+    # 'NodeMixRGB' - change to MixRGB (prefix 'Compositor' or 'Shader' will be added).
+    # 'NodeMath' - change to Math (prefix 'Compositor' or 'Shader' will be added).
+    # 'CompositorNodeAlphaOver' - change to Alpha Over.
+    # 'ShaderNodeBsdfDiffuse' or any other shader type - swap selected shaders to this type.
     option = StringProperty()
     
     @classmethod
@@ -670,7 +686,14 @@ class NodesSwap(bpy.types.Operator):
         selected = [n for n in nodes if n.select]
         reselect = []
         mode = None  # will be used to set proper operation or blend type in new Math or Mix nodes.
-        if option == 'CompositorNodeSwitch':
+        # regular_shaders - global list. Entry: (identifier, type, name for humans)
+        # example: ('ShaderNodeBsdfTransparent', 'BSDF_TRANSPARENT', 'Transparent BSDF')
+        swap_shaders = option in (s[0] for s in regular_shaders)
+        if swap_shaders:
+            # replace_types - list of node types that can be replaced using selected option
+            replace_types = (type[1] for type in regular_shaders)
+            new_type = option
+        elif option == 'CompositorNodeSwitch':
             replace_types = ('REROUTE', 'MIX_RGB', 'MATH', 'ALPHAOVER')
             new_type = option
         elif option == 'NodeReroute':
@@ -702,26 +725,34 @@ class NodesSwap(bpy.types.Operator):
                             new_node.operation = node.blend_type
                 old_inputs_count = len(node.inputs)
                 new_inputs_count = len(new_node.inputs)
-                if new_inputs_count == 1:
-                    replace = [[0, 0]]  # old input 0 (first of the entry) will be replaced by new input 0.
+                if swap_shaders:
+                    replace = []
+                    for old_i, old_input in enumerate(node.inputs):
+                        for new_i, new_input in enumerate(new_node.inputs):
+                            if old_input.name == new_input.name:
+                                replace.append((old_i, new_i))
+                                break
+                elif new_inputs_count == 1:
+                    replace = ((0, 0), )  # old input 0 (first of the entry) will be replaced by new input 0.
                 elif new_inputs_count == 2:
                     if old_inputs_count == 1:
-                        replace = [[0, 0]]
+                        replace = ((0, 0), )
                     elif old_inputs_count == 2:
-                        replace = [[0, 0], [1, 1]]
+                        replace = ((0, 0), (1, 1))
                     elif old_inputs_count == 3:
-                        replace = [[1, 0], [2, 1]]
+                        replace = ((1, 0), (2, 1))
                 elif new_inputs_count == 3:
                     if old_inputs_count == 1:
-                        replace = [[0, 1]]
+                        replace = ((0, 1), )
                     elif old_inputs_count == 2:
-                        replace = [[0, 1], [1, 2]]
+                        replace = ((0, 1), (1, 2))
                     elif old_inputs_count == 3:
-                        replace = [[0, 0], [1, 1], [2, 2]]
-                for [old, new] in replace:
-                    if node.inputs[old].links:
-                        in_link = node.inputs[old].links[0]
-                        links.new(in_link.from_socket, new_node.inputs[new])
+                        replace = ((0, 0), (1, 1), (2, 2))
+                if replace:
+                    for old_i, new_i in replace:
+                        if node.inputs[old_i].links:
+                            in_link = node.inputs[old_i].links[0]
+                            links.new(in_link.from_socket, new_node.inputs[new_i])
                 for out_link in node.outputs[0].links:
                     links.new(new_node.outputs[0], out_link.to_socket)
                 new_node.location = node.location
@@ -779,7 +810,7 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
                 # Only outputs that represent used passes should be taken into account
                 # Check if pass represented by output is used.
                 # global 'rl_outputs' list will be used for that
-                for [render_pass, out_name, exr_name, in_internal, in_cycles] in rl_outputs:
+                for render_pass, out_name, exr_name, in_internal, in_cycles in rl_outputs:
                     pass_used = False  # initial value. Will be set to True if pass is used
                     if out.name == 'Alpha':
                         # Alpha output is always present. Doesn't have representation in render pass. Assume it's used.
@@ -907,7 +938,7 @@ class AlignNodes(bpy.types.Operator):
                 #loc_y = (max_x_loc_y + min_x_loc_y) / 2.0
                 loc_y = (max_y - max_y_h / 2.0 + min_y - min_y_h / 2.0) / 2.0
                 offset_x = (max_x - min_x - total_w + max_x_w) / (count - 1)
-                for [i, x, y, w, h] in selected_sorted_x:
+                for i, x, y, w, h in selected_sorted_x:
                     nodes[i].location.x = loc_x
                     nodes[i].location.y = loc_y + h / 2.0
                     parent = nodes[i].parent
@@ -921,7 +952,7 @@ class AlignNodes(bpy.types.Operator):
                 loc_x = (max_x + max_x_w / 2.0 + min_x + min_x_w / 2.0) / 2.0
                 loc_y = min_y
                 offset_y = (max_y - min_y + total_h - min_y_h) / (count - 1)
-                for [i, x, y, w, h] in selected_sorted_y:
+                for i, x, y, w, h in selected_sorted_y:
                     nodes[i].location.x = loc_x - w / 2.0
                     nodes[i].location.y = loc_y
                     parent = nodes[i].parent
@@ -1147,7 +1178,12 @@ class BatchChangeOperationMenu(bpy.types.Menu):
 class CopyToSelectedMenu(bpy.types.Menu):
     bl_idname = "NODE_MT_copy_node_properties_menu"
     bl_label = "Copy to Selected"
-
+    
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+    
     def draw(self, context):
         layout = self.layout
         layout.operator(NodesCopySettings.bl_idname, text = 'Settings from Active')
@@ -1157,6 +1193,11 @@ class CopyToSelectedMenu(bpy.types.Menu):
 class CopyLabelMenu(bpy.types.Menu):
     bl_idname = "NODE_MT_copy_label_menu"
     bl_label = "Copy Label"
+    
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1168,7 +1209,12 @@ class CopyLabelMenu(bpy.types.Menu):
 class AddReroutesMenu(bpy.types.Menu):
     bl_idname = "NODE_MT_add_reroutes_menu"
     bl_label = "Add Reroutes"
-
+    
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+    
     def draw(self, context):
         layout = self.layout
         layout.operator(NodesAddReroutes.bl_idname, text = 'to All Outputs').option = 'all'
@@ -1187,13 +1233,35 @@ class NodesSwapMenu(bpy.types.Menu):
     def draw(self, context):
         type = context.space_data.tree_type
         layout = self.layout
+        if type == 'ShaderNodeTree':
+            layout.menu(ShadersSwapMenu.bl_idname, text="Swap Shaders")
+        layout.operator(NodesSwap.bl_idname, text = "Change to Mix Nodes").option = 'NodeMixRGB'
+        layout.operator(NodesSwap.bl_idname, text = "Change to Math Nodes").option = 'NodeMath'
+        if type == 'CompositorNodeTree':
+            layout.operator(NodesSwap.bl_idname, text = "Change to Alpha Over").option = 'CompositorNodeAlphaOver'
         if type == 'CompositorNodeTree':
             layout.operator(NodesSwap.bl_idname, text = "Change to Switches").option = 'CompositorNodeSwitch'
             layout.operator(NodesSwap.bl_idname, text = "Change to Reroutes").option = 'NodeReroute'
-        layout.operator(NodesSwap.bl_idname, text = "Change to Mix Nodes").option = 'NodeMixRGB'
-        if type == 'CompositorNodeTree':
-            layout.operator(NodesSwap.bl_idname, text = "Change to Alpha Over").option = 'CompositorNodeAlphaOver'
-        layout.operator(NodesSwap.bl_idname, text = "Change to Math Nodes").option = 'NodeMath'
+
+
+class ShadersSwapMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_shaders_swap_menu"
+    bl_label = "Swap Shaders"
+    
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        valid = False
+        if space.type == 'NODE_EDITOR':
+            if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None:
+                valid = True
+        return valid
+    
+    def draw(self, context):
+        layout = self.layout
+        for opt, type, txt in regular_shaders:
+            layout.operator(NodesSwap.bl_idname, text = txt).option = opt
+            
 
 
 class LinkActiveToSelectedMenu(bpy.types.Menu):
