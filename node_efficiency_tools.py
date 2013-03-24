@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 1.0),
+    'version': (2, 1.1),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -30,7 +30,7 @@ bl_info = {
     }
 
 import bpy
-from bpy.props import EnumProperty, StringProperty, BoolProperty, FloatProperty
+from bpy.props import StringProperty, FloatProperty
 
 #################
 # rl_outputs:
@@ -837,9 +837,11 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
                         if active.label:
                             src_name = active.label
                     elif use_outputs_names:
-                        # Set src_name to name of output currently analyzed.
-                        src_name = out.name
-                    if src_name != dst_name:
+                        src_name = (out.name, )
+                        for render_pass, out_name, exr_name, in_internal, in_cycles in rl_outputs:
+                            if out.name in {out_name, exr_name}:
+                                src_name = (out_name, exr_name)
+                    if dst_name not in src_name:
                         valid = False
                     if valid:
                         for input in node.inputs:
