@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 1.1),
+    'version': (2, 1.2),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -561,7 +561,7 @@ class NodesAddReroutes(bpy.types.Operator):
     bl_label = "Add Reroutes to Outputs"
     bl_options = {'REGISTER', 'UNDO'}
     
-    # option: 'all', 'loose'
+    # option: 'all', 'loose', linked
     option = StringProperty()
     
     @classmethod
@@ -571,10 +571,6 @@ class NodesAddReroutes(bpy.types.Operator):
     
     def execute(self, context):
         tree_type = context.space_data.node_tree.type
-        if tree_type == 'COMPOSITING':
-            node_type = 'CompositorNode'
-        elif tree_type == 'SHADER':
-            node_type = 'ShaderNode'
         option = self.option
         set_convenience_variables(context)
         # output valid when option is 'all' or when 'loose' output has no links
@@ -629,7 +625,9 @@ class NodesAddReroutes(bpy.types.Operator):
                                 pass_used = getattr(node_scene.render.layers[node_layer], render_pass)
                                 break
                 if pass_used:
-                    valid = option == 'all' or (option == 'loose' and not output.links)
+                    valid = (option == 'all') or\
+                            (option == 'loose' and not output.links) or\
+                            (option == 'linked' and output.links)
                     # Add reroutes only if valid, but offset location in all cases.
                     if valid:
                         n = nodes.new('NodeReroute')
@@ -1221,6 +1219,7 @@ class AddReroutesMenu(bpy.types.Menu):
         layout = self.layout
         layout.operator(NodesAddReroutes.bl_idname, text = 'to All Outputs').option = 'all'
         layout.operator(NodesAddReroutes.bl_idname, text = 'to Loose Outputs').option = 'loose'
+        layout.operator(NodesAddReroutes.bl_idname, text = 'to Linked Outputs').option = 'linked'
 
 
 class NodesSwapMenu(bpy.types.Menu):
