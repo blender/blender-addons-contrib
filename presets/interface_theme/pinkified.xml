@@ -225,9 +225,9 @@
       </ThemeUserInterface>
     </user_interface>
     <view_3d>
-      <ThemeView3D grid="#1c1c1c"
+      <ThemeView3D grid="#4d4d4d"
                    wire="#000000"
-                   lamp="#66666628"
+                   lamp="#99999928"
                    speaker="#666666"
                    camera="#666666"
                    empty="#666666"
@@ -239,6 +239,7 @@
                    vertex="#657780"
                    vertex_select="#ff374a"
                    vertex_size="3"
+                   vertex_unreferenced="#404040"
                    edge_select="#b33641"
                    edge_seam="#db2512"
                    edge_sharp="#00ffff"
@@ -283,7 +284,7 @@
                               header="#3b3b3b"
                               header_text="#b9b9b9"
                               header_text_hi="#ffffff"
-                              button="#00000031"
+                              button="#1a1a1a31"
                               button_title="#979797"
                               button_text="#979797"
                               button_text_hi="#ffffff">
@@ -311,6 +312,7 @@
                         vertex="#000000"
                         vertex_select="#ff8500"
                         vertex_size="3"
+                        vertex_unreferenced="#000000"
                         handle_free="#000000"
                         handle_auto="#909000"
                         handle_vect="#409030"
@@ -338,7 +340,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -374,7 +376,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -420,7 +422,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -464,7 +466,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -490,6 +492,7 @@
       <ThemeImageEditor vertex="#32adec"
                         vertex_select="#be6925"
                         vertex_size="3"
+                        vertex_unreferenced="#404040"
                         face="#a47c5b0a"
                         face_select="#a47c5b3c"
                         face_dot="#ffffff"
@@ -510,7 +513,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#00000031"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -548,7 +551,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#1a1a1ae8"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -573,7 +576,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -608,7 +611,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -634,7 +637,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -660,6 +663,7 @@
                        converter_node="#575675"
                        operator_node="#2c6f6f"
                        group_node="#1e7524"
+                       group_socket_node="#e66c00"
                        frame_node="#9a9b9ba0"
                        matte_node="#977474"
                        distor_node="#749797"
@@ -672,7 +676,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -704,7 +708,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -730,7 +734,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -755,7 +759,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -780,7 +784,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -810,7 +814,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
@@ -849,7 +853,7 @@
                              header="#3b3b3b"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#282828ff"
+                             button="#1a1a1acc"
                              button_title="#979797"
                              button_text="#979797"
                              button_text_hi="#ffffff">
