@@ -1382,7 +1382,7 @@ class LinkActiveToSelectedMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.menu(LinkStandardMenu.bl_idname)
-        layout.menu(LinkUseNamesMenu.bl_idname)
+        layout.menu(LinkUseNamesMenu.bl_idname, text = "Use names/labels")
 
 
 class LinkStandardMenu(bpy.types.Menu):
@@ -1408,7 +1408,7 @@ class LinkStandardMenu(bpy.types.Menu):
 
 class LinkUseNamesMenu(bpy.types.Menu):
     bl_idname = "NODE_MT_link_use_names_menu"
-    bl_label = "Use Names/Labels..."
+    bl_label = "Link Active to Selected"
 
     @classmethod
     def poll(cls, context):
