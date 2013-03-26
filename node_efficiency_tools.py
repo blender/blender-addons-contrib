@@ -1461,8 +1461,6 @@ class LinkUseOutputsNamesMenu(bpy.types.Menu):
         props.replace = False
         props.use_node_name = False
         props.use_outputs_names = True
-        #layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links").option = 'True False True'
-        #layout.operator(NodesLinkActiveToSelected.bl_idname, text="Don't Replace Links").option = 'False False True'
 
 
 class NodeAlignMenu(bpy.types.Menu):
@@ -1494,134 +1492,147 @@ def select_parent_children_buttons(self, context):
 #############################################################
 
 addon_keymaps = []
-kmi_defs_merge_nodes = (
+# kmi_defs entry: (identifier, key, CTRL, SHIFT, ALT, props)
+# props entry: (property name, property value)
+kmi_defs = (
     # MERGE NODES
     # MergeNodes with Ctrl (AUTO).
-    (MergeNodes.bl_idname, 'NUMPAD_0', 'MIX', 'AUTO', True, False, False),
-    (MergeNodes.bl_idname, 'ZERO', 'MIX', 'AUTO', True, False, False),
-    (MergeNodes.bl_idname, 'NUMPAD_PLUS', 'ADD', 'AUTO', True, False, False),
-    (MergeNodes.bl_idname, 'EQUAL', 'ADD', 'AUTO', True, False, False),
-    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'MULTIPLY', 'AUTO', True, False, False),
-    (MergeNodes.bl_idname, 'EIGHT', 'MULTIPLY', 'AUTO', True, False, False),
-    (MergeNodes.bl_idname, 'NUMPAD_MINUS', 'SUBTRACT', 'AUTO', True, False, False),
-    (MergeNodes.bl_idname, 'MINUS', 'SUBTRACT', 'AUTO', True, False, False),
-    (MergeNodes.bl_idname, 'NUMPAD_SLASH', 'DIVIDE', 'AUTO', True, False, False),
-    (MergeNodes.bl_idname, 'SLASH', 'DIVIDE', 'AUTO', True, False, False),
-    (MergeNodes.bl_idname, 'COMMA', 'LESS_THAN', 'MATH', True, False, False),
-    (MergeNodes.bl_idname, 'PERIOD', 'GREATER_THAN', 'MATH', True, False, False),
+    (MergeNodes.bl_idname, 'NUMPAD_0', True, False, False,\
+        (('mode', 'MIX'), ('merge_type', 'AUTO'),)),
+    (MergeNodes.bl_idname, 'EQUAL', True, False, False,\
+        (('mode', 'MIX'), ('merge_type', 'AUTO'),)),
+    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, False, False,\
+        (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),)),
+    (MergeNodes.bl_idname, 'EIGHT', True, False, False,\
+        (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),)),
+    (MergeNodes.bl_idname, 'NUMPAD_MINUS', True, False, False,\
+        (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),)),
+    (MergeNodes.bl_idname, 'MINUS', True, False, False,\
+        (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),)),
+    (MergeNodes.bl_idname, 'NUMPAD_SLASH', True, False, False,\
+        (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),)),
+    (MergeNodes.bl_idname, 'SLASH', True, False, False,\
+        (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),)),
+    (MergeNodes.bl_idname, 'COMMA', True, False, False,\
+        (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),)),
+    (MergeNodes.bl_idname, 'PERIOD', True, False, False,\
+        (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),)),
     # MergeNodes with Ctrl Alt (MIX)
-    (MergeNodes.bl_idname, 'NUMPAD_0', 'MIX', 'MIX', True, False, True),
-    (MergeNodes.bl_idname, 'ZERO', 'MIX', 'MIX', True, False, True),
-    (MergeNodes.bl_idname, 'NUMPAD_PLUS', 'ADD', 'MIX', True, False, True),
-    (MergeNodes.bl_idname, 'EQUAL', 'ADD', 'MIX', True, False, True),
-    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'MULTIPLY', 'MIX', True, False, True),
-    (MergeNodes.bl_idname, 'EIGHT', 'MULTIPLY', 'MIX', True, False, True),
-    (MergeNodes.bl_idname, 'NUMPAD_MINUS', 'SUBTRACT', 'MIX', True, False, True),
-    (MergeNodes.bl_idname, 'MINUS', 'SUBTRACT', 'MIX', True, False, True),
-    (MergeNodes.bl_idname, 'NUMPAD_SLASH', 'DIVIDE', 'MIX', True, False, True),
-    (MergeNodes.bl_idname, 'SLASH', 'DIVIDE', 'MIX', True, False, True),
+    (MergeNodes.bl_idname, 'NUMPAD_0', True, False, True,\
+        (('mode', 'MIX'), ('merge_type', 'MIX'),)),
+    (MergeNodes.bl_idname, 'ZERO', True, False, True,\
+        (('mode', 'MIX'), ('merge_type', 'MIX'),)),
+    (MergeNodes.bl_idname, 'NUMPAD_PLUS', True, False, True,\
+        (('mode', 'ADD'), ('merge_type', 'MIX'),)),
+    (MergeNodes.bl_idname, 'EQUAL', True, False, True,\
+        (('mode', 'ADD'), ('merge_type', 'MIX'),)),
+    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, False, True,\
+        (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),)),
+    (MergeNodes.bl_idname, 'EIGHT', True, False, True,\
+        (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),)),
+    (MergeNodes.bl_idname, 'NUMPAD_MINUS', True, False, True,\
+        (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),)),
+    (MergeNodes.bl_idname, 'MINUS', True, False, True,\
+        (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),)),
+    (MergeNodes.bl_idname, 'NUMPAD_SLASH', True, False, True,\
+        (('mode', 'DIVIDE'), ('merge_type', 'MIX'),)),
+    (MergeNodes.bl_idname, 'SLASH', True, False, True,\
+        (('mode', 'DIVIDE'), ('merge_type', 'MIX'),)),
     # MergeNodes with Ctrl Shift (MATH)
-    (MergeNodes.bl_idname, 'NUMPAD_0', 'MIX', 'MATH', True, True, False),
-    (MergeNodes.bl_idname, 'ZERO', 'MIX', 'MATH', True, True, False),
-    (MergeNodes.bl_idname, 'NUMPAD_PLUS', 'ADD', 'MATH', True, True, False),
-    (MergeNodes.bl_idname, 'EQUAL', 'ADD', 'MATH', True, True, False),
-    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'MULTIPLY', 'MATH', True, True, False),
-    (MergeNodes.bl_idname, 'EIGHT', 'MULTIPLY', 'MATH', True, True, False),
-    (MergeNodes.bl_idname, 'NUMPAD_MINUS', 'SUBTRACT', 'MATH', True, True, False),
-    (MergeNodes.bl_idname, 'MINUS', 'SUBTRACT', 'MATH', True, True, False),
-    (MergeNodes.bl_idname, 'NUMPAD_SLASH', 'DIVIDE', 'MATH', True, True, False),
-    (MergeNodes.bl_idname, 'SLASH', 'DIVIDE', 'MATH', True, True, False),
-    (MergeNodes.bl_idname, 'COMMA', 'LESS_THAN', 'MATH', True, True, False),
-    (MergeNodes.bl_idname, 'PERIOD', 'GREATER_THAN', 'MATH', True, True, False),
-    )
-kmi_defs_batch_change = (
+    (MergeNodes.bl_idname, 'NUMPAD_PLUS', True, True, False,\
+        (('mode', 'ADD'), ('merge_type', 'MATH'),)),
+    (MergeNodes.bl_idname, 'EQUAL', True, True, False,\
+        (('mode', 'ADD'), ('merge_type', 'MATH'),)),
+    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, True, False,\
+        (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),)),
+    (MergeNodes.bl_idname, 'EIGHT', True, True, False,\
+        (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),)),
+    (MergeNodes.bl_idname, 'NUMPAD_MINUS', True, True, False,\
+        (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),)),
+    (MergeNodes.bl_idname, 'MINUS', True, True, False,\
+        (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),)),
+    (MergeNodes.bl_idname, 'NUMPAD_SLASH', True, True, False,\
+        (('mode', 'DIVIDE'), ('merge_type', 'MATH'),)),
+    (MergeNodes.bl_idname, 'SLASH', True, True, False,\
+        (('mode', 'DIVIDE'), ('merge_type', 'MATH'),)),
+    (MergeNodes.bl_idname, 'COMMA', True, True, False,\
+        (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),)),
+    (MergeNodes.bl_idname, 'PERIOD', True, True, False,\
+        (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),)),
     # BATCH CHANGE NODES
     # BatchChangeNodes with Alt
-    (BatchChangeNodes.bl_idname, 'NUMPAD_0', 'MIX', 'CURRENT', False, False, True),
-    (BatchChangeNodes.bl_idname, 'ZERO', 'MIX', 'CURRENT', False, False, True),
-    (BatchChangeNodes.bl_idname, 'NUMPAD_PLUS', 'ADD', 'ADD', False, False, True),
-    (BatchChangeNodes.bl_idname, 'EQUAL', 'ADD', 'ADD', False, False, True),
-    (BatchChangeNodes.bl_idname, 'NUMPAD_ASTERIX', 'MULTIPLY', 'MULTIPLY', False, False, True),
-    (BatchChangeNodes.bl_idname, 'EIGHT', 'MULTIPLY', 'MULTIPLY', False, False, True),
-    (BatchChangeNodes.bl_idname, 'NUMPAD_MINUS', 'SUBTRACT', 'SUBTRACT', False, False, True),
-    (BatchChangeNodes.bl_idname, 'MINUS', 'SUBTRACT', 'SUBTRACT', False, False, True),
-    (BatchChangeNodes.bl_idname, 'NUMPAD_SLASH', 'DIVIDE', 'DIVIDE', False, False, True),
-    (BatchChangeNodes.bl_idname, 'SLASH', 'DIVIDE', 'DIVIDE', False, False, True),
-    (BatchChangeNodes.bl_idname, 'COMMA', 'CURRENT', 'LESS_THAN', False, False, True),
-    (BatchChangeNodes.bl_idname, 'PERIOD', 'CURRENT', 'GREATER_THAN', False, False, True),
-    (BatchChangeNodes.bl_idname, 'DOWN_ARROW', 'NEXT', 'NEXT', False, False, True),
-    (BatchChangeNodes.bl_idname, 'UP_ARROW', 'PREV', 'PREV', False, False, True),
-    )
-kmi_defs_link_active_to_selected = (
+    (BatchChangeNodes.bl_idname, 'NUMPAD_0', False, False, True,\
+        (('blend_type', 'MIX'), ('operation', 'CURRENT'),)),
+    (BatchChangeNodes.bl_idname, 'ZERO', False, False, True,\
+        (('blend_type', 'MIX'), ('operation', 'CURRENT'),)),
+    (BatchChangeNodes.bl_idname, 'NUMPAD_PLUS', False, False, True,\
+        (('blend_type', 'ADD'), ('operation', 'ADD'),)),
+    (BatchChangeNodes.bl_idname, 'EQUAL', False, False, True,\
+        (('blend_type', 'ADD'), ('operation', 'ADD'),)),
+    (BatchChangeNodes.bl_idname, 'NUMPAD_ASTERIX', False, False, True,\
+        (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),)),
+    (BatchChangeNodes.bl_idname, 'EIGHT', False, False, True,\
+        (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),)),
+    (BatchChangeNodes.bl_idname, 'NUMPAD_MINUS', False, False, True,\
+        (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),)),
+    (BatchChangeNodes.bl_idname, 'MINUS', False, False, True,\
+        (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),)),
+    (BatchChangeNodes.bl_idname, 'NUMPAD_SLASH', False, False, True,\
+        (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),)),
+    (BatchChangeNodes.bl_idname, 'SLASH', False, False, True,\
+        (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),)),
+    (BatchChangeNodes.bl_idname, 'COMMA', False, False, True,\
+        (('blend_type', 'CURRENT'), ('operation', 'LESS_THAN'),)),
+    (BatchChangeNodes.bl_idname, 'PERIOD', False, False, True,\
+        (('blend_type', 'CURRENT'), ('operation', 'GREATER_THAN'),)),
+    (BatchChangeNodes.bl_idname, 'DOWN_ARROW', False, False, True,\
+        (('blend_type', 'NEXT'), ('operation', 'NEXT'),)),
+    (BatchChangeNodes.bl_idname, 'UP_ARROW', False, False, True,\
+        (('blend_type', 'PREV'), ('operation', 'PREV'),)),
     # LINK ACTIVE TO SELECTED
     # Don't use names, replace links (Ctrl Shift F)
-    (NodesLinkActiveToSelected.bl_idname, 'F', True, False, False, True, True, False),
+    (NodesLinkActiveToSelected.bl_idname, 'F', True, True, False,\
+        (('replace', True), ('use_node_name', False), ('use_outputs_names', False),)),
     # Don't use names, don't replace links (Shift F)
-    (NodesLinkActiveToSelected.bl_idname, 'F', False, False, False, False, True, False),
-    )
-kmi_defs_operators = (
+    (NodesLinkActiveToSelected.bl_idname, 'F', False, True, False,\
+        (('replace', False), ('use_node_name', False), ('use_outputs_names', False),)),
     # CHANGE MIX FACTOR
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', -0.1, False, False, True),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', 0.1,  False, False, True),
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', -0.01, False, True, True),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', 0.01, False, True, True),
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', 0.0, True, True, True),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', 1.0, True, True, True),
-    (ChangeMixFactor.bl_idname, 'NUMPAD_0', 0.0, True, True, True),
-    (ChangeMixFactor.bl_idname, 'ZERO', 0.0, True, True, True),
-    (ChangeMixFactor.bl_idname, 'NUMPAD_1', 1.0, True, True, True),
-    (ChangeMixFactor.bl_idname, 'ONE', 1.0, True, True, True),
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', False, False, True, (('option', -0.1),)),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, False, True, (('option', 0.1),)),
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', False, True, True, (('option', -0.01),)),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, True, True, (('option', 0.01),)),
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', True, True, True, (('option', 0.0),)),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', True, True, True, (('option', 1.0),)),
+    (ChangeMixFactor.bl_idname, 'NUMPAD_0', True, True, True, (('option', 0.0),)),
+    (ChangeMixFactor.bl_idname, 'ZERO', True, True, True, (('option', 0.0),)),
+    (ChangeMixFactor.bl_idname, 'NUMPAD_1', True, True, True, (('option', 1.0),)),
+    (ChangeMixFactor.bl_idname, 'ONE', True, True, True, (('option', 1.0),)),
     # CLEAR LABEL (Alt L)
-    (NodesClearLabel.bl_idname, 'L', False, False, False, True),
+    (NodesClearLabel.bl_idname, 'L', False, False, True, (('option', False),)),
     # SELECT PARENT/CHILDREN
     # Select Children
-    (SelectParentChildren.bl_idname, 'RIGHT_BRACKET', 'Children', False, False, False),
+    (SelectParentChildren.bl_idname, 'RIGHT_BRACKET', False, False, False, (('option', 'Children'),)),
     # Select Parent
-    (SelectParentChildren.bl_idname, 'LEFT_BRACKET', 'Parent', False, False, False),
-    )
-# kmi_defs_menus entry: (key, CTRL, SHIFT, ALT, menu_name)
-
-kmi_defs_menus = (
-    ('SPACE', True, False, False, EfficiencyToolsMenu.bl_idname),  # (Ctrl Space) - Main Menu
-    ('SLASH', False, False, False, AddReroutesMenu.bl_idname),  # (Slash) - Add Reroutes Menu
-    ('NUMPAD_SLASH', False, False, False, AddReroutesMenu.bl_idname),  # (Numpad Slash) - Add Reroutes Menu
-    ('EQUAL', False, True, False, NodeAlignMenu.bl_idname),  # (Shift =) - Align Nodes Menu
-    ('F', False, False, True, LinkUseNamesMenu.bl_idname),  # (Alt F) - Link Active To Selected using names/labels
-    ('C', False, True, False, CopyToSelectedMenu.bl_idname),  # (Shift C) - Copy To Selected Menu
-    ('S', False, True, False, NodesSwapMenu.bl_idname),  # (Shift S) - Swap Nodes Menu
+    (SelectParentChildren.bl_idname, 'LEFT_BRACKET', False, False, False, (('option', 'Parent'),)),
+    (NodesAddTextureSetup.bl_idname, 'T', True, False, False, None),
+    # MENUS
+    ('wm.call_menu', 'SPACE', True, False, False, (('name', EfficiencyToolsMenu.bl_idname),)),
+    ('wm.call_menu', 'SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),)),
+    ('wm.call_menu', 'NUMPAD_SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),)),
+    ('wm.call_menu', 'EQUAL', False, True, False, (('name', NodeAlignMenu.bl_idname),)),
+    ('wm.call_menu', 'F', False, False, True, (('name', LinkUseNamesMenu.bl_idname),)),
+    ('wm.call_menu', 'C', False, True, False, (('name', CopyToSelectedMenu.bl_idname),)),
+    ('wm.call_menu', 'S', False, True, False, (('name', NodesSwapMenu.bl_idname),)),
     )
 
 def register():
     bpy.utils.register_module(__name__)
     km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name='Node Editor', space_type = "NODE_EDITOR")
-    # keymap items for MergeNodes
-    for (operator, key, mode, merge_type, CTRL, SHIFT, ALT) in kmi_defs_merge_nodes:
-        kmi = km.keymap_items.new(operator, key, 'PRESS', ctrl = CTRL, shift = SHIFT, alt = ALT)
-        kmi.properties.mode = mode
-        kmi.properties.merge_type = merge_type
-        addon_keymaps.append((km, kmi))
-    # keymap items for BatchChange
-    for (operator, key, blend_type, operation, CTRL, SHIFT, ALT) in kmi_defs_batch_change:
-        kmi = km.keymap_items.new(operator, key, 'PRESS', ctrl = CTRL, shift = SHIFT, alt = ALT)
-        kmi.properties.blend_type = blend_type
-        kmi.properties.operation = operation
-        addon_keymaps.append((km, kmi))
-    # keymap items for LinkActiveToSelected
-    for (operator, key, replace, use_node_name, use_outputs_names, CTRL, SHIFT, ALT) in kmi_defs_link_active_to_selected:
-        kmi = km.keymap_items.new(operator, key, 'PRESS', ctrl = CTRL, shift = SHIFT, alt = ALT)
-        kmi.properties.replace = replace
-        kmi.properties.use_node_name = use_node_name
-        kmi.properties.use_outputs_names = use_outputs_names
-    # keymap items for operators
-    for (operator, key, opt, CTRL, SHIFT, ALT) in kmi_defs_operators:
-        kmi = km.keymap_items.new(operator, key, 'PRESS', ctrl = CTRL, shift = SHIFT, alt = ALT)
-        kmi.properties.option = opt
-        addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new(NodesAddTextureSetup.bl_idname, 'T', 'PRESS', ctrl = True)
-    # keymap items for menus
-    for (key, CTRL, SHIFT, ALT, menu_name) in kmi_defs_menus:
-        kmi = km.keymap_items.new('wm.call_menu', key, 'PRESS', ctrl = CTRL, shift = SHIFT, alt = ALT)
-        kmi.properties.name = menu_name
+    for (identifier, key, CTRL, SHIFT, ALT, props) in kmi_defs:
+        kmi = km.keymap_items.new(identifier, key, 'PRESS', ctrl = CTRL, shift = SHIFT, alt = ALT)
+        if props:
+            for prop, value in props:
+                setattr(kmi.properties, prop, value)
         addon_keymaps.append((km, kmi))
     # menu items
     bpy.types.NODE_MT_select.append(select_parent_children_buttons)
