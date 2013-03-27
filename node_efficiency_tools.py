@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 1.4),
+    'version': (2, 20),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -119,6 +119,7 @@ navs = [
 # list of mixing shaders
 merge_shaders = ('MIX', 'ADD')
 # list of regular shaders. Entry: (identified, type, name for humans). Will be used in SwapShaders and menus.
+# Keeping mixed case to avoid having to translate entries when adding new nodes in SwapNodes.
 regular_shaders = (
     ('ShaderNodeBsdfTransparent', 'BSDF_TRANSPARENT', 'Transparent BSDF'),
     ('ShaderNodeBsdfGlossy', 'BSDF_GLOSSY', 'Glossy BSDF'),
@@ -485,9 +486,9 @@ class NodesCopyLabel(Operator, NodeToolBase):
         name = "option",
         description = "Source of name of label",
         items = [
-            ('from_active', 'from active', 'from active node',),
-            ('from_node', 'from node', 'from node linked to selected node'),
-            ('from_socket', 'from socket', 'from socket linked to selected node'),
+            ('FROM_ACTIVE', 'from active', 'from active node',),
+            ('FROM_NODE', 'from node', 'from node linked to selected node'),
+            ('FROM_SOCKET', 'from socket', 'from socket linked to selected node'),
             ]
         )
     
@@ -495,12 +496,12 @@ class NodesCopyLabel(Operator, NodeToolBase):
         nodes, links = get_nodes_links(context)
         option = self.option
         active = nodes.active
-        if option == 'from_active':
+        if option == 'FROM_ACTIVE':
             if active:
                 src_label = active.label
                 for node in [n for n in nodes if n.select and nodes.active != n]:
                     node.label = src_label
-        elif option == 'from_node':
+        elif option == 'FROM_NODE':
             selected = [n for n in nodes if n.select]
             for node in selected:
                 for input in node.inputs:
@@ -508,7 +509,7 @@ class NodesCopyLabel(Operator, NodeToolBase):
                         src = input.links[0].from_node
                         node.label = src.label
                         break
-        elif option == 'from_socket':
+        elif option == 'FROM_SOCKET':
             selected = [n for n in nodes if n.select]
             for node in selected:
                 for input in node.inputs:
@@ -1201,9 +1202,9 @@ class CopyLabelMenu(Menu, NodeToolBase):
     
     def draw(self, context):
         layout = self.layout
-        layout.operator(NodesCopyLabel.bl_idname, text="from Active Node's Label").option = 'from_active'
-        layout.operator(NodesCopyLabel.bl_idname, text="from Linked Node's Label").option = 'from_node'
-        layout.operator(NodesCopyLabel.bl_idname, text="from Linked Output's Name").option = 'from_socket'
+        layout.operator(NodesCopyLabel.bl_idname, text="from Active Node's Label").option = 'FROM_ACTIVE'
+        layout.operator(NodesCopyLabel.bl_idname, text="from Linked Node's Label").option = 'FROM_NODE'
+        layout.operator(NodesCopyLabel.bl_idname, text="from Linked Output's Name").option = 'FROM_SOCKET'
 
 
 class AddReroutesMenu(Menu, NodeToolBase):
