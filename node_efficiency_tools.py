@@ -606,9 +606,9 @@ class NodesAddReroutes(Operator, NodeToolBase):
     option = EnumProperty(
             name="option",
             items=[
-                ('all', 'to all', 'Add to all outputs'),
-                ('loose', 'to loose', 'Add only to loose outputs'),
-                ('linked', 'to linked', 'Add only to linked outputs'),
+                ('ALL', 'to all', 'Add to all outputs'),
+                ('LOOSE', 'to loose', 'Add only to loose outputs'),
+                ('LINKED', 'to linked', 'Add only to linked outputs'),
                 ]
             )
 
@@ -668,9 +668,9 @@ class NodesAddReroutes(Operator, NodeToolBase):
                                 pass_used = getattr(node_scene.render.layers[node_layer], render_pass)
                                 break
                 if pass_used:
-                    valid = ((option == 'all') or
-                             (option == 'loose' and not output.links) or
-                             (option == 'linked' and output.links))
+                    valid = ((option == 'ALL') or
+                             (option == 'LOOSE' and not output.links) or
+                             (option == 'LINKED' and output.links))
                     # Add reroutes only if valid, but offset location in all cases.
                     if valid:
                         n = nodes.new('NodeReroute')
@@ -913,8 +913,8 @@ class AlignNodes(Operator, NodeToolBase):
             name="option",
             description="Direction",
             items=(
-                ('Vertically', 'Align Vertically', 'Align Vertically'),
-                ('Horizontally', 'Aligh Horizontally', 'Aligh Horizontally'),
+                ('AXIS_X', "Align Vertically", 'Align Vertically'),
+                ('AXIS_Y', "Aligh Horizontally", 'Aligh Horizontally'),
                 )
             )
 
@@ -985,7 +985,7 @@ class AlignNodes(Operator, NodeToolBase):
             max_y_w = selected_sorted_y[count - 1][3]  # width of node with max loc.y
             max_y_h = selected_sorted_y[count - 1][4]  # height of node with max loc.y
 
-            if self.option == 'Vertically':
+            if self.option == 'AXIS_X':
                 loc_x = min_x
                 #loc_y = (max_x_loc_y + min_x_loc_y) / 2.0
                 loc_y = (max_y - max_y_h / 2.0 + min_y - min_y_h / 2.0) / 2.0
@@ -999,7 +999,7 @@ class AlignNodes(Operator, NodeToolBase):
                         nodes[i].location.y -= parent.location.y
                         parent = parent.parent
                     loc_x += offset_x + w
-            else:  # if align Horizontally
+            else:  # if self.option == 'AXIS_Y'
                 #loc_x = (max_y_loc_x + max_y_w / 2.0 + min_y_loc_x + min_y_w / 2.0) / 2.0
                 loc_x = (max_x + max_x_w / 2.0 + min_x + min_x_w / 2.0) / 2.0
                 loc_y = min_y
@@ -1031,8 +1031,8 @@ class SelectParentChildren(Operator, NodeToolBase):
     option = EnumProperty(
             name="option",
             items=(
-                ('Parent', 'Select Parent', 'Select Parent Frame'),
-                ('Children', 'Select Children', 'Select members of selected frame'),
+                ('PARENT', 'Select Parent', 'Select Parent Frame'),
+                ('CHILD', 'Select Children', 'Select members of selected frame'),
                 )
             )
 
@@ -1040,12 +1040,12 @@ class SelectParentChildren(Operator, NodeToolBase):
         nodes, links = get_nodes_links(context)
         option = self.option
         selected = [node for node in nodes if node.select]
-        if option == 'Parent':
+        if option == 'PARENT':
             for sel in selected:
                 parent = sel.parent
                 if parent:
                     parent.select = True
-        else:
+        else:  # option == 'CHILD'
             for sel in selected:
                 children = [node for node in nodes if node.parent == sel]
                 for kid in children:
@@ -1215,9 +1215,9 @@ class AddReroutesMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(NodesAddReroutes.bl_idname, text="to All Outputs").option = 'all'
-        layout.operator(NodesAddReroutes.bl_idname, text="to Loose Outputs").option = 'loose'
-        layout.operator(NodesAddReroutes.bl_idname, text="to Linked Outputs").option = 'linked'
+        layout.operator(NodesAddReroutes.bl_idname, text="to All Outputs").option = 'ALL'
+        layout.operator(NodesAddReroutes.bl_idname, text="to Loose Outputs").option = 'LOOSE'
+        layout.operator(NodesAddReroutes.bl_idname, text="to Linked Outputs").option = 'LINKED'
 
 
 class NodesSwapMenu(Menu, NodeToolBase):
@@ -1331,8 +1331,8 @@ class NodeAlignMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(AlignNodes.bl_idname, text="Horizontally").option = 'Horizontally'
-        layout.operator(AlignNodes.bl_idname, text="Vertically").option = 'Vertically'
+        layout.operator(AlignNodes.bl_idname, text="Horizontally").option = 'AXIS_X'
+        layout.operator(AlignNodes.bl_idname, text="Vertically").option = 'AXIS_Y'
 
 
 #############################################################
@@ -1341,8 +1341,8 @@ class NodeAlignMenu(Menu, NodeToolBase):
 
 def select_parent_children_buttons(self, context):
     layout = self.layout
-    layout.operator(SelectParentChildren.bl_idname, text="Select frame's members (children)").option = "Children"
-    layout.operator(SelectParentChildren.bl_idname, text="Select parent frame").option = "Parent"
+    layout.operator(SelectParentChildren.bl_idname, text="Select frame's members (children)").option = 'CHILD'
+    layout.operator(SelectParentChildren.bl_idname, text="Select parent frame").option = 'PARENT'
 
 #############################################################
 #  REGISTER/UNREGISTER CLASSES AND KEYMAP ITEMS
@@ -1472,9 +1472,9 @@ kmi_defs = (
     (NodesClearLabel.bl_idname, 'L', False, False, True, (('option', False),)),
     # SELECT PARENT/CHILDREN
     # Select Children
-    (SelectParentChildren.bl_idname, 'RIGHT_BRACKET', False, False, False, (('option', 'Children'),)),
+    (SelectParentChildren.bl_idname, 'RIGHT_BRACKET', False, False, False, (('option', 'CHILD'),)),
     # Select Parent
-    (SelectParentChildren.bl_idname, 'LEFT_BRACKET', False, False, False, (('option', 'Parent'),)),
+    (SelectParentChildren.bl_idname, 'LEFT_BRACKET', False, False, False, (('option', 'PARENT'),)),
     (NodesAddTextureSetup.bl_idname, 'T', True, False, False, None),
     # MENUS
     ('wm.call_menu', 'SPACE', True, False, False, (('name', EfficiencyToolsMenu.bl_idname),)),
