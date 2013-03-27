@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 1.3),
+    'version': (2, 1.4),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -133,10 +133,7 @@ regular_shaders = (
     ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
     )
 
-def set_convenience_variables(context):
-    global nodes
-    global links
-
+def get_nodes_links(context):
     space = context.space_data
     tree = space.node_tree
     nodes = tree.nodes
@@ -156,10 +153,17 @@ def set_convenience_variables(context):
         nodes = tree.nodes
         links = tree.links
     
-    return
+    return nodes, links
 
 
-class MergeNodes(bpy.types.Operator):
+class NodeToolBase:
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+
+
+class MergeNodes(bpy.types.Operator, NodeToolBase):
     bl_idname = "node.merge_nodes"
     bl_label = "Merge Nodes"
     bl_description = "Merge Selected Nodes"
@@ -181,18 +185,13 @@ class MergeNodes(bpy.types.Operator):
             ],
         )
     
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-    
     def execute(self, context):
         tree_type = context.space_data.node_tree.type
         if tree_type == 'COMPOSITING':
             node_type = 'CompositorNode'
         elif tree_type == 'SHADER':
             node_type = 'ShaderNode'
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         mode = self.mode
         merge_type = self.merge_type
         selected_mix = []  # entry = [index, loc]
@@ -202,13 +201,13 @@ class MergeNodes(bpy.types.Operator):
         for i, node in enumerate(nodes):
             if node.select and node.outputs:
                 if merge_type == 'AUTO':
-                    for (type, the_list, dst) in (
+                    for (type, types_list, dst) in (
                         ('SHADER', merge_shaders, selected_shader),
                         ('RGBA', [t[0] for t in blend_types], selected_mix),
                         ('VALUE', [t[0] for t in operations], selected_math),
                         ):
                         output_type = node.outputs[0].type
-                        valid_mode = mode in the_list
+                        valid_mode = mode in types_list
                         # When mode is 'MIX' use mix node for both 'RGBA' and 'VALUE' output types.
                         # Cheat that output type is 'RGBA',
                         # and that 'MIX' exists in math operations list.
@@ -220,12 +219,12 @@ class MergeNodes(bpy.types.Operator):
                         if output_type == type and valid_mode:
                             dst.append([i, node.location.x, node.location.y])
                 else:
-                    for (type, the_list, dst) in (
+                    for (type, types_list, dst) in (
                         ('SHADER', merge_shaders, selected_shader),
                         ('MIX', [t[0] for t in blend_types], selected_mix),
                         ('MATH', [t[0] for t in operations], selected_math),
                         ):
-                        if merge_type == type and mode in the_list:
+                        if merge_type == type and mode in types_list:
                             dst.append([i, node.location.x, node.location.y])
         # When nodes with output kinds 'RGBA' and 'VALUE' are selected at the same time
         # use only 'Mix' nodes for merging.
@@ -234,25 +233,25 @@ class MergeNodes(bpy.types.Operator):
             selected_mix += selected_math
             selected_math = []
         
-        for the_list in [selected_mix, selected_shader, selected_math]:
-            if the_list:
+        for nodes_list in [selected_mix, selected_shader, selected_math]:
+            if nodes_list:
                 count_before = len(nodes)
                 # sort list by loc_x - reversed
-                the_list.sort(key = lambda k: k[1], reverse = True)
+                nodes_list.sort(key = lambda k: k[1], reverse = True)
                 # get maximum loc_x
-                loc_x = the_list[0][1] + 350.0
-                the_list.sort(key = lambda k: k[2], reverse = True)
-                loc_y = the_list[len(the_list) - 1][2]
+                loc_x = nodes_list[0][1] + 350.0
+                nodes_list.sort(key = lambda k: k[2], reverse = True)
+                loc_y = nodes_list[len(nodes_list) - 1][2]
                 offset_y = 40.0
-                if the_list == selected_shader:
+                if nodes_list == selected_shader:
                     offset_y = 150.0
-                the_range = len(the_list)-1
+                the_range = len(nodes_list)-1
                 do_hide = True
-                if len(the_list) == 1:
+                if len(nodes_list) == 1:
                     the_range = 1
                     do_hide = False
                 for i in range(the_range):
-                    if the_list == selected_mix:
+                    if nodes_list == selected_mix:
                         add_type = node_type + 'MixRGB'
                         add = nodes.new(add_type)
                         add.blend_type = mode
@@ -261,7 +260,7 @@ class MergeNodes(bpy.types.Operator):
                         first = 1
                         second = 2
                         add.width_hidden = 100.0
-                    elif the_list == selected_math:
+                    elif nodes_list == selected_math:
                         add_type = node_type + 'Math'
                         add = nodes.new(add_type)
                         add.operation = mode
@@ -269,7 +268,7 @@ class MergeNodes(bpy.types.Operator):
                         first = 0
                         second = 1
                         add.width_hidden = 100.0
-                    elif the_list == selected_shader:
+                    elif nodes_list == selected_shader:
                         if mode == 'MIX':
                             add_type = node_type + 'MixShader'
                             add = nodes.new(add_type)
@@ -282,31 +281,30 @@ class MergeNodes(bpy.types.Operator):
                             first = 0
                             second = 1
                             add.width_hidden = 100.0
-                    add.location.x = loc_x
-                    add.location.y = loc_y
+                    add.location = loc_x, loc_y
                     loc_y += offset_y
                     add.select = True
                 count_adds = i + 1
                 count_after = len(nodes)
                 index = count_after - 1
                 # add link from "first" selected and "first" add node
-                links.new(nodes[the_list[0][0]].outputs[0], nodes[count_after - 1].inputs[first])
+                links.new(nodes[nodes_list[0][0]].outputs[0], nodes[count_after - 1].inputs[first])
                 # add links between added ADD nodes and between selected and ADD nodes
                 for i in range(count_adds):
                     if i < count_adds - 1:
                         links.new(nodes[index-1].inputs[first], nodes[index].outputs[0])
-                    if len(the_list) > 1:
-                        links.new(nodes[index].inputs[second], nodes[the_list[i+1][0]].outputs[0])
+                    if len(nodes_list) > 1:
+                        links.new(nodes[index].inputs[second], nodes[nodes_list[i+1][0]].outputs[0])
                     index -= 1
                 # set "last" of added nodes as active    
                 nodes.active = nodes[count_before]
-                for i, x, y in the_list:
+                for i, x, y in nodes_list:
                     nodes[i].select = False
                     
         return {'FINISHED'}
 
 
-class BatchChangeNodes(bpy.types.Operator):
+class BatchChangeNodes(bpy.types.Operator, NodeToolBase):
     bl_idname = "node.batch_change"
     bl_label = "Batch Change"
     bl_description = "Batch Change Blend Type and Math Operation"
@@ -321,13 +319,8 @@ class BatchChangeNodes(bpy.types.Operator):
         items = operations + navs,
         )
         
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-    
     def execute(self, context):
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         blend_type = self.blend_type
         operation = self.operation
         for node in context.selected_nodes:
@@ -373,7 +366,7 @@ class BatchChangeNodes(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ChangeMixFactor(bpy.types.Operator):
+class ChangeMixFactor(bpy.types.Operator, NodeToolBase):
     bl_idname = "node.factor"
     bl_label = "Change Factor"
     bl_description = "Change Factors of Mix Nodes and Mix Shader Nodes"
@@ -384,13 +377,8 @@ class ChangeMixFactor(bpy.types.Operator):
     # Else - change factor by option value.
     option = FloatProperty()
     
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-    
     def execute(self, context):
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         option = self.option
         selected = []  # entry = index
         for si, node in enumerate(nodes):
@@ -428,7 +416,7 @@ class NodesCopySettings(bpy.types.Operator):
         return valid
     
     def execute(self, context):
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         selected = [n for n in nodes if n.select]
         reselect = []  # duplicated nodes will be selected after execution
         active = nodes.active
@@ -487,7 +475,7 @@ class NodesCopySettings(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NodesCopyLabel(bpy.types.Operator):
+class NodesCopyLabel(bpy.types.Operator, NodeToolBase):
     bl_idname = "node.copy_label"
     bl_label = "Copy Label"
     bl_options = {'REGISTER', 'UNDO'}
@@ -502,13 +490,8 @@ class NodesCopyLabel(bpy.types.Operator):
             ]
         )
     
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-    
     def execute(self, context):
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         option = self.option
         active = nodes.active
         if option == 'from_active':
@@ -536,20 +519,15 @@ class NodesCopyLabel(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NodesClearLabel(bpy.types.Operator):
+class NodesClearLabel(bpy.types.Operator, NodeToolBase):
     bl_idname = "node.clear_label"
     bl_label = "Clear Label"
     bl_options = {'REGISTER', 'UNDO'}
     
     option = BoolProperty()
     
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-    
     def execute(self, context):
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         for node in [n for n in nodes if n.select]:
             node.label = ''
         
@@ -578,7 +556,7 @@ class NodesAddTextureSetup(bpy.types.Operator):
         return valid
     
     def execute(self, context):
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         active = nodes.active
         valid = False
         if active:
@@ -616,7 +594,7 @@ class NodesAddTextureSetup(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NodesAddReroutes(bpy.types.Operator):
+class NodesAddReroutes(bpy.types.Operator, NodeToolBase):
     bl_idname = "node.add_reroutes"
     bl_label = "Add Reroutes"
     bl_description = "Add Reroutes to Outputs"
@@ -631,15 +609,10 @@ class NodesAddReroutes(bpy.types.Operator):
             ]
         )
     
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-    
     def execute(self, context):
         tree_type = context.space_data.node_tree.type
         option = self.option
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         # output valid when option is 'all' or when 'loose' output has no links
         valid = False
         post_select = []  # nodes to be selected after execution
@@ -663,7 +636,7 @@ class NodesAddReroutes(bpy.types.Operator):
                     bpy.ops.transform.resize(value = (0.0, 0.0, 0.0))
                     width = 2.0 * (helper.location.x - node.location.x)
                     # restore node location
-                    node.location = [x,y]
+                    node.location = x, y
                     # delete helper
                     node.select = False
                     # only helper is selected now
@@ -672,7 +645,7 @@ class NodesAddReroutes(bpy.types.Operator):
                 if node.type != 'REROUTE':
                     y -= 35.0
                 y_offset = -22.0
-                loc = [x, y]
+                loc = x, y
             reroutes_count = 0  # will be used when aligning reroutes added to hidden nodes
             for out_i, output in enumerate(node.outputs):
                 pass_used = False  # initial value to be analyzed if 'R_LAYERS'
@@ -706,7 +679,7 @@ class NodesAddReroutes(bpy.types.Operator):
                         post_select.append(n)
                     reroutes_count += 1
                     y += y_offset 
-                    loc = [x, y]
+                    loc = x, y
             # disselect the node so that after execution of script only newly created nodes are selected
             node.select = False
             # nicer reroutes distribution along y when node.hide
@@ -720,19 +693,11 @@ class NodesAddReroutes(bpy.types.Operator):
         return {'FINISHED'}
     
 
-class NodesSwap(bpy.types.Operator):
+class NodesSwap(bpy.types.Operator, NodeToolBase):
     bl_idname = "node.swap_nodes"
     bl_label = "Swap Nodes"
     bl_options = {'REGISTER', 'UNDO'}
     
-    # option: 'CompositorNodeSwitch', 'NodeReroute', 'NodeMixRGB', 'NodeMath', 'CompositorNodeAlphaOver',
-    # 'ShaderNodeBsdfDiffuse' or any other shader)
-    # 'CompositorNodeSwitch' - change selected nodes to switches.
-    # 'NodeReroute' - change selected switches to reroutes.
-    # 'NodeMixRGB' - change to MixRGB (prefix 'Compositor' or 'Shader' will be added).
-    # 'NodeMath' - change to Math (prefix 'Compositor' or 'Shader' will be added).
-    # 'CompositorNodeAlphaOver' - change to Alpha Over.
-    # 'ShaderNodeBsdfDiffuse' or any other shader type - swap selected shaders to this type.
     option = EnumProperty(
         items = [
             ('CompositorNodeSwitch', 'Switch', 'Switch'),
@@ -755,13 +720,8 @@ class NodesSwap(bpy.types.Operator):
             ]
         )
     
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-    
     def execute(self, context):
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         tree_type = context.space_data.tree_type
         if tree_type == 'CompositorNodeTree':
             prefix = 'Compositor'
@@ -879,7 +839,7 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
         return valid
     
     def execute(self, context):
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         replace = self.replace
         use_node_name = self.use_node_name
         use_outputs_names = self.use_outputs_names
@@ -940,7 +900,7 @@ class NodesLinkActiveToSelected(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class AlignNodes(bpy.types.Operator):
+class AlignNodes(bpy.types.Operator, NodeToolBase):
     bl_idname = "node.align_nodes"
     bl_label = "Align nodes"
     bl_options = {'REGISTER', 'UNDO'}
@@ -955,13 +915,8 @@ class AlignNodes(bpy.types.Operator):
         ]
     )
     
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-    
     def execute(self, context):
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         selected = []  # entry = [index, loc.x, loc.y, width, height]
         frames_reselect = []  # entry = frame node. will be used to reselect all selected frames
         active = nodes.active
@@ -1065,7 +1020,7 @@ class AlignNodes(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class SelectParentChildren(bpy.types.Operator):
+class SelectParentChildren(bpy.types.Operator, NodeToolBase):
     bl_idname = "node.select_parent_child"
     bl_label = "Select Parent or Children"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1078,13 +1033,8 @@ class SelectParentChildren(bpy.types.Operator):
         ]
     )
     
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-    
     def execute(self, context):
-        set_convenience_variables(context)
+        nodes, links = get_nodes_links(context)
         option = self.option
         selected = [node for node in nodes if node.select]
         if option == 'Parent':
@@ -1105,17 +1055,12 @@ class SelectParentChildren(bpy.types.Operator):
 #  P A N E L S
 #############################################################
 
-class EfficiencyToolsPanel(bpy.types.Panel):
+class EfficiencyToolsPanel(bpy.types.Panel, NodeToolBase):
     bl_idname = "NODE_PT_efficiency_tools"
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Efficiency Tools (Ctrl-SPACE)"
     
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-
     def draw(self, context):
         type = context.space_data.tree_type
         layout = self.layout
@@ -1137,15 +1082,10 @@ class EfficiencyToolsPanel(bpy.types.Panel):
 #  M E N U S
 #############################################################
 
-class EfficiencyToolsMenu(bpy.types.Menu):
+class EfficiencyToolsMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_node_tools_menu"
     bl_label = "Efficiency Tools"
 
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
-    
     def draw(self, context):
         type = context.space_data.tree_type
         layout = self.layout
@@ -1161,14 +1101,9 @@ class EfficiencyToolsMenu(bpy.types.Menu):
         layout.menu(LinkActiveToSelectedMenu.bl_idname, text = 'Link Active To Selected')
 
 
-class MergeNodesMenu(bpy.types.Menu):
+class MergeNodesMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_merge_nodes_menu"
     bl_label = "Merge Selected Nodes"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         type = context.space_data.tree_type
@@ -1179,14 +1114,9 @@ class MergeNodesMenu(bpy.types.Menu):
         layout.menu(MergeMathMenu.bl_idname, text="Use Math Nodes")
 
 
-class MergeShadersMenu(bpy.types.Menu):
+class MergeShadersMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_merge_shaders_menu"
     bl_label = "Merge Selected Nodes using Shaders"
-    
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1196,14 +1126,9 @@ class MergeShadersMenu(bpy.types.Menu):
             props.merge_type = 'SHADER'
 
 
-class MergeMixMenu(bpy.types.Menu):
+class MergeMixMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_merge_mix_menu"
     bl_label = "Merge Selected Nodes using Mix"
-    
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1213,14 +1138,9 @@ class MergeMixMenu(bpy.types.Menu):
             props.merge_type = 'MIX'
 
 
-class MergeMathMenu(bpy.types.Menu):
+class MergeMathMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_merge_math_menu"
     bl_label = "Merge Selected Nodes using Math"
-    
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1230,14 +1150,9 @@ class MergeMathMenu(bpy.types.Menu):
             props.merge_type = 'MATH'
 
 
-class BatchChangeNodesMenu(bpy.types.Menu):
+class BatchChangeNodesMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_batch_change_nodes_menu"
     bl_label = "Batch Change Selected Nodes"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1245,14 +1160,9 @@ class BatchChangeNodesMenu(bpy.types.Menu):
         layout.menu(BatchChangeOperationMenu.bl_idname)
                                   
 
-class BatchChangeBlendTypeMenu(bpy.types.Menu):
+class BatchChangeBlendTypeMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_batch_change_blend_type_menu"
     bl_label = "Batch Change Blend Type"
-    
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1262,14 +1172,9 @@ class BatchChangeBlendTypeMenu(bpy.types.Menu):
             props.operation = 'CURRENT'
 
 
-class BatchChangeOperationMenu(bpy.types.Menu):
+class BatchChangeOperationMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_batch_change_operation_menu"
     bl_label = "Batch Change Math Operation"
-    
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1279,14 +1184,9 @@ class BatchChangeOperationMenu(bpy.types.Menu):
             props.operation = type
                                   
 
-class CopyToSelectedMenu(bpy.types.Menu):
+class CopyToSelectedMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_copy_node_properties_menu"
     bl_label = "Copy to Selected"
-    
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1294,14 +1194,9 @@ class CopyToSelectedMenu(bpy.types.Menu):
         layout.menu(CopyLabelMenu.bl_idname)
 
 
-class CopyLabelMenu(bpy.types.Menu):
+class CopyLabelMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_copy_label_menu"
     bl_label = "Copy Label"
-    
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1310,15 +1205,10 @@ class CopyLabelMenu(bpy.types.Menu):
         layout.operator(NodesCopyLabel.bl_idname, text = 'from Linked Output\'s Name').option = 'from_socket'
 
 
-class AddReroutesMenu(bpy.types.Menu):
+class AddReroutesMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_add_reroutes_menu"
     bl_label = "Add Reroutes"
     bl_description = "Add Reroute Nodes to Selected Nodes\' Outputs"
-    
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1327,14 +1217,9 @@ class AddReroutesMenu(bpy.types.Menu):
         layout.operator(NodesAddReroutes.bl_idname, text = 'to Linked Outputs').option = 'linked'
 
 
-class NodesSwapMenu(bpy.types.Menu):
+class NodesSwapMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_swap_menu"
     bl_label = "Swap Nodes"
-    
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         type = context.space_data.tree_type
@@ -1370,14 +1255,9 @@ class ShadersSwapMenu(bpy.types.Menu):
             
 
 
-class LinkActiveToSelectedMenu(bpy.types.Menu):
+class LinkActiveToSelectedMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_link_active_to_selected_menu"
     bl_label = "Link Active to Selected"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1385,14 +1265,9 @@ class LinkActiveToSelectedMenu(bpy.types.Menu):
         layout.menu(LinkUseNamesMenu.bl_idname, text = "Use names/labels")
 
 
-class LinkStandardMenu(bpy.types.Menu):
+class LinkStandardMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_link_standard_menu"
     bl_label = "To All Selected"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1406,14 +1281,9 @@ class LinkStandardMenu(bpy.types.Menu):
         props.use_outputs_names = False
 
 
-class LinkUseNamesMenu(bpy.types.Menu):
+class LinkUseNamesMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_link_use_names_menu"
     bl_label = "Link Active to Selected"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1421,14 +1291,9 @@ class LinkUseNamesMenu(bpy.types.Menu):
         layout.menu(LinkUseOutputsNamesMenu.bl_idname, text="Use Outputs Names")
 
 
-class LinkUseNodeNameMenu(bpy.types.Menu):
+class LinkUseNodeNameMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_link_use_node_name_menu"
     bl_label = "Use Node Name/Label"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1442,14 +1307,9 @@ class LinkUseNodeNameMenu(bpy.types.Menu):
         props.use_outputs_names = False
 
 
-class LinkUseOutputsNamesMenu(bpy.types.Menu):
+class LinkUseOutputsNamesMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_link_use_outputs_names_menu"
     bl_label = "Use Outputs Names"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1463,14 +1323,9 @@ class LinkUseOutputsNamesMenu(bpy.types.Menu):
         props.use_outputs_names = True
 
 
-class NodeAlignMenu(bpy.types.Menu):
+class NodeAlignMenu(bpy.types.Menu, NodeToolBase):
     bl_idname = "NODE_MT_node_align_menu"
     bl_label = "Align Nodes"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
     
     def draw(self, context):
         layout = self.layout
@@ -1499,8 +1354,12 @@ kmi_defs = (
     # MergeNodes with Ctrl (AUTO).
     (MergeNodes.bl_idname, 'NUMPAD_0', True, False, False,\
         (('mode', 'MIX'), ('merge_type', 'AUTO'),)),
-    (MergeNodes.bl_idname, 'EQUAL', True, False, False,\
+    (MergeNodes.bl_idname, 'ZERO', True, False, False,\
         (('mode', 'MIX'), ('merge_type', 'AUTO'),)),
+    (MergeNodes.bl_idname, 'NUMPAD_PLUS', True, False, False,\
+        (('mode', 'ADD'), ('merge_type', 'AUTO'),)),
+    (MergeNodes.bl_idname, 'EQUAL', True, False, False,\
+        (('mode', 'ADD'), ('merge_type', 'AUTO'),)),
     (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, False, False,\
         (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),)),
     (MergeNodes.bl_idname, 'EIGHT', True, False, False,\
