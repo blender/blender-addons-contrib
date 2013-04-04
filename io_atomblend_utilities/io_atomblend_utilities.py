@@ -316,7 +316,8 @@ def modify_objects(action_type,
 
     # Modify atom sticks 
     if action_type == "STICKS_RADIUS_ALL" and ('Sticks_Cups' in atom.name or 
-                                       'Sticks_Cylinder' in atom.name):
+                                               'Sticks_Cylinder' in atom.name or
+                                               'Stick_Cylinder' in atom.name):
     
         bpy.context.scene.objects.active = atom
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -372,7 +373,8 @@ def modify_objects(action_type,
         # Delete the old object.
         bpy.ops.object.select_all(action='DESELECT')
         atom.select = True
-        bpy.ops.object.delete()            
+        bpy.ops.object.delete()   
+        del(atom)      
 
     # Default shapes and colors for atoms
     if action_type == "ATOM_DEFAULT_OBJ" and "Stick" not in atom.name:

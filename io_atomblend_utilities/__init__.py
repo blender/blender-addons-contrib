@@ -24,14 +24,16 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-01-25
+#  Last modified                 : 2013-04-04
 #
 #  Acknowledgements 
 #  ================
-#
 #  Blender: ideasman_42, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG, 
 #           Valter, ...
-#  Other: Frank Palmino
+#  Other  : Frank Palmino
+#
+#
+#  To do: change radii also for the sticks represented by the skin modifier 
 #
 
 bl_info = {
