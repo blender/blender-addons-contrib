@@ -7,6 +7,9 @@ import bmesh
 import time
 import random
 
+C = bpy.context
+D = bpy.data
+
 ##-----------------------------RECONST---------------------------
 def defReconst(self, OFFSET):
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -399,7 +402,30 @@ class OscObjectToMesh(bpy.types.Operator):
         return {'FINISHED'}
 
 
+## ----------------------------- OVERLAP UV --------------------------------------------
 
 
+def DefOscOverlapUv():
+    rd = 4
+    ACTOBJ = bpy.context.object
+    inicio= time.clock()
+    bpy.ops.mesh.faces_mirror_uv(direction='POSITIVE')
+    bpy.ops.object.mode_set(mode='OBJECT')
+    SELUVVERT = [ver for ver in ACTOBJ.data.uv_layers[ACTOBJ.data.uv_textures.active.name].data[:] if ver.select]
+    MAY = [ver for ver in SELUVVERT if ver.uv[0] > .5]
+    
+    for vl in MAY:
+        print(vl)
+        vl.uv = (1-vl.uv[0],vl.uv[1])   
+                   
+    bpy.ops.object.mode_set(mode='EDIT')
+    print("Time elapsed: %4s seconds" % (time.clock()-inicio))
+
+class OscOverlapUv(bpy.types.Operator):
+    bl_idname = "mesh.overlap_uv_faces"
+    bl_label = "Overlap Uvs"
 
 
+    def execute(self, context):
+        DefOscOverlapUv()
+        return {'FINISHED'}
