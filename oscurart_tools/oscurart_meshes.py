@@ -415,7 +415,6 @@ def DefOscOverlapUv():
     MAY = [ver for ver in SELUVVERT if ver.uv[0] > .5]
     
     for vl in MAY:
-        print(vl)
         vl.uv = (1-vl.uv[0],vl.uv[1])   
                    
     bpy.ops.object.mode_set(mode='EDIT')
