@@ -106,12 +106,9 @@ class resymVertexGroups (bpy.types.Operator):
         BM = bmesh.from_edit_mesh(bpy.context.object.data)  
         bpy.ops.mesh.select_all(action='DESELECT')
         bpy.ops.object.vertex_group_select()
-        SELVER=[VERT.index for VERT in BM.verts[:] if VERT.select]
+        SELVER=[VERT.index for VERT in BM.verts[:] if VERT.select]   
         
-        if sys.platform.startswith("w"):
-            SYSBAR = "\\"
-        else:
-             SYSBAR = "/" 
+        SYSBAR = os.sep     
          
         FILEPATH=bpy.data.filepath
         ACTIVEFOLDER=FILEPATH.rpartition(SYSBAR)[0]
@@ -125,19 +122,16 @@ class resymVertexGroups (bpy.types.Operator):
         bpy.ops.object.vertex_group_assign(new=False)    
         bpy.ops.object.mode_set(mode='WEIGHT_PAINT')        
         for VERT in INL:
-            print(VERT)
-            i = 0
-            for GRA in OBACTIVO.data.vertices[SYMAP[VERT]].groups[:]:
+            for i, GRA in enumerate(OBACTIVO.data.vertices[SYMAP[VERT]].groups[:]):
                 if GRA.group == VGACTIVO:
                     print (i)
                     EM = i                    
-                i+=1  
-            a = 0
-            for GRA in OBACTIVO.data.vertices[VERT].groups[:]:     
+
+            for a, GRA in enumerate(OBACTIVO.data.vertices[VERT].groups[:]):     
                 if GRA.group == VGACTIVO:
                     print (a)
                     REC = a
-                a+=1
+
                     
             OBACTIVO.data.vertices[VERT].groups[REC].weight = OBACTIVO.data.vertices[SYMAP[VERT]].groups[EM].weight  
         XML.close()
@@ -155,59 +149,37 @@ class OscExportVG (bpy.types.Operator):
     bl_label = "Export Groups"
     bl_options = {"REGISTER", "UNDO"}
     def execute(self,context):
-
+        
         OBSEL=bpy.context.active_object
-
-        if os.sys.platform.count("win"):
-            print("WINDOWS")
-            BAR = "\\"
-        else:
-            print("LINUX")
-            BAR = "/"
-
         FILEPATH = bpy.data.filepath
-        FILE = open(FILEPATH.rpartition(BAR)[0] + BAR+OBSEL.name + ".xml", mode = "w")
-        VERTLIST = []
+        
+        with open(os.path.join(os.path.split(FILEPATH)[0],"%s.xml" % (OBSEL.name)), mode = "w") as FILE:
+            VERTLIST = []
+            LENVER = len(OBSEL.data.vertices)
+            for VG in OBSEL.vertex_groups:
+                BONELIST = []
+                for VERTICE in range(0,LENVER):
+                    try:
+                        BONELIST.append((VERTICE,VG.weight(VERTICE),VG.name,))
+                    except:
+                        pass
+                VERTLIST.append(BONELIST)
+            NAMEGROUPLIST=[]
+            for VG in OBSEL.vertex_groups:
+                NAMEGROUPLIST.append(VG.name)
+            VERTLIST.append(NAMEGROUPLIST)
+            FILE.write(str(VERTLIST))
 
-        LENVER = len(OBSEL.data.vertices)
-
-        for VG in OBSEL.vertex_groups:
-            BONELIST = []
-            for VERTICE in range(0,LENVER):
-                try:
-                    BONELIST.append((VERTICE,VG.weight(VERTICE),VG.name,))
-                except:
-                    pass
-            VERTLIST.append(BONELIST)
-        NAMEGROUPLIST=[]
-        for VG in OBSEL.vertex_groups:
-            NAMEGROUPLIST.append(VG.name)
-        VERTLIST.append(NAMEGROUPLIST)
-        FILE.writelines(str(VERTLIST))
-        FILE.close()
-
-
-        FILEPATH = bpy.data.filepath
-        FILE = open(FILEPATH.rpartition(BAR)[0] + BAR + OBSEL.name + "_DATA.xml", mode = "w")
-
-        DATAVER = []
-
-        for VERT in OBSEL.data.vertices[:]:
-            TEMP = 0
-            VGTEMP = 0
-            LISTVGTEMP = []
-
-            for GROUP in VERT.groups[:]:
-                LISTVGTEMP.append((GROUP.group,VGTEMP))
-                VGTEMP += 1
-
-            LISTVGTEMP=sorted(LISTVGTEMP)
-            for GROUP in VERT.groups[:]:
-                DATAVER.append((VERT.index,TEMP,VERT.groups[LISTVGTEMP[TEMP][1]].weight))
-                TEMP += 1
-
-        FILE.writelines(str(DATAVER))
-        FILE.close()
+        with open(os.path.join(os.path.split(FILEPATH)[0],"%s_DATA.xml" % (OBSEL.name)), mode = "w") as FILE:
+            DATAVER = []
+            for VERT in OBSEL.data.vertices[:]:
+                LISTVGTEMP = []
+                for VGTEMP, GROUP in enumerate(VERT.groups[:]):
+                    LISTVGTEMP.append((GROUP.group,VGTEMP))
+                LISTVGTEMP=sorted(LISTVGTEMP)
+                for TEMP, GROUP in enumerate(VERT.groups[:]):
+                    DATAVER.append((VERT.index,TEMP,VERT.groups[LISTVGTEMP[TEMP][1]].weight))
+            FILE.write(str(DATAVER))
 
         return {'FINISHED'}
 
