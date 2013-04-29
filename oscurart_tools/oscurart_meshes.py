@@ -150,36 +150,10 @@ class OscExportVG (bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
     def execute(self,context):
         
-        OBSEL=bpy.context.active_object
-        FILEPATH = bpy.data.filepath
-        
-        with open(os.path.join(os.path.split(FILEPATH)[0],"%s.xml" % (OBSEL.name)), mode = "w") as FILE:
-            VERTLIST = []
-            LENVER = len(OBSEL.data.vertices)
-            for VG in OBSEL.vertex_groups:
-                BONELIST = []
-                for VERTICE in range(0,LENVER):
-                    try:
-                        BONELIST.append((VERTICE,VG.weight(VERTICE),VG.name,))
-                    except:
-                        pass
-                VERTLIST.append(BONELIST)
-            NAMEGROUPLIST=[]
-            for VG in OBSEL.vertex_groups:
-                NAMEGROUPLIST.append(VG.name)
-            VERTLIST.append(NAMEGROUPLIST)
-            FILE.write(str(VERTLIST))
-
-        with open(os.path.join(os.path.split(FILEPATH)[0],"%s_DATA.xml" % (OBSEL.name)), mode = "w") as FILE:
-            DATAVER = []
-            for VERT in OBSEL.data.vertices[:]:
-                LISTVGTEMP = []
-                for VGTEMP, GROUP in enumerate(VERT.groups[:]):
-                    LISTVGTEMP.append((GROUP.group,VGTEMP))
-                LISTVGTEMP=sorted(LISTVGTEMP)
-                for TEMP, GROUP in enumerate(VERT.groups[:]):
-                    DATAVER.append((VERT.index,TEMP,VERT.groups[LISTVGTEMP[TEMP][1]].weight))
-            FILE.write(str(DATAVER))
+        with open(os.path.join(os.path.split(bpy.data.filepath)[0],"%s_vg" % (bpy.context.object.name)), "w") as FILE:
+            WEIGHTLIST = [[group.group, vert.index, group.weight] for vert in bpy.context.object.data.vertices[:] for group in vert.groups[:]]
+            WEIGHTLIST.append([group.name for group in bpy.context.object.vertex_groups])
+            FILE.write(str(WEIGHTLIST))
 
         return {'FINISHED'}
 
@@ -188,59 +162,15 @@ class OscImportVG (bpy.types.Operator):
     bl_label = "Import Groups"
     bl_options = {"REGISTER", "UNDO"}
     def execute(self,context):
-
-        OBSEL = bpy.context.active_object
-        if os.sys.platform.count("win"):
-            print("WINDOWS")
-            BAR = "\\"
-        else:
-            print("LINUX")
-            BAR = "/"
-
-        FILEPATH = bpy.data.filepath
-        FILE = open(FILEPATH.rpartition(BAR)[0] + BAR + OBSEL.name + ".xml", mode="r")
-        VERTLIST = FILE.readlines(0)
-        VERTLIST = eval(VERTLIST[0])
-        VERTLISTR = VERTLIST[:-1]
-        GROUPLIST = VERTLIST[-1:]
-        VGINDEX = 0
-
-
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
-        for GROUP in GROUPLIST[0]:
-            bpy.ops.object.vertex_group_add()
-            OBSEL.vertex_groups[-1].name=GROUP
-
-
-
-        for VG in OBSEL.vertex_groups[:]:
-            bpy.ops.object.vertex_group_set_active(group=VG.name)
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.select_all(action='DESELECT')
-            bpy.ops.object.mode_set(mode='OBJECT')
-            for VERTI in VERTLISTR[VG.index]:
-                OBSEL.data.vertices[VERTI[0]].select=1
-            bpy.context.tool_settings.vertex_group_weight=1
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.object.vertex_group_assign(new=False)
-
-        FILE.close()
-
-
-        ## ----------- LEVANTO DATA ----
-        # VARIABLES
-        FILEPATH = bpy.data.filepath
-        FILE = open(FILEPATH.rpartition(BAR)[0]+BAR+OBSEL.name+"_DATA.xml", mode="r")
-        DATAPVER = FILE.readlines(0)
-        DATAPVER = eval(DATAPVER[0])
-
-        bpy.ops.object.mode_set(mode='OBJECT')
-        for VERT in DATAPVER:
-            OBSEL.data.vertices[VERT[0]].groups[VERT[1]].weight = VERT[2]
-        FILE.close()
-        # PASO A MODO PINTURA DE PESO
-        bpy.ops.object.mode_set(mode='WEIGHT_PAINT')
+        
+        with open(os.path.join(os.path.split(bpy.data.filepath)[0],"%s_vg" % (bpy.context.object.name)), "r") as FILE:
+            WEIGHTLIST = eval(FILE.read())
+            for group in WEIGHTLIST[-1]:
+                bpy.context.object.vertex_groups.new(name=group)
+            for ind ,(gr, index, weight) in enumerate(WEIGHTLIST[:-1]):
+                print(ind, gr, index, weight)
+                bpy.context.object.vertex_groups[gr].add(index=(index,index),weight=weight, type="REPLACE")
+        
         return {'FINISHED'}
 
 
