@@ -6,12 +6,15 @@ bl_info = {
     "author": "CoDEmanX",
     "version": (1, 2),
     "blender": (2, 66, 0),
-    "location": "View3D > Spacebar > Border Deselect Outer",
-    "description": "Make a selection, then run this operator to border-select the desired selection intersection",
+    "location": "View3D > EditMode > Select",
+    "description": "Make a selection, then run this operator " \
+        "to border-select the desired selection intersection",
     "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
-    "category": "3D View"}
+    "wiki_url": "http://wiki.blender.org/index.php" \
+        "?title=Extensions:2.6/Py/Scripts/Modeling/Border_Deselect_Outer",
+    "tracker_url": "http://blenderartists.org/forum/showthread.php" \
+        "?290617-Mesh-Border-Deselect-Outer-(selection-intersection-by-using-a-border-select)",
+    "category": "Mesh"}
 
 
 def store_sel():
@@ -33,6 +36,8 @@ def restore_sel(me):
     for v in bm.verts:
         if not (v.select and v.link_loops[0][sel]):
             v.select_set(False)
+
+    bm.loops.layers.int.remove(sel)
 
     #bm.select_mode = {'VERT'}
     #bm.select_flush_mode()
