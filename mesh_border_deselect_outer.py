@@ -16,20 +16,20 @@ bl_info = {
 
 def store_sel():
     bm = MESH_OT_border_deselect_outer.bm
-    
+
     if 'select_old' in bm.loops.layers.int.keys():
         sel = bm.loops.layers.int['select_old']
     else:
         sel = bm.loops.layers.int.new("select_old")
-        
+
     for v in bm.verts:
         v.link_loops[0][sel] = v.select
-            
+
 def restore_sel(me):
     bm = MESH_OT_border_deselect_outer.bm
-    
+
     sel = bm.loops.layers.int['select_old']
-        
+
     for v in bm.verts:
         if not (v.select and v.link_loops[0][sel]):
             v.select_set(False)
@@ -42,9 +42,9 @@ def restore_sel(me):
 
 def changed_sel():
     bm = MESH_OT_border_deselect_outer.bm
-    
+
     sel = bm.loops.layers.int['select_old']
-        
+
     for v in bm.verts:
         if v.select != v.link_loops[0][sel]:
             return True
@@ -56,21 +56,21 @@ class MESH_OT_border_deselect_outer(bpy.types.Operator):
     bl_idname = "mesh.border_deselect_outer"
     bl_label = "Border Deselect Outer"
     bl_options = {'REGISTER'}
-    
+
     init = True
     bm = None
     mode_change = False
 
     def modal(self, context, event):
-        
+
         if changed_sel() or not self.init:
             restore_sel(context.object.data)
             return {'FINISHED'}
-        
+
         elif event.type in ('RIGHTMOUSE', 'ESC'):
             return {'CANCELLED'}
 
-        if self.init:        
+        if self.init:
             bpy.ops.view3d.select_border('INVOKE_DEFAULT', extend=False)
             self.init = False
 
@@ -80,17 +80,17 @@ class MESH_OT_border_deselect_outer(bpy.types.Operator):
     @staticmethod
     def modecheck(context):
         return (context.area.type == 'VIEW_3D' and
-                context.object and 
+                context.object and
                 context.object.type == 'MESH' and
                 context.object.mode == 'EDIT')
-                
+
     @classmethod
     def poll(cls, context):
         return cls.modecheck(context)
 
     def invoke(self, context, event):
         if self.__class__.modecheck(context):
-                
+
             MESH_OT_border_deselect_outer.bm = bmesh.from_edit_mesh(context.object.data)
             store_sel()
             context.window_manager.modal_handler_add(self)
@@ -99,12 +99,17 @@ class MESH_OT_border_deselect_outer(bpy.types.Operator):
             self.report({'WARNING'}, "No active editmesh!")
             return {'CANCELLED'}
 
+def menu_func(self, context):
+    self.layout.operator("mesh.border_deselect_outer")
+
 
 def register():
     bpy.utils.register_class(MESH_OT_border_deselect_outer)
+    bpy.types.VIEW3D_MT_select_edit_mesh.prepend(menu_func)
 
 def unregister():
     bpy.utils.unregister_class(MESH_OT_border_deselect_outer)
+    bpy.types.VIEW3D_MT_select_edit_mesh.remove(menu_func)
 
 if __name__ == "__main__":
     register()
