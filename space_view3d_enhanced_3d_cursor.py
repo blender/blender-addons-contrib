@@ -3426,7 +3426,7 @@ class TransformExtraOptionsProp(bpy.types.PropertyGroup):
         description="Normal interpolation mode for snapping", 
         default='SMOOTH')
     snap_only_to_solid = bpy.props.BoolProperty(
-        name="Snap only to soild", 
+        name="Snap only to solid", 
         description="Ignore wireframe/non-solid objects during snapping", 
         default=False)
     snap_element_screen_size = bpy.props.IntProperty(
