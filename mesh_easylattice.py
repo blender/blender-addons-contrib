@@ -370,7 +370,6 @@ def unregister():
     # bpy.types.VIEW3D_PT_tools_objectmode.remove(menu_draw)
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove( menu_draw ) 
 
-
 if __name__ == "__main__":
     register()
     # run()
