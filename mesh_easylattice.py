@@ -1,3 +1,22 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+
 bl_info = {
             "name": "Easy Lattice Object",
             "author": "Kursad Karatas",
@@ -38,22 +57,20 @@ def createLattice( obj, size, pos, props ):
     lat = bpy.data.lattices.new( 'LatticeEasytTemp' )
     ob = bpy.data.objects.new( 'LatticeEasytTemp', lat )
     
-    loc = getTransformations( obj )[0]
-    rot = getTransformations( obj )[1]
-    scl = getTransformations( obj )[2]
-    
+    loc,rot,scl = getTransformations( obj )
+ 
     #get the combined rotation matrix and apply to the lattice
     #ob.matrix_world=buildRot_WorldMat(obj)*ob.matrix_world
     
     #the position comes from the bbox 
     ob.location = pos
-        # ob.location=(pos.x+loc.x,pos.y+loc.y,pos.z+loc.z)
+        #ob.location=(pos.x+loc.x,pos.y+loc.y,pos.z+loc.z)
     
     #the size  from bbox bbox
     ob.scale = size
-        # ob.scale=(size.x*scl.x, size.y*scl.y,size.z*scl.z)
+        #ob.scale=(size.x*scl.x, size.y*scl.y,size.z*scl.z)
     
-    #rotation come from the combined obj world matrix    
+    #the rotation comes from the combined obj world matrix which was converted to euler pairs.    
     ob.rotation_euler = buildRot_World(obj)
     
     ob.show_x_ray = True
@@ -69,23 +86,22 @@ def createLattice( obj, size, pos, props ):
     lat.interpolation_type_w = props[3]
  
     lat.use_outside = False
-    lat.points_u = 4
-    lat.points_v = 4
-    lat.points_w = 4
     
     lat.points_u = props[0]
     lat.points_v = props[1]
     lat.points_w = props[2]
 
    # Set lattice points
-#    s = 0.0
-#    points = [
-#        (-s,-s,-s), (s,-s,-s), (-s,s,-s), (s,s,-s),
-#        (-s,-s,s), (s,-s,s), (-s,s,s), (s,s,s)
-#    ]
-#    for n,pt in enumerate(lat.points):
-#        for k in range(3):
-#            #pt.co[k] = points[n][k]
+    '''s = 0.0
+    points = [
+        (-s,-s,-s), (s,-s,-s), (-s,s,-s), (s,s,-s),
+        (-s,-s,s), (s,-s,s), (-s,s,s), (s,s,s)
+    ]
+    for n,pt in enumerate(lat.points):
+        for k in range(3):
+            #pt.co[k] = points[n][k]
+    '''
+    
     return ob
 
 
@@ -129,24 +145,10 @@ def findBBox( obj, selvertsarray ):
     mat =buildTrnScl_WorldMat(obj)
     
     mat_world = obj.matrix_world
-#     print("mat_final", mat)
-#     print("mat_world", mat_world)
     
-    minx = selvertsarray[0].co.x
-    miny = selvertsarray[0].co.y
-    minz = selvertsarray[0].co.z
+    minx, miny, minz = selvertsarray[0].co
+    maxx, maxy, maxz = selvertsarray[0].co
     
-    maxx = selvertsarray[0].co.x
-    maxy = selvertsarray[0].co.y
-    maxz = selvertsarray[0].co.z
-#     print("")    
-    
-    # Median Centers
-    x_sum = minx
-    y_sum = miny
-    z_sum = minz
-    
-    middle = mathutils.Vector( ( x_sum, y_sum, z_sum ) )
     c = 1
 #     for vert in selvertsarray:
     for c in range( len( selvertsarray ) ):
@@ -178,10 +180,9 @@ def findBBox( obj, selvertsarray ):
     maxpoint = mathutils.Vector( ( maxx, maxy, maxz ) )
     
     # middle point has to be calculated based on the real world matrix
-#     middle = mat_world * mathutils.Vector((x_sum, y_sum, z_sum))/float(c)
+    #middle = mat_world * mathutils.Vector((x_sum, y_sum, z_sum))/float(c)
     middle = ( ( minpoint + maxpoint ) / 2 )
 
-    # Calculate world coordinates
     minpoint = mat * minpoint  # Calculate only based on loc/scale
     maxpoint = mat * maxpoint  # Calculate only based on loc/scale
     middle = mat_world * middle  # the middle has to be calculated based on the real world matrix
@@ -191,19 +192,15 @@ def findBBox( obj, selvertsarray ):
     
     # local coords   
     #####################################################
-#    minpoint=mathutils.Vector((minx,miny,minz))
-#    maxpoint=mathutils.Vector((maxx,maxy,maxz))
-#    middle=mathutils.Vector( (x_sum/float(len(selvertsarray)), y_sum/float(len(selvertsarray)), z_sum/float(len(selvertsarray))) )
-#    size=maxpoint-minpoint
-#    size=mathutils.Vector((abs(size.x),abs(size.y),abs(size.z)))
+    '''minpoint=mathutils.Vector((minx,miny,minz))
+    maxpoint=mathutils.Vector((maxx,maxy,maxz))
+    middle=mathutils.Vector( (x_sum/float(len(selvertsarray)), y_sum/float(len(selvertsarray)), z_sum/float(len(selvertsarray))) )
+    size=maxpoint-minpoint
+    size=mathutils.Vector((abs(size.x),abs(size.y),abs(size.z)))
+    '''
     #####################################################
     
-    # print("-@ world matrix", obj.matrix_world)
-#     print("-@ min - max", minpoint, " ", maxpoint)
-#     print("-@ size", size)
-#     print("-@ median point ->", middle)
 
-    # return [minx, miny, minz, maxx, maxy, maxz, pos_median  ]
     return [minpoint, maxpoint, size, middle  ]
 
 
@@ -224,14 +221,11 @@ def buildTrnScl_WorldMat( obj ):
     # This function builds a real world matrix that encodes translation and scale and it leaves out the rotation matrix
     # The rotation is applied at obejct level if there is any
     loc,rot,scl=obj.matrix_world.decompose()
-    
     mat_trans = mathutils.Matrix.Translation( loc)
-    
     
     mat_scale = mathutils.Matrix.Scale( scl[0], 4, ( 1, 0, 0 ) )
     mat_scale *= mathutils.Matrix.Scale( scl[1], 4, ( 0, 1, 0 ) )
     mat_scale *= mathutils.Matrix.Scale( scl[2], 4, ( 0, 0, 1 ) )
-    
     
     mat_final = mat_trans * mat_scale
     
@@ -240,17 +234,13 @@ def buildTrnScl_WorldMat( obj ):
 
 #Feature use    
 def buildRot_WorldMat( obj ):
-    # This function builds a real world matrix that encodes translation and scale and it leaves out the rotation matrix
-    # The rotation is applied at obejct level if there is any
+    # This function builds a real world matrix that encodes rotation and it leaves out translation and scale matrices
     loc,rot,scl=obj.matrix_world.decompose()
-    
     rot=rot.to_euler()
     
     mat_rot = mathutils.Matrix.Rotation(rot[0], 4,'X') 
     mat_rot *= mathutils.Matrix.Rotation(rot[1],4,'Z')
     mat_rot *= mathutils.Matrix.Rotation(rot[2], 4,'Y')
-
-    
     return mat_rot
 
 #Feature use
@@ -273,17 +263,13 @@ def buildScl_WorldMat( obj ):
     mat_scale *= mathutils.Matrix.Scale( scl[2], 4, ( 0, 0, 1 ) )
     
     return mat_scale
-
     
 def buildRot_World( obj ):
-    # This function builds a real world matrix that encodes translation and scale and it leaves out the rotation matrix
-    # The rotation is applied at obejct level if there is any
+    # This function builds a real world rotation values
     loc,rot,scl=obj.matrix_world.decompose()
-    
     rot=rot.to_euler()
     
     return rot
-
 
 def run( lat_props ):
     
@@ -294,7 +280,6 @@ def run( lat_props ):
         bbox = findBBox( obj, selvertsarray )
         
         size = bbox[2]
-        # pos=mathutils.Vector( ( bbox[3][0], bbox[3][1], bbox[3][2]) )
         pos = bbox[3]
         
 #         print("lattce size, pos", size, " ", pos)
@@ -309,8 +294,6 @@ def run( lat_props ):
         bpy.ops.object.mode_set( mode = 'EDIT' )
     
     return
- 
-
 
 
 def main( context, latticeprops ):
