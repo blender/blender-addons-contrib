@@ -50,24 +50,23 @@ def modifiersDelete( obj ):
 # Cleanup
 def modifiersApplyRemove( obj ):
     
-    print("passed object is", obj)
-    
-    print("current object is", bpy.context.active_object)
+#     print("passed object is", obj)
+#     print("current object is", bpy.context.active_object)
     
     bpy.ops.object.select_all( action = 'DESELECT' )
     bpy.ops.object.select_pattern(pattern=obj.name, extend=False)
     bpy.context.scene.objects.active=obj
     
     for mod in obj.modifiers:
-        print("modifier is ", mod)
+#         print("modifier is ", mod)
         if mod.name == "latticeeasytemp":
 #             try:
             if mod.object == bpy.data.objects['LatticeEasytTemp']:
-                print("mod object is ", mod.object)
-                print("applying modifier", mod," - ", mod.name)
+#                 print("mod object is ", mod.object)
+#                 print("applying modifier", mod," - ", mod.name)
                 
                 #obj.select= True
-                print("current object is", bpy.context.active_object)
+#                 print("current object is", bpy.context.active_object)
                 bpy.ops.object.modifier_apply( apply_as = 'DATA', modifier = mod.name )
                 #obj.modifiers.remove(mod)
                     
@@ -86,7 +85,6 @@ def latticeDelete(obj):
     #select the original object back
     obj.select=True
 
-
 def createLattice( obj, size, pos, props ):
     # Create lattice and object
     lat = bpy.data.lattices.new( 'LatticeEasytTemp' )
@@ -101,7 +99,7 @@ def createLattice( obj, size, pos, props ):
     ob.location = pos
         #ob.location=(pos.x+loc.x,pos.y+loc.y,pos.z+loc.z)
     
-    #the size  from bbox bbox
+    #the size  from bbox 
     ob.scale = size
         #ob.scale=(size.x*scl.x, size.y*scl.y,size.z*scl.z)
     
@@ -308,7 +306,7 @@ def buildRot_World( obj ):
 
 def run( lat_props ):
     
-    print("<-------------------------------->")
+#     print("<-------------------------------->")
     #obj = bpy.context.active_object
     obj = bpy.context.object
     
@@ -332,15 +330,25 @@ def run( lat_props ):
         modif.object = lat
         modif.vertex_group = "templatticegrp"
         
+        
+        bpy.ops.object.select_all( action = 'DESELECT' )
+        bpy.ops.object.select_pattern(pattern=lat.name, extend=False)
+        bpy.context.scene.objects.active=lat
+        
         bpy.context.scene.update()
         bpy.ops.object.mode_set( mode = 'EDIT' )
     
     if obj.type == "LATTICE":
         
+        
         if bpy.types.Scene.activelatticeobject:
             name = bpy.types.Scene.activelatticeobject
             print("last active latticed object", name)
-            
+        
+            #Are we in edit lattice mode? If so move on to object mode
+            if obj.mode=="EDIT":
+                bpy.ops.object.editmode_toggle()
+                    
             for ob in bpy.context.scene.objects:
                 if ob.name == name:  # found the object with the lattice mod
                     print("apply mod on", ob)
@@ -348,9 +356,6 @@ def run( lat_props ):
                     modifiersApplyRemove(object)
                     #modifiersDelete( object )  # apply the modifier and delete the lattice
                     latticeDelete(obj)
-
-        
-    
     
     return
 
