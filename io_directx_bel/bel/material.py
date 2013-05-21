@@ -30,3 +30,4 @@ def new(name, naming_method=0) :
                 matslot.material = mat
     bpy.data.materials.remove(prevmat)
     return mat
+

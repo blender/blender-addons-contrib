@@ -35,6 +35,7 @@ def isdir(path) :
 ## returns a list of every absolute filepath
 # to each file within the 'ext' extensions
 # from a folder and its subfolders
+# warning, in windows filename are returned in lowercase.
 def scanDir(path,ext='all') :
     files = []
     fields = os_listdir(path)
@@ -44,8 +45,8 @@ def scanDir(path,ext='all') :
             #print('  file %s'%item)
             files.append(path + '/' + item)
         elif os_path.isdir(path + '/' + item) :
-            print('folder %s/%s :'%(path,item))
-            files.extend(scanDir(path + '/' + item))
+            #print('folder %s/%s :'%(path,item))
+            files.extend(scanDir(path + '/' + item,ext))
     return files
 
 def saveOptions(op,operator_name, tokens, filename='last_run'):

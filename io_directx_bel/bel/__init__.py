@@ -1,3 +1,4 @@
+
 # set a given name to a unique
 # blender data name in its collection
 def bpyname(name,collection,limit=63,suffix=4) :
