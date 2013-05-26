@@ -1,10 +1,7 @@
 import bpy
 import math
 import os
-import stat
-import bmesh
-import time
-import random
+
 
 ## ------------- CHECK OVERRIDE LIST EXIST -----------------
 
@@ -17,8 +14,6 @@ def checkOverridesExist():
 
 
 ##-------------------------------- RENDER ALL SCENES ----------------------------
-
-
 
 
 def defRenderAll (frametype):
@@ -318,12 +313,12 @@ def defoscBatchMaker(TYPE):
     
     if os.sys.platform.startswith("w"):
         print("PLATFORM: WINDOWS")
-        SYSBAR = "\\"
+        SYSBAR = os.sep
         EXTSYS = ".bat"
         QUOTES = '"'
     else:
         print("PLATFORM:LINUX")
-        SYSBAR = "/"
+        SYSBAR = os.sep
         EXTSYS = ".sh"
         QUOTES = ''
     
@@ -339,7 +334,9 @@ def defoscBatchMaker(TYPE):
             except:
                 print("** Oscurart Batch maker can not modify the permissions.")    
     
-        FILE.writelines("%s%s%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" % (QUOTES,BINDIR,QUOTES,bpy.data.filepath,bpy.context.scene.render.filepath,bpy.data.filepath.rpartition(SYSBAR)[0]+SYSBAR,TYPE,str(bpy.context.scene.frame_start),str(bpy.context.scene.frame_end)) )
+        FILE.writelines("%s%s%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" %
+            (QUOTES,BINDIR,QUOTES,bpy.data.filepath,bpy.context.scene.render.filepath,bpy.data.filepath.rpartition(SYSBAR)[0]+
+            SYSBAR,TYPE,str(bpy.context.scene.frame_start),str(bpy.context.scene.frame_end)) )
 
     
     RLATFILE =  "%s%sosRlat.py" % (bpy.data.filepath.rpartition(SYSBAR)[0] , SYSBAR )
@@ -406,49 +403,44 @@ def defoscPythonBatchMaker(BATCHTYPE,SIZE):
     FILENAME = bpy.data.filepath.rpartition(SYSBAR)[-1].rpartition(".")[0]
     SHFILE = "%s%s%s_PythonSecureBatch.py"   % (bpy.data.filepath.rpartition(SYSBAR)[0],SYSBAR,FILENAME)
     BATCHLOCATION = "%s%s%s%s"   % (bpy.data.filepath.rpartition(SYSBAR)[0],SYSBAR,FILENAME,EXTSYS)
-
-    FILEBATCH = open(SHFILE,"w")
     
-    if EXTSYS == ".bat":
-        BATCHLOCATION=BATCHLOCATION.replace("\\","/")    
-    
-    # SI EL OUTPUT TIENE DOBLE BARRA LA REEMPLAZO
-    FRO=bpy.context.scene.render.filepath        
-    if bpy.context.scene.render.filepath.count("//"):
-        FRO=bpy.context.scene.render.filepath.replace("//", bpy.data.filepath.rpartition(SYSBAR)[0]+SYSBAR)         
-    if EXTSYS == ".bat":
-        FRO=FRO.replace("\\","/")        
-          
+    with open(SHFILE,"w") as FILEBATCH:
+            
+        if EXTSYS == ".bat":
+            BATCHLOCATION=BATCHLOCATION.replace("\\","/")    
         
-                 
-    #CREO BATCH
-    bpy.ops.file.create_batch_maker_osc(type=BATCHTYPE)
-    
-    SCRIPT = "import os \nREPITE= True \nBAT= '%s'\nSCENENAME ='%s' \nDIR='%s%s' \ndef RENDER():\n    os.system(BAT) \ndef CLEAN():\n    global REPITE\n    FILES  = [root+'/'+FILE for root, dirs, files in os.walk(os.getcwd()) if len(files) > 0 for FILE in files if FILE.count('~') == False]\n    RESPUESTA=False\n    for FILE in FILES:\n        if os.path.getsize(FILE) < %s:\n            os.remove(FILE)\n            RESPUESTA= True\n    if RESPUESTA:\n        REPITE=True\n    else:\n        REPITE=False\nREPITE=True\nwhile REPITE:\n    REPITE=False\n    RENDER()\n    os.chdir(DIR)\n    CLEAN()" % (BATCHLOCATION,FILENAME,FRO,FILENAME,SIZE)
-    
-    
-    # DEFINO ARCHIVO DE BATCH
-    FILEBATCH.writelines(SCRIPT)
-
+        # SI EL OUTPUT TIENE DOBLE BARRA LA REEMPLAZO
+        FRO=bpy.context.scene.render.filepath        
+        if bpy.context.scene.render.filepath.count("//"):
+            FRO=bpy.context.scene.render.filepath.replace("//", bpy.data.filepath.rpartition(SYSBAR)[0]+SYSBAR)         
+        if EXTSYS == ".bat":
+            FRO=FRO.replace("\\","/")                
+                     
+        #CREO BATCH
+        bpy.ops.file.create_batch_maker_osc(type=BATCHTYPE)
+        
+        SCRIPT = "import os \nREPITE= True \nBAT= '%s'\nSCENENAME ='%s' \nDIR='%s%s' \ndef RENDER():\n    os.system(BAT) \ndef CLEAN():\n    global REPITE\n    FILES  = [root+'/'+FILE for root, dirs, files in os.walk(os.getcwd()) if len(files) > 0 for FILE in files if FILE.count('~') == False]\n    RESPUESTA=False\n    for FILE in FILES:\n        if os.path.getsize(FILE) < %s:\n            os.remove(FILE)\n            RESPUESTA= True\n    if RESPUESTA:\n        REPITE=True\n    else:\n        REPITE=False\nREPITE=True\nwhile REPITE:\n    REPITE=False\n    RENDER()\n    os.chdir(DIR)\n    CLEAN()" % (BATCHLOCATION,FILENAME,FRO,FILENAME,SIZE)        
+        
+        # DEFINO ARCHIVO DE BATCH
+        FILEBATCH.writelines(SCRIPT)    
     
     
     # ARCHIVO CALL
     CALLFILENAME = bpy.data.filepath.rpartition(SYSBAR)[-1].rpartition(".")[0]
     CALLFILE = "%s%s%s_CallPythonSecureBatch%s"   % (bpy.data.filepath.rpartition(SYSBAR)[0],SYSBAR,CALLFILENAME,EXTSYS)  
-    CALLFILEBATCH = open(CALLFILE,"w")  
-    
-    SCRIPT = "python %s" % (SHFILE)
-    CALLFILEBATCH.writelines(SCRIPT)
-    CALLFILEBATCH.close()
-    
+
+    with open(CALLFILE,"w") as CALLFILEBATCH:
+        
+        SCRIPT = "python %s" % (SHFILE)
+        CALLFILEBATCH.writelines(SCRIPT)
+  
     if EXTSYS == ".sh":
         try:
             os.chmod(CALLFILE, stat.S_IRWXU)  
             os.chmod(SHFILE, stat.S_IRWXU) 
         except:
             print("** Oscurart Batch maker can not modify the permissions.")      
-    
-    
+
     
 class oscPythonBatchMaker (bpy.types.Operator):
     bl_idname = "file.create_batch_python"
