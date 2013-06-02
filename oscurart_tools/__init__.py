@@ -213,18 +213,18 @@ class OscPanelRender(OscPollRender, bpy.types.Panel):
 
 
         colrow = col.row(align=1)
-        colrow.prop(bpy.context.scene, "rcPARTS", text="Render Crop Parts")
         colrow.operator("render.render_crop_osc", icon="RENDER_REGION")
+        colrow.prop(bpy.context.scene, "rcPARTS", text="Render Crop Parts")        
         
-        col = layout.column(align=1)
-        colrow = col.row(align=1)
-        colrow.prop(bpy.context.scene, "use_render_scene", text="")  
+        boxcol = layout.box().column(align=1)
+        colrow = boxcol.row(align=1)
+        #colrow.prop(bpy.context.scene, "use_render_scene", text="")  
         colrow.operator("render.render_selected_scenes_osc", icon="RENDER_STILL", text="Selected Scenes").frametype=False
         colrow.operator("render.render_selected_scenes_osc", icon="RENDER_STILL", text="> Fame").frametype=True
 
         for sc in bpy.data.scenes[:]:
-            col = layout.column(align=1)
-            col.prop(sc, "use_render_scene", text=sc.name)    
+            #col = layout.column(align=1)
+            boxcol.prop(sc, "use_render_scene", text=sc.name)    
 
 class OscPanelFiles(OscPollFiles, bpy.types.Panel):
     bl_idname = "Oscurart Files Tools"
