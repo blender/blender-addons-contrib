@@ -20,8 +20,8 @@
 bl_info = {
     "name": "Edit Linked Library",
     "author": "Jason van Gumster (Fweeb), Bassam Kurdali, Pablo Vazquez",
-    "version": (0, 7, 3),
-    "blender": (2, 67, 1),
+    "version": (0, 7, 2),
+    "blender": (2, 65, 0),
     "location": "View3D > Toolshelf > Edit Linked Library",
     "description": "Allows editing of objects linked from a .blend library.",
     "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/Scripts/Object/Edit_Linked_Library",
@@ -151,10 +151,6 @@ class PanelLinkedEdit(bpy.types.Panel):
     bl_label = "Edit Linked Library"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-
-    @classmethod
-    def poll(cls, context):
-        return context.active_object and context.active_object.dupli_type == 'GROUP'
 
     def draw(self, context):
         kc = bpy.context.window_manager.keyconfigs.addon
