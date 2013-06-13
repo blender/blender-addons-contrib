@@ -21,7 +21,11 @@ class boolean(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}     
             
     modOp = bpy.props.StringProperty()
-            
+    
+    @classmethod        
+    def poll(cls, context):
+        return len(context.selected_objects) > 0
+    
     def execute(self, context):
  
         scene = bpy.context.scene
@@ -120,7 +124,7 @@ def register():
     wm = bpy.context.window_manager
     
     # create the boolean menu hotkey
-    km = wm.keyconfigs.addon.keymaps.new(name='Object Mode', space_type='EMPTY')
+    km = wm.keyconfigs.addon.keymaps.new(name='Object Mode')
     kmi = km.keymap_items.new('wm.call_menu', 'B', 'PRESS', ctrl=True, shift=True)
     kmi.properties.name = 'object.boolean_menu'
 
