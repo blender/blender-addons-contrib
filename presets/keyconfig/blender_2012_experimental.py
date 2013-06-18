@@ -77,6 +77,24 @@ bpy.utils.register_class(ModeSwitchMenu)
 bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
 
+class TweakSelect3dview(bpy.types.Operator):
+    """ Selects and translates an element in the scene.
+    """
+    bl_idname = "view3d.tweak_select"
+    bl_label = "Tweak Select 3d View"
+    bl_options = {'UNDO'}
+    
+    @classmethod
+    def poll(cls, context):
+        return True
+    
+    def invoke(self, context, event):
+        #bpy.ops.view3d.select(context, event)
+        bpy.ops.transform.translate.invoke(context, event)
+        return {'FINISHED'}
+bpy.utils.register_class(TweakSelect3dview)
+
+
 class ObjectDeleteNoConfirm(bpy.types.Operator):
     """Delete selected objects without the confirmation popup"""
     bl_idname = "object.delete_no_confirm"
@@ -196,6 +214,38 @@ class MeshDeleteContextual(bpy.types.Operator):
             
         return {'FINISHED'}
 bpy.utils.register_class(MeshDeleteContextual)
+
+
+class MeshDissolveContextual(bpy.types.Operator):
+    """ Dissolves mesh elements based on context instead
+        of forcing the user to select from a menu what
+        it should dissolve.
+    """
+    bl_idname = "mesh.dissolve_contextual"
+    bl_label = "Mesh Dissolve Contextual"
+    bl_options = {'UNDO'}
+    
+    use_verts = bpy.props.BoolProperty(name="Use Verts", default=False)
+    
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object is not None) and (context.mode == "EDIT_MESH")
+    
+    def execute(self, context):
+        select_mode = context.tool_settings.mesh_select_mode
+        
+        if select_mode[0]:
+            bpy.ops.mesh.dissolve_verts()
+        elif select_mode[1] and not select_mode[2]:
+            bpy.ops.mesh.dissolve_edges(use_verts=self.use_verts)
+        elif select_mode[2] and not select_mode[1]:
+            bpy.ops.mesh.dissolve_faces(use_verts=self.use_verts)
+        else:
+            bpy.ops.mesh.dissolve_verts()
+            
+        return {'FINISHED'}
+bpy.utils.register_class(MeshDissolveContextual)
+
 
 ###########
 # Keymaps
@@ -546,6 +596,15 @@ def MapAdd_View2D(kc):
     kmi = km.keymap_items.new('view2d.reset', 'HOME', 'PRESS')
 
 
+def MapAdd_View3D_Generic(kc):
+    """ View 3D Generic Map
+    """
+    km = kc.keymaps.new('3D View Generic', space_type='VIEW_3D', region_type='WINDOW', modal=False)
+    
+    kmi = km.keymap_items.new('view3d.toolshelf', 'SEMI_COLON', 'PRESS')
+    kmi = km.keymap_items.new('view3d.properties', 'QUOTE', 'PRESS')
+
+
 def MapAdd_View3D_Global(kc):
     """ View 3D Global Map
     """
@@ -807,6 +866,8 @@ def MapAdd_View3D_Global(kc):
     
     # Grab, rotate scale
     kmi = km.keymap_items.new('transform.translate', TRANSLATE_KEY, 'PRESS')
+    #kmi = km.keymap_items.new('view3d.tweak_select', 'EVT_TWEAK_R', 'ANY')
+    
     #kmi = km.keymap_items.new('transform.translate', 'EVT_TWEAK_S', 'ANY')
     kmi = km.keymap_items.new('transform.rotate', ROTATE_KEY, 'PRESS')
     kmi = km.keymap_items.new('transform.resize', SCALE_KEY, 'PRESS')
@@ -835,9 +896,9 @@ def MapAdd_View3D_Global(kc):
     #----------
     # Snapping
     #----------
-    kmi = km.keymap_items.new('wm.context_toggle', 'TAB', 'CLICK', shift=True)
-    kmi.properties.data_path = 'tool_settings.use_snap'
-    kmi = km.keymap_items.new('transform.snap_type', 'TAB', 'CLICK', shift=True, ctrl=True)
+    #kmi = km.keymap_items.new('wm.context_toggle', 'TAB', 'CLICK', shift=True)
+    #kmi.properties.data_path = 'tool_settings.use_snap'
+    #kmi = km.keymap_items.new('transform.snap_type', 'TAB', 'CLICK', shift=True, ctrl=True)
 
     #---------------
     # Snapping Menu
@@ -1091,7 +1152,7 @@ def MapAdd_View3D_MeshEditMode(kc):
     #-----------
     
     # Shortest path
-    kmi = km.keymap_items.new('mesh.select_shortest_path', 'LEFTMOUSE', 'CLICK', alt=True) # Replace
+    kmi = km.keymap_items.new('mesh.shortest_path_select', 'LEFTMOUSE', 'CLICK', alt=True) # Replace
     # TODO: add, remove
     
     # Edge loop
@@ -1212,9 +1273,9 @@ def MapAdd_View3D_MeshEditMode(kc):
     kmi = km.keymap_items.new('mesh.delete_contextual', 'X', 'CLICK')
     kmi = km.keymap_items.new('mesh.delete_contextual', 'DEL', 'CLICK')
     
-    kmi = km.keymap_items.new('mesh.dissolve', 'X', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('mesh.dissolve_contextual', 'X', 'CLICK', shift=True)
     kmi.properties.use_verts = True
-    kmi = km.keymap_items.new('mesh.dissolve', 'DEL', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('mesh.dissolve_contextual', 'DEL', 'CLICK', shift=True)
     kmi.properties.use_verts = True
     
     kmi = km.keymap_items.new('wm.call_menu', 'X', 'CLICK', alt=True)
@@ -1466,6 +1527,7 @@ MapAdd_View3D_Global(kc)
 MapAdd_View3D_Object_Nonmodal(kc)
 MapAdd_View3D_ObjectMode(kc)
 MapAdd_View3D_MeshEditMode(kc)
+MapAdd_View3D_Generic(kc)
 
 MapAdd_ModalStandard(kc)
 MapAdd_ModalTransform(kc)
