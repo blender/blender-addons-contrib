@@ -33,7 +33,7 @@ bl_info = {
     "version": (0, 6),
     "blender": (2, 64, 0),
     "location": "Properties > Material > Online Material Library",
-    "description": "Browse and download materials from online CC0 libraries.",
+    "description": "Browse and download materials from online CC0 libraries",
     "warning": "Beta version",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Material/Online_Material_Library",
     "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=31802",
@@ -4051,7 +4051,7 @@ You may need a newer version of Blender for this material to work properly.""" %
         
         elif node_type == "BSDF_VELVET":
             print ("BSDF_VELVET")
-            node = node_tree.nodes.new(node_type)
+            node = node_tree.nodes.new("ShaderNodeBsdfVelvet")
             node.inputs['Color'].default_value = color(node_data['color'].value)
             node.inputs['Sigma'].default_value = float(node_data['sigma'].value)
         
@@ -4619,7 +4619,7 @@ You may need a newer version of Blender for this material to work properly.""" %
         
         elif node_type == "REROUTE":
             print ("REROUTE")
-            node = node_tree.nodes.new(node_type)
+            node = node_tree.nodes.new("NodeReroute")
         
         elif node_type == "SCRIPT":
             if bpy.app.version[0] + (bpy.app.version[1] / 100.0) < 2.65:
@@ -4628,7 +4628,7 @@ This node is not available in the Blender version you are currently using.
 You may need a newer version of Blender for this material to work properly."""]
                 return
             print ("SCRIPT")
-            node = node_tree.nodes.new("ShaderModeScript")
+            node = node_tree.nodes.new("ShaderNodeScript")
             node.mode = node_data['mode'].value
             if node_data['mode'].value == 'EXTERNAL':
                 if 'script' in node_data:
@@ -4784,7 +4784,6 @@ You may need a newer version of Blender for this material to work properly."""]
             elif 'group' in node_data:
                 node_group = node_groups[int(node_data['group'].value)]
             if node_group:
-                node = node_tree.nodes.new("ShaderNodeGroup", node_group)
                 node = node_tree.nodes.new("ShaderNodeGroup", node_group)
             if node.inputs:
                 for input in node.inputs:
