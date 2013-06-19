@@ -3653,7 +3653,7 @@ class InsertLibraryScript(bpy.types.Operator):
             self.report({'ERROR'}, "Image is not cached; cannot download in offline mode!")
             return {'CANCELLED'}
         
-        new_node = context.active_object.active_material.node_tree.nodes.new('SCRIPT')
+        new_node = context.active_object.active_material.node_tree.nodes.new('ShaderNodeScript')
         new_node.mode = 'EXTERNAL'
         new_node.filepath = script_path
         
