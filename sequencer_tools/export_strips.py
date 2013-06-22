@@ -23,6 +23,7 @@ class SEQExportStrip(bpy.types.Operator):
     """Export (render) selected strips in sequencer"""
     bl_idname = "sequencer.export_strips"
     bl_label = "Export Strips"
+
     filepath = StringProperty(subtype='FILE_PATH')
 
     def execute(self, context):
@@ -45,7 +46,7 @@ class SEQExportStrip(bpy.types.Operator):
                 continue
             if start is None or strip.frame_final_start < start:
                 start = strip.frame_final_start
-            if end is None or strip.frame_final_end < end:
+            if end is None or strip.frame_final_end > end:
                 end = strip.frame_final_end
         sce.frame_start = start
         sce.frame_end = end
