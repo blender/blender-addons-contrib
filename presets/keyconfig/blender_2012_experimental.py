@@ -1359,6 +1359,275 @@ def MapAdd_View3D_MeshEditMode(kc):
     kmi = km.keymap_items.new('wm.call_menu', 'G', 'CLICK', ctrl=True)
     kmi.properties.name = 'VIEW3D_MT_vertex_group'
 
+def MapAdd_KnifeToolModal(kc):
+    # Map Knife Tool Modal Map
+    km = kc.keymaps.new('Knife Tool Modal Map', space_type='EMPTY', region_type='WINDOW', modal=True)
+
+    # Add cut
+    kmi = km.keymap_items.new_modal('ADD_CUT', 'LEFTMOUSE', 'PRESS', any=True)
+    
+    # Finish
+    kmi = km.keymap_items.new_modal('CONFIRM', 'RIGHTMOUSE', 'PRESS', any=True)
+    kmi = km.keymap_items.new_modal('CONFIRM', 'RET', 'PRESS', any=True)
+    kmi = km.keymap_items.new_modal('CONFIRM', 'NUMPAD_ENTER', 'PRESS', any=True)
+    #kmi = km.keymap_items.new_modal('CONFIRM', 'SPACE', 'PRESS', any=True)
+    
+    # Cancel
+    kmi = km.keymap_items.new_modal('CANCEL', 'ESC', 'PRESS', any=True)
+    
+    
+    kmi = km.keymap_items.new_modal('NEW_CUT', 'E', 'PRESS')
+    
+    # Snapping
+    kmi = km.keymap_items.new_modal('SNAP_MIDPOINTS_ON', 'LEFT_CTRL', 'PRESS', any=True)
+    kmi = km.keymap_items.new_modal('SNAP_MIDPOINTS_OFF', 'LEFT_CTRL', 'RELEASE', any=True)
+    kmi = km.keymap_items.new_modal('SNAP_MIDPOINTS_ON', 'RIGHT_CTRL', 'PRESS', any=True)
+    kmi = km.keymap_items.new_modal('SNAP_MIDPOINTS_OFF', 'RIGHT_CTRL', 'RELEASE', any=True)
+    kmi = km.keymap_items.new_modal('ANGLE_SNAP_TOGGLE', 'C', 'PRESS')
+    
+    # Ignore snapping
+    kmi = km.keymap_items.new_modal('IGNORE_SNAP_ON', 'LEFT_SHIFT', 'PRESS', any=True)
+    kmi = km.keymap_items.new_modal('IGNORE_SNAP_OFF', 'LEFT_SHIFT', 'RELEASE', any=True)
+    kmi = km.keymap_items.new_modal('IGNORE_SNAP_ON', 'RIGHT_SHIFT', 'PRESS', any=True)
+    kmi = km.keymap_items.new_modal('IGNORE_SNAP_OFF', 'RIGHT_SHIFT', 'RELEASE', any=True)
+    
+    # Cut through toggle
+    kmi = km.keymap_items.new_modal('CUT_THROUGH_TOGGLE', 'Z', 'PRESS')
+    
+
+def MapAdd_Sculpt(kc):
+    # Map Sculpt
+    km = kc.keymaps.new('Sculpt', space_type='EMPTY', region_type='WINDOW', modal=False)
+
+    # Sculpt strokes
+    # TODO: alt for MASK(?)
+    kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS')
+    kmi.properties.mode = 'NORMAL'
+    kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS', ctrl=True)
+    kmi.properties.mode = 'INVERT'
+    kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS', shift=True)
+    kmi.properties.mode = 'SMOOTH'
+    #kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS', alt=True)
+    #kmi.properties.mode = 'MASK'
+    #kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True)
+    #kmi.properties.mode = 'MASK_INVERT'
+    #kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS', alt=True, shift=True)
+    #kmi.properties.mode = 'MASK_SMOOTH'
+    
+    # Change stroke methods
+    kmi = km.keymap_items.new('wm.context_menu_enum', 'A', 'PRESS')
+    kmi.properties.data_path = 'tool_settings.sculpt.brush.sculpt_stroke_method'
+    kmi = km.keymap_items.new('wm.context_toggle', 'S', 'PRESS', shift=True)
+    kmi.properties.data_path = 'tool_settings.sculpt.brush.use_smooth_stroke'
+    kmi = km.keymap_items.new('wm.context_menu_enum', 'R', 'PRESS')
+    kmi.properties.data_path = 'tool_settings.sculpt.brush.texture_angle_source_random'
+    
+    # Brush scale
+    kmi = km.keymap_items.new('brush.scale_size', 'LEFT_BRACKET', 'PRESS')
+    kmi.properties.scalar = 0.9
+    kmi = km.keymap_items.new('brush.scale_size', 'RIGHT_BRACKET', 'PRESS')
+    kmi.properties.scalar = 1.1111111111
+    kmi = km.keymap_items.new('wm.radial_control', 'F', 'PRESS')
+    kmi.properties.data_path_primary = 'tool_settings.sculpt.brush.size'
+    kmi.properties.data_path_secondary = 'tool_settings.unified_paint_settings.size'
+    kmi.properties.use_secondary = 'tool_settings.unified_paint_settings.use_unified_size'
+    kmi.properties.rotation_path = 'tool_settings.sculpt.brush.texture_slot.angle'
+    kmi.properties.color_path = 'tool_settings.sculpt.brush.cursor_color_add'
+    kmi.properties.fill_color_path = ''
+    kmi.properties.zoom_path = ''
+    kmi.properties.image_id = 'tool_settings.sculpt.brush'
+    
+    # Brush strength
+    kmi = km.keymap_items.new('wm.radial_control', 'F', 'PRESS', shift=True)
+    kmi.properties.data_path_primary = 'tool_settings.sculpt.brush.strength'
+    kmi.properties.data_path_secondary = 'tool_settings.unified_paint_settings.strength'
+    kmi.properties.use_secondary = 'tool_settings.unified_paint_settings.use_unified_strength'
+    kmi.properties.rotation_path = 'tool_settings.sculpt.brush.texture_slot.angle'
+    kmi.properties.color_path = 'tool_settings.sculpt.brush.cursor_color_add'
+    kmi.properties.fill_color_path = ''
+    kmi.properties.zoom_path = ''
+    kmi.properties.image_id = 'tool_settings.sculpt.brush'
+    
+    # Brush angle
+    kmi = km.keymap_items.new('wm.radial_control', 'F', 'PRESS', ctrl=True)
+    kmi.properties.data_path_primary = 'tool_settings.sculpt.brush.texture_slot.angle'
+    kmi.properties.data_path_secondary = ''
+    kmi.properties.use_secondary = ''
+    kmi.properties.rotation_path = 'tool_settings.sculpt.brush.texture_slot.angle'
+    kmi.properties.color_path = 'tool_settings.sculpt.brush.cursor_color_add'
+    kmi.properties.fill_color_path = ''
+    kmi.properties.zoom_path = ''
+    kmi.properties.image_id = 'tool_settings.sculpt.brush'
+    
+    # Dyntopo detail size
+    kmi = km.keymap_items.new('wm.radial_control', 'D', 'PRESS', shift=True)
+    kmi.properties.data_path_primary = 'tool_settings.sculpt.detail_size'
+    kmi.properties.data_path_secondary = ''
+    kmi.properties.use_secondary = ''
+    kmi.properties.rotation_path = 'tool_settings.sculpt.brush.texture_slot.angle'
+    kmi.properties.color_path = 'tool_settings.sculpt.brush.cursor_color_add'
+    kmi.properties.fill_color_path = ''
+    kmi.properties.zoom_path = ''
+    kmi.properties.image_id = 'tool_settings.sculpt.brush'
+    
+    # Dynamic topology
+    kmi = km.keymap_items.new('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True)
+    
+    # Hiding
+    kmi = km.keymap_items.new('paint.hide_show', 'H', 'PRESS')
+    kmi.properties.action = 'HIDE'
+    kmi.properties.area = 'INSIDE'
+    kmi = km.keymap_items.new('paint.hide_show', 'H', 'PRESS', shift=True)
+    kmi.properties.action = 'SHOW'
+    kmi.properties.area = 'INSIDE'
+    kmi = km.keymap_items.new('paint.hide_show', 'H', 'PRESS', alt=True)
+    kmi.properties.action = 'SHOW'
+    kmi.properties.area = 'ALL'
+    
+    # Masking
+    # TODO: mask menu on alt-m
+    kmi = km.keymap_items.new('paint.mask_flood_fill', 'M', 'PRESS', alt=True)
+    kmi.properties.mode = 'VALUE'
+    kmi.properties.value = 0.0
+    kmi = km.keymap_items.new('paint.mask_flood_fill', 'I', 'PRESS', ctrl=True)
+    kmi.properties.mode = 'INVERT'
+    
+    # Subdivision levels
+    kmi = km.keymap_items.new('object.subdivision_set', 'EQUAL', 'PRESS')
+    kmi.properties.level = 1
+    kmi.properties.relative = True
+    kmi = km.keymap_items.new('object.subdivision_set', 'MINUS', 'PRESS')
+    kmi.properties.level = -1
+    kmi.properties.relative = True
+    #kmi = km.keymap_items.new('object.subdivision_set', 'ZERO', 'PRESS', ctrl=True)
+    #kmi.properties.level = 0
+    #kmi = km.keymap_items.new('object.subdivision_set', 'ONE', 'PRESS', ctrl=True)
+    #kmi.properties.level = 1
+    #kmi = km.keymap_items.new('object.subdivision_set', 'TWO', 'PRESS', ctrl=True)
+    #kmi.properties.level = 2
+    #kmi = km.keymap_items.new('object.subdivision_set', 'THREE', 'PRESS', ctrl=True)
+    #kmi.properties.level = 3
+    #kmi = km.keymap_items.new('object.subdivision_set', 'FOUR', 'PRESS', ctrl=True)
+    #kmi.properties.level = 4
+    #kmi = km.keymap_items.new('object.subdivision_set', 'FIVE', 'PRESS', ctrl=True)
+    #kmi.properties.level = 5
+    
+    # Brush switching by index
+    kmi = km.keymap_items.new('brush.active_index_set', 'ONE', 'PRESS')
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 0
+    kmi = km.keymap_items.new('brush.active_index_set', 'TWO', 'PRESS')
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 1
+    kmi = km.keymap_items.new('brush.active_index_set', 'THREE', 'PRESS')
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 2
+    kmi = km.keymap_items.new('brush.active_index_set', 'FOUR', 'PRESS')
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 3
+    kmi = km.keymap_items.new('brush.active_index_set', 'FIVE', 'PRESS')
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 4
+    kmi = km.keymap_items.new('brush.active_index_set', 'SIX', 'PRESS')
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 5
+    kmi = km.keymap_items.new('brush.active_index_set', 'SEVEN', 'PRESS')
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 6
+    kmi = km.keymap_items.new('brush.active_index_set', 'EIGHT', 'PRESS')
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 7
+    kmi = km.keymap_items.new('brush.active_index_set', 'NINE', 'PRESS')
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 8
+    kmi = km.keymap_items.new('brush.active_index_set', 'ZERO', 'PRESS')
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 9
+    kmi = km.keymap_items.new('brush.active_index_set', 'ONE', 'PRESS', shift=True)
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 10
+    kmi = km.keymap_items.new('brush.active_index_set', 'TWO', 'PRESS', shift=True)
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 11
+    kmi = km.keymap_items.new('brush.active_index_set', 'THREE', 'PRESS', shift=True)
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 12
+    kmi = km.keymap_items.new('brush.active_index_set', 'FOUR', 'PRESS', shift=True)
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 13
+    kmi = km.keymap_items.new('brush.active_index_set', 'FIVE', 'PRESS', shift=True)
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 14
+    kmi = km.keymap_items.new('brush.active_index_set', 'SIX', 'PRESS', shift=True)
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 15
+    kmi = km.keymap_items.new('brush.active_index_set', 'SEVEN', 'PRESS', shift=True)
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 16
+    kmi = km.keymap_items.new('brush.active_index_set', 'EIGHT', 'PRESS', shift=True)
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 17
+    kmi = km.keymap_items.new('brush.active_index_set', 'NINE', 'PRESS', shift=True)
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 18
+    kmi = km.keymap_items.new('brush.active_index_set', 'ZERO', 'PRESS', shift=True)
+    kmi.properties.mode = 'sculpt'
+    kmi.properties.index = 19
+    
+    # Brush switching by type
+    kmi = km.keymap_items.new('paint.brush_select', 'D', 'PRESS')
+    kmi.properties.paint_mode = 'SCULPT'
+    kmi.properties.sculpt_tool = 'DRAW'
+    kmi = km.keymap_items.new('paint.brush_select', 'S', 'PRESS')
+    kmi.properties.paint_mode = 'SCULPT'
+    kmi.properties.sculpt_tool = 'SMOOTH'
+    kmi = km.keymap_items.new('paint.brush_select', 'P', 'PRESS')
+    kmi.properties.paint_mode = 'SCULPT'
+    kmi.properties.sculpt_tool = 'PINCH'
+    kmi = km.keymap_items.new('paint.brush_select', 'I', 'PRESS')
+    kmi.properties.paint_mode = 'SCULPT'
+    kmi.properties.sculpt_tool = 'INFLATE'
+    kmi = km.keymap_items.new('paint.brush_select', 'G', 'PRESS')
+    kmi.properties.paint_mode = 'SCULPT'
+    kmi.properties.sculpt_tool = 'GRAB'
+    kmi = km.keymap_items.new('paint.brush_select', 'L', 'PRESS')
+    kmi.properties.paint_mode = 'SCULPT'
+    kmi.properties.sculpt_tool = 'LAYER'
+    kmi = km.keymap_items.new('paint.brush_select', 'T', 'PRESS', shift=True)
+    kmi.properties.paint_mode = 'SCULPT'
+    kmi.properties.sculpt_tool = 'FLATTEN'
+    kmi = km.keymap_items.new('paint.brush_select', 'C', 'PRESS')
+    kmi.properties.paint_mode = 'SCULPT'
+    kmi.properties.sculpt_tool = 'CLAY'
+    kmi = km.keymap_items.new('paint.brush_select', 'C', 'PRESS', shift=True)
+    kmi.properties.paint_mode = 'SCULPT'
+    kmi.properties.sculpt_tool = 'CREASE'
+    kmi = km.keymap_items.new('paint.brush_select', 'K', 'PRESS')
+    kmi.properties.paint_mode = 'SCULPT'
+    kmi.properties.sculpt_tool = 'SNAKE_HOOK'
+    kmi = km.keymap_items.new('paint.brush_select', 'M', 'PRESS')
+    kmi.properties.paint_mode = 'SCULPT'
+    kmi.properties.sculpt_tool = 'MASK'
+    kmi.properties.toggle = True
+    kmi.properties.create_missing = True
+    
+    # Stencil manipulation
+    kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS')
+    kmi.properties.mode = 'TRANSLATION'
+    kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS', ctrl=True)
+    kmi.properties.mode = 'SCALE'
+    kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS', shift=True)
+    kmi.properties.mode = 'ROTATION'
+    kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS', alt=True)
+    kmi.properties.mode = 'TRANSLATION'
+    kmi.properties.texmode = 'SECONDARY'
+    kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS', ctrl=True, alt=True)
+    kmi.properties.mode = 'SCALE'
+    kmi.properties.texmode = 'SECONDARY'
+    kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS', shift=True, alt=True)
+    kmi.properties.mode = 'ROTATION'
+    kmi.properties.texmode = 'SECONDARY'
+
 
 def MapAdd_ModalStandard(kc):
     """ Standard Modal Map
@@ -1437,10 +1706,106 @@ def MapAdd_ModalBorderSelect(kc):
     kmi = km.keymap_items.new_modal('DESELECT', 'LEFTMOUSE', 'RELEASE', ctrl=True)
 
 
+def MapAdd_AnimationGlobal(kc):
+    # Map Frames
+    km = kc.keymaps.new('Frames', space_type='EMPTY', region_type='WINDOW', modal=False)
+
+    # Forward/backward 1 frame
+    kmi = km.keymap_items.new('screen.frame_offset', 'LEFT_ARROW', 'PRESS')
+    kmi.properties.delta = -1
+    kmi = km.keymap_items.new('screen.frame_offset', 'RIGHT_ARROW', 'PRESS')
+    kmi.properties.delta = 1
+    #kmi = km.keymap_items.new('screen.frame_offset', 'WHEELDOWNMOUSE', 'PRESS', alt=True)
+    #kmi.properties.delta = 1
+    #kmi = km.keymap_items.new('screen.frame_offset', 'WHEELUPMOUSE', 'PRESS', alt=True)
+    #kmi.properties.delta = -1
+
+    # Forward/backward 10 frames
+    kmi = km.keymap_items.new('screen.frame_offset', 'LEFT_ARROW', 'PRESS', shift=True)
+    kmi.properties.delta = 10
+    kmi = km.keymap_items.new('screen.frame_offset', 'RIGHT_ARROW', 'PRESS', shift=True)
+    kmi.properties.delta = -10
+    
+    # Jump to prev/next keyframe
+    kmi = km.keymap_items.new('screen.keyframe_jump', 'UP_ARROW', 'PRESS')
+    kmi.properties.next = True
+    kmi = km.keymap_items.new('screen.keyframe_jump', 'DOWN_ARROW', 'PRESS')
+    kmi.properties.next = False
+    
+    # Jump to start/end of frame range
+    kmi = km.keymap_items.new('screen.frame_jump', 'UP_ARROW', 'PRESS', shift=True)
+    kmi.properties.end = True
+    kmi = km.keymap_items.new('screen.frame_jump', 'DOWN_ARROW', 'PRESS', shift=True)
+    kmi.properties.end = False
+    #kmi = km.keymap_items.new('screen.frame_jump', 'MEDIA_LAST', 'PRESS')
+    #kmi.properties.end = True
+    #kmi = km.keymap_items.new('screen.frame_jump', 'MEDIA_FIRST', 'PRESS')
+    #kmi.properties.end = False
+    
+    # Animation playback
+    kmi = km.keymap_items.new('screen.animation_play', 'A', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('screen.animation_play', 'MEDIA_PLAY', 'PRESS')
+    kmi = km.keymap_items.new('screen.animation_play', 'A', 'PRESS', shift=True, alt=True)
+    kmi.properties.reverse = True
+    kmi = km.keymap_items.new('screen.animation_cancel', 'ESC', 'PRESS')
+    kmi = km.keymap_items.new('screen.animation_cancel', 'MEDIA_STOP', 'PRESS')
 
 
+def MapAdd_AnimationSpaces(kc):
+    # Map Animation
+    km = kc.keymaps.new('Animation', space_type='EMPTY', region_type='WINDOW', modal=False)
+    
+    # Scrub timeline
+    kmi = km.keymap_items.new('anim.change_frame', 'RIGHTMOUSE', 'PRESS')
+    
+    # Switch time display
+    kmi = km.keymap_items.new('wm.context_toggle', 'T', 'PRESS', ctrl=True)
+    kmi.properties.data_path = 'space_data.show_seconds'
+    
+    # Set preview range
+    # TODO: should this really be here?
+    kmi = km.keymap_items.new('anim.previewrange_set', 'P', 'PRESS')
+    kmi = km.keymap_items.new('anim.previewrange_clear', 'P', 'PRESS', alt=True)
 
 
+def MapAdd_Markers(kc):
+    # Map Markers
+    km = kc.keymaps.new('Markers', space_type='EMPTY', region_type='WINDOW', modal=False)
+
+    # Create markers
+    kmi = km.keymap_items.new('marker.add', 'M', 'PRESS')
+    kmi = km.keymap_items.new('marker.duplicate', 'D', 'PRESS', shift=True)
+    
+    # Delete markers
+    kmi = km.keymap_items.new('marker.delete', 'X', 'PRESS')
+    
+    # Name markers
+    kmi = km.keymap_items.new('marker.rename', 'M', 'PRESS', ctrl=True)
+    
+    # Move markers
+    kmi = km.keymap_items.new('marker.move', TRANSLATE_KEY, 'PRESS')
+    #kmi = km.keymap_items.new('marker.move', 'EVT_TWEAK_S', 'ANY')
+    
+    # Marker selection
+    # TODO: shift = add, ctrl = remove
+    kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'CLICK')
+    kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'CLICK', shift=True)
+    kmi.properties.extend = True
+    kmi = km.keymap_items.new('marker.select_border', 'EVT_TWEAK_S', 'ANY')
+    kmi = km.keymap_items.new('marker.select_all', 'A', 'PRESS')
+    
+    # Select associated camera
+    # TODO: shift = add, ctrl = remove
+    kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS', alt=True)
+    kmi.properties.extend = False
+    kmi.properties.camera = True
+    kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS', shift=True, alt=True)
+    kmi.properties.extend = True
+    kmi.properties.camera = True
+    
+    # Bind marker to camera
+    kmi = km.keymap_items.new('marker.camera_bind', 'B', 'PRESS', ctrl=True)
+    
 
 def MapAdd_FileBrowserGlobal(kc):
     # Map File Browser
@@ -1506,10 +1871,313 @@ def MapAdd_FileBrowserButtons(kc):
     kmi.properties.increment = -100
 
 
+def MapAdd_Outliner(kc):
+    # Map Outliner
+    km = kc.keymaps.new('Outliner', space_type='OUTLINER', region_type='WINDOW', modal=False)
+
+    # Selection
+    kmi = km.keymap_items.new('outliner.item_activate', 'LEFTMOUSE', 'CLICK')
+    kmi.properties.extend = False
+    kmi.properties.recursive = False
+    kmi = km.keymap_items.new('outliner.item_activate', 'LEFTMOUSE', 'CLICK', shift=True)
+    kmi.properties.extend = True
+    kmi.properties.recursive = False
+    kmi = km.keymap_items.new('outliner.item_activate', 'LEFTMOUSE', 'CLICK', ctrl=True)
+    kmi.properties.extend = False
+    kmi.properties.recursive = True
+    kmi = km.keymap_items.new('outliner.item_activate', 'LEFTMOUSE', 'CLICK', shift=True, ctrl=True)
+    kmi.properties.extend = True
+    kmi.properties.recursive = True
+    # kmi = km.keymap_items.new('outliner.select_border', 'B', 'PRESS')
+    kmi = km.keymap_items.new('outliner.selected_toggle', 'A', 'PRESS')
+
+    # Toggle item properties
+    kmi = km.keymap_items.new('outliner.renderability_toggle', 'R', 'PRESS')
+    kmi = km.keymap_items.new('outliner.selectability_toggle', 'S', 'PRESS')
+    kmi = km.keymap_items.new('outliner.visibility_toggle', 'V', 'PRESS')
+
+    # Expand / Collapse items
+    kmi = km.keymap_items.new('outliner.item_openclose', 'RET', 'PRESS')
+    kmi.properties.all = False
+    kmi = km.keymap_items.new('outliner.item_openclose', 'RET', 'PRESS', shift=True)
+    kmi.properties.all = True
+    kmi = km.keymap_items.new('outliner.show_one_level', 'NUMPAD_PLUS', 'PRESS')
+    kmi = km.keymap_items.new('outliner.show_one_level', 'NUMPAD_MINUS', 'PRESS')
+    kmi.properties.open = False
+    kmi = km.keymap_items.new('outliner.expanded_toggle', 'A', 'PRESS', shift=True)
+    kmi = km.keymap_items.new('outliner.show_hierarchy', 'HOME', 'PRESS')
+
+    # Rename items
+    kmi = km.keymap_items.new('outliner.item_rename', 'LEFTMOUSE', 'DOUBLE_CLICK')
+    kmi = km.keymap_items.new('outliner.item_rename', 'LEFTMOUSE', 'PRESS', ctrl=True)
+    
+    # Right-click menu
+    kmi = km.keymap_items.new('outliner.operation', 'RIGHTMOUSE', 'PRESS')
+    
+    # Navigtion
+    kmi = km.keymap_items.new('outliner.show_active', 'PERIOD', 'PRESS')
+    kmi = km.keymap_items.new('outliner.show_active', 'NUMPAD_PERIOD', 'PRESS')
+    kmi = km.keymap_items.new('outliner.scroll_page', 'PAGE_DOWN', 'PRESS')
+    kmi = km.keymap_items.new('outliner.scroll_page', 'PAGE_UP', 'PRESS')
+    kmi.properties.up = True
+    
+    # Misc
+    kmi = km.keymap_items.new('outliner.keyingset_add_selected', 'K', 'PRESS')
+    kmi = km.keymap_items.new('outliner.keyingset_remove_selected', 'K', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('anim.keyframe_insert', 'I', 'PRESS')
+    kmi = km.keymap_items.new('anim.keyframe_delete', 'I', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('outliner.drivers_add_selected', 'D', 'PRESS')
+    kmi = km.keymap_items.new('outliner.drivers_delete_selected', 'D', 'PRESS', alt=True)
 
 
+def MapAdd_Console(kc):
+    # Map Console
+    km = kc.keymaps.new('Console', space_type='CONSOLE', region_type='WINDOW', modal=False)
+
+    # Cursor navigation
+    kmi = km.keymap_items.new('console.move', 'LEFT_ARROW', 'PRESS')
+    kmi.properties.type = 'PREVIOUS_CHARACTER'
+    kmi = km.keymap_items.new('console.move', 'RIGHT_ARROW', 'PRESS')
+    kmi.properties.type = 'NEXT_CHARACTER'
+    kmi = km.keymap_items.new('console.move', 'LEFT_ARROW', 'PRESS', ctrl=True)
+    kmi.properties.type = 'PREVIOUS_WORD'
+    kmi = km.keymap_items.new('console.move', 'RIGHT_ARROW', 'PRESS', ctrl=True)
+    kmi.properties.type = 'NEXT_WORD'
+    kmi = km.keymap_items.new('console.move', 'HOME', 'PRESS')
+    kmi.properties.type = 'LINE_BEGIN'
+    kmi = km.keymap_items.new('console.move', 'END', 'PRESS')
+    kmi.properties.type = 'LINE_END'
+    
+    # Console history
+    kmi = km.keymap_items.new('console.history_cycle', 'UP_ARROW', 'PRESS')
+    kmi.properties.reverse = True
+    kmi = km.keymap_items.new('console.history_cycle', 'DOWN_ARROW', 'PRESS')
+    kmi.properties.reverse = False
+    
+    # Font size
+    kmi = km.keymap_items.new('wm.context_cycle_int', 'WHEELUPMOUSE', 'PRESS', ctrl=True)
+    kmi.properties.data_path = 'space_data.font_size'
+    kmi.properties.reverse = False
+    kmi = km.keymap_items.new('wm.context_cycle_int', 'WHEELDOWNMOUSE', 'PRESS', ctrl=True)
+    kmi.properties.data_path = 'space_data.font_size'
+    kmi.properties.reverse = True
+    kmi = km.keymap_items.new('wm.context_cycle_int', 'NUMPAD_PLUS', 'PRESS', ctrl=True)
+    kmi.properties.data_path = 'space_data.font_size'
+    kmi.properties.reverse = False
+    kmi = km.keymap_items.new('wm.context_cycle_int', 'NUMPAD_MINUS', 'PRESS', ctrl=True)
+    kmi.properties.data_path = 'space_data.font_size'
+    kmi.properties.reverse = True
+    
+    # Indenting
+    kmi = km.keymap_items.new('console.insert', 'TAB', 'PRESS', ctrl=True)
+    kmi.properties.text = '\t'
+    kmi = km.keymap_items.new('console.indent', 'TAB', 'PRESS')
+    kmi = km.keymap_items.new('console.unindent', 'TAB', 'PRESS', shift=True)
+    
+    # Deleting
+    kmi = km.keymap_items.new('console.delete', 'DEL', 'PRESS')
+    kmi.properties.type = 'NEXT_CHARACTER'
+    kmi = km.keymap_items.new('console.delete', 'BACK_SPACE', 'PRESS')
+    kmi.properties.type = 'PREVIOUS_CHARACTER'
+    kmi = km.keymap_items.new('console.delete', 'BACK_SPACE', 'PRESS', shift=True)
+    kmi.properties.type = 'PREVIOUS_CHARACTER'
+    kmi = km.keymap_items.new('console.delete', 'DEL', 'PRESS', ctrl=True)
+    kmi.properties.type = 'NEXT_WORD'
+    kmi = km.keymap_items.new('console.delete', 'BACK_SPACE', 'PRESS', ctrl=True)
+    kmi.properties.type = 'PREVIOUS_WORD'
+    
+    # Clear line
+    kmi = km.keymap_items.new('console.clear_line', 'RET', 'PRESS', shift=True)
+    
+    # Copy/paste
+    kmi = km.keymap_items.new('console.copy_as_script', 'C', 'PRESS', shift=True, ctrl=True)
+    kmi = km.keymap_items.new('console.copy', 'C', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('console.paste', 'V', 'PRESS', ctrl=True)
+    
+    # Execute code
+    kmi = km.keymap_items.new('console.execute', 'RET', 'PRESS')
+    kmi.properties.interactive = True
+    kmi = km.keymap_items.new('console.execute', 'NUMPAD_ENTER', 'PRESS')
+    kmi.properties.interactive = True
+    
+    # Auto-complete
+    kmi = km.keymap_items.new('console.autocomplete', 'SPACE', 'PRESS', ctrl=True)
+    
+    # Selection
+    kmi = km.keymap_items.new('console.select_set', 'LEFTMOUSE', 'PRESS')
+    
+    # Text input
+    kmi = km.keymap_items.new('console.insert', 'TEXTINPUT', 'ANY', any=True)
 
 
+# TODO: sort out the text editor keymap
+def MapAdd_TextEditorGeneric(kc):
+    # Map Text Generic
+    km = kc.keymaps.new('Text Generic', space_type='TEXT_EDITOR', region_type='WINDOW', modal=False)
+
+    kmi = km.keymap_items.new('text.start_find', 'F', 'PRESS', ctrl=True)
+
+def MapAdd_TextEditor(kc):
+    # Map Text
+    km = kc.keymaps.new('Text', space_type='TEXT_EDITOR', region_type='WINDOW', modal=False)
+
+    # Font size
+    kmi = km.keymap_items.new('wm.context_cycle_int', 'WHEELUPMOUSE', 'PRESS', ctrl=True)
+    kmi.properties.data_path = 'space_data.font_size'
+    kmi.properties.reverse = False
+    kmi = km.keymap_items.new('wm.context_cycle_int', 'WHEELDOWNMOUSE', 'PRESS', ctrl=True)
+    kmi.properties.data_path = 'space_data.font_size'
+    kmi.properties.reverse = True
+    kmi = km.keymap_items.new('wm.context_cycle_int', 'NUMPAD_PLUS', 'PRESS', ctrl=True)
+    kmi.properties.data_path = 'space_data.font_size'
+    kmi.properties.reverse = False
+    kmi = km.keymap_items.new('wm.context_cycle_int', 'NUMPAD_MINUS', 'PRESS', ctrl=True)
+    kmi.properties.data_path = 'space_data.font_size'
+    kmi.properties.reverse = True
+    
+    # File management
+    kmi = km.keymap_items.new('text.new', 'N', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('text.open', 'O', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('text.reload', 'R', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('text.save', 'S', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('text.save_as', 'S', 'PRESS', shift=True, ctrl=True, alt=True)
+    
+    # Run script
+    kmi = km.keymap_items.new('text.run_script', 'P', 'PRESS', alt=True)
+    
+    # Copy/paste etc.
+    kmi = km.keymap_items.new('text.cut', 'X', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('text.copy', 'C', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('text.paste', 'V', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('text.cut', 'DEL', 'PRESS', shift=True)
+    kmi = km.keymap_items.new('text.copy', 'INSERT', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('text.paste', 'INSERT', 'PRESS', shift=True)
+    kmi = km.keymap_items.new('text.duplicate_line', 'D', 'PRESS', ctrl=True)
+    
+    # Find / replace
+    kmi = km.keymap_items.new('text.find', 'G', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('text.replace', 'H', 'PRESS', ctrl=True)
+    
+    # Text-to-3D-object
+    kmi = km.keymap_items.new('text.to_3d_object', 'M', 'PRESS', alt=True)
+    kmi.properties.split_lines = False
+    kmi = km.keymap_items.new('text.to_3d_object', 'M', 'PRESS', ctrl=True)
+    kmi.properties.split_lines = True
+    
+    # Move lines
+    kmi = km.keymap_items.new('text.move_lines', 'UP_ARROW', 'PRESS', shift=True, ctrl=True)
+    kmi.properties.direction = 'UP'
+    kmi = km.keymap_items.new('text.move_lines', 'DOWN_ARROW', 'PRESS', shift=True, ctrl=True)
+    kmi.properties.direction = 'DOWN'
+    
+    # Linebreak, indent, etc.
+    kmi = km.keymap_items.new('text.line_break', 'RET', 'PRESS')
+    kmi = km.keymap_items.new('text.line_break', 'NUMPAD_ENTER', 'PRESS')
+    kmi = km.keymap_items.new('text.indent', 'TAB', 'PRESS')
+    kmi = km.keymap_items.new('text.unindent', 'TAB', 'PRESS', shift=True)
+    kmi = km.keymap_items.new('text.uncomment', 'D', 'PRESS', shift=True, ctrl=True)
+    
+    # Cursor navigation
+    kmi = km.keymap_items.new('text.jump', 'J', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('text.move', 'HOME', 'PRESS')
+    kmi.properties.type = 'LINE_BEGIN'
+    kmi = km.keymap_items.new('text.move', 'END', 'PRESS')
+    kmi.properties.type = 'LINE_END'
+    kmi = km.keymap_items.new('text.move', 'E', 'PRESS', ctrl=True)
+    kmi.properties.type = 'LINE_END'
+    kmi = km.keymap_items.new('text.move', 'E', 'PRESS', shift=True, ctrl=True)
+    kmi.properties.type = 'LINE_END'
+    kmi = km.keymap_items.new('text.move', 'LEFT_ARROW', 'PRESS')
+    kmi.properties.type = 'PREVIOUS_CHARACTER'
+    kmi = km.keymap_items.new('text.move', 'RIGHT_ARROW', 'PRESS')
+    kmi.properties.type = 'NEXT_CHARACTER'
+    kmi = km.keymap_items.new('text.move', 'LEFT_ARROW', 'PRESS', ctrl=True)
+    kmi.properties.type = 'PREVIOUS_WORD'
+    kmi = km.keymap_items.new('text.move', 'RIGHT_ARROW', 'PRESS', ctrl=True)
+    kmi.properties.type = 'NEXT_WORD'
+    kmi = km.keymap_items.new('text.move', 'UP_ARROW', 'PRESS')
+    kmi.properties.type = 'PREVIOUS_LINE'
+    kmi = km.keymap_items.new('text.move', 'DOWN_ARROW', 'PRESS')
+    kmi.properties.type = 'NEXT_LINE'
+    kmi = km.keymap_items.new('text.move', 'PAGE_UP', 'PRESS')
+    kmi.properties.type = 'PREVIOUS_PAGE'
+    kmi = km.keymap_items.new('text.move', 'PAGE_DOWN', 'PRESS')
+    kmi.properties.type = 'NEXT_PAGE'
+    kmi = km.keymap_items.new('text.move', 'HOME', 'PRESS', ctrl=True)
+    kmi.properties.type = 'FILE_TOP'
+    kmi = km.keymap_items.new('text.move', 'END', 'PRESS', ctrl=True)
+    kmi.properties.type = 'FILE_BOTTOM'
+    
+    # Selection
+    kmi = km.keymap_items.new('text.selection_set', 'EVT_TWEAK_L', 'ANY')
+    kmi = km.keymap_items.new('text.selection_set', 'LEFTMOUSE', 'PRESS', shift=True)
+    kmi.properties.select = True
+    kmi = km.keymap_items.new('text.cursor_set', 'LEFTMOUSE', 'PRESS')
+    kmi = km.keymap_items.new('text.select_all', 'A', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('text.select_line', 'A', 'PRESS', shift=True, ctrl=True)
+    kmi = km.keymap_items.new('text.select_word', 'LEFTMOUSE', 'DOUBLE_CLICK')
+    kmi = km.keymap_items.new('text.move_select', 'HOME', 'PRESS', shift=True)
+    kmi.properties.type = 'LINE_BEGIN'
+    kmi = km.keymap_items.new('text.move_select', 'END', 'PRESS', shift=True)
+    kmi.properties.type = 'LINE_END'
+    kmi = km.keymap_items.new('text.move_select', 'LEFT_ARROW', 'PRESS', shift=True)
+    kmi.properties.type = 'PREVIOUS_CHARACTER'
+    kmi = km.keymap_items.new('text.move_select', 'RIGHT_ARROW', 'PRESS', shift=True)
+    kmi.properties.type = 'NEXT_CHARACTER'
+    kmi = km.keymap_items.new('text.move_select', 'LEFT_ARROW', 'PRESS', shift=True, ctrl=True)
+    kmi.properties.type = 'PREVIOUS_WORD'
+    kmi = km.keymap_items.new('text.move_select', 'RIGHT_ARROW', 'PRESS', shift=True, ctrl=True)
+    kmi.properties.type = 'NEXT_WORD'
+    kmi = km.keymap_items.new('text.move_select', 'UP_ARROW', 'PRESS', shift=True)
+    kmi.properties.type = 'PREVIOUS_LINE'
+    kmi = km.keymap_items.new('text.move_select', 'DOWN_ARROW', 'PRESS', shift=True)
+    kmi.properties.type = 'NEXT_LINE'
+    kmi = km.keymap_items.new('text.move_select', 'PAGE_UP', 'PRESS', shift=True)
+    kmi.properties.type = 'PREVIOUS_PAGE'
+    kmi = km.keymap_items.new('text.move_select', 'PAGE_DOWN', 'PRESS', shift=True)
+    kmi.properties.type = 'NEXT_PAGE'
+    kmi = km.keymap_items.new('text.move_select', 'HOME', 'PRESS', shift=True, ctrl=True)
+    kmi.properties.type = 'FILE_TOP'
+    kmi = km.keymap_items.new('text.move_select', 'END', 'PRESS', shift=True, ctrl=True)
+    kmi.properties.type = 'FILE_BOTTOM'
+    
+    # Deletion
+    kmi = km.keymap_items.new('text.delete', 'DEL', 'PRESS')
+    kmi.properties.type = 'NEXT_CHARACTER'
+    kmi = km.keymap_items.new('text.delete', 'BACK_SPACE', 'PRESS')
+    kmi.properties.type = 'PREVIOUS_CHARACTER'
+    kmi = km.keymap_items.new('text.delete', 'BACK_SPACE', 'PRESS', shift=True)
+    kmi.properties.type = 'PREVIOUS_CHARACTER'
+    kmi = km.keymap_items.new('text.delete', 'DEL', 'PRESS', ctrl=True)
+    kmi.properties.type = 'NEXT_WORD'
+    kmi = km.keymap_items.new('text.delete', 'BACK_SPACE', 'PRESS', ctrl=True)
+    kmi.properties.type = 'PREVIOUS_WORD'
+    
+    # Insert mode toggle
+    kmi = km.keymap_items.new('text.overwrite_toggle', 'INSERT', 'PRESS')
+    
+    # Scrolling
+    kmi = km.keymap_items.new('text.scroll_bar', 'LEFTMOUSE', 'PRESS')
+    kmi = km.keymap_items.new('text.scroll_bar', 'MIDDLEMOUSE', 'PRESS')
+    kmi = km.keymap_items.new('text.scroll', 'MIDDLEMOUSE', 'PRESS')
+    kmi = km.keymap_items.new('text.scroll', 'TRACKPADPAN', 'ANY')
+    kmi = km.keymap_items.new('text.scroll', 'WHEELUPMOUSE', 'PRESS')
+    kmi.properties.lines = -1
+    kmi = km.keymap_items.new('text.scroll', 'WHEELDOWNMOUSE', 'PRESS')
+    kmi.properties.lines = 1
+    
+    # Right-click menu
+    kmi = km.keymap_items.new('wm.call_menu', 'RIGHTMOUSE', 'PRESS', any=True)
+    kmi.properties.name = 'TEXT_MT_toolbox'
+    
+    # Auto-complete
+    kmi = km.keymap_items.new('text.autocomplete', 'SPACE', 'PRESS', ctrl=True)
+    
+    # ?
+    kmi = km.keymap_items.new('text.line_number', 'TEXTINPUT', 'ANY', any=True)
+    
+    # Text input
+    kmi = km.keymap_items.new('text.insert', 'TEXTINPUT', 'ANY', any=True)
 
 
 
@@ -1527,15 +2195,28 @@ MapAdd_View3D_Global(kc)
 MapAdd_View3D_Object_Nonmodal(kc)
 MapAdd_View3D_ObjectMode(kc)
 MapAdd_View3D_MeshEditMode(kc)
+MapAdd_KnifeToolModal(kc)
+MapAdd_Sculpt(kc)
 MapAdd_View3D_Generic(kc)
 
 MapAdd_ModalStandard(kc)
 MapAdd_ModalTransform(kc)
 MapAdd_ModalBorderSelect(kc)
 
+MapAdd_AnimationGlobal(kc)
+MapAdd_AnimationSpaces(kc)
+MapAdd_Markers(kc)
+
 MapAdd_FileBrowserGlobal(kc)
 MapAdd_FileBrowserMain(kc)
 MapAdd_FileBrowserButtons(kc)
+
+MapAdd_Outliner(kc)
+
+MapAdd_Console(kc)
+
+MapAdd_TextEditorGeneric(kc)
+MapAdd_TextEditor(kc)
 
 
 
