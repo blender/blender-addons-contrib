@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Edit Linked Library",
     "author": "Jason van Gumster (Fweeb), Bassam Kurdali, Pablo Vazquez",
-    "version": (0, 7, 3),
+    "version": (0, 7, 4),
     "blender": (2, 65, 0),
     "location": "View3D > Toolshelf > Edit Linked Library",
     "description": "Allows editing of objects linked from a .blend library.",
@@ -31,7 +31,7 @@ bl_info = {
 
 import bpy
 from bpy.app.handlers import persistent
-import subprocess
+import os, subprocess
 
 settings = {
     "original_file": "",
@@ -43,12 +43,11 @@ settings = {
 @persistent
 def linked_file_check(context):
     if settings["linked_file"] != "":
-        if settings["linked_file"] in {bpy.data.filepath, bpy.path.abspath(bpy.data.filepath)}:
-
+        if os.path.samefile(settings["linked_file"], bpy.data.filepath):
             print("Editing a linked library.")
             bpy.ops.object.select_all(action='DESELECT')
             for ob_name in settings["linked_objects"]:
-                bpy.data.objects[ob_name].select = True
+                bpy.data.objects[ob_name].select = True #XXX Assumes selected object is in the active scene
             if len(settings["linked_objects"]) == 1:
                 bpy.context.scene.objects.active = bpy.data.objects[settings["linked_objects"][0]]
         else:
@@ -75,7 +74,11 @@ class EditLinked(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return settings["original_file"] == "" and (
+                (context.active_object.dupli_group and
+                 context.active_object.dupli_group.library is not None) or
+                 context.active_object.library is not None)
+        #return context.active_object is not None
 
     def execute(self, context):
         #print(bpy.context.active_object.library)
@@ -83,7 +86,7 @@ class EditLinked(bpy.types.Operator):
 
         if target.dupli_group and target.dupli_group.library:
             targetpath = target.dupli_group.library.filepath
-            settings["linked_objects"].extend([ob.name for ob in target.dupli_group.objects])
+            settings["linked_objects"].extend({ob.name for ob in target.dupli_group.objects})
         elif target.library:
             targetpath = target.library.filepath
             settings["linked_objects"].append(target.name)
@@ -130,7 +133,7 @@ class ReturnToOriginal(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         # Probably the wrong context to check for here...
-        return context.active_object is not None
+        return (settings["original_file"] != "")
 
     def execute(self, context):
         if self.use_autosave:
@@ -153,19 +156,14 @@ class PanelLinkedEdit(bpy.types.Panel):
     bl_region_type = "TOOLS"
 
     def draw(self, context):
-        kc = bpy.context.window_manager.keyconfigs.addon
-        km = kc.keymaps["3D View"]
-        kmi_edit = km.keymap_items["object.edit_linked"]
-        kmi_return = km.keymap_items["wm.return_to_original"]
         layout = self.layout
+        scene = context.scene
         icon = "OUTLINER_DATA_" + context.active_object.type
 
         if settings["original_file"] == "" and (
                 (context.active_object.dupli_group and
                  context.active_object.dupli_group.library is not None) or
                 context.active_object.library is not None):
-            kmi_edit.active = True
-            kmi_return.active = False
 
             if (context.active_object.dupli_group is not None):
                 props = layout.operator("object.edit_linked", icon="LINK_BLEND",
@@ -173,11 +171,11 @@ class PanelLinkedEdit(bpy.types.Panel):
             else:
                 props = layout.operator("object.edit_linked", icon="LINK_BLEND",
                                         text="Edit Library: %s" % context.active_object.name)
-            props.use_autosave = context.scene.use_autosave
-            props.use_instance = context.scene.use_instance
+            props.use_autosave = scene.use_autosave
+            props.use_instance = scene.use_instance
 
-            layout.prop(context.scene, "use_autosave")
-            layout.prop(context.scene, "use_instance")
+            layout.prop(scene, "use_autosave")
+            layout.prop(scene, "use_instance")
 
             if (context.active_object.dupli_group is not None):
                 layout.label(text="Path: %s" %
@@ -187,10 +185,8 @@ class PanelLinkedEdit(bpy.types.Panel):
                              context.active_object.library.filepath)
 
         elif settings["original_file"] != "":
-            kmi_edit.active = False
-            kmi_return.active = True
 
-            if context.scene.use_instance:
+            if scene.use_instance:
                 layout.operator("wm.return_to_original",
                                 text="Reload Current File",
                                 icon="FILE_REFRESH").use_autosave = False
@@ -203,23 +199,21 @@ class PanelLinkedEdit(bpy.types.Panel):
                 props = layout.operator("object.edit_linked",
                                         text="Edit Library: %s" % context.active_object.dupli_group.name,
                                         icon="LINK_BLEND")
-                props.use_autosave = context.scene.use_autosave
-                props.use_instance = context.scene.use_instance
-                layout.prop(context.scene, "use_autosave")
-                layout.prop(context.scene, "use_instance")
+                props.use_autosave = scene.use_autosave
+                props.use_instance = scene.use_instance
+                layout.prop(scene, "use_autosave")
+                layout.prop(scene, "use_instance")
 
                 layout.label(text="Path: %s" %
                              context.active_object.dupli_group.library.filepath)
 
             else:
                 props = layout.operator("wm.return_to_original", icon="LOOP_BACK")
-                props.use_autosave = context.scene.use_autosave
+                props.use_autosave = scene.use_autosave
 
-                layout.prop(context.scene, "use_autosave")
+                layout.prop(scene, "use_autosave")
 
         else:
-            kmi_edit.active = False
-            kmi_return.active = False
             layout.label(text="%s is not linked" % context.active_object.name,
                          icon=icon)
 
@@ -247,10 +241,10 @@ def register():
     kc = bpy.context.window_manager.keyconfigs.addon
     km = kc.keymaps.new(name="3D View", space_type='VIEW_3D')
     kmi = km.keymap_items.new("object.edit_linked", 'NUMPAD_SLASH', 'PRESS', shift=True)
-    kmi.active = False
+    kmi.active = True
     addon_keymaps.append((km, kmi))
     kmi = km.keymap_items.new("wm.return_to_original", 'NUMPAD_SLASH', 'PRESS', shift=True)
-    kmi.active = False
+    kmi.active = True
     addon_keymaps.append((km, kmi))
 
 
