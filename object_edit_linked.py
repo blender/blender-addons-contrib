@@ -132,7 +132,6 @@ class ReturnToOriginal(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        # Probably the wrong context to check for here...
         return (settings["original_file"] != "")
 
     def execute(self, context):
