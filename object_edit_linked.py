@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Edit Linked Library",
     "author": "Jason van Gumster (Fweeb), Bassam Kurdali, Pablo Vazquez",
-    "version": (0, 7, 2),
+    "version": (0, 7, 3),
     "blender": (2, 65, 0),
     "location": "View3D > Toolshelf > Edit Linked Library",
     "description": "Allows editing of objects linked from a .blend library.",
@@ -167,16 +167,24 @@ class PanelLinkedEdit(bpy.types.Panel):
             kmi_edit.active = True
             kmi_return.active = False
 
-            props = layout.operator("object.edit_linked", icon="LINK_BLEND",
-                                    text="Edit Library: %s" % context.active_object.dupli_group.name)
+            if (context.active_object.dupli_group is not None):
+                props = layout.operator("object.edit_linked", icon="LINK_BLEND",
+                                        text="Edit Library: %s" % context.active_object.dupli_group.name)
+            else:
+                props = layout.operator("object.edit_linked", icon="LINK_BLEND",
+                                        text="Edit Library: %s" % context.active_object.name)
             props.use_autosave = context.scene.use_autosave
             props.use_instance = context.scene.use_instance
 
             layout.prop(context.scene, "use_autosave")
             layout.prop(context.scene, "use_instance")
 
-            layout.label(text="Path: %s" %
-                         context.active_object.dupli_group.library.filepath)
+            if (context.active_object.dupli_group is not None):
+                layout.label(text="Path: %s" %
+                             context.active_object.dupli_group.library.filepath)
+            else:
+                layout.label(text="Path: %s" %
+                             context.active_object.library.filepath)
 
         elif settings["original_file"] != "":
             kmi_edit.active = False
@@ -189,6 +197,9 @@ class PanelLinkedEdit(bpy.types.Panel):
 
                 layout.separator()
 
+                #XXX - This is for nested linked assets... but it only works
+                #  when launching a new Blender instance. Nested links don't
+                #  currently work when using a single instance of Blender.
                 props = layout.operator("object.edit_linked",
                                         text="Edit Library: %s" % context.active_object.dupli_group.name,
                                         icon="LINK_BLEND")
