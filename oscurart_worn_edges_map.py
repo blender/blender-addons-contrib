@@ -32,37 +32,37 @@ import bpy
 from random import random
 import bmesh
 
+
 def CreateWornEdges(context, factor):
-    actobj = bpy.context.object    
+    actobj = bpy.context.object
 
     bpy.ops.object.mode_set(mode="EDIT")
     bm = bmesh.from_edit_mesh(actobj.data)
-    
-    sf = {vert.index : (vert.calc_shell_factor()-1)*factor for vert in bm.verts[:]}    
 
-    bpy.ops.object.mode_set(mode="VERTEX_PAINT")    
+    sf = [(vert.calc_shell_factor() - 1.0) * factor for vert in bm.verts[:]]
+
+    bpy.ops.object.mode_set(mode="VERTEX_PAINT")
     purge = {}
-    
+
     for ind, loop in enumerate(bpy.context.object.data.loops[:]):
         if loop.vertex_index not in purge:
             purge[loop.vertex_index] = [ind]
         else:
-            purge[loop.vertex_index].append(ind)   
-                       
+            purge[loop.vertex_index].append(ind)
+
     for vert in actobj.data.vertices[:]:
         if vert.select:
-            ran = (sf[vert.index],sf[vert.index],sf[vert.index])
+            ran = (sf[vert.index], sf[vert.index], sf[vert.index])
             for i in purge[vert.index]:
-                actobj.data.vertex_colors.active.data[i].color = ran     
+                actobj.data.vertex_colors.active.data[i].color = ran
     actobj.data.update()
 
-    
+
 class OscurartWorn(bpy.types.Operator):
     """Tooltip"""
     bl_idname = "paint.worn_edges"
     bl_label = "Worn Edges Map"
     bl_options = {"REGISTER", "UNDO"}
-    
 
     @classmethod
     def poll(cls, context):
@@ -79,8 +79,9 @@ def add_osc_futurism_button(self, context):
     self.layout.operator(
         OscurartWorn.bl_idname,
         text="Worn Edges",
-        icon="PLUGIN")    
-    
+        icon="PLUGIN")
+
+
 def register():
     bpy.utils.register_class(OscurartWorn)
     bpy.types.VIEW3D_MT_paint_vertex.append(add_osc_futurism_button)
@@ -92,4 +93,4 @@ def unregister():
 
 
 if __name__ == '__main__':
-    register()    
+    register()
