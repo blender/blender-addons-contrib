@@ -307,11 +307,11 @@ class OscObjectToMesh(bpy.types.Operator):
 ## ----------------------------- OVERLAP UV --------------------------------------------
 
 
-def DefOscOverlapUv():
+def DefOscOverlapUv(valprecision):
     rd = 4
     ACTOBJ = bpy.context.object
     inicio= time.time()
-    bpy.ops.mesh.faces_mirror_uv(direction='POSITIVE')
+    bpy.ops.mesh.faces_mirror_uv(direction='POSITIVE', precision=valprecision)
     bpy.ops.object.mode_set(mode='OBJECT')
     SELUVVERT = [ver for ver in ACTOBJ.data.uv_layers[ACTOBJ.data.uv_textures.active.name].data[:] if ver.select]
     MAY = [ver for ver in SELUVVERT if ver.uv[0] > .5]
@@ -325,8 +325,9 @@ def DefOscOverlapUv():
 class OscOverlapUv(bpy.types.Operator):
     bl_idname = "mesh.overlap_uv_faces"
     bl_label = "Overlap Uvs"
+    bl_options = {"REGISTER", "UNDO"}
 
-
+    precision = bpy.props.IntProperty(default=4, min=1, max=10, name="precision" )
     def execute(self, context):
-        DefOscOverlapUv()
+        DefOscOverlapUv(self.precision)
         return {'FINISHED'}
