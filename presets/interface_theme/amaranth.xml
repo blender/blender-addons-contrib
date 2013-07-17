@@ -225,14 +225,15 @@
       </ThemeUserInterface>
     </user_interface>
     <view_3d>
-      <ThemeView3D grid="#4d4d4d"
+      <ThemeView3D grid="#454545"
                    wire="#000000"
-                   lamp="#99999928"
-                   speaker="#666666"
-                   camera="#666666"
-                   empty="#666666"
+                   wire_edit="#999999"
+                   lamp="#7b66804d"
+                   speaker="#7b6680"
+                   camera="#7b6680"
+                   empty="#7b6680"
                    object_selected="#ff374a"
-                   object_active="#ffe6e8"
+                   object_active="#ffccd0"
                    object_grouped="#083008"
                    object_grouped_active="#55bb55"
                    transform="#ffffff"
@@ -300,7 +301,7 @@
             </panelcolors>
             <gradients>
               <ThemeGradientColors show_grad="TRUE"
-                                   gradient="#232323"
+                                   gradient="#2c2c2c"
                                    high_gradient="#444444">
               </ThemeGradientColors>
             </gradients>
@@ -602,8 +603,8 @@
                        syntax_builtin="#ff4870"
                        syntax_symbols="#999999"
                        syntax_special="#d880ff"
-                       syntax_preprocessor="#32008c"
-                       syntax_reserved="#601827"
+                       syntax_preprocessor="#8b7aff"
+                       syntax_reserved="#832b3d"
                        syntax_comment="#58c130"
                        syntax_string="#ffdb3f"
                        syntax_numbers="#74c0ff">
@@ -984,32 +985,32 @@
   </Theme>
   <ThemeStyle>
     <panel_title>
-      <ThemeFontStyle points="12"
+      <ThemeFontStyle points="13"
                       font_kerning_style="FITTED"
                       shadow="1"
-                      shadow_offset_x="0"
+                      shadow_offset_x="1"
                       shadow_offset_y="-1"
-                      shadow_alpha="0.15"
-                      shadow_value="1">
+                      shadow_alpha="1"
+                      shadow_value="0">
       </ThemeFontStyle>
     </panel_title>
     <widget_label>
       <ThemeFontStyle points="11"
                       font_kerning_style="FITTED"
-                      shadow="3"
-                      shadow_offset_x="0"
+                      shadow="2"
+                      shadow_offset_x="2"
                       shadow_offset_y="-1"
-                      shadow_alpha="0.15"
-                      shadow_value="1">
+                      shadow_alpha="0.25"
+                      shadow_value="0">
       </ThemeFontStyle>
     </widget_label>
     <widget>
       <ThemeFontStyle points="11"
                       font_kerning_style="FITTED"
-                      shadow="0"
-                      shadow_offset_x="0"
-                      shadow_offset_y="0"
-                      shadow_alpha="0.25"
+                      shadow="2"
+                      shadow_offset_x="1"
+                      shadow_offset_y="-1"
+                      shadow_alpha="0.45"
                       shadow_value="0">
       </ThemeFontStyle>
     </widget>
