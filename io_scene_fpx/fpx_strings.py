@@ -140,7 +140,7 @@ fpx_str = {
         'PROP_DESC_MODEL_MASK': "Import Mask Model",
         'PROP_NAME_MODEL_COLLISION': "Collision Model",
         'PROP_DESC_MODEL_COLLISION': "Import Collision Model",
-        'LABEL_NAME_TABLE_OPTIONS': "Table Data Options",
+        'LABEL_NAME_TABLE_OPTIONS': "Table Data Options:",
         'PROP_NAME_USE_LIBRARY_FILTER': "Library Filter",
         'PROP_DESC_USE_LIBRARY_FILTER': "Filter what you want to import",
         'PROP_NAME_ALL_LIBRARIES': "Import All Libraries Of Folder",
@@ -160,6 +160,10 @@ fpx_str = {
 
         'PROP_NAME_KEEP_TEMP': "Keep Temp Files",
         'PROP_DESC_KEEP_TEMP': "Do not delete temporary files",
+
+        'LABEL_NAME_NOT_IMPLEMENTED': "Not Implemented Yet!",
+        'LABEL_NAME_NOT_IMPLEMENTED_1': "You have chosen an option,",
+        'LABEL_NAME_NOT_IMPLEMENTED_2': "that is not implemented yet.",
 
         'PROP_NAME_': "Name",
         'PROP_DESC_': "Description",

@@ -141,6 +141,12 @@ class FpxUI:
 
     PROP_DEFAULT_KEEP_TEMP = False
 
+def NotImplemented(layout):
+    box = layout.box()
+    box.label(fpx_str['LABEL_NAME_NOT_IMPLEMENTED'], icon='ERROR')
+    flow = box.column_flow()
+    flow.label(fpx_str['LABEL_NAME_NOT_IMPLEMENTED_1'])
+    flow.label(fpx_str['LABEL_NAME_NOT_IMPLEMENTED_2'])
 
 ###############################################################################
 class FptEmptyItemProperties(PropertyGroup):
@@ -405,11 +411,12 @@ class FpmImportOperator(Operator, ImportHelper):
     def draw_model_options(cls, layout):
         box = layout.box()
         box.label(fpx_str['LABEL_NAME_MODEL_OPTIONS'], icon=FpxUI.ICON_MODEL)
+        if FpxUI.USE_MODEL_FILTER_COLLISION in cls.use_model_filter:
+            NotImplemented(box)
         flow = box.column_flow()
         flow.prop(cls, 'use_model_filter', icon='FILTER')
         flow = box.column_flow()
         flow.prop(cls, 'use_model_adjustment', icon='MODIFIER')
-
 
 ###############################################################################
 class FplImportOperator(Operator, ImportHelper):
@@ -615,6 +622,11 @@ class FplImportOperator(Operator, ImportHelper):
     def draw_library_options(cls, layout):
         box = layout.box()
         box.label(fpx_str['LABEL_NAME_LIBRARYL_OPTIONS'], icon='IMPORT')
+        if FpxUI.USE_LIBRARY_FILTER_DMDFONT in cls.use_library_filter \
+                or FpxUI.USE_LIBRARY_FILTER_SOUND in cls.use_library_filter \
+                or FpxUI.USE_LIBRARY_FILTER_MUSIC in cls.use_library_filter \
+                or FpxUI.USE_LIBRARY_FILTER_SCRIPT in cls.use_library_filter:
+            NotImplemented(box)
         flow = box.column_flow()
         flow.prop(cls, 'use_library_filter', icon='FILTER')
 
@@ -856,6 +868,8 @@ class FptImportOperator(Operator, ImportHelper):
 
         box = layout.box()
         box.label(fpx_str['LABEL_NAME_TABLE_OPTIONS'], icon=FpxUI.ICON_MODEL)
+        if self.convert_to_mesh:
+            NotImplemented(box)
         flow = box.column_flow()
         flow.prop(self, 'convert_to_mesh', icon='MOD_TRIANGULATE')
         flow = box.column_flow()
