@@ -24,7 +24,7 @@
 bl_info = {
     "name": "SCA Tree Generator",
     "author": "michel anders (varkenvarken)",
-    "version": (0, 1, 0),
+    "version": (0, 1, 1),
     "blender": (2, 66, 0),
     "location": "View3D > Add > Mesh",
     "description": "Adds a tree created with the space colonization algorithm starting at the 3D cursor",
