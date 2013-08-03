@@ -24,6 +24,7 @@ bpy.types.Scene.muu_pc2_start = bpy.props.IntProperty(default=0, name="Frame Sta
 bpy.types.Scene.muu_pc2_end = bpy.props.IntProperty(default=100, name="Frame End")
 bpy.types.Scene.muu_pc2_group = bpy.props.StringProperty()
 bpy.types.Scene.muu_pc2_folder = bpy.props.StringProperty(default="Set me Please!")
+bpy.types.Scene.muu_pc2_relative_path = bpy.props.StringProperty(default="")
 
 class OscEPc2ExporterPanel(bpy.types.Panel):
     """Creates a Panel in the Object properties window"""
@@ -39,15 +40,13 @@ class OscEPc2ExporterPanel(bpy.types.Panel):
         row = layout.column(align=1)
         row.prop(bpy.context.scene, "muu_pc2_folder", text="Folder")
         row.operator("import_shape.pc2_copy", icon='FILESEL', text="Set Filepath")
+        row.prop(bpy.context.scene, "muu_pc2_relative_path", text="Relative Path (Optional):")
         row = layout.box().column(align=1)
         row.label("EXPORTER:")
         row.operator("group.linked_group_to_local", text="Linked To Local", icon="LINKED")
         row.operator("object.remove_subsurf_modifier", text="Remove Gen Modifiers", icon="MOD_SUBSURF")
         row.operator("export_shape.pc2_selection", text="Export!", icon="POSE_DATA")
-        #row.prop(bpy.context.scene,"muu_pc2_rotx", text= "RotX90")
         row.prop(bpy.context.scene, "muu_pc2_world_space", text="World Space")
-        #row.prop(bpy.context.scene,"muu_pc2_modifiers", text="Apply Modifiers")
-        #row.prop(bpy.context.scene,"muu_pc2_subsurf", text="Turn Off SubSurf")
         row = layout.column(align=1)
         row.prop(bpy.context.scene, "muu_pc2_start", text="Frame Start")
         row.prop(bpy.context.scene, "muu_pc2_end", text="Frame End")
@@ -101,7 +100,6 @@ def OscFuncExportPc2(self):
 
                 # write file
                 for i, frame in enumerate(pc2list):
-                    #print("Percentage of %s Compiled file: %s " % ( ob.name, i*100/len(pc2list)))
                     file.write(struct.pack("<3f", *frame))
                 print("%s File Compiled Write finished!" % (ob.name))
                 del(pc2list)
@@ -114,6 +112,10 @@ class OscPc2ExporterBatch(bpy.types.Operator):
     bl_description = "Export pc2 for selected Objects"
     bl_options = {'REGISTER', 'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        return(bpy.context.scene.muu_pc2_group != "" and bpy.context.scene.muu_pc2_folder != 'Set me Please!')
+
     def execute(self, context):
         OscFuncExportPc2(self)
         return {'FINISHED'}
@@ -123,6 +125,10 @@ class OscRemoveSubsurf(bpy.types.Operator):
     bl_label = "Remove SubSurf Modifier"
     bl_description = "Remove SubSurf Modifier"
     bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return(bpy.context.scene.muu_pc2_group != "")
 
     def execute(self, context):
         GENERATE = ['MULTIRES', 'ARRAY', 'BEVEL', 'BOOLEAN', 'BUILD', 'DECIMATE', 'MASK', 'MIRROR', 'REMESH', 'SCREW', 'SKIN', 'SOLIDIFY', 'SUBSURF', 'TRIANGULATE']
@@ -138,6 +144,10 @@ class OscPc2iMporterBatch(bpy.types.Operator):
     bl_label = "Import pc2 for selected Objects"
     bl_description = "Import pc2 for selected Objects"
     bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return(bpy.context.scene.muu_pc2_folder != 'Set me Please!')
 
     def execute(self, context):
         for OBJ in bpy.context.selected_objects[:]:
@@ -156,8 +166,19 @@ class OscPc2iMporterCopy(bpy.types.Operator):
     bl_description = "Copy Filepath"
     bl_options = {'REGISTER', 'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        return(bpy.context.scene.muu_pc2_relative_path != "")
+
     def execute(self, context):
-        bpy.context.scene.muu_pc2_folder = str(bpy.data.filepath.rpartition(os.sep)[0])
+        filefolder = os.path.dirname(bpy.data.filepath)
+        os.chdir(filefolder)
+        if os.path.exists("%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path))):
+            print("Folder Already Exists.")
+        else:
+            os.mkdir("%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path)))
+
+        bpy.context.scene.muu_pc2_folder = "%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path))
         return {'FINISHED'}
 
 def OscLinkedGroupToLocal():
@@ -185,6 +206,10 @@ class OscGroupLinkedToLocal(bpy.types.Operator):
     bl_description = "Group Linked To Local"
     bl_options = {'REGISTER', 'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        return(bpy.context.scene.muu_pc2_group != "")
+
     def execute(self, context):
         OscLinkedGroupToLocal()
         return {'FINISHED'}
@@ -196,4 +221,4 @@ def unregister():
     bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
-    register()
+    register() 
