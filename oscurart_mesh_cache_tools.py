@@ -166,19 +166,18 @@ class OscPc2iMporterCopy(bpy.types.Operator):
     bl_description = "Copy Filepath"
     bl_options = {'REGISTER', 'UNDO'}
 
-    @classmethod
-    def poll(cls, context):
-        return(bpy.context.scene.muu_pc2_relative_path != "")
-
     def execute(self, context):
         filefolder = os.path.dirname(bpy.data.filepath)
         os.chdir(filefolder)
-        if os.path.exists("%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path))):
-            print("Folder Already Exists.")
+        if bpy.context.scene.muu_pc2_relative_path != "":            
+            if os.path.exists("%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path))):
+                print("Folder Already Exists.")
+            else:
+                os.mkdir("%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path)))
+            bpy.context.scene.muu_pc2_folder = "%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path))
         else:
-            os.mkdir("%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path)))
+            bpy.context.scene.muu_pc2_folder = "%s" % (filefolder)
 
-        bpy.context.scene.muu_pc2_folder = "%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path))
         return {'FINISHED'}
 
 def OscLinkedGroupToLocal():
