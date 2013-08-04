@@ -24,7 +24,7 @@
 bl_info = {
     "name": "SCA Tree Generator",
     "author": "michel anders (varkenvarken)",
-    "version": (0, 1, 1),
+    "version": (0, 1, 2),
     "blender": (2, 66, 0),
     "location": "View3D > Add > Mesh",
     "description": "Adds a tree created with the space colonization algorithm starting at the 3D cursor",
@@ -190,15 +190,15 @@ def groupExtends(group):
     return mx - mn, mn
 
 
-def createLeaves(tree, probability=0.5, size=0.5, randomsize=0.1, randomrot=0.1, maxconnections=2, bunchiness=1.0):
+def createLeaves(tree, probability=0.5, size=0.5, randomsize=0.1, randomrot=0.1, maxconnections=2, bunchiness=1.0, connectoffset=-0.1):
     p = bpy.context.scene.cursor_location
 
     verts = []
     faces = []
-    c1 = Vector((-size / 10, -size / 2, 0))
-    c2 = Vector((size, -size / 2, 0))
-    c3 = Vector((size, size / 2, 0))
-    c4 = Vector((-size / 10, size / 2, 0))
+    c1 = Vector((connectoffset, -size / 2, 0))
+    c2 = Vector((size+connectoffset, -size / 2, 0))
+    c3 = Vector((size+connectoffset, size / 2, 0))
+    c4 = Vector((connectoffset, size / 2, 0))
     t = gauss(1.0 / probability, 0.1)
     bpswithleaves = 0
     for bp in tree.branchpoints:
@@ -228,7 +228,7 @@ def createLeaves(tree, probability=0.5, size=0.5, randomsize=0.1, randomrot=0.1,
                 v.rotate(rot)
                 verts.append(v * scale + bp.v + dvp)
                 n = len(verts)
-                faces.append((n - 4, n - 3, n - 2, n - 1))
+                faces.append((n - 1, n - 4, n - 3, n - 2))
                 t += gauss(1.0 / probability, 0.1)                      # this is not the best choice of distribution because we might get negative values especially if sigma is large
                 dvp = nleavesonbp * (dv / (probability ** bunchiness))  # TODO add some randomness to the offset
 
@@ -402,7 +402,7 @@ def skin(aloop, bloop, faces):
 
 def createGeometry(tree, power=0.5, scale=0.01, addleaves=False, pleaf=0.5, leafsize=0.5, leafrandomsize=0.1, leafrandomrot=0.1,
     nomodifiers=True, skinmethod='NATIVE', subsurface=False,
-    maxleafconnections=2, bleaf=1.0,
+    maxleafconnections=2, bleaf=1.0, connectoffset=-0.1,
     timeperf=True):
 
     timings = Timer()
@@ -565,7 +565,7 @@ def createGeometry(tree, power=0.5, scale=0.01, addleaves=False, pleaf=0.5, leaf
 
     # create the leaves object
     if addleaves:
-        mesh = createLeaves(tree, pleaf, leafsize, leafrandomsize, leafrandomrot, maxleafconnections, bleaf)
+        mesh = createLeaves(tree, pleaf, leafsize, leafrandomsize, leafrandomrot, maxleafconnections, bleaf, connectoffset)
         obj_leaves = bpy.data.objects.new(mesh.name, mesh)
         base = bpy.context.scene.objects.link(obj_leaves)
         obj_leaves.parent = obj_new
@@ -722,6 +722,9 @@ class SCATree(bpy.types.Operator):
                     default=0.1,
                     min=0.0,
                     soft_max=1)
+    connectoffset = FloatProperty(name="Connect Offset",
+                    description=("Offset of leaf to twig"),
+                    default=-0.1)
     leafMaxConnections = IntProperty(name="Max Connections",
                     description="The maximum number of connections of an internode elegible for a leaf",
                     default=2,
@@ -836,7 +839,7 @@ class SCATree(bpy.types.Operator):
 
         obj_new = createGeometry(sca, self.power, self.scale, self.addLeaves, self.pLeaf, self.leafSize, self.leafRandomSize, self.leafRandomRot,
             self.noModifiers, self.skinMethod, self.subSurface,
-            self.leafMaxConnections, self.bLeaf,
+            self.leafMaxConnections, self.bLeaf, self.connectoffset,
             self.timePerformance)
 
         timings.add('objcreationstart')
@@ -929,6 +932,7 @@ class SCATree(bpy.types.Operator):
             box.prop(self, 'leafSize')
             box.prop(self, 'leafRandomSize')
             box.prop(self, 'leafRandomRot')
+            box.prop(self, 'connectoffset')
             box.prop(self, 'leafMaxConnections')
 
         layout.prop(self, 'addObjects', icon='MESH_DATA')
