@@ -54,6 +54,7 @@ class OscEPc2ExporterPanel(bpy.types.Panel):
         row = layout.box().column(align=1)
         row.label("IMPORTER:")
         row.operator("import_shape.pc2_selection", text="Import", icon="POSE_DATA")
+        row.operator("object.modifier_mesh_cache_up", text="MC Top", icon="TRIA_UP")
 
 def OscFuncExportPc2(self):
     start = bpy.context.scene.muu_pc2_start
@@ -212,6 +213,32 @@ class OscGroupLinkedToLocal(bpy.types.Operator):
     def execute(self, context):
         OscLinkedGroupToLocal()
         return {'FINISHED'}
+    
+class OscMeshCacheUp(bpy.types.Operator):
+    bl_idname = "object.modifier_mesh_cache_up"
+    bl_label = "Mesh Cache To Top"
+    bl_description = "Send Mesh Cache Modifiers top"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return(bpy.context.object.type == "MESH")
+
+    def execute(self, context):
+
+        actob = bpy.context.scene.objects.active
+
+        for ob in bpy.context.selected_objects[:]:
+            bpy.context.scene.objects.active = ob
+            for mod in ob.modifiers[:]:
+                if mod.type == "MESH_CACHE":
+                    for up in range(ob.modifiers.keys().index(mod.name)):
+                        bpy.ops.object.modifier_move_up(modifier=mod.name)
+
+        bpy.context.scene.objects.active = actob
+        
+        return {'FINISHED'}    
+    
 
 def register():
     bpy.utils.register_module(__name__)
