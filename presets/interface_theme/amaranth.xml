@@ -1,8 +1,8 @@
 <bpy>
   <Theme>
     <user_interface>
-      <ThemeUserInterface menu_shadow_fac="0.5"
-                          menu_shadow_width="12"
+      <ThemeUserInterface menu_shadow_fac="0.3"
+                          menu_shadow_width="4"
                           icon_file=""
                           icon_alpha="1"
                           axis_x="#dc0000"
@@ -228,12 +228,12 @@
       <ThemeView3D grid="#454545"
                    wire="#000000"
                    wire_edit="#999999"
-                   lamp="#7b66804d"
-                   speaker="#7b6680"
-                   camera="#7b6680"
-                   empty="#7b6680"
+                   lamp="#828b994d"
+                   speaker="#828b99"
+                   camera="#828b99"
+                   empty="#828b99"
                    object_selected="#ff374a"
-                   object_active="#ffccd0"
+                   object_active="#ffecee"
                    object_grouped="#083008"
                    object_grouped_active="#55bb55"
                    transform="#ffffff"
@@ -288,20 +288,20 @@
                               header="#3b3b3b"
                               header_text="#b9b9b9"
                               header_text_hi="#ffffff"
-                              button="#1a1a1a31"
+                              button="#1a1a1a99"
                               button_title="#979797"
                               button_text="#979797"
                               button_text_hi="#ffffff">
             <panelcolors>
-              <ThemePanelColors header="#1a1a1a99"
-                                back="#1a1a1a99"
+              <ThemePanelColors header="#1a1a1ab3"
+                                back="#1a1a1ab3"
                                 show_header="TRUE"
                                 show_back="TRUE">
               </ThemePanelColors>
             </panelcolors>
             <gradients>
               <ThemeGradientColors show_grad="TRUE"
-                                   gradient="#2c2c2c"
+                                   gradient="#191919"
                                    high_gradient="#444444">
               </ThemeGradientColors>
             </gradients>
@@ -987,7 +987,7 @@
     <panel_title>
       <ThemeFontStyle points="13"
                       font_kerning_style="FITTED"
-                      shadow="1"
+                      shadow="2"
                       shadow_offset_x="1"
                       shadow_offset_y="-1"
                       shadow_alpha="1"
@@ -997,20 +997,20 @@
     <widget_label>
       <ThemeFontStyle points="11"
                       font_kerning_style="FITTED"
-                      shadow="2"
+                      shadow="1"
                       shadow_offset_x="2"
                       shadow_offset_y="-1"
-                      shadow_alpha="0.25"
+                      shadow_alpha="0.4"
                       shadow_value="0">
       </ThemeFontStyle>
     </widget_label>
     <widget>
       <ThemeFontStyle points="11"
                       font_kerning_style="FITTED"
-                      shadow="2"
+                      shadow="3"
                       shadow_offset_x="1"
                       shadow_offset_y="-1"
-                      shadow_alpha="0.45"
+                      shadow_alpha="0.7"
                       shadow_value="0">
       </ThemeFontStyle>
     </widget>
