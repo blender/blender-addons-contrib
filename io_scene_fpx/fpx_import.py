@@ -1074,7 +1074,7 @@ class FptImporter():
         modifier_edge_split = obj.modifiers.new("edge_split", type='EDGE_SPLIT')
 
         h = 'AUTO'
-        p0 = Vector((0.0, 0.0, 0.0))
+        p0 = Vector(self.geometry_correction((position_xy[0], position_xy[1], 0.0)))
         d = diameter / 2.0
         spline.bezier_points.add(3)
         spline.bezier_points[0].co = p0 + Vector((0.0, -d, 0.0))
