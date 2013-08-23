@@ -933,8 +933,9 @@ class FptImporter():
                     blender_material.use_transparent_shadows = True
                     blender_material.alpha = 0.0
                     render_engine = self.__context.scene.render.engine
+
                     #blender internal
-                    #self.__context.scene.render.engine = 'BLENDER_RENDER'
+                    self.__context.scene.render.engine = 'BLENDER_RENDER'
                     if uv_layer:
                         bt_name = "uv_{}".format(FORMAT_TEXTURE.format(fpx_image_name))
                     else:
@@ -952,31 +953,49 @@ class FptImporter():
                         tex_slot.uv_layer = uv_layer
                     #blender_material.use_shadeless = True #DEBUG
 
-                    """
                     # blender cycles
                     self.__context.scene.render.engine = 'CYCLES'
                     blender_material.use_nodes = True
-                    blender_material = self.__blend_data.materials.get(blender_material.name)
-                    node_0 = blender_material.node_tree.nodes.new('OUTPUT_MATERIAL')
-                    node_1 = blender_material.node_tree.nodes.new('BSDF_GLOSSY')
-                    node_1.inputs['Roughness'].default_value = 0.25
-                    link1_0 = blender_material.node_tree.links.new(node_1.outputs['BSDF'], node_0.inputs['Surface'])
-                    node_2 = blender_material.node_tree.nodes.new('TEX_IMAGE')
-                    node_2.image = blender_image
-                    link2_1 = blender_material.node_tree.links.new(node_2.outputs['Color'], node_1.inputs['Color'])
-                    node_3 = blender_material.node_tree.nodes.new('TEX_COORD')
-                    if uv_layer:
-                        out3 = node_3.outputs['UV']
-                    else:
-                        out3 = node_3.outputs['Generated']
-                    link3_2 = blender_material.node_tree.links.new(out3, node_2.inputs['Vector'])
+                    nodes = blender_material.node_tree.nodes
+                    links = blender_material.node_tree.links
+                    gap = 50.0
+                    nodes.clear()
+                    node0 = nodes.new('ShaderNodeOutputMaterial')
+                    node1 = nodes.new('ShaderNodeMixShader')
+                    node2 = nodes.new('ShaderNodeBsdfTranslucent')
+                    node2.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
+                    node3 = nodes.new('ShaderNodeBsdfGlossy')
+                    node3.inputs['Roughness'].default_value = 0.25
+                    node4 = nodes.new('ShaderNodeTexImage')
+                    node4.image = blender_image
+                    node5 = nodes.new('ShaderNodeTexCoord')
 
+                    node5.location = (0.0, 0.0)
+                    node4.location = (node5.location.x + node5.width + gap, 0.0)
+                    node3.location = (node4.location.x + node4.width + gap, 0.0)
+                    node2.location = (node3.location.x + node3.width + gap, 0.0)
+                    node1.location = (node2.location.x + node2.width + gap, 0.0)
+                    node0.location = (node1.location.x + node1.width + gap, 0.0)
+
+                    link1_0 = links.new(node1.outputs['Shader'], node0.inputs['Surface'])
+                    link4_1a = links.new(node4.outputs['Alpha'], node1.inputs[0]) # Fac
+                    link2_1b = links.new(node2.outputs['BSDF'], node1.inputs[1]) # 2'nd Shader
+                    link3_1c = links.new(node3.outputs['BSDF'], node1.inputs[2]) # 1'st Shader
+                    link4_3 = links.new(node4.outputs['Color'], node3.inputs['Color'])
+                    if uv_layer:
+                        link5_4 = links.new(node5.outputs['UV'], node4.inputs['Vector'])
+                    else:
+                        link5_4 = links.new(node5.outputs['Generated'], node4.inputs['Vector'])
+                    if render_engine != 'CYCLES':
+                        blender_material.use_nodes = False
+
+                    """
                     # blender game
                     self.__context.scene.render.engine = 'BLENDER_GAME'
                     #TODO
+                    """
 
                     self.__context.scene.render.engine = render_engine
-                    """
 
                 blender_object.data.materials.append(blender_material)
 
