@@ -207,6 +207,11 @@ class FpmImporter():
         self.__context = blender_context
         self.__blend_data = blender_context.blend_data
 
+        self.__table_width = 0.0
+        self.__table_length = 0.0
+        self.__translite_width = 0.0
+        self.__translite_length = 0.0
+
         try:
             self.folder_name, file_name = path.split(filepath)
 
@@ -658,11 +663,20 @@ class FptImporter():
                 self.fpx_images = {}
                 self.GetLinked(fpx_reader.Image, self.fpx_images, Fpt_PackedLibrary_Type.TYPE_IMAGE, dst_sub_path_names)
 
+                self.fpx_image_lists = {}
+                for image_list in fpx_reader.ImageList.values():
+                    key = image_list.get_value("name")
+                    images = image_list.get_value("images")
+                    self.fpx_image_lists[key] = images
+
                 self.fpx_pinmodels = {}
                 self.GetLinked(fpx_reader.PinModel, self.fpx_pinmodels, Fpt_PackedLibrary_Type.TYPE_MODEL, dst_sub_path_names)
 
                 for key, item in self.fpx_images.items():
                     print("#DEBUG image:", key, item)
+
+                for key, item in self.fpx_image_lists.items():
+                    print("#DEBUG image_list:", key, item)
 
                 for key, item in self.fpx_pinmodels.items():
                     print("#DEBUG pinmodel:", key, item)
@@ -730,28 +744,28 @@ class FptImporter():
                         # handle curve objects with shape_points
                         if fpx_shape_points:
                             if fpx_id == FptElementType.SURFACE:
-                                blender_object = self.CreateSurface(fpx_item_name, layers, fpx_shape_points, fpx_item.get_value("top_height"), fpx_item.get_value("bottom_height"))
+                                blender_object = self.CreateSurface(fpx_item, fpx_item_name, layers, fpx_shape_points)
                             elif fpx_id == FptElementType.LIGHT_SHAPEABLE:
-                                blender_object = self.CreateLightShapeable(fpx_item_name, layers, fpx_shape_points, fpx_position_z)
+                                blender_object = self.CreateLightShapeable(fpx_item, fpx_item_name, layers, fpx_shape_points, fpx_position_z)
                             elif fpx_id == FptElementType.RUBBER_SHAPEABLE:
-                                blender_object = self.CreateRubberShapeable(fpx_item_name, layers, fpx_shape_points, fpx_position_z)
+                                blender_object = self.CreateRubberShapeable(fpx_item, fpx_item_name, layers, fpx_shape_points, fpx_position_z)
                             elif fpx_id == FptElementType.GUIDE_WALL:
-                                blender_object = self.CreateGuideWall(fpx_item_name, layers, fpx_shape_points, fpx_position_z, fpx_item.get_value("height"), fpx_item.get_value("width"))
+                                blender_object = self.CreateGuideWall(fpx_item, fpx_item_name, layers, fpx_shape_points, fpx_position_z)
                             elif fpx_id == FptElementType.GUIDE_WIRE:
-                                blender_object = self.CreateGuideWire(fpx_item_name, layers, fpx_shape_points, fpx_position_z, fpx_item.get_value("height"), fpx_item.get_value("width"))
+                                blender_object = self.CreateGuideWire(fpx_item, fpx_item_name, layers, fpx_shape_points, fpx_position_z)
                             else:
                                 blender_object = None
                         # handle curve objects with ramp_points
                         elif fpx_ramp_points:
                             if fpx_id == FptElementType.RAMP_WIRE:
-                                blender_object = self.CreateWireRamp(fpx_item_name, layers, fpx_ramp_points, fpx_position_z, fpx_item.get_value("start_height"), fpx_item.get_value("end_height"), fpx_id, fpx_item.get_value("model_start"), fpx_item.get_value("model_end"))
+                                blender_object = self.CreateWireRamp(fpx_item, fpx_item_name, layers, fpx_ramp_points, fpx_position_z, fpx_id)
                             elif fpx_id == FptElementType.RAMP_RAMP:
-                                blender_object = self.CreateRamp(fpx_item_name, layers, fpx_ramp_points, fpx_position_z, fpx_item.get_value("start_height"), fpx_item.get_value("end_height"), fpx_item.get_value("start_width"), fpx_item.get_value("end_width"), fpx_item.get_value("left_side_height"), fpx_item.get_value("right_side_height"))
+                                blender_object = self.CreateRamp(fpx_item, fpx_item_name, layers, fpx_ramp_points, fpx_position_z)
                             else:
                                 blender_object = None
                         else:
                             if fpx_id == FptElementType.LIGHT_LIGHTIMAGE:
-                                blender_object = self.CreateLightImage(fpx_item_name, layers, fpx_position_xy, fpx_position_z, fpx_item.get_value("height"), fpx_item.get_value("width"), fpx_item.get_value("rotation"))
+                                blender_object = self.CreateLightImage(fpx_item, fpx_item_name, layers, fpx_position_xy, fpx_position_z)
                             else:
                                 blender_object = None
 
@@ -764,17 +778,17 @@ class FptImporter():
                             if fpx_rotation:
                                 blender_rotation = Euler((0.0, 0.0, radians(self.angle_correction(fpx_rotation))), 'XZY')
                             else:
-                                blender_rotation = Euler((0.0, 0.0, 0.0), 'XZY')
+                                blender_rotation = Euler((0.0, 0.0, radians(self.angle_correction(0.0))), 'XZY')
 
                             if fpx_id in {FptElementType.CONTROL_FLIPPER, FptElementType.CONTROL_DIVERTER, }:
                                 fpx_start_angle = fpx_item.get_value("start_angle")
                                 if fpx_start_angle is None:
                                     fpx_start_angle = 0
                                 m0 = blender_rotation.to_matrix()
-                                m1 = Euler((0.0, 0.0, radians(self.angle_correction(fpx_start_angle))), 'XZY').to_matrix()
+                                m1 = Euler((0.0, 0.0, radians(self.angle_correction(fpx_start_angle) + 90)), 'XZY').to_matrix()
                                 blender_rotation = (m0 * m1).to_euler('XZY')
 
-                            blender_position = Vector(self.geometry_correction((fpx_position_xy[0], fpx_position_xy[1], fpx_position_z)))
+                            blender_position = self.geometry_correction((fpx_position_xy[0], fpx_position_xy[1], fpx_position_z))
 
                             blender_empty_object = self.__blend_data.objects.new(FORMAT_EMPTY_OBJECT.format(fpx_item_name), None)
                             blender_empty_object.location = blender_position
@@ -817,13 +831,13 @@ class FptImporter():
                                 self.attach_dupli_group(blender_empty_object, layers, fpx_model_name_end, "model_end")
 
                             if fpx_id == FptElementType.RUBBER_ROUND:
-                                blender_object = self.CreateRubberRound(fpx_item_name, layers, fpx_position_xy, fpx_position_z, fpx_item.get_value("subtype"))
+                                blender_object = self.CreateRubberRound(fpx_item, fpx_item_name, layers, fpx_position_xy, fpx_position_z)
 
                             if fpx_id:
                                 blender_empty_object.fpt.id = FptElementType.VALUE_INT_TO_NAME.get(fpx_id)
 
                             if fpx_id == FptElementType.LIGHT_ROUND:
-                                blender_object = self.CreateLightRound(fpx_item_name, layers, fpx_position_xy, fpx_position_z, fpx_item.get_value("diameter"))
+                                blender_object = self.CreateLightRound(fpx_item, fpx_item_name, layers, fpx_position_xy, fpx_position_z)
                                 if blender_object:
                                     blender_object.layers = layers
 
@@ -901,9 +915,238 @@ class FptImporter():
 
         return {"FINISHED"}
 
+    def append_texture_material(self, blender_object, fpx_image_name, uv_layer=None):
+        fpx_image_object = self.fpx_images.get(fpx_image_name)
+        if fpx_image_object:
+            blender_image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
+            if blender_image:
+                if uv_layer:
+                    bm_name = "uv_{}".format(FORMAT_MATERIAL.format(fpx_image_name))
+                else:
+                    bm_name = "gen_{}".format(FORMAT_MATERIAL.format(fpx_image_name))
+                blender_material = self.__blend_data.materials.get(bm_name)
+                if not blender_material:
+                    print("#DEBUG create material", bm_name)
+                    blender_material = self.__blend_data.materials.new(bm_name)
+                    blender_material.use_transparency = True
+                    blender_material.use_raytrace = False
+                    blender_material.use_transparent_shadows = True
+                    blender_material.alpha = 0.0
+                    render_engine = self.__context.scene.render.engine
+                    #blender internal
+                    #self.__context.scene.render.engine = 'BLENDER_RENDER'
+                    if uv_layer:
+                        bt_name = "uv_{}".format(FORMAT_TEXTURE.format(fpx_image_name))
+                    else:
+                        bt_name = "gen_{}".format(FORMAT_TEXTURE.format(fpx_image_name))
+                    blender_texture = self.__blend_data.textures.get(bt_name)
+                    if not blender_texture:
+                        print("#DEBUG create texture", bt_name)
+                        blender_texture = self.__blend_data.textures.new(bt_name, 'IMAGE')
+                        blender_texture.image = blender_image
+                    tex_slot = blender_material.texture_slots.create(0)
+                    tex_slot.texture = blender_texture
+                    tex_slot.use_map_alpha = True
+                    if uv_layer:
+                        tex_slot.texture_coords = 'UV'
+                        tex_slot.uv_layer = uv_layer
+                    #blender_material.use_shadeless = True #DEBUG
+
+                    """
+                    # blender cycles
+                    self.__context.scene.render.engine = 'CYCLES'
+                    blender_material.use_nodes = True
+                    blender_material = self.__blend_data.materials.get(blender_material.name)
+                    node_0 = blender_material.node_tree.nodes.new('OUTPUT_MATERIAL')
+                    node_1 = blender_material.node_tree.nodes.new('BSDF_GLOSSY')
+                    node_1.inputs['Roughness'].default_value = 0.25
+                    link1_0 = blender_material.node_tree.links.new(node_1.outputs['BSDF'], node_0.inputs['Surface'])
+                    node_2 = blender_material.node_tree.nodes.new('TEX_IMAGE')
+                    node_2.image = blender_image
+                    link2_1 = blender_material.node_tree.links.new(node_2.outputs['Color'], node_1.inputs['Color'])
+                    node_3 = blender_material.node_tree.nodes.new('TEX_COORD')
+                    if uv_layer:
+                        out3 = node_3.outputs['UV']
+                    else:
+                        out3 = node_3.outputs['Generated']
+                    link3_2 = blender_material.node_tree.links.new(out3, node_2.inputs['Vector'])
+
+                    # blender game
+                    self.__context.scene.render.engine = 'BLENDER_GAME'
+                    #TODO
+
+                    self.__context.scene.render.engine = render_engine
+                    """
+
+                blender_object.data.materials.append(blender_material)
+
     ###########################################################################
-    def CreateSurface(self, name, layers, fpx_points, top, bottom):
-        obj, cu, act_spline = self.CreateCurve(name, layers, self.resolution_shape)
+    def CreatePinCab(self, fpx_table_data):
+        name = fpx_table_data.get_value("name")
+        name = FpxUtilities.toGoodName(name) ####
+
+        dy = fpx_table_data.get_value("length")
+        dx = fpx_table_data.get_value("width")
+        z0 = fpx_table_data.get_value("glass_height_front")
+        z1 = fpx_table_data.get_value("glass_height_rear")
+        dtx = fpx_table_data.get_value("translite_height")
+        dtz = fpx_table_data.get_value("translite_width")
+        texture_table = fpx_table_data.get_value("playfield_texture")
+        texture_translite = fpx_table_data.get_value("translite_image")
+
+        if not dtx:
+            dtx = 676.0
+        if not dtz:
+            dtz = 676.0
+
+        self.__translite_width = dtx
+        self.__translite_length = dtz
+
+        self.__table_width = dx
+        self.__table_length = dy
+
+        mesh = self.__blend_data.meshes.new(FORMAT_MESH.format(name))
+        obj = self.__blend_data.objects.new(FORMAT_MESH_OBJECT.format(name), mesh)
+        self.__context.scene.objects.link(obj)
+
+        #inner playfield
+        bm = bmesh.new()
+        uv_layer = bm.loops.layers.uv.new("UVMap")
+        tex_layer = bm.faces.layers.tex.new(uv_layer.name)
+        bmv_list = []
+        bmv = bm.verts.new(self.geometry_correction((0.0, 0.0, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((0.0, dy, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((dx, dy, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((dx, 0.0, 0.0)))
+        bmv_list.append(bmv)
+        bmf = bm.faces.new(bmv_list)
+        bmluv = bmf.loops[0][uv_layer]
+        bmluv.uv = (0.0, 1.0)
+        bmluv = bmf.loops[1][uv_layer]
+        bmluv.uv = (0.0, 0.0)
+        bmluv = bmf.loops[2][uv_layer]
+        bmluv.uv = (1.0, 0.0)
+        bmluv = bmf.loops[3][uv_layer]
+        bmluv.uv = (1.0, 1.0)
+        if texture_table:
+            fpx_image_object = self.fpx_images.get(texture_table)
+            if fpx_image_object:
+                bmf[tex_layer].image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
+                self.append_texture_material(obj, texture_table, uv_layer.name)
+        bm.to_mesh(mesh)
+        bm.free()
+
+        mesh_box = self.__blend_data.meshes.new(FORMAT_MESH.format("{}.playfield".format(name)))
+        obj_box = self.__blend_data.objects.new(FORMAT_MESH_OBJECT.format("{}.playfield".format(name)), mesh_box)
+        obj_box.parent = obj
+        self.__context.scene.objects.link(obj_box)
+
+        bm = bmesh.new()
+        #inner back
+        bmv_list = []
+        bmv = bm.verts.new(self.geometry_correction((0.0, 0.0, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((dx, 0.0, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((dx, 0.0, z1)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((0.0, 0.0, z1)))
+        bmv_list.append(bmv)
+        bmf = bm.faces.new(bmv_list)
+
+        #inner front
+        bmv_list = []
+        bmv = bm.verts.new(self.geometry_correction((0.0, dy, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((0.0, dy, z0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((dx, dy, z0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((dx, dy, 0.0)))
+        bmv_list.append(bmv)
+        bmf = bm.faces.new(bmv_list)
+
+        #inner left
+        bmv_list = []
+        bmv = bm.verts.new(self.geometry_correction((0.0, 0.0, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((0.0, 0.0, z1)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((0.0, dy, z0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((0.0, dy, 0.0)))
+        bmv_list.append(bmv)
+        bmf = bm.faces.new(bmv_list)
+
+        #inner right
+        bmv_list = []
+        bmv = bm.verts.new(self.geometry_correction((dx, 0.0, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((dx, dy, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((dx, dy, z0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((dx, 0.0, z1)))
+        bmv_list.append(bmv)
+        bmf = bm.faces.new(bmv_list)
+
+        bm.to_mesh(mesh_box)
+        bm.free()
+
+        ##
+        mesh_translite = self.__blend_data.meshes.new(FORMAT_MESH.format("{}.translite".format(name)))
+        obj_translite = self.__blend_data.objects.new(FORMAT_MESH_OBJECT.format("{}.translite".format(name)), mesh_translite)
+        obj_translite.parent = obj
+        self.__context.scene.objects.link(obj_translite)
+
+        #inner translite
+        bm = bmesh.new()
+        uv_layer = bm.loops.layers.uv.new("UVMap")
+        tex_layer = bm.faces.layers.tex.new(uv_layer.name)
+        bmv_list = []
+        bmv = bm.verts.new(self.geometry_correction(((dx - dtx) / 2.0, 0.0, z1 + 20.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction(((dx + dtx) / 2.0, 0.0, z1 + 20.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction(((dx + dtx) / 2.0, 0.0, z1 + 20.0 + dtz)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction(((dx - dtx) / 2.0, 0.0, z1 + 20.0 + dtz)))
+        bmv_list.append(bmv)
+        bmf = bm.faces.new(bmv_list)
+        bmluv = bmf.loops[0][uv_layer]
+        bmluv.uv = (0.0, 0.0)
+        bmluv = bmf.loops[1][uv_layer]
+        bmluv.uv = (1.0, 0.0)
+        bmluv = bmf.loops[2][uv_layer]
+        bmluv.uv = (1.0, 1.0)
+        bmluv = bmf.loops[3][uv_layer]
+        bmluv.uv = (0.0, 1.0)
+        if texture_translite:
+            fpx_image_object = self.fpx_images.get(texture_translite)
+            if fpx_image_object:
+                bmf[tex_layer].image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
+                self.append_texture_material(obj_translite, texture_translite, uv_layer.name)
+        bm.to_mesh(mesh_translite)
+        bm.free()
+
+        return obj
+
+    def CreateSurface(self, fpx_item, name, layers, fpx_points):
+        top = fpx_item.get_value("top_height")
+        bottom = fpx_item.get_value("bottom_height")
+        cookie_cut = fpx_item.get_value("cookie_cut")
+        texture = fpx_item.get_value("top_texture")
+
+        obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
+        if texture:
+            self.append_texture_material(obj, texture)
+        if cookie_cut:
+            cu.use_auto_texspace = False
+            cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+            cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
 
         modifier_edge_split = obj.modifiers.new("edge_split", type='EDGE_SPLIT')
 
@@ -915,13 +1158,13 @@ class FptImporter():
         cu.dimensions = '2D'
 
         act_spline.use_cyclic_u = True
-        self.CreateCurvePoints(act_spline, fpx_points)
+        self.create_curve_points(act_spline, fpx_points)
 
         obj.location = Vector((obj.location.x, obj.location.y, (top - cu.extrude)))
         return obj
 
-    def CreateRubberShapeable(self, name, layers, fpx_points, surface):
-        obj, cu, act_spline = self.CreateCurve(name, layers, self.resolution_shape)
+    def CreateRubberShapeable(self, fpx_item, name, layers, fpx_points, surface):
+        obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
 
         bevel_name = "__fpx_rubber_shapeable_bevel__"
         rubber_bevel = self.__blend_data.objects.get(bevel_name)
@@ -939,11 +1182,13 @@ class FptImporter():
 
         offset = 2.5
         act_spline.use_cyclic_u = True
-        self.CreateCurvePoints(act_spline, fpx_points, (surface + offset))
+        self.create_curve_points(act_spline, fpx_points, (surface + offset))
 
         return obj
 
-    def CreateRubberRound(self, name, layers, position_xy, surface, subtype):
+    def CreateRubberRound(self, fpx_item, name, layers, position_xy, surface):
+        subtype = fpx_item.get_value("subtype")
+
         #diameter = [44, 18.5, 13.5, 12, ]
         diameter = [13.5, 18.5, 12, 44, ]
 
@@ -977,10 +1222,10 @@ class FptImporter():
             spline0.bezier_points[3].handle_left_type = h
             spline0.bezier_points[3].handle_right_type = h
 
-        obj, cu1, spline1 = self.CreateCurve(name, layers, self.resolution_rubber)
+        obj, cu1, spline1 = self.create_curve(name, layers, self.resolution_rubber)
 
         h = 'AUTO'
-        p1 = Vector(self.geometry_correction((position_xy[0], position_xy[1], surface + 2.5)))
+        p1 = self.geometry_correction((position_xy[0], position_xy[1], surface + 2.5))
         s1 = (diameter[subtype] - 5.0) / 2.0
         spline1.use_cyclic_u = True
         spline1.resolution_u = self.resolution_rubber * 2
@@ -1002,8 +1247,11 @@ class FptImporter():
 
         return obj
 
-    def CreateGuideWire(self, name, layers, fpx_points, surface, height, width):
-        obj, cu, act_spline = self.CreateCurve(name, layers, self.resolution_wire)
+    def CreateGuideWire(self, fpx_item, name, layers, fpx_points, surface):
+        height = fpx_item.get_value("height")
+        width = fpx_item.get_value("width")
+
+        obj, cu, act_spline = self.create_curve(name, layers, self.resolution_wire)
 
         if height is None:
             height = 0.0
@@ -1026,7 +1274,7 @@ class FptImporter():
             width = 0.0
 
         act_spline.use_cyclic_u = False
-        self.CreateCurvePoints(act_spline, fpx_points, (surface + height + width / 2.0))
+        self.create_curve_points(act_spline, fpx_points, (surface + height + width / 2.0))
 
         # create pole caps
         co1 = act_spline.bezier_points[0].co
@@ -1035,20 +1283,31 @@ class FptImporter():
         co2 = act_spline.bezier_points[-1].co
         h_left2 = act_spline.bezier_points[-1].handle_left
         h_right2 = act_spline.bezier_points[-1].handle_right
-        self.CreateWirePole(cu.splines, co1, h_left1, h_right1, surface, width)
-        self.CreateWirePole(cu.splines, co2, h_right2, h_left2, surface, width)
+        self.create_wire_pole(cu.splines, co1, h_left1, h_right1, surface, width)
+        self.create_wire_pole(cu.splines, co2, h_right2, h_left2, surface, width)
 
         # merge wire curve with pole caps
         self.__context.scene.objects.active = obj
-        self.MergeCaps(cu.splines, width)
+        self.merge_caps(cu.splines, width)
 
         cu.splines[0].type = 'NURBS' # looks better for wires
         cu.twist_mode = 'MINIMUM'
 
         return obj
 
-    def CreateGuideWall(self, name, layers, fpx_points, surface, height, width):
-        obj, cu, act_spline = self.CreateCurve(name, layers, self.resolution_shape)
+    def CreateGuideWall(self, fpx_item, name, layers, fpx_points, surface):
+        height = fpx_item.get_value("height")
+        width = fpx_item.get_value("width")
+        cookie_cut = fpx_item.get_value("cookie_cut")
+        texture = fpx_item.get_value("top_texture")
+
+        obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
+        if texture:
+            self.append_texture_material(obj, texture)
+        if cookie_cut:
+            cu.use_auto_texspace = False
+            cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+            cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
 
         modifier_solidify = obj.modifiers.new("width", type='SOLIDIFY')
         modifier_solidify.thickness = width
@@ -1063,18 +1322,28 @@ class FptImporter():
         cu.dimensions = '2D'
 
         act_spline.use_cyclic_u = False
-        self.CreateCurvePoints(act_spline, fpx_points)
+        self.create_curve_points(act_spline, fpx_points)
 
         obj.location = Vector((obj.location.x, obj.location.y, (surface + cu.extrude)))
         return obj
 
-    def CreateLightRound(self, name, layers, position_xy, surface, diameter):
-        obj, cu, spline = self.CreateCurve(name, layers, self.resolution_shape)
+    def CreateLightRound(self, fpx_item, name, layers, position_xy, surface):
+        diameter = fpx_item.get_value("diameter")
+        cookie_cut = fpx_item.get_value("cookie_cut")
+        texture = fpx_item.get_value("lens_texture")
+
+        obj, cu, spline = self.create_curve(name, layers, self.resolution_shape)
+        if texture:
+            self.append_texture_material(obj, texture)
+        if cookie_cut:
+            cu.use_auto_texspace = False
+            cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+            cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
 
         modifier_edge_split = obj.modifiers.new("edge_split", type='EDGE_SPLIT')
 
         h = 'AUTO'
-        p0 = Vector(self.geometry_correction((position_xy[0], position_xy[1], 0.0)))
+        p0 = self.geometry_correction((position_xy[0], position_xy[1], 0.0))
         d = diameter / 2.0
         spline.bezier_points.add(3)
         spline.bezier_points[0].co = p0 + Vector((0.0, -d, 0.0))
@@ -1097,8 +1366,17 @@ class FptImporter():
         obj.location = Vector((obj.location.x, obj.location.y, surface))
         return obj
 
-    def CreateLightShapeable(self, name, layers, fpx_points, surface):
-        obj, cu, act_spline = self.CreateCurve(name, layers, self.resolution_shape)
+    def CreateLightShapeable(self, fpx_item, name, layers, fpx_points, surface):
+        cookie_cut = fpx_item.get_value("cookie_cut")
+        texture = fpx_item.get_value("lens_texture")
+
+        obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
+        if texture:
+            self.append_texture_material(obj, texture)
+        if cookie_cut:
+            cu.use_auto_texspace = False
+            cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+            cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
 
         modifier_edge_split = obj.modifiers.new("edge_split", type='EDGE_SPLIT')
 
@@ -1106,12 +1384,17 @@ class FptImporter():
         cu.dimensions = '2D'
 
         act_spline.use_cyclic_u = True
-        self.CreateCurvePoints(act_spline, fpx_points)
+        self.create_curve_points(act_spline, fpx_points)
 
         obj.location = Vector((obj.location.x, obj.location.y, surface))
         return obj
 
-    def CreateLightImage(self, name, layers, position_xy, surface, height, width, rotation):
+    def CreateLightImage(self, fpx_item, name, layers, position_xy, surface):
+        height = fpx_item.get_value("height")
+        width = fpx_item.get_value("width")
+        rotation = fpx_item.get_value("rotation")
+        image_list = fpx_item.get_value("image_list")
+
         mesh = self.__blend_data.meshes.new(FORMAT_MESH.format(name))
         obj = self.__blend_data.objects.new(FORMAT_MESH_OBJECT.format(name), mesh)
         self.__context.scene.objects.link(obj)
@@ -1119,51 +1402,62 @@ class FptImporter():
         z = surface + self.debug_light_extrude
         bm = bmesh.new()
         uv_layer = bm.loops.layers.uv.new("UVMap")
-
+        tex_layer = bm.faces.layers.tex.new(uv_layer.name)
         bmv_list = []
-        bmv = bm.verts.new(Vector(self.geometry_correction((-width / 2.0, height / 2.0, 0.0))))
+        bmv = bm.verts.new(self.geometry_correction((-width / 2.0, height / 2.0, 0.0)))
         bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector(self.geometry_correction((width / 2.0, height / 2.0, 0.0))))
+        bmv = bm.verts.new(self.geometry_correction((width / 2.0, height / 2.0, 0.0)))
         bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector(self.geometry_correction((width / 2.0, -height / 2.0, 0.0))))
+        bmv = bm.verts.new(self.geometry_correction((width / 2.0, -height / 2.0, 0.0)))
         bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector(self.geometry_correction((-width / 2.0, -height / 2.0, 0.0))))
+        bmv = bm.verts.new(self.geometry_correction((-width / 2.0, -height / 2.0, 0.0)))
         bmv_list.append(bmv)
         bmf = bm.faces.new(bmv_list)
         bmluv = bmf.loops[0][uv_layer]
-        bmluv.uv = (0.0, 0.0)
-        bmluv = bmf.loops[1][uv_layer]
-        bmluv.uv = (1.0, 0.0)
-        bmluv = bmf.loops[2][uv_layer]
-        bmluv.uv = (1.0, 1.0)
-        bmluv = bmf.loops[3][uv_layer]
         bmluv.uv = (0.0, 1.0)
-        tex_layer = bm.faces.layers.tex.new()
+        bmluv = bmf.loops[1][uv_layer]
+        bmluv.uv = (0.0, 0.0)
+        bmluv = bmf.loops[2][uv_layer]
+        bmluv.uv = (1.0, 0.0)
+        bmluv = bmf.loops[3][uv_layer]
+        bmluv.uv = (1.0, 1.0)
+        if image_list:
+            image_list_data = self.fpx_image_lists.get(image_list)
+            if image_list_data:
+                fpx_image_name = image_list_data[0] # -1 for light on
+                fpx_image_object = self.fpx_images.get(fpx_image_name)
+                if fpx_image_object:
+                    bmf[tex_layer].image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
+                    self.append_texture_material(obj, fpx_image_name, uv_layer.name)
         bm.to_mesh(mesh)
         bm.free()
 
-        obj.location = Vector(self.geometry_correction((position_xy[0], position_xy[1], z)))
+        obj.location = self.geometry_correction((position_xy[0], position_xy[1], z))
         obj.rotation_mode = 'XZY'
         obj.rotation_euler = Euler((0.0, 0.0, radians(self.angle_correction(rotation))), obj.rotation_mode)
         return obj
 
-    def CreateWireRamp(self, name, layers, fpx_points, surface, start_height, end_height, fpx_id, model_name_start, model_name_end):
+    def CreateWireRamp(self, fpx_item, name, layers, fpx_points, surface, fpx_id):
+        start_height = fpx_item.get_value("start_height")
+        end_height = fpx_item.get_value("end_height")
+        model_name_start = fpx_item.get_value("model_start")
+        model_name_end = fpx_item.get_value("model_end")
+
         if start_height is None:
             start_height = 0.0
         if end_height is None:
             end_height = 0.0
 
-        wire_bevel = self.PrepareWireRampBevel()
+        wire_bevel = self.prepare_wire_ramp_bevel()
 
         #"ramp_point"
-        obj, cu, act_spline = self.CreateCurve(name, layers, self.resolution_wire)
+        obj, cu, act_spline = self.create_curve(name, layers, self.resolution_wire)
 
         cu.bevel_object = wire_bevel
         cu.use_fill_caps = True
 
         act_spline.use_cyclic_u = False
-        self.CreateRampCurvePoints(act_spline, fpx_points, surface, start_height, end_height)
-
+        self.create_ramp_curve_points(act_spline, fpx_points, surface, start_height, end_height)
 
         # ramp start
         if model_name_start:
@@ -1221,11 +1515,11 @@ class FptImporter():
                 'wirering18', # CresentLeft = 19
                 ]
 
-        left_wires_bevel = self.PrepareWireRampSideBevel(2)
-        right_wires_bevel = self.PrepareWireRampSideBevel(3)
-        left_upper_wires_bevel = self.PrepareWireRampSideBevel(4)
-        right_upper_wires_bevel = self.PrepareWireRampSideBevel(5)
-        top_wires_bevel = self.PrepareWireRampSideBevel(6)
+        left_wires_bevel = self.prepare_wire_ramp_side_bevel(2)
+        right_wires_bevel = self.prepare_wire_ramp_side_bevel(3)
+        left_upper_wires_bevel = self.prepare_wire_ramp_side_bevel(4)
+        right_upper_wires_bevel = self.prepare_wire_ramp_side_bevel(5)
+        top_wires_bevel = self.prepare_wire_ramp_side_bevel(6)
 
         last_bezier_point = None
         last_fpx_point = None
@@ -1247,27 +1541,27 @@ class FptImporter():
                 """
                 if index:
                     if last_fpx_point.get_value("left_guide"):
-                        last_left_wire = self.CreateWireRampGuidePiece(name, obj, layers, left_wires_bevel, 2, index, last_bezier_point, bezier_point, last_left_wire)
+                        last_left_wire = self.create_wire_ramp_guide_piece(name, obj, layers, left_wires_bevel, 2, index, last_bezier_point, bezier_point, last_left_wire)
                     else:
                         last_left_wire = None
 
                     if last_fpx_point.get_value("right_guide"):
-                        last_right_wire = self.CreateWireRampGuidePiece(name, obj, layers, right_wires_bevel, 3, index, last_bezier_point, bezier_point, last_right_wire)
+                        last_right_wire = self.create_wire_ramp_guide_piece(name, obj, layers, right_wires_bevel, 3, index, last_bezier_point, bezier_point, last_right_wire)
                     else:
                         last_right_wire = None
 
                     if last_fpx_point.get_value("left_upper_guide"):
-                        last_left_upper_wire = self.CreateWireRampGuidePiece(name, obj, layers, left_upper_wires_bevel, 4, index, last_bezier_point, bezier_point, last_left_upper_wire)
+                        last_left_upper_wire = self.create_wire_ramp_guide_piece(name, obj, layers, left_upper_wires_bevel, 4, index, last_bezier_point, bezier_point, last_left_upper_wire)
                     else:
                         last_left_upper_wire = None
 
                     if last_fpx_point.get_value("right_upper_guide"):
-                        last_right_upper_wire = self.CreateWireRampGuidePiece(name, obj, layers, right_upper_wires_bevel, 5, index, last_bezier_point, bezier_point, last_right_upper_wire)
+                        last_right_upper_wire = self.create_wire_ramp_guide_piece(name, obj, layers, right_upper_wires_bevel, 5, index, last_bezier_point, bezier_point, last_right_upper_wire)
                     else:
                         last_right_upper_wire = None
 
                     if last_fpx_point.get_value("top_wire"):
-                        last_top_wire = self.CreateWireRampGuidePiece(name, obj, layers, top_wires_bevel, 6, index, last_bezier_point, bezier_point, last_top_wire)
+                        last_top_wire = self.create_wire_ramp_guide_piece(name, obj, layers, top_wires_bevel, 6, index, last_bezier_point, bezier_point, last_top_wire)
                     else:
                         last_top_wire = None
 
@@ -1300,7 +1594,7 @@ class FptImporter():
         #cu.twist_mode = 'MINIMUM'
         return obj
 
-    def CreateWireRampGuidePiece(self, name, parent_obj, layers, wire_bevel, wire_index, point_index, last_bezier_point_template, bezier_point_template, last_object):
+    def create_wire_ramp_guide_piece(self, name, parent_obj, layers, wire_bevel, wire_index, point_index, last_bezier_point_template, bezier_point_template, last_object):
         if last_object:
             #reuse previouse curve
             spline = last_object.data.splines[0]
@@ -1318,7 +1612,7 @@ class FptImporter():
             #start to make a new curve
             sub_name = "{}_{}_{}".format(name, wire_index, point_index-1)
 
-            obj, cu, spline = self.CreateCurve(sub_name, layers, self.resolution_wire)
+            obj, cu, spline = self.create_curve(sub_name, layers, self.resolution_wire)
             obj.fpt.name = sub_name
             obj.parent = parent_obj
             cu.bevel_object = wire_bevel
@@ -1346,7 +1640,14 @@ class FptImporter():
 
         return obj
 
-    def CreateRamp(self, name, layers, fpx_points, surface, start_height, end_height, start_width, end_width, height_left, height_right):
+    def CreateRamp(self, fpx_item, name, layers, fpx_points, surface):
+        start_height = fpx_item.get_value("start_height")
+        end_height = fpx_item.get_value("end_height")
+        start_width = fpx_item.get_value("start_width")
+        end_width = fpx_item.get_value("end_width")
+        height_left = fpx_item.get_value("left_side_height")
+        height_right = fpx_item.get_value("right_side_height")
+
         if start_width is None:
             start_width = 0.0
         if end_width is None:
@@ -1387,7 +1688,7 @@ class FptImporter():
             spline0.bezier_points[3].handle_right_type = h
 
         #"ramp_point"
-        obj, cu, act_spline = self.CreateCurve(name, layers, self.resolution_wire)
+        obj, cu, act_spline = self.create_curve(name, layers, self.resolution_wire)
 
         modifier_solidify = obj.modifiers.new("solidify", type='SOLIDIFY')
         modifier_solidify.offset = 0.0
@@ -1403,11 +1704,11 @@ class FptImporter():
         if end_height is None:
             end_height = 0.0
 
-        self.CreateRampCurvePoints(act_spline, fpx_points, surface, start_height, end_height, start_width, end_width)
+        self.create_ramp_curve_points(act_spline, fpx_points, surface, start_height, end_height, start_width, end_width)
 
         return obj
 
-    def CreateWirePole(self, cu_splines, co, t, ti, surface, width):
+    def create_wire_pole(self, cu_splines, co, t, ti, surface, width):
         d = (t - co)
         dn = d.normalized()
         w = width / 2.0
@@ -1433,7 +1734,7 @@ class FptImporter():
         point_1.handle_left = Vector((point_1.co.x, point_1.co.y, point_1.co.z + (co.z - surface) / 4.0))
         point_1.handle_right = Vector((point_1.co.x, point_1.co.y, point_1.co.z - (co.z - surface) / 4.0))
 
-    def MergeCaps(self, cu_splines, width):
+    def merge_caps(self, cu_splines, width):
         w = width / 2.0
 
         # adjust endpoint of curve
@@ -1472,7 +1773,7 @@ class FptImporter():
             ops.curve.make_segment()
         FpxUtilities.enable_edit_mode(False, self.__context)
 
-    def CreateCurve(self, name, layers, curve_resolution):
+    def create_curve(self, name, layers, curve_resolution):
         cu = self.__blend_data.curves.new(FORMAT_CURVE.format(name), 'CURVE')
         obj = self.__blend_data.objects.new(FORMAT_CURVE_OBJECT.format(name), cu)
         self.__context.scene.objects.link(obj)
@@ -1487,7 +1788,7 @@ class FptImporter():
         obj.layers = layers
         return obj, cu, spline
 
-    def CreateRampCurvePoints(self, spline, fpx_points, z, z0, z1, w0=1.0, w1=1.0):
+    def create_ramp_curve_points(self, spline, fpx_points, z, z0, z1, w0=1.0, w1=1.0):
         ramp_length_sum = 0.0
         ramp_length = []
         last_point = None
@@ -1499,7 +1800,7 @@ class FptImporter():
             ramp_length.append(ramp_length_sum)
             last_point = fpx_position_xy
 
-        # CreateCurvePoints & radius
+        # create_curve_points & radius
         spline.bezier_points.add(len(fpx_points) - 1)
 
         for index, fpx_point in enumerate(fpx_points):
@@ -1510,7 +1811,7 @@ class FptImporter():
             offset = (z1 - z0) * factor
 
             bezier_point = spline.bezier_points[index]
-            bezier_point.co = Vector(self.geometry_correction((fpx_position_xy[0], fpx_position_xy[1], (z + z0 + offset))))
+            bezier_point.co = self.geometry_correction((fpx_position_xy[0], fpx_position_xy[1], (z + z0 + offset)))
             bezier_point.radius = (w0 + ((w1 - w0) * factor)) / w0
 
             if fpx_smooth:
@@ -1522,9 +1823,9 @@ class FptImporter():
             bezier_point.handle_right_type = handle_type
 
         if self.use_hermite_handle:
-            self.SetCatmullRomHermiteBezierHandle(spline)
+            self.set_catmull_rom_hermite_bezier_handle(spline)
 
-    def CreateCurvePoints(self, spline, fpx_points, z=0.0):
+    def create_curve_points(self, spline, fpx_points, z=0.0):
         spline.bezier_points.add(len(fpx_points) - 1)
 
         for index, fpx_point in enumerate(fpx_points):
@@ -1532,7 +1833,7 @@ class FptImporter():
             fpx_smooth = fpx_point.get_value("smooth")
 
             bezier_point = spline.bezier_points[index]
-            bezier_point.co = Vector(self.geometry_correction((fpx_position_xy[0], fpx_position_xy[1], z)))
+            bezier_point.co = self.geometry_correction((fpx_position_xy[0], fpx_position_xy[1], z))
 
             if fpx_smooth:
                 handle_type = 'AUTO'
@@ -1543,9 +1844,9 @@ class FptImporter():
             bezier_point.handle_right_type = handle_type
 
         if self.use_hermite_handle:
-            self.SetCatmullRomHermiteBezierHandle(spline)
+            self.set_catmull_rom_hermite_bezier_handle(spline)
 
-    def SetCatmullRomHermiteBezierHandle(self, spline):
+    def set_catmull_rom_hermite_bezier_handle(self, spline):
         if spline.type != 'BEZIER':
             return
         count_bezier_point = len(spline.bezier_points)
@@ -1628,144 +1929,7 @@ class FptImporter():
             #bezier_point.handle_left_type = 'FREE'
             bezier_point.handle_left = bezier_handle_point
 
-    def CreatePinCab(self, fpx_table_data):
-        name = fpx_table_data.get_value("name")
-        name = FpxUtilities.toGoodName(name) ####
-
-        dx = fpx_table_data.get_value("length")
-        dy = fpx_table_data.get_value("width")
-        z0 = fpx_table_data.get_value("glass_height_front")
-        z1 = fpx_table_data.get_value("glass_height_rear")
-
-        mesh = self.__blend_data.meshes.new(FORMAT_MESH.format(name))
-        obj = self.__blend_data.objects.new(FORMAT_MESH_OBJECT.format(name), mesh)
-        self.__context.scene.objects.link(obj)
-
-        bm = bmesh.new()
-        uv_layer = bm.loops.layers.uv.new("UVMap")
-
-        #inner playfield
-        bmv_list = []
-        bmv = bm.verts.new(Vector((dx, 0.0, 0.0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((dx, dy, 0.0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((0.0, dy, 0.0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((0.0, 0.0, 0.0)))
-        bmv_list.append(bmv)
-        bmf = bm.faces.new(bmv_list)
-        bmluv = bmf.loops[0][uv_layer]
-        bmluv.uv = (0.0, 0.0)
-        bmluv = bmf.loops[1][uv_layer]
-        bmluv.uv = (1.0, 0.0)
-        bmluv = bmf.loops[2][uv_layer]
-        bmluv.uv = (1.0, 1.0)
-        bmluv = bmf.loops[3][uv_layer]
-        bmluv.uv = (0.0, 1.0)
-        tex_layer = bm.faces.layers.tex.new()
-        bm.to_mesh(mesh)
-        bm.free()
-
-        mesh_box = self.__blend_data.meshes.new(FORMAT_MESH.format("{}.playfield".format(name)))
-        obj_box = self.__blend_data.objects.new(FORMAT_MESH_OBJECT.format("{}.playfield".format(name)), mesh_box)
-        obj_box.parent = obj
-        self.__context.scene.objects.link(obj_box)
-
-        bm = bmesh.new()
-        #inner back
-        bmv_list = []
-        bmv = bm.verts.new(Vector((0.0, 0.0, 0.0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((0.0, dy, 0.0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((0.0, dy, z1)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((0.0, 0.0, z1)))
-        bmv_list.append(bmv)
-        bmf = bm.faces.new(bmv_list)
-
-        #inner front
-        bmv_list = []
-        bmv = bm.verts.new(Vector((dx, 0.0, 0.0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((dx, 0.0, z0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((dx, dy, z0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((dx, dy, 0.0)))
-        bmv_list.append(bmv)
-        bmf = bm.faces.new(bmv_list)
-
-        #inner left
-        bmv_list = []
-        bmv = bm.verts.new(Vector((0.0, 0.0, 0.0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((0.0, 0.0, z1)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((dx, 0.0, z0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((dx, 0.0, 0.0)))
-        bmv_list.append(bmv)
-        bmf = bm.faces.new(bmv_list)
-
-        #inner right
-        bmv_list = []
-        bmv = bm.verts.new(Vector((0.0, dy, 0.0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((dx, dy, 0.0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((dx, dy, z0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((0.0, dy, z1)))
-        bmv_list.append(bmv)
-        bmf = bm.faces.new(bmv_list)
-
-        bm.to_mesh(mesh_box)
-        bm.free()
-
-        ##
-        dty = fpx_table_data.get_value("translite_height")
-        if not dty:
-            dty = 676.0
-        dtz = fpx_table_data.get_value("translite_width")
-        if not dtz:
-            dtz = 676.0
-
-        mesh_translite = self.__blend_data.meshes.new(FORMAT_MESH.format("{}.translite".format(name)))
-        obj_translite = self.__blend_data.objects.new(FORMAT_MESH_OBJECT.format("{}.translite".format(name)), mesh_translite)
-        obj_translite.parent = obj
-        self.__context.scene.objects.link(obj_translite)
-
-        bm = bmesh.new()
-        uv_layer = bm.loops.layers.uv.new("UVMap")
-
-        #inner translite
-        bmv_list = []
-        bmv = bm.verts.new(Vector((0.0, (dy - dty) / 2.0, z1 + 20.0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((0.0, (dy + dty) / 2.0, z1 + 20.0)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((0.0, (dy + dty) / 2.0, z1 + 20.0 + dtz)))
-        bmv_list.append(bmv)
-        bmv = bm.verts.new(Vector((0.0, (dy - dty) / 2.0, z1 + 20.0 + dtz)))
-        bmv_list.append(bmv)
-        bmf = bm.faces.new(bmv_list)
-        bmluv = bmf.loops[0][uv_layer]
-        bmluv.uv = (0.0, 0.0)
-        bmluv = bmf.loops[1][uv_layer]
-        bmluv.uv = (1.0, 0.0)
-        bmluv = bmf.loops[2][uv_layer]
-        bmluv.uv = (1.0, 1.0)
-        bmluv = bmf.loops[3][uv_layer]
-        bmluv.uv = (0.0, 1.0)
-        tex_layer = bm.faces.layers.tex.new()
-        bm.to_mesh(mesh_translite)
-        bm.free()
-
-        return obj
-
-    def CreateWireRampBevel(self, curve, wire_index):
+    def create_wire_ramp_bevel(self, curve, wire_index):
         wire_diameter = [Vector((0.0, -2.0, 0.0)), Vector((-2.0, 0.0, 0.0)), Vector((0.0, 2.0, 0.0)), Vector((2.0, 0.0, 0.0))]
         wire_position = [Vector((-11.0, -2.0, 0.0)), Vector((11.0, -2.0, 0.0)), Vector((-17.0, 11, 0.0)), Vector((17.0, 11.0, 0.0)), Vector((-11.0, 24.0, 0.0)), Vector((11.0, 24.0, 0.0)), Vector((0.0, 33.0, 0.0))]
         w0 = Vector((0.0, 0.0, 0.0))
@@ -1789,7 +1953,7 @@ class FptImporter():
         spline.bezier_points[3].handle_left_type = handle
         spline.bezier_points[3].handle_right_type = handle
 
-    def PrepareWireRampBevel(self):
+    def prepare_wire_ramp_bevel(self):
         bevel_name = "__fpx_guide_ramp_wire_bevel__"
         wire_bevel = self.__blend_data.objects.get(bevel_name)
         if wire_bevel is None:
@@ -1799,24 +1963,24 @@ class FptImporter():
             cu.dimensions = '2D'
             cu.resolution_u = self.resolution_wire_bevel
 
-            self.CreateWireRampBevel(cu, 0) # base left inner
-            self.CreateWireRampBevel(cu, 1) # base right inner
+            self.create_wire_ramp_bevel(cu, 0) # base left inner
+            self.create_wire_ramp_bevel(cu, 1) # base right inner
 
             if self.debug_create_full_ramp_wires:
                 """
                 there are problems, see [#36007] http://projects.blender.org/tracker/index.php?func=detail&aid=36007&group_id=9&atid=498
                 """
-                self.CreateWireRampBevel(cu, 2) # left inner
-                self.CreateWireRampBevel(cu, 3) # right inner
-                self.CreateWireRampBevel(cu, 4) # upper left inner
-                self.CreateWireRampBevel(cu, 5) # upper right inner
-                self.CreateWireRampBevel(cu, 6) # top outer
+                self.create_wire_ramp_bevel(cu, 2) # left inner
+                self.create_wire_ramp_bevel(cu, 3) # right inner
+                self.create_wire_ramp_bevel(cu, 4) # upper left inner
+                self.create_wire_ramp_bevel(cu, 5) # upper right inner
+                self.create_wire_ramp_bevel(cu, 6) # top outer
             else:
                 pass
 
         return wire_bevel
 
-    def PrepareWireRampSideBevel(self, wire_index):
+    def prepare_wire_ramp_side_bevel(self, wire_index):
         bevel_name = "__fpx_guide_ramp_wire_bevel_{}__".format(wire_index)
         wire_bevel = self.__blend_data.objects.get(bevel_name)
         if wire_bevel is None:
@@ -1826,16 +1990,16 @@ class FptImporter():
             cu.dimensions = '2D'
             cu.resolution_u = self.resolution_wire_bevel
 
-            self.CreateWireRampBevel(cu, wire_index)
+            self.create_wire_ramp_bevel(cu, wire_index)
 
         return wire_bevel
 
     ###########################################################################
     def geometry_correction(self, value):
-        return Vector((value[1], value[0], value[2]))
+        return Vector((value[0], -value[1], value[2]))
 
     def angle_correction(self, value):
-        return -value
+        return -90 - value
 
     def attach_dupli_group(self, blender_empty_object, layers, fpx_model_name, fpx_type_name, offset=Vector(), angle=0):
         fpx_model_name = FpxUtilities.toGoodName(fpx_model_name) ####

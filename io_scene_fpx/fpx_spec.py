@@ -734,6 +734,32 @@ class Fpt_Data_Reader:
     def read_breaker(self, owner):
         pass
 
+    def read_int(self, stream):
+        return unpack("<i", stream.read(4))[0]
+
+    def read_float(self, stream):
+        return unpack("<f", stream.read(4))[0]
+
+    def read_color(self, stream):
+        return unpack("<BBBB", stream.read(4))
+
+    def read_vector2d(self, stream):
+        return unpack("<ff", stream.read(8))
+
+    def read_string(self, stream):
+        size = stream.read_dword()
+        buffer = stream.read(size)
+        register_error(FpxSpec.STRING_FPX_REPLACE, FpxSpec.fpx_replace)
+        value = buffer.decode(encoding=FpxSpec.STRING_ENCODING, errors=FpxSpec.STRING_ERROR)
+        return value
+
+    def read_wstring(self, stream):
+        size = stream.read_dword()
+        buffer = stream.read(size)
+        register_error(FpxSpec.STRING_FPX_REPLACE, FpxSpec.fpx_replace)
+        value = buffer.decode(encoding=FpxSpec.WSTRING_ENCODING, errors=FpxSpec.STRING_ERROR)
+        return value
+
     def read_chunk_data(self, stream, owner, stream_pos, chunk_size, descriptor):
         if descriptor.offset:
             stream.seek(descriptor.offset, SEEK_CUR)
@@ -741,25 +767,22 @@ class Fpt_Data_Reader:
         if descriptor.type == Fpt_Chunk_Type.RAWDATA:
             value = Fpx_zLZO_RawData_Stream(stream, chunk_size - Fp_Size_Type.DWORD)
         elif descriptor.type == Fpt_Chunk_Type.INT:
-            value = unpack("<i", stream.read(4))[0]
+            value = self.read_int(stream)
         elif descriptor.type == Fpt_Chunk_Type.FLOAT:
-            value = unpack("<f", stream.read(4))[0]
+            value = self.read_float(stream)
         elif descriptor.type == Fpt_Chunk_Type.COLOR:
-            value = unpack("<BBBB", stream.read(4))
+            value = self.read_color(stream)
         elif descriptor.type == Fpt_Chunk_Type.VECTOR2D:
-            value = unpack("<ff", stream.read(8))
+            value = self.read_vector2d(stream)
         elif descriptor.type == Fpt_Chunk_Type.STRING:
-            size = stream.read_dword()
-            buffer = stream.read(size)
-            register_error(FpxSpec.STRING_FPX_REPLACE, FpxSpec.fpx_replace)
-            value = buffer.decode(encoding=FpxSpec.STRING_ENCODING, errors=FpxSpec.STRING_ERROR)
+            value = self.read_string(stream)
         elif descriptor.type == Fpt_Chunk_Type.WSTRING:
-            size = stream.read_dword()
-            buffer = stream.read(size)
-            register_error(FpxSpec.STRING_FPX_REPLACE, FpxSpec.fpx_replace)
-            value = buffer.decode(encoding=FpxSpec.WSTRING_ENCODING, errors=FpxSpec.STRING_ERROR)
+            value = self.read_wstring(stream)
         elif descriptor.type == Fpt_Chunk_Type.STRINGLIST:
-            value = None # TODO
+            value = []
+            num_items = self.read_int(stream)
+            for i in range(num_items):
+                value.append(self.read_string(stream))
         elif descriptor.type == Fpt_Chunk_Type.VALUELIST:
             value = None # TODO
         elif descriptor.type == Fpt_Chunk_Type.COLLISIONDATA:
@@ -1057,19 +1080,27 @@ class Fpt_PinModel_Reader(Fpt_Data_Reader):
 
 
 class Fpt_ImageList_Reader(Fpt_Data_Reader):
+    CHUNK_DICTIONARY = {
+            0xA4F4D1D7: Fpt_ChunkDescription(0xA4F4D1D7, Fpt_Chunk_Type.STRING, "name"),
+            0xA8EDD1E1: Fpt_ChunkDescription(0xA8EDD1E1, Fpt_Chunk_Type.STRINGLIST, "images"),
+            0xA7FDC4E0: Fpt_ChunkDescription(0xA7FDC4E0, Fpt_Chunk_Type.END, "end"),
+            }
+
     def __init__(self):
         self.obj__class = "Image_List"
-
-    def read(self, stream):
-        self.val__raw = stream.read()
+        self.obj__chunks = Fpt_ImageList_Reader.CHUNK_DICTIONARY
 
 
 class Fpt_LightList_Reader(Fpt_Data_Reader):
+    CHUNK_DICTIONARY = {
+            0xA4F4D1D7: Fpt_ChunkDescription(0xA4F4D1D7, Fpt_Chunk_Type.STRING, "name"),
+            0xA8EDD1E1: Fpt_ChunkDescription(0xA8EDD1E1, Fpt_Chunk_Type.STRINGLIST, "lights"),
+            0xA7FDC4E0: Fpt_ChunkDescription(0xA7FDC4E0, Fpt_Chunk_Type.END, "end"),
+            }
+
     def __init__(self):
         self.obj__class = "Light_List"
-
-    def read(self, stream):
-        self.val__raw = stream.read()
+        self.obj__chunks = Fpt_LightList_Reader.CHUNK_DICTIONARY
 
 
 class Fpt_DmdFont_Reader(Fpt_Data_Reader):
