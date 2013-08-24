@@ -979,8 +979,8 @@ class FptImporter():
 
                     link1_0 = links.new(node1.outputs['Shader'], node0.inputs['Surface'])
                     link4_1a = links.new(node4.outputs['Alpha'], node1.inputs[0]) # Fac
-                    link2_1b = links.new(node2.outputs['BSDF'], node1.inputs[1]) # 2'nd Shader
-                    link3_1c = links.new(node3.outputs['BSDF'], node1.inputs[2]) # 1'st Shader
+                    link2_1b = links.new(node2.outputs['BSDF'], node1.inputs[1]) # 1'st Shader
+                    link3_1c = links.new(node3.outputs['BSDF'], node1.inputs[2]) # 2'nd Shader
                     link4_3 = links.new(node4.outputs['Color'], node3.inputs['Color'])
                     if uv_layer:
                         link5_4 = links.new(node5.outputs['UV'], node4.inputs['Vector'])
@@ -1012,6 +1012,9 @@ class FptImporter():
         dtz = fpx_table_data.get_value("translite_width")
         texture_table = fpx_table_data.get_value("playfield_texture")
         texture_translite = fpx_table_data.get_value("translite_image")
+
+        texture_table = FpxUtilities.toGoodName(texture_table) ####
+        texture_translite = FpxUtilities.toGoodName(texture_translite) ####
 
         if not dtx:
             dtx = 676.0
@@ -1158,6 +1161,7 @@ class FptImporter():
         bottom = fpx_item.get_value("bottom_height")
         cookie_cut = fpx_item.get_value("cookie_cut")
         texture = fpx_item.get_value("top_texture")
+        texture = FpxUtilities.toGoodName(texture) ####
 
         obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
         if texture:
@@ -1319,6 +1323,7 @@ class FptImporter():
         width = fpx_item.get_value("width")
         cookie_cut = fpx_item.get_value("cookie_cut")
         texture = fpx_item.get_value("top_texture")
+        texture = FpxUtilities.toGoodName(texture) ####
 
         obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
         if texture:
@@ -1350,6 +1355,7 @@ class FptImporter():
         diameter = fpx_item.get_value("diameter")
         cookie_cut = fpx_item.get_value("cookie_cut")
         texture = fpx_item.get_value("lens_texture")
+        texture = FpxUtilities.toGoodName(texture) ####
 
         obj, cu, spline = self.create_curve(name, layers, self.resolution_shape)
         if texture:
@@ -1388,6 +1394,7 @@ class FptImporter():
     def CreateLightShapeable(self, fpx_item, name, layers, fpx_points, surface):
         cookie_cut = fpx_item.get_value("cookie_cut")
         texture = fpx_item.get_value("lens_texture")
+        texture = FpxUtilities.toGoodName(texture) ####
 
         obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
         if texture:
@@ -1444,6 +1451,7 @@ class FptImporter():
             image_list_data = self.fpx_image_lists.get(image_list)
             if image_list_data:
                 fpx_image_name = image_list_data[0] # -1 for light on
+                fpx_image_name = FpxUtilities.toGoodName(fpx_image_name) ####
                 fpx_image_object = self.fpx_images.get(fpx_image_name)
                 if fpx_image_object:
                     bmf[tex_layer].image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
@@ -2305,27 +2313,41 @@ class FptImporter():
 
                 blender_resource_name = FpxUtilities.toGoodName(blender_resource_name_format.format(PREFIX_EMBEDDED, fpx_item_name))
                 dictOut[fpx_item_name] = [ blender_resource_name, ]
-                item_data = dst_sub_path_names.get("data_{}".format(fpx_item_name))
-                if item_data:
-                    #print("#DEBUG", fpx_item_name, item_data[1]["sub_dir"])
-                    active_scene = self.__context.screen.scene
-                    FpmImporter(
-                            report=self.report,
-                            verbose=self.verbose,
-                            keep_temp=self.keep_temp,
-                            use_scene_per_model=True,
-                            name_extra="",
-                            use_model_filter=self.use_model_filter,
-                            use_model_adjustment=self.use_model_adjustment,
-                            keep_name=False,
-                        ).read_ex(
-                                blender_context=self.__context,
-                                dst_sub_path_names=item_data[1],
-                                model_name=FpxUtilities.toGoodName(FORMAT_RESOURCE.format(PREFIX_EMBEDDED, fpx_item_name)),
-                                debug_data=[],
-                                )
-                    #rename_active_fpm(self.__context, blender_resource_name)
-                    self.__context.screen.scene = active_scene
+
+                item_type = dst_sub_path_names.get("type_{}".format(fpx_item_name))
+                if item_type == Fpt_PackedLibrary_Type.TYPE_IMAGE:
+                    item_path = dst_sub_path_names.get(fpx_item_name)
+                    if item_path:
+                        blend_image = self.__blend_data.images.load(item_path)
+                        blend_image.name = blender_resource_name
+                        blend_image.pack()
+                        #blend_image.use_fake_user = True
+                        item_dir, item_file = path.split(item_path)
+                        blend_image.filepath_raw = "//unpacked_resource/{}".format(item_file)
+                elif item_type == Fpt_PackedLibrary_Type.TYPE_MODEL:
+                    item_data = dst_sub_path_names.get("data_{}".format(fpx_item_name))
+                    if item_data:
+                        #print("#DEBUG", fpx_item_name, item_data[1]["sub_dir"])
+                        active_scene = self.__context.screen.scene
+                        FpmImporter(
+                                report=self.report,
+                                verbose=self.verbose,
+                                keep_temp=self.keep_temp,
+                                use_scene_per_model=True,
+                                name_extra="",
+                                use_model_filter=self.use_model_filter,
+                                use_model_adjustment=self.use_model_adjustment,
+                                keep_name=False,
+                            ).read_ex(
+                                    blender_context=self.__context,
+                                    dst_sub_path_names=item_data[1],
+                                    model_name=FpxUtilities.toGoodName(FORMAT_RESOURCE.format(PREFIX_EMBEDDED, fpx_item_name)),
+                                    debug_data=[],
+                                    )
+                        #rename_active_fpm(self.__context, blender_resource_name)
+                        self.__context.screen.scene = active_scene
+                else:
+                    pass
 
             self.LoadObject(blender_resource_name, type, lib_name)
 
