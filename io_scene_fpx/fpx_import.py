@@ -141,6 +141,9 @@ FORMAT_MODEL_CAP1 = "{}.cap1"
 FORMAT_MODEL_CAP2 = "{}.cap2"
 FORMAT_MODEL_RING = "{}.ring{:02d}"
 
+#DEFAULT_LAMP_TEXTURE = "{1}.rsrc_bmp_254.i"
+DEFAULT_LAMP_TEXTURE = "rsrc_bmp_254"
+
 TRANSLITE_OBJECT = 2
 ###############################################################################
 class FpmImporter():
@@ -669,6 +672,10 @@ class FptImporter():
                     images = image_list.get_value("images")
                     self.fpx_image_lists[key] = images
 
+                blender_image_name = FpxUtilities.toGoodName(FORMAT_RESOURCE.format(PREFIX_LOCAL, FORMAT_IMAGE.format(DEFAULT_LAMP_TEXTURE)))
+                self.LoadObjectLite(blender_image_name, Fpt_PackedLibrary_Type.TYPE_IMAGE)
+                self.fpx_images[DEFAULT_LAMP_TEXTURE] = [blender_image_name, ]
+
                 self.fpx_pinmodels = {}
                 self.GetLinked(fpx_reader.PinModel, self.fpx_pinmodels, Fpt_PackedLibrary_Type.TYPE_MODEL, dst_sub_path_names)
 
@@ -807,28 +814,54 @@ class FptImporter():
                                 fpx_model_beam_width = fpx_item.get_value("beam_width")
                                 if fpx_model_beam_width:
                                     offset = 3.75
-                                    self.attach_dupli_group(blender_empty_object, layers, fpx_model_name, "model", Vector((0.0 , ((fpx_model_beam_width / 2.0) + offset), 0.0)), -90)
-                                    self.attach_dupli_group(blender_empty_object, layers, fpx_model_name, "model", Vector((0.0 , -((fpx_model_beam_width / 2.0) + offset), 0.0)), 90)
+                                    blender_object = self.attach_dupli_group(blender_empty_object, layers, fpx_model_name, "model", Vector((0.0 , ((fpx_model_beam_width / 2.0) + offset), 0.0)), -90)
+                                    texture = fpx_item.get_value("texture_emitter")
+                                    if texture:
+                                        self.append_texture_material(blender_object, texture, uv_layer="ms3d_uv_layer")
+                                    blender_object = self.attach_dupli_group(blender_empty_object, layers, fpx_model_name, "model", Vector((0.0 , -((fpx_model_beam_width / 2.0) + offset), 0.0)), 90)
+                                    texture = fpx_item.get_value("texture_collector")
+                                    if texture:
+                                        self.append_texture_material(blender_object, texture, uv_layer="ms3d_uv_layer")
                                 else:
-                                    self.attach_dupli_group(blender_empty_object, layers, fpx_model_name, "model")
+                                    blender_object = self.attach_dupli_group(blender_empty_object, layers, fpx_model_name, "model")
+                                    if fpx_transparency or fpx_crystal or fpx_id in FptElementType.SET_LIGHT_OBJECTS:
+                                        self.append_christal_material(blender_object)
+                                    elif fpx_sphere_mapping and fpx_id not in FptElementType.SET_LIGHT_OBJECTS:
+                                        self.append_chrome_material(blender_object)
+                                    else:
+                                        texture = fpx_item.get_value("texture")
+                                        if texture:
+                                            print("#DEBUG texture", texture)
+                                            self.append_texture_material(blender_object, texture, light_on=(fpx_id not in FptElementType.SET_LIGHT_OBJECTS), uv_layer="ms3d_uv_layer")
+
 
                             fpx_model_name_cap = fpx_item.get_value("model_cap")
                             if fpx_model_name_cap:
-                                self.attach_dupli_group(blender_empty_object, layers, fpx_model_name_cap, "model_cap")
+                                blender_object = self.attach_dupli_group(blender_empty_object, layers, fpx_model_name_cap, "model_cap")
+                                texture = fpx_item.get_value("cap_texture")
+                                if texture:
+                                    self.append_texture_material(blender_object, texture, light_on=True, uv_layer="ms3d_uv_layer")
 
                             fpx_model_name_base = fpx_item.get_value("model_base")
                             if fpx_model_name_base:
-                                self.attach_dupli_group(blender_empty_object, layers, fpx_model_name_base, "model_base")
-                                self.attach_dupli_group(blender_empty_object, layers, "bumperring", 'LOCAL', Vector((0.0 , 0.0, 4.0)))
-                                self.attach_dupli_group(blender_empty_object, layers, "bumperskirt", 'LOCAL', Vector((0.0 , 0.0, 3.5)))
+                                blender_object = self.attach_dupli_group(blender_empty_object, layers, fpx_model_name_base, "model_base")
+                                if not fpx_item.get_value("passive"):
+                                    blender_object = self.attach_dupli_group(blender_empty_object, layers, "bumperring", 'LOCAL', Vector((0.0 , 0.0, 4.0)))
+                                    self.append_chrome_material(blender_object)
+                                if fpx_item.get_value("trigger_skirt"):
+                                    blender_object = self.attach_dupli_group(blender_empty_object, layers, "bumperskirt", 'LOCAL', Vector((0.0 , 0.0, 3.5)))
 
+                            """
                             fpx_model_name_start = fpx_item.get_value("model_start")
                             if fpx_model_name_start:
-                                self.attach_dupli_group(blender_empty_object, layers, fpx_model_name_start, "model_start")
+                                blender_object = self.attach_dupli_group(blender_empty_object, layers, fpx_model_name_start, "model_start")
+                                self.append_chrome_material(blender_object)
 
                             fpx_model_name_end = fpx_item.get_value("model_end")
                             if fpx_model_name_end:
-                                self.attach_dupli_group(blender_empty_object, layers, fpx_model_name_end, "model_end")
+                                blender_object = self.attach_dupli_group(blender_empty_object, layers, fpx_model_name_end, "model_end")
+                                self.append_chrome_material(blender_object)
+                            """
 
                             if fpx_id == FptElementType.RUBBER_ROUND:
                                 blender_object = self.CreateRubberRound(fpx_item, fpx_item_name, layers, fpx_position_xy, fpx_position_z)
@@ -844,7 +877,8 @@ class FptImporter():
                             ## #DEBUG : light dummies
                             if fpx_id in FptElementType.SET_LIGHT_OBJECTS: # and not blender_empty_object.children:
                                 if ops.mesh.primitive_ico_sphere_add.poll():
-                                    blender_object = ops.mesh.primitive_ico_sphere_add(subdivisions=2, size=self.debug_lightball_size, location=blender_empty_object.location + Vector((0.0, 0.0, self.debug_lightball_height)), layers=FptImporter.LAYERS_LIGHT_SPHERE)
+                                    ops.mesh.primitive_ico_sphere_add(subdivisions=2, size=self.debug_lightball_size, location=blender_empty_object.location + Vector((0.0, 0.0, self.debug_lightball_height)), layers=FptImporter.LAYERS_LIGHT_SPHERE)
+                                    self.append_light_material(self.__context.active_object)
 
                     # cleanup
                     if not self.keep_temp:
@@ -915,8 +949,18 @@ class FptImporter():
 
         return {"FINISHED"}
 
-    def append_texture_material(self, blender_object, fpx_image_name, uv_layer=None):
+    def append_texture_material(self, blender_object, fpx_image_name, light_on=True, uv_layer=None):
+        if not blender_object:
+            return
+        if blender_object.type not in {'MESH', 'CURVE', }:
+            for child in blender_object.children:
+                self.append_texture_material(child, fpx_image_name, light_on, uv_layer)
+            return
+
         fpx_image_object = self.fpx_images.get(fpx_image_name)
+        if not fpx_image_object:
+            fpx_image_name = FpxUtilities.toGoodName(fpx_image_name)
+            fpx_image_object = self.fpx_images.get(fpx_image_name)
         if fpx_image_object:
             blender_image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
             if blender_image:
@@ -928,14 +972,18 @@ class FptImporter():
                 if not blender_material:
                     print("#DEBUG create material", bm_name)
                     blender_material = self.__blend_data.materials.new(bm_name)
-                    blender_material.use_transparency = True
-                    blender_material.use_raytrace = False
-                    blender_material.use_transparent_shadows = True
-                    blender_material.alpha = 0.0
                     render_engine = self.__context.scene.render.engine
 
                     #blender internal
                     self.__context.scene.render.engine = 'BLENDER_RENDER'
+                    blender_material.use_transparency = True
+                    #blender_material.use_raytrace = False # Material | Options | Traceable
+                    blender_material.use_transparent_shadows = True
+                    blender_material.alpha = 0.0
+                    #blender_material.use_shadeless = True #DEBUG
+                    if light_on:
+                        blender_material.emit = 1.0
+
                     if uv_layer:
                         bt_name = "uv_{}".format(FORMAT_TEXTURE.format(fpx_image_name))
                     else:
@@ -951,7 +999,6 @@ class FptImporter():
                     if uv_layer:
                         tex_slot.texture_coords = 'UV'
                         tex_slot.uv_layer = uv_layer
-                    #blender_material.use_shadeless = True #DEBUG
 
                     # blender cycles
                     self.__context.scene.render.engine = 'CYCLES'
@@ -962,15 +1009,22 @@ class FptImporter():
                     nodes.clear()
                     node0 = nodes.new('ShaderNodeOutputMaterial')
                     node1 = nodes.new('ShaderNodeMixShader')
-                    node2 = nodes.new('ShaderNodeBsdfTranslucent')
-                    node2.inputs['Color'].default_value = (1.0, 1.0, 1.0, 1.0)
-                    node3 = nodes.new('ShaderNodeBsdfGlossy')
-                    node3.inputs['Roughness'].default_value = 0.25
-                    node4 = nodes.new('ShaderNodeTexImage')
-                    node4.image = blender_image
-                    node5 = nodes.new('ShaderNodeTexCoord')
+                    node2 = nodes.new('ShaderNodeBsdfTransparent')
+                    node3 = nodes.new('ShaderNodeAddShader')
+                    node4 = nodes.new('ShaderNodeEmission')
+                    if light_on:
+                        node4.inputs['Strength'].default_value = 1.0
+                    else:
+                        node4.inputs['Strength'].default_value = 0.0
+                    node5 = nodes.new('ShaderNodeBsdfGlossy')
+                    node5.inputs['Roughness'].default_value = 0.25
+                    node6 = nodes.new('ShaderNodeTexImage')
+                    node6.image = blender_image
+                    node7 = nodes.new('ShaderNodeTexCoord')
 
-                    node5.location = (0.0, 0.0)
+                    node7.location = (0.0, 0.0)
+                    node6.location = (node7.location.x + node7.width + gap, 0.0)
+                    node5.location = (node6.location.x + node6.width + gap, 0.0)
                     node4.location = (node5.location.x + node5.width + gap, 0.0)
                     node3.location = (node4.location.x + node4.width + gap, 0.0)
                     node2.location = (node3.location.x + node3.width + gap, 0.0)
@@ -978,14 +1032,17 @@ class FptImporter():
                     node0.location = (node1.location.x + node1.width + gap, 0.0)
 
                     link1_0 = links.new(node1.outputs['Shader'], node0.inputs['Surface'])
-                    link4_1a = links.new(node4.outputs['Alpha'], node1.inputs[0]) # Fac
+                    link6_1a = links.new(node6.outputs['Alpha'], node1.inputs[0]) # Fac
                     link2_1b = links.new(node2.outputs['BSDF'], node1.inputs[1]) # 1'st Shader
-                    link3_1c = links.new(node3.outputs['BSDF'], node1.inputs[2]) # 2'nd Shader
-                    link4_3 = links.new(node4.outputs['Color'], node3.inputs['Color'])
+                    link3_1c = links.new(node3.outputs['Shader'], node1.inputs[2]) # 2'nd Shader
+                    link4_3a = links.new(node4.outputs['Emission'], node3.inputs[0]) # 1'st Shader
+                    link5_3b = links.new(node5.outputs['BSDF'], node3.inputs[1]) # 2'nd Shader
+                    link6_4 = links.new(node6.outputs['Color'], node4.inputs['Color'])
+                    link6_5 = links.new(node6.outputs['Color'], node5.inputs['Color'])
                     if uv_layer:
-                        link5_4 = links.new(node5.outputs['UV'], node4.inputs['Vector'])
+                        link7_6 = links.new(node7.outputs['UV'], node6.inputs['Vector'])
                     else:
-                        link5_4 = links.new(node5.outputs['Generated'], node4.inputs['Vector'])
+                        link7_6 = links.new(node7.outputs['Generated'], node6.inputs['Vector'])
                     if render_engine != 'CYCLES':
                         blender_material.use_nodes = False
 
@@ -997,7 +1054,176 @@ class FptImporter():
 
                     self.__context.scene.render.engine = render_engine
 
-                blender_object.data.materials.append(blender_material)
+                if not blender_object.data.materials.get(bm_name):
+                    blender_object.data.materials.append(blender_material)
+
+    def append_chrome_material(self, blender_object, color=(1.0, 1.0, 1.0, 1.0)):
+        if not blender_object:
+            return
+        if blender_object.type not in {'MESH', 'CURVE', }:
+            for child in blender_object.children:
+                self.append_chrome_material(child)
+            return
+
+        bm_name = FORMAT_MATERIAL.format("chrome")
+        blender_material = self.__blend_data.materials.get(bm_name)
+        if not blender_material:
+            print("#DEBUG create material", bm_name)
+            blender_material = self.__blend_data.materials.new(bm_name)
+            render_engine = self.__context.scene.render.engine
+
+            #blender internal
+            self.__context.scene.render.engine = 'BLENDER_RENDER'
+            blender_material.diffuse_color=color[:3]
+            blender_material.specular_color=color[:3]
+            blender_material.specular_shader = 'WARDISO'
+            blender_material.specular_hardness = 128
+            blender_material.specular_slope = 0.020
+            blender_material.raytrace_mirror.use = True
+            blender_material.raytrace_mirror.reflect_factor = 1.0
+
+            # blender cycles
+            self.__context.scene.render.engine = 'CYCLES'
+            blender_material.use_nodes = True
+            nodes = blender_material.node_tree.nodes
+            links = blender_material.node_tree.links
+            gap = 50.0
+            nodes.clear()
+            node0 = nodes.new('ShaderNodeOutputMaterial')
+            node1 = nodes.new('ShaderNodeBsdfGlossy')
+            node1.inputs['Roughness'].default_value = 0.0
+            node1.inputs['Color'].default_value = color
+
+            node1.location = (0.0, 0.0)
+            node0.location = (node1.location.x + node1.width + gap, 0.0)
+
+            link1_0 = links.new(node1.outputs['BSDF'], node0.inputs['Surface'])
+            if render_engine != 'CYCLES':
+                blender_material.use_nodes = False
+
+            """
+            # blender game
+            self.__context.scene.render.engine = 'BLENDER_GAME'
+            #TODO
+            """
+
+            self.__context.scene.render.engine = render_engine
+
+        if not blender_object.data.materials.get(bm_name):
+            blender_object.data.materials.append(blender_material)
+
+    def append_christal_material(self, blender_object, color=(0.5, 0.5, 0.5, 1.0)):
+        if not blender_object:
+            return
+        if blender_object.type not in {'MESH', 'CURVE', }:
+            for child in blender_object.children:
+                self.append_chrome_material(child)
+            return
+
+        bm_name = FORMAT_MATERIAL.format("christal")
+        blender_material = self.__blend_data.materials.get(bm_name)
+        if not blender_material:
+            print("#DEBUG create material", bm_name)
+            blender_material = self.__blend_data.materials.new(bm_name)
+            render_engine = self.__context.scene.render.engine
+
+            #blender internal
+            self.__context.scene.render.engine = 'BLENDER_RENDER'
+            blender_material.diffuse_color=color[:3]
+            blender_material.specular_color=color[:3]
+            blender_material.specular_shader = 'WARDISO'
+            blender_material.specular_hardness = 128
+            blender_material.specular_slope = 0.020
+            blender_material.raytrace_mirror.use = True
+            blender_material.raytrace_mirror.reflect_factor = 1.0
+            blender_material.raytrace_mirror.fresnel = 4.0
+            blender_material.use_transparency = True
+            blender_material.transparency_method = 'RAYTRACE'
+            blender_material.raytrace_transparency.ior = 1.45
+            blender_material.raytrace_transparency.fresnel = 4.0
+            blender_material.raytrace_transparency.filter = 1.0
+
+            # blender cycles
+            self.__context.scene.render.engine = 'CYCLES'
+            blender_material.use_nodes = True
+            nodes = blender_material.node_tree.nodes
+            links = blender_material.node_tree.links
+            gap = 50.0
+            nodes.clear()
+            node0 = nodes.new('ShaderNodeOutputMaterial')
+            node1 = nodes.new('ShaderNodeBsdfGlass')
+            node1.inputs['Roughness'].default_value = 0.0
+            node1.inputs['Color'].default_value = color
+
+            node1.location = (0.0, 0.0)
+            node0.location = (node1.location.x + node1.width + gap, 0.0)
+
+            link1_0 = links.new(node1.outputs['BSDF'], node0.inputs['Surface'])
+            if render_engine != 'CYCLES':
+                blender_material.use_nodes = False
+
+            """
+            # blender game
+            self.__context.scene.render.engine = 'BLENDER_GAME'
+            #TODO
+            """
+
+            self.__context.scene.render.engine = render_engine
+
+        if not blender_object.data.materials.get(bm_name):
+            blender_object.data.materials.append(blender_material)
+
+    def append_light_material(self, blender_object, color=(0.9, 0.9, 0.8, 1.0)):
+        if not blender_object:
+            return
+        if blender_object.type not in {'MESH', 'CURVE', }:
+            for child in blender_object.children:
+                self.append_chrome_material(child)
+            return
+
+        bm_name = FORMAT_MATERIAL.format("light")
+        blender_material = self.__blend_data.materials.get(bm_name)
+        if not blender_material:
+            print("#DEBUG create material", bm_name)
+            blender_material = self.__blend_data.materials.new(bm_name)
+            render_engine = self.__context.scene.render.engine
+
+            #blender internal
+            self.__context.scene.render.engine = 'BLENDER_RENDER'
+            blender_material.diffuse_color=color[:3]
+            blender_material.specular_color=color[:3]
+            blender_material.use_shadeless = True
+            blender_material.emit = 10.0
+
+            # blender cycles
+            self.__context.scene.render.engine = 'CYCLES'
+            blender_material.use_nodes = True
+            nodes = blender_material.node_tree.nodes
+            links = blender_material.node_tree.links
+            gap = 50.0
+            nodes.clear()
+            node0 = nodes.new('ShaderNodeOutputMaterial')
+            node1 = nodes.new('ShaderNodeEmission')
+            node1.inputs['Strength'].default_value = 10.0
+            node1.inputs['Color'].default_value = color
+
+            node1.location = (0.0, 0.0)
+            node0.location = (node1.location.x + node1.width + gap, 0.0)
+
+            link1_0 = links.new(node1.outputs['Emission'], node0.inputs['Surface'])
+            if render_engine != 'CYCLES':
+                blender_material.use_nodes = False
+
+            """
+            # blender game
+            self.__context.scene.render.engine = 'BLENDER_GAME'
+            #TODO
+            """
+
+            self.__context.scene.render.engine = render_engine
+
+        if not blender_object.data.materials.get(bm_name):
+            blender_object.data.materials.append(blender_material)
 
     ###########################################################################
     def CreatePinCab(self, fpx_table_data):
@@ -1057,7 +1283,7 @@ class FptImporter():
             fpx_image_object = self.fpx_images.get(texture_table)
             if fpx_image_object:
                 bmf[tex_layer].image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
-                self.append_texture_material(obj, texture_table, uv_layer.name)
+                self.append_texture_material(obj, texture_table, uv_layer=uv_layer.name)
         bm.to_mesh(mesh)
         bm.free()
 
@@ -1150,7 +1376,7 @@ class FptImporter():
             fpx_image_object = self.fpx_images.get(texture_translite)
             if fpx_image_object:
                 bmf[tex_layer].image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
-                self.append_texture_material(obj_translite, texture_translite, uv_layer.name)
+                self.append_texture_material(obj_translite, texture_translite, light_on=True, uv_layer=uv_layer.name)
         bm.to_mesh(mesh_translite)
         bm.free()
 
@@ -1161,11 +1387,15 @@ class FptImporter():
         bottom = fpx_item.get_value("bottom_height")
         cookie_cut = fpx_item.get_value("cookie_cut")
         texture = fpx_item.get_value("top_texture")
-        texture = FpxUtilities.toGoodName(texture) ####
+        sphere_map_the_top = fpx_item.get_value("sphere_map_the_top")
+        transparency = fpx_item.get_value("transparency")
 
         obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
-        if texture:
+        if texture and not sphere_map_the_top:
             self.append_texture_material(obj, texture)
+        elif transparency:
+            self.append_christal_material(obj)
+
         if cookie_cut:
             cu.use_auto_texspace = False
             cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
@@ -1275,6 +1505,7 @@ class FptImporter():
         width = fpx_item.get_value("width")
 
         obj, cu, act_spline = self.create_curve(name, layers, self.resolution_wire)
+        self.append_chrome_material(obj)
 
         if height is None:
             height = 0.0
@@ -1323,10 +1554,10 @@ class FptImporter():
         width = fpx_item.get_value("width")
         cookie_cut = fpx_item.get_value("cookie_cut")
         texture = fpx_item.get_value("top_texture")
-        texture = FpxUtilities.toGoodName(texture) ####
+        sphere_map_the_top = fpx_item.get_value("sphere_map_the_top")
 
         obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
-        if texture:
+        if texture and not sphere_map_the_top:
             self.append_texture_material(obj, texture)
         if cookie_cut:
             cu.use_auto_texspace = False
@@ -1355,15 +1586,8 @@ class FptImporter():
         diameter = fpx_item.get_value("diameter")
         cookie_cut = fpx_item.get_value("cookie_cut")
         texture = fpx_item.get_value("lens_texture")
-        texture = FpxUtilities.toGoodName(texture) ####
 
         obj, cu, spline = self.create_curve(name, layers, self.resolution_shape)
-        if texture:
-            self.append_texture_material(obj, texture)
-        if cookie_cut:
-            cu.use_auto_texspace = False
-            cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
-            cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
 
         modifier_edge_split = obj.modifiers.new("edge_split", type='EDGE_SPLIT')
 
@@ -1389,20 +1613,29 @@ class FptImporter():
         cu.dimensions = '2D'
 
         obj.location = Vector((obj.location.x, obj.location.y, surface))
+
+        if texture:
+            self.append_texture_material(obj, texture, light_on=True)
+            if cookie_cut:
+                cu.use_auto_texspace = False
+                cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+                cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+        else:
+            self.append_texture_material(obj, DEFAULT_LAMP_TEXTURE, light_on=True)
+            cu.use_auto_texspace = False
+            #obj.update_from_editmode()
+            self.__context.scene.update()
+            cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
+            size = max(obj.dimensions)
+            cu.texspace_size = (size, size, 0)
+
         return obj
 
     def CreateLightShapeable(self, fpx_item, name, layers, fpx_points, surface):
         cookie_cut = fpx_item.get_value("cookie_cut")
         texture = fpx_item.get_value("lens_texture")
-        texture = FpxUtilities.toGoodName(texture) ####
 
         obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
-        if texture:
-            self.append_texture_material(obj, texture)
-        if cookie_cut:
-            cu.use_auto_texspace = False
-            cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
-            cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
 
         modifier_edge_split = obj.modifiers.new("edge_split", type='EDGE_SPLIT')
 
@@ -1413,6 +1646,22 @@ class FptImporter():
         self.create_curve_points(act_spline, fpx_points)
 
         obj.location = Vector((obj.location.x, obj.location.y, surface))
+
+        if texture:
+            self.append_texture_material(obj, texture, light_on=True)
+            if cookie_cut:
+                cu.use_auto_texspace = False
+                cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+                cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+        else:
+            self.append_texture_material(obj, DEFAULT_LAMP_TEXTURE, light_on=True)
+            cu.use_auto_texspace = False
+            #obj.update_from_editmode()
+            self.__context.scene.update()
+            cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
+            size = max(obj.dimensions)
+            cu.texspace_size = (size, size, 0)
+
         return obj
 
     def CreateLightImage(self, fpx_item, name, layers, position_xy, surface):
@@ -1450,12 +1699,12 @@ class FptImporter():
         if image_list:
             image_list_data = self.fpx_image_lists.get(image_list)
             if image_list_data:
-                fpx_image_name = image_list_data[0] # -1 for light on
+                fpx_image_name = image_list_data[-1] # -1 for light on, 0 for light off
                 fpx_image_name = FpxUtilities.toGoodName(fpx_image_name) ####
                 fpx_image_object = self.fpx_images.get(fpx_image_name)
                 if fpx_image_object:
                     bmf[tex_layer].image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
-                    self.append_texture_material(obj, fpx_image_name, uv_layer.name)
+                    self.append_texture_material(obj, fpx_image_name, uv_layer=uv_layer.name)
         bm.to_mesh(mesh)
         bm.free()
 
@@ -1479,6 +1728,7 @@ class FptImporter():
 
         #"ramp_point"
         obj, cu, act_spline = self.create_curve(name, layers, self.resolution_wire)
+        self.append_chrome_material(obj)
 
         cu.bevel_object = wire_bevel
         cu.use_fill_caps = True
@@ -1499,7 +1749,8 @@ class FptImporter():
             blender_empty_object.fpt.name = FORMAT_EMPTY_OBJECT.format(FORMAT_MODEL_START.format(name))
             if fpx_id:
                 blender_empty_object.fpt.id = FptElementType.VALUE_INT_TO_NAME.get(fpx_id)
-            self.attach_dupli_group(blender_empty_object, FptImporter.LAYERS_WIRE_RING, model_name_start, "model_start")
+            blender_object = self.attach_dupli_group(blender_empty_object, FptImporter.LAYERS_WIRE_RING, model_name_start, "model_start")
+            self.append_chrome_material(blender_object)
             blender_empty_object.layers = FptImporter.LAYERS_WIRE_RING
 
         # ramp end
@@ -1515,7 +1766,8 @@ class FptImporter():
             blender_empty_object.fpt.name = FORMAT_EMPTY_OBJECT.format(FORMAT_MODEL_END.format(name))
             if fpx_id:
                 blender_empty_object.fpt.id = FptElementType.VALUE_INT_TO_NAME.get(fpx_id)
-            self.attach_dupli_group(blender_empty_object, FptImporter.LAYERS_WIRE_RING, model_name_end, "model_end")
+            blender_object = self.attach_dupli_group(blender_empty_object, FptImporter.LAYERS_WIRE_RING, model_name_end, "model_end")
+            self.append_chrome_material(blender_object)
             blender_empty_object.layers = FptImporter.LAYERS_WIRE_RING
 
         # create rings
@@ -1614,7 +1866,8 @@ class FptImporter():
             blender_empty_object.fpt.name = FORMAT_MODEL_RING.format(name, index)
             if fpx_id:
                 blender_empty_object.fpt.id = FptElementType.VALUE_INT_TO_NAME.get(fpx_id)
-            self.attach_dupli_group(blender_empty_object, FptImporter.LAYERS_WIRE_RING, raw_model_name, 'LOCAL')
+            blender_object = self.attach_dupli_group(blender_empty_object, FptImporter.LAYERS_WIRE_RING, raw_model_name, 'LOCAL')
+            self.append_chrome_material(blender_object)
             blender_empty_object.layers = FptImporter.LAYERS_WIRE_RING
 
         #cu.splines[0].type = 'NURBS' # looks better for wires
@@ -1640,6 +1893,7 @@ class FptImporter():
             sub_name = "{}_{}_{}".format(name, wire_index, point_index-1)
 
             obj, cu, spline = self.create_curve(sub_name, layers, self.resolution_wire)
+            self.append_chrome_material(obj)
             obj.fpt.name = sub_name
             obj.parent = parent_obj
             cu.bevel_object = wire_bevel
@@ -2029,9 +2283,10 @@ class FptImporter():
         return -90 - value
 
     def attach_dupli_group(self, blender_empty_object, layers, fpx_model_name, fpx_type_name, offset=Vector(), angle=0):
+        blender_empty_object_new = None
         fpx_model_name = FpxUtilities.toGoodName(fpx_model_name) ####
         if fpx_model_name in self.debug_missing_resources:
-            return
+            return blender_empty_object_new
 
         if fpx_type_name == 'RAW':
             blender_group_name = FpxUtilities.toGoodName(FORMAT_GROUP.format(fpx_model_name))
@@ -2045,30 +2300,71 @@ class FptImporter():
                 if self.verbose in FpxUI.VERBOSE_NORMAL:
                     print("#DEBUG attach_dupli_group, fpx_pinmodel not found!", fpx_model_name, fpx_type_name)
                     self.debug_missing_resources.add(fpx_model_name)
-                return
+                return blender_empty_object_new
             blender_group_name = fpx_model_object[self.BLENDER_OBJECT_NAME]
 
-        if self.__blend_data.groups.get(blender_group_name):
-            blender_empty_object_new = self.__blend_data.objects.new(FORMAT_DUPLI_OBJECT.format(blender_empty_object.name), None)
-            blender_empty_object_new.location = offset
+        blender_group = self.__blend_data.groups.get(blender_group_name)
+        if blender_group:
+            old_mesh = None
+            old_object = None
+            for o in blender_group.objects:
+                if o.type == 'MESH':
+                    old_object = o
+                    old_mesh = old_object.data
+
+            blender_empty_object_new = self.__blend_data.objects.new(FORMAT_DUPLI_OBJECT.format(blender_empty_object.name), old_mesh)
+            blender_empty_object_new.location = old_object.parent.location + old_object.location + offset
             blender_empty_object_new.rotation_mode = blender_empty_object.rotation_mode
             blender_empty_object_new.rotation_euler = Euler((0, 0, radians(angle)), blender_empty_object.rotation_mode)
             blender_empty_object_new.empty_draw_type = blender_empty_object.empty_draw_type
             blender_empty_object_new.empty_draw_size = blender_empty_object.empty_draw_size
             self.__context.scene.objects.link(blender_empty_object_new)
 
+            old_group_dict = {}
+            for old_vert in old_mesh.vertices:
+                for group in old_vert.groups:
+                    group_index = group.group
+                    old_vertex_index_list = old_group_dict.get(group_index)
+                    if not old_vertex_index_list:
+                        old_vertex_index_list = []
+                        old_group_dict[group_index] = old_vertex_index_list
+                    old_vertex_index_list.append(old_vert.index)
+            for old_group in old_object.vertex_groups:
+                new_group = blender_empty_object_new.vertex_groups.new(old_group.name)
+                old_vertex_index_list = old_group_dict[old_group.index]
+                new_group.add(old_vertex_index_list, 0.0, 'ADD')
+
+            for old_modifier in old_object.modifiers.values():
+                new_modifier = blender_empty_object_new.modifiers.new(name=old_modifier.name, type=old_modifier.type)
+                for attr in dir(old_modifier):
+                    try:
+                        setattr(new_modifier, attr, getattr(old_modifier, attr))
+                    except:
+                        pass
+
             blender_empty_object_new.parent = blender_empty_object
 
-            blender_empty_object_new.dupli_type = 'GROUP'
-            blender_empty_object_new.dupli_group = self.__blend_data.groups[blender_group_name]
-
+            #blender_empty_object_new.dupli_type = 'GROUP'
+            #blender_empty_object_new.dupli_group = blender_group
             blender_empty_object_new.layers = layers
+            blender_empty_object_new.select = True
+            """
+            active_object = self.__context.scene.objects.active
+            self.__context.scene.objects.active = blender_empty_object_new
+            if ops.object.duplicates_make_real.poll():
+                ops.object.duplicates_make_real(use_base_parent=True, use_hierarchy=True)
+                print("#DEBUG duplicates_make_real", self.__context.scene.objects.active.name)
+            self.__context.scene.objects.active = active_object
+            """
         else:
             print("#DEBUG attach_dupli_group, blender_group not found!", fpx_model_name, fpx_type_name, blender_group_name)
             self.debug_missing_resources.add(fpx_model_name)
 
         # add name to fpt property
         blender_empty_object.fpt.add_model(fpx_type_name, fpx_model_name)
+
+        return blender_empty_object_new
+
 
     ###########################################################################
     def FpxLayerToBlenderLayers(self, layer, id=None, render=None, alpha=None, sphere_mapping=None, crystal=None, base=None):
@@ -2155,7 +2451,7 @@ class FptImporter():
             obj = self.LoadFromBlendLibrary(name, type, self.blend_resource_file)
 
         if not obj:
-            print("#DEBUG resource finally not found", name, type, lib)
+            print("#DEBUG resource finally not found", name, type)
 
         return obj
 
@@ -2291,8 +2587,9 @@ class FptImporter():
 
                 linked_path = fpx_item.get_value("linked_path").lower()
                 library_file, file_name = linked_path.split(Fpt_File_Reader.SEPARATOR)
-                library_file = FpxUtilities.toGoodName(library_file)
-                file_name = FpxUtilities.toGoodName(file_name)
+                ## "Sci-Fi Classic GFX.fpl"
+                ## library_file = FpxUtilities.toGoodName(library_file)
+                ## file_name = FpxUtilities.toGoodName(file_name)
 
                 lib_name = library_file
 
