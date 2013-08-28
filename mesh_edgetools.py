@@ -77,7 +77,7 @@ bl_info = {
     "warning": "",
     "description": "CAD style edge manipulation tools",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/EdgeTools",
-    "tracker_url": "https://blenderpython.svn.sourceforge.net/svnroot/blenderpython/scripts_library/scripts/addons_extern/mesh_edgetools.py",
+    "tracker_url": "https://svn.blender.org/svnroot/bf-extensions/contrib/py/scripts/addons/mesh_edgetools.py",
     "category": "Mesh"}
 
 import bpy, bmesh, mathutils
