@@ -1332,7 +1332,7 @@ class OBJECT_OT_materialChango(bpy.types.Operator):
             # Go to each frame in iteration and add material
             while start<=(end+(skip-1)):
                
-                bpy.ops.anim.change_frame(frame=start)
+                bpy.context.scene.frame_set(frame=start)
                 
                 # Check what colors setting is checked and run the appropriate function
                 if Btrace.mmColors=='RANDOM':
@@ -1382,7 +1382,7 @@ class OBJECT_OT_clearColorblender(bpy.types.Operator):
 
             # Remove all keyframes from diffuse_color, super sloppy need to find better way
             while start <= (end * 2):
-                bpy.ops.anim.change_frame(frame=start)
+                bpy.context.scene.frame_set(frame=start)
                 matCl.keyframe_delete('diffuse_color')
                 start += 1
             
