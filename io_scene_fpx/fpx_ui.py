@@ -931,7 +931,36 @@ class FptImportOperator(Operator, ImportHelper):
 
 
 ###############################################################################
+class FpxSetSceneToMetricOperator(Operator):
+    """ . """
+    bl_idname = 'io_scene_fpx.set_scene_to_metric'
+    bl_label = fpx_str['BL_LABEL_SET_SCENE_TO_METRIC']
+    bl_description = fpx_str['BL_DESC_SET_SCENE_TO_METRIC']
+
+
+    #
+    @classmethod
+    def poll(cls, blender_context):
+        return True
+
+    # entrypoint for option
+    def execute(self, blender_context):
+        return self.set_scene_to_metric(blender_context)
+
+    # entrypoint for option via UI
+    def invoke(self, blender_context, event):
+        return blender_context.window_manager.invoke_props_dialog(self)
+
+
+    ###########################################################################
+    def set_scene_to_metric(self, blender_context):
+        FpxUtilities.set_scene_to_metric(blender_context)
+        return {"FINISHED"}
+
+
+###############################################################################
 def register():
+    register_class(FpxSetSceneToMetricOperator)
     register_class(FptEmptyItemProperties)
     register_class(FptEmptyProperties)
     inject_properties()
@@ -940,6 +969,7 @@ def unregister():
     delete_properties()
     unregister_class(FptEmptyProperties)
     unregister_class(FptEmptyItemProperties)
+    unregister_class(FpxSetSceneToMetricOperator)
 
 def inject_properties():
     Object.fpt = PointerProperty(type=FptEmptyProperties)

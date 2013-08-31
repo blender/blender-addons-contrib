@@ -690,7 +690,7 @@ class FptImporter():
                 for key, item in self.fpx_pinmodels.items():
                     print("#DEBUG pinmodel:", key, item)
                 """
-                
+
                 # build pincab
                 self.CreatePinCab(fpx_reader.Table_Data)
 

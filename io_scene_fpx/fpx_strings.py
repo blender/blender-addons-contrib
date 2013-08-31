@@ -165,6 +165,12 @@ fpx_str = {
         'LABEL_NAME_NOT_IMPLEMENTED_1': "You have chosen an option,",
         'LABEL_NAME_NOT_IMPLEMENTED_2': "that is not implemented yet.",
 
+        'BL_LABEL_SET_SCENE_TO_METRIC' : "FPx: Set Scene to 'Metric' [1 mm]",
+        'BL_DESC_SET_SCENE_TO_METRIC' : "set Scene | Units to Metric"\
+                " (1 Unit = 1 mm),"\
+                " Display | Textured Solid,"\
+                " View | Clip (0.001 mm ... 1 km)",
+
         'PROP_NAME_': "Name",
         'PROP_DESC_': "Description",
         # fpx_str['']
