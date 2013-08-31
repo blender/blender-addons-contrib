@@ -680,6 +680,7 @@ class FptImporter():
                 self.fpx_pinmodels = {}
                 self.GetLinked(fpx_reader.PinModel, self.fpx_pinmodels, Fpt_PackedLibrary_Type.TYPE_MODEL, dst_sub_path_names)
 
+                """
                 for key, item in self.fpx_images.items():
                     print("#DEBUG image:", key, item)
 
@@ -688,7 +689,8 @@ class FptImporter():
 
                 for key, item in self.fpx_pinmodels.items():
                     print("#DEBUG pinmodel:", key, item)
-
+                """
+                
                 # build pincab
                 self.CreatePinCab(fpx_reader.Table_Data)
 
@@ -832,7 +834,7 @@ class FptImporter():
                                     else:
                                         texture = fpx_item.get_value("texture")
                                         if texture:
-                                            print("#DEBUG texture", texture)
+                                            #print("#DEBUG texture", texture)
                                             self.append_texture_material(blender_object, texture, light_on=(fpx_id not in FptElementType.SET_LIGHT_OBJECTS), uv_layer="ms3d_uv_layer")
 
 
@@ -851,18 +853,6 @@ class FptImporter():
                                     self.append_chrome_material(blender_object)
                                 if fpx_item.get_value("trigger_skirt"):
                                     blender_object = self.attach_dupli_group(blender_empty_object, layers, "bumperskirt", 'LOCAL', Vector((0.0 , 0.0, 3.5)))
-
-                            """
-                            fpx_model_name_start = fpx_item.get_value("model_start")
-                            if fpx_model_name_start:
-                                blender_object = self.attach_dupli_group(blender_empty_object, layers, fpx_model_name_start, "model_start")
-                                self.append_chrome_material(blender_object)
-
-                            fpx_model_name_end = fpx_item.get_value("model_end")
-                            if fpx_model_name_end:
-                                blender_object = self.attach_dupli_group(blender_empty_object, layers, fpx_model_name_end, "model_end")
-                                self.append_chrome_material(blender_object)
-                            """
 
                             if fpx_id == FptElementType.RUBBER_ROUND:
                                 blender_object = self.CreateRubberRound(fpx_item, fpx_item_name, layers, fpx_position_xy, fpx_position_z)
@@ -971,7 +961,7 @@ class FptImporter():
                     bm_name = "gen_{}".format(FORMAT_MATERIAL.format(fpx_image_name))
                 blender_material = self.__blend_data.materials.get(bm_name)
                 if not blender_material:
-                    print("#DEBUG create material", bm_name)
+                    #print("#DEBUG create material", bm_name)
                     blender_material = self.__blend_data.materials.new(bm_name)
                     render_engine = self.__context.scene.render.engine
 
@@ -991,7 +981,7 @@ class FptImporter():
                         bt_name = "gen_{}".format(FORMAT_TEXTURE.format(fpx_image_name))
                     blender_texture = self.__blend_data.textures.get(bt_name)
                     if not blender_texture:
-                        print("#DEBUG create texture", bt_name)
+                        #print("#DEBUG create texture", bt_name)
                         blender_texture = self.__blend_data.textures.new(bt_name, 'IMAGE')
                         blender_texture.image = blender_image
                     tex_slot = blender_material.texture_slots.create(0)
@@ -1069,7 +1059,7 @@ class FptImporter():
         bm_name = FORMAT_MATERIAL.format("chrome")
         blender_material = self.__blend_data.materials.get(bm_name)
         if not blender_material:
-            print("#DEBUG create material", bm_name)
+            #print("#DEBUG create material", bm_name)
             blender_material = self.__blend_data.materials.new(bm_name)
             render_engine = self.__context.scene.render.engine
 
@@ -1124,7 +1114,7 @@ class FptImporter():
         bm_name = FORMAT_MATERIAL.format("christal")
         blender_material = self.__blend_data.materials.get(bm_name)
         if not blender_material:
-            print("#DEBUG create material", bm_name)
+            #print("#DEBUG create material", bm_name)
             blender_material = self.__blend_data.materials.new(bm_name)
             render_engine = self.__context.scene.render.engine
 
@@ -1185,7 +1175,7 @@ class FptImporter():
         bm_name = FORMAT_MATERIAL.format("light")
         blender_material = self.__blend_data.materials.get(bm_name)
         if not blender_material:
-            print("#DEBUG create material", bm_name)
+            #print("#DEBUG create material", bm_name)
             blender_material = self.__blend_data.materials.new(bm_name)
             render_engine = self.__context.scene.render.engine
 
