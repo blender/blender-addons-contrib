@@ -20,7 +20,7 @@ bl_info = {
     "name": "Btrace",
     "author": "liero, crazycourier, Atom, Meta-Androcto, MacKracken",
     "version": (1, 1, ),
-    "blender": (2, 62, 0),
+    "blender": (2, 68, 0),
     "location": "View3D > Tools",
     "description": "Tools for converting/animating objects/particles into curves",
     "warning": "Still under development, bug reports appreciated",
@@ -1213,11 +1213,6 @@ class OBJECT_OT_meshfollow(bpy.types.Operator):
 ###################################################################
 
 def addtracemat(matobj):
-    # Need to add cycles or BI render material options
-    # if engine == 'CYCLES':
-        # Add cycles mat
-    # if engine == 'BLENDER_RENDER':
-        # Add blender interal mat
     matslots = bpy.context.object.data.materials.items()  # Check if a material exists, skip if it does
     if len(matslots) < 1:  # Make sure there is only one material slot
         engine = bpy.context.scene.render.engine
@@ -1248,8 +1243,17 @@ def addtracemat(matobj):
                 mat_color = Btrace.trace_mat_color
             # mat_color = Btrace.trace_mat_color
             TraceMat = bpy.data.materials.new('TraceMat')
-            TraceMat.diffuse_color = mat_color
-            TraceMat.specular_intensity = 0.5
+            # add cycles or BI render material options
+            if engine == 'CYCLES':
+                TraceMat.use_nodes = True
+                Diffuse_BSDF = TraceMat.node_tree.nodes['Diffuse BSDF']
+                r, g, b = mat_color[0], mat_color[1], mat_color[2]
+                Diffuse_BSDF.inputs[0].default_value = [r, g, b, 1]
+                TraceMat.diffuse_color = mat_color
+            else:
+                TraceMat.diffuse_color = mat_color
+                TraceMat.specular_intensity = 0.5
+            # Add material to object
             matobj.materials.append(bpy.data.materials.get(TraceMat.name))
 
         else:  # Run color blender operator
@@ -1281,49 +1285,102 @@ class OBJECT_OT_materialChango(bpy.types.Operator):
         greenblueColors = [Btrace.greenblueColor1, Btrace.greenblueColor2, Btrace.greenblueColor3]
 
         colorList = Btrace.mmColors
+        engine = bpy.context.scene.render.engine
 
         # Go through each selected object and run the operator
         for i in colorObjects:
             theObj = i
             # Check to see if object has materials
             checkMaterials = len(theObj.data.materials)
-            if checkMaterials == 0:
-                # Add a material
+            if engine == 'CYCLES':
                 materialName = "colorblendMaterial"
                 madMat = bpy.data.materials.new(materialName)
-                theObj.data.materials.append(madMat)
-            else:                
-                pass # pass since we have what we need
+                madMat.use_nodes = True
+                if checkMaterials == 0:
+                    theObj.data.materials.append(madMat)
+                else:
+                    theObj.material_slots[0].material = madMat
+            else: # This is internal
+                if checkMaterials == 0:
+                    # Add a material
+                    materialName = "colorblendMaterial"
+                    madMat = bpy.data.materials.new(materialName)
+                    theObj.data.materials.append(madMat)
+                else:                
+                    pass # pass since we have what we need
+                # assign the first material of the object to "mat"
+                madMat = theObj.data.materials[0] 
                 
-            # assign the first material of the object to "mat"
-            mat = theObj.data.materials[0] 
 
             # Numbers of frames to skip between keyframes
             skip = Btrace.mmSkip
 
+
             # Random material function
             def colorblenderRandom():
-                for crazyNumber in range(3):
-                    mat.diffuse_color[crazyNumber] = random.random()
+                randomRGB = (random.random(), random.random(), random.random())
+                if engine == 'CYCLES':
+                    Diffuse_BSDF = madMat.node_tree.nodes['Diffuse BSDF']
+                    mat_color = randomRGB
+                    r, g, b = mat_color[0], mat_color[1], mat_color[2]
+                    Diffuse_BSDF.inputs[0].default_value = [r, g, b, 1]
+                    madMat.diffuse_color = mat_color
+                else:
+                    madMat.diffuse_color = randomRGB
             
             def colorblenderCustom():
-                mat.diffuse_color = random.choice(customColors)
+                if engine == 'CYCLES':
+                    Diffuse_BSDF = madMat.node_tree.nodes['Diffuse BSDF']
+                    mat_color = random.choice(customColors)
+                    r, g, b = mat_color[0], mat_color[1], mat_color[2]
+                    Diffuse_BSDF.inputs[0].default_value = [r, g, b, 1]
+                    madMat.diffuse_color = mat_color
+                else:
+                    madMat.diffuse_color = random.choice(customColors)
                 
             # Black and white color        
             def colorblenderBW():
-                mat.diffuse_color = random.choice(bwColors)
+                if engine == 'CYCLES':
+                    Diffuse_BSDF = madMat.node_tree.nodes['Diffuse BSDF']
+                    mat_color = random.choice(bwColors)
+                    r, g, b = mat_color[0], mat_color[1], mat_color[2]
+                    Diffuse_BSDF.inputs[0].default_value = [r, g, b, 1]
+                    madMat.diffuse_color = mat_color
+                else:
+                    madMat.diffuse_color = random.choice(bwColors)
             
             # Bright colors
             def colorblenderBright():
-                mat.diffuse_color = random.choice(brightColors)
+                if engine == 'CYCLES':
+                    Diffuse_BSDF = madMat.node_tree.nodes['Diffuse BSDF']
+                    mat_color = random.choice(brightColors)
+                    r, g, b = mat_color[0], mat_color[1], mat_color[2]
+                    Diffuse_BSDF.inputs[0].default_value = [r, g, b, 1]
+                    madMat.diffuse_color = mat_color
+                else:
+                    madMat.diffuse_color = random.choice(brightColors)
                 
             # Earth Tones
             def colorblenderEarth():
-                mat.diffuse_color = random.choice(earthColors)
+                if engine == 'CYCLES':
+                    Diffuse_BSDF = madMat.node_tree.nodes['Diffuse BSDF']
+                    mat_color = random.choice(earthColors)
+                    r, g, b = mat_color[0], mat_color[1], mat_color[2]
+                    Diffuse_BSDF.inputs[0].default_value = [r, g, b, 1]
+                    madMat.diffuse_color = mat_color
+                else:
+                    madMat.diffuse_color = random.choice(earthColors)
                 
             # Green to Blue Tones
             def colorblenderGreenBlue():
-                mat.diffuse_color = random.choice(greenblueColors)
+                if engine == 'CYCLES':
+                    Diffuse_BSDF = madMat.node_tree.nodes['Diffuse BSDF']
+                    mat_color = random.choice(greenblueColors)
+                    r, g, b = mat_color[0], mat_color[1], mat_color[2]
+                    Diffuse_BSDF.inputs[0].default_value = [r, g, b, 1]
+                    madMat.diffuse_color = mat_color
+                else:
+                    madMat.diffuse_color = random.choice(greenblueColors)
              
             # define frame start/end variables
             scn = bpy.context.scene       
@@ -1351,7 +1408,11 @@ class OBJECT_OT_materialChango(bpy.types.Operator):
                     pass
                 
                 # Add keyframe to material
-                mat.keyframe_insert('diffuse_color')
+                if engine == 'CYCLES':
+                    madMat.node_tree.nodes['Diffuse BSDF'].inputs[0].keyframe_insert('default_value')
+                    madMat.keyframe_insert('diffuse_color') # not sure if this is need, it's viewport color only
+                else:
+                    madMat.keyframe_insert('diffuse_color')
                 
                 # Increase frame number
                 start += skip
