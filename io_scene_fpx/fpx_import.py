@@ -143,6 +143,7 @@ FORMAT_MODEL_RING = "{}.ring{:02d}"
 
 #DEFAULT_LAMP_TEXTURE = "{1}.rsrc_bmp_254.i"
 DEFAULT_LAMP_TEXTURE = "rsrc_bmp_254"
+DEFAULT_LAMP_TEXTURE = "rsrc_bmp_290"
 
 TRANSLITE_OBJECT = 2
 ###############################################################################
@@ -1391,15 +1392,6 @@ class FptImporter():
         transparency = fpx_item.get_value("transparency")
 
         obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
-        if texture and not sphere_map_the_top:
-            self.append_texture_material(obj, texture)
-        elif transparency:
-            self.append_christal_material(obj)
-
-        if cookie_cut:
-            cu.use_auto_texspace = False
-            cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
-            cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
 
         modifier_edge_split = obj.modifiers.new("edge_split", type='EDGE_SPLIT')
 
@@ -1414,6 +1406,21 @@ class FptImporter():
         self.create_curve_points(act_spline, fpx_points)
 
         obj.location = Vector((obj.location.x, obj.location.y, (top - cu.extrude)))
+        if texture and not sphere_map_the_top:
+            self.append_texture_material(obj, texture)
+        elif transparency:
+            self.append_christal_material(obj)
+
+        if cookie_cut:
+            cu.use_auto_texspace = False
+            cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+            cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+        else:
+            cu.use_auto_texspace = False
+            self.__context.scene.update()
+            cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
+            cu.texspace_size = Vector(obj.dimensions / 2.0)
+
         return obj
 
     def CreateRubberShapeable(self, fpx_item, name, layers, fpx_points, surface):
@@ -1557,12 +1564,6 @@ class FptImporter():
         sphere_map_the_top = fpx_item.get_value("sphere_map_the_top")
 
         obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
-        if texture and not sphere_map_the_top:
-            self.append_texture_material(obj, texture)
-        if cookie_cut:
-            cu.use_auto_texspace = False
-            cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
-            cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
 
         modifier_solidify = obj.modifiers.new("width", type='SOLIDIFY')
         modifier_solidify.thickness = width
@@ -1580,6 +1581,19 @@ class FptImporter():
         self.create_curve_points(act_spline, fpx_points)
 
         obj.location = Vector((obj.location.x, obj.location.y, (surface + cu.extrude)))
+
+        if texture and not sphere_map_the_top:
+            self.append_texture_material(obj, texture)
+        if cookie_cut:
+            cu.use_auto_texspace = False
+            cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+            cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+        else:
+            cu.use_auto_texspace = False
+            self.__context.scene.update()
+            cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
+            cu.texspace_size = Vector(obj.dimensions / 2.0)
+
         return obj
 
     def CreateLightRound(self, fpx_item, name, layers, position_xy, surface):
@@ -1620,6 +1634,11 @@ class FptImporter():
                 cu.use_auto_texspace = False
                 cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
                 cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+            else:
+                cu.use_auto_texspace = False
+                self.__context.scene.update()
+                cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
+                cu.texspace_size = Vector(obj.dimensions / 2.0)
         else:
             self.append_texture_material(obj, DEFAULT_LAMP_TEXTURE, light_on=True)
             cu.use_auto_texspace = False
@@ -1653,6 +1672,11 @@ class FptImporter():
                 cu.use_auto_texspace = False
                 cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
                 cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
+            else:
+                cu.use_auto_texspace = False
+                self.__context.scene.update()
+                cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
+                cu.texspace_size = Vector(obj.dimensions / 2.0)
         else:
             self.append_texture_material(obj, DEFAULT_LAMP_TEXTURE, light_on=True)
             cu.use_auto_texspace = False
