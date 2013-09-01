@@ -1716,7 +1716,7 @@ class FptImporter():
         if self.convert_to_mesh:
             self.apply_uv_map_from_texspace(obj, texture)
 
-        if texture and not sphere_map_the_top:
+        if texture:
             if self.convert_to_mesh:
                 self.append_texture_material(obj, texture, uv_layer='UVMap', light_on=True)
             else:
@@ -1762,7 +1762,7 @@ class FptImporter():
         if self.convert_to_mesh:
             self.apply_uv_map_from_texspace(obj, texture)
 
-        if texture and not sphere_map_the_top:
+        if texture:
             if self.convert_to_mesh:
                 self.append_texture_material(obj, texture, uv_layer='UVMap', light_on=True)
             else:
