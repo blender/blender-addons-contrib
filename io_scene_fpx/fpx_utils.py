@@ -38,28 +38,8 @@ from bpy import (
 
 class FpxUtilities:
 
-    TAG_NAME = "raw_dump"
-
     ###########################################################################
-    @staticmethod
-    def toGoodName(s):
-        if not s:
-            return s
-
-        sx = []
-        for c in s:
-            if (
-                    (c != '_') and (c != '.') and
-                    (c != '[') and (c != ']') and
-                    (c != '(') and (c != ')') and
-                    (c != '{') and (c != '}') and
-                    (c < '0' or c > '9') and
-                    (c < 'A' or c > 'Z') and
-                    (c < 'a' or c > 'z')
-                    ):
-                c = '_'
-            sx.append(c)
-        return str().join(sx).lower().strip(". ")
+    TAG_NAME = "raw_dump"
 
     @staticmethod
     def str_begin_tag(value):
@@ -157,6 +137,27 @@ class FpxUtilities:
 
     ###########################################################################
     @staticmethod
+    def toGoodName(s):
+        if not s:
+            return s
+
+        sx = []
+        for c in s:
+            if (
+                    (c != '_') and (c != '.') and
+                    (c != '[') and (c != ']') and
+                    (c != '(') and (c != ')') and
+                    (c != '{') and (c != '}') and
+                    (c < '0' or c > '9') and
+                    (c < 'A' or c > 'Z') and
+                    (c < 'a' or c > 'z')
+                    ):
+                c = '_'
+            sx.append(c)
+        return str().join(sx).lower().strip(". ")
+
+    ###########################################################################
+    @staticmethod
     def enable_edit_mode(enable, blender_context):
         if blender_context.active_object is None or not blender_context.active_object.type in {'CURVE', 'MESH', 'ARMATURE', }:
             return
@@ -169,6 +170,7 @@ class FpxUtilities:
         if ops.object.mode_set.poll():
             ops.object.mode_set(mode=modeString)
 
+    ###########################################################################
     @staticmethod
     def select_all(select):
         if select:
@@ -187,6 +189,7 @@ class FpxUtilities:
 
 
     ###########################################################################
+    @staticmethod
     def set_scene_to_metric(blender_context):
         # set metrics
         blender_context.scene.unit_settings.system = 'METRIC'
@@ -220,6 +223,7 @@ class FpxUtilities:
 
 
     ###########################################################################
+    @staticmethod
     def set_scene_to_default(blender_scene):
         # set default
         blender_scene.unit_settings.system = 'NONE'

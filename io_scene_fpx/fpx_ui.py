@@ -95,7 +95,7 @@ class FpxUI:
     PROP_DEFAULT_RESOLUTION_RUBBER_BEVEL = 8
     PROP_DEFAULT_RESOLUTION_RUBBER = 8
     PROP_DEFAULT_RESOLUTION_SHAPE = 8
-    PROP_DEFAULT_CONVERT_TO_MESH = False
+    PROP_DEFAULT_CONVERT_TO_MESH = True
     PROP_DEFAULT_USE_HERMITE_HANDLE = True
 
     ###########################################################################
@@ -867,8 +867,8 @@ class FptImportOperator(Operator, ImportHelper):
 
         box = layout.box()
         box.label(fpx_str['LABEL_NAME_TABLE_OPTIONS'], icon=FpxUI.ICON_MODEL)
-        if self.convert_to_mesh:
-            NotImplemented(box)
+        #if self.convert_to_mesh:
+        #    NotImplemented(box)
         flow = box.column_flow()
         flow.prop(self, 'convert_to_mesh', icon='MOD_TRIANGULATE')
         flow = box.column_flow()

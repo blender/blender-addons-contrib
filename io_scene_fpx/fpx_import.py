@@ -948,10 +948,12 @@ class FptImporter():
                 self.append_texture_material(child, fpx_image_name, light_on, uv_layer)
             return
 
+        print("#DEBUG append_texture_material *:", fpx_image_name)
         fpx_image_object = self.fpx_images.get(fpx_image_name)
         if not fpx_image_object:
             fpx_image_name = FpxUtilities.toGoodName(fpx_image_name)
             fpx_image_object = self.fpx_images.get(fpx_image_name)
+            print("#DEBUG append_texture_material **:", fpx_image_name)
         if fpx_image_object:
             blender_image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
             if blender_image:
@@ -1163,6 +1165,67 @@ class FptImporter():
 
         if not blender_object.data.materials.get(bm_name):
             blender_object.data.materials.append(blender_material)
+
+    def apply_uv_map_from_texspace(self, blender_object, fpx_image_name):
+        box_x = blender_object.bound_box[0][0]
+        box_y = blender_object.bound_box[0][1]
+        tex_size_width = blender_object.data.texspace_size[0] * 2.0
+        tex_size_length = blender_object.data.texspace_size[1] * 2.0
+        tex_loc_x = blender_object.data.texspace_location[0]
+        tex_loc_y = blender_object.data.texspace_location[1]
+
+        offset_x = tex_size_width - 2.0 * (tex_loc_x - box_x)
+        offset_y = tex_size_length - 2.0 * (tex_loc_y - box_y)
+
+        blender_object.select = True
+        self.__context.scene.objects.active = blender_object
+        self.__context.scene.update()
+        if ops.object.convert.poll():
+            ops.object.convert()
+        else:
+            if ops.object.mode_set.poll():
+                ops.object.mode_set(mode='OBJECT')
+                print("#DEBUG ops.object.mode_set(mode='OBJECT')")
+            if ops.object.convert.poll():
+                ops.object.convert()
+                print("#DEBUG ops.object.convert()")
+
+        mesh = blender_object.data
+
+        bm = bmesh.new()
+        bm.from_mesh(mesh)
+
+        uv_layer = bm.loops.layers.uv.new("UVMap")
+        tex_layer = bm.faces.layers.tex.new(uv_layer.name)
+
+        blender_image = None
+        if fpx_image_name:
+            print("#DEBUG fpx_image_name *:", fpx_image_name)
+            fpx_image_object = self.fpx_images.get(fpx_image_name)
+            if not fpx_image_object:
+                fpx_image_name = FpxUtilities.toGoodName(fpx_image_name)
+                fpx_image_object = self.fpx_images.get(fpx_image_name)
+                print("#DEBUG fpx_image_name **:", fpx_image_name)
+            if fpx_image_object:
+                blender_image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
+            else:
+                print("#DEBUG fpx_image_name ***:", fpx_image_name, "not found")
+
+        for bmf in bm.faces:
+            for ivert, bmv in enumerate(bmf.verts):
+                u = ((0.5 * offset_x + (bmv.co[0] - box_x)) / tex_size_width)
+                v = ((0.5 * offset_y + (bmv.co[1] - box_y)) / tex_size_length)
+                while u < 0:
+                    u += 1
+                while v < 0:
+                    v += 1
+                bmf.loops[ivert][uv_layer].uv = (u, v)
+
+            if blender_image:
+                bmf[tex_layer].image = blender_image
+
+        bm.to_mesh(mesh)
+        bm.free()
 
     def append_light_material(self, blender_object, color=(0.9, 0.9, 0.8, 1.0)):
         if not blender_object:
@@ -1396,11 +1459,6 @@ class FptImporter():
         self.create_curve_points(act_spline, fpx_points)
 
         obj.location = Vector((obj.location.x, obj.location.y, (top - cu.extrude)))
-        if texture and not sphere_map_the_top:
-            self.append_texture_material(obj, texture)
-        elif transparency:
-            self.append_christal_material(obj)
-
         if cookie_cut:
             cu.use_auto_texspace = False
             cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
@@ -1410,6 +1468,17 @@ class FptImporter():
             self.__context.scene.update()
             cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
             cu.texspace_size = Vector(obj.dimensions / 2.0)
+
+        if self.convert_to_mesh:
+            self.apply_uv_map_from_texspace(obj, texture)
+
+        if texture and not sphere_map_the_top:
+            if self.convert_to_mesh:
+                self.append_texture_material(obj, texture, uv_layer='UVMap')
+            else:
+                self.append_texture_material(obj, texture)
+        elif transparency:
+            self.append_christal_material(obj)
 
         return obj
 
@@ -1572,8 +1641,6 @@ class FptImporter():
 
         obj.location = Vector((obj.location.x, obj.location.y, (surface + cu.extrude)))
 
-        if texture and not sphere_map_the_top:
-            self.append_texture_material(obj, texture)
         if cookie_cut:
             cu.use_auto_texspace = False
             cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
@@ -1583,6 +1650,15 @@ class FptImporter():
             self.__context.scene.update()
             cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
             cu.texspace_size = Vector(obj.dimensions / 2.0)
+
+        if self.convert_to_mesh:
+            self.apply_uv_map_from_texspace(obj, texture)
+
+        if texture and not sphere_map_the_top:
+            if self.convert_to_mesh:
+                self.append_texture_material(obj, texture, uv_layer='UVMap')
+            else:
+                self.append_texture_material(obj, texture)
 
         return obj
 
@@ -1619,7 +1695,6 @@ class FptImporter():
         obj.location = Vector((obj.location.x, obj.location.y, surface))
 
         if texture:
-            self.append_texture_material(obj, texture, light_on=True)
             if cookie_cut:
                 cu.use_auto_texspace = False
                 cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
@@ -1637,6 +1712,15 @@ class FptImporter():
             cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
             size = max(obj.dimensions)
             cu.texspace_size = (size, size, 0)
+
+        if self.convert_to_mesh:
+            self.apply_uv_map_from_texspace(obj, texture)
+
+        if texture and not sphere_map_the_top:
+            if self.convert_to_mesh:
+                self.append_texture_material(obj, texture, uv_layer='UVMap', light_on=True)
+            else:
+                self.append_texture_material(obj, texture, light_on=True)
 
         return obj
 
@@ -1657,7 +1741,6 @@ class FptImporter():
         obj.location = Vector((obj.location.x, obj.location.y, surface))
 
         if texture:
-            self.append_texture_material(obj, texture, light_on=True)
             if cookie_cut:
                 cu.use_auto_texspace = False
                 cu.texspace_location = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
@@ -1675,6 +1758,15 @@ class FptImporter():
             cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
             size = max(obj.dimensions)
             cu.texspace_size = (size, size, 0)
+
+        if self.convert_to_mesh:
+            self.apply_uv_map_from_texspace(obj, texture)
+
+        if texture and not sphere_map_the_top:
+            if self.convert_to_mesh:
+                self.append_texture_material(obj, texture, uv_layer='UVMap', light_on=True)
+            else:
+                self.append_texture_material(obj, texture, light_on=True)
 
         return obj
 
