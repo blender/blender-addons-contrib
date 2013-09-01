@@ -72,7 +72,7 @@ bl_info = {
     "name": "EdgeTools",
     "author": "Paul Marshall",
     "version": (0, 8),
-    "blender": (2, 64, 0),
+    "blender": (2, 68, 0),
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "warning": "",
     "description": "CAD style edge manipulation tools",
@@ -1221,7 +1221,7 @@ class Shaft(bpy.types.Operator):
                 active = bm.select_history.active
                 edges.remove(active)
                 # Get all the verts:
-                edges = order_joined_edges(edges[0])
+                # edges = order_joined_edges(edges[0])
                 verts = []
                 for e in edges:
                     if verts.count(e.verts[0]) == 0:
@@ -1327,11 +1327,11 @@ class Shaft(bpy.types.Operator):
 
             # Faces:
             # There is a problem with this right now
-            for i in range(len(edges)):
-                for j in range(numE):
-                    f = bFaces.new((newVerts[i], newVerts[i + 1],
-                                    newVerts[i + (numV * j) + 1], newVerts[i + (numV * j)]))
-                    f.normal_update()
+##            for i in range(len(edges)):
+##                for j in range(numE):
+##                    f = bFaces.new((newVerts[i], newVerts[i + 1],
+##                                    newVerts[i + (numV * j) + 1], newVerts[i + (numV * j)]))
+##                    f.normal_update()
         else:
             # Vertices:
             for i in range(numV * 2):
