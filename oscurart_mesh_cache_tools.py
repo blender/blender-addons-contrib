@@ -63,6 +63,7 @@ def OscFuncExportPc2(self):
 
     for ob in bpy.data.groups[bpy.context.scene.muu_pc2_group].objects[:]:
         pc2list = []
+        bpy.context.window_manager.progress_begin(start,end/2) #progressbar
         if ob.type == "MESH":
             with open("%s/%s.pc2" % (os.path.normpath(folderpath), ob.name), mode="wb") as file:
                 #encabezado
@@ -74,6 +75,7 @@ def OscFuncExportPc2(self):
                 obmat = ob.matrix_world
                 for frame in range((end + 1) - start):
                     print("Percentage of %s bake: %s " % (ob.name, frame / end * 100))
+                    bpy.context.window_manager.progress_update(frame / end * 100) #progressbarUpdate
                     bpy.context.scene.frame_set(frame)
                     me = bpy.data.meshes.new_from_object(
                         scene=bpy.context.scene,
@@ -104,7 +106,7 @@ def OscFuncExportPc2(self):
                     file.write(struct.pack("<3f", *frame))
                 print("%s File Compiled Write finished!" % (ob.name))
                 del(pc2list)
-
+        bpy.context.window_manager.progress_end()#progressBarClose
     print("Bake Finished!")
 
 class OscPc2ExporterBatch(bpy.types.Operator):
