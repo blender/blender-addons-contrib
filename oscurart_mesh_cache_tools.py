@@ -63,7 +63,7 @@ def OscFuncExportPc2(self):
 
     for ob in bpy.data.groups[bpy.context.scene.muu_pc2_group].objects[:]:
         pc2list = []
-        bpy.context.window_manager.progress_begin(start,end/2) #progressbar
+        bpy.context.window_manager.progress_begin(0, 100) #progressbar
         if ob.type == "MESH":
             with open("%s/%s.pc2" % (os.path.normpath(folderpath), ob.name), mode="wb") as file:
                 #encabezado
