@@ -700,12 +700,12 @@ class Fpt_Data_Reader:
         result = "".join(str_list)
         return result
 
-    def get_value(self, name):
-        v = getattr(self, "val__" + name, None)
+    def get_value(self, name, default=None):
+        v = getattr(self, "val__" + name, default)
         return v
 
-    def get_obj_value(self, name):
-        v = getattr(self, "obj__" + name, None)
+    def get_obj_value(self, name, default=None):
+        v = getattr(self, "obj__" + name, default)
         return v
 
     def read(self, stream, owner=None):

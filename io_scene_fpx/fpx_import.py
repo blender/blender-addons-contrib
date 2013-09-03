@@ -125,8 +125,9 @@ FORMAT_CURVE_OBJECT = "{}.co"
 FORMAT_ARMATURE = "{}.a"
 FORMAT_ARMATURE_OBJECT = "{}.ao"
 FORMAT_ARMATURE_NLA = "{}.an"
+FORMAT_LAMP = "{}.l"
+FORMAT_LAMP_OBJECT = "{}.lo"
 
-#FORMAT_RESOURCE = "{}\\{}"
 FORMAT_RESOURCE = "{{{}}}.{}"
 
 PREFIX_LOCAL = "1"
@@ -141,9 +142,8 @@ FORMAT_MODEL_CAP1 = "{}.cap1"
 FORMAT_MODEL_CAP2 = "{}.cap2"
 FORMAT_MODEL_RING = "{}.ring{:02d}"
 
-#DEFAULT_LAMP_TEXTURE = "{1}.rsrc_bmp_254.i"
 DEFAULT_LAMP_TEXTURE = "rsrc_bmp_254"
-DEFAULT_LAMP_TEXTURE = "rsrc_bmp_290"
+DEFAULT_SLINGHAMMER_TEXTURE = "rsrc_bmp_290"
 
 TRANSLITE_OBJECT = 2
 ###############################################################################
@@ -209,7 +209,8 @@ class FpmImporter():
         fpx_reader = None
 
         self.__context = blender_context
-        self.__blend_data = blender_context.blend_data
+        self.__data = blender_context.blend_data
+        self.__scene = blender_context.scene
 
         self.__table_width = 0.0
         self.__table_length = 0.0
@@ -294,7 +295,8 @@ class FpmImporter():
 
         finally:
             self.__context = None
-            self.__blend_data = None
+            self.__data = None
+            self.__scene = None
 
         t3 = time()
         if self.verbose in FpxUI.VERBOSE_NORMAL:
@@ -421,7 +423,9 @@ class FplImporter():
         fpx_reader = None
 
         self.__context = blender_context
-        self.__blend_data = blender_context.blend_data
+        self.__data = blender_context.blend_data
+        self.__scene = blender_context.scene
+
         active_scene = self.__context.screen.scene
 
         try:
@@ -484,7 +488,7 @@ class FplImporter():
 
                             elif type == Fpl_Library_Type.TYPE_GRAPHIC:
                                 #print("#DEBUG", type, key_name)
-                                blend_image = self.__blend_data.images.load(item_path)
+                                blend_image = self.__data.images.load(item_path)
                                 blend_image.name = FpxUtilities.toGoodName(FORMAT_RESOURCE.format(file_name, FORMAT_IMAGE.format(key_name)))
                                 blend_image.pack()
                                 blend_image.use_fake_user = True
@@ -555,7 +559,8 @@ class FplImporter():
         finally:
             self.__context.screen.scene = active_scene
             self.__context = None
-            self.__blend_data = None
+            self.__data = None
+            self.__scene = None
 
         t3 = time()
         if self.verbose in FpxUI.VERBOSE_NORMAL:
@@ -637,7 +642,8 @@ class FptImporter():
         fpx_reader = None
 
         self.__context = blender_context
-        self.__blend_data = blender_context.blend_data
+        self.__data = blender_context.blend_data
+        self.__scene = blender_context.scene
 
         try:
             try:
@@ -659,7 +665,7 @@ class FptImporter():
                 dst_path, dst_sub_path_names = fpx_reader.grab_content(temp_name)
 
                 # setup current Scene to default units
-                ##FpxUtilities.set_scene_to_default(self.__context.scene)
+                ##FpxUtilities.set_scene_to_default(self.__scene)
 
                 self.folder_name, file_name = path.split(filepath)
 
@@ -800,13 +806,13 @@ class FptImporter():
 
                             blender_position = self.geometry_correction((fpx_position_xy[0], fpx_position_xy[1], fpx_position_z))
 
-                            blender_empty_object = self.__blend_data.objects.new(FORMAT_EMPTY_OBJECT.format(fpx_item_name), None)
+                            blender_empty_object = self.__data.objects.new(FORMAT_EMPTY_OBJECT.format(fpx_item_name), None)
                             blender_empty_object.location = blender_position
                             blender_empty_object.rotation_mode = 'XZY'
                             blender_empty_object.rotation_euler = blender_rotation
                             blender_empty_object.empty_draw_type = 'ARROWS'
                             blender_empty_object.empty_draw_size = 10.0
-                            self.__context.scene.objects.link(blender_empty_object)
+                            self.__scene.objects.link(blender_empty_object)
                             blender_empty_object.layers = layers
 
                             blender_empty_object.fpt.name = fpx_item_name
@@ -867,9 +873,10 @@ class FptImporter():
 
                             ## #DEBUG : light dummies
                             if fpx_id in FptElementType.SET_LIGHT_OBJECTS: # and not blender_empty_object.children:
-                                if ops.mesh.primitive_ico_sphere_add.poll():
-                                    ops.mesh.primitive_ico_sphere_add(subdivisions=2, size=self.debug_lightball_size, location=blender_empty_object.location + Vector((0.0, 0.0, self.debug_lightball_height)), layers=FptImporter.LAYERS_LIGHT_SPHERE)
-                                    self.append_light_material(self.__context.active_object)
+                                #if ops.mesh.primitive_ico_sphere_add.poll():
+                                #    ops.mesh.primitive_ico_sphere_add(subdivisions=2, size=self.debug_lightball_size, location=blender_empty_object.location + Vector((0.0, 0.0, self.debug_lightball_height)), layers=FptImporter.LAYERS_LIGHT_SPHERE)
+                                #    self.append_light_material(self.__context.active_object)
+                                self.add_lamp(fpx_item_name, blender_empty_object.location + Vector((0.0, 0.0, self.debug_lightball_height)), layers=FptImporter.LAYERS_LIGHT_SPHERE)
 
                     # cleanup
                     if not self.keep_temp:
@@ -906,8 +913,11 @@ class FptImporter():
                         except:
                             pass
 
+                self.add_camera(fpx_reader.Table_Data)
+
                 # setup all current 3d Views of the current scene to metric units
                 FpxUtilities.set_scene_to_metric(self.__context)
+                FpxUtilities.select_all(False)
 
             if self.verbose in FpxUI.VERBOSE_NORMAL:
                 print()
@@ -931,7 +941,8 @@ class FptImporter():
 
         finally:
             self.__context = None
-            self.__blend_data = None
+            self.__data = None
+            self.__scene = None
 
         t3 = time()
         if self.verbose in FpxUI.VERBOSE_NORMAL:
@@ -940,7 +951,50 @@ class FptImporter():
 
         return {"FINISHED"}
 
-    def append_texture_material(self, blender_object, fpx_image_name, light_on=True, uv_layer=None):
+    def add_camera(self, fpx_table_data):
+        name = "Camera.table"
+        camera = self.__data.cameras.new(name)
+        obj = self.__data.objects.new(name, camera)
+        self.__scene.objects.link(obj)
+        width = fpx_table_data.get_value("width", default=0.0)
+        obj.location = (width / 2.0, -1600.0, 550.0)
+        obj.rotation_euler = (radians(63.0), 0.0, 0.0)
+        obj.select = True
+        camera.clip_end = 15000.0
+        self.__scene.camera = obj
+        self.__scene.update()
+        view_matrix = obj.matrix_world.inverted()
+        for area in self.__context.screen.areas:
+            if area.type == 'VIEW_3D':
+                for space in area.spaces:
+                    if space.type == 'VIEW_3D':
+                        space.region_3d.view_matrix = view_matrix
+
+    def add_lamp(self, name, location, layers):
+        name_lamp = FORMAT_LAMP.format(name)
+        lamp = self.__data.lamps.get(name_lamp)
+        if not lamp:
+            lamp = self.__data.lamps.new(name_lamp, 'POINT')
+            tmp_engine = self.__scene.render.engine
+            self.__scene.render.engine = 'BLENDER_RENDER'
+            #lamp.shadow_method = 'RAY_SHADOW'
+            #lamp.shadow_ray_samples = 6
+            #lamp.shadow_soft_size = 3.0
+            lamp.distance = 1000.0
+            lamp.energy = 1.0
+            lamp.use_specular = False
+            self.__scene.render.engine = 'CYCLES'
+            lamp.cycles.use_multiple_importance_sampling = True
+            lamp.use_nodes = True
+            self.__scene.render.engine = tmp_engine
+
+        obj = self.__data.objects.new(FORMAT_LAMP_OBJECT.format(name), lamp)
+        self.__scene.objects.link(obj)
+
+        obj.location = location
+        obj.layers = layers
+
+    def append_texture_material(self, blender_object, fpx_image_name, light_on=False, uv_layer=None):
         if not blender_object:
             return
         if blender_object.type not in {'MESH', 'CURVE', }:
@@ -948,27 +1002,27 @@ class FptImporter():
                 self.append_texture_material(child, fpx_image_name, light_on, uv_layer)
             return
 
-        print("#DEBUG append_texture_material *:", fpx_image_name)
+        #print("#DEBUG append_texture_material *:", fpx_image_name)
         fpx_image_object = self.fpx_images.get(fpx_image_name)
         if not fpx_image_object:
             fpx_image_name = FpxUtilities.toGoodName(fpx_image_name)
             fpx_image_object = self.fpx_images.get(fpx_image_name)
-            print("#DEBUG append_texture_material **:", fpx_image_name)
+            #print("#DEBUG append_texture_material **:", fpx_image_name)
         if fpx_image_object:
-            blender_image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
+            blender_image = self.__data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
             if blender_image:
                 if uv_layer:
                     bm_name = "uv_{}".format(FORMAT_MATERIAL.format(fpx_image_name))
                 else:
                     bm_name = "gen_{}".format(FORMAT_MATERIAL.format(fpx_image_name))
-                blender_material = self.__blend_data.materials.get(bm_name)
+                blender_material = self.__data.materials.get(bm_name)
                 if not blender_material:
                     #print("#DEBUG create material", bm_name)
-                    blender_material = self.__blend_data.materials.new(bm_name)
-                    render_engine = self.__context.scene.render.engine
+                    blender_material = self.__data.materials.new(bm_name)
+                    render_engine = self.__scene.render.engine
 
                     #blender internal
-                    self.__context.scene.render.engine = 'BLENDER_RENDER'
+                    self.__scene.render.engine = 'BLENDER_RENDER'
                     blender_material.use_transparency = True
                     #blender_material.use_raytrace = False # Material | Options | Traceable
                     blender_material.use_transparent_shadows = True
@@ -976,15 +1030,21 @@ class FptImporter():
                     #blender_material.use_shadeless = True #DEBUG
                     if light_on:
                         blender_material.emit = 1.0
+                    else:
+                        #blender_material.subsurface_scattering.use = True
+                        #blender_material.subsurface_scattering.scale = 1.0
+                        #blender_material.subsurface_scattering.radius = (5.0, 5.0, 5.0)
+                        #blender_material.subsurface_scattering.front = 0.0
+                        pass
 
                     if uv_layer:
                         bt_name = "uv_{}".format(FORMAT_TEXTURE.format(fpx_image_name))
                     else:
                         bt_name = "gen_{}".format(FORMAT_TEXTURE.format(fpx_image_name))
-                    blender_texture = self.__blend_data.textures.get(bt_name)
+                    blender_texture = self.__data.textures.get(bt_name)
                     if not blender_texture:
                         #print("#DEBUG create texture", bt_name)
-                        blender_texture = self.__blend_data.textures.new(bt_name, 'IMAGE')
+                        blender_texture = self.__data.textures.new(bt_name, 'IMAGE')
                         blender_texture.image = blender_image
                     tex_slot = blender_material.texture_slots.create(0)
                     tex_slot.texture = blender_texture
@@ -994,7 +1054,7 @@ class FptImporter():
                         tex_slot.uv_layer = uv_layer
 
                     # blender cycles
-                    self.__context.scene.render.engine = 'CYCLES'
+                    self.__scene.render.engine = 'CYCLES'
                     blender_material.use_nodes = True
                     nodes = blender_material.node_tree.nodes
                     links = blender_material.node_tree.links
@@ -1009,8 +1069,9 @@ class FptImporter():
                         node4.inputs['Strength'].default_value = 1.0
                     else:
                         node4.inputs['Strength'].default_value = 0.0
-                    node5 = nodes.new('ShaderNodeBsdfGlossy')
-                    node5.inputs['Roughness'].default_value = 0.25
+                    #node5 = nodes.new('ShaderNodeBsdfGlossy')
+                    #node5.inputs['Roughness'].default_value = 0.25
+                    node5 = nodes.new('ShaderNodeBsdfDiffuse')
                     node6 = nodes.new('ShaderNodeTexImage')
                     node6.image = blender_image
                     node7 = nodes.new('ShaderNodeTexCoord')
@@ -1041,11 +1102,11 @@ class FptImporter():
 
                     """
                     # blender game
-                    self.__context.scene.render.engine = 'BLENDER_GAME'
+                    self.__scene.render.engine = 'BLENDER_GAME'
                     #TODO
                     """
 
-                    self.__context.scene.render.engine = render_engine
+                    self.__scene.render.engine = render_engine
 
                 if not blender_object.data.materials.get(bm_name):
                     blender_object.data.materials.append(blender_material)
@@ -1059,14 +1120,14 @@ class FptImporter():
             return
 
         bm_name = FORMAT_MATERIAL.format("chrome")
-        blender_material = self.__blend_data.materials.get(bm_name)
+        blender_material = self.__data.materials.get(bm_name)
         if not blender_material:
             #print("#DEBUG create material", bm_name)
-            blender_material = self.__blend_data.materials.new(bm_name)
-            render_engine = self.__context.scene.render.engine
+            blender_material = self.__data.materials.new(bm_name)
+            render_engine = self.__scene.render.engine
 
             #blender internal
-            self.__context.scene.render.engine = 'BLENDER_RENDER'
+            self.__scene.render.engine = 'BLENDER_RENDER'
             blender_material.diffuse_color=color[:3]
             blender_material.specular_color=color[:3]
             blender_material.specular_shader = 'WARDISO'
@@ -1076,7 +1137,7 @@ class FptImporter():
             blender_material.raytrace_mirror.reflect_factor = 1.0
 
             # blender cycles
-            self.__context.scene.render.engine = 'CYCLES'
+            self.__scene.render.engine = 'CYCLES'
             blender_material.use_nodes = True
             nodes = blender_material.node_tree.nodes
             links = blender_material.node_tree.links
@@ -1096,11 +1157,11 @@ class FptImporter():
 
             """
             # blender game
-            self.__context.scene.render.engine = 'BLENDER_GAME'
+            self.__scene.render.engine = 'BLENDER_GAME'
             #TODO
             """
 
-            self.__context.scene.render.engine = render_engine
+            self.__scene.render.engine = render_engine
 
         if not blender_object.data.materials.get(bm_name):
             blender_object.data.materials.append(blender_material)
@@ -1114,14 +1175,14 @@ class FptImporter():
             return
 
         bm_name = FORMAT_MATERIAL.format("christal")
-        blender_material = self.__blend_data.materials.get(bm_name)
+        blender_material = self.__data.materials.get(bm_name)
         if not blender_material:
             #print("#DEBUG create material", bm_name)
-            blender_material = self.__blend_data.materials.new(bm_name)
-            render_engine = self.__context.scene.render.engine
+            blender_material = self.__data.materials.new(bm_name)
+            render_engine = self.__scene.render.engine
 
             #blender internal
-            self.__context.scene.render.engine = 'BLENDER_RENDER'
+            self.__scene.render.engine = 'BLENDER_RENDER'
             blender_material.diffuse_color=color[:3]
             blender_material.specular_color=color[:3]
             blender_material.specular_shader = 'WARDISO'
@@ -1137,7 +1198,7 @@ class FptImporter():
             blender_material.raytrace_transparency.filter = 1.0
 
             # blender cycles
-            self.__context.scene.render.engine = 'CYCLES'
+            self.__scene.render.engine = 'CYCLES'
             blender_material.use_nodes = True
             nodes = blender_material.node_tree.nodes
             links = blender_material.node_tree.links
@@ -1157,75 +1218,14 @@ class FptImporter():
 
             """
             # blender game
-            self.__context.scene.render.engine = 'BLENDER_GAME'
+            self.__scene.render.engine = 'BLENDER_GAME'
             #TODO
             """
 
-            self.__context.scene.render.engine = render_engine
+            self.__scene.render.engine = render_engine
 
         if not blender_object.data.materials.get(bm_name):
             blender_object.data.materials.append(blender_material)
-
-    def apply_uv_map_from_texspace(self, blender_object, fpx_image_name):
-        box_x = blender_object.bound_box[0][0]
-        box_y = blender_object.bound_box[0][1]
-        tex_size_width = blender_object.data.texspace_size[0] * 2.0
-        tex_size_length = blender_object.data.texspace_size[1] * 2.0
-        tex_loc_x = blender_object.data.texspace_location[0]
-        tex_loc_y = blender_object.data.texspace_location[1]
-
-        offset_x = tex_size_width - 2.0 * (tex_loc_x - box_x)
-        offset_y = tex_size_length - 2.0 * (tex_loc_y - box_y)
-
-        blender_object.select = True
-        self.__context.scene.objects.active = blender_object
-        self.__context.scene.update()
-        if ops.object.convert.poll():
-            ops.object.convert()
-        else:
-            if ops.object.mode_set.poll():
-                ops.object.mode_set(mode='OBJECT')
-                print("#DEBUG ops.object.mode_set(mode='OBJECT')")
-            if ops.object.convert.poll():
-                ops.object.convert()
-                print("#DEBUG ops.object.convert()")
-
-        mesh = blender_object.data
-
-        bm = bmesh.new()
-        bm.from_mesh(mesh)
-
-        uv_layer = bm.loops.layers.uv.new("UVMap")
-        tex_layer = bm.faces.layers.tex.new(uv_layer.name)
-
-        blender_image = None
-        if fpx_image_name:
-            print("#DEBUG fpx_image_name *:", fpx_image_name)
-            fpx_image_object = self.fpx_images.get(fpx_image_name)
-            if not fpx_image_object:
-                fpx_image_name = FpxUtilities.toGoodName(fpx_image_name)
-                fpx_image_object = self.fpx_images.get(fpx_image_name)
-                print("#DEBUG fpx_image_name **:", fpx_image_name)
-            if fpx_image_object:
-                blender_image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
-            else:
-                print("#DEBUG fpx_image_name ***:", fpx_image_name, "not found")
-
-        for bmf in bm.faces:
-            for ivert, bmv in enumerate(bmf.verts):
-                u = ((0.5 * offset_x + (bmv.co[0] - box_x)) / tex_size_width)
-                v = ((0.5 * offset_y + (bmv.co[1] - box_y)) / tex_size_length)
-                while u < 0:
-                    u += 1
-                while v < 0:
-                    v += 1
-                bmf.loops[ivert][uv_layer].uv = (u, v)
-
-            if blender_image:
-                bmf[tex_layer].image = blender_image
-
-        bm.to_mesh(mesh)
-        bm.free()
 
     def append_light_material(self, blender_object, color=(0.9, 0.9, 0.8, 1.0)):
         if not blender_object:
@@ -1236,21 +1236,21 @@ class FptImporter():
             return
 
         bm_name = FORMAT_MATERIAL.format("light")
-        blender_material = self.__blend_data.materials.get(bm_name)
+        blender_material = self.__data.materials.get(bm_name)
         if not blender_material:
             #print("#DEBUG create material", bm_name)
-            blender_material = self.__blend_data.materials.new(bm_name)
-            render_engine = self.__context.scene.render.engine
+            blender_material = self.__data.materials.new(bm_name)
+            render_engine = self.__scene.render.engine
 
             #blender internal
-            self.__context.scene.render.engine = 'BLENDER_RENDER'
+            self.__scene.render.engine = 'BLENDER_RENDER'
             blender_material.diffuse_color=color[:3]
             blender_material.specular_color=color[:3]
             blender_material.use_shadeless = True
             blender_material.emit = 10.0
 
             # blender cycles
-            self.__context.scene.render.engine = 'CYCLES'
+            self.__scene.render.engine = 'CYCLES'
             blender_material.use_nodes = True
             nodes = blender_material.node_tree.nodes
             links = blender_material.node_tree.links
@@ -1270,14 +1270,68 @@ class FptImporter():
 
             """
             # blender game
-            self.__context.scene.render.engine = 'BLENDER_GAME'
+            self.__scene.render.engine = 'BLENDER_GAME'
             #TODO
             """
 
-            self.__context.scene.render.engine = render_engine
+            self.__scene.render.engine = render_engine
 
         if not blender_object.data.materials.get(bm_name):
             blender_object.data.materials.append(blender_material)
+
+    def apply_uv_map_from_texspace(self, blender_object, fpx_image_name):
+        box_x = blender_object.bound_box[0][0]
+        box_y = blender_object.bound_box[0][1]
+        tex_size_width = blender_object.data.texspace_size[0] * 2.0
+        tex_size_length = blender_object.data.texspace_size[1] * 2.0
+        tex_loc_x = blender_object.data.texspace_location[0]
+        tex_loc_y = blender_object.data.texspace_location[1]
+
+        offset_x = tex_size_width - 2.0 * (tex_loc_x - box_x)
+        offset_y = tex_size_length - 2.0 * (tex_loc_y - box_y)
+
+        blender_object.select = True
+        self.__scene.objects.active = blender_object
+        self.__scene.update()
+        if ops.object.convert.poll():
+            ops.object.convert()
+
+        mesh = blender_object.data
+
+        bm = bmesh.new()
+        bm.from_mesh(mesh)
+
+        uv_layer = bm.loops.layers.uv.new("UVMap")
+        tex_layer = bm.faces.layers.tex.new(uv_layer.name)
+
+        blender_image = None
+        if fpx_image_name:
+            #print("#DEBUG fpx_image_name *:", fpx_image_name)
+            fpx_image_object = self.fpx_images.get(fpx_image_name)
+            if not fpx_image_object:
+                fpx_image_name = FpxUtilities.toGoodName(fpx_image_name)
+                fpx_image_object = self.fpx_images.get(fpx_image_name)
+                #print("#DEBUG fpx_image_name **:", fpx_image_name)
+            if fpx_image_object:
+                blender_image = self.__data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
+            else:
+                print("#DEBUG fpx_image_name ***:", fpx_image_name, "not found")
+
+        for bmf in bm.faces:
+            for ivert, bmv in enumerate(bmf.verts):
+                u = ((0.5 * offset_x + (bmv.co[0] - box_x)) / tex_size_width)
+                v = ((0.5 * offset_y + (bmv.co[1] - box_y)) / tex_size_length)
+                while u < 0:
+                    u += 1
+                while v < 0:
+                    v += 1
+                bmf.loops[ivert][uv_layer].uv = (u, v)
+
+            if blender_image:
+                bmf[tex_layer].image = blender_image
+
+        bm.to_mesh(mesh)
+        bm.free()
 
     ###########################################################################
     def CreatePinCab(self, fpx_table_data):
@@ -1307,9 +1361,9 @@ class FptImporter():
         self.__table_width = dx
         self.__table_length = dy
 
-        mesh = self.__blend_data.meshes.new(FORMAT_MESH.format(name))
-        obj = self.__blend_data.objects.new(FORMAT_MESH_OBJECT.format(name), mesh)
-        self.__context.scene.objects.link(obj)
+        mesh = self.__data.meshes.new(FORMAT_MESH.format(name))
+        obj = self.__data.objects.new(FORMAT_MESH_OBJECT.format(name), mesh)
+        self.__scene.objects.link(obj)
 
         #inner playfield
         bm = bmesh.new()
@@ -1336,15 +1390,15 @@ class FptImporter():
         if texture_table:
             fpx_image_object = self.fpx_images.get(texture_table)
             if fpx_image_object:
-                bmf[tex_layer].image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
+                bmf[tex_layer].image = self.__data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
                 self.append_texture_material(obj, texture_table, uv_layer=uv_layer.name)
         bm.to_mesh(mesh)
         bm.free()
 
-        mesh_box = self.__blend_data.meshes.new(FORMAT_MESH.format("{}.playfield".format(name)))
-        obj_box = self.__blend_data.objects.new(FORMAT_MESH_OBJECT.format("{}.playfield".format(name)), mesh_box)
+        mesh_box = self.__data.meshes.new(FORMAT_MESH.format("{}.playfield".format(name)))
+        obj_box = self.__data.objects.new(FORMAT_MESH_OBJECT.format("{}.playfield".format(name)), mesh_box)
         obj_box.parent = obj
-        self.__context.scene.objects.link(obj_box)
+        self.__scene.objects.link(obj_box)
 
         bm = bmesh.new()
         #inner back
@@ -1399,10 +1453,10 @@ class FptImporter():
         bm.free()
 
         ##
-        mesh_translite = self.__blend_data.meshes.new(FORMAT_MESH.format("{}.translite".format(name)))
-        obj_translite = self.__blend_data.objects.new(FORMAT_MESH_OBJECT.format("{}.translite".format(name)), mesh_translite)
+        mesh_translite = self.__data.meshes.new(FORMAT_MESH.format("{}.translite".format(name)))
+        obj_translite = self.__data.objects.new(FORMAT_MESH_OBJECT.format("{}.translite".format(name)), mesh_translite)
         obj_translite.parent = obj
-        self.__context.scene.objects.link(obj_translite)
+        self.__scene.objects.link(obj_translite)
 
         #inner translite
         bm = bmesh.new()
@@ -1429,7 +1483,7 @@ class FptImporter():
         if texture_translite:
             fpx_image_object = self.fpx_images.get(texture_translite)
             if fpx_image_object:
-                bmf[tex_layer].image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
+                bmf[tex_layer].image = self.__data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
                 self.append_texture_material(obj_translite, texture_translite, light_on=True, uv_layer=uv_layer.name)
         bm.to_mesh(mesh_translite)
         bm.free()
@@ -1465,7 +1519,7 @@ class FptImporter():
             cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
         else:
             cu.use_auto_texspace = False
-            self.__context.scene.update()
+            self.__scene.update()
             cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
             cu.texspace_size = Vector(obj.dimensions / 2.0)
 
@@ -1486,7 +1540,7 @@ class FptImporter():
         obj, cu, act_spline = self.create_curve(name, layers, self.resolution_shape)
 
         bevel_name = "__fpx_rubber_shapeable_bevel__"
-        rubber_bevel = self.__blend_data.objects.get(bevel_name)
+        rubber_bevel = self.__data.objects.get(bevel_name)
         if rubber_bevel is None:
             if ops.curve.primitive_bezier_circle_add.poll():
                 ops.curve.primitive_bezier_circle_add()
@@ -1512,11 +1566,11 @@ class FptImporter():
         diameter = [13.5, 18.5, 12, 44, ]
 
         bevel_name = "__fpx_guide_rubber_bevel__"
-        wire_bevel = self.__blend_data.objects.get(bevel_name)
+        wire_bevel = self.__data.objects.get(bevel_name)
         if wire_bevel is None:
-            cu0 = self.__blend_data.curves.new(bevel_name, 'CURVE')
-            wire_bevel = self.__blend_data.objects.new(bevel_name, cu0)
-            self.__context.scene.objects.link(wire_bevel)
+            cu0 = self.__data.curves.new(bevel_name, 'CURVE')
+            wire_bevel = self.__data.objects.new(bevel_name, cu0)
+            self.__scene.objects.link(wire_bevel)
             cu0.dimensions = '2D'
             cu0.resolution_u = self.resolution_rubber_bevel
 
@@ -1577,7 +1631,7 @@ class FptImporter():
             height = 0.0
         if width is not None:
             bevel_name = "__fpx_guide_wire_bevel_{}__".format(width)
-            wire_bevel = self.__blend_data.objects.get(bevel_name)
+            wire_bevel = self.__data.objects.get(bevel_name)
             if wire_bevel is None:
                 if ops.curve.primitive_bezier_circle_add.poll():
                     ops.curve.primitive_bezier_circle_add()
@@ -1607,7 +1661,7 @@ class FptImporter():
         self.create_wire_pole(cu.splines, co2, h_right2, h_left2, surface, width)
 
         # merge wire curve with pole caps
-        self.__context.scene.objects.active = obj
+        self.__scene.objects.active = obj
         self.merge_caps(cu.splines, width)
 
         cu.splines[0].type = 'NURBS' # looks better for wires
@@ -1647,7 +1701,7 @@ class FptImporter():
             cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
         else:
             cu.use_auto_texspace = False
-            self.__context.scene.update()
+            self.__scene.update()
             cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
             cu.texspace_size = Vector(obj.dimensions / 2.0)
 
@@ -1701,14 +1755,14 @@ class FptImporter():
                 cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
             else:
                 cu.use_auto_texspace = False
-                self.__context.scene.update()
+                self.__scene.update()
                 cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
                 cu.texspace_size = Vector(obj.dimensions / 2.0)
         else:
             self.append_texture_material(obj, DEFAULT_LAMP_TEXTURE, light_on=True)
             cu.use_auto_texspace = False
             #obj.update_from_editmode()
-            self.__context.scene.update()
+            self.__scene.update()
             cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
             size = max(obj.dimensions)
             cu.texspace_size = (size, size, 0)
@@ -1747,14 +1801,14 @@ class FptImporter():
                 cu.texspace_size = Vector((self.__table_width / 2.0, self.__table_length / 2.0, 0))
             else:
                 cu.use_auto_texspace = False
-                self.__context.scene.update()
+                self.__scene.update()
                 cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
                 cu.texspace_size = Vector(obj.dimensions / 2.0)
         else:
             self.append_texture_material(obj, DEFAULT_LAMP_TEXTURE, light_on=True)
             cu.use_auto_texspace = False
             #obj.update_from_editmode()
-            self.__context.scene.update()
+            self.__scene.update()
             cu.texspace_location = Vector(obj.bound_box[0]) + (obj.dimensions / 2.0)
             size = max(obj.dimensions)
             cu.texspace_size = (size, size, 0)
@@ -1776,9 +1830,9 @@ class FptImporter():
         rotation = fpx_item.get_value("rotation")
         image_list = fpx_item.get_value("image_list")
 
-        mesh = self.__blend_data.meshes.new(FORMAT_MESH.format(name))
-        obj = self.__blend_data.objects.new(FORMAT_MESH_OBJECT.format(name), mesh)
-        self.__context.scene.objects.link(obj)
+        mesh = self.__data.meshes.new(FORMAT_MESH.format(name))
+        obj = self.__data.objects.new(FORMAT_MESH_OBJECT.format(name), mesh)
+        self.__scene.objects.link(obj)
 
         z = surface + self.debug_light_extrude
         bm = bmesh.new()
@@ -1809,8 +1863,8 @@ class FptImporter():
                 fpx_image_name = FpxUtilities.toGoodName(fpx_image_name) ####
                 fpx_image_object = self.fpx_images.get(fpx_image_name)
                 if fpx_image_object:
-                    bmf[tex_layer].image = self.__blend_data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
-                    self.append_texture_material(obj, fpx_image_name, uv_layer=uv_layer.name)
+                    bmf[tex_layer].image = self.__data.images.get(fpx_image_object[self.BLENDER_OBJECT_NAME])
+                    self.append_texture_material(obj, fpx_image_name, uv_layer=uv_layer.name, light_on=True)
         bm.to_mesh(mesh)
         bm.free()
 
@@ -1844,14 +1898,14 @@ class FptImporter():
 
         # ramp start
         if model_name_start:
-            blender_empty_object = self.__blend_data.objects.new(FORMAT_EMPTY_OBJECT.format(FORMAT_MODEL_CAP1.format(name)), None)
+            blender_empty_object = self.__data.objects.new(FORMAT_EMPTY_OBJECT.format(FORMAT_MODEL_CAP1.format(name)), None)
             blender_empty_object.location = cu.splines[-1].bezier_points[0].co
             blender_empty_object.rotation_mode = 'XZY'
             v = (cu.splines[-1].bezier_points[0].handle_left - cu.splines[-1].bezier_points[0].co)
             blender_empty_object.rotation_euler = Euler((0, 0, Vector((v.x, v.y)).angle_signed(Vector((1.0, 0.0)))), 'XZY')
             blender_empty_object.empty_draw_type = 'ARROWS'
             blender_empty_object.empty_draw_size = 10.0
-            self.__context.scene.objects.link(blender_empty_object)
+            self.__scene.objects.link(blender_empty_object)
             blender_empty_object.fpt.name = FORMAT_EMPTY_OBJECT.format(FORMAT_MODEL_START.format(name))
             if fpx_id:
                 blender_empty_object.fpt.id = FptElementType.VALUE_INT_TO_NAME.get(fpx_id)
@@ -1861,14 +1915,14 @@ class FptImporter():
 
         # ramp end
         if model_name_end:
-            blender_empty_object = self.__blend_data.objects.new(FORMAT_EMPTY_OBJECT.format(FORMAT_MODEL_CAP2.format(name)), None)
+            blender_empty_object = self.__data.objects.new(FORMAT_EMPTY_OBJECT.format(FORMAT_MODEL_CAP2.format(name)), None)
             blender_empty_object.location = cu.splines[-1].bezier_points[-1].co
             blender_empty_object.rotation_mode = 'XZY'
             v = (cu.splines[-1].bezier_points[-1].handle_right - cu.splines[-1].bezier_points[-1].co)
             blender_empty_object.rotation_euler = Euler((0, 0, Vector((v.x, v.y)).angle_signed(Vector((1.0, 0.0)))), 'XZY')
             blender_empty_object.empty_draw_type = 'ARROWS'
             blender_empty_object.empty_draw_size = 10.0
-            self.__context.scene.objects.link(blender_empty_object)
+            self.__scene.objects.link(blender_empty_object)
             blender_empty_object.fpt.name = FORMAT_EMPTY_OBJECT.format(FORMAT_MODEL_END.format(name))
             if fpx_id:
                 blender_empty_object.fpt.id = FptElementType.VALUE_INT_TO_NAME.get(fpx_id)
@@ -1961,14 +2015,14 @@ class FptImporter():
             if raw_model_name is None:
                 continue
 
-            blender_empty_object = self.__blend_data.objects.new(FORMAT_EMPTY_OBJECT.format(FORMAT_MODEL_RING.format(name, index)), None)
+            blender_empty_object = self.__data.objects.new(FORMAT_EMPTY_OBJECT.format(FORMAT_MODEL_RING.format(name, index)), None)
             blender_empty_object.location = bezier_point.co
             blender_empty_object.rotation_mode = 'XZY'
             v = (bezier_point.handle_right - bezier_point.co)
             blender_empty_object.rotation_euler = Euler((0, 0, Vector((v.x, v.y)).angle_signed(Vector((1.0, 0.0)))), 'XZY')
             blender_empty_object.empty_draw_type = 'ARROWS'
             blender_empty_object.empty_draw_size = 10.0
-            self.__context.scene.objects.link(blender_empty_object)
+            self.__scene.objects.link(blender_empty_object)
             blender_empty_object.fpt.name = FORMAT_MODEL_RING.format(name, index)
             if fpx_id:
                 blender_empty_object.fpt.id = FptElementType.VALUE_INT_TO_NAME.get(fpx_id)
@@ -2046,11 +2100,11 @@ class FptImporter():
             height_right = 0.0
 
         bevel_name = "__fpx_guide_ramp_wire_bevel_{}_{}_{}__".format(start_width, height_left, height_right, )
-        wire_bevel = self.__blend_data.objects.get(bevel_name)
+        wire_bevel = self.__data.objects.get(bevel_name)
         if wire_bevel is None:
-            cu = self.__blend_data.curves.new(bevel_name, 'CURVE')
-            wire_bevel = self.__blend_data.objects.new(bevel_name, cu)
-            self.__context.scene.objects.link(wire_bevel)
+            cu = self.__data.curves.new(bevel_name, 'CURVE')
+            wire_bevel = self.__data.objects.new(bevel_name, cu)
+            self.__scene.objects.link(wire_bevel)
             cu.dimensions = '2D'
             cu.resolution_u = self.resolution_shape
 
@@ -2161,9 +2215,9 @@ class FptImporter():
         FpxUtilities.enable_edit_mode(False, self.__context)
 
     def create_curve(self, name, layers, curve_resolution):
-        cu = self.__blend_data.curves.new(FORMAT_CURVE.format(name), 'CURVE')
-        obj = self.__blend_data.objects.new(FORMAT_CURVE_OBJECT.format(name), cu)
-        self.__context.scene.objects.link(obj)
+        cu = self.__data.curves.new(FORMAT_CURVE.format(name), 'CURVE')
+        obj = self.__data.objects.new(FORMAT_CURVE_OBJECT.format(name), cu)
+        self.__scene.objects.link(obj)
 
         cu.dimensions = '3D'
         cu.twist_mode = 'Z_UP'
@@ -2342,11 +2396,11 @@ class FptImporter():
 
     def prepare_wire_ramp_bevel(self):
         bevel_name = "__fpx_guide_ramp_wire_bevel__"
-        wire_bevel = self.__blend_data.objects.get(bevel_name)
+        wire_bevel = self.__data.objects.get(bevel_name)
         if wire_bevel is None:
-            cu = self.__blend_data.curves.new(bevel_name, 'CURVE')
-            wire_bevel = self.__blend_data.objects.new(bevel_name, cu)
-            self.__context.scene.objects.link(wire_bevel)
+            cu = self.__data.curves.new(bevel_name, 'CURVE')
+            wire_bevel = self.__data.objects.new(bevel_name, cu)
+            self.__scene.objects.link(wire_bevel)
             cu.dimensions = '2D'
             cu.resolution_u = self.resolution_wire_bevel
 
@@ -2369,11 +2423,11 @@ class FptImporter():
 
     def prepare_wire_ramp_side_bevel(self, wire_index):
         bevel_name = "__fpx_guide_ramp_wire_bevel_{}__".format(wire_index)
-        wire_bevel = self.__blend_data.objects.get(bevel_name)
+        wire_bevel = self.__data.objects.get(bevel_name)
         if wire_bevel is None:
-            cu = self.__blend_data.curves.new(bevel_name, 'CURVE')
-            wire_bevel = self.__blend_data.objects.new(bevel_name, cu)
-            self.__context.scene.objects.link(wire_bevel)
+            cu = self.__data.curves.new(bevel_name, 'CURVE')
+            wire_bevel = self.__data.objects.new(bevel_name, cu)
+            self.__scene.objects.link(wire_bevel)
             cu.dimensions = '2D'
             cu.resolution_u = self.resolution_wire_bevel
 
@@ -2409,7 +2463,7 @@ class FptImporter():
                 return blender_empty_object_new
             blender_group_name = fpx_model_object[self.BLENDER_OBJECT_NAME]
 
-        blender_group = self.__blend_data.groups.get(blender_group_name)
+        blender_group = self.__data.groups.get(blender_group_name)
         if blender_group:
             old_mesh = None
             old_object = None
@@ -2418,13 +2472,13 @@ class FptImporter():
                     old_object = o
                     old_mesh = old_object.data
 
-            blender_empty_object_new = self.__blend_data.objects.new(FORMAT_DUPLI_OBJECT.format(blender_empty_object.name), old_mesh)
+            blender_empty_object_new = self.__data.objects.new(FORMAT_DUPLI_OBJECT.format(blender_empty_object.name), old_mesh)
             blender_empty_object_new.location = old_object.parent.location + old_object.location + offset
             blender_empty_object_new.rotation_mode = blender_empty_object.rotation_mode
             blender_empty_object_new.rotation_euler = Euler((0, 0, radians(angle)), blender_empty_object.rotation_mode)
             blender_empty_object_new.empty_draw_type = blender_empty_object.empty_draw_type
             blender_empty_object_new.empty_draw_size = blender_empty_object.empty_draw_size
-            self.__context.scene.objects.link(blender_empty_object_new)
+            self.__scene.objects.link(blender_empty_object_new)
 
             old_group_dict = {}
             for old_vert in old_mesh.vertices:
@@ -2455,12 +2509,12 @@ class FptImporter():
             blender_empty_object_new.layers = layers
             blender_empty_object_new.select = True
             """
-            active_object = self.__context.scene.objects.active
-            self.__context.scene.objects.active = blender_empty_object_new
+            active_object = self.__scene.objects.active
+            self.__scene.objects.active = blender_empty_object_new
             if ops.object.duplicates_make_real.poll():
                 ops.object.duplicates_make_real(use_base_parent=True, use_hierarchy=True)
-                print("#DEBUG duplicates_make_real", self.__context.scene.objects.active.name)
-            self.__context.scene.objects.active = active_object
+                print("#DEBUG duplicates_make_real", self.__scene.objects.active.name)
+            self.__scene.objects.active = active_object
             """
         else:
             print("#DEBUG attach_dupli_group, blender_group not found!", fpx_model_name, fpx_type_name, blender_group_name)
@@ -2590,10 +2644,10 @@ class FptImporter():
         #print("#DEBUG LoadFromEmbedded", name, type)
 
         if type == Fpt_PackedLibrary_Type.TYPE_IMAGE:
-            data_from_dict = self.__blend_data.images
+            data_from_dict = self.__data.images
         elif type == Fpt_PackedLibrary_Type.TYPE_MODEL:
-            #print("#DEBUG LoadFromEmbedded groups", [g for g in self.__blend_data.groups])
-            data_from_dict = self.__blend_data.groups
+            #print("#DEBUG LoadFromEmbedded groups", [g for g in self.__data.groups])
+            data_from_dict = self.__data.groups
         else:
             return None
         return data_from_dict.get(name)
@@ -2606,7 +2660,7 @@ class FptImporter():
         """
         #print("#DEBUG LoadFromBlendLibrary", name, type, file)
 
-        with self.__blend_data.libraries.load(file) as (data_from, data_to):
+        with self.__data.libraries.load(file) as (data_from, data_to):
             # imports data from library
             if type == Fpt_PackedLibrary_Type.TYPE_IMAGE:
                 data_from_list = data_from.images
@@ -2721,7 +2775,7 @@ class FptImporter():
                 if item_type == Fpt_PackedLibrary_Type.TYPE_IMAGE:
                     item_path = dst_sub_path_names.get(fpx_item_name)
                     if item_path:
-                        blend_image = self.__blend_data.images.load(item_path)
+                        blend_image = self.__data.images.load(item_path)
                         blend_image.name = blender_resource_name
                         blend_image.pack()
                         #blend_image.use_fake_user = True

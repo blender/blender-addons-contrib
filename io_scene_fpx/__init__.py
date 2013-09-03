@@ -34,7 +34,7 @@ bl_info = {
     'name': "Future Pinball FPx format (.fpm/.fpl/.fpt)",
     'description': "Import Future Pinball Model, Library and Table files",
     'author': "Alexander Nussbaumer",
-    'version': (0, 0, 0),
+    'version': (0, 0, 309031),
     'blender': (2, 68, 0),
     'location': "File > Import",
     'warning': "",
@@ -43,6 +43,51 @@ bl_info = {
     'tracker_url': "https://projects.blender.org/tracker/index.php?func=detail&aid=36215",
     'category': "Import-Export",
     }
+
+
+# KNOWN ISSUES & TODOs & MAYBEs (in a random order):
+#
+# - issue: curve bevel sometimes not assigned.
+#       close blender and open again, may change the behavior.
+# - issue: material assignment is not consistent.
+#       models got multiple materials assigned.
+#       models got christal material assigned instead texture.
+# - issue: some images could not be loaded to blender.
+#       IMB_ibImageFromMemory: unknown fileformat (e.g.:__grab__fpl__\bulb_trigger_star_v2\Bulb-Trigger-Star-v2.bmp)
+#       TGS x% missing?
+#
+# - todo: delete all unused temporary scenes with its content.
+#       to shrink file size.
+# - todo: create better light settings.
+#       should give nice results for "Blender Render" and "Cycles Render" render engine.
+# - todo: create better material settings.
+#       handling texture, color, transparent, christal, light, chrome.
+# - todo: create camera + setup
+#       to see the whole table, playfield, backglass.
+# - todo: make all materials and material textures as separate.
+#       to bypass cyclic textures at texture baking.
+# - todo: cut holes to playfield and surfaces for mask models.
+#       using curves? - by separate model mask and add as curve - multiple curves to one mesh?
+#       using boolean? - by separate model mask and for each a boolean modifier?
+# - todo: align models only on .fpt import not as currently on .fpm level.
+#       find a way to get a general method, to align model position alignment at .fpt level, not on .fpm level.
+#       (more hardcoding?)
+#
+# - maybe: add a pop-up message/dialog to inform the user, that the import process takes its time.
+#       progress bar/text - is there something like that available in blender?
+# - maybe: light dome (baking ambient occlusion has some issues)
+# - maybe: import image lists as image sequences (maybe for BGE usage far far later)
+# - maybe: animation got lost by got rid of using dupli-groups
+#       copy the animations object-by-object and make them as NLA action strip (maybe for BGE usage far far later)
+# - maybe: import sounds. (maybe for BGE usage far far later)
+# - maybe: import music. (maybe for BGE usage far far later)
+# - maybe: import VisualBasic script and transform to python script. (maybe for BGE usage far far later)
+#
+# - maybe: add possibility to export/write back future pinball model files (.fpm)
+#       import/handle/export collision data
+#       rewrite/extend cfb_spec.py for write IO
+#       rewrite/extend fpx_spec.py for write IO
+#       rewrite/extend lzo_spec.py for write IO
 
 
 # To support reload properly, try to access a package var,
