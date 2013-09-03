@@ -36,6 +36,7 @@ from mathutils import (
         Euler,
         Vector,
         Matrix,
+        Quaternion,
         )
 from math import (
         radians,
@@ -913,6 +914,7 @@ class FptImporter():
                         except:
                             pass
 
+
                 self.add_camera(fpx_reader.Table_Data)
 
                 # setup all current 3d Views of the current scene to metric units
@@ -960,15 +962,27 @@ class FptImporter():
         obj.location = (width / 2.0, -1600.0, 550.0)
         obj.rotation_euler = (radians(63.0), 0.0, 0.0)
         obj.select = True
-        camera.clip_end = 15000.0
+        camera.lens_unit = 'FOV'
+        camera.clip_start = 1.0 # 1.0mm
+        camera.clip_end = 10000.0 # 10.0m
+        camera.dof_distance = 1211.0
+        camera.draw_size = 100.0
         self.__scene.camera = obj
-        self.__scene.update()
-        view_matrix = obj.matrix_world.inverted()
         for area in self.__context.screen.areas:
             if area.type == 'VIEW_3D':
                 for space in area.spaces:
                     if space.type == 'VIEW_3D':
-                        space.region_3d.view_matrix = view_matrix
+                        space.region_3d.view_perspective = 'PERSP'
+                        space.region_3d.view_camera_zoom = 0.0
+                        space.region_3d.view_distance = 969.49365234375
+                        space.region_3d.view_matrix = Matrix((
+                                (1.0000,  0.0000, 0.0000, -width / 2.0),
+                                (0.0000,  0.4540, 0.8910,  236.3312),
+                                (0.0000, -0.8910, 0.4540, -969.4935),
+                                (0.0000,  0.0000, 0.0000,    1.0000)))
+                        space.region_3d.view_location = (width / 2.0, -107.2920, -210.5727)
+                        space.region_3d.view_rotation = obj.rotation_euler.to_quaternion()
+                        #space.region_3d.view_perspective = 'CAMERA'
 
     def add_lamp(self, name, location, layers):
         name_lamp = FORMAT_LAMP.format(name)
