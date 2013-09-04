@@ -128,7 +128,12 @@ class ShiftSubsurfLevel(bpy.types.Operator):
         return context.active_object is not None
 
     def execute(self, context):
-        for obj in context.selected_objects:
+        if context.mode == 'EDIT_MESH':
+            object_list = [context.active_object]
+        elif context.mode == 'OBJECT':
+            object_list = context.selected_objects
+            
+        for obj in object_list:
             # Find the last subsurf modifier in the stack
             m = None
             for mod in obj.modifiers:
@@ -453,19 +458,19 @@ def MapAdd_Window(kc):
     kmi = km.keymap_items.new('wm.quit_blender', 'Q', 'PRESS', ctrl=True)
 
     # Operator search menu
-    kmi = km.keymap_items.new('wm.search_menu', 'TAB', 'CLICK')
+    kmi = km.keymap_items.new('wm.search_menu', 'TAB', 'PRESS')
 
     # Open
-    kmi = km.keymap_items.new('wm.open_mainfile', 'O', 'CLICK', ctrl=True)
-    kmi = km.keymap_items.new('wm.link_append', 'O', 'CLICK', ctrl=True, alt=True)
-    kmi = km.keymap_items.new('wm.link_append', 'O', 'CLICK', ctrl=True, shift=True)
+    kmi = km.keymap_items.new('wm.open_mainfile', 'O', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('wm.link_append', 'O', 'PRESS', ctrl=True, alt=True)
+    kmi = km.keymap_items.new('wm.link_append', 'O', 'PRESS', ctrl=True, shift=True)
     kmi.properties.link = False
-    kmi = km.keymap_items.new('wm.read_homefile', 'N', 'CLICK', ctrl=True)
+    kmi = km.keymap_items.new('wm.read_homefile', 'N', 'PRESS', ctrl=True)
 
     # Save
-    kmi = km.keymap_items.new('wm.save_mainfile', 'S', 'CLICK', ctrl=True)
-    kmi = km.keymap_items.new('wm.save_as_mainfile', 'S', 'CLICK', shift=True, ctrl=True)
-    kmi = km.keymap_items.new('wm.save_homefile', 'U', 'CLICK', ctrl=True)
+    kmi = km.keymap_items.new('wm.save_mainfile', 'S', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('wm.save_as_mainfile', 'S', 'PRESS', shift=True, ctrl=True)
+    kmi = km.keymap_items.new('wm.save_homefile', 'U', 'PRESS', ctrl=True)
 
     # NDof Device
     kmi = km.keymap_items.new('wm.call_menu', 'NDOF_BUTTON_MENU', 'PRESS')
