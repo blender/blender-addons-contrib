@@ -34,7 +34,7 @@ bl_info = {
     'name': "Future Pinball FPx format (.fpm/.fpl/.fpt)",
     'description': "Import Future Pinball Model, Library and Table files",
     'author': "Alexander Nussbaumer",
-    'version': (0, 0, 309032),
+    'version': (0, 0, 309051),
     'blender': (2, 68, 0),
     'location': "File > Import",
     'warning': "",
@@ -53,8 +53,10 @@ bl_info = {
 #       models got multiple materials assigned.
 #       models got christal material assigned instead texture.
 # - issue: some images could not be loaded to blender.
-#       IMB_ibImageFromMemory: unknown fileformat (e.g.:__grab__fpl__\bulb_trigger_star_v2\Bulb-Trigger-Star-v2.bmp)
-#       TGS x% missing?
+#       #DEBUG fpl images.load C:\Users\user\AppData\Local\Temp\__grab__fpl__\bulb_trigger_star_v2\Bulb-Trigger-Star-v2.bmp
+#       IMB_ibImageFromMemory: unknown fileformat (C:\Users\user\AppData\Local\Temp\__grab__fpl__\bulb_trigger_star_v2\Bulb-Trigger-Star-v2.bmp)
+#       #DEBUG fpl images.load C:\Users\user\AppData\Local\Temp\__grab__fpl__\gameover\GameOver.tga
+#       decodetarga: incomplete file, 7.9% missing
 #
 # - todo: delete all unused temporary scenes with its content.
 #       to shrink file size.

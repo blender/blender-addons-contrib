@@ -2825,6 +2825,7 @@ class Fpm_File_Reader(Cfb_RawIO_Reader):
             if item_name:
                 dst_sub_path = path.join(dst_path, item_name)
                 makedirs(dst_sub_path, mode=0o777, exist_ok=True)
+                #print("#DEBUG", item_name, dst_path, dst_sub_path)
                 dst_sub_path_names["sub_dir"] = dst_sub_path
             else:
                 dst_sub_path = dst_path
@@ -2835,7 +2836,8 @@ class Fpm_File_Reader(Cfb_RawIO_Reader):
             dst_sub_path_names["type"] = item_type
 
             # grab preview
-            item_path = reader.get_value("preview_path")
+            win_item_path = reader.get_value("preview_path")
+            item_path = FpxUtilities.toGoodFilePath(win_item_path)
             item_data_len = reader.get_value("preview_data_len")
             item_data = reader.get_value("preview_data")
             if item_path and item_data:
@@ -2844,7 +2846,8 @@ class Fpm_File_Reader(Cfb_RawIO_Reader):
                 dst_sub_path_names["preview_data"] = full_path
 
             # grab primary_model
-            item_path = reader.get_value("primary_model_path")
+            win_item_path = reader.get_value("primary_model_path")
+            item_path = FpxUtilities.toGoodFilePath(win_item_path)
             item_data_len = reader.get_value("primary_model_data_len")
             item_data = reader.get_value("primary_model_data")
             if item_path and item_data:
@@ -2853,7 +2856,8 @@ class Fpm_File_Reader(Cfb_RawIO_Reader):
                 dst_sub_path_names["primary_model_data"] = full_path
 
             # grab secondary_model
-            item_path = reader.get_value("secondary_model_path")
+            win_item_path = reader.get_value("secondary_model_path")
+            item_path = FpxUtilities.toGoodFilePath(win_item_path)
             item_data_len = reader.get_value("secondary_model_data_len")
             item_data = reader.get_value("secondary_model_data")
             if item_path and item_data:
@@ -2862,7 +2866,8 @@ class Fpm_File_Reader(Cfb_RawIO_Reader):
                 dst_sub_path_names["secondary_model_data"] = full_path
 
             # grab mask_model
-            item_path = reader.get_value("mask_model_path")
+            win_item_path = reader.get_value("mask_model_path")
+            item_path = FpxUtilities.toGoodFilePath(win_item_path)
             item_data_len = reader.get_value("mask_model_data_len")
             item_data = reader.get_value("mask_model_data")
             if item_path and item_data:
@@ -2871,7 +2876,8 @@ class Fpm_File_Reader(Cfb_RawIO_Reader):
                 dst_sub_path_names["mask_model_data"] = full_path
 
             # grab reflection_model
-            item_path = reader.get_value("reflection_model_path")
+            win_item_path = reader.get_value("reflection_model_path")
+            item_path = FpxUtilities.toGoodFilePath(win_item_path)
             item_data_len = reader.get_value("reflection_model_data_len")
             item_data = reader.get_value("reflection_model_data")
             if item_path and item_data:
@@ -2976,7 +2982,9 @@ class Fpl_File_Reader(Cfb_RawIO_Reader):
             dst_sub_path_names["type_{}".format(item_name)] = value._FTYP
 
             # grab item
-            item_path=path.split(value.FPAT)[1]
+            win_file_path = value.FPAT
+            file_path = FpxUtilities.toGoodFilePath(win_file_path)
+            item_path=path.split(file_path)[1]
             item_data=value.FDAT
             if item_path and item_data:
                 full_path = path.normpath(path.join(dst_sub_path, item_path))

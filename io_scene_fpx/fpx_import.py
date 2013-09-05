@@ -488,13 +488,19 @@ class FplImporter():
                                     rename_active_fpm(self.__context, FORMAT_RESOURCE.format(file_name, key_name))
 
                             elif type == Fpl_Library_Type.TYPE_GRAPHIC:
-                                #print("#DEBUG", type, key_name)
+                                #print("#DEBUG fpl images.load", item_path)
+                                #print("#DEBUG", type, key_name, item_path)
                                 blend_image = self.__data.images.load(item_path)
-                                blend_image.name = FpxUtilities.toGoodName(FORMAT_RESOURCE.format(file_name, FORMAT_IMAGE.format(key_name)))
-                                blend_image.pack()
-                                blend_image.use_fake_user = True
-                                item_dir, item_file = path.split(item_path)
-                                blend_image.filepath_raw = "//unpacked_resource/{}".format(item_file)
+                                if blend_image:
+                                    blend_image.name = FpxUtilities.toGoodName(FORMAT_RESOURCE.format(file_name, FORMAT_IMAGE.format(key_name)))
+                                    if blend_image.has_data:
+                                        blend_image.update()
+                                    blend_image.pack()
+                                    blend_image.use_fake_user = True
+                                    item_dir, item_file = path.split(item_path)
+                                    blend_image.filepath_raw = "//unpacked_resource/{}".format(item_file)
+                                if not blend_image or not blend_image.has_data:
+                                    print("#DEBUG fpl images.load failed", item_path)
 
                         else:
                             pass
@@ -2714,6 +2720,7 @@ class FptImporter():
         #print("#DEBUG LoadFromPathLibrary", name, type, lib, folder)
 
         filepath = path.join(folder, lib)
+        filepath = FpxUtilities.toGoodFilePath(filepath)
         if path.exists(filepath):
             FplImporter(
                     report=self.report,
@@ -2759,8 +2766,9 @@ class FptImporter():
             if fpx_item.get_value("linked"):
                 #print("#DEBUG GetLinked linked > ", type, fpx_item_name)
 
-                linked_path = fpx_item.get_value("linked_path").lower()
-                library_file, file_name = linked_path.split(Fpt_File_Reader.SEPARATOR)
+                win_linked_path = fpx_item.get_value("linked_path").lower()
+                linked_path = FpxUtilities.toGoodFilePath(win_linked_path)
+                library_file, file_name = linked_path.split(path.sep) #Fpt_File_Reader.SEPARATOR)
                 ## "Sci-Fi Classic GFX.fpl"
                 ## library_file = FpxUtilities.toGoodName(library_file)
                 ## file_name = FpxUtilities.toGoodName(file_name)
@@ -2789,12 +2797,18 @@ class FptImporter():
                 if item_type == Fpt_PackedLibrary_Type.TYPE_IMAGE:
                     item_path = dst_sub_path_names.get(fpx_item_name)
                     if item_path:
+                        #print("#DEBUG fpt images.load", item_path)
                         blend_image = self.__data.images.load(item_path)
-                        blend_image.name = blender_resource_name
-                        blend_image.pack()
-                        #blend_image.use_fake_user = True
-                        item_dir, item_file = path.split(item_path)
-                        blend_image.filepath_raw = "//unpacked_resource/{}".format(item_file)
+                        if blend_image:
+                            blend_image.name = blender_resource_name
+                            if blend_image.has_data:
+                                blend_image.update()
+                            blend_image.pack()
+                            #blend_image.use_fake_user = True
+                            item_dir, item_file = path.split(item_path)
+                            blend_image.filepath_raw = "//unpacked_resource/{}".format(item_file)
+                        if not blend_image or not blend_image.has_data:
+                            print("#DEBUG fpt images.load failed", item_path)
                 elif item_type == Fpt_PackedLibrary_Type.TYPE_MODEL:
                     item_data = dst_sub_path_names.get("data_{}".format(fpx_item_name))
                     if item_data:
@@ -3036,7 +3050,7 @@ def remove_material(blender_context):
             texture_slot.texture = None
         material_slot.material = None
 
-    if ops.object.material_slot_remove.poll:
+    if ops.object.material_slot_remove.poll():
         ops.object.material_slot_remove()
 
     for material in used_materials:
