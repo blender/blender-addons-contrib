@@ -113,15 +113,16 @@ bpy.utils.register_class(ObjectDeleteNoConfirm)
 
 
 class ShiftSubsurfLevel(bpy.types.Operator):
-    """Shift the subsurf level of the selected objects up or """ \
-    """down by the given amount (has maximum limit, to avoid """ \
-    """going crazy and running out of RAM)"""
+    """ Shift the viewport subsurf level of the selected objects up or
+        down by the given amount.  The render subsurf level is treated
+        as the upper limit, to prevent the user from accidentally
+        exploding their CPU and RAM usage. 
+    """
     bl_idname = "object.shift_subsurf_level"
     bl_label = "Shift Subsurf Level"
 
     delta = bpy.props.IntProperty(name="Delta", description="Amount to increase/decrease the subsurf level.", default=1)
-    min = bpy.props.IntProperty(name="Minimum", description="The lowest subsurf level to shift to.", default=0)
-    max = bpy.props.IntProperty(name="Maximum", description="The highest subsurf level to shift to.", default=4)
+    new_if_missing = bpy.props.BoolProperty(name="New if Missing", description="Whether to add a new subsurf modifier if none exists.", default=False)
 
     @classmethod
     def poll(cls, context):
@@ -142,17 +143,24 @@ class ShiftSubsurfLevel(bpy.types.Operator):
 
             # Add a subsurf modifier if necessary
             if not m and self.delta > 0:
-                m = obj.modifiers.new(name="Subsurf", type='SUBSURF')
-                m.levels = 0
+                if self.new_if_missing:
+                    m = obj.modifiers.new(name="Subsurf", type='SUBSURF')
+                    m.levels = 0
+                else:
+                    return {'FINISHED'}
 
             # Adjust it's subsurf level
             if m:
                 if self.delta > 0:
-                    if (m.levels + self.delta) <= self.max:
+                    if (m.levels + self.delta) <= m.render_levels:
                         m.levels += self.delta
+                    elif m.levels != m.render_levels:
+                        m.levels = m.render_levels
                 elif self.delta < 0:
-                    if (m.levels + self.delta) >= self.min:
+                    if (m.levels + self.delta) >= 0:
                         m.levels += self.delta
+                    elif m.levels != 0:
+                        m.levels = 0
         return {'FINISHED'}
 bpy.utils.register_class(ShiftSubsurfLevel)
 
@@ -886,17 +894,17 @@ def MapAdd_View3D_Global(kc):
     #-------------------------
     # Transform texture space
     #-------------------------
-    kmi = km.keymap_items.new('transform.translate', 'T', 'CLICK', shift=True)
-    kmi.properties.texture_space = True
-    kmi = km.keymap_items.new('transform.resize', 'T', 'CLICK', shift=True, alt=True)
-    kmi.properties.texture_space = True
+    #kmi = km.keymap_items.new('transform.translate', 'T', 'PRESS', shift=True)
+    #kmi.properties.texture_space = True
+    #kmi = km.keymap_items.new('transform.resize', 'T', 'PRESS', shift=True, alt=True)
+    #kmi.properties.texture_space = True
 
     #------------------
     # Transform spaces
     #------------------
-    kmi = km.keymap_items.new('transform.select_orientation', 'SPACE', 'CLICK', alt=True)
-    kmi = km.keymap_items.new('transform.create_orientation', 'SPACE', 'CLICK', ctrl=True, alt=True)
-    kmi.properties.use = True
+    kmi = km.keymap_items.new('transform.select_orientation', 'SPACE', 'PRESS', alt=True)
+    #kmi = km.keymap_items.new('transform.create_orientation', 'SPACE', 'PRESS', ctrl=True, alt=True)
+    #kmi.properties.use = True
 
     #----------
     # Snapping
@@ -908,7 +916,7 @@ def MapAdd_View3D_Global(kc):
     #---------------
     # Snapping Menu
     #---------------
-    kmi = km.keymap_items.new('wm.call_menu', 'S', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('wm.call_menu', 'S', 'PRESS', shift=True)
     kmi.properties.name = 'VIEW3D_MT_snap'
 
     #-----------
@@ -1157,7 +1165,7 @@ def MapAdd_View3D_MeshEditMode(kc):
     #-----------
     
     # Shortest path
-    kmi = km.keymap_items.new('mesh.shortest_path_select', 'LEFTMOUSE', 'CLICK', alt=True) # Replace
+    kmi = km.keymap_items.new('mesh.shortest_path_pick', 'RIGHTMOUSE', 'PRESS', alt=True) # Replace
     # TODO: add, remove
     
     # Edge loop
@@ -1182,20 +1190,24 @@ def MapAdd_View3D_MeshEditMode(kc):
     kmi.properties.extend = False
     kmi.properties.deselect = True
     
+    # Select linked
+    # TODO: proper replace/add/remove selection
+    kmi = km.keymap_items.new('mesh.select_linked', 'L', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('mesh.select_linked_pick', 'L', 'PRESS')
+    kmi.properties.deselect = False
+    kmi = km.keymap_items.new('mesh.select_linked_pick', 'L', 'PRESS', shift=True)
+    kmi.properties.deselect = True
+    
+    # Misc selection
     kmi = km.keymap_items.new('mesh.select_all', 'A', 'PRESS')
     kmi.properties.action = 'TOGGLE'
-    kmi = km.keymap_items.new('mesh.select_all', 'I', 'CLICK', ctrl=True)
+    kmi = km.keymap_items.new('mesh.select_all', 'I', 'PRESS', ctrl=True)
     kmi.properties.action = 'INVERT'
-    kmi = km.keymap_items.new('mesh.select_more', 'NUMPAD_PLUS', 'CLICK', ctrl=True)
-    kmi = km.keymap_items.new('mesh.select_less', 'NUMPAD_MINUS', 'CLICK', ctrl=True)
-    kmi = km.keymap_items.new('mesh.select_non_manifold', 'M', 'CLICK', shift=True, ctrl=True, alt=True)
-    kmi = km.keymap_items.new('mesh.select_linked', 'L', 'CLICK', ctrl=True)
-    kmi = km.keymap_items.new('mesh.select_linked_pick', 'L', 'CLICK')
-    kmi.properties.deselect = False
-    kmi = km.keymap_items.new('mesh.select_linked_pick', 'L', 'CLICK', shift=True)
-    kmi.properties.deselect = True
-    kmi = km.keymap_items.new('mesh.faces_select_linked_flat', 'F', 'CLICK', shift=True, ctrl=True, alt=True)
-    kmi = km.keymap_items.new('mesh.select_similar', 'G', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('mesh.select_more', 'RIGHT_BRACKET', 'PRESS')
+    kmi = km.keymap_items.new('mesh.select_less', 'LEFT_BRACKET', 'PRESS')
+    #kmi = km.keymap_items.new('mesh.select_non_manifold', 'M', 'PRESS', shift=True, ctrl=True, alt=True)
+    #kmi = km.keymap_items.new('mesh.faces_select_linked_flat', 'F', 'CLICK', shift=True, ctrl=True, alt=True)
+    #kmi = km.keymap_items.new('mesh.select_similar', 'G', 'CLICK', shift=True)
 
     # Proportional editing
     kmi = km.keymap_items.new('wm.context_toggle_enum', 'O', 'CLICK')
@@ -1226,10 +1238,10 @@ def MapAdd_View3D_MeshEditMode(kc):
     
     # Add edge and face / vertex connect
     kmi = km.keymap_items.new('mesh.edge_face_add', 'C', 'CLICK')
-    kmi = kmi = km.keymap_items.new('mesh.vert_connect', 'C', 'CLICK', shift=True)
+    kmi = kmi = km.keymap_items.new('mesh.vert_connect', 'C', 'PRESS', shift=True)
     
-    kmi = km.keymap_items.new('mesh.fill', 'C', 'CLICK', alt=True)
-    kmi = km.keymap_items.new('mesh.beautify_fill', 'C', 'CLICK', alt=True, shift=True)
+    kmi = km.keymap_items.new('mesh.fill', 'C', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('mesh.beautify_fill', 'C', 'PRESS', alt=True, shift=True)
     
     # Subdivide
     kmi = km.keymap_items.new('mesh.subdivide', 'W', 'CLICK')
@@ -1242,32 +1254,32 @@ def MapAdd_View3D_MeshEditMode(kc):
     
     # Extrude
     kmi = km.keymap_items.new('view3d.edit_mesh_extrude_move_normal', 'E', 'CLICK')
-    kmi = km.keymap_items.new('wm.call_menu', 'E', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('wm.call_menu', 'E', 'PRESS', alt=True)
     kmi.properties.name = 'VIEW3D_MT_edit_mesh_extrude'
     
-    kmi = km.keymap_items.new('mesh.dupli_extrude_cursor', 'ACTIONMOUSE', 'CLICK', ctrl=True)
+    kmi = km.keymap_items.new('mesh.dupli_extrude_cursor', 'ACTIONMOUSE', 'PRESS', ctrl=True)
     kmi.properties.rotate_source = True
-    kmi = km.keymap_items.new('mesh.dupli_extrude_cursor', 'ACTIONMOUSE', 'CLICK', shift=True, ctrl=True)
+    kmi = km.keymap_items.new('mesh.dupli_extrude_cursor', 'ACTIONMOUSE', 'PRESS', shift=True, ctrl=True)
     kmi.properties.rotate_source = False
     
     # Inset/Outset
     kmi = km.keymap_items.new('mesh.inset', 'I', 'CLICK')
     kmi.properties.use_outset = False
-    kmi = km.keymap_items.new('mesh.inset', 'I', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('mesh.inset', 'I', 'PRESS', shift=True)
     kmi.properties.use_outset = True
     
     # Bevel
     kmi = km.keymap_items.new('mesh.bevel', 'B', 'CLICK')
 
     # Duplicate
-    kmi = km.keymap_items.new('mesh.duplicate_move', 'D', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('mesh.duplicate_move', 'D', 'PRESS', shift=True)
     
     # Rip
     kmi = km.keymap_items.new('mesh.rip_move', 'R', 'CLICK')
     
     # Split / Separate
     kmi = km.keymap_items.new('mesh.split', 'Y', 'CLICK')
-    kmi = km.keymap_items.new('mesh.separate', 'Y', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('mesh.separate', 'Y', 'PRESS', shift=True)
     
 
     #-----------------
@@ -1278,19 +1290,19 @@ def MapAdd_View3D_MeshEditMode(kc):
     kmi = km.keymap_items.new('mesh.delete_contextual', 'X', 'CLICK')
     kmi = km.keymap_items.new('mesh.delete_contextual', 'DEL', 'CLICK')
     
-    kmi = km.keymap_items.new('mesh.dissolve_contextual', 'X', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('mesh.dissolve_contextual', 'X', 'PRESS', shift=True)
     kmi.properties.use_verts = True
-    kmi = km.keymap_items.new('mesh.dissolve_contextual', 'DEL', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('mesh.dissolve_contextual', 'DEL', 'PRESS', shift=True)
     kmi.properties.use_verts = True
     
-    kmi = km.keymap_items.new('wm.call_menu', 'X', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('wm.call_menu', 'X', 'PRESS', alt=True)
     kmi.properties.name = 'VIEW3D_MT_edit_mesh_delete'
-    kmi = km.keymap_items.new('wm.call_menu', 'DEL', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('wm.call_menu', 'DEL', 'PRESS', alt=True)
     kmi.properties.name = 'VIEW3D_MT_edit_mesh_delete'
 
     # Merge/collapse
     kmi = km.keymap_items.new('mesh.edge_collapse', 'M', 'CLICK')
-    kmi = km.keymap_items.new('mesh.merge', 'M', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('mesh.merge', 'M', 'PRESS', alt=True)
     
     #-----------------
     # Deform Geometry
@@ -1300,7 +1312,7 @@ def MapAdd_View3D_MeshEditMode(kc):
     kmi = km.keymap_items.new('mesh.vertices_smooth', 'W', 'PRESS', shift=True)
     
     # Shrink / Fatten
-    kmi = km.keymap_items.new('transform.shrink_fatten', 'S', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('transform.shrink_fatten', 'S', 'PRESS', alt=True)
     
     #------
     # Misc
@@ -1318,31 +1330,31 @@ def MapAdd_View3D_MeshEditMode(kc):
     # Tool Menus
     kmi = km.keymap_items.new('wm.call_menu', SPECIALS_MENU_KEY, 'CLICK')
     kmi.properties.name = 'VIEW3D_MT_edit_mesh_specials'
-    kmi = km.keymap_items.new('wm.call_menu', 'ONE', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('wm.call_menu', 'ONE', 'PRESS', alt=True)
     kmi.properties.name = 'VIEW3D_MT_edit_mesh_vertices'
-    kmi = km.keymap_items.new('wm.call_menu', 'TWO', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('wm.call_menu', 'TWO', 'PRESS', alt=True)
     kmi.properties.name = 'VIEW3D_MT_edit_mesh_edges'
-    kmi = km.keymap_items.new('wm.call_menu', 'THREE', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('wm.call_menu', 'THREE', 'PRESS', alt=True)
     kmi.properties.name = 'VIEW3D_MT_edit_mesh_faces'
 
     # UV's
-    kmi = km.keymap_items.new('wm.call_menu', 'U', 'CLICK')
+    kmi = km.keymap_items.new('wm.call_menu', 'U', 'PRESS')
     kmi.properties.name = 'VIEW3D_MT_uv_map'
 
     # Calculate normals
-    kmi = km.keymap_items.new('mesh.normals_make_consistent', 'N', 'CLICK', ctrl=True)
+    kmi = km.keymap_items.new('mesh.normals_make_consistent', 'N', 'PRESS', ctrl=True)
     kmi.properties.inside = False
-    kmi = km.keymap_items.new('mesh.normals_make_consistent', 'N', 'CLICK', shift=True, ctrl=True)
+    kmi = km.keymap_items.new('mesh.normals_make_consistent', 'N', 'PRESS', shift=True, ctrl=True)
     kmi.properties.inside = True
 
     # Subsurf shortcuts
     if SUBSURF_RELATIVE:
         kmi = km.keymap_items.new('object.shift_subsurf_level', 'EQUAL', 'PRESS')
         kmi.properties.delta = 1
-        kmi.properties.max = 4
+        kmi.properties.new_if_missing = True
         kmi = km.keymap_items.new('object.shift_subsurf_level', 'MINUS', 'PRESS')
         kmi.properties.delta = -1
-        kmi.properties.min = 0
+        kmi.properties.new_if_missing = False
     else:
         kmi = km.keymap_items.new('object.subdivision_set', 'ZERO', 'CLICK', ctrl=True)
         kmi.properties.level = 0
@@ -1358,10 +1370,10 @@ def MapAdd_View3D_MeshEditMode(kc):
         kmi.properties.level = 5
 
     # Rigging
-    kmi = km.keymap_items.new('object.vertex_parent_set', 'P', 'CLICK', ctrl=True)
-    kmi = km.keymap_items.new('wm.call_menu', 'H', 'CLICK', ctrl=True)
+    kmi = km.keymap_items.new('object.vertex_parent_set', 'P', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('wm.call_menu', 'H', 'PRESS', ctrl=True)
     kmi.properties.name = 'VIEW3D_MT_hook'
-    kmi = km.keymap_items.new('wm.call_menu', 'G', 'CLICK', ctrl=True)
+    kmi = km.keymap_items.new('wm.call_menu', 'G', 'PRESS', ctrl=True)
     kmi.properties.name = 'VIEW3D_MT_vertex_group'
 
 def MapAdd_KnifeToolModal(kc):
@@ -1727,9 +1739,9 @@ def MapAdd_AnimationGlobal(kc):
 
     # Forward/backward 10 frames
     kmi = km.keymap_items.new('screen.frame_offset', 'LEFT_ARROW', 'PRESS', shift=True)
-    kmi.properties.delta = 10
-    kmi = km.keymap_items.new('screen.frame_offset', 'RIGHT_ARROW', 'PRESS', shift=True)
     kmi.properties.delta = -10
+    kmi = km.keymap_items.new('screen.frame_offset', 'RIGHT_ARROW', 'PRESS', shift=True)
+    kmi.properties.delta = 10
     
     # Jump to prev/next keyframe
     kmi = km.keymap_items.new('screen.keyframe_jump', 'UP_ARROW', 'PRESS')
