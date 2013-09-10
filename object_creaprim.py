@@ -44,7 +44,7 @@ ALSO - dont forget to Apply rotation and scale to have your object show up corre
 bl_info = {
     "name": "CreaPrim",
     "author": "Gert De Roost",
-    "version": (0, 3, 9),
+    "version": (0, 3, 10),
     "blender": (2, 64, 0),
     "location": "View3D > Object Tools",
     "description": "Create primitive addon",
@@ -81,7 +81,7 @@ bpy.types.Scene.Apply = bpy.props.BoolProperty(
 class CreaPrim(bpy.types.Operator):
 	bl_idname = "object.creaprim"
 	bl_label = "CreaPrim"
-	bl_description = "Create primitive addon."
+	bl_description = "Create primitive addon"
 	bl_options = {"REGISTER"}
 	
 	
@@ -127,9 +127,11 @@ class CreaPrim(bpy.types.Operator):
 		for selobj in objlist:
 			if len(objlist) == 1:
 				objname = scn.Name
+				objname = objname.replace(" ", "_")
 			else:
 				objname = selobj.name
 				objname = objname.replace(".", "")
+				objname = objname.replace(" ", "_")
 				namelist.append(objname)
 			mesh = selobj.to_mesh(scn, True, "PREVIEW")
 			oldname = selobj.name
@@ -208,6 +210,7 @@ def do_creaprim(self, mesh, objname, addondir):
 	global message
 	
 	objname = objname.replace(".", "")
+	objname = objname.replace(" ", "_")
 	bm = bmesh.new()
 	bm.from_mesh(mesh)	
 	
@@ -282,7 +285,10 @@ def do_creaprim(self, mesh, objname, addondir):
 		strlist.append("[" + str(e.verts[0].index) + ", " + str(e.verts[1].index) + "]")
 	strlist.append("]\n")	
 	strlist.append("		for verts in edgelist:\n")
-	strlist.append("			bm.edges.new((bm.verts[verts[0]], bm.verts[verts[1]]))\n")
+	strlist.append("			try:\n")
+	strlist.append("				bm.edges.new((bm.verts[verts[0]], bm.verts[verts[1]]))\n")
+	strlist.append("			except:\n")
+	strlist.append("				pass\n")
 	posn1 = 0
 	strlist.append("		facelist = [(")
 	for f in bm.faces:
@@ -301,7 +307,10 @@ def do_creaprim(self, mesh, objname, addondir):
 	strlist.append("			vlist = []\n")	
 	strlist.append("			for idx in verts:\n")	
 	strlist.append("				vlist.append(bm.verts[idxlist[idx]])\n")	
-	strlist.append("			bm.faces.new(vlist)\n")
+	strlist.append("			try:\n")
+	strlist.append("				bm.faces.new(vlist)\n")
+	strlist.append("			except:\n")
+	strlist.append("				pass\n")
 	strlist.append("\n")
 	strlist.append("		bm.to_mesh(mesh)\n")
 	strlist.append("		mesh.update()\n")
