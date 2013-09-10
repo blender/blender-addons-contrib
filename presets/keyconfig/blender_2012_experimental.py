@@ -1,15 +1,18 @@
 """ An experimental new keymap for Blender.
     Work in progress!
 """
+
+# TODO:
+# - N-panel etc. appear to have hard-coded 'I' as "insert key" key.  Make that
+#   user-configurable.
+
 import bpy
 
 ######################
 # Misc configuration
 ######################
 DEVELOPER_HOTKEYS = False  # Weird hotkeys that only developers use
-MAYA_STYLE_MANIPULATORS = False  # Maya-style "QWER" hotkeys for manipulators
-SUBSURF_RELATIVE = True  # Make subsurf hotkeys work by relative
-                         # shifting instead of absolute setting
+
 # Left mouse-button select
 bpy.context.user_preferences.inputs.select_mouse = 'LEFT'
 
@@ -20,6 +23,9 @@ SCALE_KEY = 'S'
 
 # Specials Menu Key
 SPECIALS_MENU_KEY = 'Q'
+
+# Keyframe setting key
+KEYFRAME_KEY = 'K'
 
 
 ################################
@@ -58,6 +64,54 @@ class SetManipulator(bpy.types.Operator):
 bpy.utils.register_class(SetManipulator)
 
 
+class ContextualTranslate(bpy.types.Operator):
+    """ Either translates, or sets the manipulator type to translate,
+        depending on whether the manipulator is on or not.
+    """
+    bl_idname = "view3d.contextual_translate"
+    bl_label = "Contextual Translate"
+
+    def execute(self, context):
+        if context.space_data.show_manipulator:
+            context.space_data.transform_manipulators = {'TRANSLATE'}
+        else:
+            bpy.ops.transform.translate('INVOKE_DEFAULT')
+        return {'FINISHED'}
+bpy.utils.register_class(ContextualTranslate)
+
+
+class ContextualRotate(bpy.types.Operator):
+    """ Either rotates, or sets the manipulator type to rotate,
+        depending on whether the manipulator is on or not.
+    """
+    bl_idname = "view3d.contextual_rotate"
+    bl_label = "Contextual Rotate"
+
+    def execute(self, context):
+        if context.space_data.show_manipulator:
+            context.space_data.transform_manipulators = {'ROTATE'}
+        else:
+            bpy.ops.transform.rotate('INVOKE_DEFAULT')
+        return {'FINISHED'}
+bpy.utils.register_class(ContextualRotate)
+
+
+class ContextualScale(bpy.types.Operator):
+    """ Either scales, or sets the manipulator type to scale,
+        depending on whether the manipulator is on or not.
+    """
+    bl_idname = "view3d.contextual_scale"
+    bl_label = "Contextual Scale"
+
+    def execute(self, context):
+        if context.space_data.show_manipulator:
+            context.space_data.transform_manipulators = {'SCALE'}
+        else:
+            bpy.ops.transform.resize('INVOKE_DEFAULT')
+        return {'FINISHED'}
+bpy.utils.register_class(ContextualScale)
+
+
 class ModeSwitchMenu(bpy.types.Menu):
     """ A menu for switching between object modes.
     """
@@ -68,13 +122,6 @@ class ModeSwitchMenu(bpy.types.Menu):
         layout = self.layout
         layout.operator_enum("object.mode_set", "mode")
 bpy.utils.register_class(ModeSwitchMenu)
-
-
-# Temporary work around: Blender does not properly limit the mode switch menu
-# items until the first mode switch (e.g. mesh objects will show pose mode as
-# an option).
-# TODO: file a bug report for this behavior.
-bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
 
 class TweakSelect3dview(bpy.types.Operator):
@@ -89,9 +136,10 @@ class TweakSelect3dview(bpy.types.Operator):
         return True
     
     def invoke(self, context, event):
-        #bpy.ops.view3d.select(context, event)
-        bpy.ops.transform.translate.invoke(context, event)
-        return {'FINISHED'}
+        result = bpy.ops.view3d.select('INVOKE_DEFAULT')
+        if 'FINISHED' in result:
+            bpy.ops.transform.translate('INVOKE_DEFAULT')
+        return result
 bpy.utils.register_class(TweakSelect3dview)
 
 
@@ -103,7 +151,7 @@ class ObjectDeleteNoConfirm(bpy.types.Operator):
     
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return len(context.selected_objects) > 0
 
     def execute(self, context):
         bpy.ops.object.delete()
@@ -166,7 +214,8 @@ bpy.utils.register_class(ShiftSubsurfLevel)
 
 
 class SetEditMeshSelectMode(bpy.types.Operator):
-    """Set edit mesh select mode (vert, edge, face)"""
+    """ Set edit mesh select mode (vert, edge, face).
+    """
     bl_idname = "view3d.set_edit_mesh_select_mode"
     bl_label = "Set Edit Mesh Select Mode"
     mode = bpy.props.EnumProperty(items=[("VERT", "Vertex", ""),
@@ -259,6 +308,31 @@ class MeshDissolveContextual(bpy.types.Operator):
         return {'FINISHED'}
 bpy.utils.register_class(MeshDissolveContextual)
 
+
+class MeshMergeContextual(bpy.types.Operator):
+    """ Merges mesh elements, doing it in a way based on the current
+        selection mode.
+    """
+    bl_idname = "mesh.merge_contextual"
+    bl_label = "Mesh Merge Contextual"
+    bl_options = {'UNDO'}
+    
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object is not None) and (context.mode == "EDIT_MESH")
+    
+    def execute(self, context):
+        select_mode = context.tool_settings.mesh_select_mode
+        if select_mode[0]:
+            bpy.ops.mesh.merge()
+        else:
+            bpy.ops.mesh.edge_collapse()
+        return {'FINISHED'}
+bpy.utils.register_class(MeshMergeContextual)
+
+
+#kmi = km.keymap_items.new('mesh.edge_collapse', 'M', 'CLICK')
+#kmi = km.keymap_items.new('mesh.merge', 'M', 'PRESS', alt=True)
 
 ###########
 # Keymaps
@@ -497,6 +571,7 @@ def MapAdd_Window(kc):
     kmi.properties.fast = True
 
     # Misc
+    # TODO: find good replacements for the F# keys
     kmi = km.keymap_items.new('wm.window_fullscreen_toggle', 'F11', 'CLICK', alt=True)
 
     # Development/debugging
@@ -507,7 +582,7 @@ def MapAdd_Window(kc):
     # ???
     kmi = km.keymap_items.new('info.reports_display_update', 'TIMER', 'ANY', any=True)
 
-
+# TODO: find good replacements for the F# keys
 def MapAdd_Screen(kc):
     """ Screen Map
     """
@@ -518,17 +593,19 @@ def MapAdd_Screen(kc):
     kmi.properties.delta = 1
     kmi = km.keymap_items.new('screen.screen_set', 'LEFT_ARROW', 'PRESS', ctrl=True)
     kmi.properties.delta = -1
+    
+    # TODO: figure out a better hotkey for this
     kmi = km.keymap_items.new('screen.screen_full_area', 'UP_ARROW', 'PRESS', ctrl=True)
     kmi = km.keymap_items.new('screen.screen_full_area', 'DOWN_ARROW', 'PRESS', ctrl=True)
-    kmi = km.keymap_items.new('screen.screen_full_area', 'SPACE', 'PRESS', shift=True)
-    kmi = km.keymap_items.new('screen.screenshot', 'F3', 'PRESS', ctrl=True)
-    kmi = km.keymap_items.new('screen.screencast', 'F3', 'PRESS', alt=True)
-    kmi = km.keymap_items.new('screen.region_quadview', 'Q', 'PRESS', ctrl=True, alt=True)
-    kmi = km.keymap_items.new('screen.repeat_history', 'F3', 'PRESS')
-    kmi = km.keymap_items.new('screen.repeat_last', 'R', 'PRESS', shift=True)
-    kmi = km.keymap_items.new('screen.region_flip', 'F5', 'PRESS')
-    kmi = km.keymap_items.new('screen.redo_last', 'F6', 'PRESS')
-    kmi = km.keymap_items.new('script.reload', 'F8', 'PRESS')
+    
+    #kmi = km.keymap_items.new('screen.screenshot', 'F3', 'PRESS', ctrl=True)
+    #kmi = km.keymap_items.new('screen.screencast', 'F3', 'PRESS', alt=True)
+    #kmi = km.keymap_items.new('screen.region_quadview', 'Q', 'PRESS', ctrl=True, alt=True)
+    #kmi = km.keymap_items.new('screen.repeat_history', 'F3', 'PRESS')
+    #kmi = km.keymap_items.new('screen.repeat_last', 'R', 'PRESS', shift=True)
+    #kmi = km.keymap_items.new('screen.region_flip', 'F5', 'PRESS')
+    #kmi = km.keymap_items.new('screen.redo_last', 'F6', 'PRESS')
+    #kmi = km.keymap_items.new('script.reload', 'F8', 'PRESS')
     kmi = km.keymap_items.new('file.execute', 'RET', 'PRESS')
     kmi = km.keymap_items.new('file.execute', 'NUMPAD_ENTER', 'PRESS')
     kmi = km.keymap_items.new('file.cancel', 'ESC', 'PRESS')
@@ -537,7 +614,7 @@ def MapAdd_Screen(kc):
     kmi = km.keymap_items.new('ed.undo_history', 'Z', 'PRESS', ctrl=True, alt=True)
     kmi = km.keymap_items.new('render.render', 'F12', 'PRESS')
     kmi = km.keymap_items.new('render.render', 'F12', 'PRESS', ctrl=True)
-    kmi.properties.animation = True
+    #kmi.properties.animation = True
     kmi = km.keymap_items.new('render.view_cancel', 'ESC', 'PRESS')
     kmi = km.keymap_items.new('render.view_show', 'F11', 'PRESS')
     kmi = km.keymap_items.new('render.play_rendered_anim', 'F11', 'PRESS', ctrl=True)
@@ -630,8 +707,6 @@ def MapAdd_View3D_Global(kc):
     # ???
     kmi = km.keymap_items.new('view3d.rotate', 'MOUSEROTATE', 'ANY')
     kmi = km.keymap_items.new('view3d.smoothview', 'TIMER1', 'ANY', any=True)
-
-    
 
     # Basics with mouse
     kmi = km.keymap_items.new('view3d.rotate', 'MIDDLEMOUSE', 'PRESS')
@@ -778,13 +853,16 @@ def MapAdd_View3D_Global(kc):
     #kmi = km.keymap_items.new('view3d.fly', 'F', 'CLICK', shift=True)
 
     # Misc
+    # TODO: This needs a good go-over.  Try to pair this down to the
+    # fewest useful ones. And try to find non-numpad hotkey alternatives
+    # to have in addition for ones that use numpad hotkeys.
     kmi = km.keymap_items.new('view3d.view_selected', 'NUMPAD_PERIOD', 'CLICK')
     kmi = km.keymap_items.new('view3d.view_center_cursor', 'NUMPAD_PERIOD', 'CLICK', ctrl=True)
     kmi = km.keymap_items.new('view3d.zoom_camera_1_to_1', 'NUMPAD_ENTER', 'CLICK', shift=True)
-    kmi = km.keymap_items.new('view3d.view_center_camera', 'HOME', 'CLICK')
+    #kmi = km.keymap_items.new('view3d.view_center_camera', 'HOME', 'CLICK')
     kmi = km.keymap_items.new('view3d.view_all', 'HOME', 'CLICK')
     kmi.properties.center = False
-    kmi = km.keymap_items.new('view3d.view_all', 'C', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('view3d.view_all', 'HOME', 'CLICK', shift=True)
     kmi.properties.center = True
 
     #-------------
@@ -794,18 +872,9 @@ def MapAdd_View3D_Global(kc):
     kmi = km.keymap_items.new('view3d.manipulator', 'EVT_TWEAK_L', 'ANY', any=True)
     kmi.properties.release_confirm = True
 
-    if MAYA_STYLE_MANIPULATORS:
-        kmi = km.keymap_items.new('view3d.manipulator_set', 'Q', 'CLICK')
-        kmi.properties.mode = 'NONE'
-        kmi = km.keymap_items.new('view3d.manipulator_set', TRANSLATE_KEY, 'CLICK')
-        kmi.properties.mode = 'TRANSLATE'
-        kmi = km.keymap_items.new('view3d.manipulator_set', ROTATE_KEY, 'CLICK')
-        kmi.properties.mode = 'ROTATE'
-        kmi = km.keymap_items.new('view3d.manipulator_set', SCALE_KEY, 'CLICK')
-        kmi.properties.mode = 'SCALE'
-    else:
-        kmi = km.keymap_items.new('wm.context_toggle', 'SPACE', 'CLICK', ctrl=True)
-        kmi.properties.data_path = 'space_data.show_manipulator'
+    # TODO: figure out something sane for manipulators
+    kmi = km.keymap_items.new('wm.context_toggle', 'SPACE', 'PRESS', ctrl=True)
+    kmi.properties.data_path = 'space_data.show_manipulator'
 
     #-----------
     # Selection
@@ -878,12 +947,12 @@ def MapAdd_View3D_Global(kc):
     #-----------------------
     
     # Grab, rotate scale
-    kmi = km.keymap_items.new('transform.translate', TRANSLATE_KEY, 'PRESS')
-    #kmi = km.keymap_items.new('view3d.tweak_select', 'EVT_TWEAK_R', 'ANY')
+    kmi = km.keymap_items.new('view3d.contextual_translate', TRANSLATE_KEY, 'PRESS')
+    kmi = km.keymap_items.new('view3d.tweak_select', 'EVT_TWEAK_R', 'ANY')
     
     #kmi = km.keymap_items.new('transform.translate', 'EVT_TWEAK_S', 'ANY')
-    kmi = km.keymap_items.new('transform.rotate', ROTATE_KEY, 'PRESS')
-    kmi = km.keymap_items.new('transform.resize', SCALE_KEY, 'PRESS')
+    kmi = km.keymap_items.new('view3d.contextual_rotate', ROTATE_KEY, 'PRESS')
+    kmi = km.keymap_items.new('view3d.contextual_scale', SCALE_KEY, 'PRESS')
 
     # Mirror, shear, warp, to-sphere
     #kmi = km.keymap_items.new('transform.mirror', 'M', 'CLICK', ctrl=True)
@@ -894,17 +963,18 @@ def MapAdd_View3D_Global(kc):
     #-------------------------
     # Transform texture space
     #-------------------------
-    #kmi = km.keymap_items.new('transform.translate', 'T', 'PRESS', shift=True)
+    # TODO (?)
+    #kmi = km.keymap_items.new('transform.translate', 'T', 'CLICK', shift=True)
     #kmi.properties.texture_space = True
-    #kmi = km.keymap_items.new('transform.resize', 'T', 'PRESS', shift=True, alt=True)
+    #kmi = km.keymap_items.new('transform.resize', 'T', 'CLICK', shift=True, alt=True)
     #kmi.properties.texture_space = True
 
     #------------------
     # Transform spaces
     #------------------
-    kmi = km.keymap_items.new('transform.select_orientation', 'SPACE', 'PRESS', alt=True)
-    #kmi = km.keymap_items.new('transform.create_orientation', 'SPACE', 'PRESS', ctrl=True, alt=True)
-    #kmi.properties.use = True
+    kmi = km.keymap_items.new('transform.select_orientation', 'SPACE', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('transform.create_orientation', 'SPACE', 'CLICK', ctrl=True, alt=True)
+    kmi.properties.use = True
 
     #----------
     # Snapping
@@ -992,9 +1062,9 @@ def MapAdd_View3D_Global(kc):
     #------
     # Misc
     #------
-    kmi = km.keymap_items.new('view3d.clip_border', 'B', 'CLICK', alt=True)
-    kmi = km.keymap_items.new('view3d.zoom_border', 'B', 'CLICK', shift=True)
-    kmi = km.keymap_items.new('view3d.render_border', 'B', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('view3d.zoom_border', 'V', 'CLICK')
+    kmi = km.keymap_items.new('view3d.clip_border', 'V', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('view3d.render_border', 'V', 'PRESS', shift=True)
     kmi = km.keymap_items.new('view3d.camera_to_view', 'NUMPAD_0', 'CLICK', ctrl=True, alt=True)
     kmi = km.keymap_items.new('view3d.object_as_camera', 'NUMPAD_0', 'CLICK', ctrl=True)
     
@@ -1106,14 +1176,14 @@ def MapAdd_View3D_ObjectMode(kc):
     kmi = km.keymap_items.new('object.proxy_make', 'P', 'PRESS', ctrl=True, alt=True)
     
     # Keyframe insertion
-    kmi = km.keymap_items.new('anim.keyframe_insert_menu', 'I', 'PRESS')
-    kmi = km.keymap_items.new('anim.keyframe_delete_v3d', 'I', 'PRESS', alt=True)
-    kmi = km.keymap_items.new('anim.keying_set_active_set', 'I', 'PRESS', shift=True, ctrl=True, alt=True)
+    kmi = km.keymap_items.new('anim.keyframe_insert_menu', KEYFRAME_KEY, 'PRESS')
+    kmi = km.keymap_items.new('anim.keyframe_delete_v3d', KEYFRAME_KEY, 'PRESS', alt=True)
+    kmi = km.keymap_items.new('anim.keying_set_active_set', KEYFRAME_KEY, 'PRESS', shift=True, ctrl=True, alt=True)
     
     # Misc
     kmi = km.keymap_items.new('object.join', 'J', 'PRESS', ctrl=True)
     kmi = km.keymap_items.new('object.convert', 'C', 'PRESS', alt=True)
-    kmi = km.keymap_items.new('object.make_local', 'L', 'PRESS')
+    #kmi = km.keymap_items.new('object.make_local', 'L', 'PRESS')
     kmi = km.keymap_items.new('wm.call_menu', SPECIALS_MENU_KEY, 'PRESS')
     kmi.properties.name = 'VIEW3D_MT_object_specials'
     
@@ -1166,6 +1236,7 @@ def MapAdd_View3D_MeshEditMode(kc):
     
     # Shortest path
     kmi = km.keymap_items.new('mesh.shortest_path_pick', 'RIGHTMOUSE', 'PRESS', alt=True) # Replace
+    kmi.properties.extend = False
     # TODO: add, remove
     
     # Edge loop
@@ -1206,17 +1277,17 @@ def MapAdd_View3D_MeshEditMode(kc):
     kmi = km.keymap_items.new('mesh.select_more', 'RIGHT_BRACKET', 'PRESS')
     kmi = km.keymap_items.new('mesh.select_less', 'LEFT_BRACKET', 'PRESS')
     #kmi = km.keymap_items.new('mesh.select_non_manifold', 'M', 'PRESS', shift=True, ctrl=True, alt=True)
-    #kmi = km.keymap_items.new('mesh.faces_select_linked_flat', 'F', 'CLICK', shift=True, ctrl=True, alt=True)
-    #kmi = km.keymap_items.new('mesh.select_similar', 'G', 'CLICK', shift=True)
+    #kmi = km.keymap_items.new('mesh.faces_select_linked_flat', 'F', 'PRESS', shift=True, ctrl=True, alt=True)
+    #kmi = km.keymap_items.new('mesh.select_similar', 'G', 'PRESS', shift=True)
 
     # Proportional editing
     kmi = km.keymap_items.new('wm.context_toggle_enum', 'O', 'CLICK')
     kmi.properties.data_path = 'tool_settings.proportional_edit'
     kmi.properties.value_1 = 'DISABLED'
     kmi.properties.value_2 = 'ENABLED'
-    kmi = km.keymap_items.new('wm.context_cycle_enum', 'O', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('wm.context_cycle_enum', 'O', 'PRESS', shift=True)
     kmi.properties.data_path = 'tool_settings.proportional_edit_falloff'
-    kmi = km.keymap_items.new('wm.context_toggle_enum', 'O', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('wm.context_toggle_enum', 'O', 'PRESS', alt=True)
     kmi.properties.data_path = 'tool_settings.proportional_edit'
     kmi.properties.value_1 = 'DISABLED'
     kmi.properties.value_2 = 'CONNECTED'
@@ -1224,9 +1295,9 @@ def MapAdd_View3D_MeshEditMode(kc):
     # Hiding
     kmi = km.keymap_items.new('mesh.hide', 'H', 'CLICK')
     kmi.properties.unselected = False
-    kmi = km.keymap_items.new('mesh.hide', 'H', 'CLICK', shift=True)
+    kmi = km.keymap_items.new('mesh.hide', 'H', 'PRESS', shift=True)
     kmi.properties.unselected = True
-    kmi = km.keymap_items.new('mesh.reveal', 'H', 'CLICK', alt=True)
+    kmi = km.keymap_items.new('mesh.reveal', 'H', 'PRESS', alt=True)
 
     #-----------------
     # Create Geometry
@@ -1247,13 +1318,13 @@ def MapAdd_View3D_MeshEditMode(kc):
     kmi = km.keymap_items.new('mesh.subdivide', 'W', 'CLICK')
     
     # Loop cut
-    kmi = km.keymap_items.new('mesh.loopcut_slide', 'T', 'CLICK')
+    kmi = km.keymap_items.new('mesh.loopcut_slide', 'T', 'PRESS')
     
     # Knife
-    kmi = km.keymap_items.new('mesh.knife_tool', 'K', 'CLICK')
+    kmi = km.keymap_items.new('mesh.knife_tool', 'K', 'PRESS')
     
     # Extrude
-    kmi = km.keymap_items.new('view3d.edit_mesh_extrude_move_normal', 'E', 'CLICK')
+    kmi = km.keymap_items.new('view3d.edit_mesh_extrude_move_normal', 'E', 'PRESS')
     kmi = km.keymap_items.new('wm.call_menu', 'E', 'PRESS', alt=True)
     kmi.properties.name = 'VIEW3D_MT_edit_mesh_extrude'
     
@@ -1263,22 +1334,25 @@ def MapAdd_View3D_MeshEditMode(kc):
     kmi.properties.rotate_source = False
     
     # Inset/Outset
-    kmi = km.keymap_items.new('mesh.inset', 'I', 'CLICK')
+    kmi = km.keymap_items.new('mesh.inset', 'I', 'PRESS')
     kmi.properties.use_outset = False
     kmi = km.keymap_items.new('mesh.inset', 'I', 'PRESS', shift=True)
     kmi.properties.use_outset = True
     
     # Bevel
-    kmi = km.keymap_items.new('mesh.bevel', 'B', 'CLICK')
+    kmi = km.keymap_items.new('mesh.bevel', 'B', 'PRESS')
+    
+    # Bridge
+    kmi = km.keymap_items.new('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
 
     # Duplicate
     kmi = km.keymap_items.new('mesh.duplicate_move', 'D', 'PRESS', shift=True)
     
     # Rip
-    kmi = km.keymap_items.new('mesh.rip_move', 'R', 'CLICK')
+    kmi = km.keymap_items.new('mesh.rip_move', 'R', 'PRESS')
     
     # Split / Separate
-    kmi = km.keymap_items.new('mesh.split', 'Y', 'CLICK')
+    kmi = km.keymap_items.new('mesh.split', 'Y', 'PRESS')
     kmi = km.keymap_items.new('mesh.separate', 'Y', 'PRESS', shift=True)
     
 
@@ -1301,7 +1375,7 @@ def MapAdd_View3D_MeshEditMode(kc):
     kmi.properties.name = 'VIEW3D_MT_edit_mesh_delete'
 
     # Merge/collapse
-    kmi = km.keymap_items.new('mesh.edge_collapse', 'M', 'CLICK')
+    kmi = km.keymap_items.new('mesh.merge_contextual', 'M', 'PRESS')
     kmi = km.keymap_items.new('mesh.merge', 'M', 'PRESS', alt=True)
     
     #-----------------
@@ -1319,16 +1393,16 @@ def MapAdd_View3D_MeshEditMode(kc):
     #------
     
     # Vert/edge properties
-    #kmi = km.keymap_items.new('transform.edge_crease', 'E', 'CLICK', shift=True)
+    #kmi = km.keymap_items.new('transform.edge_crease', 'E', 'PRESS', shift=True)
     
     # Tri/quad conversion
-    #kmi = km.keymap_items.new('mesh.quads_convert_to_tris', 'T', 'CLICK', ctrl=True)
-    #kmi = km.keymap_items.new('mesh.quads_convert_to_tris', 'T', 'CLICK', shift=True, ctrl=True)
+    #kmi = km.keymap_items.new('mesh.quads_convert_to_tris', 'T', 'PRESS', ctrl=True)
+    #kmi = km.keymap_items.new('mesh.quads_convert_to_tris', 'T', 'PRESS', shift=True, ctrl=True)
     #kmi.properties.use_beauty = False
-    #kmi = km.keymap_items.new('mesh.tris_convert_to_quads', 'J', 'CLICK', alt=True)
+    #kmi = km.keymap_items.new('mesh.tris_convert_to_quads', 'J', 'PRESS', alt=True)
 
     # Tool Menus
-    kmi = km.keymap_items.new('wm.call_menu', SPECIALS_MENU_KEY, 'CLICK')
+    kmi = km.keymap_items.new('wm.call_menu', SPECIALS_MENU_KEY, 'PRESS')
     kmi.properties.name = 'VIEW3D_MT_edit_mesh_specials'
     kmi = km.keymap_items.new('wm.call_menu', 'ONE', 'PRESS', alt=True)
     kmi.properties.name = 'VIEW3D_MT_edit_mesh_vertices'
@@ -1348,26 +1422,12 @@ def MapAdd_View3D_MeshEditMode(kc):
     kmi.properties.inside = True
 
     # Subsurf shortcuts
-    if SUBSURF_RELATIVE:
-        kmi = km.keymap_items.new('object.shift_subsurf_level', 'EQUAL', 'PRESS')
-        kmi.properties.delta = 1
-        kmi.properties.new_if_missing = True
-        kmi = km.keymap_items.new('object.shift_subsurf_level', 'MINUS', 'PRESS')
-        kmi.properties.delta = -1
-        kmi.properties.new_if_missing = False
-    else:
-        kmi = km.keymap_items.new('object.subdivision_set', 'ZERO', 'CLICK', ctrl=True)
-        kmi.properties.level = 0
-        kmi = km.keymap_items.new('object.subdivision_set', 'ONE', 'CLICK', ctrl=True)
-        kmi.properties.level = 1
-        kmi = km.keymap_items.new('object.subdivision_set', 'TWO', 'CLICK', ctrl=True)
-        kmi.properties.level = 2
-        kmi = km.keymap_items.new('object.subdivision_set', 'THREE', 'CLICK', ctrl=True)
-        kmi.properties.level = 3
-        kmi = km.keymap_items.new('object.subdivision_set', 'FOUR', 'CLICK', ctrl=True)
-        kmi.properties.level = 4
-        kmi = km.keymap_items.new('object.subdivision_set', 'FIVE', 'CLICK', ctrl=True)
-        kmi.properties.level = 5
+    kmi = km.keymap_items.new('object.shift_subsurf_level', 'EQUAL', 'PRESS')
+    kmi.properties.delta = 1
+    kmi.properties.new_if_missing = True
+    kmi = km.keymap_items.new('object.shift_subsurf_level', 'MINUS', 'PRESS')
+    kmi.properties.delta = -1
+    kmi.properties.new_if_missing = False
 
     # Rigging
     kmi = km.keymap_items.new('object.vertex_parent_set', 'P', 'PRESS', ctrl=True)
@@ -1822,7 +1882,108 @@ def MapAdd_Markers(kc):
     
     # Bind marker to camera
     kmi = km.keymap_items.new('marker.camera_bind', 'B', 'PRESS', ctrl=True)
+
+
+# TODO
+def MapAdd_ArmaturePose(kc):
+    # Map Pose
+    km = kc.keymaps.new('Pose', space_type='EMPTY', region_type='WINDOW', modal=False)
+
+    # Keyframing
+    kmi = km.keymap_items.new('anim.keyframe_insert_menu', KEYFRAME_KEY, 'PRESS')
+    kmi = km.keymap_items.new('anim.keyframe_delete_v3d', KEYFRAME_KEY, 'PRESS', alt=True)
+    kmi = km.keymap_items.new('anim.keying_set_active_set', KEYFRAME_KEY, 'PRESS', shift=True, ctrl=True, alt=True)
+
+    # Hiding
+    kmi = km.keymap_items.new('pose.hide', 'H', 'PRESS')
+    kmi.properties.unselected = False
+    kmi = km.keymap_items.new('pose.hide', 'H', 'PRESS', shift=True)
+    kmi.properties.unselected = True
+    kmi = km.keymap_items.new('pose.reveal', 'H', 'PRESS', alt=True)
+
+    # Selection
+    kmi = km.keymap_items.new('pose.select_all', 'A', 'PRESS')
+    kmi.properties.action = 'TOGGLE'
+    kmi = km.keymap_items.new('pose.select_all', 'I', 'PRESS', ctrl=True)
+    kmi.properties.action = 'INVERT'
+    kmi = km.keymap_items.new('pose.select_hierarchy', 'LEFT_BRACKET', 'PRESS')
+    kmi.properties.direction = 'PARENT'
+    kmi.properties.extend = False
+    kmi = km.keymap_items.new('pose.select_hierarchy', 'LEFT_BRACKET', 'PRESS', shift=True)
+    kmi.properties.direction = 'PARENT'
+    kmi.properties.extend = True
+    kmi = km.keymap_items.new('pose.select_hierarchy', 'RIGHT_BRACKET', 'PRESS')
+    kmi.properties.direction = 'CHILD'
+    kmi.properties.extend = False
+    kmi = km.keymap_items.new('pose.select_hierarchy', 'RIGHT_BRACKET', 'PRESS', shift=True)
+    kmi.properties.direction = 'CHILD'
+    kmi.properties.extend = True
+    kmi = km.keymap_items.new('pose.select_grouped', 'G', 'PRESS', shift=True)
+    #kmi = km.keymap_items.new('pose.select_linked', 'L', 'PRESS')
+    #kmi = km.keymap_items.new('pose.select_flip_active', 'F', 'PRESS', shift=True)
+
+    # Transforms
+    kmi = km.keymap_items.new('pose.rot_clear', ROTATE_KEY, 'PRESS', alt=True)
+    kmi = km.keymap_items.new('pose.loc_clear', TRANSLATE_KEY, 'PRESS', alt=True)
+    kmi = km.keymap_items.new('pose.scale_clear', SCALE_KEY, 'PRESS', alt=True)
+    kmi = km.keymap_items.new('pose.quaternions_flip', 'I', 'PRESS') # "invert" quaternion
+    #kmi = km.keymap_items.new('pose.rotation_mode_set', 'R', 'PRESS', ctrl=True)
+
+    # Pose copy/paste
+    kmi = km.keymap_items.new('pose.copy', 'C', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('pose.paste', 'V', 'PRESS', ctrl=True)
+    kmi.properties.flipped = False
+    kmi = km.keymap_items.new('pose.paste', 'V', 'PRESS', shift=True, ctrl=True)
+    kmi.properties.flipped = True
     
+    # Pose tools
+    kmi = km.keymap_items.new('pose.breakdown', 'T', 'PRESS')
+    kmi = km.keymap_items.new('pose.relax', 'R', 'PRESS')
+    kmi = km.keymap_items.new('pose.push', 'R', 'PRESS', shift=True)
+    
+    
+
+    # Pose library
+    kmi = km.keymap_items.new('poselib.browse_interactive', 'L', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('poselib.pose_add', 'L', 'PRESS', shift=True)
+    kmi = km.keymap_items.new('poselib.pose_remove', 'L', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('poselib.pose_rename', 'L', 'PRESS', shift=True, ctrl=True)
+
+    # Specials menu
+    kmi = km.keymap_items.new('wm.call_menu', SPECIALS_MENU_KEY, 'PRESS')
+    kmi.properties.name = 'VIEW3D_MT_pose_specials'
+
+    # Object-mode emulation
+    #kmi = km.keymap_items.new('object.parent_set', 'P', 'PRESS', ctrl=True)
+    #kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', shift=True)
+    #kmi.properties.name = 'INFO_MT_add'
+    
+    # TODO: operators relevant to rigging
+    #kmi = km.keymap_items.new('wm.call_menu', 'W', 'PRESS', shift=True)
+    #kmi.properties.name = 'VIEW3D_MT_bone_options_toggle'
+    #kmi = km.keymap_items.new('wm.call_menu', 'W', 'PRESS', shift=True, ctrl=True)
+    #kmi.properties.name = 'VIEW3D_MT_bone_options_enable'
+    #kmi = km.keymap_items.new('wm.call_menu', 'W', 'PRESS', alt=True)
+    #kmi.properties.name = 'VIEW3D_MT_bone_options_disable'
+    #kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', ctrl=True)
+    #kmi.properties.name = 'VIEW3D_MT_pose_apply'
+    
+    #kmi = km.keymap_items.new('pose.constraint_add_with_targets', 'C', 'PRESS', shift=True, ctrl=True)
+    #kmi = km.keymap_items.new('pose.constraints_clear', 'C', 'PRESS', ctrl=True, alt=True)
+    #kmi = km.keymap_items.new('pose.ik_add', 'I', 'PRESS', shift=True)
+    #kmi = km.keymap_items.new('pose.ik_clear', 'I', 'PRESS', ctrl=True, alt=True)
+    #kmi = km.keymap_items.new('wm.call_menu', 'G', 'PRESS', ctrl=True)
+    #kmi.properties.name = 'VIEW3D_MT_pose_group'
+    
+    #kmi = km.keymap_items.new('armature.layers_show_all', 'ACCENT_GRAVE', 'PRESS', ctrl=True)
+    #kmi = km.keymap_items.new('pose.armature_layers', 'M', 'PRESS', shift=True)
+    #kmi = km.keymap_items.new('pose.bone_layers', 'M', 'PRESS')
+    #kmi = km.keymap_items.new('transform.transform', 'S', 'PRESS', ctrl=True, alt=True)
+    #kmi.properties.mode = 'BONE_SIZE'
+    
+    
+    
+
 
 def MapAdd_FileBrowserGlobal(kc):
     # Map File Browser
@@ -1939,10 +2100,11 @@ def MapAdd_Outliner(kc):
     kmi.properties.up = True
     
     # Misc
-    kmi = km.keymap_items.new('outliner.keyingset_add_selected', 'K', 'PRESS')
-    kmi = km.keymap_items.new('outliner.keyingset_remove_selected', 'K', 'PRESS', alt=True)
-    kmi = km.keymap_items.new('anim.keyframe_insert', 'I', 'PRESS')
-    kmi = km.keymap_items.new('anim.keyframe_delete', 'I', 'PRESS', alt=True)
+    # TODO: keying set alternative
+    #kmi = km.keymap_items.new('outliner.keyingset_add_selected', 'K', 'PRESS')
+    #kmi = km.keymap_items.new('outliner.keyingset_remove_selected', 'K', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('anim.keyframe_insert', KEYFRAME_KEY, 'PRESS')
+    kmi = km.keymap_items.new('anim.keyframe_delete', KEYFRAME_KEY, 'PRESS', alt=True)
     kmi = km.keymap_items.new('outliner.drivers_add_selected', 'D', 'PRESS')
     kmi = km.keymap_items.new('outliner.drivers_delete_selected', 'D', 'PRESS', alt=True)
 
@@ -2197,6 +2359,171 @@ def MapAdd_TextEditor(kc):
     kmi = km.keymap_items.new('text.insert', 'TEXTINPUT', 'ANY', any=True)
 
 
+# TODO: sort out node editor
+def MapAdd_NodeEditorGeneric(kc):
+    km = kc.keymaps.new('Node Generic', space_type='NODE_EDITOR', region_type='WINDOW', modal=False)
+
+    kmi = km.keymap_items.new('node.toolbar', 'SEMI_COLON', 'PRESS')
+    kmi = km.keymap_items.new('node.properties', 'QUOTE', 'PRESS')
+
+
+def MapAdd_NodeEditor(kc):
+    km = kc.keymaps.new('Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', modal=False)
+
+    # TODO: create a specials menu with useful but less-used commands
+    #kmi = km.keymap_items.new('node.show_cyclic_dependencies', 'C', 'PRESS')
+    
+    # View navigation
+    kmi = km.keymap_items.new('node.view_all', 'HOME', 'PRESS')
+    kmi = km.keymap_items.new('node.view_selected', 'NUMPAD_PERIOD', 'PRESS')
+    
+    # Basic selection
+    # TODO: replace/add/remove selection
+    # TODO: create better model for node vs socket selection.  Right now
+    #       extend-select is just over-loaded to do socket selection,
+    #       which kind of sucks.  Fixing this will likely require
+    #       C-code changes to Blender.
+    # TODO: write tweak-move operator so that simple select can use click
+    #       instead of press.
+    kmi = km.keymap_items.new('node.select', 'SELECTMOUSE', 'PRESS') # Replace
+    kmi.properties.extend = False
+    kmi = km.keymap_items.new('node.select', 'SELECTMOUSE', 'PRESS', shift=True) # Add
+    kmi.properties.extend = True
+    #kmi = km.keymap_items.new('node.select', 'SELECTMOUSE', 'PRESS', ctrl=True) # Remove
+    #kmi.properties.extend = False
+    
+    # Border selection
+    # TODO: replace/add/remove selection
+    kmi = km.keymap_items.new('node.select_border', 'EVT_TWEAK_S', 'ANY') # Replace
+    kmi.properties.tweak = True
+    #kmi = km.keymap_items.new('node.select_border', 'EVT_TWEAK_S', 'ANY', shift=True) # Add
+    #kmi.properties.tweak = True
+    #kmi = km.keymap_items.new('node.select_border', 'EVT_TWEAK_S', 'ANY', ctrl=True) # Remove
+    #kmi.properties.tweak = True
+    
+    # Lasso select
+    # TODO: replace/add/remove selection
+    kmi = km.keymap_items.new('node.select_lasso', 'EVT_TWEAK_S', 'ANY', alt=True) # Add
+    kmi.properties.deselect = False
+    kmi = km.keymap_items.new('node.select_lasso', 'EVT_TWEAK_S', 'ANY', ctrl=True, alt=True) # Remove
+    kmi.properties.deselect = True
+    
+    # Select all/invert
+    kmi = km.keymap_items.new('node.select_all', 'A', 'PRESS')
+    kmi.properties.action = 'TOGGLE'
+    kmi = km.keymap_items.new('node.select_all', 'I', 'PRESS', ctrl=True)
+    kmi.properties.action = 'INVERT'
+    
+    # Find node
+    kmi = km.keymap_items.new('node.find_node', 'F', 'PRESS', ctrl=True)
+    
+    # Moving nodes
+    # ??? kmi = km.keymap_items.new('node.translate_attach', TRANSLATE_KEY, 'PRESS')
+    # ??? kmi = km.keymap_items.new('node.translate_attach', 'EVT_TWEAK_A', 'ANY')
+    # ??? kmi = km.keymap_items.new('node.translate_attach', 'EVT_TWEAK_S', 'ANY')
+    kmi = km.keymap_items.new('transform.translate', TRANSLATE_KEY, 'PRESS')
+    kmi.properties.release_confirm = False
+    kmi = km.keymap_items.new('transform.translate', 'EVT_TWEAK_L', 'ANY')
+    kmi.properties.release_confirm = True
+    kmi = km.keymap_items.new('transform.rotate', ROTATE_KEY, 'PRESS')
+    kmi = km.keymap_items.new('transform.resize', SCALE_KEY, 'PRESS')
+    
+    # Resize node
+    kmi = km.keymap_items.new('node.resize', 'LEFTMOUSE', 'PRESS')
+    
+    # Add nodes
+    kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', shift=True)
+    kmi.properties.name = 'NODE_MT_add'
+    
+    # Delete nodes
+    kmi = km.keymap_items.new('node.delete', 'X', 'CLICK')
+    kmi = km.keymap_items.new('node.delete', 'DEL', 'CLICK')
+    kmi = km.keymap_items.new('node.delete_reconnect', 'X', 'PRESS', shift=True) # like "dissolve" in mesh editing
+    kmi = km.keymap_items.new('node.delete_reconnect', 'DEL', 'PRESS', shift=True)
+    
+    # Duplicate nodes
+    kmi = km.keymap_items.new('node.duplicate_move', 'D', 'PRESS', shift=True)
+    kmi = km.keymap_items.new('node.duplicate_move_keep_inputs', 'D', 'PRESS', shift=True, ctrl=True)
+    
+    # Copy/paste nodes
+    kmi = km.keymap_items.new('node.clipboard_copy', 'C', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('node.clipboard_paste', 'V', 'PRESS', ctrl=True)
+    
+    # Dragging links from sockets
+    # TODO: these operators do not appear to work with tweak events, but
+    #       they clearly should be triggered by them rather than by
+    #       clicks/presses.  Investigate and fix.
+    kmi = km.keymap_items.new('node.link', 'LEFTMOUSE', 'PRESS')
+    kmi.properties.detach = False
+    kmi = km.keymap_items.new('node.link', 'LEFTMOUSE', 'PRESS', ctrl=True)
+    kmi.properties.detach = True
+    
+    # Connect selected sockets
+    kmi = km.keymap_items.new('node.link_make', 'C', 'PRESS')
+    kmi.properties.replace = False
+    kmi = km.keymap_items.new('node.link_make', 'C', 'PRESS', shift=True)
+    kmi.properties.replace = True
+    
+    # Hide and mute
+    kmi = km.keymap_items.new('node.hide_toggle', 'H', 'PRESS')
+    kmi = km.keymap_items.new('node.mute_toggle', 'M', 'PRESS')
+    
+    # Drag to cut links or add reroutes
+    kmi = km.keymap_items.new('node.links_cut', 'RIGHTMOUSE', 'PRESS')
+    kmi = km.keymap_items.new('node.add_reroute', 'RIGHTMOUSE', 'PRESS', shift=True)
+    
+    # Node groups
+    kmi = km.keymap_items.new('node.group_make', 'G', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('node.group_ungroup', 'G', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('node.group_separate', 'Y', 'CLICK')
+    kmi = km.keymap_items.new('node.group_edit', 'SPACE', 'PRESS')
+    kmi.properties.exit = False
+    kmi = km.keymap_items.new('node.group_edit', 'SPACE', 'PRESS', shift=True)
+    kmi.properties.exit = True
+    
+    # Compositing backdrop
+    # TODO: backdrop navigation should correspond to normal viewport
+    #       navigation, just with alt held down.  Specifically, you can't
+    #       alt-MMB-drag to zoom right now.  Fix (write a modal python
+    #       operator).
+    kmi = km.keymap_items.new('node.backimage_move', 'MIDDLEMOUSE', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('node.backimage_zoom', 'WHEELOUTMOUSE', 'PRESS', alt=True)
+    kmi.properties.factor = 0.833329975605011
+    kmi = km.keymap_items.new('node.backimage_zoom', 'WHEELINMOUSE', 'PRESS', alt=True)
+    kmi.properties.factor = 1.2000000476837158
+    kmi = km.keymap_items.new('node.backimage_zoom', 'NUMPAD_MINUS', 'PRESS', alt=True)
+    kmi.properties.factor = 0.833329975605011
+    kmi = km.keymap_items.new('node.backimage_zoom', 'NUMPAD_PLUS', 'PRESS', alt=True)
+    kmi.properties.factor = 1.2000000476837158
+    kmi = km.keymap_items.new('node.backimage_fit', 'HOME', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('node.backimage_sample', 'RIGHTMOUSE', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('node.viewer_border', 'V', 'PRESS', shift=True)
+
+    # Compositing misc
+    kmi = km.keymap_items.new('node.select_link_viewer', 'RIGHTMOUSE', 'PRESS', ctrl=True)
+    #kmi = km.keymap_items.new('node.read_renderlayers', 'R', 'PRESS', ctrl=True)
+    #kmi = km.keymap_items.new('node.read_fullsamplelayers', 'R', 'PRESS', shift=True)
+    #kmi = km.keymap_items.new('node.render_changed', 'Z', 'PRESS')
+
+    # TODO: sort these out
+    # kmi = km.keymap_items.new('node.join', 'J', 'PRESS', ctrl=True)
+    # ??? kmi = km.keymap_items.new('node.parent_set', 'P', 'PRESS', ctrl=True)
+    # ??? kmi = km.keymap_items.new('node.parent_clear', 'P', 'PRESS', alt=True)
+    # kmi = km.keymap_items.new('node.preview_toggle', 'H', 'PRESS', shift=True)
+    # kmi = km.keymap_items.new('node.hide_socket_toggle', 'H', 'PRESS', ctrl=True)
+    # kmi = km.keymap_items.new('node.select_linked_to', 'L', 'PRESS', shift=True)
+    # kmi = km.keymap_items.new('node.select_linked_from', 'L', 'PRESS')
+    # kmi = km.keymap_items.new('node.select_same_type', 'G', 'PRESS', shift=True)
+    # kmi = km.keymap_items.new('node.select_same_type_step', 'RIGHT_BRACKET', 'PRESS', shift=True)
+    # kmi.properties.prev = False
+    # kmi = km.keymap_items.new('node.select_same_type_step', 'LEFT_BRACKET', 'PRESS', shift=True)
+    # kmi.properties.prev = True
+    # kmi = km.keymap_items.new('node.move_detach_links', 'D', 'PRESS', alt=True)
+    # kmi = km.keymap_items.new('node.move_detach_links_release', 'EVT_TWEAK_A', 'ANY', alt=True)
+    # kmi = km.keymap_items.new('node.move_detach_links', 'EVT_TWEAK_S', 'ANY', alt=True)
+    # kmi = km.keymap_items.new('node.detach_translate_attach', 'C', 'PRESS', alt=True)
+
+
 
 wm = bpy.context.window_manager
 kc = wm.keyconfigs.new('Blender 2012 (experimental!)')
@@ -2224,6 +2551,8 @@ MapAdd_AnimationGlobal(kc)
 MapAdd_AnimationSpaces(kc)
 MapAdd_Markers(kc)
 
+MapAdd_ArmaturePose(kc)
+
 MapAdd_FileBrowserGlobal(kc)
 MapAdd_FileBrowserMain(kc)
 MapAdd_FileBrowserButtons(kc)
@@ -2235,6 +2564,8 @@ MapAdd_Console(kc)
 MapAdd_TextEditorGeneric(kc)
 MapAdd_TextEditor(kc)
 
+MapAdd_NodeEditorGeneric(kc)
+MapAdd_NodeEditor(kc)
 
 
 
