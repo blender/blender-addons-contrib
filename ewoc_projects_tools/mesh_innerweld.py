@@ -24,6 +24,7 @@ Documentation
 First go to User Preferences->Addons and enable the InnerWeld addon in the Mesh category.
 Go to EditMode, select some parallel edge(loop)(slices).  Handles ALL edges parallel next to each other.
 These edges will be welded together when invoking addon (button in Mesh Tools panel).
+Innerweld will only work when in Edge select component mode!
 
 If you wish to hotkey InnerWeld:
 In the Input section of User Preferences at the bottom of the 3D View > Mesh section click 'Add New' button.
@@ -36,7 +37,7 @@ Save as Default (Optional).
 bl_info = {
 	"name": "InnerWeld",
 	"author": "Gert De Roost",
-	"version": (0, 1, 0),
+	"version": (0, 2, 0),
 	"blender": (2, 6, 3),
 	"location": "View3D > Tools",
 	"description": "Welding parallel edges together.",
@@ -45,8 +46,6 @@ bl_info = {
 	"tracker_url": "",
 	"category": "Mesh"}
 
-if "bpy" in locals():
-    import imp
 
 
 import bpy
@@ -59,34 +58,121 @@ class InnerWeld(bpy.types.Operator):
 	bl_idname = "mesh.innerweld"
 	bl_label = "InnerWeld"
 	bl_description = "Welding parallel edges together"
-	bl_options = {"REGISTER", "UNDO"}
+	bl_options = {'REGISTER', 'UNDO'}
 
 	
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
-		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH')
+		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH' and list(context.tool_settings.mesh_select_mode) == [False, True, False])
 
 	def invoke(self, context, event):
 		
-		self.save_global_undo = bpy.context.user_preferences.edit.use_global_undo
-		bpy.context.user_preferences.edit.use_global_undo = False
+		bpy.ops.object.editmode_toggle()
+		bpy.ops.object.editmode_toggle()
 		
-		do_innerweld()
+		self.do_innerweld(context)
 		
-		bpy.context.user_preferences.edit.use_global_undo = self.save_global_undo
-		bm.free()
 		bpy.ops.object.editmode_toggle()
 		bpy.ops.object.editmode_toggle()
 		
 		return {'FINISHED'}
 
 
-def panel_func(self, context):
+	def do_innerweld(self, context):
 	
-	scn = bpy.context.scene
+		selobj = context.active_object
+		mesh = selobj.data
+		bm = bmesh.from_edit_mesh(mesh)
+	
+		self.sellist = []
+		for edge in bm.edges:
+			if edge.select:
+				self.sellist.append(edge)
+	
+	
+		def addstart(vert, posn):
+			
+			# recursive: adds to initial edgelist at start
+			for e in vert.link_edges:
+				if e in self.sellist:
+					self.sellist.pop(self.sellist.index(e))
+					v = e.other_vert(vert)
+					self.vertlist[posn].insert(0, v)
+					addstart(v, posn)
+		
+		def addend(vert, posn):
+			
+			# recursive: adds to initial edgelist at end
+			for e in vert.link_edges:
+				if e in self.sellist:
+					self.sellist.pop(self.sellist.index(e))
+					v = e.other_vert(vert)
+					self.vertlist[posn].append(v)
+					addend(v, posn)
+	
+		posn = 0
+		self.vertlist = []
+		while len(self.sellist) > 0:
+			# initialize next edgesnake		
+			self.vertlist.append([])
+			vert = self.sellist[0].verts[0]
+			self.vertlist[posn].append(vert)
+			# add to start and end of arbitrary start vert
+			addstart(vert, posn)
+			addend(vert, posn)
+			posn += 1
+			
+			
+		found = True
+		posn = 0
+		mergesets = []
+		while found:
+			found = False
+			for idx in range(len(self.vertlist)):
+				if len(self.vertlist[idx]) > 0:
+					found = True
+					vset = set([])
+					vset.add(self.vertlist[idx].pop())
+					mergesets.append(vset.copy())
+					while len(vset) > 0:
+						vert = vset.pop()
+						for edge in vert.link_edges:
+							if edge.select:
+								continue
+							v1 = edge.other_vert(vert)
+							for vlist in self.vertlist:
+								if v1 in vlist and not(v1 in mergesets[posn]):
+									mergesets[posn].add(v1)
+									vset.add(v1)
+									self.vertlist[self.vertlist.index(vlist)].pop(vlist.index(v1))
+					posn +=1
+	
+		mergeverts = []
+		for st in mergesets:
+			bpy.ops.mesh.select_all(action = 'DESELECT')
+			for vert in st:
+				vert.select = True
+				mergeverts.append(vert)
+			bpy.ops.mesh.merge(type='CENTER', uvs=True)
+		
+		for v in mergeverts:
+			try:
+				v.select = True
+			except:
+				pass
+		
+		bm.select_flush(1)
+		bm.free()
+		
+		
+		
+	
+
+def panel_func(self, context):
 	self.layout.label(text="InnerWeld:")
 	self.layout.operator("mesh.innerweld", text="Weld Edges")
+
 
 def register():
 	bpy.utils.register_module(__name__)
@@ -103,90 +189,4 @@ if __name__ == "__main__":
 
 
 
-def addstart(vert):
-	
-	global sellist, vertlist
 
-	# recursive: adds to initial edgelist at start
-	for e in vert.link_edges:
-		if e in sellist:
-			sellist.pop(sellist.index(e))
-			v = e.other_vert(vert)
-			vertlist[posn].insert(0, v)
-			addstart(v)
-
-def addend(vert):
-	
-	global sellist, vertlist
-
-	# recursive: adds to initial edgelist at end
-	for e in vert.link_edges:
-		if e in sellist:
-			sellist.pop(sellist.index(e))
-			v = e.other_vert(vert)
-			vertlist[posn].append(v)
-			addend(v)
-
-
-def do_innerweld():
-
-	global sellist, vertlist, posn
-	global bm
-
-	context = bpy.context
-	region = context.region  
-	area = context.area
-	selobj = bpy.context.active_object
-	mesh = selobj.data
-	bm = bmesh.from_edit_mesh(mesh)
-
-	sellist = []
-	for edge in bm.edges:
-		if edge.select:
-			sellist.append(edge)
-
-	posn = 0
-	vertlist = []
-	while len(sellist) > 0:
-		# initialize next edgesnake		
-		vertlist.append([])
-		vert = sellist[0].verts[0]
-		vertlist[posn].append(vert)
-		# add to start and end of arbitrary start vert
-		addstart(vert)
-		addend(vert)
-		posn += 1
-		
-	found = 1	
-	posn = 0
-	mergesets = []
-	while found:
-		found = 0
-		for idx in range(len(vertlist)):
-			if len(vertlist[idx]) > 0:
-				found = 1
-				vset = set([])
-				vset.add(vertlist[idx].pop())
-				mergesets.append(vset.copy())
-				while len(vset) > 0:
-					vert = vset.pop()
-					for edge in vert.link_edges:
-						if edge.select:
-							continue
-						v1 = edge.other_vert(vert)
-						for vlist in vertlist:
-							if v1 in vlist and not(v1 in mergesets[posn]):
-								mergesets[posn].add(v1)
-								vset.add(v1)
-								vertlist[vertlist.index(vlist)].pop(vlist.index(v1))
-				posn +=1
-
-	for st in mergesets:
-		bpy.ops.mesh.select_all(action="DESELECT")
-		for vert in st:
-			vert.select = 1
-		bpy.ops.mesh.merge(type='CENTER', uvs=True)
-	
-	
-	
-	

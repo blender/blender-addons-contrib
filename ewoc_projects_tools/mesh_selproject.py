@@ -40,7 +40,7 @@ Press ENTER to finalize the selection projection operation.
 bl_info = {
 	"name": "SelProject",
 	"author": "Gert De Roost",
-	"version": (0, 2, 8),
+	"version": (0, 3, 0),
 	"blender": (2, 6, 3),
 	"location": "View3D > Tools",
 	"description": "Use object projection as selection tool.",
@@ -49,26 +49,19 @@ bl_info = {
 	"tracker_url": "",
 	"category": "Mesh"}
 
-if "bpy" in locals():
-    import imp
 
 
 import bpy
-from bpy_extras import *
+import bpy_extras
 import bmesh
-from bgl import *
-from mathutils import *
+from bgl import glColor3f, glBegin, GL_QUADS, glVertex2f, glEnd
+from mathutils import Vector, Matrix
 import math
+from bpy.app.handlers import persistent
 
 
-activated = 0
-redomenus = 1
-started = 0
-cont = 0
-oldobjs = None
-selverts = []
-fromobj = None
-oldfromobj = None
+started = False
+oldobjs = []
 
 
 
@@ -77,15 +70,14 @@ bpy.types.Scene.UseSel = bpy.props.BoolProperty(
 		description = "Use selected area as From object",
 		default = False)
 
-itemlist = [("Empty", "Empty", "Empty")]
 bpy.types.Scene.FromObject = bpy.props.EnumProperty(
-		items = itemlist,
+		items = [("Empty", "Empty", "Empty")],
 		name = "From", 
 		description = "Object to project",
 		default = "Empty")
 
 bpy.types.Scene.ToObject = bpy.props.EnumProperty(
-		items = itemlist,
+		items = [("Empty", "Empty", "Empty")],
 		name = "To", 
 		description = "Object to project onto")
 
@@ -93,138 +85,307 @@ bpy.types.Scene.ToObject = bpy.props.EnumProperty(
 
 
 
-class Activate(bpy.types.Operator):
-	bl_idname = "selproject.activate"
-	bl_label = "Activate"
-	bl_description = "Activate addon"
-	bl_options = {"REGISTER", "UNDO"}
-	
-	def invoke(self, context, event):
-		
-		global activated
-		
-		setparam()
-		activated = 1
-	
-		return {'RUNNING_MODAL'}
-		
-
 class SelProject(bpy.types.Operator):
 	bl_idname = "mesh.selproject"
 	bl_label = "SelProject"
 	bl_description = "Use object projection as selection tool"
-	bl_options = {"REGISTER", "UNDO"}
+	bl_options = {'REGISTER', 'UNDO'}
 	
 	def invoke(self, context, event):
 		
-		self.save_global_undo = bpy.context.user_preferences.edit.use_global_undo
-		bpy.context.user_preferences.edit.use_global_undo = False
+		global started
 		
-		do_selproject()
+		started = True
+		
+		self.area = context.area
+		self.area.header_text_set(text="SelProject :  Enter to confirm - ESC to exit")
+
+		self.init_selproject(context)
 		
 		context.window_manager.modal_handler_add(self)
-		if eval(str(bpy.app.build_revision)[2:7]) >= 53207:
-			self._handle = bpy.types.SpaceView3D.draw_handler_add(redraw, (), 'WINDOW', 'POST_PIXEL')
-			self._handle3 = bpy.types.SpaceView3D.draw_handler_add(setparam, (), 'WINDOW', 'POST_PIXEL')
-		else:
-			self._handle = context.region.callback_add(redraw, (), 'POST_PIXEL')
-			self._handle3 = context.region.callback_add(setparam, (), 'POST_PIXEL')
-		
+
+		self._handle = bpy.types.SpaceView3D.draw_handler_add(self.redraw, (), 'WINDOW', 'POST_PIXEL')
 		
 		return {'RUNNING_MODAL'}
-		
+
+
 	def modal(self, context, event):
 
-		global obF, obT, bmF, bmT, meF, meT, matrixF, matrixT
-		global oldlocF, oldrotF, oldscaF, oldlocT, oldrotT, oldscaT
-		global started, bigxmin, bigymin
+		global started
 				
-		if event.type == "RET":
-			if obhide != None:
-				bpy.ops.object.select_all(action="DESELECT")
-				obF.select = 1
-				bpy.context.scene.objects.active = obF
+		if event.type in {'RET', 'NUMPAD_ENTER'}:
+			self.area.header_text_set()
+			if self.obhide != None:
+				bpy.ops.object.select_all(action = 'DESELECT')
+				self.obF.select = True
+				bpy.context.scene.objects.active = self.obF
 				bpy.ops.object.delete()
-				obhide.hide = 0
-			bpy.ops.object.select_all(action="DESELECT")
-			empt.select = 1
-			bpy.context.scene.objects.active = empt
+				self.obhide.hide = False
+			bpy.ops.object.select_all(action = 'DESELECT')
+			self.empt.select = True
+			bpy.context.scene.objects.active = self.empt
 			bpy.ops.object.delete()
-			obT.select = 1
-			bpy.context.scene.objects.active = obT				
-			started = 0
-			for v in vsellist:
-				v.select = 1
-			for e in esellist:
-				e.select = 1
-			for f in fsellist:
-				f.select = 1
-			obF.location = originobF
-			obT.location = originobT
-			bmT.select_flush(1)
-			bmT.to_mesh(meT)
-			meT.update()
-			bmF.free()
-			bmT.free()
-			if eval(str(bpy.app.build_revision)[2:7]) >= 53207:
-				bpy.types.SpaceView3D.draw_handler_remove(self._handle, "WINDOW")
-				bpy.types.SpaceView3D.draw_handler_remove(self._handle3, "WINDOW")
-			else:
-				context.region.callback_remove(self._handle)
-				context.region.callback_remove(self._handle3)
-			bpy.context.user_preferences.edit.use_global_undo = self.save_global_undo
+			self.obT.select = True
+			bpy.context.scene.objects.active = self.obT				
+			started = False
+			for v in self.vsellist:
+				v.select = True
+			for e in self.esellist:
+				e.select = True
+			for f in self.fsellist:
+				f.select = True
+			self.obF.location = self.originobF
+			self.obT.location = self.originobT
+			self.bmT.select_flush(1)
+			self.bmT.to_mesh(self.meT)
+			self.meT.update()
+			self.bmF.free()
+			self.bmT.free()
+			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
 			bpy.ops.object.editmode_toggle()
 			return {'FINISHED'}
-		elif event.type in ["LEFTMOUSE", "MIDDLEMOUSE", "RIGHTMOUSE", "WHEELDOWNMOUSE", "WHEELUPMOUSE", "G", "S", "R", "X", "Y", "Z", "MOUSEMOVE"]:
-			context.region.tag_redraw()
-			return {"PASS_THROUGH"}
+			
+		elif event.type == 'ESC':
+			self.area.header_text_set()
+			if self.obhide != None:
+				bpy.ops.object.select_all(action = 'DESELECT')
+				self.obF.select = True
+				bpy.context.scene.objects.active = self.obF
+				bpy.ops.object.delete()
+				self.obhide.hide = False
+			bpy.ops.object.select_all(action = 'DESELECT')
+			self.empt.select = True
+			bpy.context.scene.objects.active = self.empt
+			bpy.ops.object.delete()
+			started = False
+			self.obF.location = self.originobF
+			self.obT.location = self.originobT
+			self.bmF.free()
+			self.bmT.free()
+			for obj in self.oldobjlist:
+				obj.select = True
+			self.scn.objects.active = self.oldobj
+			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+			if self.oldmode == 'EDIT':
+				bpy.ops.object.editmode_toggle()
+			return {'CANCELLED'}
 
-		
+		elif event.type in {'LEFTMOUSE', 'MIDDLEMOUSE', 'RIGHTMOUSE', 'WHEELDOWNMOUSE', 'WHEELUPMOUSE', 'G', 'S', 'R', 'X', 'Y', 'Z', 'MOUSEMOVE'}:
+			context.region.tag_redraw()
+			return {'PASS_THROUGH'}
+			
 		return {'RUNNING_MODAL'}
+
+
+	def getmatrix(self, selobj):
+		
+		# Rotating / panning / zooming 3D view is handled here.
+		# Creates a matrix.
+		if selobj.rotation_mode == 'AXIS_ANGLE':
+			# object rotation_quaternionmode axisangle
+			ang, x, y, z =  selobj.rotation_axis_angle
+			matrix = Matrix.Rotation(-ang, 4, Vector((x, y, z)))
+		elif selobj.rotation_mode == 'QUATERNION':
+			# object rotation_quaternionmode euler
+			w, x, y, z = selobj.rotation_quaternion
+			x = -x
+			y = -y
+			z = -z
+			self.quat = Quaternion([w, x, y, z])
+			matrix = self.quat.to_matrix()
+			matrix.resize_4x4()
+		else:
+			# object rotation_quaternionmode euler
+			ax, ay, az = selobj.rotation_euler
+			mat_rotX = Matrix.Rotation(-ax, 4, 'X')
+			mat_rotY = Matrix.Rotation(-ay, 4, 'Y')
+			mat_rotZ = Matrix.Rotation(-az, 4, 'Z')
+		if selobj.rotation_mode == 'XYZ':
+			matrix = mat_rotX * mat_rotY * mat_rotZ
+		elif selobj.rotation_mode == 'XZY':
+			matrix = mat_rotX * mat_rotZ * mat_rotY
+		elif selobj.rotation_mode == 'YXZ':
+			matrix = mat_rotY * mat_rotX * mat_rotZ
+		elif selobj.rotation_mode == 'YZX':
+			matrix = mat_rotY * mat_rotZ * mat_rotX
+		elif selobj.rotation_mode == 'ZXY':
+			matrix = mat_rotZ * mat_rotX * mat_rotY
+		elif selobj.rotation_mode == 'ZYX':
+			matrix = mat_rotZ * mat_rotY * mat_rotX
+	
+		# handle object scaling
+		sx, sy, sz = selobj.scale
+		mat_scX = Matrix.Scale(sx, 4, Vector([1, 0, 0]))
+		mat_scY = Matrix.Scale(sy, 4, Vector([0, 1, 0]))
+		mat_scZ = Matrix.Scale(sz, 4, Vector([0, 0, 1]))
+		matrix = mat_scX * mat_scY * mat_scZ * matrix
+		
+		return matrix
+	
+	
+	def getscreencoords(self, vector):
+		# calculate screencoords of given Vector
+		vector = vector * self.matrixT
+		vector = vector + self.obT.location
+		
+		svector = bpy_extras.view3d_utils.location_3d_to_region_2d(self.region, self.rv3d, vector)
+		if svector == None:
+			return [0, 0]
+		else:
+			return [svector[0], svector[1]]
+	
+	
+	
+	
+	def checksel(self):
+		
+		self.selverts = []
+		self.matrixT = self.getmatrix(self.obT)
+		self.matrixF = self.getmatrix(self.obF).inverted()
+		direc1 =  (self.obF.location - self.empt.location) * self.matrixF
+		direc2 =  (self.obF.location - self.empt.location) * self.matrixT.inverted()
+		direc2.length = 10000
+		for v in self.bmT.verts:
+			vno1 = v.normal
+			vno1.length = 0.0001
+			vco1 = v.co + vno1
+			hit1 = self.obT.ray_cast(vco1, vco1 + direc2)
+			vno2 = -v.normal
+			vno2.length = 0.0001
+			vco2 = v.co + vno2
+			hit2 = self.obT.ray_cast(vco2, vco2 + direc2)
+			if hit1[2] == -1 or hit2[2] == -1:
+				vco = ((v.co * self.matrixT + self.obT.location) - self.obF.location) * self.matrixF
+				hit = self.obF.ray_cast(vco, vco + direc1)
+				if hit[2] != -1:
+					v.select = True
+					self.selverts.append(v)	
+	
+	
+	
+	
+	
+	def init_selproject(self, context):
+	
+		self.obhide = None
+		# main operation
+		self.scn = context.scene
+		self.region = context.region  
+		self.rv3d = context.space_data.region_3d
+		self.oldobjlist = list(self.scn.objects)
+		self.oldobj = context.active_object
+		self.oldmode = self.oldobj.mode
+		mesh = self.oldobj.data
+		
+		if self.scn.UseSel and context.mode == 'EDIT_MESH':
+			self.obhide = context.active_object
+			me = self.obhide.data
+			bmundo = bmesh.new()
+			bmundo.from_mesh(me)
+			objlist = []
+			for obj in self.scn.objects:
+				objlist.append(obj)
+			bpy.ops.mesh.separate(type = 'SELECTED')
+			for obj in self.scn.objects:
+				if not(obj in objlist):
+					self.obF = obj
+			bmundo.to_mesh(me)
+			bmundo.free()
+			self.obhide.hide = True
+		else:
+			self.obF = bpy.data.objects.get(self.scn.FromObject)
+		if context.mode == 'EDIT_MESH':
+			bpy.ops.object.editmode_toggle()
+		self.obF.select = True
+		self.scn.objects.active = self.obF
+		self.originobF = self.obF.location
+		bpy.ops.object.origin_set(type = 'ORIGIN_GEOMETRY')
+		self.meF = self.obF.to_mesh(self.scn, 1, 'PREVIEW')
+		self.bmF = bmesh.new()
+		self.bmF.from_mesh(self.meF)
+		
+		self.obT = bpy.data.objects.get(self.scn.ToObject)
+		self.obT.select = True
+		self.scn.objects.active = self.obT
+		self.originobT = self.obT.location
+		bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+		self.meT = self.obT.data
+		self.bmT = bmesh.new()
+		self.bmT.from_mesh(self.meT)
+			
+		self.vsellist = []
+		for v in self.bmT.verts:
+			if v.select:
+				self.vsellist.append(v)
+		self.esellist = []
+		for e in self.bmT.edges:
+			if e.select:
+				self.esellist.append(e)
+		self.fsellist = []
+		for f in self.bmT.faces:
+			if f.select:
+				self.fsellist.append(f)
+				
+		bpy.ops.object.add(type='EMPTY', location=(self.obF.location + self.obT.location) / 2)
+		self.empt = context.active_object
+		self.empt.name = "SelProject_dir_empty"
+	
+		self.selverts = []
+	
+	
+	def redraw(self):
+		
+		if started:
+			self.checksel()
+			glColor3f(1.0, 1.0, 0)
+			for v in self.selverts:
+				glBegin(GL_QUADS)
+				x, y = self.getscreencoords(v.co)
+				glVertex2f(x-2, y-2)
+				glVertex2f(x-2, y+2)
+				glVertex2f(x+2, y+2)
+				glVertex2f(x+2, y-2)
+				glEnd()
+	
+	
+	
 
 
 def panel_func(self, context):
 	
-	global shrink, started, oldfromobj, fromobj, redomenus
-	
-	scn = bpy.context.scene
+	self.scn = context.scene
 	
 	self.layout.label(text="SelProject:")
-	if not(activated):
-		self.layout.operator("selproject.activate", text="Activate SelProject")
+	if started:
+		self.layout.operator("mesh.selproject", text="SelProject")
 	else:
-		if not(started):
-			self.layout.operator("mesh.selproject", text="Start SelProject")
-			if context.mode == "EDIT_MESH":
-				self.layout.prop(scn, "UseSel")
-				if not(scn.UseSel):
-					self.layout.prop(scn, "FromObject")
-				else:
-					fromobj = bpy.context.active_object.name
-					redomenus = 1
-					context.region.tag_redraw()
+		self.layout.operator("mesh.selproject", text="SelProject")
+		if context.mode == 'EDIT_MESH':
+			self.layout.prop(self.scn, "UseSel")
+			if not(self.scn.UseSel):
+				self.layout.prop(self.scn, "FromObject")
 			else:
-				self.layout.prop(scn, "FromObject")
-			self.layout.prop(scn, "ToObject")
+				self.scn.FromObject = bpy.context.active_object.name
+				context.region.tag_redraw()
 		else:
-			self.layout.label(text="ENTER to confirm")
-	
-		if scn.FromObject != oldfromobj:
-			oldfromobj = scn.FromObject
-			redomenus = 1
-			context.region.tag_redraw()
-			
-		redomenus = 1
+			self.layout.prop(self.scn, "FromObject")
+		self.layout.prop(self.scn, "ToObject")
+
 
 
 
 def register():
+
+	bpy.app.handlers.scene_update_post.append(sceneupdate_handler)	
+
 	bpy.utils.register_module(__name__)
 	bpy.types.VIEW3D_PT_tools_meshedit.append(panel_func)
 	bpy.types.VIEW3D_PT_tools_objectmode.append(panel_func)
 
 
 def unregister():
+	bpy.app.handlers.scene_update_post.remove(sceneupdate_handler)
+	
 	bpy.utils.unregister_module(__name__)
 	bpy.types.VIEW3D_PT_tools_meshedit.remove(panel_func)
 	bpy.types.VIEW3D_PT_tools_objectmode.append(panel_func)
@@ -238,218 +399,31 @@ if __name__ == "__main__":
 
 
 
+@persistent
+def sceneupdate_handler(dummy):
 
-def adapt(selobj):
-	
-	# Rotating / panning / zooming 3D view is handled here.
-	# Creates a matrix.
-	if selobj.rotation_mode == "AXIS_ANGLE":
-		# object rotation_quaternionmode axisangle
-		ang, x, y, z =  selobj.rotation_axis_angle
-		matrix = Matrix.Rotation(-ang, 4, Vector((x, y, z)))
-	elif selobj.rotation_mode == "QUATERNION":
-		# object rotation_quaternionmode euler
-		w, x, y, z = selobj.rotation_quaternion
-		x = -x
-		y = -y
-		z = -z
-		quat = Quaternion([w, x, y, z])
-		matrix = quat.to_matrix()
-		matrix.resize_4x4()
-	else:
-		# object rotation_quaternionmode euler
-		ax, ay, az = selobj.rotation_euler
-		mat_rotX = Matrix.Rotation(-ax, 4, 'X')
-		mat_rotY = Matrix.Rotation(-ay, 4, 'Y')
-		mat_rotZ = Matrix.Rotation(-az, 4, 'Z')
-	if selobj.rotation_mode == "XYZ":
-		matrix = mat_rotX * mat_rotY * mat_rotZ
-	elif selobj.rotation_mode == "XZY":
-		matrix = mat_rotX * mat_rotZ * mat_rotY
-	elif selobj.rotation_mode == "YXZ":
-		matrix = mat_rotY * mat_rotX * mat_rotZ
-	elif selobj.rotation_mode == "YZX":
-		matrix = mat_rotY * mat_rotZ * mat_rotX
-	elif selobj.rotation_mode == "ZXY":
-		matrix = mat_rotZ * mat_rotX * mat_rotY
-	elif selobj.rotation_mode == "ZYX":
-		matrix = mat_rotZ * mat_rotY * mat_rotX
+	global oldobjs
 
-	# handle object scaling
-	sx, sy, sz = selobj.scale
-	mat_scX = Matrix.Scale(sx, 4, Vector([1, 0, 0]))
-	mat_scY = Matrix.Scale(sy, 4, Vector([0, 1, 0]))
-	mat_scZ = Matrix.Scale(sz, 4, Vector([0, 0, 1]))
-	matrix = mat_scX * mat_scY * mat_scZ * matrix
-	
-	return matrix
-
-
-def getscreencoords(vector):
-	# calculate screencoords of given Vector
-	region = bpy.context.region
-	rv3d = bpy.context.space_data.region_3d	
-	pvector = vector * matrixT
-	pvector = pvector + obT.location
-	
-	svector = view3d_utils.location_3d_to_region_2d(region, rv3d, pvector)
-	if svector == None:
-		return [0, 0]
-	else:
-		return [svector[0], svector[1]]
-
-
-
-
-
-
-def checksel():
-	
-	global selverts, started, matrixT
-		
-	selverts = []
-	matrixT = adapt(obT)
-	matrixF = adapt(obF).inverted()
-	direc =  (obF.location - empt.location) * matrixF
-	for v in bmT.verts:
-		vno = v.normal
-		vno.length = 0.0001
-		vco = v.co + vno
-		hit = obT.ray_cast(vco, vco + direc)
-		if hit[2] == -1:
-			vco = ((v.co * matrixT + obT.location) - obF.location) * matrixF
-			vco2 = vco.copy()
-			vco2 += direc * 10000
-			hit = obF.ray_cast(vco, vco2)
-			if hit[2] != -1:
-				v.select = 1
-				selverts.append(v)	
-
-
-
-
-
-def do_selproject():
-
-	global obF, obT, bmF, bmT, meF, meT, matrixF, matrixT, empt
-	global quat
-	global started, obhide, originobF, originobT
-	global oldlocF, oldrotF, oldscaF, oldlocT, oldrotT, oldscaT
-	global vsellist, esellist, fsellist, selverts
-
-	obhide = None
-	# main operation
-	context = bpy.context
-#	context.region.callback_remove(_handle3)
-	region = context.region  
-	selobj = bpy.context.active_object
-	mesh = selobj.data
 	scn = bpy.context.scene
-	
-	if scn.UseSel and context.mode == "EDIT_MESH":
-		obhide = context.active_object
-		me = obhide.data
-		bmundo = bmesh.new()
-		bmundo.from_mesh(me)
-		objlist = []
-		for obj in scn.objects:
-			objlist.append(obj)
-		bpy.ops.mesh.separate(type='SELECTED')
-		for obj in scn.objects:
-			if not(obj in objlist):
-				obF = obj
-		bmundo.to_mesh(me)
-		bmundo.free()
-		obhide.hide = 1
-	else:
-		obF = bpy.data.objects.get(scn.FromObject)
-	if context.mode == "EDIT_MESH":
-		bpy.ops.object.editmode_toggle()
-	obF.select = 1
-	scn.objects.active = obF
-	originobF = obF.location
-	bpy.ops.object.origin_set(type="ORIGIN_GEOMETRY")
-	meF = obF.to_mesh(scn, 1, "PREVIEW")
-	bmF = bmesh.new()
-	bmF.from_mesh(meF)
-	
-	obT = bpy.data.objects.get(scn.ToObject)
-	obT.select = 1
-	scn.objects.active = obT
-	originobT = obT.location
-	bpy.ops.object.origin_set(type="ORIGIN_GEOMETRY")
-	meT = obT.data
-	bmT = bmesh.new()
-	bmT.from_mesh(meT)
-		
-	vsellist = []
-	for v in bmT.verts:
-		if v.select:
-			vsellist.append(v)
-	esellist = []
-	for e in bmT.edges:
-		if e.select:
-			esellist.append(e)
-	fsellist = []
-	for f in bmT.faces:
-		if f.select:
-			fsellist.append(f)
-			
-	bpy.ops.object.add(type='EMPTY', location=(obF.location + obT.location) / 2)
-	empt = context.active_object
-	empt.name = "SelProject_dir_empty"
 
-	started = 1
-	selverts = []
-
-
-def redraw():
-	
-	global matrixT
-	
-	if started:
-		checksel()
-		glColor3f(1.0,1.0,0)
-		for v in selverts:
-			glBegin(GL_POLYGON)
-			x, y = getscreencoords(v.co)
-			glVertex2f(x-2, y-2)
-			glVertex2f(x-2, y+2)
-			glVertex2f(x+2, y+2)
-			glVertex2f(x+2, y-2)
-			glEnd()
-
-
-
-def setparam():
-	
-	global axoff, fromobj, redomenus
-
-	if redomenus:
-		redomenus = 0
-		scn = bpy.context.scene
-		
-		if fromobj != None and fromobj != "":
-			scn.FromObject = fromobj
-			fromobj = None
-		
+	if not(list(scn.objects) == oldobjs):
 		itemlist = []
-		
-		scn.update()
-		objs = bpy.context.scene.objects
+		objs = list(scn.objects)
 		for ob in objs:
-			if ob.type == "MESH":
+			if ob.type == 'MESH':
 				itemlist.append((ob.name, ob.name, "Set From:"))
 		bpy.types.Scene.FromObject = bpy.props.EnumProperty(
 				items = itemlist,
 				name = "From", 
 				description = "Object to project")
-		if itemlist != []:
-			itemlist.pop(itemlist.index((scn.FromObject, scn.FromObject, "Set From:")))
 		bpy.types.Scene.ToObject = bpy.props.EnumProperty(
 				items = itemlist,
 				name = "To", 
 				description = "Object to project onto")
-	
+		oldobjs = list(scn.objects)
+			
+	return {'RUNNING_MODAL'}
+
+
 
 

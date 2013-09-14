@@ -27,7 +27,9 @@ Go to EditMode, select one or more areas of elements.  Invoke addon (button in M
 Click area with leftmouse to select/deselect and rightmouse to cancel.	Choose "Multiple" tickbox
 if you want to do several operations in succession, and ENTER to keep changes.	Click tickbox
 "Preselection" to preview selection/deselection when hovering mouse over areas.
+Check "Deselect" if you want to deselect instead of select.
 View can be transformed during operation.
+Works in all viewports.
 
 If you wish to hotkey FloodSel:
 In the Input section of User Preferences at the bottom of the 3D View > Mesh section click 'Add New' button.
@@ -40,7 +42,7 @@ Save as Default (Optional).
 bl_info = {
 	"name": "FloodSel",
 	"author": "Gert De Roost",
-	"version": (0, 1, 2),
+	"version": (1, 0, 0),
 	"blender": (2, 6, 3),
 	"location": "View3D > Tools",
 	"description": "Flood-(de)select areas.",
@@ -49,34 +51,28 @@ bl_info = {
 	"tracker_url": "",
 	"category": "Mesh"}
 
-if "bpy" in locals():
-	import imp
 
 
 import bpy
-from bpy_extras import *
+import bpy_extras
 import bmesh
 from mathutils import *
 
 
-oldviewmat = None
-started = 0
+started = False
 
 
-bpy.types.Scene.Multiple = bpy.props.BoolProperty(
-		name = "Multiple", 
-		description = "Several operations after each other",
-		default = False)
 
-bpy.types.Scene.Preselection = bpy.props.BoolProperty(
-		name = "Preselection", 
-		description = "Preview when hovering over areas",
-		default = True)
+def change_header(self, context):
 
-bpy.types.Scene.Diagonal = bpy.props.BoolProperty(
-		name = "Diagonal is border", 
-		description = "Diagonal selections are treated as borders",
-		default = True)
+	if mainop.SelectMode == 0 and not(mainop.Multiple):
+		mainop.area.header_text_set(text="FloodSel :  Leftclick selects")
+	elif mainop.SelectMode == 1 and not(mainop.Multiple):
+		mainop.area.header_text_set(text="FloodSel :  Leftclick deselects")
+	elif mainop.SelectMode == 0 and mainop.Multiple:
+		mainop.area.header_text_set(text="FloodSel :  Leftclick selects - Rightmouse/Enter exits")
+	elif mainop.SelectMode == 1 and mainop.Multiple:
+		mainop.area.header_text_set(text="FloodSel :  Leftclick deselects - Rightmouse/Enter exits")
 
 
 
@@ -84,131 +80,149 @@ class FloodSel(bpy.types.Operator):
 	bl_idname = "mesh.floodsel"
 	bl_label = "FloodSel"
 	bl_description = "Flood-(de)select areas"
-	bl_options = {"REGISTER", "UNDO"}
+	bl_options = {'REGISTER', 'UNDO'}
 	
 	
+	SelectMode = bpy.props.BoolProperty(
+		name = "Deselect", 
+		description = "Switch between selecting and deselecting",
+		default = False,
+		update = change_header)
+
+	Multiple = bpy.props.BoolProperty(
+		name = "Multiple", 
+		description = "Several operations after each other",
+		default = False,
+		update = change_header)
+
+	Preselection = bpy.props.BoolProperty(
+		name = "Preselection", 
+		description = "Preview when hovering over areas",
+		default = True)
+
+	Diagonal = bpy.props.BoolProperty(
+		name = "Diagonal is border", 
+		description = "Diagonal selections are treated as borders",
+		default = True)
+	
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH')
 
 	def invoke(self, context, event):
+	
+		global mainop, started
+	
+		started = True
 		
-		self.save_global_undo = bpy.context.user_preferences.edit.use_global_undo
-		bpy.context.user_preferences.edit.use_global_undo = False
+		mainop = self
 		
-		do_prepare()
+		self.initialize(context)
 		
 		context.window_manager.modal_handler_add(self)
-		if eval(str(bpy.app.build_revision)[2:7]) >= 53207:
-			self._handle = bpy.types.SpaceView3D.draw_handler_add(redraw, (), 'WINDOW', 'POST_PIXEL')
-		else:
-			self._handle = context.region.callback_add(redraw, (), 'POST_PIXEL')
 		
 		return {'RUNNING_MODAL'}
 
+
 	def modal(self, context, event):
+	
+		global started
 		
-		global viewchange, state, doneset, selset, started
-		
-		scn = bpy.context.scene
-		if event.type == "RIGHTMOUSE":
-			started = 0
-			# cancel operation, reset selection state
-			bpy.ops.mesh.select_all(action="DESELECT")
-			for elem in baseselset:
-				elem.select = 1
-			bm.free()
-			if eval(str(bpy.app.build_revision)[2:7]) >= 53207:
-				bpy.types.SpaceView3D.draw_handler_remove(self._handle, "WINDOW")
-			else:
-				context.region.callback_remove(self._handle)
-			bpy.ops.object.editmode_toggle()
-			bpy.ops.object.editmode_toggle()
-			bpy.context.user_preferences.edit.use_global_undo = self.save_global_undo
-			return {'CANCELLED'}
-		elif event.type in ["MIDDLEMOUSE"]:
-			return {"PASS_THROUGH"}
-		elif event.type in ["WHEELDOWNMOUSE", "WHEELUPMOUSE"]:
-			return {"PASS_THROUGH"}
-		elif event.type in ["LEFTMOUSE"]:
-			if event.mouse_region_x < 0:
-				# this for splitting up mouse func between panel and 3d view
-				return {"PASS_THROUGH"}
-			if not(scn.Preselection):
-				for elem in doneset:
-					elem.select = not(state)
-			if not(scn.Multiple):
-				bm.free()
-				if eval(str(bpy.app.build_revision)[2:7]) >= 53207:
-					bpy.types.SpaceView3D.draw_handler_remove(self._handle, "WINDOW")
-				else:
-					context.region.callback_remove(self._handle)
+		if event.type in ['MIDDLEMOUSE']:
+			return {'PASS_THROUGH'}
+		elif event.type in ['WHEELDOWNMOUSE', 'WHEELUPMOUSE']:
+			return {'PASS_THROUGH'}
+		elif event.type in ['LEFTMOUSE']:
+			if not(self.region):
+				return {'PASS_THROUGH'}
+				
+			if not(self.Preselection):
+				for elem in self.doneset:
+					elem.select = not(self.state)
+			if not(self.Multiple):
+				self.bm.free()
 				bpy.ops.object.editmode_toggle()
 				bpy.ops.object.editmode_toggle()
-				bpy.context.user_preferences.edit.use_global_undo = self.save_global_undo
 				return {'FINISHED'}
 			else:
-				if state == 0:
-					selset = selset.union(doneset)
-				else:
-					selset = selset.difference(doneset)
-			return {"RUNNING_MODAL"}
-		elif event.type == "RET":
-			started = 0
+				self.doneset = set([])
+			return {'RUNNING_MODAL'}
+		elif event.type in {'RET', 'RIGHTMOUSE'}:
+			started = False
+			del bpy.types.Scene.PreSelOff
 			# Consolidate changes if ENTER pressed.
 			# Free the bmesh.
-			bm.free()
-			if eval(str(bpy.app.build_revision)[2:7]) >= 53207:
-				bpy.types.SpaceView3D.draw_handler_remove(self._handle, "WINDOW")
-			else:
-				context.region.callback_remove(self._handle)
+			self.area.header_text_set()
+			self.bm.free()
 			bpy.ops.object.editmode_toggle()
 			bpy.ops.object.editmode_toggle()
-			bpy.context.user_preferences.edit.use_global_undo = self.save_global_undo
 			return {'FINISHED'}
-		elif event.type in ["MOUSEMOVE"]:
-			if event.mouse_region_x <= 0:
-				# this for splitting up mouse func between panel and 3d view
-				return {"PASS_THROUGH"}
+		elif event.type in ['MOUSEMOVE']:
 				
-			mx = event.mouse_region_x
-			my = event.mouse_region_y
+			mxa = event.mouse_x
+			mya = event.mouse_y
 			
-			hoverlist = []
-			for [fidx, xmin, xmax, ymin, ymax] in boundlist:
-				if xmin < mx < xmax and ymin < my < ymax:
-					hoverlist.append(fidx)
-				
-			face = None	
-			bpy.ops.mesh.select_all(action="DESELECT")
-			for fidx in hoverlist:
-				f = bm.faces[fidx]
-				pointlist = []
-				for v in f.verts:
-					pointlist.append(getscreencoords(v.co))
-				mpoint = (mx, my)
-				if insidepoly(pointlist, len(f.verts), mpoint):
-					face = f
-					break
-			
-			doneset = set([])
-			for elem in selset:
-				elem.select = 1
-			if face == None:
-				return {"RUNNING_MODAL"}
-			if "VERT" in bm.select_mode:
-				state = 1
-				for v in face.verts:
-					if not(v.select):
-						state = 0
+			oldregion = self.region
+			self.region = None
+			for a in context.screen.areas:
+				if not(a.type == 'VIEW_3D'):
+					continue
+				for r in a.regions:
+					if not(r.type == 'WINDOW'):
+						continue
+					if mxa > r.x and mya > r.y and mxa < r.x + r.width and mya < r.y + r.height:
+						self.region = r
+						for sp in a.spaces:
+							if sp.type == 'VIEW_3D':
+								self.space = sp
 						break
-				scanlist = list(face.verts[:])
-				doneset = set(face.verts[:])
+						
+			if not(self.region):
+				if len(self.doneset):	
+					oldregion.tag_redraw()
+					for elem in self.doneset:
+						elem.select = self.state
+					self.doneset = set([])
+				return {'PASS_THROUGH'}
+				
+			for elem in self.doneset:
+				elem.select = self.state
+				
+			mx = mxa - self.region.x
+			my = mya - self.region.y
+			
+			rv3d = self.space.region_3d
+			eye = Vector(rv3d.view_matrix.inverted().col[3][:3])
+			mpoint = Vector((mx, my))
+			mvec = bpy_extras.view3d_utils.region_2d_to_vector_3d(self.region, rv3d, mpoint)
+			mvec.length = 10000
+			m3d = bpy_extras.view3d_utils.region_2d_to_location_3d(self.region, rv3d, mpoint, eye)
+			start = (m3d - self.selobj.location) * self.matrix.inverted()
+			end = ((m3d + mvec) - self.selobj.location) * self.matrix.inverted()
+			bpy.ops.object.editmode_toggle()
+			hit = self.selobj.ray_cast(start, end)
+			bpy.ops.object.editmode_toggle()
+			self.bm = bmesh.from_edit_mesh(self.mesh)
+			if hit[2] == -1:
+				self.doneset = set([])
+				return {'RUNNING_MODAL'}
+			face = self.bm.faces[hit[2]]
+
+			self.doneset = set([])
+			self.state = self.SelectMode
+			if 'VERT' in self.bm.select_mode:
+				startlist = []
+				for v in face.verts:
+					if v.select == self.state:
+						startlist.append(v)
+				scanlist = list(startlist)
+				self.doneset = set(startlist)
 				while len(scanlist) > 0:
 					vert = scanlist.pop()
 					cands = []
-					if scn.Diagonal:
+					if self.Diagonal:
 						for e in vert.link_edges:
 							v = e.other_vert(vert)
 							cands.append(v)
@@ -216,44 +230,39 @@ class FloodSel(bpy.types.Operator):
 						for f in vert.link_faces:
 							cands.extend(list(f.verts))
 					for v in cands:
-						if not(v in doneset) and v.select == state:
-							doneset.add(v)
+						if not(v in self.doneset) and v.select == self.state:
+							self.doneset.add(v)
 							scanlist.append(v)
-			if "EDGE" in bm.select_mode:
-				state = 1
-				testset = set(face.edges[:])
+			if 'EDGE' in self.bm.select_mode:
+				startlist = []
 				for e in face.edges:
-					if not(e.select):
-						state = 0
-					else:
-						testset.discard(e)
-				if state == 1:
-					testset = set(face.edges[:])
-				scanlist = list(testset)
-				doneset = testset
+					if e.select == state:
+						startlist.append(e)
+				scanlist = list(startlist)
+				self.doneset = set(startlist)
 				while len(scanlist) > 0:
 					edge = scanlist.pop()
 					for l in edge.link_loops:
 						if l.edge == edge:
-							if state == 0:
+							if self.state == False:
 								cands = [l.link_loop_prev.edge, l.link_loop_next.edge]
 							else:
 								cands = l.vert.link_edges
 							for e in cands:
-								if e!= edge and not(e in doneset) and e.select == state:
-									doneset.add(e)
+								if e!= edge and not(e in self.doneset) and e.select == self.state:
+									self.doneset.add(e)
 									scanlist.append(e)
-			if "FACE" in bm.select_mode:
-				if face.select:
-					state = 1
+			if 'FACE' in self.bm.select_mode:
+				if not(face.select == self.state):
+					scanlist = []
+					self.doneset = set([])
 				else:
-					state = 0
-				scanlist = [face]
-				doneset = set([face])
+					scanlist = [face]
+					self.doneset = set([face])
 				while len(scanlist) > 0:
 					face = scanlist.pop()
 					cands = []
-					if scn.Diagonal:
+					if self.Diagonal:
 						for e in face.edges:
 							for f in e.link_faces:
 								cands.append(f)
@@ -262,28 +271,96 @@ class FloodSel(bpy.types.Operator):
 							for f in v.link_faces:
 								cands.append(f)
 					for f in cands:
-						if f != face and not(f in doneset) and f.select == state:
-							doneset.add(f)
+						if f != face and not(f in doneset) and f.select == self.state:
+							self.doneset.add(f)
 							scanlist.append(f)
-			if scn.Preselection:
-				for elem in doneset:
-					elem.select = not(state)
-			
-			return {"RUNNING_MODAL"}
+			if self.Preselection:
+				for elem in self.doneset:
+					elem.select = not(self.state)
+					
+			return {'RUNNING_MODAL'}
 			
 		return {'RUNNING_MODAL'}
 
 
+	def initialize(self, context):
+		
+		bpy.types.Scene.PreSelOff = bpy.props.BoolProperty(
+				name = "PreSelOff", 
+				description = "Switch off PreSel during FloodSel",
+				default = True)
+		
+		self.area = context.area
+		self.selobj = context.active_object
+		self.mesh = self.selobj.data
+		self.bm = bmesh.from_edit_mesh(self.mesh)
+	
+		self.area.header_text_set(text="FloodSel :  Leftclick selects")
+		
+		self.region = None
+		self.doneset = set([])
+		
+		self.getmatrix()
+	
+	
+	def getmatrix(self):
+		
+		# Rotating / panning / zooming 3D view is handled here.
+		# Calculate matrix.
+		if self.selobj.rotation_mode == 'AXIS_ANGLE':
+			# object rotationmode axisangle
+			ang, x, y, z =	self.selobj.rotation_axis_angle
+			self.matrix = Matrix.Rotation(-ang, 4, Vector((x, y, z)))
+		elif self.selobj.rotation_mode == 'QUATERNION':
+			# object rotationmode quaternion
+			w, x, y, z = self.selobj.rotation_quaternion
+			x = -x
+			y = -y
+			z = -z
+			quat = Quaternion([w, x, y, z])
+			self.matrix = quat.to_matrix()
+			self.matrix.resize_4x4()
+		else:
+			# object rotationmode euler
+			ax, ay, az = self.selobj.rotation_euler
+			mat_rotX = Matrix.Rotation(-ax, 4, 'X')
+			mat_rotY = Matrix.Rotation(-ay, 4, 'Y')
+			mat_rotZ = Matrix.Rotation(-az, 4, 'Z')
+		if self.selobj.rotation_mode == 'XYZ':
+			self.matrix = mat_rotX * mat_rotY * mat_rotZ
+		elif self.selobj.rotation_mode == 'XZY':
+			self.matrix = mat_rotX * mat_rotZ * mat_rotY
+		elif self.selobj.rotation_mode == 'YXZ':
+			self.matrix = mat_rotY * mat_rotX * mat_rotZ
+		elif self.selobj.rotation_mode == 'YZX':
+			self.matrix = mat_rotY * mat_rotZ * mat_rotX
+		elif self.selobj.rotation_mode == 'ZXY':
+			self.matrix = mat_rotZ * mat_rotX * mat_rotY
+		elif self.selobj.rotation_mode == 'ZYX':
+			self.matrix = mat_rotZ * mat_rotY * mat_rotX
+	
+		# handle object scaling
+		sx, sy, sz = self.selobj.scale
+		mat_scX = Matrix.Scale(sx, 4, Vector([1, 0, 0]))
+		mat_scY = Matrix.Scale(sy, 4, Vector([0, 1, 0]))
+		mat_scZ = Matrix.Scale(sz, 4, Vector([0, 0, 1]))
+		self.matrix = mat_scX * mat_scY * mat_scZ * self.matrix
+	
+
+
 def panel_func(self, context):
 	
-	scn = bpy.context.scene
 	self.layout.label(text="FloodSel:")
 	self.layout.operator("mesh.floodsel", text="Flood SelArea")
-	self.layout.prop(scn, "Multiple")
-	self.layout.prop(scn, "Preselection")
-	self.layout.prop(scn, "Diagonal")
+	if started:
+		print ("op")
+		self.layout.prop(mainop, "SelectMode")
+		self.layout.prop(mainop, "Multiple")
+		self.layout.prop(mainop, "Preselection")
+		self.layout.prop(mainop, "Diagonal")
 
 def register():
+	print ("registered")
 	bpy.utils.register_module(__name__)
 	bpy.types.VIEW3D_PT_tools_meshedit.append(panel_func)
 
@@ -297,147 +374,4 @@ if __name__ == "__main__":
 
 
 
-def adapt():
-	
-	global matrix, boundlist
-	
-	# Rotating / panning / zooming 3D view is handled here.
-	# Calculate matrix.
-	if selobj.rotation_mode == "AXIS_ANGLE":
-		# object rotationmode axisangle
-		ang, x, y, z =	selobj.rotation_axis_angle
-		matrix = Matrix.Rotation(-ang, 4, Vector((x, y, z)))
-	elif selobj.rotation_mode == "QUATERNION":
-		# object rotationmode quaternion
-		w, x, y, z = selobj.rotation_quaternion
-		x = -x
-		y = -y
-		z = -z
-		quat = Quaternion([w, x, y, z])
-		matrix = quat.to_matrix()
-		matrix.resize_4x4()
-	else:
-		# object rotationmode euler
-		ax, ay, az = selobj.rotation_euler
-		mat_rotX = Matrix.Rotation(-ax, 4, 'X')
-		mat_rotY = Matrix.Rotation(-ay, 4, 'Y')
-		mat_rotZ = Matrix.Rotation(-az, 4, 'Z')
-	if selobj.rotation_mode == "XYZ":
-		matrix = mat_rotX * mat_rotY * mat_rotZ
-	elif selobj.rotation_mode == "XZY":
-		matrix = mat_rotX * mat_rotZ * mat_rotY
-	elif selobj.rotation_mode == "YXZ":
-		matrix = mat_rotY * mat_rotX * mat_rotZ
-	elif selobj.rotation_mode == "YZX":
-		matrix = mat_rotY * mat_rotZ * mat_rotX
-	elif selobj.rotation_mode == "ZXY":
-		matrix = mat_rotZ * mat_rotX * mat_rotY
-	elif selobj.rotation_mode == "ZYX":
-		matrix = mat_rotZ * mat_rotY * mat_rotX
-
-	# handle object scaling
-	sx, sy, sz = selobj.scale
-	mat_scX = Matrix.Scale(sx, 4, Vector([1, 0, 0]))
-	mat_scY = Matrix.Scale(sy, 4, Vector([0, 1, 0]))
-	mat_scZ = Matrix.Scale(sz, 4, Vector([0, 0, 1]))
-	matrix = mat_scX * mat_scY * mat_scZ * matrix
-
-	boundlist = []
-	for f in bm.faces:
-		xli = []
-		yli = []
-		for v in f.verts:
-			x, y = getscreencoords(v.co)
-			xli.append(x)
-			yli.append(y)
-		xmin = min(xli)
-		xmax = max(xli)
-		ymin = min(yli)
-		ymax = max(yli)
-		boundlist.append([f.index, xmin, xmax, ymin, ymax])
-
-
-
-def getscreencoords(vector):
-	# calculate screencoords of given Vector
-	region = bpy.context.region
-	rv3d = bpy.context.space_data.region_3d 
-	vector = Vector([vector[0], vector[1], vector[2]])
-	pvector = vector * matrix
-	pvector = pvector + selobj.location
-	
-	svector = view3d_utils.location_3d_to_region_2d(region, rv3d, pvector)
-	if svector == None:
-		return [0, 0]
-	else:
-		return [svector[0], svector[1]]
-
-
-
-
-def do_prepare():
-	
-	global bm, mesh, selobj, started
-	global selset, baseselset, boundlist
-
-	started = 1
-	bpy.ops.object.editmode_toggle()
-	bpy.ops.object.editmode_toggle()
-	context = bpy.context
-	region = context.region	 
-	area = context.area
-	selobj = bpy.context.active_object
-	mesh = selobj.data
-	bm = bmesh.from_edit_mesh(mesh)
-	
-	selset = set([])
-	if "VERT" in bm.select_mode:
-		for v in bm.verts:
-			if v.select:
-				selset.add(v)
-	if "EDGE" in bm.select_mode:
-		for e in bm.edges:
-			if e.select:
-				selset.add(e)
-	if "FACE" in bm.select_mode:
-		for f in bm.faces:
-			if f.select:
-				selset.add(f)
-	baseselset = selset.copy()
-	
-	adapt()
-
-
-def insidepoly(polygonlist, N, p):
-
-	counter = 0
-	p1 = polygonlist[0]
-	for i in range(1, N+1, 1):
-		p2 = polygonlist[i % N]
-		if (p[1] > min(p1[1],p2[1])):
-			if (p[1] <= max(p1[1],p2[1])):
-				if (p[0] <= max(p1[0],p2[0])):
-					if (p1[1] != p2[1]):
-						xinters = (p[1]-p1[1])*(p2[0]-p1[0])/(p2[1]-p1[1])+p1[0]
-						if (p1[0] == p2[0]) or (p[0] <= xinters):
-							counter += 1
-		p1 = p2
-
-	if counter % 2 == 0:
-		return False
-	else:
-		return True
-
-
-
-def redraw():
-	
-	global oldviewmat
-	
-	# user changes view
-	viewmat = bpy.context.space_data.region_3d.perspective_matrix
-	if viewmat != oldviewmat:
-		adapt()
-		oldviewmat = viewmat.copy()
-	
 

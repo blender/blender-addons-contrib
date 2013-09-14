@@ -535,7 +535,6 @@ class EdgeTune(bpy.types.Operator):
 	def redraw(self):
 		
 		drawregion = bpy.context.region
-		print (drawregion)
 					
 		if self.viewchange:
 			self.adapt()
@@ -609,7 +608,7 @@ def register():
 	bpy.types.VIEW3D_PT_tools_meshedit.append(panel_func)
 
 def unregister():
-	bpy.utils.unregister_class(__name__)
+	bpy.utils.unregister_module(__name__)
 	bpy.types.VIEW3D_PT_tools_meshedit.remove(panel_func)
 
 

@@ -43,8 +43,8 @@ Save as Default (Optional).
 bl_info = {
 	"name": "EdgeGrow",
 	"author": "Gert De Roost",
-	"version": (0, 3, 2),
-	"blender": (2, 6, 3),
+	"version": (0, 4, 0),
+	"blender": (2, 6, 8),
 	"location": "View3D > Tools",
 	"description": "Growing edgeloops with arrowkeys",
 	"warning": "",
@@ -52,15 +52,13 @@ bl_info = {
 	"tracker_url": "",
 	"category": "Mesh"}
 
-if "bpy" in locals():
-    import imp
 
 
 import bpy
-from bpy_extras import *
+import bpy_extras
 import bmesh
-from bgl import *
-from mathutils import *
+from bgl import glColor3f, glBegin, GL_LINES, glVertex2f, glEnd
+from mathutils import Vector, Matrix
 import time
 
 
@@ -78,187 +76,636 @@ class EdgeGrow(bpy.types.Operator):
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH')
 
 	def invoke(self, context, event):
-		self.save_global_undo = bpy.context.user_preferences.edit.use_global_undo
-		bpy.context.user_preferences.edit.use_global_undo = False
 		
-		do_edgegrow(self)
+		self.init_edgegrow(context)
 		
 		context.window_manager.modal_handler_add(self)
-		if eval(str(bpy.app.build_revision)[2:7]) >= 53207:
-			self._handle = bpy.types.SpaceView3D.draw_handler_add(redraw, (), 'WINDOW', 'POST_PIXEL')
-		else:
-			self._handle = context.region.callback_add(redraw, (), 'POST_PIXEL')
+
+		self._handle = bpy.types.SpaceView3D.draw_handler_add(self.redraw, (), 'WINDOW', 'POST_PIXEL')
 		
 		return {'RUNNING_MODAL'}
+
 
 	def modal(self, context, event):
 		
-		global bm, mesh
-		global viewchange, state, activedir, check
-		global edgelist, cursor, counter, posn
-
-		scn = bpy.context.scene
+		if event.type in {'MIDDLEMOUSE', 'WHEELDOWNMOUSE', 'WHEELUPMOUSE'}:
+			# User transforms view
+			return {'PASS_THROUGH'}
 		
-		if event.type in ["MIDDLEMOUSE"]:
-			# recalculate transformation matrix
-			viewchange = 1
-			return {"PASS_THROUGH"}
-		elif event.type in ["WHEELDOWNMOUSE", "WHEELUPMOUSE"]:
-			# recalculate transformation matrix
-			viewchange = 1
-			return {"PASS_THROUGH"}
-		elif event.type == "RET" or stop:
+		elif event.type in {'RET', 'NUMPAD_ENTER'}:
 			# Consolidate changes if ENTER pressed.
 			# Free the bmesh.
-			bm.free()
-			if eval(str(bpy.app.build_revision)[2:7]) >= 53207:
-				bpy.types.SpaceView3D.draw_handler_remove(self._handle, "WINDOW")
-			else:
-				context.region.callback_remove(self._handle)
+			self.bm.free()
+			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
 			bpy.ops.object.editmode_toggle()
 			bpy.ops.object.editmode_toggle()
-			bpy.context.user_preferences.edit.use_global_undo = self.save_global_undo
 			return {'FINISHED'}
-		elif event.type == "LEFT_ARROW":
-			# reinit: when user returns to begin position: display cursor edges on both sides
-			# start: add to beginning of lists
-			# end: add to end of lists
-			# init: first initialization state: cursor on both sides
-			# set cursor to correct edge
-			for posn in range(len(edgelist)):
-				if event.value == "PRESS":
-					if state[posn] == "reinit":
-						check[posn] = 0
-						if oldstate[posn] == "start":
-							if activedir[posn] == "left":
-								state[posn] = "start"
+			
+		elif event.type == 'LEFT_ARROW':
+			# REINIT: when user returns to begin position: display self.cursor edges on both sides
+			# START: add to beginning of lists
+			# END: add to END of lists
+			# INIT: first INITialization state: self.cursor on both sides
+			# set self.cursor to correct edge
+			for posn in range(len(self.edgelist)):
+				if event.value == 'PRESS':
+					if self.state[posn] == 'REINIT':
+						self.check[posn] = False
+						if self.oldstate[posn] == 'START':
+							if self.activedir[posn] == 'LEFT':
+								self.state[posn] = 'START'
 							else:
-								state[posn] = "end"
-								if cursor[posn] == startcur[posn]:
-									cursor[posn] = endcur[posn]
+								self.state[posn] = 'END'
+								if self.cursor[posn] == self.startcur[posn]:
+									self.cursor[posn] = self.endcur[posn]
 								else:
-									cursor[posn] = startcur[posn]
+									self.cursor[posn] = self.startcur[posn]
 						else:
-							if activedir[posn] == "left":
-								state[posn] = "end"
+							if self.activedir[posn] == 'LEFT':
+								self.state[posn] = 'END'
 							else:
-								state[posn] = "start"
-								if cursor[posn] == startcur[posn]:
-									cursor[posn] = endcur[posn]
+								self.state[posn] = 'START'
+								if self.cursor[posn] == self.startcur[posn]:
+									self.cursor[posn] = self.endcur[posn]
 								else:
-									cursor[posn] = startcur[posn]
-						activedir[posn] = "left"						
-					if state[posn] == "init":			
-						activedir[posn] = "left"
-						check[posn] = 1
-						state[posn] = "start"
-						cursor[posn] = startcur[posn]
+									self.cursor[posn] = self.startcur[posn]
+						self.activedir[posn] = 'LEFT'						
+					if self.state[posn] == 'INIT':			
+						self.activedir[posn] = 'LEFT'
+						self.check[posn] = True
+						self.state[posn] = 'START'
+						self.cursor[posn] = self.startcur[posn]
 							
-					# activedir: left or right absolute -> movement in x direction (when in init state)
-					if activedir[posn] == "left":
-						addedge()
+					# activedir: left or right absolute -> movement in x direction (when in INIT state)
+					if self.activedir[posn] == 'LEFT':
+						self.addedge(posn)
 					else:
-						removeedge()
+						self.removeedge(posn)
 			return {'RUNNING_MODAL'}
-		elif event.type == "RIGHT_ARROW":
+			
+		elif event.type == 'RIGHT_ARROW':
 			# check LEFT_ARROW
-			if event.value == "PRESS":
-				for posn in range(len(edgelist)):
-					if state[posn] == "reinit":
-						check[posn] = 0
-						if oldstate[posn] == "start":
-							if activedir[posn] == "right":
-								state[posn] = "start"
-								if cursor[posn] == startcur[posn]:
-									cursor[posn] = startcur[posn]
+			if event.value == 'PRESS':
+				for posn in range(len(self.edgelist)):
+					if self.state[posn] == 'REINIT':
+						self.check[posn] = False
+						if self.oldstate[posn] == 'START':
+							if self.activedir[posn] == 'RIGHT':
+								self.state[posn] = 'START'
+								if self.cursor[posn] == self.startcur[posn]:
+									self.cursor[posn] = self.startcur[posn]
 								else:
-									cursor[posn] = endcur[posn]
+									self.cursor[posn] = self.endcur[posn]
 							else:
-								state[posn] = "end"
-								if cursor[posn] == startcur[posn]:
-									cursor[posn] = endcur[posn]
+								self.state[posn] = 'END'
+								if self.cursor[posn] == self.startcur[posn]:
+									self.cursor[posn] = self.endcur[posn]
 								else:
-									cursor[posn] = startcur[posn]
+									self.cursor[posn] = self.startcur[posn]
 						else:
-							if activedir[posn] == "right":
-								state[posn] = "end"
-								if cursor[posn] == startcur[posn]:
-									cursor[posn] = startcur[posn]
+							if self.activedir[posn] == 'RIGHT':
+								self.state[posn] = 'END'
+								if self.cursor[posn] == self.startcur[posn]:
+									self.cursor[posn] = self.startcur[posn]
 								else:
-									cursor[posn] = endcur[posn]
+									self.cursor[posn] = self.endcur[posn]
 							else:
-								state[posn] = "start"
-								if cursor[posn] == startcur[posn]:
-									cursor[posn] = endcur[posn]
+								self.state[posn] = 'START'
+								if self.cursor[posn] == self.startcur[posn]:
+									self.cursor[posn] = self.endcur[posn]
 								else:
-									cursor[posn] = startcur[posn]
-						activedir[posn] = "right"
-					if state[posn] == "init":
-						activedir[posn] = "right"
-						check[posn] = 1
-						state[posn] = "end"
-						cursor[posn] = endcur[posn]
-					if activedir[posn] == "right":
-						addedge()
+									self.cursor[posn] = self.startcur[posn]
+						self.activedir[posn] = 'RIGHT'
+					if self.state[posn] == 'INIT':
+						self.activedir[posn] = 'RIGHT'
+						self.check[posn] = True
+						self.state[posn] = 'END'
+						self.cursor[posn] = self.endcur[posn]
+					if self.activedir[posn] == 'RIGHT':
+						self.addedge(posn)
 					else:
-						removeedge()
+						self.removeedge(posn)
 			return {'RUNNING_MODAL'}
-		elif event.type == "UP_ARROW":
+			
+		elif event.type == 'UP_ARROW':
 			# next cursor possibility
-			if event.value == "PRESS":
-				counter += 1
-				mesh.update()
+			if event.value == 'PRESS':
+				self.counter += 1
+				self.mesh.update()
 			return {'RUNNING_MODAL'}
-		elif event.type == "DOWN_ARROW":
+			
+		elif event.type == 'DOWN_ARROW':
 			# previous cursor possibility
-			if event.value == "PRESS":
-				counter -= 1
-				mesh.update()
+			if event.value == 'PRESS':
+				self.counter -= 1
+				self.mesh.update()
 			return {'RUNNING_MODAL'}
 		
 		return {'RUNNING_MODAL'}
 
-def addedge():
+	def addedge(self, posn):
+		
+		# add edge to edgelist
+		self.change = True
+		if self.state[posn] == 'START':
+			self.edgelist[posn].insert(0, self.cursor[posn])
+		if self.state[posn] == 'END':
+			self.edgelist[posn].append(self.cursor[posn])
+		self.cursor[posn].verts[0].select = True
+		self.cursor[posn].verts[1].select = True
+		self.cursor[posn].select = True 
+		self.mesh.update()
 	
-	global edgelist, mesh, change
-	
-	# add edge to edgelist
-	change = 1
-	if state[posn] == "start":
-		edgelist[posn].insert(0, cursor[posn])
-	if state[posn] == "end":
-		edgelist[posn].append(cursor[posn])
-	cursor[posn].verts[0].select = 1
-	cursor[posn].verts[1].select = 1
-	cursor[posn].select = 1 
-	mesh.update()
+	def removeedge(self, posn):
+		
+		# remove edge from edgelist
+		self.change = True
+		if self.state[posn] == 'START':
+			for vert in self.edgelist[posn][0].verts:
+				if vert in self.cursor[posn].verts:
+					vert.select = False
+			self.cursor[posn] = self.edgelist[posn][0]
+			self.edgelist[posn].pop(0)
+		if self.state[posn] == 'END':
+			for vert in self.edgelist[posn][len(self.edgelist[posn]) - 1].verts:
+				if vert in self.cursor[posn].verts:
+					vert.select = False
+			self.cursor[posn] = self.edgelist[posn][len(self.edgelist[posn]) - 1]
+			self.edgelist[posn].pop(len(self.edgelist[posn]) - 1)
+		self.cursor[posn].select = False
+		self.mesh.update()
 
-def removeedge():
 	
-	global edgelist, mesh, cursor, change
+	def init_edgegrow(self, context):
 	
-	# removve edge from edgelist
-	change = 1
-	if state[posn] == "start":
-		for vert in edgelist[posn][0].verts:
-			if vert in cursor[posn].verts:
-				vert.select = 0
-		cursor[posn] = edgelist[posn][0]
-		edgelist[posn].pop(0)
-	if state[posn] == "end":
-		for vert in edgelist[posn][len(edgelist[posn]) - 1].verts:
-			if vert in cursor[posn].verts:
-				vert.select = 0
-		cursor[posn] = edgelist[posn][len(edgelist[posn]) - 1]
-		edgelist[posn].pop(len(edgelist[posn]) - 1)
-	cursor[posn].select = 0
-	mesh.update()
-
+		self.change = True
+	
+		self.area = context.area
+		self.region = context.region  
+		self.rv3d = context.space_data.region_3d	
+		self.selobj = context.active_object
+		self.mesh = self.selobj.data
+		self.bm = bmesh.from_edit_mesh(self.mesh)
+		self.actedge = self.bm.select_history.active
+		# get transf matrix
+		self.getmatrix()
+	
+		# vsellist, essellist: remember selection for reselecting later
+		self.selset = set([])
+		self.vsellist = []
+		self.esellist = []
+		for edge in self.bm.edges:
+			if edge.select:
+				self.selset.add(edge)
+				self.esellist.append(edge)		
+		for vert in self.bm.verts:
+			if vert.select:
+				self.vsellist.append(vert)		
+	
+	
+		def addstart(vert):
+			
+			# recursive: adds to initial edgelist at start
+			for e in vert.link_edges:
+				if e in self.selset:
+					self.selset.discard(e)
+					v = e.other_vert(vert)
+					self.edgelist[posn].insert(0, e)
+					addstart(v)
+					break
+		
+		def addend(vert):
+			
+			# recursive: adds to initial edgelist at end
+			for e in vert.link_edges:
+				if e in self.selset:
+					self.selset.discard(e)
+					v = e.other_vert(vert)
+					self.edgelist[posn].append(e)
+					addend(v)
+					break
+		
+		self.state = []
+		self.oldstate = []
+		self.cursor = []
+		self.startcur = []
+		self.endcur = []
+		self.check = []
+		self.activedir = []
+		self.singledir = {}
+		self.singledir[0] = None
+		self.startlen = []
+		self.edgelist = []
+		posn = 0
+		while len(self.selset) > 0:
+			# INITialize next edgesnake
+			self.state.append('INIT')
+			self.oldstate.append('INIT')
+			self.cursor.append(None)
+			self.startcur.append(None)
+			self.endcur.append(None)
+			self.check.append(0)
+			self.activedir.append("")
+			
+			self.edgelist.append([])
+			elem = self.selset.pop()
+			vert = elem.verts[0]
+			self.selset.add(elem)
+			# add to START and END of arbitrary START vert
+			addstart(vert)
+			addend(vert)
+			self.startlen.append(len(self.edgelist[posn]))
+			posn += 1
+		if len(self.edgelist) == 1:
+			if len(self.edgelist[0]) == 1:
+				# must store leftmost vert as startingvert when only one edge selected
+				x1, y = self.getscreencoords(self.edgelist[0][0].verts[0].co)
+				x2, y = self.getscreencoords(self.edgelist[0][0].verts[1].co)
+				if x1 < x2:
+					self.singledir[0] = self.edgelist[0][0].verts[0]
+				else:
+					self.singledir[0] = self.edgelist[0][0].verts[1]
+		
+		# orient first edgesnake from left(start) to right(end)
+		x1, y = self.getscreencoords(self.edgelist[0][0].verts[0].co)
+		x2, y = self.getscreencoords(self.edgelist[0][len(self.edgelist[0]) - 1].verts[0].co)
+		if x1 > x2:
+			self.edgelist[0].reverse()				
+			
+		
+		# 
+		# orient edge and vertlists parallel - reverse if necessary
+		for i in range(len(self.edgelist) - 1):
+			bpy.ops.mesh.select_all(action='DESELECT')
+			# get first vert and edge for two adjacent snakes
+			for v in self.edgelist[i][0].verts:
+				if len(self.edgelist[i]) == 1:
+					if i == 0:
+						x1, y = self.getscreencoords(v.co)
+						x2, y = self.getscreencoords(edgelist[i][0].other_vert(v).co)
+						if x1 < x2:
+							self.singledir[0] = v
+						else:
+							self.singledir[0] = self.edgelist[i][0].other_vert(v)
+					vt = self.singledir[i]	
+					vt.select = True
+					self.bm.select_history.add(vt)
+					v1 = vt
+					e1 = self.edgelist[i][0]
+					break
+				elif not(v in self.edgelist[i][1].verts):
+					v.select = True
+					self.bm.select_history.add(v)
+					v1 = v
+					e1 = self.edgelist[i][0]
+			for v in self.edgelist[i+1][0].verts:
+				if len(self.edgelist[i+1]) == 1:
+					v.select = True
+					self.bm.select_history.add(v)
+					v2 = v
+					e2 = self.edgelist[i+1][0]
+					break
+				elif not(v in self.edgelist[i+1][1].verts):
+					v.select = True
+					self.bm.select_history.add(v)
+					v2 = v
+					e2 = self.edgelist[i+1][0]
+			self.singledir[i+1] = v2
+			self.bm.select_history.validate()
+			# get path between startverts for checking orientation
+			bpy.ops.mesh.shortest_path_select()
+			
+			for e in self.bm.edges:
+				if e.verts[0].select and e.verts[1].select:
+					e.select = True
+			
+			# correct selected path when not connected neatly to vert from left or right(cant know direction)
+			def correctsel(e1, v1, lst):
+				found = False
+				while not(found):
+					found = True
+					for edge in e1.other_vert(v1).link_edges:
+						if edge.select and edge != e1:
+							if lst.index(e1) < len(lst) - 1:
+								v1.select = False
+								e1.select = False
+								v1 = e1.other_vert(v1)
+								e1 = lst[lst.index(e1) + 1]
+							else:
+								templ = list(e1.other_vert(v1).link_faces)
+								for f in e1.link_faces:
+									templ.pop(templ.index(f))
+								for edge in e1.other_vert(v1).link_edges:
+									if edge in templ[0].edges and edge in templ[1].edges:
+										v1.select = False
+										e1.select = False
+										v1 = e1.other_vert(v1)
+										e1 = edge
+							found = False
+										
+				# check situation where left/right connection is on vert thats outside slice
+				found = False
+				while not(found):
+					templ = list(v1.link_faces)
+					for f in e1.link_faces:
+						templ.pop(templ.index(f))
+					found = True
+					for edge in v1.link_edges:
+						if edge in templ[0].edges and edge in templ[1].edges:
+							if edge.other_vert(v1).select:
+								v1.select = False
+								edge.select = False
+								v1 = edge.other_vert(v1)
+								e1 = edge
+								found = False
+				return e1, v1
+								
+			e1, v1 = correctsel(e1, v1, self.edgelist[i])
+			e2, v2 = correctsel(e2, v2, self.edgelist[i+1])					
+			
+			# do all the checking to see if the checked lists must be reversed
+			brk = False
+			for face1 in e1.link_faces:
+				for edge1 in face1.edges:
+					if edge1.select:
+						for loop1 in face1.loops:
+							if loop1.vert == v1:
+								if loop1.edge == e1:
+									turn = loop1
+								elif loop1.link_loop_next.edge == e1:
+									turn = loop1.link_loop_next
+								else:
+									turn = loop1.link_loop_prev
+								# check if turning in one direction
+								if turn.link_loop_next.edge.select:
+									for face2 in e2.link_faces:
+										for edge2 in face2.edges:
+											if edge2.select:
+												for loop2 in face2.loops:
+													if loop2.vert == v2:
+														if loop2.edge == e2:
+															turn = loop2
+														elif loop2.link_loop_next.edge == e2:
+															turn = loop2.link_loop_next
+														else:
+															turn = loop2.link_loop_prev
+														if turn.link_loop_next.edge.select:
+															self.singledir[i+1] = e2.other_vert(v2)
+															self.edgelist[i+1].reverse()
+														break
+												brk = True
+												break
+										if brk == True:
+											break
+								# and the other
+								elif loop1.link_loop_prev.edge.select:
+									for face2 in e2.link_faces:
+										for edge2 in face2.edges:
+											if edge2.select:
+												for loop2 in face2.loops:
+													if loop2.vert == v2:
+														if loop2.edge == e2:
+															turn = loop2
+														elif loop2.link_loop_next.edge == e2:
+															turn = loop2.link_loop_next
+														else:
+															turn = loop2.link_loop_prev
+														if turn.link_loop_prev.edge.select:
+															self.singledir[i+1] = e2.other_vert(v2)
+															self.edgelist[i+1].reverse()
+														break
+												brk = True
+												break
+										if brk == True:
+											break
+								break
+						break
+						
+		for posn in range(len(self.edgelist)):
+			if self.edgelist[posn][0] == self.actedge:
+				for posn in range(len(self.edgelist)):
+					self.edgelist[posn].reverse()
+						
+		bpy.ops.mesh.select_all(action='DESELECT')
+		for v in self.vsellist:
+			v.select = True
+		for e in self.esellist:
+			e.select = True
+	
+	
+		self.region.tag_redraw()
+	
+	
+	
+	def getmatrix(self):
+		
+		# Rotating / panning / zooming 3D view is handled here.
+		# Get matrix.
+		if self.selobj.rotation_mode == 'AXIS_ANGLE':
+			# when roataion mode is axisangle
+			angle, x, y, z =  self.selobj.rotation_axis_angle
+			self.matrix = Matrix.Rotation(-angle, 4, Vector((x, y, z)))
+		elif self.selobj.rotation_mode == 'QUATERNION':
+			# when rotation on object is quaternion
+			w, x, y, z = self.selobj.rotation_quaternion
+			x = -x
+			y = -y
+			z = -z
+			quat = Quaternion([w, x, y, z])
+			self.matrix = quat.to_matrix()
+			self.matrix.resize_4x4()
+		else:
+			# when rotation of object is euler
+			ax, ay, az = self.selobj.rotation_euler
+			mat_rotX = Matrix.Rotation(-ax, 4, 'X')
+			mat_rotY = Matrix.Rotation(-ay, 4, 'Y')
+			mat_rotZ = Matrix.Rotation(-az, 4, 'Z')
+		if self.selobj.rotation_mode == 'XYZ':
+			self.matrix = mat_rotX * mat_rotY * mat_rotZ
+		elif self.selobj.rotation_mode == 'XZY':
+			self.matrix = mat_rotX * mat_rotZ * mat_rotY
+		elif self.selobj.rotation_mode == 'YXZ':
+			self.matrix = mat_rotY * mat_rotX * mat_rotZ
+		elif self.selobj.rotation_mode == 'YZX':
+			self.matrix = mat_rotY * mat_rotZ * mat_rotX
+		elif self.selobj.rotation_mode == 'ZXY':
+			self.matrix = mat_rotZ * mat_rotX * mat_rotY
+		elif self.selobj.rotation_mode == 'ZYX':
+			self.matrix = mat_rotZ * mat_rotY * mat_rotX
+	
+		# handle object scaling
+		sx, sy, sz = self.selobj.scale
+		mat_scX = Matrix.Scale(sx, 4, Vector([1, 0, 0]))
+		mat_scY = Matrix.Scale(sy, 4, Vector([0, 1, 0]))
+		mat_scZ = Matrix.Scale(sz, 4, Vector([0, 0, 1]))
+		self.matrix = mat_scX * mat_scY * mat_scZ * self.matrix
+	
+	
+	def getscreencoords(self, vector):
+		
+		# calculate screen coords for given Vector
+		vector = vector * self.matrix
+		vector = vector + self.selobj.location
+		return bpy_extras.view3d_utils.location_3d_to_region_2d(self.region, self.rv3d, vector)
+	
+	
+	def drawedges(self, vert, edge):
+		
+		def getedge(vert, edge):
+			
+			# get the next edge in list of edges rotating from/around vert at seelection END (for cursor choice)
+			for loop in vert.link_loops:
+				if loop.edge == edge:
+					edge = loop.link_loop_prev.edge
+					if edge == self.startedge:
+						break
+					self.sortlist.append(edge)
+					getedge(vert, edge)
+					break
+	
+		# get sorted list of possible cursor choices
+		self.sortlist = []
+		self.startedge = edge
+		getedge(vert, edge)
+		if len(vert.link_edges) - len(self.sortlist) > 1:
+			for e in vert.link_edges:
+				if e != self.startedge:
+					if not(e in self.sortlist):
+						self.sortlist.append(e)
+		# calculate new cursor position in sortlist if changed			
+		if self.change:
+			if len(self.sortlist) == 2 and (len(self.sortlist[0].link_faces) == 1 or len(self.sortlist[1].link_faces) == 1):
+				for f in self.startedge.link_faces:
+					for e in self.sortlist:
+						tel = 0
+						if e.verts[0] in f.verts:
+							tel += 1
+							vfound = e.verts[1]
+						if e.verts[1] in f.verts:
+							tel += 1
+							vfound = e.verts[0]
+						if tel == 1:
+							break
+				for e in self.sortlist:
+					if vfound in e.verts:
+						cnt = self.sortlist.index(e)
+			else:
+				# standard middle edge is cursor
+				cnt = int((len(self.sortlist) - 1) / 2)
+			self.counter = cnt
+		else:
+			# do revert to START when past END and other way around
+			if self.counter >= len(self.sortlist):
+				cnt = self.counter - (int(self.counter / len(self.sortlist)) * len(self.sortlist))
+			elif self.counter < 0:
+				cnt = self.counter
+				while cnt < 0:
+					cnt += len(self.sortlist)
+			else:
+				cnt = self.counter
+		# draw cursor possibilities in blue, current in red
+		for edge in self.sortlist:
+			if self.sortlist.index(edge) == cnt:
+				self.tempcur = edge
+				glColor3f(1.0, 0, 0)
+			else:
+				glColor3f(0.2, 0.2, 1.0)
+			glBegin(GL_LINES)
+			x, y = self.getscreencoords(edge.verts[0].co)
+			glVertex2f(x, y)
+			x, y = self.getscreencoords(edge.verts[1].co)
+			glVertex2f(x, y)
+			glEnd()
+	
+	
+	def setcursors(self, v):
+		
+		# what it says
+		if self.oldstate[posn] == 'START':
+			if v in self.cursor[posn].verts:
+				self.startcur[posn] = self.tempcur
+			else:
+				self.endcur[posn] = self.tempcur
+		elif self.oldstate[posn] == 'END':
+			if v in self.cursor[posn].verts:
+				self.endcur[posn] = self.tempcur
+			else:
+				self.startcur[posn] = self.tempcur
+	
+	
+	def redraw(self):
+		
+		# Reinit if returning to initial state
+		for lst in self.edgelist:
+			posn = self.edgelist.index(lst)
+			self.oldstate[posn] = self.state[posn]
+			if len(lst) == self.startlen[posn]:
+				if self.check[posn]:
+					self.state[posn] = 'REINIT'
+			else:
+				self.check[posn] = True
+		
+		for lst in self.edgelist:
+			posn = self.edgelist.index(lst)
+			
+			if self.state[posn] == 'INIT' or self.state[posn] == 'REINIT':
+				if len(lst) == 1:
+					# if snake is one edge, use singledir vert for orientation
+					v = lst[0].verts[0]
+					self.drawedges(v, lst[0])
+					self.setcursors(v)
+					if self.oldstate[posn] == 'INIT':
+						if self.singledir[posn] == v:
+							self.startcur[posn] = self.tempcur
+						else:
+							self.endcur[posn] = self.tempcur
+					v = lst[0].verts[1]
+					self.drawedges(v, lst[0])
+					self.setcursors(v)
+					if self.oldstate[posn] == 'INIT':
+						if self.singledir[posn] == v:
+							self.startcur[posn] = self.tempcur
+						else:
+							self.endcur[posn] = self.tempcur
+				else:
+					# draw and set START and END cursors
+					edge = lst[0]
+					edge.select = False
+					for vert in edge.verts:
+						if not(vert in lst[1].verts):
+							self.drawedges(vert, edge)
+							self.startcur[posn] = self.tempcur
+					edge = lst[len(lst) - 1]
+					edge.select = False
+					for vert in edge.verts:
+						if not(vert in lst[len(lst) - 2].verts):
+							self.drawedges(vert, edge)
+							self.endcur[posn] = self.tempcur
+			elif self.state[posn] == 'START':
+				# draw and set cursor at START
+				edge = lst[0]
+				for vert in edge.verts:
+					if not(vert in lst[1].verts):
+						self.drawedges(vert, edge)
+						self.cursor[posn] = self.tempcur
+			elif self.state[posn] == 'END':
+				# draw and set cursor at END
+				edge = lst[len(lst) - 1]
+				for vert in edge.verts:
+					if not(vert in lst[len(lst) - 2].verts):
+						self.drawedges(vert, edge)
+						self.cursor[posn] = self.tempcur
+			for e in self.edgelist[posn]:
+				e.verts[0].select = True
+				e.verts[1].select = True
+				e.select = True
+				
+		self.change = False
+	
 
 
 
 def panel_func(self, context):
-	scn = bpy.context.scene
 	self.layout.label(text="EdgeGrow:")
 	self.layout.operator("mesh.edgegrow", text="Grow Edges")
 
@@ -269,7 +716,7 @@ def register():
 
 
 def unregister():
-	bpy.utils.unregister_class(EdgeGrow)
+	bpy.utils.unregister_module(__name__)
 	bpy.types.VIEW3D_PT_tools_meshedit.remove(panel_func)
 
 
@@ -280,509 +727,5 @@ if __name__ == "__main__":
 
 
 
-
-def getscreencoords(vector):
-	
-	# calculate screen coords for given Vector
-	
-	region = bpy.context.region
-	rv3d = bpy.context.space_data.region_3d	
-	pvector = vector * matrix
-	pvector = pvector + selobj.location
-	svector = view3d_utils.location_3d_to_region_2d(region, rv3d, pvector)
-	if svector == None:
-		return [0, 0 ,0]
-	else:
-		return [svector[0], svector[1], pvector[2]]
-
-
-
-def addstart(vert):
-	
-	global selset, edgelist
-
-	# recursive: adds to initial edgelist at start
-	for e in vert.link_edges:
-		if e in selset:
-			selset.discard(e)
-			v = e.other_vert(vert)
-			edgelist[posn].insert(0, e)
-			addstart(v)
-			break
-
-def addend(vert):
-	
-	global selset, edgelist
-
-	# recursive: adds to initial edgelist at end
-	for e in vert.link_edges:
-		if e in selset:
-			selset.discard(e)
-			v = e.other_vert(vert)
-			edgelist[posn].append(e)
-			addend(v)
-			break
-
-
-def do_edgegrow(self):
-
-	global bm, mesh, selobj, actedge
-	global selset, edgelist, posn, startlen
-	global viewchange, check, change, stop
-	global state, oldstate, cursor, startcur, endcur, activedir, singledir
-	
-	viewchange = 0
-	change = 1
-	stop = 0
-
-	context = bpy.context
-	region = context.region  
-	area = context.area
-	selobj = bpy.context.active_object
-	mesh = selobj.data
-	bm = bmesh.from_edit_mesh(mesh)
-	actedge = bm.select_history.active
-	# get transf matrix
-	adapt()
-
-	# vsellist, essellist: remember selection for reselecting later
-	selset = set([])
-	vsellist = []
-	esellist = []
-	for edge in bm.edges:
-		if edge.select:
-			selset.add(edge)
-			esellist.append(edge)		
-	for vert in bm.verts:
-		if vert.select:
-			vsellist.append(vert)		
-
-	state = []
-	oldstate = []
-	cursor = []
-	startcur = []
-	endcur = []
-	check = []
-	activedir = []
-	posn = 0
-	singledir = {}
-	singledir[0] = None
-	startlen = []
-	edgelist = []
-	while len(selset) > 0:
-		# initialize next edgesnake
-		state.append("init")
-		oldstate.append("init")
-		cursor.append(None)
-		startcur.append(None)
-		endcur.append(None)
-		check.append(0)
-		activedir.append("")
-		
-		edgelist.append([])
-		elem = selset.pop()
-		vert = elem.verts[0]
-		selset.add(elem)
-		# add to start and end of arbitrary start vert
-		addstart(vert)
-		addend(vert)
-		startlen.append(len(edgelist[posn]))
-		posn += 1
-	if len(edgelist) == 1:
-		if len(edgelist[0]) == 1:
-			# must store leftmost vert as startingvert when only one edge selected
-			x1, y, z = getscreencoords(edgelist[0][0].verts[0].co)
-			x2, y, z = getscreencoords(edgelist[0][0].verts[1].co)
-			if x1 < x2:
-				singledir[0] = edgelist[0][0].verts[0]
-			else:
-				singledir[0] = edgelist[0][0].verts[1]
-	
-	# orient first edgesnake from left(start) to right(end)
-	x1, y, z = getscreencoords(edgelist[0][0].verts[0].co)
-	x2, y, z = getscreencoords(edgelist[0][len(edgelist[0]) - 1].verts[0].co)
-	if x1 > x2:
-		edgelist[0].reverse()				
-		
-	
-	# 
-	# orient edge and vertlists parallel - reverse if necessary
-	for i in range(len(edgelist) - 1):
-		bpy.ops.mesh.select_all(action="DESELECT")
-		# get first vert and edge for two adjacent snakes
-		for v in edgelist[i][0].verts:
-			if len(edgelist[i]) == 1:
-				if i == 0:
-					x1, y, z = getscreencoords(v.co)
-					x2, y, z = getscreencoords(edgelist[i][0].other_vert(v).co)
-					if x1 < x2:
-						singledir[0] = v
-					else:
-						singledir[0] = edgelist[i][0].other_vert(v)
-				vt = singledir[i]	
-				vt.select = 1
-				bm.select_history.add(vt)
-				v1 = vt
-				e1 = edgelist[i][0]
-				break
-			elif not(v in edgelist[i][1].verts):
-				v.select = 1
-				bm.select_history.add(v)
-				v1 = v
-				e1 = edgelist[i][0]
-		for v in edgelist[i+1][0].verts:
-			if len(edgelist[i+1]) == 1:
-				v.select = 1
-				bm.select_history.add(v)
-				v2 = v
-				e2 = edgelist[i+1][0]
-				break
-			elif not(v in edgelist[i+1][1].verts):
-				v.select = 1
-				bm.select_history.add(v)
-				v2 = v
-				e2 = edgelist[i+1][0]
-		singledir[i+1] = v2
-		bm.select_history.validate()
-		# get path between startverts for checking orientation
-		bpy.ops.mesh.shortest_path_select()
-		
-		for e in bm.edges:
-			if e.verts[0].select and e.verts[1].select:
-				e.select = 1
-		
-		# correct selected path when not connected neatly to vert from left or right(cant know direction)
-		def correctsel(e1, v1, lst):
-			found = 0
-			while not(found):
-				found = 1
-				for edge in e1.other_vert(v1).link_edges:
-					if edge.select and edge != e1:
-						if lst.index(e1) < len(lst) - 1:
-							v1.select = 0
-							e1.select = 0
-							v1 = e1.other_vert(v1)
-							e1 = lst[lst.index(e1) + 1]
-						else:
-							templ = list(e1.other_vert(v1).link_faces)
-							for f in e1.link_faces:
-								templ.pop(templ.index(f))
-							for edge in e1.other_vert(v1).link_edges:
-								if edge in templ[0].edges and edge in templ[1].edges:
-									v1.select = 0
-									e1.select = 0
-									v1 = e1.other_vert(v1)
-									e1 = edge
-						found = 0
-									
-			# check situation where left/right connection is on vert thats outside slice
-			found = 0
-			while not(found):
-				templ = list(v1.link_faces)
-				for f in e1.link_faces:
-					templ.pop(templ.index(f))
-				found = 1
-				for edge in v1.link_edges:
-					if edge in templ[0].edges and edge in templ[1].edges:
-						if edge.other_vert(v1).select:
-							v1.select = 0
-							edge.select = 0
-							v1 = edge.other_vert(v1)
-							e1 = edge
-							found = 0
-			return e1, v1
-							
-		e1, v1 = correctsel(e1, v1, edgelist[i])
-		e2, v2 = correctsel(e2, v2, edgelist[i+1])					
-		
-		# do all the checking to see if the checked lists must be reversed
-		brk = 0
-		for face1 in e1.link_faces:
-			for edge1 in face1.edges:
-				if edge1.select:
-					for loop1 in face1.loops:
-						if loop1.vert == v1:
-							if loop1.edge == e1:
-								turn = loop1
-							elif loop1.link_loop_next.edge == e1:
-								turn = loop1.link_loop_next
-							else:
-								turn = loop1.link_loop_prev
-							# check if turning in one direction
-							if turn.link_loop_next.edge.select:
-								for face2 in e2.link_faces:
-									for edge2 in face2.edges:
-										if edge2.select:
-											for loop2 in face2.loops:
-												if loop2.vert == v2:
-													if loop2.edge == e2:
-														turn = loop2
-													elif loop2.link_loop_next.edge == e2:
-														turn = loop2.link_loop_next
-													else:
-														turn = loop2.link_loop_prev
-													if turn.link_loop_next.edge.select:
-														singledir[i+1] = e2.other_vert(v2)
-														edgelist[i+1].reverse()
-													break
-											brk = 1
-											break
-									if brk == 1:
-										break
-							# and the other
-							elif loop1.link_loop_prev.edge.select:
-								for face2 in e2.link_faces:
-									for edge2 in face2.edges:
-										if edge2.select:
-											for loop2 in face2.loops:
-												if loop2.vert == v2:
-													if loop2.edge == e2:
-														turn = loop2
-													elif loop2.link_loop_next.edge == e2:
-														turn = loop2.link_loop_next
-													else:
-														turn = loop2.link_loop_prev
-													if turn.link_loop_prev.edge.select:
-														singledir[i+1] = e2.other_vert(v2)
-														edgelist[i+1].reverse()
-													break
-											brk = 1
-											break
-									if brk == 1:
-										break
-							break
-					break
-					
-	for posn in range(len(edgelist)):
-		if edgelist[posn][0] == actedge:
-			for posn in range(len(edgelist)):
-				edgelist[posn].reverse()
-					
-	bpy.ops.mesh.select_all(action="DESELECT")
-	for v in vsellist:
-		v.select = 1
-	for e in esellist:
-		e.select = 1
-
-
-	region.tag_redraw()
-
-
-
-def adapt():
-	
-	global matrix
-	global bm, mesh, selobj
-	global mbns, viewchange
-	global selobj
-	
-	# Rotating / panning / zooming 3D view is handled here.
-	# Get matrix.
-	if selobj.rotation_mode == "AXIS_ANGLE":
-		# when roataion mode is axisangle
-		angle, x, y, z =  selobj.rotation_axis_angle
-		matrix = Matrix.Rotation(-angle, 4, Vector((x, y, z)))
-	elif selobj.rotation_mode == "QUATERNION":
-		# when rotation on object is quaternion
-		w, x, y, z = selobj.rotation_quaternion
-		x = -x
-		y = -y
-		z = -z
-		quat = Quaternion([w, x, y, z])
-		matrix = quat.to_matrix()
-		matrix.resize_4x4()
-	else:
-		# when rotation of object is euler
-		ax, ay, az = selobj.rotation_euler
-		mat_rotX = Matrix.Rotation(-ax, 4, 'X')
-		mat_rotY = Matrix.Rotation(-ay, 4, 'Y')
-		mat_rotZ = Matrix.Rotation(-az, 4, 'Z')
-	if selobj.rotation_mode == "XYZ":
-		matrix = mat_rotX * mat_rotY * mat_rotZ
-	elif selobj.rotation_mode == "XZY":
-		matrix = mat_rotX * mat_rotZ * mat_rotY
-	elif selobj.rotation_mode == "YXZ":
-		matrix = mat_rotY * mat_rotX * mat_rotZ
-	elif selobj.rotation_mode == "YZX":
-		matrix = mat_rotY * mat_rotZ * mat_rotX
-	elif selobj.rotation_mode == "ZXY":
-		matrix = mat_rotZ * mat_rotX * mat_rotY
-	elif selobj.rotation_mode == "ZYX":
-		matrix = mat_rotZ * mat_rotY * mat_rotX
-
-	# handle object scaling
-	sx, sy, sz = selobj.scale
-	mat_scX = Matrix.Scale(sx, 4, Vector([1, 0, 0]))
-	mat_scY = Matrix.Scale(sy, 4, Vector([0, 1, 0]))
-	mat_scZ = Matrix.Scale(sz, 4, Vector([0, 0, 1]))
-	matrix = mat_scX * mat_scY * mat_scZ * matrix
-
-
-def getedge(vert, edge):
-	
-	global sortlist, startedge
-	
-	# get the next edge in list of edges rotating from/around vert at seelection end (for cursor choice)
-	for loop in vert.link_loops:
-		if loop.edge == edge:
-			edge = loop.link_loop_prev.edge
-			if edge == startedge:
-				break
-			sortlist.append(edge)
-			getedge(vert, edge)
-			break
-
-def drawedges(vert, edge):
-	
-	global sortlist, startedge, tempcur, change, counter
-	
-	# get sorted list of possible cursor choices
-	sortlist = []
-	startedge = edge
-	getedge(vert, edge)
-	if len(vert.link_edges) - len(sortlist) > 1:
-		for e in vert.link_edges:
-			if e != startedge:
-				if not(e in sortlist):
-					sortlist.append(e)
-	# calculate new cursor position in sortlist if changed			
-	if change:
-		if len(sortlist) == 2 and (len(sortlist[0].link_faces) == 1 or len(sortlist[1].link_faces) == 1):
-			for f in startedge.link_faces:
-				for e in sortlist:
-					tel = 0
-					if e.verts[0] in f.verts:
-						tel += 1
-						vfound = e.verts[1]
-					if e.verts[1] in f.verts:
-						tel += 1
-						vfound = e.verts[0]
-					if tel == 1:
-						break
-			for e in sortlist:
-				if vfound in e.verts:
-					cnt = sortlist.index(e)
-		else:
-			# standard middle edge is cursor
-			cnt = int((len(sortlist) - 1) / 2)
-		counter = cnt
-	else:
-		# do revert to start when past end and other way around
-		if counter >= len(sortlist):
-			cnt = counter - (int(counter / len(sortlist)) * len(sortlist))
-		elif counter < 0:
-			cnt = counter
-			while cnt < 0:
-				cnt += len(sortlist)
-		else:
-			cnt = counter
-	# draw cursor possibilities in blue, current in red
-	for edge in sortlist:
-		if sortlist.index(edge) == cnt:
-			tempcur = edge
-			glColor3f(1.0, 0, 0)
-		else:
-			glColor3f(0.2, 0.2, 1.0)
-		glBegin(GL_LINES)
-		x, y, dummy = getscreencoords(edge.verts[0].co)
-		glVertex2f(x, y)
-		x, y, dummy = getscreencoords(edge.verts[1].co)
-		glVertex2f(x, y)
-		glEnd()
-			
-def setcursors(v):
-	
-	global startcur, endcur, posn
-	
-	# what it says
-	if oldstate[posn] == "start":
-		if v in cursor[posn].verts:
-			startcur[posn] = tempcur
-		else:
-			endcur[posn] = tempcur
-	elif oldstate[posn] == "end":
-		if v in cursor[posn].verts:
-			endcur[posn] = tempcur
-		else:
-			startcur[posn] = tempcur
-
-
-def redraw():
-	
-	global viewchange, edgelist, state, oldstate, check
-	global cursor, startcur, endcur, tempcur, change, posn
-	
-	# user changes view
-	if viewchange:
-		viewchange = 0
-		adapt()
-	
-	# reinit if returning to initial state
-	for lst in edgelist:
-		posn = edgelist.index(lst)
-		oldstate[posn] = state[posn]
-		if len(lst) == startlen[posn]:
-			if check[posn]:
-				state[posn] = "reinit"
-		else:
-			check[posn] = 1
-	
-	for lst in edgelist:
-		posn = edgelist.index(lst)
-		
-		if state[posn] == "init" or state[posn] == "reinit":
-			if len(lst) == 1:
-				# if snake is one edge, use singledir vert for orientation
-				v = lst[0].verts[0]
-				drawedges(v, lst[0])
-				setcursors(v)
-				if oldstate[posn] == "init":
-					if singledir[posn] == v:
-						startcur[posn] = tempcur
-					else:
-						endcur[posn] = tempcur
-				v = lst[0].verts[1]
-				drawedges(v, lst[0])
-				setcursors(v)
-				if oldstate[posn] == "init":
-					if singledir[posn] == v:
-						startcur[posn] = tempcur
-					else:
-						endcur[posn] = tempcur
-			else:
-				# draw and set start and end cursors
-				edge = lst[0]
-				edge.select = 0
-				for vert in edge.verts:
-					if not(vert in lst[1].verts):
-						drawedges(vert, edge)
-						startcur[posn] = tempcur
-				edge = lst[len(lst) - 1]
-				edge.select = 0
-				for vert in edge.verts:
-					if not(vert in lst[len(lst) - 2].verts):
-						drawedges(vert, edge)
-						endcur[posn] = tempcur
-		elif state[posn] == "start":
-			# draw and set cursor at start
-			edge = lst[0]
-			for vert in edge.verts:
-				if not(vert in lst[1].verts):
-					drawedges(vert, edge)
-					cursor[posn] = tempcur
-		elif state[posn] == "end":
-			# draw and set cursor at end
-			edge = lst[len(lst) - 1]
-			for vert in edge.verts:
-				if not(vert in lst[len(lst) - 2].verts):
-					drawedges(vert, edge)
-					cursor[posn] = tempcur
-		for e in edgelist[posn]:
-			e.verts[0].select = 1
-			e.verts[1].select = 1
-			e.select = 1
-			
-	change = 0
-	
 
 

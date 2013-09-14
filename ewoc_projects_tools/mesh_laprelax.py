@@ -39,7 +39,7 @@ Save as Default (Optional).
 bl_info = {
 	"name": "LapRelax",
 	"author": "Gert De Roost",
-	"version": (0, 1, 2),
+	"version": (0, 2, 0),
 	"blender": (2, 6, 3),
 	"location": "View3D > Tools",
 	"description": "Smoothing mesh keeping volume",
@@ -48,8 +48,6 @@ bl_info = {
 	"tracker_url": "",
 	"category": "Mesh"}
 
-if "bpy" in locals():
-    import imp
 
 
 import bpy
@@ -57,21 +55,20 @@ import bmesh
 from mathutils import *
 import math
 
-bpy.types.Scene.Repeat = bpy.props.IntProperty(
+
+class LapRelax(bpy.types.Operator):
+	bl_idname = "mesh.laprelax"
+	bl_label = "LapRelax"
+	bl_description = "Smoothing mesh keeping volume"
+	bl_options = {'REGISTER', 'UNDO'}
+	
+	Repeat = bpy.props.IntProperty(
 		name = "Repeat", 
 		description = "Repeat how many times",
 		default = 1,
 		min = 1,
 		max = 100)
 
-
-
-class LapRelax(bpy.types.Operator):
-	bl_idname = "mesh.laprelax"
-	bl_label = "LapRelax"
-	bl_description = "Smoothing mesh keeping volume"
-	bl_options = {"REGISTER", "UNDO"}
-	
 
 	@classmethod
 	def poll(cls, context):
@@ -80,16 +77,59 @@ class LapRelax(bpy.types.Operator):
 
 	def invoke(self, context, event):
 		
-		scn = bpy.context.scene
-		
-		self.save_global_undo = bpy.context.user_preferences.edit.use_global_undo
-		bpy.context.user_preferences.edit.use_global_undo = False
-		
 		# smooth #Repeat times
-		for i in range(scn.Repeat):
-			do_laprelax(self)
+		for i in range(self.Repeat):
+			self.do_laprelax()
 		
 		return {'FINISHED'}
+
+
+	def do_laprelax(self):
+	
+		context = bpy.context
+		region = context.region  
+		area = context.area
+		selobj = bpy.context.active_object
+		mesh = selobj.data
+		bm = bmesh.from_edit_mesh(mesh)
+		bmprev = bm.copy()
+	
+		for v in bmprev.verts:
+			if v.select:
+				tot = Vector((0, 0, 0))
+				cnt = 0
+				for e in v.link_edges:
+					for f in e.link_faces:
+						if not(f.select):
+							cnt = 1
+					if len(e.link_faces) == 1:
+						cnt = 1
+						break
+				if cnt:
+					# dont affect border edges: they cause shrinkage
+					continue
+					
+				# find Laplacian mean
+				for e in v.link_edges:
+					tot += e.other_vert(v).co
+				tot /= len(v.link_edges)
+				
+				# cancel movement in direction of vertex normal
+				delta = (tot - v.co)
+				if delta.length != 0:
+					ang = delta.angle(v.normal)
+					deltanor = math.cos(ang) * delta.length
+					nor = v.normal
+					nor.length = abs(deltanor)
+					bm.verts[v.index].co = tot + nor
+			
+			
+		mesh.update()
+		bm.free()
+		bmprev.free()
+		bpy.ops.object.editmode_toggle()
+		bpy.ops.object.editmode_toggle()
+
 
 
 def panel_func(self, context):
@@ -116,50 +156,4 @@ if __name__ == "__main__":
 
 
 
-def do_laprelax(self):
-
-	context = bpy.context
-	region = context.region  
-	area = context.area
-	selobj = bpy.context.active_object
-	mesh = selobj.data
-	bm = bmesh.from_edit_mesh(mesh)
-	bmprev = bm.copy()
-
-	for v in bmprev.verts:
-		if v.select:
-			tot = Vector((0, 0, 0))
-			cnt = 0
-			for e in v.link_edges:
-				for f in e.link_faces:
-					if not(f.select):
-						cnt = 1
-				if len(e.link_faces) == 1:
-					cnt = 1
-					break
-			if cnt:
-				# dont affect border edges: they cause shrinkage
-				continue
-				
-			# find Laplacian mean
-			for e in v.link_edges:
-				tot += e.other_vert(v).co
-			tot /= len(v.link_edges)
-			
-			# cancel movement in direction of vertex normal
-			delta = (tot - v.co)
-			if delta.length != 0:
-				ang = delta.angle(v.normal)
-				deltanor = math.cos(ang) * delta.length
-				nor = v.normal
-				nor.length = abs(deltanor)
-				bm.verts[v.index].co = tot + nor
-		
-		
-	mesh.update()
-	bm.free()
-	bmprev.free()
-	bpy.context.user_preferences.edit.use_global_undo = self.save_global_undo
-	bpy.ops.object.editmode_toggle()
-	bpy.ops.object.editmode_toggle()
 	
