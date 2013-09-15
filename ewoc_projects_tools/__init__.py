@@ -21,7 +21,7 @@
 bl_info = {
 	"name": "EWOCprojects tools",
 	"author": "Gert De Roost - paleajed",
-	"version": (1, 1, 0),
+	"version": (1, 2, 0),
 	"blender": (2, 6, 3),
 	"location": "View3D > Toolbar and View3D > Specials (W-key)",
 	"description": "Edit mode tools - contrib version",
@@ -45,6 +45,7 @@ if "bpy" in locals():
 	imp.reload(mesh_floodsel)
 	imp.reload(mesh_deathguppie)
 	imp.reload(mesh_selproject)
+	imp.reload(object_decouple)
 
 else:
 	from . import mesh_edgetune
@@ -59,6 +60,7 @@ else:
 	from . import mesh_floodsel
 	from . import mesh_deathguppie
 	from . import mesh_selproject
+	from . import object_decouple
 
 import bpy
 from bpy.app.handlers import persistent
@@ -97,6 +99,12 @@ class VIEW3D_MT_edit_mesh_paleajed(bpy.types.Menu):
 			text="DeathGuppie")
 		layout.operator("mesh.selproject",
 			text="SelProject")
+		if not(object_decouple.unparented):
+			layout.operator("object.decouple",
+				text="DeCouple")
+		else:
+			layout.operator("object.recouple",
+				text="ReCouple")
 
 
 class PaleajedPanel(bpy.types.Panel):
@@ -160,6 +168,12 @@ class PaleajedPanel(bpy.types.Panel):
 		else:
 			self.layout.label(text="ENTER to confirm")
 
+		if not(object_decouple.unparented):
+			layout.operator("object.decouple",
+				text="DeCouple")
+		else:
+			layout.operator("object.recouple",
+				text="ReCouple")
 
 # Register all operators and panels
 
