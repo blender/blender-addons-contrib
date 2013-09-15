@@ -21,7 +21,7 @@
 bl_info = {
 	"name": "EWOCprojects tools",
 	"author": "Gert De Roost - paleajed",
-	"version": (1, 2, 0),
+	"version": (1, 3, 0),
 	"blender": (2, 6, 3),
 	"location": "View3D > Toolbar and View3D > Specials (W-key)",
 	"description": "Edit mode tools - contrib version",
@@ -46,6 +46,7 @@ if "bpy" in locals():
 	imp.reload(mesh_deathguppie)
 	imp.reload(mesh_selproject)
 	imp.reload(object_decouple)
+	imp.reload(object_keeptrans)
 
 else:
 	from . import mesh_edgetune
@@ -61,6 +62,7 @@ else:
 	from . import mesh_deathguppie
 	from . import mesh_selproject
 	from . import object_decouple
+	from . import object_keeptrans
 
 import bpy
 from bpy.app.handlers import persistent
@@ -74,7 +76,7 @@ class VIEW3D_MT_edit_mesh_paleajed(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
-		layout.operator_context = 'INVOKE_REGION_WIN'
+		layout.operator_context = "INVOKE_REGION_WIN"
 		layout.operator("mesh.edgetune",
 			text="EdgeTune")
 		layout.operator("mesh.quadder",
@@ -105,31 +107,33 @@ class VIEW3D_MT_edit_mesh_paleajed(bpy.types.Menu):
 		else:
 			layout.operator("object.recouple",
 				text="ReCouple")
+		layout.operator("object.keeptrans",
+			text="KeepTrans")
 
 
 class PaleajedPanel(bpy.types.Panel):
-	bl_label = 'EWOCprojects tools'
+	bl_label = "EWOCprojects tools"
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'TOOLS'
 
 	def draw(self, context):
 		scn = bpy.context.scene
 		layout = self.layout
-		layout.operator('mesh.edgetune')
-		layout.operator('mesh.quadder')
+		layout.operator("mesh.edgetune")
+		layout.operator("mesh.quadder")
 		
-		layout.operator('mesh.paredge')
+		layout.operator("mesh.paredge")
 		if mesh_paredge.started:
-			layout.prop(mesh_paredge.mainop, 'Distance')
-			layout.prop(mesh_paredge.mainop, 'Both')
+			layout.prop(mesh_paredge.mainop, "Distance")
+			layout.prop(mesh_paredge.mainop, "Both")
 			if mesh_paredge.mainop.Both:
-				layout.prop(mesh_paredge.mainop, 'Cap')
+				layout.prop(mesh_paredge.mainop, "Cap")
 
-		layout.operator('mesh.edgegrow')
-		layout.operator('mesh.fanconnect')
-		layout.operator('object.fastorigin')
-		layout.operator('mesh.laprelax')
-		layout.operator('mesh.innerweld')
+		layout.operator("mesh.edgegrow")
+		layout.operator("mesh.fanconnect")
+		layout.operator("object.fastorigin")
+		layout.operator("mesh.laprelax")
+		layout.operator("mesh.innerweld")
 		
 		if not(mesh_straightenplus.started):
 			layout.operator("mesh.straightenplus")
@@ -149,13 +153,13 @@ class PaleajedPanel(bpy.types.Panel):
 			layout.prop(mesh_floodsel.mainop, "Preselection")
 			layout.prop(mesh_floodsel.mainop, "Diagonal")
 		
-		layout.operator('mesh.deathguppie')
+		layout.operator("mesh.deathguppie")
 		layout.prop(scn, "Smooth")
 		layout.prop(scn, "Inner")
 		
 		if not(mesh_selproject.started):
 			self.layout.operator("mesh.selproject", text="SelProject")
-			if context.mode == "EDIT_MESH":
+			if context.mode == 'EDIT_MESH':
 				self.layout.prop(scn, "UseSel")
 				if not(scn.UseSel):
 					self.layout.prop(scn, "FromObject")
@@ -174,12 +178,14 @@ class PaleajedPanel(bpy.types.Panel):
 		else:
 			layout.operator("object.recouple",
 				text="ReCouple")
+				
+		layout.operator("object.keeptrans")
 
 # Register all operators and panels
 
 # Define "Extras" menu
 def menu_func(self, context):
-	self.layout.menu("VIEW3D_MT_edit_mesh_paleajed", icon="PLUGIN")
+	self.layout.menu("VIEW3D_MT_edit_mesh_paleajed", icon='PLUGIN')
 
 
 def register():
@@ -215,7 +221,7 @@ def sceneupdate_handler(dummy):
 		itemlist = []
 		objs = list(scn.objects)
 		for ob in objs:
-			if ob.type == "MESH":
+			if ob.type == 'MESH':
 				itemlist.append((ob.name, ob.name, "Set From:"))
 		bpy.types.Scene.FromObject = bpy.props.EnumProperty(
 				items = itemlist,
