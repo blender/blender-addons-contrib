@@ -25,7 +25,7 @@ Documentation
 
 First go to User Preferences->Addons and enable the FastOrigin addon in the Object category.
 Select an object.  Invoke addon (button in Tools panel).  When in Object mode, addon will switch into
-EditMode and create a single selected vertex which can be translated by standard means with snapping
+EditMode and create a sinbgl.gle selected vertex which can be translated by standard means with snapping
 on for vertices (this can be changed in the standard way to other targets or no snap , the snap target 
 mode will be retained when using the addon a second time).  The 3D cursor will move along with the vert
 to make the chosen position a bit clearer.  The old origin will remain visible during moving, this is
@@ -47,7 +47,7 @@ Save as Default (Optional).
 bl_info = {
 	"name": "FastOrigin",
 	"author": "Gert De Roost",
-	"version": (0, 3, 0),
+	"version": (0, 4, 0),
 	"blender": (2, 6, 8),
 	"location": "View3D > Tools",
 	"description": "Set object origin with snapping.",
@@ -59,11 +59,12 @@ bl_info = {
 
 
 import bpy
-import bpy_extras
+from bpy_extras.view3d_utils import location_3d_to_region_2d
 import bmesh
-from bgl import glColor3f, glBegin, GL_POLYGON, glVertex2f, glEnd
+import bgl
+import blf
 from mathutils import * 
-
+import time
 
 
 class FastOrigin(bpy.types.Operator):
@@ -99,20 +100,18 @@ class FastOrigin(bpy.types.Operator):
 			return {'PASS_THROUGH'}
 			
 		elif event.type in {'RET', 'NUMPAD_ENTER'}:
-			self.area.header_text_set()
 			del bpy.types.Scene.PreSelOff
 			# Consolidate changes.
 			for v in self.vsellist:
-				v.select = 1
+				v.select = True
 			for e in self.esellist:
-				e.select = 1
+				e.select = True
 			for f in self.fsellist:
-				f.select = 1
+				f.select = True
 			self.bm.verts.remove(self.originvert)
+			bmesh.update_edit_mesh(self.mesh, destructive=True)
 			self.mesh.update()
 			self.bm.free()
-			self.snapelem = context.tool_settings.snap_element
-			self.snapstate = context.tool_settings.use_snap
 			context.tool_settings.snap_element = self.snapelsave
 			context.tool_settings.use_snap = self.snapstsave
 			bpy.ops.object.editmode_toggle()
@@ -122,55 +121,31 @@ class FastOrigin(bpy.types.Operator):
 				bpy.ops.object.editmode_toggle()
 			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
 			return {'FINISHED'}
+			
+		elif event.type == 'ESC':
+			del bpy.types.Scene.PreSelOff
+			# Cancel
+			for v in self.vsellist:
+				v.select = True
+			for e in self.esellist:
+				e.select = True
+			for f in self.fsellist:
+				f.select = True
+			self.bm.verts.remove(self.originvert)
+			bmesh.update_edit_mesh(self.mesh, destructive=True)
+			self.mesh.update()
+			self.bm.free()
+			context.tool_settings.snap_element = self.snapelsave
+			context.tool_settings.use_snap = self.snapstsave
+			self.space3d.cursor_location = self.cursorsave			
+			if self.mode == 'EDIT':
+				bpy.ops.object.editmode_toggle()
+			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+			return {'CANCELLED'}
 		
 		return {'RUNNING_MODAL'}
 
 
-	def getmatrix(self):
-		
-		# Rotating / panning / zooming 3D view is handled here.
-		# Calculate matrix.
-		if self.selobj.rotation_mode == 'AXIS_ANGLE':
-			# object rotationmode axisangle
-			ang, x, y, z =  self.selobj.rotation_axis_angle
-			self.matrix = Matrix.Rotation(-ang, 4, Vector((x, y, z)))
-		elif self.selobj.rotation_mode == 'QUATERNION':
-			# object rotationmode quaternion
-			w, x, y, z = self.selobj.rotation_quaternion
-			x = -x
-			y = -y
-			z = -z
-			quat = Quaternion([w, x, y, z])
-			self.matrix = quat.to_matrix()
-			self.matrix.resize_4x4()
-		else:
-			# object rotationmode euler
-			ax, ay, az = self.selobj.rotation_euler
-			mat_rotX = Matrix.Rotation(-ax, 4, 'X')
-			mat_rotY = Matrix.Rotation(-ay, 4, 'Y')
-			mat_rotZ = Matrix.Rotation(-az, 4, 'Z')
-		if self.selobj.rotation_mode == 'XYZ':
-			self.matrix = mat_rotX * mat_rotY * mat_rotZ
-		elif self.selobj.rotation_mode == 'XZY':
-			self.matrix = mat_rotX * mat_rotZ * mat_rotY
-		elif self.selobj.rotation_mode == 'YXZ':
-			self.matrix = mat_rotY * mat_rotX * mat_rotZ
-		elif self.selobj.rotation_mode == 'YZX':
-			self.matrix = mat_rotY * mat_rotZ * mat_rotX
-		elif self.selobj.rotation_mode == 'ZXY':
-			self.matrix = mat_rotZ * mat_rotX * mat_rotY
-		elif self.selobj.rotation_mode == 'ZYX':
-			self.matrix = mat_rotZ * mat_rotY * mat_rotX
-	
-		# handle object scaling
-		sx, sy, sz = self.selobj.scale
-		mat_scX = Matrix.Scale(sx, 4, Vector([1, 0, 0]))
-		mat_scY = Matrix.Scale(sy, 4, Vector([0, 1, 0]))
-		mat_scZ = Matrix.Scale(sz, 4, Vector([0, 0, 1]))
-		self.matrix = mat_scX * mat_scY * mat_scZ * self.matrix
-	
-	
-	
 	def init_fastorigin(self, context):
 	
 		for space in context.area.spaces:
@@ -178,7 +153,7 @@ class FastOrigin(bpy.types.Operator):
 				self.space3d = space
 		self.selobj = context.active_object
 		self.mesh = self.selobj.data
-		self.area = context.area
+		self.region = context.region
 		
 		self.rv3ds = {}
 		for a in bpy.context.screen.areas:
@@ -190,8 +165,6 @@ class FastOrigin(bpy.types.Operator):
 						if not(r.type == "WINDOW"):
 							continue
 						self.rv3ds[r] = sp.region_3d
-						
-		self.getmatrix()
 		
 		self.mode = self.selobj.mode
 		if self.mode == 'OBJECT':
@@ -212,7 +185,7 @@ class FastOrigin(bpy.types.Operator):
 				self.fsellist.append(f)
 			
 		self.snapelem = 'VERTEX'
-		self.snapstate = 1
+		self.snapstate = True
 		
 		self.snapelsave = context.tool_settings.snap_element
 		self.snapstsave = context.tool_settings.use_snap
@@ -220,21 +193,22 @@ class FastOrigin(bpy.types.Operator):
 		context.tool_settings.use_snap = self.snapstate
 		self.cursorsave = self.space3d.cursor_location.copy()
 		for v in self.bm.verts:
-			v.select = 0
+			v.select = False
 		context.tool_settings.mesh_select_mode = [True, False, False]
 		self.originvert = self.bm.verts.new((0, 0, 0))
-		self.originvert.select = 1
+		self.originvert.select = True
 		bmesh.update_edit_mesh(self.mesh, destructive=True)
 		self.mesh.update()
-		self.space3d.cursor_location = self.originvert.co
+		self.space3d.cursor_location = self.originvert.co[:]
 		
 				
-	def getscreencoords(self, vector, reg, rv3d):
+	def getscreencoords(self, vec, reg, rv3d):
 	
 		# calculate screencoords of given Vector
-		vector = vector * self.matrix
-		vector = vector + self.selobj.location
-		return bpy_extras.view3d_utils.location_3d_to_region_2d(reg, rv3d, vector)
+		vec.rotate(self.selobj.matrix_world)
+		vec.rotate(self.selobj.matrix_world)
+		vec =  vec * self.selobj.matrix_world + self.selobj.matrix_world.to_translation()
+		return location_3d_to_region_2d(reg, rv3d, vec)
 
 
 	
@@ -243,20 +217,29 @@ class FastOrigin(bpy.types.Operator):
 		drawregion = bpy.context.region
 		
 		rv3d = self.rv3ds[drawregion]
-		
-		self.area.header_text_set(text = "FastOrigin active :  Enter to exit")
-		
-		self.space3d.cursor_location = self.originvert.co * self.matrix + self.selobj.location
+		vec = self.originvert.co.copy()
+		vec.rotate(self.selobj.matrix_world)
+		vec.rotate(self.selobj.matrix_world)
+		self.space3d.cursor_location =  vec * self.selobj.matrix_world + self.selobj.matrix_world.to_translation()
 
-		glColor3f(1.0,1.0,0)
-		glBegin(GL_POLYGON)
-		x, y = self.getscreencoords(self.originvert.co, drawregion, rv3d)
-		glVertex2f(x-2, y-2)
-		glVertex2f(x-2, y+2)
-		glVertex2f(x+2, y+2)
-		glVertex2f(x+2, y-2)
-		glEnd()
+		bgl.glColor3f(1.0, 1.0, 0)
+		bgl.glBegin(bgl.GL_POLYGON)
+		x, y = self.getscreencoords(Vector(self.originvert.co), drawregion, rv3d)
+		bgl.glVertex2f(x-2, y-2)
+		bgl.glVertex2f(x-2, y+2)
+		bgl.glVertex2f(x+2, y+2)
+		bgl.glVertex2f(x+2, y-2)
+		bgl.glEnd()
 
+		bgl.glColor3f(1, 1, 0.7)
+		bgl.glMatrixMode(bgl.GL_PROJECTION)
+		bgl.glLoadIdentity()
+		bgl.gluOrtho2D(0, self.region.width, 0, self.region.height)
+		bgl.glMatrixMode(bgl.GL_MODELVIEW)
+		bgl.glLoadIdentity()
+		blf.position(0, self.region.width/2 - 80, self.region.height - 20, 0)
+		blf.size(0, 12, 72)
+		blf.draw(0, "FastOrigin :  Enter confirms - ESC cancels")
 
 
 def panel_func(self, context):

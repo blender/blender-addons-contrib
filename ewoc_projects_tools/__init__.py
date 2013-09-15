@@ -21,7 +21,7 @@
 bl_info = {
 	"name": "EWOCprojects tools",
 	"author": "Gert De Roost - paleajed",
-	"version": (1, 3, 0),
+	"version": (1, 3, 1),
 	"blender": (2, 6, 3),
 	"location": "View3D > Toolbar and View3D > Specials (W-key)",
 	"description": "Edit mode tools - contrib version",

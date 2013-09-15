@@ -61,7 +61,7 @@ This script is an implementation of the concept of sliding vertices around
 bl_info = {
 	"name": "EdgeTune",
 	"author": "Gert De Roost",
-	"version": (3, 4, 0),
+	"version": (3, 5, 0),
 	"blender": (2, 6, 3),
 	"location": "View3D > Tools",
 	"description": "Tuning edgeloops by redrawing them manually, sliding verts.",
@@ -296,50 +296,6 @@ class EdgeTune(bpy.types.Operator):
 				
 		return {'RUNNING_MODAL'}
 
-
-	def getmatrix(self, obj):
-		
-		# Calculate matrix.
-		if obj.rotation_mode == 'AXIS_ANGLE':
-			# object rotationmode axisangle
-			ang, x, y, z =  obj.rotation_axis_angle
-			mat = Matrix.Rotation(-ang, 4, Vector((x, y, z)))
-		elif obj.rotation_mode == 'QUATERNION':
-			# object rotationmode quaternion
-			w, x, y, z = obj.rotation_quaternion
-			x = -x
-			y = -y
-			z = -z
-			quat = Quaternion([w, x, y, z])
-			mat = quat.to_matrix()
-			mat.resize_4x4()
-		else:
-			# object rotationmode euler
-			ax, ay, az = obj.rotation_euler
-			mat_rotX = Matrix.Rotation(-ax, 4, 'X')
-			mat_rotY = Matrix.Rotation(-ay, 4, 'Y')
-			mat_rotZ = Matrix.Rotation(-az, 4, 'Z')
-		if obj.rotation_mode == 'XYZ':
-			mat = mat_rotX * mat_rotY * mat_rotZ
-		elif obj.rotation_mode == 'XZY':
-			mat = mat_rotX * mat_rotZ * mat_rotY
-		elif obj.rotation_mode == 'YXZ':
-			mat = mat_rotY * mat_rotX * mat_rotZ
-		elif obj.rotation_mode == 'YZX':
-			mat = mat_rotY * mat_rotZ * mat_rotX
-		elif obj.rotation_mode == 'ZXY':
-			mat = mat_rotZ * mat_rotX * mat_rotY
-		elif obj.rotation_mode == 'ZYX':
-			mat = mat_rotZ * mat_rotY * mat_rotX
-	
-		# handle object scaling
-		sx, sy, sz = obj.scale
-		mat_scX = Matrix.Scale(sx, 4, Vector([1, 0, 0]))
-		mat_scY = Matrix.Scale(sy, 4, Vector([0, 1, 0]))
-		mat_scZ = Matrix.Scale(sz, 4, Vector([0, 0, 1]))
-		mat = mat_scX * mat_scY * mat_scZ * mat
-		
-		return mat
 	
 	
 	def adapt(self):
@@ -397,12 +353,19 @@ class EdgeTune(bpy.types.Operator):
 			
 	
 	
-	def getscreencoords(self, vector, reg):
+	def findworldco(self, vec):
+	
+		vec = vec.copy()
+		vec.rotate(self.selobj.matrix_world)
+		vec.rotate(self.selobj.matrix_world)
+		vec = vec * self.selobj.matrix_world + self.selobj.matrix_world.to_translation()
+		return vec
+	
+	def getscreencoords(self, vec, reg):
 	
 		# calculate screencoords of given Vector
-		vector = vector * self.matrix
-		vector = vector + self.selobj.location
-		prj = self.perspm[reg] * vector.to_4d()
+		vec = self.findworldco(vec)
+		prj = self.perspm[reg] * vec.to_4d()
 		return (self.halfwidth[reg] + self.halfwidth[reg] * (prj.x / prj.w), self.halfheight[reg] + self.halfheight[reg] * (prj.y / prj.w), prj.z)
 	
 	
@@ -437,12 +400,6 @@ class EdgeTune(bpy.types.Operator):
 		self.undocolist = []
 		self.contedge = None
 	
-		self.matrix = self.getmatrix(self.selobj)
-		obj = self.selobj
-		while obj.parent:
-			self.matrix *= getmatrix(obj.parent)
-			obj = obj.parent
-	
 		self.adapt()
 		for r in self.regions:
 			r.tag_redraw()
@@ -467,18 +424,18 @@ class EdgeTune(bpy.types.Operator):
 			for vert in self.keepverts:
 				vno = vert.normal
 				vno.length = 0.0001
-				vco = (vert.co + vno) * self.matrix + self.selobj.location
+				vco = self.findworldco(vert.co + vno)
 				if rv3d.is_perspective:
 					hit = self.scn.ray_cast(vco, eyeloc)
 					if hit[0]:
 						vno = -vno
-						vco = (vert.co + vno) * self.matrix + self.selobj.location
+						vco = self.findworldco(vert.co + vno)
 						hit = self.scn.ray_cast(vco, eyevec)
 				else:
 					hit = self.scn.ray_cast(vco, vco + eyevec)
 					if hit[0]:
 						vno = -vno
-						vco = (vert.co + vno) * self.matrix + self.selobj.location
+						vco = self.findworldco(vert.co + vno)
 						hit = self.scn.ray_cast(vco, vco + eyevec)
 				if not(hit[0]):
 					visible[vert] = True
