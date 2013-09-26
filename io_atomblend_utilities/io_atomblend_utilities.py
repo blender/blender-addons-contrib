@@ -626,7 +626,6 @@ def draw_obj(atom_shape, atom):
             minor_radius=0.25, 
             major_segments=48, 
             minor_segments=12, 
-            use_abso=False, 
             abso_major_rad=1, 
             abso_minor_rad=0.5)     
     if atom_shape == '8b': #Torus NURBS
