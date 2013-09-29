@@ -696,10 +696,10 @@ def birail1(objs, steps, spans, proportional):
 
         #if angle1!=0.0 and angle2!=0: we can avoid some operations by doing this check but im lazy
         cr1 = der1.cross(der10)
-        rot1 = Matrix().Rotation(-angle1, 3, cr1)
+        rot1 = Matrix.Rotation(-angle1, 3, cr1)
 
         cr2 = der2.cross(der20)
-        rot2 = Matrix().Rotation(-angle2, 3, cr2)
+        rot2 = Matrix.Rotation(-angle2, 3, cr2)
 
         if proportional:
             mult = rmag/r0mag
