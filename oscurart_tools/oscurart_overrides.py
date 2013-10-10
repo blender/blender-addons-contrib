@@ -35,11 +35,14 @@ def DefOscApplyOverrides(self):
     for OVERRIDE in PROPTOLIST:
         for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
             if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE": 
-                if len(OBJECT.material_slots) > 0:                   
-                    for SLOT in OBJECT.material_slots[:]:
-                        SLOT.material = bpy.data.materials[OVERRIDE[1]]                    
-                else:
-                    print ("* %s have not Material Slots" % (OBJECT.name))          
+                OBJECT.data.materials.clear()
+                OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])  
+                
+                #if len(OBJECT.material_slots) > 0:                   
+                #    for SLOT in OBJECT.material_slots[:]:
+                #        SLOT.material = bpy.data.materials[OVERRIDE[1]]                    
+                #else:
+                #    print ("* %s have not Material Slots" % (OBJECT.name))          
     with open(ENTFILEPATH, mode="w") as file:    
         file.writelines(str(LISTMAT))
     
@@ -53,10 +56,12 @@ def DefOscRestoreOverrides(self):
         RXML = file.readlines(0)
     LISTMAT = dict(eval(RXML[0]))
     # RESTAURO MATERIALES  DE OVERRIDES    
-    for OBJ in LISTMAT:            
+    for OBJ in LISTMAT:    
+        OBJ.data.materials.clear()        
         if OBJ.type == "MESH" or OBJ.type == "META" or OBJ.type == "CURVE":
             for SLOTIND, SLOT in enumerate(LISTMAT[OBJ]):
-                OBJ.material_slots[SLOTIND].material = SLOT  
+                #OBJ.material_slots[SLOTIND].material = SLOT 
+                OBJ.data.materials.append(SLOT) 
  
 
     

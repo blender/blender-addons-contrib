@@ -52,8 +52,10 @@ def defRenderAll (frametype):
             for OVERRIDE in PROPTOLIST:
                 for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
                     if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
-                        for SLOT in OBJECT.material_slots[:]:
-                            SLOT.material=bpy.data.materials[OVERRIDE[1]]
+                        OBJECT.data.materials.clear()
+                        OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])
+                        #for SLOT in OBJECT.material_slots[:]:
+                        #    SLOT.material=bpy.data.materials[OVERRIDE[1]]
         except:
             pass
         SCENENAME=os.path.basename(FILEPATH.rpartition(".")[0])
@@ -76,11 +78,13 @@ def defRenderAll (frametype):
             layer.use = 1
         SCENE.render.filepath = ENDPATH
         for OBJECT in LISTMAT:
-            SLOTIND=0
+            print(OBJECT[0].data.materials[:])
+            OBJECT[0].data.materials.clear()
             try:
                 for SLOT in OBJECT[1]:
-                    OBJECT[0].material_slots[SLOTIND].material=SLOT
-                    SLOTIND+=1
+                    #OBJECT[0].material_slots[SLOTIND].material=SLOT
+                    #SLOTIND+=1
+                    OBJECT[0].data.materials.append(SLOT)
             except:
                 print("OUT OF RANGE")
         if frametype == True:
@@ -144,8 +148,10 @@ def defRenderSelected(frametype):
                 for OVERRIDE in PROPTOLIST:
                     for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
                         if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
-                            for SLOT in OBJECT.material_slots[:]:
-                                SLOT.material=bpy.data.materials[OVERRIDE[1]]
+                            OBJECT.data.materials.clear()
+                            OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])                            
+                            #for SLOT in OBJECT.material_slots[:]:
+                                #SLOT.material=bpy.data.materials[OVERRIDE[1]]
             except:
                 pass
             SCENENAME=os.path.basename(FILEPATH.rpartition(".")[0])
@@ -168,11 +174,13 @@ def defRenderSelected(frametype):
                 layer.use = 1
             SCENE.render.filepath = ENDPATH
             for OBJECT in LISTMAT:
-                SLOTIND = 0
+                #SLOTIND = 0
+                OBJECT[0].data.materials.clear()
                 try:
                     for SLOT in OBJECT[1]:
-                        OBJECT[0].material_slots[SLOTIND].material = SLOT
-                        SLOTIND += 1
+                        OBJECT[0].data.materials.append(SLOT)
+                        #OBJECT[0].material_slots[SLOTIND].material = SLOT
+                        #SLOTIND += 1
                 except:
                     print("OUT OF RANGE")
             if frametype == True:
@@ -228,8 +236,10 @@ def defRenderCurrent (frametype):
         for OVERRIDE in PROPTOLIST:
             for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
                 if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
-                    for SLOT in OBJECT.material_slots[:]:
-                        SLOT.material = bpy.data.materials[OVERRIDE[1]]
+                    OBJECT.data.materials.clear()
+                    OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])  
+                    #for SLOT in OBJECT.material_slots[:]:
+                        #SLOT.material = bpy.data.materials[OVERRIDE[1]]
     except:
         pass
     SCENENAME=os.path.basename(FILEPATH.rpartition(".")[0])
@@ -252,11 +262,13 @@ def defRenderCurrent (frametype):
         layer.use = 1
     SCENE.render.filepath = ENDPATH
     for OBJECT in LISTMAT:
-        SLOTIND = 0
+        #SLOTIND = 0
+        OBJECT[0].data.materials.clear()
         try:
             for SLOT in OBJECT[1]:
-                OBJECT[0].material_slots[SLOTIND].material=SLOT
-                SLOTIND += 1
+                OBJECT[0].data.materials.append(SLOT)
+                #OBJECT[0].material_slots[SLOTIND].material=SLOT
+                #SLOTIND += 1
         except:
             print("FUERA DE RANGO")
     if frametype == True:
