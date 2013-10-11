@@ -21,7 +21,7 @@ bl_info = {
     "name": "Enhanced 3D Cursor",
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
-    "version": (2, 9, 0),
+    "version": (2, 9, 2),
     "blender": (2, 65, 4),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
@@ -550,30 +550,34 @@ class EnhancedSetCursor(bpy.types.Operator):
                 tool_settings.snap_element = snap_element
         # end if
         
-        if initial_run or event.type not in ('MOUSEMOVE',
-                'INBETWEEN_MOUSEMOVE', 'TIMER'):
-            use_snap = (tool_settings.use_snap != event.ctrl)
-            if use_snap:
-                snap_type = tool_settings.snap_element
+        use_snap = (tool_settings.use_snap != event.ctrl)
+        if use_snap:
+            snap_type = tool_settings.snap_element
+        else:
+            userprefs_view = context.user_preferences.view
+            if userprefs_view.use_mouse_depth_cursor:
+                # Suggested by Lissanro in the forum
+                use_snap = True
+                snap_type = 'FACE'
             else:
                 snap_type = None
-            
-            axes_coords = [None, None, None]
-            if self.transform_mode == 'MOVE':
-                for i in range(3):
-                    if self.axes_coords[i] is not None:
-                        axes_coords[i] = self.axes_coords[i]
-                    elif not self.allowed_axes[i]:
-                        axes_coords[i] = 0.0
-            
-            self.su.set_modes(
-                interpolation=tfm_opts.snap_interpolate_normals_mode,
-                use_relative_coords=tfm_opts.use_relative_coords,
-                editmode=tool_settings.use_snap_self,
-                snap_type=snap_type,
-                snap_align=tool_settings.use_snap_align_rotation,
-                axes_coords=axes_coords,
-                )
+        
+        axes_coords = [None, None, None]
+        if self.transform_mode == 'MOVE':
+            for i in range(3):
+                if self.axes_coords[i] is not None:
+                    axes_coords[i] = self.axes_coords[i]
+                elif not self.allowed_axes[i]:
+                    axes_coords[i] = 0.0
+        
+        self.su.set_modes(
+            interpolation=tfm_opts.snap_interpolate_normals_mode,
+            use_relative_coords=tfm_opts.use_relative_coords,
+            editmode=tool_settings.use_snap_self,
+            snap_type=snap_type,
+            snap_align=tool_settings.use_snap_align_rotation,
+            axes_coords=axes_coords,
+            )
         
         self.do_raycast = ("MOUSE" in event.type)
         self.grid_substep = event.shift
@@ -1248,7 +1252,7 @@ class EnhancedSetCursor(bpy.types.Operator):
                 color = tet.syntax_numbers
             else:
                 color = tet.syntax_special
-            text = tool_settings.snap_element
+            text = snap_type or tool_settings.snap_element
             if text == 'VOLUME':
                 text = "BBOX"
             mode_cells.append(TextCell(text, color))
@@ -2777,11 +2781,7 @@ class Snap3DUtility(SnapUtilityBase):
         
         _ln = ln.copy()
         
-        try:
-            face = obj.data.tessfaces[face_id]
-        except IndexError:
-            obj.data.update(calc_tessface=True)
-            face = obj.data.tessfaces[face_id]
+        face = obj.data.tessfaces[face_id]
         L = None
         t1 = None
         
@@ -3936,11 +3936,15 @@ class BookmarkLibraryProp(bpy.types.PropertyGroup):
             # Store previous OpenGL settings
             smooth_prev = gl_get(bgl.GL_SMOOTH)
             
+            pixelsize = 1
+            dpi = context.user_preferences.system.dpi
+            widget_unit = (pixelsize * dpi * 20.0 + 36.0) / 72.0
+            
             bgl.glShadeModel(bgl.GL_SMOOTH)
             bgl.glLineWidth(2)
             bgl.glColor4f(0.0, 1.0, 0.0, 1.0)
             bgl.glBegin(bgl.GL_LINE_STRIP)
-            radius = 6
+            radius = widget_unit * 0.3 #6
             n = 8
             da = 2 * math.pi / n
             x, y = projected
@@ -4018,7 +4022,9 @@ class Cursor3DToolsSettings(bpy.types.PropertyGroup):
     
     cursor_visible = bpy.props.BoolProperty(
         name="Cursor visibility",
-        description="Cursor visibility (causing bugs, commented out)",
+        description="Show/hide cursor. When hidden, "\
+"Blender continuously redraws itself (eats CPU like crazy, "\
+"and becomes the less responsive the more complex scene you have)!",
         default=True)
     
     draw_guides = bpy.props.BoolProperty(
@@ -4181,15 +4187,20 @@ class Cursor3DTools(bpy.types.Panel):
             text="", icon='SNAP_ON', toggle=True)
         
         row = layout.row()
-        #row.label(text="Draw")
-        #row.prop(settings, "cursor_visible", text="", toggle=True,
-        #         icon=('RESTRICT_VIEW_OFF' if settings.cursor_visible
-        #               else 'RESTRICT_VIEW_ON'))
+        row.label(text="Draw")
+        '''
+        row.prop(settings, "cursor_visible", text="", toggle=True,
+                 icon=('RESTRICT_VIEW_OFF' if settings.cursor_visible
+                       else 'RESTRICT_VIEW_ON'))
+        #'''
+        #'''
         subrow = row.row()
-        subrow.enabled = False
+        #subrow.enabled = False
         subrow.alert = True
         subrow.prop(settings, "cursor_visible", text="", toggle=True,
-                 icon='RESTRICT_VIEW_OFF')
+                 icon=('RESTRICT_VIEW_OFF' if settings.cursor_visible
+                       else 'RESTRICT_VIEW_ON'))
+        #'''
         row = row.split(1 / 3, align=True)
         row.prop(settings, "draw_N",
             text="N", toggle=True, index=0)
@@ -5186,12 +5197,38 @@ def draw_callback_view(self, context):
             color_prev[2],
             color_prev[3])
     
-    cursor_save_location = Vector(bpy.context.space_data.cursor_location)
+    cursor_save_location = Vector(context.space_data.cursor_location)
     if not settings.cursor_visible:
         # This is causing problems! See <http://projects.blender.org/
         # tracker/index.php?func=detail&aid=33197&group_id=9&atid=498>
         #bpy.context.space_data.cursor_location = Vector([float('nan')] * 3)
-        pass
+        
+        region = context.region
+        v3d = context.space_data
+        rv3d = context.region_data
+        
+        pixelsize = 1
+        dpi = context.user_preferences.system.dpi
+        widget_unit = (pixelsize * dpi * 20.0 + 36.0) / 72.0
+        
+        cursor_w = widget_unit*2
+        cursor_h = widget_unit*2
+        
+        viewinv = rv3d.view_matrix.inverted()
+        persinv = rv3d.perspective_matrix.inverted()
+        
+        origin_start = viewinv.translation
+        view_direction = viewinv.col[2].xyz#.normalized()
+        depth_location = origin_start - view_direction
+        
+        coord = (-cursor_w, -cursor_h)
+        dx = (2.0 * coord[0] / region.width) - 1.0
+        dy = (2.0 * coord[1] / region.height) - 1.0
+        p = ((persinv.col[0].xyz * dx) +
+             (persinv.col[1].xyz * dy) +
+             depth_location)
+        
+        context.space_data.cursor_location = p
 
 def draw_callback_header_px(self, context):
     r = context.region
@@ -5217,7 +5254,7 @@ def draw_callback_px(self, context):
     library = settings.libraries.get_item()
     
     if not settings.cursor_visible:
-        bpy.context.space_data.cursor_location = cursor_save_location
+        context.space_data.cursor_location = cursor_save_location
     
     tfm_operator = CursorDynamicSettings.active_transform_operator
     
