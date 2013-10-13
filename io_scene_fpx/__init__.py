@@ -34,7 +34,7 @@ bl_info = {
     'name': "Future Pinball FPx format (.fpm/.fpl/.fpt)",
     'description': "Import Future Pinball Model, Library and Table files",
     'author': "Alexander Nussbaumer",
-    'version': (0, 0, 309051),
+    'version': (0, 0, 201310131),
     'blender': (2, 68, 0),
     'location': "File > Import",
     'warning': "",

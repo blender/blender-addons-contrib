@@ -1562,15 +1562,9 @@ class FptImporter():
         bevel_name = "__fpx_rubber_shapeable_bevel__"
         rubber_bevel = self.__data.objects.get(bevel_name)
         if rubber_bevel is None:
-            if ops.curve.primitive_bezier_circle_add.poll():
-                ops.curve.primitive_bezier_circle_add()
-                rubber_bevel = self.__context.active_object
-                rubber_bevel.name = bevel_name
-                rubber_bevel.data.dimensions = '2D'
-                rubber_bevel.data.resolution_u = self.resolution_rubber
-                rubber_bevel.data.splines[0].resolution_u = self.resolution_rubber
-                scale = 2.4
-                rubber_bevel.scale = Vector((scale,scale,scale))
+            scale = 2.4
+            rubber_bevel = self.create_bevel(bevel_name, scale, self.resolution_rubber)
+
         cu.bevel_object = rubber_bevel
 
         offset = 2.5
@@ -1586,11 +1580,11 @@ class FptImporter():
         diameter = [13.5, 18.5, 12, 44, ]
 
         bevel_name = "__fpx_guide_rubber_bevel__"
-        wire_bevel = self.__data.objects.get(bevel_name)
-        if wire_bevel is None:
+        rubber_bevel = self.__data.objects.get(bevel_name)
+        if rubber_bevel is None:
             cu0 = self.__data.curves.new(bevel_name, 'CURVE')
-            wire_bevel = self.__data.objects.new(bevel_name, cu0)
-            self.__scene.objects.link(wire_bevel)
+            rubber_bevel = self.__data.objects.new(bevel_name, cu0)
+            self.__scene.objects.link(rubber_bevel)
             cu0.dimensions = '2D'
             cu0.resolution_u = self.resolution_rubber_bevel
 
@@ -1636,7 +1630,7 @@ class FptImporter():
         spline1.bezier_points[3].handle_left_type = h
         spline1.bezier_points[3].handle_right_type = h
 
-        cu1.bevel_object = wire_bevel
+        cu1.bevel_object = rubber_bevel
 
         return obj
 
@@ -1653,15 +1647,9 @@ class FptImporter():
             bevel_name = "__fpx_guide_wire_bevel_{}__".format(width)
             wire_bevel = self.__data.objects.get(bevel_name)
             if wire_bevel is None:
-                if ops.curve.primitive_bezier_circle_add.poll():
-                    ops.curve.primitive_bezier_circle_add()
-                    wire_bevel = self.__context.active_object
-                    wire_bevel.name = bevel_name
-                    wire_bevel.data.dimensions = '2D'
-                    wire_bevel.data.resolution_u = self.resolution_wire_bevel
-                    wire_bevel.data.splines[0].resolution_u = self.resolution_wire_bevel
-                    scale = width / 2.0
-                    wire_bevel.scale = Vector((scale,scale,scale))
+                scale = width / 2.0
+                wire_bevel = self.create_bevel(bevel_name, scale, self.resolution_wire_bevel)
+
             cu.bevel_object = wire_bevel
             cu.use_fill_caps = True
         else:
@@ -2056,7 +2044,7 @@ class FptImporter():
 
     def create_wire_ramp_guide_piece(self, name, parent_obj, layers, wire_bevel, wire_index, point_index, last_bezier_point_template, bezier_point_template, last_object):
         if last_object:
-            #reuse previouse curve
+            #reuse previous curve
             spline = last_object.data.splines[0]
             spline.bezier_points.add(1)
             bezier_point = spline.bezier_points[-1]
@@ -2390,6 +2378,34 @@ class FptImporter():
             #bezier_point.handle_left_type = 'FREE'
             bezier_point.handle_left = bezier_handle_point
 
+    def create_bevel(self, name, size, resolution):
+        curve_points = [(0.0, size), (size, 0.0), (0.0, -size), (-size, 0.0),]
+
+        cu = self.__data.curves.new("{}.bevel_curve".format(name), 'CURVE')
+        obj = self.__data.objects.new("{}".format(name), cu)
+        self.__scene.objects.link(obj)
+
+        cu.dimensions = '2D'
+        cu.twist_mode = 'Z_UP'
+        cu.resolution_u = resolution
+        cu.splines.new('BEZIER')
+        sp = cu.splines[-1]
+        sp.resolution_u = resolution
+        sp.use_cyclic_u = True
+
+        # create curve points
+        sp.bezier_points.add(len(curve_points) - len(sp.bezier_points))
+
+        for index, curve_point in enumerate(curve_points):
+            bezier_point = sp.bezier_points[index]
+            bezier_point.co = (curve_point[0], curve_point[1], 0.0)
+
+            handle_type = 'AUTO'
+            bezier_point.handle_left_type = handle_type
+            bezier_point.handle_right_type = handle_type
+
+        return obj
+
     def create_wire_ramp_bevel(self, curve, wire_index):
         wire_diameter = [Vector((0.0, -2.0, 0.0)), Vector((-2.0, 0.0, 0.0)), Vector((0.0, 2.0, 0.0)), Vector((2.0, 0.0, 0.0))]
         wire_position = [Vector((-11.0, -2.0, 0.0)), Vector((11.0, -2.0, 0.0)), Vector((-17.0, 11, 0.0)), Vector((17.0, 11.0, 0.0)), Vector((-11.0, 24.0, 0.0)), Vector((11.0, 24.0, 0.0)), Vector((0.0, 33.0, 0.0))]
@@ -2428,9 +2444,6 @@ class FptImporter():
             self.create_wire_ramp_bevel(cu, 1) # base right inner
 
             if self.debug_create_full_ramp_wires:
-                """
-                there are problems, see [#36007] http://projects.blender.org/tracker/index.php?func=detail&aid=36007&group_id=9&atid=498
-                """
                 self.create_wire_ramp_bevel(cu, 2) # left inner
                 self.create_wire_ramp_bevel(cu, 3) # right inner
                 self.create_wire_ramp_bevel(cu, 4) # upper left inner
