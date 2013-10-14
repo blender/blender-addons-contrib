@@ -883,7 +883,8 @@ class FptImporter():
                                 #if ops.mesh.primitive_ico_sphere_add.poll():
                                 #    ops.mesh.primitive_ico_sphere_add(subdivisions=2, size=self.debug_lightball_size, location=blender_empty_object.location + Vector((0.0, 0.0, self.debug_lightball_height)), layers=FptImporter.LAYERS_LIGHT_SPHERE)
                                 #    self.append_light_material(self.__context.active_object)
-                                self.add_lamp(fpx_item_name, blender_empty_object.location + Vector((0.0, 0.0, self.debug_lightball_height)), layers=FptImporter.LAYERS_LIGHT_SPHERE)
+                                #self.add_lamp(fpx_item_name, blender_empty_object.location + Vector((0.0, 0.0, self.debug_lightball_height)), layers=FptImporter.LAYERS_LIGHT_SPHERE)
+                                pass
 
                     # cleanup
                     if not self.keep_temp:
@@ -921,7 +922,8 @@ class FptImporter():
                             pass
 
 
-                self.add_camera(fpx_reader.Table_Data)
+                self.add_table_camera(fpx_reader.Table_Data)
+                self.add_table_lamp(fpx_reader.Table_Data)
 
                 # setup all current 3d Views of the current scene to metric units
                 FpxUtilities.set_scene_to_metric(self.__context)
@@ -959,7 +961,7 @@ class FptImporter():
 
         return {"FINISHED"}
 
-    def add_camera(self, fpx_table_data):
+    def add_table_camera(self, fpx_table_data):
         name = "Camera.table"
         camera = self.__data.cameras.new(name)
         obj = self.__data.objects.new(name, camera)
@@ -988,7 +990,60 @@ class FptImporter():
                                 (0.0000,  0.0000, 0.0000,    1.0000)))
                         space.region_3d.view_location = (width / 2.0, -107.2920, -210.5727)
                         space.region_3d.view_rotation = obj.rotation_euler.to_quaternion()
-                        #space.region_3d.view_perspective = 'CAMERA'
+
+    def add_table_lamp(self, fpx_table_data):
+        width = fpx_table_data.get_value("width", default=100.0)
+        length = fpx_table_data.get_value("length", default=500.0)
+        width2 = width / 2.0
+        length2 = length / 2.0
+        width4 = width / 4.0
+        length4 = length / 4.0
+
+        name = "AreaLamp.table"
+        lamp = self.__data.lamps.get(name)
+
+        if not lamp:
+            lamp = self.__data.lamps.new(name, 'AREA')
+            tmp_engine = self.__scene.render.engine
+            self.__scene.render.engine = 'BLENDER_RENDER'
+            lamp.shadow_method = 'RAY_SHADOW'
+            lamp.shadow_ray_samples_x = 10
+            lamp.shadow_ray_samples_y = 10
+            lamp.distance = 500.0
+            lamp.energy = 1.0
+            lamp.use_specular = False
+            lamp.size = width2
+            lamp.shape = 'RECTANGLE'
+            lamp.size_y = length2
+
+            self.__scene.render.engine = 'CYCLES'
+            lamp.cycles.use_multiple_importance_sampling = True
+            lamp.use_nodes = True
+            self.__scene.render.engine = tmp_engine
+
+        obj = self.__data.objects.new(FORMAT_LAMP_OBJECT.format(name), lamp)
+        self.__scene.objects.link(obj)
+        obj.location = (width2, -length * (2.0/3.0), 600.0)
+
+        #inner playfield
+        mesh = self.__data.meshes.new(FORMAT_MESH.format("{}.arealamp".format(name)))
+        obj = self.__data.objects.new(FORMAT_MESH_OBJECT.format(name), mesh)
+        self.__scene.objects.link(obj)
+        obj.location = (width2, -length * (2.0/3.0), 610.0)
+        bm = bmesh.new()
+        bmv_list = []
+        bmv = bm.verts.new(self.geometry_correction((width4, -length4, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((width4, length4, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((-width4, length4, 0.0)))
+        bmv_list.append(bmv)
+        bmv = bm.verts.new(self.geometry_correction((-width4, -length4, 0.0)))
+        bmv_list.append(bmv)
+        bmf = bm.faces.new(bmv_list)
+        bm.to_mesh(mesh)
+        bm.free()
+        self.append_light_material(obj)
 
     def add_lamp(self, name, location, layers):
         name_lamp = FORMAT_LAMP.format(name)
@@ -1073,52 +1128,59 @@ class FptImporter():
                         tex_slot.texture_coords = 'UV'
                         tex_slot.uv_layer = uv_layer
 
-                    # blender cycles
-                    self.__scene.render.engine = 'CYCLES'
+                    # prepare for nodes
                     blender_material.use_nodes = True
                     nodes = blender_material.node_tree.nodes
                     links = blender_material.node_tree.links
                     gap = 50.0
                     nodes.clear()
-                    node0 = nodes.new('ShaderNodeOutputMaterial')
-                    node1 = nodes.new('ShaderNodeMixShader')
-                    node2 = nodes.new('ShaderNodeBsdfTransparent')
-                    node3 = nodes.new('ShaderNodeAddShader')
-                    node4 = nodes.new('ShaderNodeEmission')
+
+                    # blender internal nodes
+                    node_i0 = nodes.new('ShaderNodeOutput')
+                    node_i1 = nodes.new('ShaderNodeMaterial')
+                    node_i1.material = blender_material
+                    link_i1_0 = links.new(node_i1.outputs['Color'], node_i0.inputs['Color'])
+                    node_i1_height = 410.0 # issue: [#37075] the height of nodes are always 100.0
+                    node_i1.location = (0.0, node_i1_height + gap)
+                    node_i0.location = (node_i1.location.x + node_i1.width + gap, node_i1_height + gap)
+
+                    # blender cycles nodes
+                    self.__scene.render.engine = 'CYCLES'
+                    node_c0 = nodes.new('ShaderNodeOutputMaterial')
+                    node_c1 = nodes.new('ShaderNodeMixShader')
+                    node_c2 = nodes.new('ShaderNodeBsdfTransparent')
+                    node_c3 = nodes.new('ShaderNodeAddShader')
+                    node_c4 = nodes.new('ShaderNodeEmission')
                     if light_on:
-                        node4.inputs['Strength'].default_value = 1.0
+                        node_c4.inputs['Strength'].default_value = 1.0
                     else:
-                        node4.inputs['Strength'].default_value = 0.0
-                    #node5 = nodes.new('ShaderNodeBsdfGlossy')
-                    #node5.inputs['Roughness'].default_value = 0.25
-                    node5 = nodes.new('ShaderNodeBsdfDiffuse')
-                    node6 = nodes.new('ShaderNodeTexImage')
-                    node6.image = blender_image
-                    node7 = nodes.new('ShaderNodeTexCoord')
-
-                    node7.location = (0.0, 0.0)
-                    node6.location = (node7.location.x + node7.width + gap, 0.0)
-                    node5.location = (node6.location.x + node6.width + gap, 0.0)
-                    node4.location = (node5.location.x + node5.width + gap, 0.0)
-                    node3.location = (node4.location.x + node4.width + gap, 0.0)
-                    node2.location = (node3.location.x + node3.width + gap, 0.0)
-                    node1.location = (node2.location.x + node2.width + gap, 0.0)
-                    node0.location = (node1.location.x + node1.width + gap, 0.0)
-
-                    link1_0 = links.new(node1.outputs['Shader'], node0.inputs['Surface'])
-                    link6_1a = links.new(node6.outputs['Alpha'], node1.inputs[0]) # Fac
-                    link2_1b = links.new(node2.outputs['BSDF'], node1.inputs[1]) # 1'st Shader
-                    link3_1c = links.new(node3.outputs['Shader'], node1.inputs[2]) # 2'nd Shader
-                    link4_3a = links.new(node4.outputs['Emission'], node3.inputs[0]) # 1'st Shader
-                    link5_3b = links.new(node5.outputs['BSDF'], node3.inputs[1]) # 2'nd Shader
-                    link6_4 = links.new(node6.outputs['Color'], node4.inputs['Color'])
-                    link6_5 = links.new(node6.outputs['Color'], node5.inputs['Color'])
+                        node_c4.inputs['Strength'].default_value = 0.0
+                    #node_c5 = nodes.new('ShaderNodeBsdfGlossy')
+                    #node_c5.inputs['Roughness'].default_value = 0.25
+                    node_c5 = nodes.new('ShaderNodeBsdfDiffuse')
+                    node_c6 = nodes.new('ShaderNodeTexImage')
+                    node_c6.image = blender_image
+                    node_c7 = nodes.new('ShaderNodeTexCoord')
+                    node_c7.location = (0.0, 0.0)
+                    node_c6.location = (node_c7.location.x + node_c7.width + gap, 0.0)
+                    node_c5.location = (node_c6.location.x + node_c6.width + gap, 0.0)
+                    node_c4.location = (node_c5.location.x + node_c5.width + gap, 0.0)
+                    node_c3.location = (node_c4.location.x + node_c4.width + gap, 0.0)
+                    node_c2.location = (node_c3.location.x + node_c3.width + gap, 0.0)
+                    node_c1.location = (node_c2.location.x + node_c2.width + gap, 0.0)
+                    node_c0.location = (node_c1.location.x + node_c1.width + gap, 0.0)
+                    link_c1_0 = links.new(node_c1.outputs['Shader'], node_c0.inputs['Surface'])
+                    link_c6_1a = links.new(node_c6.outputs['Alpha'], node_c1.inputs[0]) # Fac
+                    link_c2_1b = links.new(node_c2.outputs['BSDF'], node_c1.inputs[1]) # 1'st Shader
+                    link_c3_1c = links.new(node_c3.outputs['Shader'], node_c1.inputs[2]) # 2'nd Shader
+                    link_c4_3a = links.new(node_c4.outputs['Emission'], node_c3.inputs[0]) # 1'st Shader
+                    link_c5_3b = links.new(node_c5.outputs['BSDF'], node_c3.inputs[1]) # 2'nd Shader
+                    link_c6_4 = links.new(node_c6.outputs['Color'], node_c4.inputs['Color'])
+                    link_c6_5 = links.new(node_c6.outputs['Color'], node_c5.inputs['Color'])
                     if uv_layer:
-                        link7_6 = links.new(node7.outputs['UV'], node6.inputs['Vector'])
+                        link_c7_6 = links.new(node_c7.outputs['UV'], node_c6.inputs['Vector'])
                     else:
-                        link7_6 = links.new(node7.outputs['Generated'], node6.inputs['Vector'])
-                    if render_engine != 'CYCLES':
-                        blender_material.use_nodes = False
+                        link_c7_6 = links.new(node_c7.outputs['Generated'], node_c6.inputs['Vector'])
 
                     """
                     # blender game
@@ -1156,24 +1218,31 @@ class FptImporter():
             blender_material.raytrace_mirror.use = True
             blender_material.raytrace_mirror.reflect_factor = 1.0
 
-            # blender cycles
-            self.__scene.render.engine = 'CYCLES'
+            # prepare for nodes
             blender_material.use_nodes = True
             nodes = blender_material.node_tree.nodes
             links = blender_material.node_tree.links
             gap = 50.0
             nodes.clear()
-            node0 = nodes.new('ShaderNodeOutputMaterial')
-            node1 = nodes.new('ShaderNodeBsdfGlossy')
-            node1.inputs['Roughness'].default_value = 0.0
-            node1.inputs['Color'].default_value = color
 
-            node1.location = (0.0, 0.0)
-            node0.location = (node1.location.x + node1.width + gap, 0.0)
+            # blender internal nodes
+            node_i0 = nodes.new('ShaderNodeOutput')
+            node_i1 = nodes.new('ShaderNodeMaterial')
+            node_i1.material = blender_material
+            link_i1_0 = links.new(node_i1.outputs['Color'], node_i0.inputs['Color'])
+            node_i1_height = 410.0 # issue: [#37075] the height of nodes are always 100.0
+            node_i1.location = (0.0, node_i1_height + gap)
+            node_i0.location = (node_i1.location.x + node_i1.width + gap, node_i1_height + gap)
 
-            link1_0 = links.new(node1.outputs['BSDF'], node0.inputs['Surface'])
-            if render_engine != 'CYCLES':
-                blender_material.use_nodes = False
+            # blender cycles nodes
+            self.__scene.render.engine = 'CYCLES'
+            node_c0 = nodes.new('ShaderNodeOutputMaterial')
+            node_c1 = nodes.new('ShaderNodeBsdfGlossy')
+            node_c1.inputs['Roughness'].default_value = 0.0
+            node_c1.inputs['Color'].default_value = color
+            node_c1.location = (0.0, 0.0)
+            node_c0.location = (node_c1.location.x + node_c1.width + gap, 0.0)
+            link_c1_0 = links.new(node_c1.outputs['BSDF'], node_c0.inputs['Surface'])
 
             """
             # blender game
@@ -1217,24 +1286,31 @@ class FptImporter():
             blender_material.raytrace_transparency.fresnel = 4.0
             blender_material.raytrace_transparency.filter = 1.0
 
-            # blender cycles
-            self.__scene.render.engine = 'CYCLES'
+            # prepare for nodes
             blender_material.use_nodes = True
             nodes = blender_material.node_tree.nodes
             links = blender_material.node_tree.links
             gap = 50.0
             nodes.clear()
-            node0 = nodes.new('ShaderNodeOutputMaterial')
-            node1 = nodes.new('ShaderNodeBsdfGlass')
-            node1.inputs['Roughness'].default_value = 0.0
-            node1.inputs['Color'].default_value = color
 
-            node1.location = (0.0, 0.0)
-            node0.location = (node1.location.x + node1.width + gap, 0.0)
+            # blender internal nodes
+            node_i0 = nodes.new('ShaderNodeOutput')
+            node_i1 = nodes.new('ShaderNodeMaterial')
+            node_i1.material = blender_material
+            link_i1_0 = links.new(node_i1.outputs['Color'], node_i0.inputs['Color'])
+            node_i1_height = 410.0 # issue: [#37075] the height of nodes are always 100.0
+            node_i1.location = (0.0, node_i1_height + gap)
+            node_i0.location = (node_i1.location.x + node_i1.width + gap, node_i1_height + gap)
 
-            link1_0 = links.new(node1.outputs['BSDF'], node0.inputs['Surface'])
-            if render_engine != 'CYCLES':
-                blender_material.use_nodes = False
+            # blender cycles nodes
+            self.__scene.render.engine = 'CYCLES'
+            node_c0 = nodes.new('ShaderNodeOutputMaterial')
+            node_c1 = nodes.new('ShaderNodeBsdfGlass')
+            node_c1.inputs['Roughness'].default_value = 0.0
+            node_c1.inputs['Color'].default_value = color
+            node_c1.location = (0.0, 0.0)
+            node_c0.location = (node_c1.location.x + node_c1.width + gap, 0.0)
+            link_c1_0 = links.new(node_c1.outputs['BSDF'], node_c0.inputs['Surface'])
 
             """
             # blender game
@@ -1247,7 +1323,7 @@ class FptImporter():
         if not blender_object.data.materials.get(bm_name):
             blender_object.data.materials.append(blender_material)
 
-    def append_light_material(self, blender_object, color=(0.9, 0.9, 0.8, 1.0)):
+    def append_light_material(self, blender_object, color=(0.9, 0.9, 0.8, 1.0), strength=10.0):
         if not blender_object:
             return
         if blender_object.type not in {'MESH', 'CURVE', }:
@@ -1267,26 +1343,33 @@ class FptImporter():
             blender_material.diffuse_color=color[:3]
             blender_material.specular_color=color[:3]
             blender_material.use_shadeless = True
-            blender_material.emit = 10.0
+            blender_material.emit = strength
 
-            # blender cycles
-            self.__scene.render.engine = 'CYCLES'
+            # prepare for nodes
             blender_material.use_nodes = True
             nodes = blender_material.node_tree.nodes
             links = blender_material.node_tree.links
             gap = 50.0
             nodes.clear()
-            node0 = nodes.new('ShaderNodeOutputMaterial')
-            node1 = nodes.new('ShaderNodeEmission')
-            node1.inputs['Strength'].default_value = 10.0
-            node1.inputs['Color'].default_value = color
 
-            node1.location = (0.0, 0.0)
-            node0.location = (node1.location.x + node1.width + gap, 0.0)
+            # blender internal nodes
+            node_i0 = nodes.new('ShaderNodeOutput')
+            node_i1 = nodes.new('ShaderNodeMaterial')
+            node_i1.material = blender_material
+            link_i1_0 = links.new(node_i1.outputs['Color'], node_i0.inputs['Color'])
+            node_i1_height = 410.0 # issue: [#37075] the height of nodes are always 100.0
+            node_i1.location = (0.0, node_i1_height + gap)
+            node_i0.location = (node_i1.location.x + node_i1.width + gap, node_i1_height + gap)
 
-            link1_0 = links.new(node1.outputs['Emission'], node0.inputs['Surface'])
-            if render_engine != 'CYCLES':
-                blender_material.use_nodes = False
+            # blender cycles nodes
+            self.__scene.render.engine = 'CYCLES'
+            node_c0 = nodes.new('ShaderNodeOutputMaterial')
+            node_c1 = nodes.new('ShaderNodeEmission')
+            node_c1.inputs['Strength'].default_value = strength
+            node_c1.inputs['Color'].default_value = color
+            node_c1.location = (0.0, 0.0)
+            node_c0.location = (node_c1.location.x + node_c1.width + gap, 0.0)
+            link_c1_0 = links.new(node_c1.outputs['Emission'], node_c0.inputs['Surface'])
 
             """
             # blender game
