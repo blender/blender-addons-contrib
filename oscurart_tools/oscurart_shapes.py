@@ -192,7 +192,7 @@ def createLMRGroups(self, FACTORVG, ADDVG):
             bpy.ops.object.vertex_group_add()
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
             bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.object.vertex_group_assign(new=False)
+            bpy.ops.object.vertex_group_assign()
             bpy.ops.mesh.select_all(action='DESELECT')
             bpy.ops.object.mode_set(mode='WEIGHT_PAINT', toggle=False)
             for VERTICE in ACTOBJ.data.vertices:
@@ -203,7 +203,7 @@ def createLMRGroups(self, FACTORVG, ADDVG):
             bpy.ops.object.vertex_group_add()
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
             bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.object.vertex_group_assign(new=False)
+            bpy.ops.object.vertex_group_assign()
             bpy.ops.mesh.select_all(action='DESELECT')
             bpy.ops.object.mode_set(mode='WEIGHT_PAINT', toggle=False)
             for VERTICE in ACTOBJ.data.vertices:
