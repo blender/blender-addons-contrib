@@ -30,6 +30,9 @@
 # ##### END COPYRIGHT BLOCK #####
 
 
+DEV_MODE__APPEND_TO_EXISTING = False # do not enable - only for developing purpose (e.g. appending fpx_resource.blend)
+
+
 #import python stuff
 import io
 from mathutils import (
@@ -311,7 +314,13 @@ class FpmImporter():
         model_filepath = dst_sub_path_names.get("primary_model_data")
         if model_filepath:
             if self.use_scene_per_model:
-                blender_scene = blender_context.blend_data.scenes.new(FORMAT_SCENE.format(model_name))
+                if DEV_MODE__APPEND_TO_EXISTING:
+                    blender_scene = blender_context.blend_data.scenes.get(FpxUtilities.toGoodName(FORMAT_SCENE.format(model_name)))
+                    if not blender_scene:
+                        print("#DEBUG missing scene for:", model_name)
+                        return
+                else:
+                    blender_scene = blender_context.blend_data.scenes.new(FpxUtilities.toGoodName(FORMAT_SCENE.format(model_name)))
                 blender_context.screen.scene = blender_scene
             else:
                 blender_scene = blender_context.scene
@@ -321,23 +330,16 @@ class FpmImporter():
             blender_scene.layers = self.LAYERS_PRIMARY_MODEL
             #{'FINISHED'}
             #{'CANCELLED'}
-            if 'FINISHED' in ops.import_scene.ms3d(filepath=model_filepath, use_animation=True):
-                name = blender_context.active_object.name
-                src_ext = "ms3d"
-                index = name.rfind(".{}.".format(src_ext))
-                if index < 0:
-                    index = name.rfind(".")
-                    #if index < 0:
-                    #    return
+            if DEV_MODE__APPEND_TO_EXISTING or 'FINISHED' in ops.import_scene.ms3d(filepath=model_filepath, use_animation=True):
+                if not DEV_MODE__APPEND_TO_EXISTING:
+                    remove_material(blender_context)
 
-                src_name = "{}.{}".format(name[:index], src_ext)
+                    if not self.keep_name:
+                        src_name = get_object_src_name(blender_context)
+                        rename_active_ms3d(blender_context, src_name, model_name)
 
-                remove_material(blender_context)
-                if not self.keep_name:
-                    rename_active_ms3d(blender_context, src_name, model_name)
-
-                if self.use_model_adjustment:
-                    adjust_position(blender_context, blender_scene, dst_sub_path_names)
+                    if self.use_model_adjustment:
+                        adjust_position(blender_context, blender_scene, dst_sub_path_names)
 
                 if FpxUI.USE_MODEL_FILTER_SECONDARY in self.use_model_filter:
                     model_filepath = dst_sub_path_names.get("secondary_model_data")
@@ -346,6 +348,7 @@ class FpmImporter():
                         if 'FINISHED' in ops.import_scene.ms3d(filepath=model_filepath, use_animation=False):
                             remove_material(blender_context)
                             if not self.keep_name:
+                                src_name = get_object_src_name(blender_context)
                                 rename_active_ms3d(blender_context, src_name, model_name, "secondary")
 
                 if FpxUI.USE_MODEL_FILTER_MASK in self.use_model_filter:
@@ -355,6 +358,7 @@ class FpmImporter():
                         if 'FINISHED' in ops.import_scene.ms3d(filepath=model_filepath, use_animation=False):
                             remove_material(blender_context)
                             if not self.keep_name:
+                                src_name = get_object_src_name(blender_context)
                                 rename_active_ms3d(blender_context, src_name, model_name, "mask")
 
                 if FpxUI.USE_MODEL_FILTER_REFLECTION in self.use_model_filter:
@@ -364,6 +368,7 @@ class FpmImporter():
                         if 'FINISHED' in ops.import_scene.ms3d(filepath=model_filepath, use_animation=False):
                             remove_material(blender_context)
                             if not self.keep_name:
+                                src_name = get_object_src_name(blender_context)
                                 rename_active_ms3d(blender_context, src_name, model_name, "reflection")
 
                 if FpxUI.USE_MODEL_FILTER_COLLISION in self.use_model_filter:
@@ -391,7 +396,6 @@ class FpmImporter():
                     rmdir(sub_dir_path)
                 except:
                     pass
-
 
 
 ###############################################################################
@@ -1140,6 +1144,7 @@ class FptImporter():
                     node_i1 = nodes.new('ShaderNodeMaterial')
                     node_i1.material = blender_material
                     link_i1_0 = links.new(node_i1.outputs['Color'], node_i0.inputs['Color'])
+                    link_i1_0 = links.new(node_i1.outputs['Alpha'], node_i0.inputs['Alpha'])
                     node_i1_height = 410.0 # issue: [#37075] the height of nodes are always 100.0
                     node_i1.location = (0.0, node_i1_height + gap)
                     node_i0.location = (node_i1.location.x + node_i1.width + gap, node_i1_height + gap)
@@ -1230,6 +1235,7 @@ class FptImporter():
             node_i1 = nodes.new('ShaderNodeMaterial')
             node_i1.material = blender_material
             link_i1_0 = links.new(node_i1.outputs['Color'], node_i0.inputs['Color'])
+            link_i1_0 = links.new(node_i1.outputs['Alpha'], node_i0.inputs['Alpha'])
             node_i1_height = 410.0 # issue: [#37075] the height of nodes are always 100.0
             node_i1.location = (0.0, node_i1_height + gap)
             node_i0.location = (node_i1.location.x + node_i1.width + gap, node_i1_height + gap)
@@ -1255,7 +1261,7 @@ class FptImporter():
         if not blender_object.data.materials.get(bm_name):
             blender_object.data.materials.append(blender_material)
 
-    def append_christal_material(self, blender_object, color=(0.5, 0.5, 0.5, 1.0)):
+    def append_christal_material(self, blender_object, color=(0.9, 0.9, 0.9, 1.0)):
         if not blender_object:
             return
         if blender_object.type not in {'MESH', 'CURVE', }:
@@ -1298,6 +1304,7 @@ class FptImporter():
             node_i1 = nodes.new('ShaderNodeMaterial')
             node_i1.material = blender_material
             link_i1_0 = links.new(node_i1.outputs['Color'], node_i0.inputs['Color'])
+            link_i1_0 = links.new(node_i1.outputs['Alpha'], node_i0.inputs['Alpha'])
             node_i1_height = 410.0 # issue: [#37075] the height of nodes are always 100.0
             node_i1.location = (0.0, node_i1_height + gap)
             node_i0.location = (node_i1.location.x + node_i1.width + gap, node_i1_height + gap)
@@ -1357,6 +1364,7 @@ class FptImporter():
             node_i1 = nodes.new('ShaderNodeMaterial')
             node_i1.material = blender_material
             link_i1_0 = links.new(node_i1.outputs['Color'], node_i0.inputs['Color'])
+            link_i1_0 = links.new(node_i1.outputs['Alpha'], node_i0.inputs['Alpha'])
             node_i1_height = 410.0 # issue: [#37075] the height of nodes are always 100.0
             node_i1.location = (0.0, node_i1_height + gap)
             node_i0.location = (node_i1.location.x + node_i1.width + gap, node_i1_height + gap)
@@ -3161,6 +3169,18 @@ def remove_material(blender_context):
         image.user_clear()
         blender_data.images.remove(image)
 
+def get_object_src_name(blender_context):
+    name = blender_context.active_object.name
+    src_ext = "ms3d"
+    index = name.rfind(".{}.".format(src_ext))
+    if index < 0:
+        index = name.rfind(".")
+        #if index < 0:
+        #    return
+
+    src_name = "{}.{}".format(name[:index], src_ext)
+    return src_name
+
 def rename_active_ms3d(blender_context, src_name, dst_name, dst_type=None):
     #print("#DEBUG rename_active_ms3d >", blender_context.active_object, src_name, dst_name, dst_type)
     if not blender_context.active_object:
@@ -3188,34 +3208,34 @@ def rename_active_ms3d(blender_context, src_name, dst_name, dst_type=None):
     dst_group_name = FpxUtilities.toGoodName(FORMAT_GROUP.format(dst_name))
 
     obj = blender_context.blend_data.objects.get(src_empty_object_name)
-    if obj:
+    if obj and not blender_context.blend_data.objects.get(dst_empty_object_name):
         obj.name = dst_empty_object_name
 
     obj = data.objects.get(src_mesh_object_name)
-    if obj:
+    if obj and not data.objects.get(dst_mesh_object_name):
         obj.name = dst_mesh_object_name
         mod = obj.modifiers.get(src_armature_name)
-        if mod:
+        if mod and not obj.modifiers.get(dst_armature_name):
             mod.name = dst_armature_name
 
     obj = data.objects.get(src_armature_object_name)
-    if obj:
+    if obj and not data.objects.get(dst_armature_object_name):
         obj.name = dst_armature_object_name
 
     obj = data.meshes.get(src_mesh_name)
-    if obj:
+    if obj and not data.meshes.get(dst_mesh_name):
         obj.name = dst_mesh_name
 
     obj = data.armatures.get(src_armature_name)
-    if obj:
+    if obj and not data.armatures.get(dst_armature_name):
         obj.name = dst_armature_name
 
     obj = data.actions.get(src_action_name)
-    if obj:
+    if obj and not data.actions.get(dst_action_name):
         obj.name = dst_action_name
 
     obj = data.groups.get(src_group_name)
-    if obj:
+    if obj and not data.groups.get(dst_group_name):
         obj.name = dst_group_name
 
 def rename_active_fpm(blender_context, dst_name):

@@ -34,7 +34,7 @@ bl_info = {
     'name': "Future Pinball FPx format (.fpm/.fpl/.fpt)",
     'description': "Import Future Pinball Model, Library and Table files",
     'author': "Alexander Nussbaumer",
-    'version': (0, 0, 201310141),
+    'version': (0, 0, 201310151),
     'blender': (2, 68, 0),
     'location': "File > Import",
     'warning': "",
@@ -47,11 +47,9 @@ bl_info = {
 
 # KNOWN ISSUES & TODOs & MAYBEs (in a random order):
 #
-# - issue: curve bevel sometimes not assigned.
-#       close blender and open again, may change the behavior.
 # - issue: material assignment is not consistent.
 #       models got multiple materials assigned.
-#       models got christal material assigned instead texture.
+#       models got crystal material assigned instead texture.
 # - issue: some images could not be loaded to blender.
 #       #DEBUG fpl images.load C:\Users\user\AppData\Local\Temp\__grab__fpl__\bulb_trigger_star_v2\Bulb-Trigger-Star-v2.bmp
 #       IMB_ibImageFromMemory: unknown fileformat (C:\Users\user\AppData\Local\Temp\__grab__fpl__\bulb_trigger_star_v2\Bulb-Trigger-Star-v2.bmp)
@@ -63,7 +61,7 @@ bl_info = {
 # - todo: create better light settings.
 #       should give nice results for "Blender Render" and "Cycles Render" render engine.
 # - todo: create better material settings.
-#       handling texture, color, transparent, christal, light, chrome.
+#       handling texture, color, transparent, crystal, light, chrome.
 # - todo: create camera + setup
 #       to see the whole table, playfield, backglass.
 # - todo: make all materials and material textures as separate.
