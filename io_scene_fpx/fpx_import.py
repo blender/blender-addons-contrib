@@ -598,6 +598,12 @@ class FptImporter():
             True, False, False, False, False,
             False, False, False, False, False
             )
+    LAYERS_AO = (
+            True, True, False, False, False,
+            False, False, False, False, False,
+            False, False, False, False, False,
+            False, False, False, False, False
+            )
     BLENDER_OBJECT_NAME = 0
 
     def __init__(self,
@@ -974,6 +980,7 @@ class FptImporter():
         obj.location = (width / 2.0, -1600.0, 550.0)
         obj.rotation_euler = (radians(63.0), 0.0, 0.0)
         obj.select = True
+        obj.layers = FptImporter.LAYERS_AO
         camera.lens_unit = 'FOV'
         camera.clip_start = 1.0 # 1.0mm
         camera.clip_end = 10000.0 # 10.0m
@@ -1006,6 +1013,7 @@ class FptImporter():
         name = "AreaLamp.table"
         lamp = self.__data.lamps.get(name)
 
+        # blender internal
         if not lamp:
             lamp = self.__data.lamps.new(name, 'AREA')
             tmp_engine = self.__scene.render.engine
@@ -1028,12 +1036,14 @@ class FptImporter():
         obj = self.__data.objects.new(FORMAT_LAMP_OBJECT.format(name), lamp)
         self.__scene.objects.link(obj)
         obj.location = (width2, -length * (2.0/3.0), 600.0)
+        obj.layers = FptImporter.LAYERS_AO
 
-        #inner playfield
+        # cycles
         mesh = self.__data.meshes.new(FORMAT_MESH.format("{}.arealamp".format(name)))
         obj = self.__data.objects.new(FORMAT_MESH_OBJECT.format(name), mesh)
         self.__scene.objects.link(obj)
         obj.location = (width2, -length * (2.0/3.0), 610.0)
+        obj.layers = FptImporter.LAYERS_AO
         bm = bmesh.new()
         bmv_list = []
         bmv = bm.verts.new(self.geometry_correction((width4, -length4, 0.0)))
@@ -1222,6 +1232,7 @@ class FptImporter():
             blender_material.specular_slope = 0.020
             blender_material.raytrace_mirror.use = True
             blender_material.raytrace_mirror.reflect_factor = 1.0
+            blender_material.raytrace_mirror.depth = 6
 
             # prepare for nodes
             blender_material.use_nodes = True
@@ -1286,11 +1297,13 @@ class FptImporter():
             blender_material.raytrace_mirror.use = True
             blender_material.raytrace_mirror.reflect_factor = 1.0
             blender_material.raytrace_mirror.fresnel = 4.0
+            blender_material.raytrace_mirror.depth = 6
             blender_material.use_transparency = True
             blender_material.transparency_method = 'RAYTRACE'
             blender_material.raytrace_transparency.ior = 1.45
             blender_material.raytrace_transparency.fresnel = 4.0
             blender_material.raytrace_transparency.filter = 1.0
+            blender_material.raytrace_transparency.depth = 6
 
             # prepare for nodes
             blender_material.use_nodes = True
@@ -1475,6 +1488,7 @@ class FptImporter():
         mesh = self.__data.meshes.new(FORMAT_MESH.format(name))
         obj = self.__data.objects.new(FORMAT_MESH_OBJECT.format(name), mesh)
         self.__scene.objects.link(obj)
+        obj.layers = FptImporter.LAYERS_AO
 
         #inner playfield
         bm = bmesh.new()
@@ -1510,6 +1524,7 @@ class FptImporter():
         obj_box = self.__data.objects.new(FORMAT_MESH_OBJECT.format("{}.playfield".format(name)), mesh_box)
         obj_box.parent = obj
         self.__scene.objects.link(obj_box)
+        obj_box.layers = FptImporter.LAYERS_AO
 
         bm = bmesh.new()
         #inner back
@@ -1568,6 +1583,7 @@ class FptImporter():
         obj_translite = self.__data.objects.new(FORMAT_MESH_OBJECT.format("{}.translite".format(name)), mesh_translite)
         obj_translite.parent = obj
         self.__scene.objects.link(obj_translite)
+        obj_translite.layers = FptImporter.LAYERS_AO
 
         #inner translite
         bm = bmesh.new()
