@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Amaranth Toolset",
     "author": "Pablo Vazquez, Bassam Kurdali, Sergey Sharybin",
-    "version": (0, 6),
-    "blender": (2, 68),
+    "version": (0, 7),
+    "blender": (2, 69),
     "location": "Scene Properties > Amaranth Toolset Panel",
     "description": "A collection of tools and settings to improve productivity",
     "warning": "",
@@ -30,7 +30,7 @@ bl_info = {
 
 
 import bpy
-from bpy.types import Operator, AddonPreferences
+from bpy.types import Operator, AddonPreferences, Panel
 from bpy.props import BoolProperty
 from mathutils import Vector
 from bpy.app.handlers import persistent
@@ -291,6 +291,63 @@ def button_directory_current_blend(self, context):
             icon='APPEND_BLEND')
 # // FEATURE: Directory Current Blend
 
+# FEATURE: Libraries panel on file browser
+class FILE_PT_libraries(Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'CHANNELS'
+    bl_label = "Libraries"
+
+    def draw(self, context):
+        layout = self.layout
+
+        libs = bpy.data.libraries
+        libslist = []
+
+        # Build the list of folders from libraries
+        import os
+
+        for lib in libs:
+            directory_name = os.path.dirname(lib.filepath)
+            libslist.append(directory_name)
+
+        # Remove duplicates and sort by name
+        libslist = set(libslist)
+        libslist = sorted(libslist)
+
+        # Draw the box with libs
+        
+        row = layout.row()
+        box = row.box()
+       
+        if libslist:
+            for filepath in libslist:
+                if filepath != '//':
+                    split = box.split(percentage=0.85)
+                    col = split.column()
+                    sub = col.column(align=True)
+                    sub.label(text=filepath)
+            
+                    col = split.column()
+                    sub = col.column(align=True)
+                    props = sub.operator(
+                        FILE_OT_directory_go_to.bl_idname,
+                        text="", icon="BOOKMARKS")
+                    props.filepath = filepath
+        else:
+            box.label(text='No libraries loaded')
+
+class FILE_OT_directory_go_to(Operator):
+    """Go to this library's directory"""
+    bl_idname = "file.directory_go_to"
+    bl_label = "Go To"
+    
+    filepath = bpy.props.StringProperty(subtype="FILE_PATH")
+
+    def execute(self, context):
+
+        bpy.ops.file.select_bookmark(dir=self.filepath)
+        return {'FINISHED'}
+    
 # FEATURE: Node Templates
 class NODE_OT_AddTemplateVignette(Operator):
     bl_idname = "node.template_add_vignette"
@@ -797,19 +854,37 @@ def material_cycles_settings_extra(self, context):
         row.prop(obj, "show_transparent", text="Viewport Alpha")
         row.active = obj.show_transparent
         row.prop(mat, "alpha", text="Alpha")
+# // FEATURE: Cycles Viewport Extra Settings
+
+# FEATURE: Particles Material indicator
+def particles_material_info(self, context):
+
+    layout = self.layout
+
+    ob = context.object
+    psys = context.particle_system
+
+    layout.label(
+        text="Material: %s" % ob.material_slots[psys.settings.material-1].name \
+            if psys.settings.material <= len(ob.material_slots) \
+            else "No material with this index. Using '{}'".format( \
+                ob.material_slots[len(ob.material_slots)-1].name))
+# // FEATURE: Particles Material indicator
 
 classes = (SCENE_OT_refresh,
            WM_OT_save_reload,
            NODE_OT_AddTemplateVignette,
            NODE_MT_amaranth_templates,
            FILE_OT_directory_current_blend,
+           FILE_OT_directory_go_to,
            NODE_PT_indices,
            NODE_PT_simplify,
            NODE_OT_toggle_mute,
            NODE_OT_show_active_node_image,
            VIEW3D_OT_render_border_camera,
            VIEW3D_OT_show_only_render,
-           OBJECT_OT_select_meshlights)
+           OBJECT_OT_select_meshlights,
+           FILE_PT_libraries)
 
 addon_keymaps = []
 
@@ -848,6 +923,8 @@ def register():
 
     bpy.types.SCENE_PT_simplify.append(unsimplify_ui)
     bpy.types.CyclesScene_PT_simplify.append(unsimplify_ui)
+
+    bpy.types.PARTICLE_PT_render.prepend(particles_material_info)
 
     bpy.app.handlers.render_pre.append(unsimplify_render_pre)
     bpy.app.handlers.render_post.append(unsimplify_render_post)
@@ -911,6 +988,8 @@ def unregister():
     bpy.types.SCENE_PT_simplify.remove(unsimplify_ui)
     bpy.types.CyclesScene_PT_simplify.remove(unsimplify_ui)
 
+    bpy.types.PARTICLE_PT_render.remove(particles_material_info)
+
     bpy.app.handlers.render_pre.remove(unsimplify_render_pre)
     bpy.app.handlers.render_post.remove(unsimplify_render_post)
     
@@ -922,3 +1001,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
