@@ -264,7 +264,7 @@ def label_timeline_extra_info(self, context):
         if (scene.frame_current > frame_end):
             row.label(text="%s Frames Ahead" % ((frame_end - scene.frame_current) * -1))
         elif (scene.frame_current == frame_start):
-            row.label(text="%s Start Frame" % scene.frame_current)
+            row.label(text="Start Frame (%s left)" % (frame_end - scene.frame_current))
         elif (scene.frame_current == frame_end):
             row.label(text="%s End Frame" % scene.frame_current)
         else:
