@@ -42,9 +42,7 @@ class SelVert(bpy.types.Operator):
         for v in ver:
             d = v.co - loc
             sel.append((d.length, v.index))
-        sel.sort()
-        if self.flip:
-            sel.reverse()
+        sel.sort(reverse=self.flip)
         bpy.ops.object.mode_set()
         valor = round(len(sel) / 100 * self.indice)
         if self.delta:
@@ -90,9 +88,7 @@ class SelEdge(bpy.types.Operator):
         for e in edg:
             d = ver[e.vertices[0]].co - ver[e.vertices[1]].co
             sel.append((d.length, e.index))
-        sel.sort()
-        if self.flip:
-            sel.reverse()
+        sel.sort(reverse=self.flip)
         bpy.ops.object.mode_set()
         valor = round(len(sel) / 100 * self.indice)
         if self.delta:
@@ -136,9 +132,7 @@ class SelFace(bpy.types.Operator):
         sel = []
         for f in fac:
             sel.append((f.area, f.index))
-        sel.sort()
-        if self.flip:
-            sel.reverse()
+        sel.sort(reverse=self.flip)
         print (sel)
         bpy.ops.object.mode_set()
         valor = round(len(sel) / 100 * self.indice)
@@ -180,3 +174,4 @@ def unregister():
 
 if __name__ == '__main__':
     register()
+

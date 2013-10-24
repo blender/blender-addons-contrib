@@ -159,8 +159,7 @@ class OBJECT_OT_Triminout(bpy.types.Operator):
         return {'FINISHED'}
 
 def searchprev(j, list):
-    list.sort()
-    list.reverse()
+    list.sort(reverse=True)
     for i in list:
         if i < j:
             result = i
