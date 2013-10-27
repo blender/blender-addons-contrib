@@ -7,6 +7,7 @@
 #   user-configurable.
 
 import bpy
+import bmesh
 
 ######################
 # Misc configuration
@@ -247,6 +248,53 @@ class SetEditMeshSelectMode(bpy.types.Operator):
             
         return {'FINISHED'}
 bpy.utils.register_class(SetEditMeshSelectMode)
+
+
+class MeshCreateEdgeFaceContextual(bpy.types.Operator):
+    """ Creates edges or faces from selected vertices,
+        but understands that if it's creating an edge across
+        an existing face that it should split it.
+    """
+    bl_idname = "mesh.create_edge_face_contextual"
+    bl_label = "Create Edge/Face Contextual"
+    bl_options = {'UNDO'}
+    
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object is not None) and (context.mode == "EDIT_MESH")
+    
+    def execute(self, context):
+        bm = bmesh.from_edit_mesh(context.active_object.data)
+        
+        # Get a list of selected vertices
+        selected_verts = [v.index for v in bm.verts if v.select]
+        
+        # Accumulate a list of faces that the selected verts belong to,
+        # and a count for each face of how many selected verts belong to
+        # them.
+        face_counts = {}
+        for i in selected_verts:
+            for f in bm.verts[i].link_faces:
+                if f.index in face_counts:
+                    face_counts[f.index] += 1
+                else:
+                    face_counts[f.index] = 1
+        
+        # Check if any face has all selected verts
+        do_connect = False
+        for i in face_counts:
+            if face_counts[i] == len(selected_verts):
+                do_connect = True
+                break
+        
+        # Do the chosen operation
+        if not do_connect:
+            bpy.ops.mesh.edge_face_add()
+        else:
+            bpy.ops.mesh.vert_connect()
+        
+        return {'FINISHED'}
+bpy.utils.register_class(MeshCreateEdgeFaceContextual)
 
 
 class MeshDeleteContextual(bpy.types.Operator):
@@ -1308,7 +1356,7 @@ def MapAdd_View3D_MeshEditMode(kc):
     kmi.properties.name = 'INFO_MT_mesh_add'
     
     # Add edge and face / vertex connect
-    kmi = km.keymap_items.new('mesh.edge_face_add', 'C', 'CLICK')
+    kmi = km.keymap_items.new('mesh.create_edge_face_contextual', 'C', 'CLICK')
     kmi = kmi = km.keymap_items.new('mesh.vert_connect', 'C', 'PRESS', shift=True)
     
     kmi = km.keymap_items.new('mesh.fill', 'C', 'PRESS', alt=True)
@@ -1476,20 +1524,13 @@ def MapAdd_Sculpt(kc):
     # Map Sculpt
     km = kc.keymaps.new('Sculpt', space_type='EMPTY', region_type='WINDOW', modal=False)
 
-    # Sculpt strokes
-    # TODO: alt for MASK(?)
+    # Sculpt strokesff
     kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS')
     kmi.properties.mode = 'NORMAL'
     kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS', ctrl=True)
     kmi.properties.mode = 'INVERT'
     kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS', shift=True)
     kmi.properties.mode = 'SMOOTH'
-    #kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS', alt=True)
-    #kmi.properties.mode = 'MASK'
-    #kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True)
-    #kmi.properties.mode = 'MASK_INVERT'
-    #kmi = km.keymap_items.new('sculpt.brush_stroke', 'LEFTMOUSE', 'PRESS', alt=True, shift=True)
-    #kmi.properties.mode = 'MASK_SMOOTH'
     
     # Change stroke methods
     kmi = km.keymap_items.new('wm.context_menu_enum', 'A', 'PRESS')
@@ -1504,7 +1545,7 @@ def MapAdd_Sculpt(kc):
     kmi.properties.scalar = 0.9
     kmi = km.keymap_items.new('brush.scale_size', 'RIGHT_BRACKET', 'PRESS')
     kmi.properties.scalar = 1.1111111111
-    kmi = km.keymap_items.new('wm.radial_control', 'F', 'PRESS')
+    kmi = km.keymap_items.new('wm.radial_control', 'R', 'PRESS')
     kmi.properties.data_path_primary = 'tool_settings.sculpt.brush.size'
     kmi.properties.data_path_secondary = 'tool_settings.unified_paint_settings.size'
     kmi.properties.use_secondary = 'tool_settings.unified_paint_settings.use_unified_size'
@@ -1515,7 +1556,7 @@ def MapAdd_Sculpt(kc):
     kmi.properties.image_id = 'tool_settings.sculpt.brush'
     
     # Brush strength
-    kmi = km.keymap_items.new('wm.radial_control', 'F', 'PRESS', shift=True)
+    kmi = km.keymap_items.new('wm.radial_control', 'R', 'PRESS', shift=True)
     kmi.properties.data_path_primary = 'tool_settings.sculpt.brush.strength'
     kmi.properties.data_path_secondary = 'tool_settings.unified_paint_settings.strength'
     kmi.properties.use_secondary = 'tool_settings.unified_paint_settings.use_unified_strength'
@@ -1526,7 +1567,7 @@ def MapAdd_Sculpt(kc):
     kmi.properties.image_id = 'tool_settings.sculpt.brush'
     
     # Brush angle
-    kmi = km.keymap_items.new('wm.radial_control', 'F', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('wm.radial_control', 'R', 'PRESS', ctrl=True)
     kmi.properties.data_path_primary = 'tool_settings.sculpt.brush.texture_slot.angle'
     kmi.properties.data_path_secondary = ''
     kmi.properties.use_secondary = ''
@@ -1704,6 +1745,175 @@ def MapAdd_Sculpt(kc):
     kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS', shift=True, alt=True)
     kmi.properties.mode = 'ROTATION'
     kmi.properties.texmode = 'SECONDARY'
+
+
+def MapAdd_WeightPaint(kc):
+    km = kc.keymaps.new('Weight Paint', space_type='EMPTY', region_type='WINDOW', modal=False)
+
+    # Select bones/objects/etc
+    kmi = km.keymap_items.new('view3d.select', 'LEFTMOUSE', 'PRESS', alt=True)
+    kmi.properties.extend = False
+    kmi.properties.deselect = False
+    kmi.properties.toggle = False
+    kmi.properties.center = False
+    kmi.properties.enumerate = False
+    kmi.properties.object = False
+    kmi = km.keymap_items.new('view3d.select', 'LEFTMOUSE', 'PRESS', alt=True, shift=True)
+    kmi.properties.extend = True
+    kmi.properties.deselect = False
+    kmi.properties.toggle = False
+    kmi.properties.center = False
+    kmi.properties.enumerate = False
+    kmi.properties.object = False
+    kmi = km.keymap_items.new('view3d.select', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True)
+    kmi.properties.extend = False
+    kmi.properties.deselect = True
+    kmi.properties.toggle = False
+    kmi.properties.center = False
+    kmi.properties.enumerate = False
+    kmi.properties.object = False
+
+    # Paint weight
+    kmi = km.keymap_items.new('paint.weight_paint', 'LEFTMOUSE', 'PRESS')
+    
+    # Weight gradient
+    kmi = km.keymap_items.new('paint.weight_gradient', 'LEFTMOUSE', 'PRESS', ctrl=True)
+    kmi.properties.type = 'LINEAR'
+    kmi = km.keymap_items.new('paint.weight_gradient', 'LEFTMOUSE', 'PRESS', ctrl=True, shift=True)
+    kmi.properties.type = 'RADIAL'
+    
+    # Sample weight
+    kmi = km.keymap_items.new('paint.weight_sample', 'RIGHTMOUSE', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('paint.weight_sample_group', 'RIGHTMOUSE', 'PRESS', alt=True, shift=True)
+    
+    # Brush radius
+    # TODO: armature pose mode masks this, instead of this masking
+    # armature pose mode.  Fix.
+    kmi = km.keymap_items.new('brush.scale_size', 'LEFT_BRACKET', 'PRESS')
+    kmi.properties.scalar = 0.9
+    kmi = km.keymap_items.new('brush.scale_size', 'RIGHT_BRACKET', 'PRESS')
+    kmi.properties.scalar = 1.1111111111111111
+    kmi = km.keymap_items.new('wm.radial_control', 'R', 'PRESS')
+    kmi.properties.data_path_primary = 'tool_settings.weight_paint.brush.size'
+    kmi.properties.data_path_secondary = 'tool_settings.unified_paint_settings.size'
+    kmi.properties.use_secondary = 'tool_settings.unified_paint_settings.use_unified_size'
+    kmi.properties.rotation_path = 'tool_settings.weight_paint.brush.texture_slot.angle'
+    kmi.properties.color_path = 'tool_settings.weight_paint.brush.cursor_color_add'
+    kmi.properties.fill_color_path = ''
+    kmi.properties.zoom_path = ''
+    kmi.properties.image_id = 'tool_settings.weight_paint.brush'
+    kmi.properties.secondary_tex = False
+    
+    # Brush strength
+    kmi = km.keymap_items.new('wm.radial_control', 'R', 'PRESS', shift=True)
+    kmi.properties.data_path_primary = 'tool_settings.weight_paint.brush.strength'
+    kmi.properties.data_path_secondary = 'tool_settings.unified_paint_settings.strength'
+    kmi.properties.use_secondary = 'tool_settings.unified_paint_settings.use_unified_strength'
+    kmi.properties.rotation_path = 'tool_settings.weight_paint.brush.texture_slot.angle'
+    kmi.properties.color_path = 'tool_settings.weight_paint.brush.cursor_color_add'
+    kmi.properties.fill_color_path = ''
+    kmi.properties.zoom_path = ''
+    kmi.properties.image_id = 'tool_settings.weight_paint.brush'
+    kmi.properties.secondary_tex = False
+    
+    # Brush weight
+    kmi = km.keymap_items.new('wm.radial_control', 'W', 'PRESS')
+    kmi.properties.data_path_primary = 'tool_settings.weight_paint.brush.weight'
+    kmi.properties.data_path_secondary = 'tool_settings.unified_paint_settings.weight'
+    kmi.properties.use_secondary = 'tool_settings.unified_paint_settings.use_unified_weight'
+    kmi.properties.rotation_path = 'tool_settings.weight_paint.brush.texture_slot.angle'
+    kmi.properties.color_path = 'tool_settings.weight_paint.brush.cursor_color_add'
+    kmi.properties.fill_color_path = ''
+    kmi.properties.zoom_path = ''
+    kmi.properties.image_id = 'tool_settings.weight_paint.brush'
+    kmi.properties.secondary_tex = False
+    kmi = km.keymap_items.new('paint.weight_set', 'K', 'PRESS', shift=True)
+    
+    # Brush selection by index
+    kmi = km.keymap_items.new('brush.active_index_set', 'ONE', 'PRESS')
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 0
+    kmi = km.keymap_items.new('brush.active_index_set', 'TWO', 'PRESS')
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 1
+    kmi = km.keymap_items.new('brush.active_index_set', 'THREE', 'PRESS')
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 2
+    kmi = km.keymap_items.new('brush.active_index_set', 'FOUR', 'PRESS')
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 3
+    kmi = km.keymap_items.new('brush.active_index_set', 'FIVE', 'PRESS')
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 4
+    kmi = km.keymap_items.new('brush.active_index_set', 'SIX', 'PRESS')
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 5
+    kmi = km.keymap_items.new('brush.active_index_set', 'SEVEN', 'PRESS')
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 6
+    kmi = km.keymap_items.new('brush.active_index_set', 'EIGHT', 'PRESS')
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 7
+    kmi = km.keymap_items.new('brush.active_index_set', 'NINE', 'PRESS')
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 8
+    kmi = km.keymap_items.new('brush.active_index_set', 'ZERO', 'PRESS')
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 9
+    kmi = km.keymap_items.new('brush.active_index_set', 'ONE', 'PRESS', shift=True)
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 10
+    kmi = km.keymap_items.new('brush.active_index_set', 'TWO', 'PRESS', shift=True)
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 11
+    kmi = km.keymap_items.new('brush.active_index_set', 'THREE', 'PRESS', shift=True)
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 12
+    kmi = km.keymap_items.new('brush.active_index_set', 'FOUR', 'PRESS', shift=True)
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 13
+    kmi = km.keymap_items.new('brush.active_index_set', 'FIVE', 'PRESS', shift=True)
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 14
+    kmi = km.keymap_items.new('brush.active_index_set', 'SIX', 'PRESS', shift=True)
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 15
+    kmi = km.keymap_items.new('brush.active_index_set', 'SEVEN', 'PRESS', shift=True)
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 16
+    kmi = km.keymap_items.new('brush.active_index_set', 'EIGHT', 'PRESS', shift=True)
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 17
+    kmi = km.keymap_items.new('brush.active_index_set', 'NINE', 'PRESS', shift=True)
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 18
+    kmi = km.keymap_items.new('brush.active_index_set', 'ZERO', 'PRESS', shift=True)
+    kmi.properties.mode = 'weight_paint'
+    kmi.properties.index = 19
+    
+    # ??? kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS')
+    # ??? kmi.properties.mode = 'TRANSLATION'
+    # ??? kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS', shift=True)
+    # ??? kmi.properties.mode = 'SCALE'
+    # ??? kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS', ctrl=True)
+    # ??? kmi.properties.mode = 'ROTATION'
+    # ??? kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS', alt=True)
+    # ??? kmi.properties.mode = 'TRANSLATION'
+    # ??? kmi.properties.texmode = 'SECONDARY'
+    # ??? kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS', shift=True, alt=True)
+    # ??? kmi.properties.mode = 'SCALE'
+    # ??? kmi.properties.texmode = 'SECONDARY'
+    # ??? kmi = km.keymap_items.new('brush.stencil_control', 'RIGHTMOUSE', 'PRESS', ctrl=True, alt=True)
+    # ??? kmi.properties.mode = 'ROTATION'
+    # ??? kmi.properties.texmode = 'SECONDARY'
+    #kmi = km.keymap_items.new('wm.context_menu_enum', 'A', 'PRESS')
+    #kmi.properties.data_path = 'tool_settings.vertex_paint.brush.stroke_method'
+    #kmi = km.keymap_items.new('wm.context_toggle', 'M', 'PRESS')
+    #kmi.properties.data_path = 'weight_paint_object.data.use_paint_mask'
+    #kmi = km.keymap_items.new('wm.context_toggle', 'V', 'PRESS')
+    #kmi.properties.data_path = 'weight_paint_object.data.use_paint_mask_vertex'
+    #kmi = km.keymap_items.new('wm.context_toggle', 'S', 'PRESS', shift=True)
+    #kmi.properties.data_path = 'tool_settings.weight_paint.brush.use_smooth_stroke'
 
 
 def MapAdd_ModalStandard(kc):
@@ -2524,6 +2734,212 @@ def MapAdd_NodeEditor(kc):
     # kmi = km.keymap_items.new('node.detach_translate_attach', 'C', 'PRESS', alt=True)
 
 
+def MapAdd_AnimationChannels(kc):
+    # Map Animation Channels
+    km = kc.keymaps.new('Animation Channels', space_type='EMPTY', region_type='WINDOW', modal=False)
+
+    # Click-select
+    # TODO: replace/add/remove select
+    kmi = km.keymap_items.new('anim.channels_click', 'LEFTMOUSE', 'CLICK')
+    kmi = km.keymap_items.new('anim.channels_click', 'LEFTMOUSE', 'PRESS', shift=True)
+    kmi.properties.extend = True
+    #kmi = km.keymap_items.new('anim.channels_click', 'LEFTMOUSE', 'PRESS', shift=True, ctrl=True)
+    #kmi.properties.children_only = True
+    
+    # Border-select
+    # TODO: replace/add/remove select
+    kmi = km.keymap_items.new('anim.channels_select_border', 'EVT_TWEAK_L', 'ANY')
+    
+    # Select all / invert selection
+    kmi = km.keymap_items.new('anim.channels_select_all_toggle', 'A', 'PRESS')
+    kmi = km.keymap_items.new('anim.channels_select_all_toggle', 'I', 'PRESS', ctrl=True)
+    kmi.properties.invert = True
+    
+    # Delete
+    kmi = km.keymap_items.new('anim.channels_delete', 'X', 'PRESS')
+    kmi = km.keymap_items.new('anim.channels_delete', 'DEL', 'PRESS')
+    
+    # Channel visibility
+    kmi = km.keymap_items.new('anim.channels_visibility_set', 'V', 'PRESS')
+    kmi = km.keymap_items.new('anim.channels_visibility_toggle', 'V', 'PRESS', shift=True)
+    
+    """
+    kmi = km.keymap_items.new('anim.channels_rename', 'LEFTMOUSE', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('anim.channels_select_border', 'B', 'PRESS')
+    kmi = km.keymap_items.new('anim.channels_setting_toggle', 'W', 'PRESS', shift=True)
+    kmi = km.keymap_items.new('anim.channels_setting_enable', 'W', 'PRESS', shift=True, ctrl=True)
+    kmi = km.keymap_items.new('anim.channels_setting_disable', 'W', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('anim.channels_editable_toggle', 'TAB', 'PRESS')
+    kmi = km.keymap_items.new('anim.channels_expand', 'NUMPAD_PLUS', 'PRESS')
+    kmi = km.keymap_items.new('anim.channels_collapse', 'NUMPAD_MINUS', 'PRESS')
+    kmi = km.keymap_items.new('anim.channels_expand', 'NUMPAD_PLUS', 'PRESS', ctrl=True)
+    kmi.properties.all = False
+    kmi = km.keymap_items.new('anim.channels_collapse', 'NUMPAD_MINUS', 'PRESS', ctrl=True)
+    kmi.properties.all = False
+    kmi = km.keymap_items.new('anim.channels_move', 'PAGE_UP', 'PRESS')
+    kmi.properties.direction = 'UP'
+    kmi = km.keymap_items.new('anim.channels_move', 'PAGE_DOWN', 'PRESS')
+    kmi.properties.direction = 'DOWN'
+    kmi = km.keymap_items.new('anim.channels_move', 'PAGE_UP', 'PRESS', shift=True)
+    kmi.properties.direction = 'TOP'
+    kmi = km.keymap_items.new('anim.channels_move', 'PAGE_DOWN', 'PRESS', shift=True)
+    kmi.properties.direction = 'BOTTOM'
+    kmi = km.keymap_items.new('anim.channels_group', 'G', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('anim.channels_ungroup', 'G', 'PRESS', alt=True)
+    """
+
+
+
+def MapAdd_GraphEditorGeneric(kc):
+    # Map Graph Editor Generic
+    km = kc.keymaps.new('Graph Editor Generic', space_type='GRAPH_EDITOR', region_type='WINDOW', modal=False)
+    
+    # TODO: toggle for animation channels as well
+    kmi = km.keymap_items.new('graph.properties', 'QUOTE', 'PRESS')
+
+
+def MapAdd_GraphEditor(kc):
+    # Map Graph Editor
+    # TODO: figure out selection model.  What selection tools map to what
+    #       key/mouse combos?  How important is it to be analagous to
+    #       mesh-edit mode?
+    km = kc.keymaps.new('Graph Editor', space_type='GRAPH_EDITOR', region_type='WINDOW', modal=False)
+
+    # Scrub
+    kmi = km.keymap_items.new('graph.cursor_set', 'ACTIONMOUSE', 'PRESS')
+
+    # Basic click-selection
+    # TODO: replace/add/remove select
+    kmi = km.keymap_items.new('graph.clickselect', 'SELECTMOUSE', 'CLICK')
+    kmi.properties.extend = False
+    kmi.properties.column = False
+    kmi.properties.curves = False
+    kmi = km.keymap_items.new('graph.clickselect', 'SELECTMOUSE', 'PRESS', shift=True)
+    kmi.properties.extend = True
+    kmi.properties.column = False
+    kmi.properties.curves = False
+    
+    # Box select
+    # TODO: replace/add/remove select
+    kmi = km.keymap_items.new('graph.select_border', 'EVT_TWEAK_S', 'ANY',)
+    kmi.properties.axis_range = False
+    kmi.properties.include_handles = False
+    kmi = km.keymap_items.new('graph.select_border', 'EVT_TWEAK_S', 'ANY', alt=True)
+    kmi.properties.axis_range = False
+    kmi.properties.include_handles = True
+    
+    # Curve select
+    # TODO: replace/add/remove select
+    kmi = km.keymap_items.new('graph.clickselect', 'L', 'PRESS')
+    kmi.properties.extend = False
+    kmi.properties.column = False
+    kmi.properties.curves = True
+    kmi = km.keymap_items.new('graph.clickselect', 'L', 'PRESS', shift=True)
+    kmi.properties.extend = True
+    kmi.properties.column = False
+    kmi.properties.curves = True
+    
+    # Column selection
+    # TODO: replace/add/remove select
+    kmi = km.keymap_items.new('graph.clickselect', 'SELECTMOUSE', 'DOUBLE_CLICK')
+    kmi.properties.extend = False
+    kmi.properties.column = True
+    kmi.properties.curves = False
+    kmi = km.keymap_items.new('graph.clickselect', 'SELECTMOUSE', 'DOUBLE_CLICK', shift=True)
+    kmi.properties.extend = True
+    kmi.properties.column = True
+    kmi.properties.curves = False
+    
+    # Select to the left/right of the time cursor
+    kmi = km.keymap_items.new('graph.select_leftright', 'SELECTMOUSE', 'PRESS', alt=True)
+    kmi.properties.mode = 'CHECK'
+    kmi.properties.extend = False
+    kmi = km.keymap_items.new('graph.select_leftright', 'SELECTMOUSE', 'PRESS', alt=True, shift=True)
+    kmi.properties.mode = 'CHECK'
+    kmi.properties.extend = True
+    
+    # Select all / invert selection
+    kmi = km.keymap_items.new('graph.select_all_toggle', 'A', 'PRESS')
+    kmi.properties.invert = False
+    kmi = km.keymap_items.new('graph.select_all_toggle', 'I', 'PRESS', ctrl=True)
+    kmi.properties.invert = True
+    
+    # Select more/less
+    kmi = km.keymap_items.new('graph.select_less', 'LEFT_BRACKET', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('graph.select_more', 'RIGHT_BRACKET', 'PRESS', ctrl=True)
+    
+    # Transforms
+    kmi = km.keymap_items.new('transform.translate', 'F', 'PRESS')
+    kmi = km.keymap_items.new('transform.rotate', 'D', 'PRESS')
+    kmi = km.keymap_items.new('transform.resize', 'S', 'PRESS')
+    #kmi = km.keymap_items.new('transform.transform', 'E', 'PRESS')
+    #kmi.properties.mode = 'TIME_EXTEND'
+    
+    # Tweak
+    # TODO: write tweak operator
+    #kmi = km.keymap_items.new('transform.translate', 'EVT_TWEAK_A', 'ANY')
+    
+    # Add keyframes
+    kmi = km.keymap_items.new('graph.keyframe_insert', 'K', 'PRESS')
+    kmi = km.keymap_items.new('graph.click_insert', 'ACTIONMOUSE', 'CLICK', ctrl=True)
+    
+    # Duplicate
+    kmi = km.keymap_items.new('graph.duplicate_move', 'D', 'PRESS', shift=True)
+    
+    # Delete
+    # TODO: create a no-confirm delete operator
+    kmi = km.keymap_items.new('graph.delete', 'X', 'PRESS')
+    kmi = km.keymap_items.new('graph.delete', 'DEL', 'PRESS')
+    
+    # Copy/paste
+    kmi = km.keymap_items.new('graph.copy', 'C', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('graph.paste', 'V', 'PRESS', ctrl=True)
+    
+    # View navigation
+    # TODO: what about non-numpad keyboards?
+    kmi = km.keymap_items.new('graph.view_all', 'HOME', 'PRESS')
+    kmi = km.keymap_items.new('graph.view_selected', 'NUMPAD_PERIOD', 'PRESS')
+    
+    # Interpolation / Handle type
+    # TODO: decide on hot keys for these
+    kmi = km.keymap_items.new('graph.handle_type', 'V', 'PRESS')
+    kmi = km.keymap_items.new('graph.interpolation_type', 'T', 'PRESS')
+    
+    """
+    kmi = km.keymap_items.new('wm.context_toggle', 'H', 'PRESS', ctrl=True)
+    kmi.properties.data_path = 'space_data.show_handles'
+    kmi = km.keymap_items.new('graph.select_leftright', 'LEFT_BRACKET', 'PRESS')
+    kmi.properties.mode = 'LEFT'
+    kmi.properties.extend = False
+    kmi = km.keymap_items.new('graph.select_leftright', 'RIGHT_BRACKET', 'PRESS')
+    kmi.properties.mode = 'RIGHT'
+    kmi.properties.extend = False
+    kmi = km.keymap_items.new('graph.select_column', 'K', 'PRESS')
+    kmi.properties.mode = 'KEYS'
+    kmi = km.keymap_items.new('graph.select_column', 'K', 'PRESS', ctrl=True)
+    kmi.properties.mode = 'CFRA'
+    kmi = km.keymap_items.new('graph.select_column', 'K', 'PRESS', shift=True)
+    kmi.properties.mode = 'MARKERS_COLUMN'
+    kmi = km.keymap_items.new('graph.select_column', 'K', 'PRESS', alt=True)
+    kmi.properties.mode = 'MARKERS_BETWEEN'
+    kmi = km.keymap_items.new('graph.select_linked', 'L', 'PRESS')
+    kmi = km.keymap_items.new('graph.frame_jump', 'G', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('graph.snap', 'S', 'PRESS', shift=True)
+    kmi = km.keymap_items.new('graph.mirror', 'M', 'PRESS', shift=True)
+
+    kmi = km.keymap_items.new('graph.clean', 'O', 'PRESS')
+    kmi = km.keymap_items.new('graph.smooth', 'O', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('graph.sample', 'O', 'PRESS', shift=True)
+    kmi = km.keymap_items.new('graph.bake', 'C', 'PRESS', alt=True)
+    kmi = km.keymap_items.new('graph.previewrange_set', 'P', 'PRESS', ctrl=True, alt=True)
+    kmi = km.keymap_items.new('graph.fmodifier_add', 'M', 'PRESS', shift=True, ctrl=True)
+    kmi.properties.only_active = False
+    kmi = km.keymap_items.new('anim.channels_editable_toggle', 'TAB', 'PRESS')
+    kmi = km.keymap_items.new('marker.add', 'M', 'PRESS')
+    kmi = km.keymap_items.new('marker.rename', 'M', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('graph.extrapolation_type', 'E', 'PRESS', shift=True)
+    """
+
 
 wm = bpy.context.window_manager
 kc = wm.keyconfigs.new('Blender 2012 (experimental!)')
@@ -2541,6 +2957,7 @@ MapAdd_View3D_ObjectMode(kc)
 MapAdd_View3D_MeshEditMode(kc)
 MapAdd_KnifeToolModal(kc)
 MapAdd_Sculpt(kc)
+MapAdd_WeightPaint(kc)
 MapAdd_View3D_Generic(kc)
 
 MapAdd_ModalStandard(kc)
@@ -2566,6 +2983,11 @@ MapAdd_TextEditor(kc)
 
 MapAdd_NodeEditorGeneric(kc)
 MapAdd_NodeEditor(kc)
+
+MapAdd_AnimationChannels(kc)
+
+MapAdd_GraphEditorGeneric(kc)
+MapAdd_GraphEditor(kc)
 
 
 
