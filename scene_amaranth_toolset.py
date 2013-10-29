@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Amaranth Toolset",
     "author": "Pablo Vazquez, Bassam Kurdali, Sergey Sharybin",
-    "version": (0, 7),
+    "version": (0, 7, 3),
     "blender": (2, 69),
     "location": "Scene Properties > Amaranth Toolset Panel",
     "description": "A collection of tools and settings to improve productivity",
@@ -440,11 +440,13 @@ class NODE_MT_amaranth_templates(bpy.types.Menu):
             icon='COLOR')
 
 def node_templates_pulldown(self, context):
-    layout = self.layout
-    row = layout.row(align=True)
-    row.scale_x = 1.3
-    row.menu("NODE_MT_amaranth_templates",
-        icon="RADIO")
+
+    if context.space_data.tree_type == 'CompositorNodeTree':
+        layout = self.layout
+        row = layout.row(align=True)
+        row.scale_x = 1.3
+        row.menu("NODE_MT_amaranth_templates",
+            icon="RADIO")
 # // FEATURE: Node Templates
 
 def node_stats(self,context):
@@ -468,7 +470,14 @@ class NODE_PT_simplify(bpy.types.Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_label = 'Simplify'
-#    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        return space.type == 'NODE_EDITOR' \
+                and space.node_tree is not None \
+                and space.tree_type == 'CompositorNodeTree'
 
     def draw(self, context):
         layout = self.layout
@@ -865,11 +874,21 @@ def particles_material_info(self, context):
     ob = context.object
     psys = context.particle_system
 
-    layout.label(
-        text="Material: %s" % ob.material_slots[psys.settings.material-1].name \
-            if psys.settings.material <= len(ob.material_slots) \
-            else "No material with this index. Using '{}'".format( \
-                ob.material_slots[len(ob.material_slots)-1].name))
+    mats = len(ob.material_slots)
+
+
+    if ob.material_slots:
+        if psys.settings.material <= len(ob.material_slots) \
+        and ob.material_slots[psys.settings.material-1].name == "":
+            layout.label(text="No material on this slot", icon="MATSPHERE")
+        else:
+            layout.label(
+                text="%s" % ob.material_slots[psys.settings.material-1].name \
+                    if psys.settings.material <= mats \
+                    else "No material with this index{}".format( \
+                        ". Using %s" % ob.material_slots[mats-1].name \
+                        if ob.material_slots[mats-1].name != "" else ""),
+                icon="MATERIAL_DATA")
 # // FEATURE: Particles Material indicator
 
 # FEATURE: Mesh Symmetry Tools by Sergey Sharybin
@@ -998,6 +1017,49 @@ class MESH_OT_make_symmetric(Operator):
         return {'FINISHED'}
 # // FEATURE: Mesh Symmetry Tools by Sergey Sharybin
 
+# FEATURE: Cycles Render Samples per Scene
+def render_cycles_scene_samples(self, context):
+
+    layout = self.layout
+
+    scenes = bpy.data.scenes
+    scene = context.scene
+    cscene = scene.cycles
+
+    if (len(bpy.data.scenes) > 1):
+        layout.separator()
+
+        layout.label(text="Samples Per Scene:")
+
+        if cscene.progressive == 'PATH':
+            for s in bpy.data.scenes:
+                if s != scene and s.render.engine == 'CYCLES':
+                    cscene = s.cycles
+    
+                    split = layout.split()
+                    col = split.column()
+                    sub = col.column(align=True)
+    
+                    sub.label(text="%s" % s.name)
+    
+                    col = split.column()
+                    sub = col.column(align=True)
+                    sub.prop(cscene, "samples", text="Render")
+        else:
+            for s in bpy.data.scenes:
+                if s != scene and s.render.engine == 'CYCLES':
+                    cscene = s.cycles
+    
+                    split = layout.split()
+                    col = split.column()
+                    sub = col.column(align=True)
+    
+                    sub.label(text="%s" % s.name)
+    
+                    col = split.column()
+                    sub = col.column(align=True)
+                    sub.prop(cscene, "aa_samples", text="Render")
+# // FEATURE: Cycles Render Samples per Scene
 
 classes = (SCENE_OT_refresh,
            WM_OT_save_reload,
@@ -1048,6 +1110,7 @@ def register():
     bpy.types.NODE_HT_header.append(node_stats)
 
     bpy.types.CyclesMaterial_PT_settings.append(material_cycles_settings_extra)
+    bpy.types.CyclesRender_PT_sampling.append(render_cycles_scene_samples)
 
     bpy.types.FILEBROWSER_HT_header.append(button_directory_current_blend)
 
@@ -1072,6 +1135,22 @@ def register():
         kmi.properties.data_path = 'space_data.viewport_shade'
         kmi.properties.value_1 = 'SOLID'
         kmi.properties.value_2 = 'RENDERED'
+
+        km = kc.keymaps.new(name='Graph Editor', space_type='GRAPH_EDITOR')
+        kmi = km.keymap_items.new('wm.context_set_enum', 'TAB', 'PRESS', ctrl=True)
+        kmi.properties.data_path = 'area.type'
+        kmi.properties.value = 'DOPESHEET_EDITOR'
+
+        km = kc.keymaps.new(name='Dopesheet', space_type='DOPESHEET_EDITOR')
+        kmi = km.keymap_items.new('wm.context_set_enum', 'TAB', 'PRESS', ctrl=True)
+        kmi.properties.data_path = 'area.type'
+        kmi.properties.value = 'GRAPH_EDITOR'
+
+        km = kc.keymaps.new(name='Dopesheet', space_type='DOPESHEET_EDITOR')
+        kmi = km.keymap_items.new('wm.context_toggle_enum', 'TAB', 'PRESS', shift=True)
+        kmi.properties.data_path = 'space_data.mode'
+        kmi.properties.value_1 = 'ACTION'
+        kmi.properties.value_2 = 'DOPESHEET'
 
         km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
         km.keymap_items.new("node.show_active_node_image", 'ACTIONMOUSE', 'RELEASE')
@@ -1112,6 +1191,7 @@ def unregister():
     bpy.types.NODE_HT_header.remove(node_stats)
 
     bpy.types.CyclesMaterial_PT_settings.remove(material_cycles_settings_extra)
+    bpy.types.CyclesRender_PT_sampling.remove(render_cycles_scene_samples)
 
     bpy.types.FILEBROWSER_HT_header.remove(button_directory_current_blend)
 
