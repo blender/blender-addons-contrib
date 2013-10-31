@@ -296,5 +296,4 @@ class CMUMocapTransferer(bpy.types.Operator):
         bpy.context.scene.frame_set(bpy.context.scene.frame_current)
         context.window_manager.event_timer_remove(self.timer)
         bpy.ops.object.mode_set(mode='OBJECT')
-        return {'CANCELLED'}
 

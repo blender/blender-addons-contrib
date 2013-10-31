@@ -99,7 +99,6 @@ class CMUMocapDownloadImport(bpy.types.Operator):
         cml = context.user_preferences.addons['cmu_mocap_browser'].preferences
         if os.path.exists(self.local_file):
             self.import_or_open(cml)
-        return {'CANCELLED'}
 
     def execute(self, context):
         cml = context.user_preferences.addons['cmu_mocap_browser'].preferences

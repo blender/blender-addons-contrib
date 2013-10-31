@@ -1889,7 +1889,6 @@ class ModalTimerOperator(bpy.types.Operator):
         if self._timer!= None:
             context.window_manager.event_timer_remove(self._timer)
         self._timer= None
-        return {'CANCELLED'}
 
     def parar(self, context):
         if self.Running:
