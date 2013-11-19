@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 __bpydoc__ = """\
-The SelProject addon enables you to "project" an object onto another object, every vertex inside the 
+The SelProject addon enables you to "project" an object onto another object, every vertex inside the
 projection's shape will be selected.
 
 
@@ -29,8 +29,8 @@ is the object you project, To object the one you project on.  If switching to ed
 the "Use Selection" option appears.  When choosing this you will use a copy of the selected area
 instead of a From object.
 Press Start SelProject to start the projection.  When in Use Selection mode, the object selected from
-will be temporarily hidden for the duration of the operation.  You can use manipulator and 
-G, R and S (and XYZ) hotkeys as usual to transform both objects.  Also there is the direction Empty 
+will be temporarily hidden for the duration of the operation.  You can use manipulator and
+G, R and S (and XYZ) hotkeys as usual to transform both objects.  Also there is the direction Empty
 which is used in combination with the origin of the From object (which will be temporarily set to
 object geometry median) to set the projection direction.
 Press ENTER to finalize the selection projection operation.
@@ -41,7 +41,7 @@ bl_info = {
 	"name": "SelProject",
 	"author": "Gert De Roost",
 	"version": (0, 3, 0),
-	"blender": (2, 6, 3),
+	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Use object projection as selection tool.",
 	"warning": "",
@@ -66,19 +66,19 @@ oldobjs = []
 
 
 bpy.types.Scene.UseSel = bpy.props.BoolProperty(
-		name = "Use Selection", 
+		name = "Use Selection",
 		description = "Use selected area as From object",
 		default = False)
 
 bpy.types.Scene.FromObject = bpy.props.EnumProperty(
 		items = [("Empty", "Empty", "Empty")],
-		name = "From", 
+		name = "From",
 		description = "Object to project",
 		default = "Empty")
 
 bpy.types.Scene.ToObject = bpy.props.EnumProperty(
 		items = [("Empty", "Empty", "Empty")],
-		name = "To", 
+		name = "To",
 		description = "Object to project onto")
 
 
@@ -90,29 +90,29 @@ class SelProject(bpy.types.Operator):
 	bl_label = "SelProject"
 	bl_description = "Use object projection as selection tool"
 	bl_options = {'REGISTER', 'UNDO'}
-	
+
 	def invoke(self, context, event):
-		
+
 		global started
-		
+
 		started = True
-		
+
 		self.area = context.area
 		self.area.header_text_set(text="SelProject :  Enter to confirm - ESC to exit")
 
 		self.init_selproject(context)
-		
+
 		context.window_manager.modal_handler_add(self)
 
 		self._handle = bpy.types.SpaceView3D.draw_handler_add(self.redraw, (), 'WINDOW', 'POST_PIXEL')
-		
+
 		return {'RUNNING_MODAL'}
 
 
 	def modal(self, context, event):
 
 		global started
-				
+
 		if event.type in {'RET', 'NUMPAD_ENTER'}:
 			self.area.header_text_set()
 			if self.obhide != None:
@@ -126,7 +126,7 @@ class SelProject(bpy.types.Operator):
 			bpy.context.scene.objects.active = self.empt
 			bpy.ops.object.delete()
 			self.obT.select = True
-			bpy.context.scene.objects.active = self.obT				
+			bpy.context.scene.objects.active = self.obT
 			started = False
 			for v in self.vsellist:
 				v.select = True
@@ -144,7 +144,7 @@ class SelProject(bpy.types.Operator):
 			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
 			bpy.ops.object.editmode_toggle()
 			return {'FINISHED'}
-			
+
 		elif event.type == 'ESC':
 			self.area.header_text_set()
 			if self.obhide != None:
@@ -173,12 +173,12 @@ class SelProject(bpy.types.Operator):
 		elif event.type in {'LEFTMOUSE', 'MIDDLEMOUSE', 'RIGHTMOUSE', 'WHEELDOWNMOUSE', 'WHEELUPMOUSE', 'G', 'S', 'R', 'X', 'Y', 'Z', 'MOUSEMOVE'}:
 			context.region.tag_redraw()
 			return {'PASS_THROUGH'}
-			
+
 		return {'RUNNING_MODAL'}
 
 
 	def getmatrix(self, selobj):
-		
+
 		# Rotating / panning / zooming 3D view is handled here.
 		# Creates a matrix.
 		if selobj.rotation_mode == 'AXIS_ANGLE':
@@ -212,33 +212,33 @@ class SelProject(bpy.types.Operator):
 			matrix = mat_rotZ * mat_rotX * mat_rotY
 		elif selobj.rotation_mode == 'ZYX':
 			matrix = mat_rotZ * mat_rotY * mat_rotX
-	
+
 		# handle object scaling
 		sx, sy, sz = selobj.scale
 		mat_scX = Matrix.Scale(sx, 4, Vector([1, 0, 0]))
 		mat_scY = Matrix.Scale(sy, 4, Vector([0, 1, 0]))
 		mat_scZ = Matrix.Scale(sz, 4, Vector([0, 0, 1]))
 		matrix = mat_scX * mat_scY * mat_scZ * matrix
-		
+
 		return matrix
-	
-	
+
+
 	def getscreencoords(self, vector):
 		# calculate screencoords of given Vector
 		vector = vector * self.matrixT
 		vector = vector + self.obT.location
-		
+
 		svector = bpy_extras.view3d_utils.location_3d_to_region_2d(self.region, self.rv3d, vector)
 		if svector == None:
 			return [0, 0]
 		else:
 			return [svector[0], svector[1]]
-	
-	
-	
-	
+
+
+
+
 	def checksel(self):
-		
+
 		self.selverts = []
 		self.matrixT = self.getmatrix(self.obT)
 		self.matrixF = self.getmatrix(self.obF).inverted()
@@ -259,24 +259,24 @@ class SelProject(bpy.types.Operator):
 				hit = self.obF.ray_cast(vco, vco + direc1)
 				if hit[2] != -1:
 					v.select = True
-					self.selverts.append(v)	
-	
-	
-	
-	
-	
+					self.selverts.append(v)
+
+
+
+
+
 	def init_selproject(self, context):
-	
+
 		self.obhide = None
 		# main operation
 		self.scn = context.scene
-		self.region = context.region  
+		self.region = context.region
 		self.rv3d = context.space_data.region_3d
 		self.oldobjlist = list(self.scn.objects)
 		self.oldobj = context.active_object
 		self.oldmode = self.oldobj.mode
 		mesh = self.oldobj.data
-		
+
 		if self.scn.UseSel and context.mode == 'EDIT_MESH':
 			self.obhide = context.active_object
 			me = self.obhide.data
@@ -303,7 +303,7 @@ class SelProject(bpy.types.Operator):
 		self.meF = self.obF.to_mesh(self.scn, 1, 'PREVIEW')
 		self.bmF = bmesh.new()
 		self.bmF.from_mesh(self.meF)
-		
+
 		self.obT = bpy.data.objects.get(self.scn.ToObject)
 		self.obT.select = True
 		self.scn.objects.active = self.obT
@@ -312,7 +312,7 @@ class SelProject(bpy.types.Operator):
 		self.meT = self.obT.data
 		self.bmT = bmesh.new()
 		self.bmT.from_mesh(self.meT)
-			
+
 		self.vsellist = []
 		for v in self.bmT.verts:
 			if v.select:
@@ -325,16 +325,16 @@ class SelProject(bpy.types.Operator):
 		for f in self.bmT.faces:
 			if f.select:
 				self.fsellist.append(f)
-				
+
 		bpy.ops.object.add(type='EMPTY', location=(self.obF.location + self.obT.location) / 2)
 		self.empt = context.active_object
 		self.empt.name = "SelProject_dir_empty"
-	
+
 		self.selverts = []
-	
-	
+
+
 	def redraw(self):
-		
+
 		if started:
 			self.checksel()
 			glColor3f(1.0, 1.0, 0)
@@ -346,15 +346,15 @@ class SelProject(bpy.types.Operator):
 				glVertex2f(x+2, y+2)
 				glVertex2f(x+2, y-2)
 				glEnd()
-	
-	
-	
+
+
+
 
 
 def panel_func(self, context):
-	
+
 	self.scn = context.scene
-	
+
 	self.layout.label(text="SelProject:")
 	if started:
 		self.layout.operator("mesh.selproject", text="SelProject")
@@ -376,7 +376,7 @@ def panel_func(self, context):
 
 def register():
 
-	bpy.app.handlers.scene_update_post.append(sceneupdate_handler)	
+	bpy.app.handlers.scene_update_post.append(sceneupdate_handler)
 
 	bpy.utils.register_module(__name__)
 	bpy.types.VIEW3D_PT_tools_meshedit.append(panel_func)
@@ -385,7 +385,7 @@ def register():
 
 def unregister():
 	bpy.app.handlers.scene_update_post.remove(sceneupdate_handler)
-	
+
 	bpy.utils.unregister_module(__name__)
 	bpy.types.VIEW3D_PT_tools_meshedit.remove(panel_func)
 	bpy.types.VIEW3D_PT_tools_objectmode.append(panel_func)
@@ -414,14 +414,14 @@ def sceneupdate_handler(dummy):
 				itemlist.append((ob.name, ob.name, "Set From:"))
 		bpy.types.Scene.FromObject = bpy.props.EnumProperty(
 				items = itemlist,
-				name = "From", 
+				name = "From",
 				description = "Object to project")
 		bpy.types.Scene.ToObject = bpy.props.EnumProperty(
 				items = itemlist,
-				name = "To", 
+				name = "To",
 				description = "Object to project onto")
 		oldobjs = list(scn.objects)
-			
+
 	return {'RUNNING_MODAL'}
 
 

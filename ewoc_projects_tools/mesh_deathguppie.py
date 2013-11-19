@@ -45,7 +45,7 @@ bl_info = {
 	"name": "DeathGuppie",
 	"author": "Gert De Roost",
 	"version": (0, 3, 0),
-	"blender": (2, 6, 3),
+	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Deathguppie subdivision operation",
 	"warning": "",
@@ -60,12 +60,12 @@ import bmesh
 
 
 bpy.types.Scene.Smooth = bpy.props.BoolProperty(
-		name = "Smoothing", 
+		name = "Smoothing",
 		description = "Subdivide smooth",
 		default = True)
 
 bpy.types.Scene.Inner = bpy.props.BoolProperty(
-		name = "Select inner only", 
+		name = "Select inner only",
 		description = "After operation only inner verts selected",
 		default = True)
 
@@ -75,7 +75,7 @@ class DeathGuppie(bpy.types.Operator):
 	bl_label = "DeathGuppie"
 	bl_description = "Deathguppie subdivision operation"
 	bl_options = {'REGISTER', 'UNDO'}
-	
+
 
 	@classmethod
 	def poll(cls, context):
@@ -83,17 +83,17 @@ class DeathGuppie(bpy.types.Operator):
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH')
 
 	def invoke(self, context, event):
-		
+
 		self.do_deathguppie(context)
-		
+
 		return {'FINISHED'}
 
 
 	def do_deathguppie(self, context):
-			
+
 		scn = context.scene
 		selobj = context.active_object
-	
+
 		bpy.ops.object.editmode_toggle()
 		bpy.ops.object.duplicate()
 		projobj = bpy.context.active_object
@@ -103,11 +103,11 @@ class DeathGuppie(bpy.types.Operator):
 		projobj.hide = 1
 		context.scene.objects.active = selobj
 		bpy.ops.object.editmode_toggle()
-	
+
 		mesh = selobj.data
 		bm = bmesh.from_edit_mesh(mesh)
 		bmkeep = bm.copy()
-	
+
 		facelist = []
 		for f1 in bm.faces:
 			if f1.select:
@@ -121,16 +121,16 @@ class DeathGuppie(bpy.types.Operator):
 				facelist.insert(0, [])
 				facelist[0].append(f1)
 				facelist[0].append(linked)
-		
-	
+
+
 		transfer = {}
-		holdlist = []	
+		holdlist = []
 		for [f, linked] in facelist:
 			bpy.ops.mesh.select_all(action = 'DESELECT')
 			f.select = 1
 			transfer[f.calc_center_median()[:]] = [f.index, linked]
 			bpy.ops.mesh.split()
-					
+
 		bpy.ops.object.editmode_toggle()
 		bpy.ops.object.editmode_toggle()
 		bm = bmesh.from_edit_mesh(mesh)
@@ -146,10 +146,10 @@ class DeathGuppie(bpy.types.Operator):
 					facelist.insert(0, [])
 					facelist[0].append(f)
 					facelist[0].append(transfer[f.calc_center_median()[:]])
-					
-	
+
+
 		def createinnerlists(f):
-		
+
 			for l in f.loops:
 				self.cornerlist.append(l.vert)
 				self.vselset.add(l.vert)
@@ -163,7 +163,7 @@ class DeathGuppie(bpy.types.Operator):
 				vert = bm.verts.new(tempco1 + ((tempco2 - tempco1) / 3))
 				self.innerlist.append(vert)
 				self.smoothset.add(vert)
-		
+
 		self.vselset = set([])
 		fselset = set([])
 		self.smoothset = set([])
@@ -177,7 +177,7 @@ class DeathGuppie(bpy.types.Operator):
 			if len(linked) == 4:
 				createinnerlists(f)
 				for e in f.edges:
-					ne, vert1 = bmesh.utils.edge_split(e, e.verts[0], 0.66)		
+					ne, vert1 = bmesh.utils.edge_split(e, e.verts[0], 0.66)
 					ne, vert2 = bmesh.utils.edge_split(ne, vert1, 0.5)
 					self.vselset.add(vert1)
 					self.vselset.add(vert2)
@@ -203,7 +203,7 @@ class DeathGuppie(bpy.types.Operator):
 				createinnerlists(f)
 				for e in f.edges:
 					if e != edge:
-						ne, vert1 = bmesh.utils.edge_split(e, e.verts[0], 0.66)		
+						ne, vert1 = bmesh.utils.edge_split(e, e.verts[0], 0.66)
 						ne, vert2 = bmesh.utils.edge_split(ne, vert1, 0.5)
 						self.vselset.add(vert1)
 						self.vselset.add(vert2)
@@ -272,10 +272,10 @@ class DeathGuppie(bpy.types.Operator):
 							if l.edge == edges[1] and l.link_loop_next.edge == edges[0]:
 								edges.reverse()
 								break
-					createinnerlists(f)			
+					createinnerlists(f)
 					for e in f.edges:
 						if not(e in edges):
-							ne, vert1 = bmesh.utils.edge_split(e, e.verts[0], 0.66)		
+							ne, vert1 = bmesh.utils.edge_split(e, e.verts[0], 0.66)
 							ne, vert2 = bmesh.utils.edge_split(ne, vert1, 0.5)
 							self.vselset.add(vert1)
 							self.vselset.add(vert2)
@@ -303,7 +303,7 @@ class DeathGuppie(bpy.types.Operator):
 											sidev1 = bm.verts.new(co1)
 											sidev2 = bm.verts.new(co2)
 											sidev3 = bm.verts.new(self.innerlist[idx-2].co + ((self.innerlist[idx-2].co - self.innerlist[idx-1].co) / 2))
-											
+
 											fs = bm.faces.new((v1, vnext, sidev2, sidev1))
 											if not(scn.Inner):
 												fselset.add(fs)
@@ -343,10 +343,10 @@ class DeathGuppie(bpy.types.Operator):
 						for f1 in e1.link_faces:
 							if len(e1.link_faces) == 1 or (f1 != fold and not(f1 in linked2)):
 								edges.append(f.edges[fedges.index(e1)])
-					createinnerlists(f)			
+					createinnerlists(f)
 					for e in f.edges:
 						if not(e in edges):
-							ne, vert1 = bmesh.utils.edge_split(e, e.verts[0], 0.66)		
+							ne, vert1 = bmesh.utils.edge_split(e, e.verts[0], 0.66)
 							ne, vert2 = bmesh.utils.edge_split(ne, vert1, 0.5)
 							self.vselset.add(vert1)
 							self.vselset.add(vert2)
@@ -405,7 +405,7 @@ class DeathGuppie(bpy.types.Operator):
 									fselset.add(fs)
 									fs = bm.faces.new((vnextnext, vnnn, self.innerlist[idx-2], self.innerlist[idx-3]))
 									fselset.add(fs)
-									
+
 					fs = bm.faces.new((self.innerlist[0], self.innerlist[1], self.innerlist[2], self.innerlist[3]))
 					fselset.add(fs)
 					bm.faces.remove(f)
@@ -413,8 +413,8 @@ class DeathGuppie(bpy.types.Operator):
 					self.smoothset.add(sidev2)
 					self.smoothset.add(sidev3)
 					self.smoothset.add(sidev4)
-					
-					
+
+
 			elif len(linked) == 1:
 				fedges = fold.edges[:]
 				edges = []
@@ -425,10 +425,10 @@ class DeathGuppie(bpy.types.Operator):
 				for l in f.loops:
 					if not(l.edge in edges):
 						edges = [l.link_loop_next.edge, l.link_loop_next.link_loop_next.edge, l.link_loop_next.link_loop_next.link_loop_next.edge]
-				createinnerlists(f)			
+				createinnerlists(f)
 				for e in f.edges:
 					if not(e in edges):
-						ne, vert1 = bmesh.utils.edge_split(e, e.verts[0], 0.66)		
+						ne, vert1 = bmesh.utils.edge_split(e, e.verts[0], 0.66)
 						ne, vert2 = bmesh.utils.edge_split(ne, vert1, 0.5)
 						self.vselset.add(vert1)
 						self.vselset.add(vert2)
@@ -493,9 +493,9 @@ class DeathGuppie(bpy.types.Operator):
 				self.smoothset.add(sidev2)
 				self.smoothset.add(sidev3)
 				self.smoothset.add(sidev4)
-					
+
 			elif len(linked) == 0:
-				createinnerlists(f)			
+				createinnerlists(f)
 				l = f.loops[0]
 				v1 = l.vert
 				vnext = l.link_loop_next.vert
@@ -538,12 +538,12 @@ class DeathGuppie(bpy.types.Operator):
 				self.smoothset.add(sidev2)
 				self.smoothset.add(sidev3)
 				self.smoothset.add(sidev4)
-		
-		
+
+
 		if scn.Smooth:
 			for v in self.smoothset:
 				v.co = projobj.closest_point_on_mesh(v.co)[0]
-			
+
 		bpy.ops.mesh.select_all(action ='SELECT')
 		bm.normal_update()
 		bpy.ops.mesh.normals_make_consistent()
@@ -564,7 +564,7 @@ class DeathGuppie(bpy.types.Operator):
 				e.verts[0].select = 0
 				e.verts[1].select = 0
 				e.select = 0
-						
+
 		mesh.update()
 		bm.free()
 		bmkeep.free()
@@ -582,7 +582,7 @@ class DeathGuppie(bpy.types.Operator):
 
 
 def panel_func(self, context):
-	
+
 	scn = bpy.context.scene
 	self.layout.label(text="DeathGuppie:")
 	self.layout.operator("mesh.deathguppie", text="Subdivide DG")
@@ -606,4 +606,4 @@ if __name__ == "__main__":
 
 
 
-	
+

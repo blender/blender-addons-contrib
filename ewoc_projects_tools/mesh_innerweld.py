@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 __bpydoc__ = """\
-InnerWeld.  This addon welds parallel connected selected edges together. 
+InnerWeld.  This addon welds parallel connected selected edges together.
 
 Documentation
 
@@ -38,7 +38,7 @@ bl_info = {
 	"name": "InnerWeld",
 	"author": "Gert De Roost",
 	"version": (0, 2, 0),
-	"blender": (2, 6, 3),
+	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Welding parallel edges together.",
 	"warning": "",
@@ -60,39 +60,39 @@ class InnerWeld(bpy.types.Operator):
 	bl_description = "Welding parallel edges together"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH' and list(context.tool_settings.mesh_select_mode) == [False, True, False])
 
 	def invoke(self, context, event):
-		
+
 		bpy.ops.object.editmode_toggle()
 		bpy.ops.object.editmode_toggle()
-		
+
 		self.do_innerweld(context)
-		
+
 		bpy.ops.object.editmode_toggle()
 		bpy.ops.object.editmode_toggle()
-		
+
 		return {'FINISHED'}
 
 
 	def do_innerweld(self, context):
-	
+
 		selobj = context.active_object
 		mesh = selobj.data
 		bm = bmesh.from_edit_mesh(mesh)
-	
+
 		self.sellist = []
 		for edge in bm.edges:
 			if edge.select:
 				self.sellist.append(edge)
-	
-	
+
+
 		def addstart(vert, posn):
-			
+
 			# recursive: adds to initial edgelist at start
 			for e in vert.link_edges:
 				if e in self.sellist:
@@ -100,9 +100,9 @@ class InnerWeld(bpy.types.Operator):
 					v = e.other_vert(vert)
 					self.vertlist[posn].insert(0, v)
 					addstart(v, posn)
-		
+
 		def addend(vert, posn):
-			
+
 			# recursive: adds to initial edgelist at end
 			for e in vert.link_edges:
 				if e in self.sellist:
@@ -110,11 +110,11 @@ class InnerWeld(bpy.types.Operator):
 					v = e.other_vert(vert)
 					self.vertlist[posn].append(v)
 					addend(v, posn)
-	
+
 		posn = 0
 		self.vertlist = []
 		while len(self.sellist) > 0:
-			# initialize next edgesnake		
+			# initialize next edgesnake
 			self.vertlist.append([])
 			vert = self.sellist[0].verts[0]
 			self.vertlist[posn].append(vert)
@@ -122,8 +122,8 @@ class InnerWeld(bpy.types.Operator):
 			addstart(vert, posn)
 			addend(vert, posn)
 			posn += 1
-			
-			
+
+
 		found = True
 		posn = 0
 		mergesets = []
@@ -147,7 +147,7 @@ class InnerWeld(bpy.types.Operator):
 									vset.add(v1)
 									self.vertlist[self.vertlist.index(vlist)].pop(vlist.index(v1))
 					posn +=1
-	
+
 		mergeverts = []
 		for st in mergesets:
 			bpy.ops.mesh.select_all(action = 'DESELECT')
@@ -155,19 +155,19 @@ class InnerWeld(bpy.types.Operator):
 				vert.select = True
 				mergeverts.append(vert)
 			bpy.ops.mesh.merge(type='CENTER', uvs=True)
-		
+
 		for v in mergeverts:
 			try:
 				v.select = True
 			except:
 				pass
-		
+
 		bm.select_flush(1)
 		bm.free()
-		
-		
-		
-	
+
+
+
+
 
 def panel_func(self, context):
 	self.layout.label(text="InnerWeld:")

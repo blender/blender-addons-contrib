@@ -42,7 +42,7 @@ bl_info = {
 	"name": "DeCouple",
 	"author": "Gert De Roost",
 	"version": (0, 2, 0),
-	"blender": (2, 6, 5),
+	"blender": (2, 65, 0),
 	"location": "View3D > Tools",
 	"description": "Temporarily decouples parent and children",
 	"warning": "",
@@ -64,27 +64,27 @@ class DeCouple(bpy.types.Operator):
 	bl_label = "DeCouple"
 	bl_description = "Temporarily decouples parent and children"
 	bl_options = {"REGISTER", "UNDO"}
-	
-	
+
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and context.mode == 'OBJECT')
 
 	def execute(self, context):
-	
+
 		global unparented
-		
+
 		self.do_decouple(context)
 		unparented = True
-			
-		return {'FINISHED'}		
-		
-		
+
+		return {'FINISHED'}
+
+
 	def do_decouple(self, context):
-	
+
 		global parent, children
-	
+
 		parent = context.active_object
 		if len(parent.children) == 0:
 			return
@@ -98,30 +98,30 @@ class DeCouple(bpy.types.Operator):
 			child.select = 0
 		parent.select = 1
 		context.scene.objects.active = parent
-		
-		
+
+
 class ReCouple(bpy.types.Operator):
 	bl_idname = "object.recouple"
 	bl_label = "ReCouple"
 	bl_description = "Recouples decoupled parent and children"
 	bl_options = {"REGISTER", "UNDO"}
-	
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and context.mode == 'OBJECT')
 
 	def execute(self, context):
-	
+
 		global unparented
-		
+
 		self.do_recouple(context)
 		unparented = False
-			
-		return {'FINISHED'}		
-		
+
+		return {'FINISHED'}
+
 	def do_recouple(self, context):
-	
+
 		parent.select = 0
 		for child in children:
 			child.select = 1

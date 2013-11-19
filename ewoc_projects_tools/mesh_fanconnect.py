@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 __bpydoc__ = """\
-The FanConnect addon connects multiple selected verts to one single other vert. 
+The FanConnect addon connects multiple selected verts to one single other vert.
 
 
 Documentation
@@ -38,7 +38,7 @@ bl_info = {
 	"name": "FanConnect",
 	"author": "Gert De Roost",
 	"version": (0, 2, 0),
-	"blender": (2, 6, 3),
+	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Connects multiple selected verts to one single other vert.",
 	"warning": "",
@@ -58,28 +58,28 @@ class FanConnect(bpy.types.Operator):
 	bl_label = "Fan Connect"
 	bl_description = "Connects multiple selected verts to one single other vert"
 	bl_options = {"REGISTER", "UNDO"}
-	
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH' and list(context.tool_settings.mesh_select_mode)[0] == True)
 
 	def invoke(self, context, event):
-		
+
 		ret = self.do_fanconnect(context)
 		if ret == False:
 			return {'CANCELLED'}
 		self.bm.free()
 		bpy.ops.object.editmode_toggle()
 		bpy.ops.object.editmode_toggle()
-		
+
 		return {'FINISHED'}
 
 
 
 
 	def do_fanconnect(self, context):
-	
+
 		bpy.ops.object.editmode_toggle()
 		bpy.ops.object.editmode_toggle()
 		# initialization
@@ -89,13 +89,13 @@ class FanConnect(bpy.types.Operator):
 		actvert = self.bm.select_history.active
 		if not(isinstance(actvert, bmesh.types.BMVert)):
 			return False
-		
+
 		vertlist = []
 		for v in self.bm.verts:
 			if v.select:
 				if not(v == actvert):
 					vertlist.append(v)
-			
+
 		# do connection
 		for v in vertlist:
 			for f in actvert.link_faces:

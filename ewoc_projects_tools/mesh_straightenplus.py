@@ -41,7 +41,7 @@ bl_info = {
 	"name": "StraightenPlus",
 	"author": "Gert De Roost",
 	"version": (0, 3, 0),
-	"blender": (2, 6, 3),
+	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Straighten connected edges",
 	"warning": "",
@@ -65,38 +65,38 @@ class StraightenPlus(bpy.types.Operator):
 	bl_label = "StraightenPlus"
 	bl_description = "Straighten edgeslices"
 	bl_options = {'REGISTER', 'UNDO'}
-	
+
 	CancelAxis = bpy.props.BoolProperty(
-		name = "Restrict axis", 
+		name = "Restrict axis",
 		description = "Dont straighten along the view axis",
 		default = False)
 
 	Percentage = bpy.props.FloatProperty(
-		name = "Amount", 
+		name = "Amount",
 		description = "Amount of straightening",
         default = 1,
         min = 0,
         max = 1)
 
-	
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH')
 
 	def invoke(self, context, event):
-	
+
 		global started, mainop
-		
+
 		started = True
-		
+
 		mainop = self
-		
+
 		bpy.types.Scene.PreSelOff = bpy.props.BoolProperty(
-				name = "PreSelOff", 
+				name = "PreSelOff",
 				description = "Switch off PreSel during Straighten operation",
 				default = True)
-		
+
 		area = context.area
 		area.header_text_set(text="Straighten :  Leftmouse tweaks - Enter confirms - Rightmouse/ESC cancels")
 
@@ -111,17 +111,17 @@ class StraightenPlus(bpy.types.Operator):
 			bpy.ops.object.editmode_toggle()
 			bpy.ops.object.editmode_toggle()
 			started = False
-			return {'FINISHED'}			
-		
+			return {'FINISHED'}
+
 		context.window_manager.modal_handler_add(self)
-		
+
 		return {'RUNNING_MODAL'}
 
 
 	def modal(self, context, event):
-		
+
 		global started
-		
+
 		if event.type in {'RIGHTMOUSE', 'ESC'}:
 			# cancel operation, reset mesh
 			del bpy.types.Scene.PreSelOff
@@ -134,10 +134,10 @@ class StraightenPlus(bpy.types.Operator):
 			bpy.ops.object.editmode_toggle()
 			started = False
 			return {'CANCELLED'}
-			
+
 		elif event.type in {'MIDDLEMOUSE', 'WHEELDOWNMOUSE', 'WHEELUPMOUSE'}:
 			return {'PASS_THROUGH'}
-			
+
 		elif event.type in {'MOUSEMOVE', 'LEFTMOUSE'}:
 			mxa = event.mouse_x
 			mya = event.mouse_y
@@ -153,7 +153,7 @@ class StraightenPlus(bpy.types.Operator):
 						break
 			if not(self.region) and not(self.tweaking):
 				return {'PASS_THROUGH'}
-				
+
 		if event.type == 'LEFTMOUSE':
 			if event.value == 'PRESS':
 				self.tweaking = True
@@ -161,7 +161,7 @@ class StraightenPlus(bpy.types.Operator):
 			else:
 				self.tweaking = False
 			return {'RUNNING_MODAL'}
-			
+
 		if self.tweaking and event.type == 'MOUSEMOVE':
 			mx = event.mouse_x
 			newperc = self.Percentage + (mx - self.oldmx) / 200
@@ -173,7 +173,7 @@ class StraightenPlus(bpy.types.Operator):
 			self.do_straighten()
 			self.oldmx = mx
 			return {'RUNNING_MODAL'}
-				
+
 		if event.type in {'RET', 'NUMPAD_ENTER'}:
 			if not(self.region):
 				return {'PASS_THROUGH'}
@@ -186,26 +186,26 @@ class StraightenPlus(bpy.types.Operator):
 			bpy.ops.object.editmode_toggle()
 			started = 0
 			return {'FINISHED'}
-			
+
 		return {'RUNNING_MODAL'}
-		
+
 
 	def prepare_lists(self, context):
-	
+
 		bpy.ops.object.editmode_toggle()
 		bpy.ops.object.editmode_toggle()
 		selobj = context.active_object
 		self.mesh = selobj.data
 		self.bm = bmesh.from_edit_mesh(self.mesh)
-	
+
 		self.selset = set([])
 		for edge in self.bm.edges:
 			if edge.select:
 				self.selset.add(edge)
-	
-	
+
+
 		def addstart(vert, posn):
-			
+
 			# recursive: adds to initial edgelist at start
 			for e in vert.link_edges:
 				if e in self.selset:
@@ -214,9 +214,9 @@ class StraightenPlus(bpy.types.Operator):
 					self.vertlist[posn].insert(0, (v, Vector(v.co[:])))
 					addstart(v, posn)
 					break
-		
+
 		def addend(vert, posn):
-			
+
 			# recursive: adds to initial edgelist at end
 			for e in vert.link_edges:
 				if e in self.selset:
@@ -225,11 +225,11 @@ class StraightenPlus(bpy.types.Operator):
 					self.vertlist[posn].append((v, Vector(v.co[:])))
 					addend(v, posn)
 					break
-		
+
 		posn = 0
 		self.vertlist = []
 		while len(self.selset) > 0:
-			# initialize next edgesnake		
+			# initialize next edgesnake
 			self.vertlist.append([])
 			elem = self.selset.pop()
 			vert = elem.verts[0]
@@ -239,11 +239,11 @@ class StraightenPlus(bpy.types.Operator):
 			addstart(vert, posn)
 			addend(vert, posn)
 			posn += 1
-		
-	
-	
+
+
+
 	def do_straighten(self):
-	
+
 		for vlist in self.vertlist:
 			vstart = vlist[0][0]
 			vend = vlist[len(vlist) - 1][0]
@@ -256,7 +256,7 @@ class StraightenPlus(bpy.types.Operator):
 				ap = vco - vstart.co
 				perpco = vstart.co + ((ab.dot(ap) / (ab.length ** 2)) * ab)
 				vert.co = vco + ((perpco - vco) * (self.Percentage))
-				
+
 				if self.CancelAxis:
 					# cancel movement in direction perp view
 					delta = (vert.co - vco)
@@ -268,15 +268,15 @@ class StraightenPlus(bpy.types.Operator):
 						nor.length = abs(deltanor)
 						if deltanor >= 0:
 							nor = -1*nor
-						vert.co = vert.co + nor		
-	
+						vert.co = vert.co + nor
+
 		self.mesh.update()
-				
+
 
 
 
 def panel_func(self, context):
-	
+
 	self.layout.label(text="StraightenPlus:")
 	self.layout.operator("mesh.straightenplus", text="Straighten")
 	if started:
@@ -302,4 +302,4 @@ if __name__ == "__main__":
 
 
 
-				
+

@@ -29,27 +29,27 @@
 #---------------------------------------------#
 #    changelog
 #---------------------------------------------#
-'''  
+'''
     "version": (1,2,0)
         - added missing texture types
         - new way to filter file types
         - option for fake user flag
-        
+
     "version": (1,1,5)
         - changed addon category to Import-Export
-    
+
     "version": (1,1,4),
         filename will be used as texture name (still limited by stringlength)
 
     "version": (1,1,3),
         fixed operator and registration
         added tracker and wiki url\
-    
+
     version": (1,1,2)
         replaced image.new() with image.load()
         changed addon category
-        removed some unused/old code    
-        
+        removed some unused/old code
+
     version":1.11:
         added type arg to texture.new() [L48]
         cleared default filename
@@ -65,7 +65,7 @@ bl_info = {
     "name": "import BrushSet",
     "author": "Daniel Grauer (kromar)",
     "version": (1, 2, 0),
-    "blender": (2, 6, 4),
+    "blender": (2, 64, 0),
     "category": "Import-Export",
     "location": "File > Import > BrushSet",
     "description": "imports all image files from a folder",
@@ -122,8 +122,8 @@ def LoadBrushSet(filepath, filename):
                 #    and assign the image to the texture
                 bpy.data.textures[texture.name].image = image
 
-            
-    print("Brush Set imported!")  
+
+    print("Brush Set imported!")
 
 #---------------------------------------------#
 
@@ -134,7 +134,7 @@ class BrushSetImporter(bpy.types.Operator):
 
     filename = StringProperty(name="File Name", description="filepath", default="", maxlen=1024, options={'ANIMATABLE'}, subtype='NONE')
     filepath = StringProperty(name="File Name", description="filepath", default="", maxlen=1024, options={'ANIMATABLE'}, subtype='NONE')
-    
+
     def execute(self, context):
         LoadBrushSet(self.properties.filepath, self.properties.filename)
         return {'FINISHED'}
@@ -164,19 +164,19 @@ class Brush_set_UI(bpy.types.Panel):
     bl_label = 'Brush_Path'
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
-   
+
     def draw(self, context):
-        
-        scn = context.scene 
+
+        scn = context.scene
         layout = self.layout
         column = layout.column(align=True)
         column.label(text='Brush Directory:')
-        column.prop(scn,'filepath')  
+        column.prop(scn,'filepath')
 '''
 
 #---------------------------------------------#
 
-def register():    
+def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func)
 

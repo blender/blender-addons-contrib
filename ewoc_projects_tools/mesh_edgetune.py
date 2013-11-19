@@ -24,20 +24,20 @@ This script is an implementation of the concept of sliding vertices around
    see how it can impact your modeling habits.
    You are able to tune vertices by sliding by freehand-redrawing them on the
    edges they are part of.
-   
+
 
 
    Documentation
-   
-   
+
+
    First install the addon by going to User Preferences-> AddOns and choosing
    "Install from file". Locate the downloaded file and install it.
    Enable the script in User Preferences->AddOns->Mesh.
 
-   
-   The addon will work on any vertice/edge/face-selection. 
+
+   The addon will work on any vertice/edge/face-selection.
    Make a selection, click the EdgeTune button on the Mesh Tools panel.
-   (addon only accessible when in EditMode).   
+   (addon only accessible when in EditMode).
 
    The selection will be visualized in yellow.
    EdgeTune will abide by the limited visibility setting.
@@ -62,7 +62,7 @@ bl_info = {
 	"name": "EdgeTune",
 	"author": "Gert De Roost",
 	"version": (3, 5, 0),
-	"blender": (2, 6, 3),
+	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Tuning edgeloops by redrawing them manually, sliding verts.",
 	"warning": "",
@@ -91,29 +91,29 @@ class EdgeTune(bpy.types.Operator):
 	bl_label = "Tune Edge"
 	bl_description = "Tuning edgeloops by redrawing them manually, sliding verts"
 	bl_options = {"REGISTER", "UNDO"}
-	
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH')
 
 	def invoke(self, context, event):
-		
+
 		self.scn = context.scene
 		self.screen = context.screen
 		self.area = context.area
-		self.region = context.region  
+		self.region = context.region
 		self.selobj = context.active_object
 		self.init_edgetune()
-		
+
 		context.window_manager.modal_handler_add(self)
 		self._handle = bpy.types.SpaceView3D.draw_handler_add(self.redraw, (), 'WINDOW', 'POST_PIXEL')
-		
+
 		return {'RUNNING_MODAL'}
 
 
 	def modal(self, context, event):
-	
+
 		self.viewchange = False
 		if event.type == 'LEFTMOUSE':
 			if event.value == 'PRESS':
@@ -136,7 +136,7 @@ class EdgeTune(bpy.types.Operator):
 			return {'PASS_THROUGH'}
 		elif event.type in {'WHEELDOWNMOUSE', 'WHEELUPMOUSE'}:
 			# recalculate view parameters
-			self.viewchange = True		
+			self.viewchange = True
 			return {'PASS_THROUGH'}
 		elif event.type == 'Z':
 			if event.value == 'PRESS':
@@ -151,7 +151,7 @@ class EdgeTune(bpy.types.Operator):
 						self.undocolist.pop(0)
 						self.mesh.update()
 			return {'RUNNING_MODAL'}
-			
+
 		elif event.type == 'RET':
 			# Consolidate changes.
 			# Free the bmesh.
@@ -159,7 +159,7 @@ class EdgeTune(bpy.types.Operator):
 			self.bmundo.free()
 			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
 			return {'FINISHED'}
-			
+
 		elif event.type == 'MOUSEMOVE':
 			mxa = event.mouse_x
 			mya = event.mouse_y
@@ -173,14 +173,14 @@ class EdgeTune(bpy.types.Operator):
 					if mxa > r.x and mya > r.y and mxa < r.x + r.width and mya < r.y + r.height:
 						self.region = r
 						break
-					
+
 			if not(self.region):
 				return {'RUNNING_MODAL'}
 			mx = mxa - self.region.x
 			my = mya - self.region.y
 
 			hoveredge = None
-	
+
 			# First check mouse is in bounding box edge of which edges.
 			testscrl = []
 			for edge in self.slideedges[self.region]:
@@ -197,12 +197,12 @@ class EdgeTune(bpy.types.Operator):
 					uppy = y2 + 5
 				else:
 					lwpy = y2 - 5
-					uppy = y1 + 5		
+					uppy = y1 + 5
 				if (((x1 < mx < x2) or (x2 < mx < x1)) and (lwpy < my < uppy)) or (((y1 < my < y2) or (y2 < my < y1)) and (lwpx < mx < uppx)):
 					testscrl.append(edge)
 				if self.contedge != None:
 					testscrl.append(self.contedge)
-	
+
 			# Then check these edges to see if mouse is on one of them.
 			allhoveredges = []
 			hovering = False
@@ -211,12 +211,12 @@ class EdgeTune(bpy.types.Operator):
 				for edge in testscrl:
 					x1, y1, z1 = self.getscreencoords(edge.verts[0].co, self.region)
 					x2, y2, z2 = self.getscreencoords(edge.verts[1].co, self.region)
-	
+
 					if x1 == x2 and y1 == y2:
 						dist = math.sqrt((mx - x1)**2 + (my - y1)**2)
 					else:
 						dist = ((mx - x1)*(y2 - y1) - (my - y1)*(x2 - x1)) / math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-	
+
 					if -5 < dist < 5:
 						if self.movedoff or (not(self.movedoff) and edge == self.contedge):
 							allhoveredges.append(edge)
@@ -234,20 +234,20 @@ class EdgeTune(bpy.types.Operator):
 									self.bx2[r], self.by2[r], dummy = self.getscreencoords(hoveredge.verts[1].co, r)
 								self.region.tag_redraw()
 								break
-								
+
 			if hovering == False:
 				self.movedoff = True
 				if self.mouseover == True:
 					self.highoff = True
 					self.region.tag_redraw()
 				self.mouseover = False
-				self.bx1[self.region] = -1 
+				self.bx1[self.region] = -1
 				self.bx2[self.region] = -1
 				self.by1[self.region] = -1
 				self.by2[self.region] = -1, -1, -1, -1
-			
-	
-	
+
+
+
 			if hoveredge != None and self.mbns == True:
 				self.contedge = edge
 				self.movedoff = False
@@ -265,7 +265,7 @@ class EdgeTune(bpy.types.Operator):
 				else:
 					vert = hoveredge.verts[1]
 					vert2 = hoveredge.verts[0]
-					
+
 				# Update local undo info.
 				if self.undolist == []:
 					self.undolist.insert(0, hoveredge)
@@ -280,11 +280,11 @@ class EdgeTune(bpy.types.Operator):
 				for verts in self.selverts[self.region]:
 					if vert == verts[0]:
 						self.selcoords[self.region][self.selverts[self.region].index(verts)][0] = coords
-					elif vert == verts[1]:	
+					elif vert == verts[1]:
 						self.selcoords[self.region][self.selverts[self.region].index(verts)][1] = coords
 				if vert in self.singles:
 					self.boxes[self.region][self.singles.index(vert)] = coords
-				# Calculate new vert 3D coordinates.		
+				# Calculate new vert 3D coordinates.
 				vx1, vy1, vz1 = hoveredge.verts[0].co[:]
 				vx2, vy2, vz2 = hoveredge.verts[1].co[:]
 				self.vertd[vert] = [((vx2 - vx1) * div ) + vx1, ((vy2 - vy1) * div ) + vy1, ((vz2 - vz1) * div ) + vz1]
@@ -293,15 +293,15 @@ class EdgeTune(bpy.types.Operator):
 				vert.co[1] = ((vy2 - vy1) * div ) + vy1
 				vert.co[2] = ((vz2 - vz1) * div ) + vz1
 				self.mesh.update()
-				
+
 		return {'RUNNING_MODAL'}
 
-	
-	
+
+
 	def adapt(self):
-		
+
 		self.firstrun = False
-			
+
 		self.regions = []
 		self.spaces = []
 		self.halfheight = {}
@@ -320,7 +320,7 @@ class EdgeTune(bpy.types.Operator):
 					if sp.type == 'VIEW_3D':
 						self.spaces.append(sp)
 						self.perspm[r] = sp.region_3d.perspective_matrix
-						
+
 		self.selcoords = {}
 		self.slidecoords = {}
 		self.boxes = {}
@@ -338,11 +338,11 @@ class EdgeTune(bpy.types.Operator):
 			self.seledges[r] = []
 			self.slideverts[r] = []
 			self.slideedges[r] = []
-			
+
 		for r in self.regions:
 
 			self.getlayout(r)
-			
+
 			# recalculate screencoords in lists
 			for posn in range(len(self.selverts[r])):
 				self.selcoords[r][posn] = [self.getscreencoords(Vector(self.vertd[self.selverts[r][posn][0]]), r)[:2], self.getscreencoords(Vector(self.vertd[self.selverts[r][posn][1]]), r)[:2]]
@@ -350,36 +350,36 @@ class EdgeTune(bpy.types.Operator):
 				self.slidecoords[r][posn] = [self.getscreencoords(self.slideverts[r][posn][0].co, r)[:2],  self.getscreencoords(self.slideverts[r][posn][1].co, r)[:2]]
 			for posn in range(len(self.singles)):
 				self.boxes[r][posn] = self.getscreencoords(Vector(self.vertd[self.singles[posn]]), r)[:2]
-			
-	
-	
+
+
+
 	def findworldco(self, vec):
-	
+
 		vec = vec.copy()
 		vec.rotate(self.selobj.matrix_world)
 		vec.rotate(self.selobj.matrix_world)
 		vec = vec * self.selobj.matrix_world + self.selobj.matrix_world.to_translation()
 		return vec
-	
+
 	def getscreencoords(self, vec, reg):
-	
+
 		# calculate screencoords of given Vector
 		vec = self.findworldco(vec)
 		prj = self.perspm[reg] * vec.to_4d()
 		return (self.halfwidth[reg] + self.halfwidth[reg] * (prj.x / prj.w), self.halfheight[reg] + self.halfheight[reg] * (prj.y / prj.w), prj.z)
-	
-	
-	
-	
+
+
+
+
 	def init_edgetune(self):
-	
+
 		self.mesh = self.selobj.data
 		self.bm = bmesh.from_edit_mesh(self.mesh)
 		self.bmundo = self.bm.copy()
-	
+
 		self.viewwidth = self.area.width
 		self.viewheight = self.area.height
-		
+
 		#remember initial selection
 		self.keepverts = []
 		for vert in self.bm.verts:
@@ -389,25 +389,25 @@ class EdgeTune(bpy.types.Operator):
 		for edge in self.bm.edges:
 			if edge.select:
 				self.keepedges.append(edge)
-	
+
 		self.firstrun = True
 		self.highoff = False
 		self.mbns = False
 		self.viewchange = False
-		self.mouseover = False	
+		self.mouseover = False
 		self.bx1, self.bx2, self.by1, self.by2 = {}, {}, {}, {}
 		self.undolist = []
 		self.undocolist = []
 		self.contedge = None
-	
+
 		self.adapt()
 		for r in self.regions:
 			r.tag_redraw()
-	
-	
-	
+
+
+
 	def getlayout(self, reg):
-		
+
 		# seledges: selected edges list
 		# selverts: selected verts list per edge
 		# selcoords: selected verts coordinate list per edge
@@ -446,7 +446,7 @@ class EdgeTune(bpy.types.Operator):
 			for vert in self.keepverts:
 				visible[vert] = True
 				self.sverts[reg].append(self.bmundo.verts[vert.index])
-				
+
 		for edge in self.keepedges:
 			if visible[edge.verts[0]] and visible[edge.verts[1]]:
 				edge = self.bmundo.edges[edge.index]
@@ -455,7 +455,7 @@ class EdgeTune(bpy.types.Operator):
 				x1, y1, dummy = self.getscreencoords(edge.verts[0].co, reg)
 				x2, y2, dummy = self.getscreencoords(edge.verts[1].co, reg)
 				self.selcoords[reg].append([[x1, y1],[x2, y2]])
-	
+
 		# selverts: selected verts list
 		# slideedges: slideedges list
 		# slideverts: slideverts list per edge
@@ -474,7 +474,7 @@ class EdgeTune(bpy.types.Operator):
 					self.slideverts[reg].append([edge.verts[0], edge.verts[1]])
 					x1, y1, dummy = self.getscreencoords(edge.verts[0].co, reg)
 					x2, y2, dummy = self.getscreencoords(edge.verts[1].co, reg)
-					self.slidecoords[reg].append([[x1, y1], [x2, y2]])				
+					self.slidecoords[reg].append([[x1, y1], [x2, y2]])
 		# Box out single vertices.
 		self.singles = []
 		self.boxes[reg] = []
@@ -487,15 +487,15 @@ class EdgeTune(bpy.types.Operator):
 			if single:
 				self.singles.append(vert)
 				self.boxes[reg].append(self.getscreencoords(vert.co, reg)[:2])
-	
-	
+
+
 	def redraw(self):
-		
+
 		drawregion = bpy.context.region
-					
+
 		if self.viewchange:
 			self.adapt()
-			
+
 		if self.slideverts[drawregion] != []:
 			# Draw single verts as boxes.
 			glColor3f(1.0,1.0,0)
@@ -507,7 +507,7 @@ class EdgeTune(bpy.types.Operator):
 				glVertex2f(x+2, y+2)
 				glVertex2f(x+2, y-2)
 				glEnd()
-		
+
 			# Accentuate selected edges.
 			glColor3f(1.0, 1.0, 0)
 			for posn in range(len(self.selcoords[drawregion])):
@@ -517,7 +517,7 @@ class EdgeTune(bpy.types.Operator):
 				x, y = self.selcoords[drawregion][posn][1]
 				glVertex2f(x, y)
 				glEnd()
-		
+
 			# Draw slide-edges.
 			glColor3f(1.0, 0, 0)
 			for posn in range(len(self.slidecoords[drawregion])):
@@ -527,7 +527,7 @@ class EdgeTune(bpy.types.Operator):
 				x, y = self.slidecoords[drawregion][posn][1]
 				glVertex2f(x, y)
 				glEnd()
-	
+
 		# Draw mouseover highlighting.
 		if self.mouseover:
 			glColor3f(0, 0, 1.0)
@@ -578,4 +578,4 @@ if __name__ == "__main__":
 
 
 
-	
+

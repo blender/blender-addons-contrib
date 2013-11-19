@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 __bpydoc__ = """\
-This addon enables you to "flood-select" or deselect entire areas of selected/deselected elements. 
+This addon enables you to "flood-select" or deselect entire areas of selected/deselected elements.
 
 
 Documentation
@@ -43,7 +43,7 @@ bl_info = {
 	"name": "FloodSel",
 	"author": "Gert De Roost",
 	"version": (1, 0, 0),
-	"blender": (2, 6, 3),
+	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Flood-(de)select areas.",
 	"warning": "",
@@ -81,30 +81,30 @@ class FloodSel(bpy.types.Operator):
 	bl_label = "FloodSel"
 	bl_description = "Flood-(de)select areas"
 	bl_options = {'REGISTER', 'UNDO'}
-	
-	
+
+
 	SelectMode = bpy.props.BoolProperty(
-		name = "Deselect", 
+		name = "Deselect",
 		description = "Switch between selecting and deselecting",
 		default = False,
 		update = change_header)
 
 	Multiple = bpy.props.BoolProperty(
-		name = "Multiple", 
+		name = "Multiple",
 		description = "Several operations after each other",
 		default = False,
 		update = change_header)
 
 	Preselection = bpy.props.BoolProperty(
-		name = "Preselection", 
+		name = "Preselection",
 		description = "Preview when hovering over areas",
 		default = True)
 
 	Diagonal = bpy.props.BoolProperty(
-		name = "Diagonal is border", 
+		name = "Diagonal is border",
 		description = "Diagonal selections are treated as borders",
 		default = True)
-	
+
 
 	@classmethod
 	def poll(cls, context):
@@ -112,24 +112,24 @@ class FloodSel(bpy.types.Operator):
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH')
 
 	def invoke(self, context, event):
-	
+
 		global mainop, started
-	
+
 		started = True
-		
+
 		mainop = self
-		
+
 		self.initialize(context)
-		
+
 		context.window_manager.modal_handler_add(self)
-		
+
 		return {'RUNNING_MODAL'}
 
 
 	def modal(self, context, event):
-	
+
 		global started
-		
+
 		if event.type in ['MIDDLEMOUSE']:
 			return {'PASS_THROUGH'}
 		elif event.type in ['WHEELDOWNMOUSE', 'WHEELUPMOUSE']:
@@ -137,7 +137,7 @@ class FloodSel(bpy.types.Operator):
 		elif event.type in ['LEFTMOUSE']:
 			if not(self.region):
 				return {'PASS_THROUGH'}
-				
+
 			if not(self.Preselection):
 				for elem in self.doneset:
 					elem.select = not(self.state)
@@ -160,10 +160,10 @@ class FloodSel(bpy.types.Operator):
 			bpy.ops.object.editmode_toggle()
 			return {'FINISHED'}
 		elif event.type in ['MOUSEMOVE']:
-				
+
 			mxa = event.mouse_x
 			mya = event.mouse_y
-			
+
 			oldregion = self.region
 			self.region = None
 			for a in context.screen.areas:
@@ -178,21 +178,21 @@ class FloodSel(bpy.types.Operator):
 							if sp.type == 'VIEW_3D':
 								self.space = sp
 						break
-						
+
 			if not(self.region):
-				if len(self.doneset):	
+				if len(self.doneset):
 					oldregion.tag_redraw()
 					for elem in self.doneset:
 						elem.select = self.state
 					self.doneset = set([])
 				return {'PASS_THROUGH'}
-				
+
 			for elem in self.doneset:
 				elem.select = self.state
-				
+
 			mx = mxa - self.region.x
 			my = mya - self.region.y
-			
+
 			rv3d = self.space.region_3d
 			eye = Vector(rv3d.view_matrix.inverted().col[3][:3])
 			mpoint = Vector((mx, my))
@@ -277,34 +277,34 @@ class FloodSel(bpy.types.Operator):
 			if self.Preselection:
 				for elem in self.doneset:
 					elem.select = not(self.state)
-					
+
 			return {'RUNNING_MODAL'}
-			
+
 		return {'RUNNING_MODAL'}
 
 
 	def initialize(self, context):
-		
+
 		bpy.types.Scene.PreSelOff = bpy.props.BoolProperty(
-				name = "PreSelOff", 
+				name = "PreSelOff",
 				description = "Switch off PreSel during FloodSel",
 				default = True)
-		
+
 		self.area = context.area
 		self.selobj = context.active_object
 		self.mesh = self.selobj.data
 		self.bm = bmesh.from_edit_mesh(self.mesh)
-	
+
 		self.area.header_text_set(text="FloodSel :  Leftclick selects")
-		
+
 		self.region = None
 		self.doneset = set([])
-		
+
 		self.getmatrix()
-	
-	
+
+
 	def getmatrix(self):
-		
+
 		# Rotating / panning / zooming 3D view is handled here.
 		# Calculate matrix.
 		if self.selobj.rotation_mode == 'AXIS_ANGLE':
@@ -338,18 +338,18 @@ class FloodSel(bpy.types.Operator):
 			self.matrix = mat_rotZ * mat_rotX * mat_rotY
 		elif self.selobj.rotation_mode == 'ZYX':
 			self.matrix = mat_rotZ * mat_rotY * mat_rotX
-	
+
 		# handle object scaling
 		sx, sy, sz = self.selobj.scale
 		mat_scX = Matrix.Scale(sx, 4, Vector([1, 0, 0]))
 		mat_scY = Matrix.Scale(sy, 4, Vector([0, 1, 0]))
 		mat_scZ = Matrix.Scale(sz, 4, Vector([0, 0, 1]))
 		self.matrix = mat_scX * mat_scY * mat_scZ * self.matrix
-	
+
 
 
 def panel_func(self, context):
-	
+
 	self.layout.label(text="FloodSel:")
 	self.layout.operator("mesh.floodsel", text="Flood SelArea")
 	if started:

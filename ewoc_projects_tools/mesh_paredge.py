@@ -23,12 +23,12 @@ This script uses the concept of support edges, or the inserting of new edges par
 Documentation
 
 First go to User Preferences->Addons and enable the ParEdge addon in the Mesh category.
-Go to EditMode, select a closed edge path without corners (an edgeloop or part of an edgeloop)and invoke 
-the addon (button in the Mesh Tool panel).  Enter a distance (positive or negative) with the slider in 
+Go to EditMode, select a closed edge path without corners (an edgeloop or part of an edgeloop)and invoke
+the addon (button in the Mesh Tool panel).  Enter a distance (positive or negative) with the slider in
 the Mesh Tools panel or leftclick-drag from left to right to
 interactively choose the parallel distance.  Select "Both Sides" on the panel to insert edges on both sides.
 Select "Endpoint quads" if you want to have edgepath endpoints "self.capped".
-Press the right mouse button to cancel operation or ENTER to accept changes.  
+Press the right mouse button to cancel operation or ENTER to accept changes.
 The tool will remember the last set distance and the "Both Sides" setting for the next ParEdge operation.
 
 If you wish to hotkey ParEdge:
@@ -43,7 +43,7 @@ bl_info = {
 	"name": "ParEdge",
 	"author": "Gert De Roost",
 	"version": (0, 5, 0),
-	"blender": (2, 6, 3),
+	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Inserting of parallel edges",
 	"warning": "",
@@ -64,7 +64,7 @@ started = 0
 
 
 def parchangedef(self, context):
-	
+
 	mainop.adapt(None)
 
 
@@ -74,10 +74,10 @@ class ParEdge(bpy.types.Operator):
 	bl_label = "ParEdge"
 	bl_description = "Inserting of parallel edges"
 	bl_options = {"REGISTER", "UNDO"}
-	
-	
+
+
 	Distance = bpy.props.FloatProperty(
-		name = "Distance", 
+		name = "Distance",
 		description = "Enter distance",
 		default = 0,
 		min = -1,
@@ -85,13 +85,13 @@ class ParEdge(bpy.types.Operator):
 		update = parchangedef)
 
 	Both = bpy.props.BoolProperty(
-		name = "Both sides", 
+		name = "Both sides",
 		description = "Insert on both sides",
 		default = False,
 		update = parchangedef)
 
 	Cap = bpy.props.BoolProperty(
-		name = "Endpoint quads", 
+		name = "Endpoint quads",
 		description = "Create endpoint quads",
 		default = False,
 		update = parchangedef)
@@ -103,28 +103,28 @@ class ParEdge(bpy.types.Operator):
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH')
 
 	def invoke(self, context, event):
-	
+
 		global mainop
-		
+
 		mainop = self
-		
+
 		bpy.types.Scene.PreSelOff = bpy.props.BoolProperty(
-				name = "PreSelOff", 
+				name = "PreSelOff",
 				description = "Switch off PreSel during FPS navigation mode",
 				default = True)
-		
+
 		self.area = context.area
 		self.area.header_text_set(text="ParEdge :  Leftmouse to shift - Enter to confirm - Rightmouse/ESC cancels")
-		
+
 		self.init_paredge(context)
-		
+
 		context.window_manager.modal_handler_add(self)
-		
+
 		return {'RUNNING_MODAL'}
 
 
 	def modal(self, context, event):
-		
+
 		global started
 
 		mxa = event.mouse_x
@@ -139,7 +139,7 @@ class ParEdge(bpy.types.Operator):
 				if mxa > r.x and mya > r.y and mxa < r.x + r.width and mya < r.y + r.height:
 					self.region = r
 					break
-					
+
 		if event.type in {'RIGHTMOUSE', 'ESC'} or self.wrongsel or self.stop:
 			self.area.header_text_set()
 			del bpy.types.Scene.PreSelOff
@@ -150,7 +150,7 @@ class ParEdge(bpy.types.Operator):
 			self.bmundo.to_mesh(self.mesh)
 			bpy.ops.object.editmode_toggle()
 			return {'CANCELLED'}
-			
+
 		elif event.type == 'LEFTMOUSE':
 			if not(self.region):
 				# this for splitting up mouse func between panel and 3d view
@@ -162,11 +162,11 @@ class ParEdge(bpy.types.Operator):
 			if event.value == 'RELEASE':
 				self.mbns = 0
 			return {'RUNNING_MODAL'}
-			
+
 		elif event.type in {'MIDDLEMOUSE', 'WHEELDOWNMOUSE', 'WHEELUPMOUSE'}:
 			# user transforms view
 			return {'PASS_THROUGH'}
-			
+
 		elif event.type in {'RET', 'NUMPAD_ENTER'}:
 			self.area.header_text_set()
 			del bpy.types.Scene.PreSelOff
@@ -227,19 +227,19 @@ class ParEdge(bpy.types.Operator):
 			self.bmundo.free()
 			bpy.ops.object.editmode_toggle()
 			return {'FINISHED'}
-			
+
 		elif event.type == 'MOUSEMOVE':
 			# do some edgecreating
 			self.adapt(event)
 			return {'PASS_THROUGH'}
-			
+
 		return {'RUNNING_MODAL'}
 
 
 	def adapt(self, event):
-		
+
 		global started
-		
+
 		def removecaps():
 			self.capped = False
 			for posn in range(len(self.vertlist)):
@@ -256,8 +256,8 @@ class ParEdge(bpy.types.Operator):
 						templ.append(f)
 					bmesh.utils.face_join(templ)
 			self.mesh.calc_tessface()
-	
-	
+
+
 		if self.mbns == 0:
 			if self.Cap != self.oldcap:
 				if self.dist != 0:
@@ -269,7 +269,7 @@ class ParEdge(bpy.types.Operator):
 				self.oldcap = self.Cap
 			if self.Both != self.oldboth:
 				if self.dist != 0:
-					# enter edge-building through the backdoor to instantaneously show both inserts 
+					# enter edge-building through the backdoor to instantaneously show both inserts
 					self.mbns = 2
 				if self.Both == True:
 					# if just set
@@ -310,7 +310,7 @@ class ParEdge(bpy.types.Operator):
 								for edge in self.dissedges1[posn]:
 									edge.select = True
 								bpy.ops.mesh.dissolve_limited()
-								self.mesh.calc_tessface()													
+								self.mesh.calc_tessface()
 								for vert in self.dissverts2[posn]:
 									vert.select = True
 								for edge in self.dissedges2[posn]:
@@ -343,7 +343,7 @@ class ParEdge(bpy.types.Operator):
 			# dont do anything if zero - removing edges will be handled once exiting with ENTER
 			if self.Distance == 0:
 				return
-			
+
 			#negative side handling
 			if self.dist < 0 or self.Both == True:
 				for posn in range(len(self.vertlist)):
@@ -367,7 +367,7 @@ class ParEdge(bpy.types.Operator):
 						self.railverts1[posn] = []
 						self.dissverts1[posn] = []
 						self.dissedges1[posn] = []
-				
+
 				for posn in range(len(self.vertlist)):
 					if not(self.negsubd[posn]):
 						self.negsubd[posn] = True
@@ -382,8 +382,8 @@ class ParEdge(bpy.types.Operator):
 									self.railedges1[posn].append(e)
 									if self.vertlist[posn].index(vert) == len(self.vertlist[posn]) - 2:
 										self.railverts1[posn].append(loop.link_loop_next.link_loop_next.vert)
-										e = loop.link_loop_next.edge        
-										self.railedges1[posn].append(e)							
+										e = loop.link_loop_next.edge
+										self.railedges1[posn].append(e)
 						if self.railedges1[posn] != []:
 							# insert parallel edges
 							prev = None
@@ -401,7 +401,7 @@ class ParEdge(bpy.types.Operator):
 								else:
 									dummy, vert = bmesh.utils.edge_split(edge, self.vertlist[posn][self.railedges1[posn].index(edge)], 0.5)
 								if idx == 0:
-									startvert = vert 
+									startvert = vert
 								self.dissverts1[posn].append(vert)
 								if not(prev == None):
 									for f in edge.link_faces:
@@ -415,14 +415,14 @@ class ParEdge(bpy.types.Operator):
 								prev = vert
 								prevedge = edge
 							self.mesh.calc_tessface()
-	
+
 				# select inserted edges/verts
 				for posn in range(len(self.vertlist)):
 					for v in self.dissverts1[posn]:
 						v.select = True
 					for e in self.dissedges1[posn]:
 						e.select = True
-	
+
 			# do distance shifting
 			for posn in range(len(self.vertlist)):
 				if self.railedges1[posn] != []:
@@ -433,8 +433,8 @@ class ParEdge(bpy.types.Operator):
 						vec = rv.co - sv.co
 						vec.length = abs(self.dist)
 						pv.co = sv.co + vec
-	
-	
+
+
 			#positive side handling
 			if self.dist > 0 or self.Both == True:
 				for posn in range(len(self.vertlist)):
@@ -493,7 +493,7 @@ class ParEdge(bpy.types.Operator):
 								else:
 									dummy, vert = bmesh.utils.edge_split(edge, self.vertlist[posn][self.railedges2[posn].index(edge)], 0.5)
 								if idx == 0:
-									startvert = vert 
+									startvert = vert
 								self.dissverts2[posn].append(vert)
 								if not(prev == None):
 									for f in edge.link_faces:
@@ -507,15 +507,15 @@ class ParEdge(bpy.types.Operator):
 								prev = vert
 								prevedge = edge
 							self.mesh.calc_tessface()
-						
-	
+
+
 				# select inserted edges/verts
 				for posn in range(len(self.vertlist)):
 					for v in self.dissverts2[posn]:
 						v.select = True
 					for e in self.dissedges2[posn]:
 						e.select = True
-	
+
 			# do distance shifting
 			for posn in range(len(self.vertlist)):
 				if self.railedges2[posn] != []:
@@ -526,14 +526,14 @@ class ParEdge(bpy.types.Operator):
 						vec = rv.co - sv.co
 						vec.length = abs(self.dist)
 						pv.co = sv.co + vec
-			
+
 			# create cap
 			if not(self.capped):
 				capsellist = []
 				for posn in range(len(self.vertlist)):
 					if self.Both and self.Cap:
 						self.capped = True
-						
+
 						def capendpoint(i):
 							self.capedges = []
 							es1 = None
@@ -579,29 +579,29 @@ class ParEdge(bpy.types.Operator):
 								self.caplist[posn].append((es1, es2, vert, v2, f3, fo1, fo2))
 							capsellist.append(es1)
 							capsellist.append(es2)
-								
+
 						self.caplist[posn] = []
 						capendpoint(0)
 						capendpoint(-1)
 				self.mesh.calc_tessface()
-	
+
 			# select original verts/edges
 			for posn in range(len(self.vertlist)):
 				for edge in self.edgelist[posn]:
 					edge.select = True
 				for vert in self.vertlist[posn]:
 					vert.select = True
-					
+
 		bmesh.update_edit_mesh(self.mesh, destructive=True)
 		self.mesh.update()
-		
-	
-	
-	
+
+
+
+
 	def init_paredge(self, context):
-	
+
 		global started
-		
+
 		self.oldcap = False
 		self.capped = False
 		self.stop = False
@@ -624,18 +624,18 @@ class ParEdge(bpy.types.Operator):
 		self.caplist = []
 		self.singledir = []
 		self.firstvert = []
-	
+
 		bpy.ops.object.editmode_toggle()
 		bpy.ops.object.editmode_toggle()
-		
+
 		bpy.ops.mesh.sort_elements(elements={'VERT'})
-		self.region = context.region  
+		self.region = context.region
 		selobj = bpy.context.active_object
 		self.mesh = selobj.data
 		self.bm = bmesh.from_edit_mesh(self.mesh)
 		self.bmundo = self.bm.copy()
 		started = True
-	
+
 		self.sellist = []
 		self.sellist2 = []
 		self.edgelist = []
@@ -649,7 +649,7 @@ class ParEdge(bpy.types.Operator):
 			return
 		# find first two connected verts: v and nxv
 		# they consitute edge e
-		
+
 		# self.vertlist: make ordered list of selected vert-string
 		# self.edgelist: make ordered list of selected edges-string
 		p = 0
@@ -685,7 +685,7 @@ class ParEdge(bpy.types.Operator):
 				pass
 			print (self.vertlist[0])
 
-			# add in front of lists	
+			# add in front of lists
 			while len(self.sellist) > 0:
 				self.facelist = []
 				invlist = []
@@ -723,11 +723,11 @@ class ParEdge(bpy.types.Operator):
 						self.sellist.pop(self.sellist.index(fv))
 						continue
 				break
-			
+
 			#store first vert for closedness checking
 			self.firstvert[p] = self.vertlist[p][0]
 			self.sellist.append(self.firstvert[p])
-	
+
 			# add to end of lists
 			while len(self.sellist) > 0:
 				self.facelist = []
@@ -778,18 +778,18 @@ class ParEdge(bpy.types.Operator):
 				self.sellist.pop(self.sellist.index(self.firstvert[p]))
 			# next selected edgeloopslice
 			p += 1
-	
-	
+
+
 		# orient edge and vertlists parallel - reverse if necessary
-	
-		self.singledir[0] = self.edgelist[0][0].verts[0]		
-		
+
+		self.singledir[0] = self.edgelist[0][0].verts[0]
+
 		for i in range(len(self.edgelist) - 1):
 			bpy.ops.mesh.select_all(action = 'DESELECT')
 			# get first vert and edge for two adjacent slices
 			for v in self.edgelist[i][0].verts:
 				if len(self.edgelist[i]) == 1:
-					vt = self.singledir[i]	
+					vt = self.singledir[i]
 					vt.select = True
 					self.bm.select_history.add(vt)
 					v1 = vt
@@ -816,15 +816,15 @@ class ParEdge(bpy.types.Operator):
 			self.bm.select_history.validate()
 			# get path between startverts for checking orientation
 			bpy.ops.mesh.shortest_path_select()
-			
+
 			for e in self.bm.edges:
 				if e.verts[0].select and e.verts[1].select:
 					e.select = True
-			
-			
+
+
 			# correct selected path when not connected neatly to vert from left or right(cant know direction)
 			def correctsel(e1, v1, lst):
-			
+
 				found = False
 				# check situation where left/right connection is on some other slicevert than first
 				while not(found):
@@ -852,7 +852,7 @@ class ParEdge(bpy.types.Operator):
 										v1 = e1.other_vert(v1)
 										e1 = edge
 							found = False
-						
+
 				# check situation where left/right connection is on vert thats outside slice
 				found = False
 				while not(found):
@@ -871,19 +871,19 @@ class ParEdge(bpy.types.Operator):
 								e1 = edge
 								found = False
 				return e1, v1, 'NORMAL'
-								
+
 			e1, v1, state1 = correctsel(e1, v1, self.edgelist[i])
 			if state1 == 'REVERSE':
 				# special trick - mail me
 				for j in range(i + 1):
 					self.edgelist[j].reverse()
 					self.vertlist[j].reverse()
-			e2, v2, state2 = correctsel(e2, v2, self.edgelist[i+1])					
+			e2, v2, state2 = correctsel(e2, v2, self.edgelist[i+1])
 			if state2 == 'REVERSE':
 				# special trick - mail me
 				self.edgelist[i+1].reverse()
 				self.vertlist[i+1].reverse()
-	
+
 			# do all the checking to see if the checked lists must be reversed
 			brk = False
 			for face1 in e1.link_faces:
@@ -943,39 +943,39 @@ class ParEdge(bpy.types.Operator):
 											break
 								break
 						break
-	
+
 		bpy.ops.mesh.select_all(action = 'DESELECT')
 		for posn in range(len(self.vertlist)):
 			for v in self.vertlist[posn]:
 				v.select = True
 			for e in self.edgelist[posn]:
 				e.select = True
-	
-	
+
+
 		# try to guess min and max values for distance slider - can always use mouse to override
 		co1 = self.vertlist[0][0].co
-		co2 = self.vertlist[0][len(self.vertlist[0]) - 1].co				
+		co2 = self.vertlist[0][len(self.vertlist[0]) - 1].co
 		self.meanmin = (co1 - co2).length * -2
 		self.meanmax = -self.meanmin
 		if self.meanmax == 0:
 			self.meanmax = self.meanmin = 1
-	
+
 		# this is only local - must find way to change Operator prop
 		Distance = bpy.props.FloatProperty(
-				name = "Distance", 
+				name = "Distance",
 				description = "Enter distance2",
 				default = 0,
 				min = self.meanmin,
 				max = self.meanmax)
-		
-		
+
+
 
 
 
 
 
 def panel_func(self, context):
-	
+
 	self.layout.label(text="ParEdge:")
 	self.layout.operator("mesh.paredge", text="Insert Edges")
 	if started:
@@ -1001,4 +1001,4 @@ if __name__ == "__main__":
 
 
 
-	
+

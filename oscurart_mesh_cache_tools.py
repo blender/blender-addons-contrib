@@ -2,7 +2,7 @@ bl_info = {
     "name": "Mesh Cache Tools",
     "author": "Oscurart",
     "version": (1, 0),
-    "blender": (2, 6, 4),
+    "blender": (2, 64, 0),
     "location": "Tools > Mesh Cache Tools",
     "description": "Tools for Management Mesh Cache Process",
     "warning": "",
@@ -162,7 +162,7 @@ class OscPc2iMporterCopy(bpy.types.Operator):
     def execute(self, context):
         filefolder = os.path.dirname(bpy.data.filepath)
         os.chdir(filefolder)
-        if bpy.context.scene.muu_pc2_relative_path != "":            
+        if bpy.context.scene.muu_pc2_relative_path != "":
             if os.path.exists("%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path))):
                 print("Folder Already Exists.")
             else:
@@ -205,7 +205,7 @@ class OscGroupLinkedToLocal(bpy.types.Operator):
     def execute(self, context):
         OscLinkedGroupToLocal()
         return {'FINISHED'}
-    
+
 class OscMeshCacheUp(bpy.types.Operator):
     bl_idname = "object.modifier_mesh_cache_up"
     bl_label = "Mesh Cache To Top"
@@ -228,9 +228,9 @@ class OscMeshCacheUp(bpy.types.Operator):
                         bpy.ops.object.modifier_move_up(modifier=mod.name)
 
         bpy.context.scene.objects.active = actob
-        
-        return {'FINISHED'}    
-    
+
+        return {'FINISHED'}
+
 
 def register():
     from bpy.types import Scene
@@ -238,7 +238,7 @@ def register():
                            IntProperty,
                            StringProperty,
                            )
-    
+
     Scene.muu_pc2_rotx = BoolProperty(default=True, name="Rotx = 90")
     Scene.muu_pc2_world_space = BoolProperty(default=True, name="World Space")
     Scene.muu_pc2_modifiers = BoolProperty(default=True, name="Apply Modifiers")
@@ -268,4 +268,4 @@ def unregister():
     bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
-    register() 
+    register()

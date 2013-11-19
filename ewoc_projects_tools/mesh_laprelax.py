@@ -40,7 +40,7 @@ bl_info = {
 	"name": "LapRelax",
 	"author": "Gert De Roost",
 	"version": (0, 2, 0),
-	"blender": (2, 6, 3),
+	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Smoothing mesh keeping volume",
 	"warning": "",
@@ -61,9 +61,9 @@ class LapRelax(bpy.types.Operator):
 	bl_label = "LapRelax"
 	bl_description = "Smoothing mesh keeping volume"
 	bl_options = {'REGISTER', 'UNDO'}
-	
+
 	Repeat = bpy.props.IntProperty(
-		name = "Repeat", 
+		name = "Repeat",
 		description = "Repeat how many times",
 		default = 1,
 		min = 1,
@@ -76,24 +76,24 @@ class LapRelax(bpy.types.Operator):
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH')
 
 	def invoke(self, context, event):
-		
+
 		# smooth #Repeat times
 		for i in range(self.Repeat):
 			self.do_laprelax()
-		
+
 		return {'FINISHED'}
 
 
 	def do_laprelax(self):
-	
+
 		context = bpy.context
-		region = context.region  
+		region = context.region
 		area = context.area
 		selobj = bpy.context.active_object
 		mesh = selobj.data
 		bm = bmesh.from_edit_mesh(mesh)
 		bmprev = bm.copy()
-	
+
 		for v in bmprev.verts:
 			if v.select:
 				tot = Vector((0, 0, 0))
@@ -108,12 +108,12 @@ class LapRelax(bpy.types.Operator):
 				if cnt:
 					# dont affect border edges: they cause shrinkage
 					continue
-					
+
 				# find Laplacian mean
 				for e in v.link_edges:
 					tot += e.other_vert(v).co
 				tot /= len(v.link_edges)
-				
+
 				# cancel movement in direction of vertex normal
 				delta = (tot - v.co)
 				if delta.length != 0:
@@ -122,8 +122,8 @@ class LapRelax(bpy.types.Operator):
 					nor = v.normal
 					nor.length = abs(deltanor)
 					bm.verts[v.index].co = tot + nor
-			
-			
+
+
 		mesh.update()
 		bm.free()
 		bmprev.free()
@@ -133,7 +133,7 @@ class LapRelax(bpy.types.Operator):
 
 
 def panel_func(self, context):
-	
+
 	scn = bpy.context.scene
 	self.layout.label(text="LapRelax:")
 	self.layout.operator("mesh.laprelax", text="Laplace Relax")
@@ -156,4 +156,4 @@ if __name__ == "__main__":
 
 
 
-	
+

@@ -22,7 +22,7 @@ bl_info = {
 	"name": "EWOCprojects tools",
 	"author": "Gert De Roost - paleajed",
 	"version": (1, 3, 1),
-	"blender": (2, 6, 3),
+	"blender": (2, 63, 0),
 	"location": "View3D > Toolbar and View3D > Specials (W-key)",
 	"description": "Edit mode tools - contrib version",
 	"warning": "",
@@ -80,7 +80,7 @@ class VIEW3D_MT_edit_mesh_paleajed(bpy.types.Menu):
 		layout.operator("mesh.edgetune",
 			text="EdgeTune")
 		layout.operator("mesh.quadder",
-			text="Quadder")	
+			text="Quadder")
 		layout.operator("mesh.paredge",
 			text="ParEdge")
 		layout.operator("mesh.edgegrow",
@@ -121,7 +121,7 @@ class PaleajedPanel(bpy.types.Panel):
 		layout = self.layout
 		layout.operator("mesh.edgetune")
 		layout.operator("mesh.quadder")
-		
+
 		layout.operator("mesh.paredge")
 		if mesh_paredge.started:
 			layout.prop(mesh_paredge.mainop, "Distance")
@@ -134,7 +134,7 @@ class PaleajedPanel(bpy.types.Panel):
 		layout.operator("object.fastorigin")
 		layout.operator("mesh.laprelax")
 		layout.operator("mesh.innerweld")
-		
+
 		if not(mesh_straightenplus.started):
 			layout.operator("mesh.straightenplus")
 		else:
@@ -145,18 +145,18 @@ class PaleajedPanel(bpy.types.Panel):
 				msop.do_straighten()
 				msop.oldperc = msop.Percentage
 			layout.prop(msop, "CancelAxis")
-		
+
 		layout.operator("mesh.floodsel", text="Flood Sel")
 		if mesh_floodsel.started:
 			layout.prop(mesh_floodsel.mainop, "SelectMode")
 			layout.prop(mesh_floodsel.mainop, "Multiple")
 			layout.prop(mesh_floodsel.mainop, "Preselection")
 			layout.prop(mesh_floodsel.mainop, "Diagonal")
-		
+
 		layout.operator("mesh.deathguppie")
 		layout.prop(scn, "Smooth")
 		layout.prop(scn, "Inner")
-		
+
 		if not(mesh_selproject.started):
 			self.layout.operator("mesh.selproject", text="SelProject")
 			if context.mode == 'EDIT_MESH':
@@ -178,7 +178,7 @@ class PaleajedPanel(bpy.types.Panel):
 		else:
 			layout.operator("object.recouple",
 				text="ReCouple")
-				
+
 		layout.operator("object.keeptrans")
 
 # Register all operators and panels
@@ -190,7 +190,7 @@ def menu_func(self, context):
 
 def register():
 
-	bpy.app.handlers.scene_update_post.append(sceneupdate_handler)	
+	bpy.app.handlers.scene_update_post.append(sceneupdate_handler)
 
 	bpy.utils.register_module(__name__)
 
@@ -200,7 +200,7 @@ def register():
 
 def unregister():
 	bpy.app.handlers.scene_update_post.remove(sceneupdate_handler)
-	
+
 	bpy.utils.unregister_module(__name__)
 
 	# Remove "Extras" menu from the "Add Mesh" menu.
@@ -208,10 +208,10 @@ def unregister():
 
 if __name__ == "__main__":
 	register()
-	
-	
-	
-	
+
+
+
+
 @persistent
 def sceneupdate_handler(dummy):
 
@@ -225,11 +225,11 @@ def sceneupdate_handler(dummy):
 				itemlist.append((ob.name, ob.name, "Set From:"))
 		bpy.types.Scene.FromObject = bpy.props.EnumProperty(
 				items = itemlist,
-				name = "From", 
+				name = "From",
 				description = "Object to project")
 		bpy.types.Scene.ToObject = bpy.props.EnumProperty(
 				items = itemlist,
-				name = "To", 
+				name = "To",
 				description = "Object to project onto")
 		mesh_selproject.oldobjs = list(scn.objects)
-	
+

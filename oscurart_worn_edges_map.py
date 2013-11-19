@@ -20,7 +20,7 @@ bl_info = {
     "name": "Worn Edges",
     "author": "Oscurart",
     "version": (1, 2),
-    "blender": (2, 6, 8),
+    "blender": (2, 68, 0),
     "location": "Vertex Paint > Paint > Worn Edges",
     "description": "Create a Vertex Color map with Worn Edges",
     "warning": "",

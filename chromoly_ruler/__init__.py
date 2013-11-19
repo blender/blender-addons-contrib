@@ -21,7 +21,8 @@
 bl_info = {
 	'name': 'Ruler',
 	'author': 'chromoly - adapted for 2.63 by Gert De Roost',
-	'version': (2, 3, 0),	'blender': (2, 6, 3),
+	'version': (2, 3, 0),
+	'blender': (2, 63, 0),
 	'location': 'View3D > Properties > Ruler',
 	'category': '3D View'}
 
@@ -55,7 +56,7 @@ from .va.view import check_view, check_view_context, \
 from .va.utils import get_matrix_element_square
 from .va.gl import draw_box, draw_triangles, draw_triangle_relative, \
 				  draw_circle, draw_arc12
-				  
+
 import copy
 # from va.utils import print_mat
 
@@ -76,18 +77,18 @@ class TmpClass():
 default_config = d = OrderedDict()	# OrderedDict  Il y avait pas de besoin d'utiliser particulier
 d['color_background'] = [0, 0, 0, 1]
 d['scale_size'] = [5, 4, 4]	 # (10 Mémoire, le nombre pair, l'impair) de la taille de la mémoire
-d['number_min_px'] = [18, 40]  
-# 36 # Affiche un nombre dans la position de la (ou grille minimum) de grille minimum de 5 * 
+d['number_min_px'] = [18, 40]
+# 36 # Affiche un nombre dans la position de la (ou grille minimum) de grille minimum de 5 *
 # devient plus grande que cette valeur (.) taille minimale de la grille.
-d['draw_mouse_coordinate'] = 1	# 0:off, 1:on Patched pour afficher les coordonnées de la souris. 
+d['draw_mouse_coordinate'] = 1	# 0:off, 1:on Patched pour afficher les coordonnées de la souris.
 d['autohide_mouse_coordinate'] = 1
-d['autohide_MC_threthold'] = 2	# -1:off, Comme valeur de seuil: supérieur ou égal à 0. 
+d['autohide_MC_threthold'] = 2	# -1:off, Comme valeur de seuil: supérieur ou égal à 0.
 # masquer l'affichage des coordonnées lors des approches de la souris.
 #d['font_main'] = [0, 10, 72, 3]  #(id, size, dpi, offset)
 d['font_main'] = TmpClass({'id':0, 'size':10, 'dpi':72, 'offset':3})
 d['font_mc'] = TmpClass({'id':0, 'size':12, 'dpi':72, 'offset':3})	# mouse coordinate box
 d['font_measure'] = TmpClass({'id':0, 'size':10, 'dpi':72, 'offset':3}) # measure mode
-d['cursor_type'] = 'cross_scale'  # enum['none', 'cross', 'cross_scale']0 Patched pour 
+d['cursor_type'] = 'cross_scale'  # enum['none', 'cross', 'cross_scale']0 Patched pour
 d['cursor_scale_size'] = [12, 6, 2]	 # La taille de la mémoire (main, sub1, sub2)
 d['measure_cursor_scale_size'] = [16, 6, 6]	 # La taille de la mémoire (main, sub1, sub2)
 d['measure_scale_size'] = [14, 5, 5]  # draw measure.rulers
@@ -375,9 +376,9 @@ class RulerConfigPanel(bpy.types.Panel):
 	bl_default_closed = True
 
 	def draw(self, context):
-		
+
 		global rulerconfig
-		
+
 		layout = self.layout
 
 		scn = context.scene
@@ -584,7 +585,7 @@ class Measure():
 	ctrl = 0 # hold
 	alt = 0 # hold
 	snapon = 0
-	snap_point = MeasurePoint(Vector([0, 0, 0])) # Maj coordonnées du monde, shift+clic commutation 2DSnap, 3DSnap. 
+	snap_point = MeasurePoint(Vector([0, 0, 0])) # Maj coordonnées du monde, shift+clic commutation 2DSnap, 3DSnap.
 	snap_find = 0 # 0:None, 2:snap2D, 3:snap3D
 	snap_X = 0
 	snap_Y = 0
@@ -767,7 +768,7 @@ class Data():
 	offset = [0, 0, 0] # origine des coordonnées de la fenêtre
 	offset_3d = Vector([0, 0, 0]) # ou utiliser local_grid_origin, center_ofs,  pour l'origine des coordonnées 3d
 	view = 'top'
-	center_ofs = Vector([0,0,0]) # Coordonnées 3D position zéro de la règle 
+	center_ofs = Vector([0,0,0]) # Coordonnées 3D position zéro de la règle
 
 	# Echelle du dessin
 	draw_offset_x = draw_offset_y = 0.0 # distance des bords de la fenêtre pour les cotes extérieures
@@ -1293,9 +1294,9 @@ def draw_mouse_coordinate(data, config):
 #		vec[0] = -vec[0]
 #	if data.unit_y < 0.0:
 #		vec[1] = -vec[1]
-	
+
 	# overrides all the preceding
-	vec = [0, 0]	
+	vec = [0, 0]
 	vec[0] = (mouseco[0] - data.sx/2) / data.dot_per_blender_unit
 	vec[1] = (mouseco[1] - data.sy/2) / data.dot_per_blender_unit
 
@@ -1759,7 +1760,7 @@ def draw_measure_scale(data, config, measure, font):
 				d1 = (cross_vs[0] - v1).length
 				d2 = (cross_vs[1] - v1).length
 				f = d1 / d12 if d12 else 0.0
-				start_point = MeasurePoint(vec1 + vec12 * f) # Si son intersection coupe le bord de l'écran 
+				start_point = MeasurePoint(vec1 + vec12 * f) # Si son intersection coupe le bord de l'écran
 				f = d2 / d12 if d12 else 0.0
 				end_point = MeasurePoint(vec1 + vec12 * f) # Si son intersection coupe le bord de l'écran
 				if d1 > d2:
@@ -1783,7 +1784,7 @@ def draw_measure_scale(data, config, measure, font):
 			else:
 				total_length += l12
 				continue
-			#if d12 == 0.0 or l12 == 0.0: # Doivent être tirées de la direction du vecteur 
+			#if d12 == 0.0 or l12 == 0.0: # Doivent être tirées de la direction du vecteur
 			# si vous voulez voir le  vecteur en trois dimensions
 			#	 continue
 
@@ -1809,7 +1810,7 @@ def draw_measure_scale(data, config, measure, font):
 
 			# start
 			v = start_point.vec_window.to_2d() # échelle de position de début de dessin
-			if start_point.offset > 1E-8: # Le mode total est sur le côté gauche quand l'échelle supplémentaire est attirée 
+			if start_point.offset > 1E-8: # Le mode total est sur le côté gauche quand l'échelle supplémentaire est attirée
 				cnt_start = int(start_point.offset / unit) + 1
 			else:
 				cnt_start = int(start_point.offset / unit)
@@ -2163,7 +2164,7 @@ def draw_measure(data, config, measure):
 		return
 	rulers = measure.rulers
 	if not rulers and measure.snap_find:
-		# Etablissement seul du snap 
+		# Etablissement seul du snap
 		measure.update_points_vec_window(data)
 		draw_measure_snap(measure)
 		return
@@ -2495,9 +2496,9 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 
 
 	def add_handler(self, context):
-		
+
 		global _handle, started
-		
+
 		if context.area.type == 'VIEW_3D':
 			#if not self.bl_label in context.window_manager.operators.keys(): # Ne sont pas ajoutés, Si vous ne retournez pas FINISHED dans invoke
 			# Add the region OpenGL drawing callback
@@ -2509,19 +2510,19 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 				'''
 				Lors du démarrage à exécuter une seule fois exactement.
 				Draw_callback_px est appelé à quelques minutes seulement ajouté.
-				
+
 				REGION de cible est également appelée en référence dans Bpy.data.screens
 				self.__class__.region.callback_remove(handle)
 				'''
 				context.window_manager.modal_handler_add(self)
-				
+
 				bpy.app.handlers.scene_update_post.append(scenechange)
-				
+
 				if eval(str(bpy.app.build_revision)[2:7]) >= 53207:
 					_handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (self, context), 'WINDOW', 'POST_PIXEL')
 				else:
 					_handle = context.region.callback_add(draw_callback_px, (self, context), 'POST_PIXEL')
-					
+
 			print("Ruler display callback added")
 			context.area.tag_redraw()
 
@@ -2532,14 +2533,14 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 			return {'CANCELLED'}
 
 	def modal(self, context, event):
-		
+
 		global globmx, globmy, cursorstate, snapon, snapon3d, viewchange
-		
+
 		scn = bpy.context.scene
-		
+
 		if not(started):
 			return {"FINISHED"}
-		
+
 		measure = measure_
 		globmx = event.mouse_region_x
 		globmy = event.mouse_region_y
@@ -2565,7 +2566,7 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 					measure.on ^= 1
 					redraw_area_by_regionid(event)
 					return {'RUNNING_MODAL'}
-					
+
 		if not(scn.Active):
 			return {'PASS_THROUGH'}
 
@@ -2603,11 +2604,11 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 			cursor = Vector(context.scene.cursor_location)
 			#mouseco = data.mouseco # window co (3D) valeur de z est toujours 0
 
-			measure.update_mouse_point(data) # Ce n'est pas nécessaire lorsque measure.update_points_vec_window() 
+			measure.update_mouse_point(data) # Ce n'est pas nécessaire lorsque measure.update_points_vec_window()
 			mouseco = measure.mouse_point.vec_window
 
 			measure.snap_find = 0
-			
+
 			if event.type == "S":
 				if event.value == "RELEASE":
 					measure.snapon = 0
@@ -2674,8 +2675,8 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 						snap_vec_3d = snap_vecw
 						measure.snap_point.vec_world[:] = snap_vec_3d[:]
 						measure.snap_find = 3
-					
-						
+
+
 				if measure.snapon == 0:
 					measure.snapon = 1
 					self.mousemove(measure)
@@ -2964,7 +2965,7 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 							self.__class__.draw_mc = 0
 							bpy.context.region.tag_redraw()
 						return {'RUNNING_MODAL'}
-					
+
 			if event.type in ('MOUSEMOVE',):
 				if context.area and \
 				   (self.__class__.draw_cursor or self.__class__.draw_mc):
@@ -2980,12 +2981,12 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 			return {'PASS_THROUGH'}
 
 	def invoke(self, context, event):
-		
+
 		global started, color_background, default_config
-				
+
 		scn = bpy.context.scene
 #		started = 1
-		
+
 		color_background = bpy.context.user_preferences.themes['Default'].user_preferences.space.back
 		default_config['color_background'] = list(color_background) + [1.0]	# alpha
 		bpy.types.Scene.ruler_config = PointerProperty(name='Ruler Config',
@@ -2994,7 +2995,7 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 #		scn.ruler_config.color_background = d['color_background']
 		print (scn.ruler_config.color_background)
 		print ("BACKGROUND")
-			
+
 		if bpy.context.space_data.viewport_shade == "WIREFRAME":
 			scn.Wire = True
 		else:
@@ -3071,53 +3072,53 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 
 
 bpy.types.Scene.Active = bpy.props.BoolProperty(
-		name = "Active", 
+		name = "Active",
 		description = "Measuring active or normal Blender operation?",
 		default = True)
 
 bpy.types.Scene.Follow = bpy.props.BoolProperty(
-		name = "Follow Origin", 
+		name = "Follow Origin",
 		description = "Does the ruler stick to same origin or to screen?",
 		default = True)
 
 bpy.types.Scene.oriX = bpy.props.FloatProperty(
-		name = "OriginX", 
+		name = "OriginX",
 		description = "Ruler origin X coordinate",
 		default = 0,
 		min = -100,
 		max = 100)
 
 bpy.types.Scene.oriY = bpy.props.FloatProperty(
-		name = "OriginY", 
+		name = "OriginY",
 		description = "Ruler origin Y coordinate",
 		default = 0,
 		min = -100,
 		max = 100)
 
 bpy.types.Scene.oriZ = bpy.props.FloatProperty(
-		name = "OriginZ", 
+		name = "OriginZ",
 		description = "Ruler origin Z coordinate",
 		default = 0,
 		min = -100,
 		max = 100)
 
 bpy.types.Scene.Wire = bpy.props.BoolProperty(
-		name = "Wire", 
+		name = "Wire",
 		description = "Turn to wireframe for non-occlusion.",
 		default = True)
 
 bpy.types.Scene.Verts = bpy.props.BoolProperty(
-		name = "Verts", 
+		name = "Verts",
 		description = "Snap to verts",
 		default = True)
 
 bpy.types.Scene.Edges = bpy.props.BoolProperty(
-		name = "Edges", 
+		name = "Edges",
 		description = "Snap to edges",
 		default = True)
 
 bpy.types.Scene.Faces = bpy.props.BoolProperty(
-		name = "Faces", 
+		name = "Faces",
 		description = "Snap to faces",
 		default = True)
 
@@ -3172,17 +3173,17 @@ class RulerToOrig(bpy.types.Operator):
 	bl_label = "Ruler->Orig"
 	bl_description = "Snap rulers to custom origin."
 	bl_options = {"REGISTER"}
-	
+
 	def invoke(self, context, event):
 		global data_
-		
+
 		data = data_
 		rv3d = bpy.context.space_data.region_3d
 		offset = convert_world_to_window(data.rulerorigin, None, 0, 0)
 		offset[2] = 0
-		
+
 		data.center_ofs = offset
-		
+
 		return {'FINISHED'}
 
 

@@ -35,7 +35,7 @@ bl_info = {
 	"name": "Quadder",
 	"author": "Gert De Roost",
 	"version": (0, 4, 0),
-	"blender": (2, 6, 3),
+	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Fills selected border verts/edges area with quads",
 	"warning": "",
@@ -54,26 +54,26 @@ class Quadder(bpy.types.Operator):
 	bl_label = "Quadder"
 	bl_description = "Fills selected border verts/edges area with quads"
 	bl_options = {'REGISTER', 'UNDO'}
-	
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH')
 
 	def invoke(self, context, event):
-		
+
 		self.do_quadder()
-		
+
 		return {'FINISHED'}
-		
-		
-		
+
+
+
 	def do_quadder(self):
-		
+
 		selobj = bpy.context.active_object
 		mesh = selobj.data
 		self.bm = bmesh.from_edit_mesh(mesh)
-	
+
 		smoothlist = []
 		for v in self.bm.verts:
 			if v.select:
@@ -82,7 +82,7 @@ class Quadder(bpy.types.Operator):
 		for e in self.bm.edges:
 			if e.select:
 				self.ecnt += 1
-		
+
 		vertlist = []
 		templist = []
 		verts = self.findcorner()
@@ -103,7 +103,7 @@ class Quadder(bpy.types.Operator):
 			verts = self.findcorner()
 			if self.ecnt == 2:
 				verts = None
-			
+
 		for v in vertlist:
 			v.select = True
 		for v in smoothlist:
@@ -122,14 +122,14 @@ class Quadder(bpy.types.Operator):
 		for v in vertlist:
 			v.select = True
 		bpy.ops.mesh.select_all(action = 'DESELECT')
-			
+
 		bpy.ops.object.editmode_toggle()
 		bpy.ops.object.editmode_toggle()
 		self.bm.free()
-		
-		
+
+
 	def findcorner(self):
-		
+
 		if self.ecnt == 2:
 			for v in self.bm.verts:
 				if v.select:
@@ -165,7 +165,7 @@ class Quadder(bpy.types.Operator):
 									v2 = e1.other_vert(v1)
 									v3 = e2.other_vert(v1)
 									return [v2, v1, v3]
-						
+
 				linkedges = []
 				linkverts = []
 				for e1 in v1.link_edges:
@@ -242,4 +242,4 @@ if __name__ == "__main__":
 
 
 
-	
+

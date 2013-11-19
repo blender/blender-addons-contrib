@@ -38,7 +38,7 @@ bl_info = {
 	"name": "KeepTrans",
 	"author": "Gert De Roost",
 	"version": (0, 5, 0),
-	"blender": (2, 6, 5),
+	"blender": (2, 65, 0),
 	"location": "View3D > Tools",
 	"description": "Remove ChildOf constraint and keep transforms",
 	"warning": "",
@@ -49,7 +49,7 @@ bl_info = {
 
 
 import bpy
-from mathutils import * 
+from mathutils import *
 
 
 
@@ -61,21 +61,21 @@ class DeCouple(bpy.types.Operator):
 	bl_label = "KeepTrans"
 	bl_description = "Remove ChildOf constraint and keep transforms"
 	bl_options = {"REGISTER", "UNDO"}
-	
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and context.mode == 'OBJECT')
 
 	def invoke(self, context, event):
-		
+
 		self.do_keeptrans(context)
-		
+
 		return {'FINISHED'}
 
 
 	def do_keeptrans(self, context):
-	
+
 		ob = context.active_object
 		childof = None
 		for c in ob.constraints:
@@ -117,4 +117,4 @@ if __name__ == "__main__":
 
 
 
-	
+
