@@ -1085,6 +1085,8 @@ kmi_defs = (
 )
 
 def register():
+    import sys
+    have_cycles = True if "_cycles" in sys.modules else False
 
     bpy.utils.register_class(AmaranthToolsetPreferences)
 
@@ -1109,13 +1111,15 @@ def register():
     bpy.types.NODE_HT_header.append(node_templates_pulldown)
     bpy.types.NODE_HT_header.append(node_stats)
 
-    bpy.types.CyclesMaterial_PT_settings.append(material_cycles_settings_extra)
-    bpy.types.CyclesRender_PT_sampling.append(render_cycles_scene_samples)
+    if have_cycles:
+        bpy.types.CyclesMaterial_PT_settings.append(material_cycles_settings_extra)
+        bpy.types.CyclesRender_PT_sampling.append(render_cycles_scene_samples)
 
     bpy.types.FILEBROWSER_HT_header.append(button_directory_current_blend)
 
     bpy.types.SCENE_PT_simplify.append(unsimplify_ui)
-    bpy.types.CyclesScene_PT_simplify.append(unsimplify_ui)
+    if have_cycles:
+        bpy.types.CyclesScene_PT_simplify.append(unsimplify_ui)
 
     bpy.types.PARTICLE_PT_render.prepend(particles_material_info)
 
