@@ -214,7 +214,7 @@ class OscMeshCacheUp(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return(bpy.context.object.type == "MESH")
+        return(bpy.context.object != None and bpy.context.object.type == "MESH")
 
     def execute(self, context):
 
