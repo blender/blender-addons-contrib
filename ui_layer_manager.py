@@ -756,9 +756,9 @@ def unregister():
     bpy.utils.unregister_class(RemoveLayerGroup)
     bpy.utils.unregister_class(LayerGroupsUI)
     bpy.utils.unregister_class(LayerName)
-    bpy.utils.uregister_class(AllLayersSelect)
+    bpy.utils.unregister_class(AllLayersSelect)
     bpy.utils.unregister_class(LayerToggle)
-    bpy.utils.uregister_class(MergeSelected)
+    bpy.utils.unregister_class(MergeSelected)
     bpy.utils.unregister_class(LockSelected)
     bpy.utils.unregister_class(SelectObjectsLayer)
 if __name__ == "__main__":
