@@ -25,8 +25,8 @@
 # Science and Technology of Portugal, under the grant SFRH/BD/66452/2009.
 
 
-skeleton_url = "http://mocap.cs.cmu.edu:8080/subjects/{0:02d}/{0:02d}.asf"
-motion_url = "http://mocap.cs.cmu.edu:8080/subjects/{0:02d}/{0:02d}_{1:02d}."
+skeleton_url = "http://mocap.cs.cmu.edu/subjects/{0:02d}/{0:02d}.asf"
+motion_url = "http://mocap.cs.cmu.edu/subjects/{0:02d}/{0:02d}_{1:02d}."
 search_url = "http://mocap.cs.cmu.edu/search.php?subjectnumber=%&motion=%"
 
 # Carnegie Mellon University Mocap Library - http://mocap.cs.cmu.edu
