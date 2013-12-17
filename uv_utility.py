@@ -34,7 +34,10 @@ from bpy.types import (Operator,
                        Panel,
                        PropertyGroup,
                        )
-from bpy.props import *
+from bpy.props import (IntProperty,
+                       StringProperty,
+                       BoolProperty,
+                       )
 
 
 class UV_IC_Panel():
@@ -48,7 +51,7 @@ class UV_IC_TexIndex(PropertyGroup):
         description="get UVIndex of selected objects",
         min=1,
         max=8,
-             default=1)
+        default=1)
 
     bpy.types.Scene.UVTexGetName = StringProperty(
         name="UVNameToGet",
@@ -62,7 +65,7 @@ class UV_IC_TexIndex(PropertyGroup):
     )
 
 
-class UV_IC_Main(UV_IC_Panel, Panel):
+class UV_IC_panel(UV_IC_Panel, Panel):
     bl_context = "objectmode"
     bl_label = "UV Utility"
     bl_options = {"DEFAULT_CLOSED"}
@@ -108,7 +111,7 @@ class UV_IC_ChangeIndex(UV_IC_Panel, Operator):
             meshData = theObj.data
 
             if theObj.type == 'MESH':
-                if len(meshData.uv_textures) > meshData.uv_textures.active_index and len(meshData.uv_textures) > 0:
+                if len(meshData.uv_textures) > meshData.uv_textures.active_index and meshData.uv_textures:
                     # meshData.uv_textures.active_index = 0
                     tmpuvmap = meshData.uv_textures.active
                     tmpuvmap_name = tmpuvmap.name
