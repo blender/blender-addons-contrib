@@ -141,7 +141,7 @@ class UV_IC_SelectIndex(UV_IC_Panel, Operator):
             indexNew = scene.UVTexIndex - 1
 
             if theObj.type == 'MESH':
-                if len(meshData.uv_textures) > indexNew and len(meshData.uv_textures) > 0:
+                if len(meshData.uv_textures) > indexNew and meshData.uv_textures:
                     meshData.uv_textures.active_index = indexNew
 
                     if scene.UVTexRenderActive:
@@ -162,7 +162,7 @@ class UV_IC_SelectName(UV_IC_Panel, Operator):
             uvName = scene.UVTexGetName
 
             if theObj.type == 'MESH':
-                if len(meshData.uv_textures) > 0:
+                if meshData.uv_textures:
                     uvToGet = meshData.uv_textures.get(uvName)
 
                     if uvToGet is not None:
@@ -185,7 +185,7 @@ class UV_IC_RemoveActiveUV(UV_IC_Panel, Operator):
             meshData = theObj.data
 
             if theObj.type == 'MESH':
-                if len(meshData.uv_textures) > 0:
+                if meshData.uv_textures:
                     activeIndex = meshData.uv_textures.active_index
 
                     if len(meshData.uv_textures) > activeIndex:
