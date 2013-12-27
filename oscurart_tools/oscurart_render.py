@@ -52,8 +52,10 @@ def defRenderAll (frametype):
             for OVERRIDE in PROPTOLIST:
                 for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
                     if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
+                        NUMAT = len(OBJECT.data.materials[:])
                         OBJECT.data.materials.clear()
-                        OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])
+                        for mat in range(NUMAT):
+                            OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])
                         #for SLOT in OBJECT.material_slots[:]:
                         #    SLOT.material=bpy.data.materials[OVERRIDE[1]]
         except:
@@ -148,8 +150,10 @@ def defRenderSelected(frametype):
                 for OVERRIDE in PROPTOLIST:
                     for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
                         if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
+                            NUMAT = len(OBJECT.data.materials[:])
                             OBJECT.data.materials.clear()
-                            OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])                            
+                            for mat in range(NUMAT):
+                                OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])                            
                             #for SLOT in OBJECT.material_slots[:]:
                                 #SLOT.material=bpy.data.materials[OVERRIDE[1]]
             except:
@@ -236,8 +240,10 @@ def defRenderCurrent (frametype):
         for OVERRIDE in PROPTOLIST:
             for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
                 if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
+                    NUMAT = len(OBJECT.data.materials[:])
                     OBJECT.data.materials.clear()
-                    OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])  
+                    for mat in range(NUMAT):
+                        OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])  
                     #for SLOT in OBJECT.material_slots[:]:
                         #SLOT.material = bpy.data.materials[OVERRIDE[1]]
     except:
