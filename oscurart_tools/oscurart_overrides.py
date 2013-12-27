@@ -35,8 +35,10 @@ def DefOscApplyOverrides(self):
     for OVERRIDE in PROPTOLIST:
         for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
             if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE": 
+                LENSLOTS = len(OBJECT.material_slots[:])
                 OBJECT.data.materials.clear()
-                OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])  
+                for MATSLOT in range(LENSLOTS):
+                    OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])  
                 
                 #if len(OBJECT.material_slots) > 0:                   
                 #    for SLOT in OBJECT.material_slots[:]:
