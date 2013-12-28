@@ -31,10 +31,10 @@ def DefOscApplyOverrides(self):
     ENTFILEPATH= "%s_OVERRIDE.xml" %  (os.path.join(ACTIVEFOLDER, bpy.context.scene.name))    
     
     ## GUARDO MATERIALES DE OBJETOS EN GRUPOS        
-    LISTMAT = { OBJ : [SLOT.material for SLOT in OBJ.material_slots[:]] for OBJ in bpy.data.objects[:] if OBJ.type == "MESH" or OBJ.type == "META" or OBJ.type == "CURVE" }        
+    LISTMAT = { OBJ : [SLOT.material for SLOT in OBJ.material_slots] for OBJ in bpy.data.objects if OBJ.type in {'MESH', 'META', 'CURVE'} }        
     for OVERRIDE in PROPTOLIST:
-        for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
-            if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE": 
+        for OBJECT in bpy.data.groups[OVERRIDE[0]].objects:
+            if OBJECT.type in {'MESH', 'META', 'CURVE'}: 
                 LENSLOTS = len(OBJECT.material_slots[:])
                 OBJECT.data.materials.clear()
                 for MATSLOT in range(LENSLOTS):
@@ -46,7 +46,7 @@ def DefOscApplyOverrides(self):
                 #else:
                 #    print ("* %s have not Material Slots" % (OBJECT.name))          
     with open(ENTFILEPATH, mode="w") as file:    
-        file.writelines(str(LISTMAT))
+        file.write(str(LISTMAT))
     
     
 def DefOscRestoreOverrides(self):    
@@ -60,7 +60,7 @@ def DefOscRestoreOverrides(self):
     # RESTAURO MATERIALES  DE OVERRIDES    
     for OBJ in LISTMAT:    
         OBJ.data.materials.clear()        
-        if OBJ.type == "MESH" or OBJ.type == "META" or OBJ.type == "CURVE":
+        if OBJ.type in {'MESH', 'META', 'CURVE'}:
             for SLOTIND, SLOT in enumerate(LISTMAT[OBJ]):
                 #OBJ.material_slots[SLOTIND].material = SLOT 
                 OBJ.data.materials.append(SLOT) 
@@ -292,4 +292,3 @@ class OscRemoveOverridesSlot (bpy.types.Operator):
 bpy.utils.register_class(OscTransferOverrides)
 bpy.utils.register_class(OscAddOverridesSlot)
 bpy.utils.register_class(OscRemoveOverridesSlot)
-
