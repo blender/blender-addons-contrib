@@ -43,6 +43,10 @@ from oscurart_tools.oscurart_shapes import *
 from oscurart_tools.oscurart_render import *
 from oscurart_tools.oscurart_overrides import *
 
+class View3DOscPanel():
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+
 ## CREA PANELES EN TOOLS
 bpy.types.Scene.osc_object_tools = bpy.props.BoolProperty(default=False)
 bpy.types.Scene.osc_mesh_tools = bpy.props.BoolProperty(default=False)
@@ -51,11 +55,16 @@ bpy.types.Scene.osc_render_tools = bpy.props.BoolProperty(default=False)
 bpy.types.Scene.osc_files_tools = bpy.props.BoolProperty(default=False)
 bpy.types.Scene.osc_overrides_tools = bpy.props.BoolProperty(default=False)
 # PANEL DE CONTROL
-class OscPanelControl(bpy.types.Panel):
+class OscPanelControl(View3DOscPanel, bpy.types.Panel):
+    """
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_label = "Oscurart Tools"
     bl_options = {'DEFAULT_CLOSED'}
+    """
+    bl_category = "Oscurart Tools"
+    #bl_context = "objectmode"
+    bl_label = "Oscurart Tools"
 
     def draw(self,context):
         active_obj = context.active_object
