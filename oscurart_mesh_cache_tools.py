@@ -16,12 +16,20 @@ import sys
 import os
 import struct
 
-class OscEPc2ExporterPanel(bpy.types.Panel):
-    """Creates a Panel in the Object properties window"""
+class View3DMCPanel():
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+
+class OscEPc2ExporterPanel(View3DMCPanel, bpy.types.Panel):    
+    """
     bl_label = "Mesh Cache Tools"
     bl_idname = "Mesh Cache Tools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    """
+    bl_category = "Mesh Cache Tools"
+    #bl_context = "objectmode"
+    bl_label = "Mesh Cache Tools"
 
     def draw(self, context):
         layout = self.layout
