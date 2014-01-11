@@ -25,7 +25,7 @@
 
 # ##### BEGIN COPYRIGHT BLOCK #####
 #
-# initial script copyright (c)2013 Alexander Nussbaumer
+# initial script copyright (c)2013, 2014 Alexander Nussbaumer
 #
 # ##### END COPYRIGHT BLOCK #####
 
@@ -34,7 +34,7 @@ bl_info = {
     'name': "Future Pinball FPx format (.fpm/.fpl/.fpt)",
     'description': "Import Future Pinball Model, Library and Table files",
     'author': "Alexander Nussbaumer",
-    'version': (0, 0, 201310152),
+    'version': (0, 0, 201401111),
     'blender': (2, 68, 0),
     'location': "File > Import",
     'warning': "",
@@ -72,6 +72,7 @@ bl_info = {
 # - todo: align models only on .fpt import not as currently on .fpm level.
 #       find a way to get a general method, to align model position alignment at .fpt level, not on .fpm level.
 #       (more hardcoding?)
+# - todo: improve mark_as_ramp_end_point handling (see def create_ramp_curve_points).
 #
 # - maybe: add a pop-up message/dialog to inform the user, that the import process takes its time.
 #       progress bar/text - is there something like that available in blender?

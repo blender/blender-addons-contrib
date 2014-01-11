@@ -2123,8 +2123,6 @@ class FptImporter():
             last_bezier_point = bezier_point
             last_fpx_point = fpx_point
 
-            #fpx_point.get_value("mark_as_ramp_end_point")
-
             type = fpx_point.get_value("ring_type")
             raw_model_name = wire_ring_model[type]
             if raw_model_name is None:
@@ -2346,15 +2344,24 @@ class FptImporter():
 
     def create_ramp_curve_points(self, spline, fpx_points, z, z0, z1, w0=1.0, w1=1.0):
         ramp_length_sum = 0.0
+        ramp_length_sum2 = 0.0
         ramp_length = []
         last_point = None
-        for fpx_point in fpx_points:
+
+        reached_end_point = False
+        for index, fpx_point in enumerate(fpx_points):
             fpx_position_xy = Vector(fpx_point.get_value("position"))
             if last_point:
                 length = (fpx_position_xy - last_point).length
                 ramp_length_sum += length
+                if not reached_end_point:
+                    ramp_length_sum2 += length
             ramp_length.append(ramp_length_sum)
             last_point = fpx_position_xy
+
+            is_end_point = fpx_point.get_value("mark_as_ramp_end_point")
+            if is_end_point:
+                reached_end_point = True
 
         # create_curve_points & radius
         spline.bezier_points.add(len(fpx_points) - 1)
@@ -2362,14 +2369,20 @@ class FptImporter():
         for index, fpx_point in enumerate(fpx_points):
             fpx_position_xy = fpx_point.get_value("position")
             fpx_smooth = fpx_point.get_value("smooth")
+            is_end_point = fpx_point.get_value("mark_as_ramp_end_point")
 
             factor = (ramp_length[index] / ramp_length_sum)
+            factor2 = (ramp_length[index] / ramp_length_sum2)
+            if factor2 > 1.0:
+                factor2 = 1.0
             offset = (z1 - z0) * factor
+            offset2 = (z1 - z0) * factor2
 
             bezier_point = spline.bezier_points[index]
-            bezier_point.co = self.geometry_correction((fpx_position_xy[0], fpx_position_xy[1], (z + z0 + offset)))
+            bezier_point.co = self.geometry_correction((fpx_position_xy[0], fpx_position_xy[1], (z + z0 + offset2)))
             bezier_point.radius = (w0 + ((w1 - w0) * factor)) / w0
 
+            #if fpx_smooth and not is_end_point: (TODO)
             if fpx_smooth:
                 handle_type = 'AUTO'
             else:
