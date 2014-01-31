@@ -21,7 +21,7 @@ bl_info = {
     "description": "Useful and time-saving tools for rendering workflow",
     "author": "Campbell Barton",
     "version": (1, 1),
-    "blender": (2, 6, 9),
+    "blender": (2, 69),
     "location": "Node > Add Template",
     "description": "Adds node presets",
     "warning": "",
@@ -51,7 +51,7 @@ def node_center(context):
     return loc
 
 
-def node_template_add(context, filepath, node_group, report):
+def node_template_add(context, filepath, node_group, ungroup, report):
     """ Main function
     """
 
@@ -95,10 +95,11 @@ def node_template_add(context, filepath, node_group, report):
     if is_fail:
         node_tree.nodes.remove(node)
     else:
-        bpy.ops.node.group_ungroup()
+        if ungroup:
+            bpy.ops.node.group_ungroup()
 
-    node_group.user_clear()
-    bpy.data.node_groups.remove(node_group)
+    #node_group.user_clear()
+    #bpy.data.node_groups.remove(node_group)
 
 
 # -----------------------------------------------------------------------------
@@ -138,10 +139,14 @@ class NODE_OT_template_add(Operator):
             )
 
     def execute(self, context):
-        node_template_add(context, self.filepath, self.group_name, self.report)
+        node_template_add(context, self.filepath, self.group_name, True, self.report)
 
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        node_template_add(context, self.filepath, self.group_name, not event.shift, self.report)
+
+        return {'FINISHED'}
 
 # -----------------------------------------------------------------------------
 # node menu list
