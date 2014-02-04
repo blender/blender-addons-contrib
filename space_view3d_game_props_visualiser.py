@@ -29,7 +29,7 @@ bl_info = {
                    "in the 3d-view",
     "warning": "Script is returning errors",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Game_Property_Visualiser",
-    "tracker_url": "http://projects.blender.org/tracker/?func=detail&aid=22607&group_id=153&atid=468",
+    "tracker_url": "https://developer.blender.org/T22607",
     "category": "3D View"}
 
 """

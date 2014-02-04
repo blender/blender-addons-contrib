@@ -19,15 +19,14 @@
 bl_info = {
     "name": "Add Objects Panel",
     "author": "Murat Egretli (Demohero)",
-    "version": (1,2),
+    "version": (1, 2),
     "blender": (2, 61, 0),
     "location": "View3D > Toolbar",
     "description": "add objects(mesh, curve etc.) from Toolbar",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22154",
+    "tracker_url": "https://developer.blender.org/T22154",
     "category": "3D View"}
 
 
@@ -37,13 +36,13 @@ import bpy
 class View3DPanel():
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-    
+
 
 class VIEW3D_PT_add_menu(View3DPanel,bpy.types.Panel):
     bl_context = "objectmode"
     bl_label = "Add Objects"
     bl_options = {"DEFAULT_CLOSED"}
-    
+
     def draw(self, context):
         layout = self.layout
 
@@ -59,17 +58,17 @@ class VIEW3D_PT_add_menu(View3DPanel,bpy.types.Panel):
         layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
         layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
-      
+
 # register the class
 def register():
     bpy.utils.register_module(__name__)
- 
-    pass 
+
+    pass
 
 def unregister():
     bpy.utils.unregister_module(__name__)
- 
-    pass 
 
-if __name__ == "__main__": 
+    pass
+
+if __name__ == "__main__":
     register()

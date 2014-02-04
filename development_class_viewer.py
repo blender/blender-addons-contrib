@@ -25,6 +25,7 @@ bl_info = {
     "warning": "",
     "description": "List classes and definitions of a text block",
     "wiki_url": "https://sites.google.com/site/aleonserra/home/scripts/class-viewer",
+    "tracker_url": "https://developer.blender.org/T29463",
     "category": "Development"}
 
 import bpy

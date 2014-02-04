@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 This script uses the concept of support edges, or the inserting of new edges parallel to the selected edges.
 
 

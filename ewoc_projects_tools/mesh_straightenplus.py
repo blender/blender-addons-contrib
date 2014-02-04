@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 This addon enables you to straighten out multiple connected-edge-snakes between their endpoints.
 
 

@@ -29,12 +29,10 @@ bl_info = {
     "location": "View3D > Specials > Normal Smooth ",
     "description": "Smooth the vertex position based on the normals",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
-        "Scripts",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=32587",
+    "wiki_url": "",
+    "tracker_url": "https://developer.blender.org/T32587",
     "category": "Mesh"}
-    
+
 """
 Usage:
 
@@ -58,72 +56,72 @@ def RotVtoV(vec1, vec2, rad):
 
 # Find the new coordinate for this verticle
 def smoothVert(v1, v1in, me):
-    
+
     v1co = v1.co
     v1no = v1.normal
-    
+
     # List of verts not to check (don't check against yourself)
     chk = [v1in]
     newCo = []
-    
+
     # Make sure there's faces, otherwise we do nothing
     if len(me.polygons):
-        
+
         # Check every face
         for f in me.polygons:
-            
+
             # Only check faces that this vert is in
             if v1in in f.vertices:
-                
+
                 # Loop through all the verts in the face
                 for v2in in f.vertices:
-                    
+
                     # Make sure you check every vert only once
                     if not v2in in chk:
-                        
+
                         chk.append(v2in)
-                        
+
                         v2 = me.vertices[v2in]
-                        
+
                         v2co = v2.co
-                        
+
                         # Get the vector from one vert to the other
                         vTov = v2co - v1co
-                        
+
                         vLen = vTov.length
-                        
+
                         # Use half the distance (actually 0.514 seems to be the specific nr to multiply by... just by experience)
                         vLen *= 0.514
-                        
+
                         # Get the normal rotated 90 degrees (pi * 0.5 = 90 degrees in radians) towards the original vert
                         vNor = RotVtoV(v2.normal, vTov.normalized(), (math.pi * 0.5))
-                        
+
                         # Make the vector the correct length
                         vNor = vNor.normalized() * vLen
-                        
+
                         # Add the vector to the vert position to get the correct coord
                         vNor = v2co + vNor
-                        
+
                         newCo.append(vNor)
-                        
+
     # Calculate the new coord only if there's a result
     if len(newCo):
-        
+
         nC = mathutils.Vector()
-        
+
         # Add all the new coordinates together
         for c in newCo:
             nC = nC + c
-            
+
         # Divide the resulting vector by the total to get the average
         nC = nC / len(newCo)
-        
+
     # If there's no result, just return the original coord
     else:
         nC = v1co
-                    
+
     return nC
-                    
+
 
 # Base function
 def normal_smooth(context):
@@ -131,30 +129,30 @@ def normal_smooth(context):
     ob = context.active_object
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     vNew = {}
     me = ob.data
-    
+
     # loop through all verts
     for v1 in me.vertices:
-        
+
         # only smooth selected verts
         if v1.select:
-            
+
             v1in = v1.index
-            
+
             # Get the new coords for this vert
             vNew[v1in] = smoothVert(v1, v1in, me)
-            
+
     # Only if they're anything new, can we apply anything
     if len(vNew):
-        
+
         # Get the indexes for all verts to adapt
         for k in vNew.keys():
-            
+
             # Set the vert's new coords
             me.vertices[k].co = vNew[k]
-            
+
     bpy.ops.object.mode_set(mode='EDIT')
 
 class nsmooth_help(bpy.types.Operator):
@@ -167,13 +165,13 @@ class nsmooth_help(bpy.types.Operator):
 		layout.label('Select A vertex or group of verts.')
 		layout.label('Smooth the vertex position based on the normals')
 
-	
+
 	def execute(self, context):
 		return {'FINISHED'}
 
 	def invoke(self, context, event):
 		return context.window_manager.invoke_popup(self, width = 300)
-    
+
 class NormalSmooth(bpy.types.Operator):
     """Smoothes verticle position based on vertex normals"""
     bl_idname = 'normal.smooth'
@@ -183,7 +181,7 @@ class NormalSmooth(bpy.types.Operator):
 
     iterations = IntProperty(name="Smoothing iterations",
                 default=1, min=0, max=100, soft_min=0, soft_max=10)
-    
+
     @classmethod
     def poll(cls, context):
         obj = context.active_object

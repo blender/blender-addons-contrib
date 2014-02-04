@@ -22,32 +22,28 @@ bl_info = {
     "author": "Carlos Padial",
     "version": (5, 0, 2),
     "blender": (2, 63, 0),
-    "api": 44539,
     "category": "Sequencer",
     "location": "Sequencer > UI > Jump to Cut",
     "description": "Tool collection to help speed up editting and grade videos with blender",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Sequencer/Jump_to_cut",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=24279",}
+    "tracker_url": "https://developer.blender.org/T24279"}
 
-#
-# 
-#
-#-----------------------------------------------------------------------------------------------------
+
 import bpy
 
 class Jumptocut(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
-    bl_label = "Jump to Cut"  
+    bl_label = "Jump to Cut"
 
     def draw_header(self, context):
         layout = self.layout
         layout.label(text="", icon="NLA")
-    
+
     def draw(self, context):
         layout = self.layout
-       
+
         row=layout.row()
         split=row.split(percentage=0.5)
         colL = split.column()
@@ -61,15 +57,15 @@ class Jumptocut(bpy.types.Panel):
         colR = split.column()
         colL.operator("sequencer.markprev", icon="MARKER_HLT")
         colR.operator("sequencer.marknext", icon='MARKER_HLT')
-        
+
         row=layout.row()
         split=row.split()
         colL1 = split.column()
         colL2 = split.column()
         colL1.operator("sequencer.sourcein", icon="REW")
         colL2.operator("sequencer.sourceout", icon='FF')
- 
-        
+
+
         row=layout.row()
         split=row.split()
         colR1 = split.column()
@@ -77,7 +73,7 @@ class Jumptocut(bpy.types.Panel):
         row=layout.row()
         split=row.split(percentage=0.5)
         colR1 = split.column()
-        colR1.operator("sequencer.triminout", icon="FULLSCREEN_EXIT") 
+        colR1.operator("sequencer.triminout", icon="FULLSCREEN_EXIT")
         colR2 = split.column()
         colR2.operator("sequencer.setstartend", icon="SETTINGS")
 
@@ -87,14 +83,14 @@ class Jumptocut(bpy.types.Panel):
         colR2 = split.column()
         colR1.operator("sequencer.metacopy", icon="COPYDOWN")
         colR2.operator("sequencer.metapaste", icon='PASTEDOWN')
-        
+
 #-----------------------------------------------------------------------------------------------------
 
-class OBJECT_OT_Setinout(bpy.types.Operator):  
+class OBJECT_OT_Setinout(bpy.types.Operator):
     bl_label = "Mark in & out to active strip"
     bl_idname = "sequencer.setinout"
     bl_description = "set IN and OUT markers to the active strip limits"
-        
+
     def invoke(self, context, event):
         scene=bpy.context.scene
         markers=scene.timeline_markers
@@ -103,7 +99,7 @@ class OBJECT_OT_Setinout(bpy.types.Operator):
             strip= seq.active_strip
             if strip != None:
                 sin = strip.frame_start + strip.frame_offset_start
-                sout = sin + strip.frame_final_duration 
+                sout = sin + strip.frame_final_duration
                 if "IN" not in markers:
                     mark=markers.new(name="IN")
                     mark.frame=sin
@@ -115,33 +111,33 @@ class OBJECT_OT_Setinout(bpy.types.Operator):
                     mark.frame=sout
                 else:
                     mark=markers["OUT"]
-                    mark.frame=sout 
+                    mark.frame=sout
         return {'FINISHED'}
-    
+
 
 def triminout(strip,sin,sout):
-    start = strip.frame_start+strip.frame_offset_start 
+    start = strip.frame_start+strip.frame_offset_start
     end = start+strip.frame_final_duration
     if end > sin:
         if start < sin:
-            strip.select_right_handle = False            
+            strip.select_right_handle = False
             strip.select_left_handle = True
             bpy.ops.sequencer.snap(frame=sin)
             strip.select_left_handle = False
     if start < sout:
         if end > sout:
-            strip.select_left_handle = False            
+            strip.select_left_handle = False
             strip.select_right_handle = True
             bpy.ops.sequencer.snap(frame=sout)
-            strip.select_right_handle = False    
+            strip.select_right_handle = False
     return {'FINISHED'}
 
 
-class OBJECT_OT_Triminout(bpy.types.Operator):  
+class OBJECT_OT_Triminout(bpy.types.Operator):
     bl_label = "Trim to in & out"
     bl_idname = "sequencer.triminout"
     bl_description = "trim the selected strip to IN and OUT markers (if exists)"
-        
+
     def invoke(self, context, event):
         scene=bpy.context.scene
         markers=scene.timeline_markers
@@ -163,18 +159,18 @@ def searchprev(j, list):
     for i in list:
         if i < j:
             result = i
-            break 
+            break
     else: result = j
     return result
 
-def searchnext(j, list): 
+def searchnext(j, list):
     list.sort()
     for i in list:
         if i > j:
             result = i
             break
     else: result = j
-    return result  
+    return result
 
 def geteditpoints(seq):
     #this create a list of editpoints including strips from
@@ -194,7 +190,7 @@ def geteditpoints(seq):
                 cliplist.append(i)
         for i in metalist:
             for j in i.sequences:
-                cliplist.append(j)  
+                cliplist.append(j)
         for i in cliplist:
             start = i.frame_start + i.frame_offset_start
             end = start + i.frame_final_duration
@@ -203,26 +199,26 @@ def geteditpoints(seq):
             #print(start," ",end)
     return editpoints
 
-#JUMP    
+#JUMP
 class OBJECT_OT_Jumpprev(bpy.types.Operator):  #Operator jump previous edit point
     bl_label = "Cut previous"
     bl_idname = "sequencer.jumpprev"
     bl_description = "jump to previous edit point"
-    
+
     editpoints = []
-        
+
     def invoke(self, context, event):
         scene=bpy.context.scene
         seq=scene.sequence_editor
         editpoints = geteditpoints(seq)
-        bpy.context.scene.frame_current = searchprev(scene.frame_current, editpoints) 
-        return {'FINISHED'}   
-           
+        bpy.context.scene.frame_current = searchprev(scene.frame_current, editpoints)
+        return {'FINISHED'}
+
 class OBJECT_OT_Jumpnext(bpy.types.Operator):  #Operator jump next edit point
     bl_label = "Cut next"
     bl_idname = "sequencer.jumpnext"
     bl_description = "jump to next edit point"
-    
+
     def invoke(self, context, event):
         scene=bpy.context.scene
         seq=scene.sequence_editor
@@ -235,13 +231,13 @@ class OBJECT_OT_Jumpnext(bpy.types.Operator):  #Operator jump next edit point
             bpy.context.scene.frame_current = last-1
             self.report({'INFO'},'Last Frame')
         return {'FINISHED'}
- 
-# MARKER 
-class OBJECT_OT_Markerprev(bpy.types.Operator): 
+
+# MARKER
+class OBJECT_OT_Markerprev(bpy.types.Operator):
     bl_label = "Marker previous"
     bl_idname = "sequencer.markprev"
     bl_description = "jump to previous marker"
-        
+
     def invoke(self, context, event):
         markerlist = []
         scene= bpy.context.scene
@@ -249,12 +245,12 @@ class OBJECT_OT_Markerprev(bpy.types.Operator):
         for i in markers: markerlist.append(i.frame)
         bpy.context.scene.frame_current = searchprev(scene.frame_current, markerlist)
         return {'FINISHED'}
-    
-class OBJECT_OT_Markernext(bpy.types.Operator):  
+
+class OBJECT_OT_Markernext(bpy.types.Operator):
     bl_label = "Marker next"
     bl_idname = "sequencer.marknext"
     bl_description = "jump to next marker"
-        
+
     def invoke(self, context, event):
         markerlist = []
         scene= bpy.context.scene
@@ -264,12 +260,12 @@ class OBJECT_OT_Markernext(bpy.types.Operator):
         return {'FINISHED'}
 
 # SOURCE IN OUT
-              
+
 class OBJECT_OT_Sourcein(bpy.types.Operator):  #Operator source in
     bl_label = "Source IN"
     bl_idname = "sequencer.sourcein"
     bl_description = "add a marker named IN"
-    
+
     def invoke(self, context, event):
         scene=bpy.context.scene
         seq = scene.sequence_editor
@@ -284,7 +280,7 @@ class OBJECT_OT_Sourcein(bpy.types.Operator):  #Operator source in
                     sin=markers["IN"]
                     sin.frame=scene.frame_current
             #trying to set in after out
-            else:  
+            else:
                 if "IN" not in markers:
                     sin=markers.new(name="IN")
                     sin.frame=sout.frame
@@ -307,7 +303,7 @@ class OBJECT_OT_Sourceout(bpy.types.Operator):  #Operator source out
     bl_label = "Source OUT"
     bl_idname = "sequencer.sourceout"
     bl_description = "add a marker named OUT"
-    
+
     def invoke(self, context, event):
         scene=bpy.context.scene
         seq = scene.sequence_editor
@@ -320,15 +316,15 @@ class OBJECT_OT_Sourceout(bpy.types.Operator):  #Operator source out
                     sout.frame=scene.frame_current
                 else:
                     sout=markers["OUT"]
-                    sout.frame=scene.frame_current 
-            #trying to set out before in 
+                    sout.frame=scene.frame_current
+            #trying to set out before in
             else:
                 if "OUT" not in markers:
                     sout= markers.new(name="OUT")
                     sout.frame = sin.frame
                 else:
                     sout=markers["OUT"]
-                    sout.frame = sin.frame 
+                    sout.frame = sin.frame
                 self.report({'WARNING'}, "OUT before IN")
         else:
             sout= markers.new(name="OUT")
@@ -343,7 +339,7 @@ class OBJECT_OT_Setstartend(bpy.types.Operator):  #Operator set start & end
     bl_label = "set Start & End"
     bl_idname = "sequencer.setstartend"
     bl_description = "set Start = In and End = Out"
-    
+
     def invoke(self, context, event):
         scene=bpy.context.scene
         seq = scene.sequence_editor
@@ -360,14 +356,14 @@ class OBJECT_OT_Setstartend(bpy.types.Operator):  #Operator set start & end
             bpy.ops.sequencer.reload()
         return {'FINISHED'}
 
-    
+
 # COPY PASTE
 
 class OBJECT_OT_Metacopy(bpy.types.Operator):  #Operator copy source in/out
     bl_label = "Trim & Meta-Copy"
     bl_idname = "sequencer.metacopy"
     bl_description = "make meta from selected strips, trim it to in/out (if available) and copy it to clipboard"
-    
+
     def invoke(self, context, event):
         # rehacer
         scene=bpy.context.scene
@@ -383,7 +379,7 @@ class OBJECT_OT_Metacopy(bpy.types.Operator):  #Operator copy source in/out
                 triminout(strip2,sin,sout)
                 bpy.ops.sequencer.copy()
                 bpy.ops.sequencer.meta_separate()
-                self.report({'INFO'}, "META has been trimed and copied")              
+                self.report({'INFO'}, "META has been trimed and copied")
             else:
                 bpy.ops.sequencer.meta_make()
                 bpy.ops.sequencer.copy()
@@ -392,12 +388,12 @@ class OBJECT_OT_Metacopy(bpy.types.Operator):  #Operator copy source in/out
         else:
             self.report({'ERROR'}, "No strip selected")
         return {'FINISHED'}
-        
+
 class OBJECT_OT_Metapaste(bpy.types.Operator):  #Operator paste source in/out
     bl_label = "Paste in current Frame"
     bl_idname = "sequencer.metapaste"
     bl_description = "paste source from clipboard to current frame"
-    
+
     def invoke(self, context, event):
         # rehacer
         scene=bpy.context.scene
@@ -406,13 +402,13 @@ class OBJECT_OT_Metapaste(bpy.types.Operator):  #Operator paste source in/out
         return {'FINISHED'}
 
 # Registering / Unregister
- 
+
 def register():
     bpy.utils.register_class(Jumptocut)
     bpy.utils.register_class(OBJECT_OT_Jumpprev)
     bpy.utils.register_class(OBJECT_OT_Jumpnext)
     bpy.utils.register_class(OBJECT_OT_Markerprev)
-    bpy.utils.register_class(OBJECT_OT_Markernext)    
+    bpy.utils.register_class(OBJECT_OT_Markernext)
     bpy.utils.register_class(OBJECT_OT_Sourcein)
     bpy.utils.register_class(OBJECT_OT_Sourceout)
     bpy.utils.register_class(OBJECT_OT_Metacopy)
@@ -420,13 +416,13 @@ def register():
     bpy.utils.register_class(OBJECT_OT_Triminout)
     bpy.utils.register_class(OBJECT_OT_Setinout)
     bpy.utils.register_class(OBJECT_OT_Setstartend)
-    
+
 def unregister():
     bpy.utils.unregister_class(Jumptocut)
     bpy.utils.unregister_class(OBJECT_OT_Jumpprev)
     bpy.utils.unregister_class(OBJECT_OT_Jumpnext)
     bpy.utils.unregister_class(OBJECT_OT_Markerprev)
-    bpy.utils.unregister_class(OBJECT_OT_Markernext)      
+    bpy.utils.unregister_class(OBJECT_OT_Markernext)
     bpy.utils.unregister_class(OBJECT_OT_Sourcein)
     bpy.utils.unregister_class(OBJECT_OT_Sourceout)
     bpy.utils.unregister_class(OBJECT_OT_Metacopy)

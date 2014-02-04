@@ -25,9 +25,9 @@ bl_info = {
     "description": "Tools for converting/animating objects/particles into curves",
     "warning": "Still under development, bug reports appreciated",
     "wiki_url": "",
-    "tracker_url": "http://projects.blender.org/tracker/?func=detail&atid=468&aid=29563&group_id=153",
-    "category": "Add Curve"
-    }
+    "tracker_url": "https://developer.blender.org/T29563",
+    "category": "Add Curve"}
+
 
 #### TO DO LIST ####
 ### [   ]  Add more options to curve radius/modulation plus cyclic/connect curve option
@@ -151,7 +151,7 @@ class TracerProperties(bpy.types.PropertyGroup):
         name="Define a color palette")
     # Custom property for how many keyframes to skip
     mmSkip = bpy.props.IntProperty(name="frames", min=1, max=500, default=20, description="Number of frames between each keyframes")
-    # Custom property to enable/disable random order for the 
+    # Custom property to enable/disable random order for the
     mmBoolRandom = bpy.props.BoolProperty(name="Random Order", default=False, description="Randomize the order of the colors")
     # Custom Color properties
     mmColor1 = bpy.props.FloatVectorProperty(min=0, max=1, default=(0.8, 0.8, 0.8), description="Custom Color 1", subtype="COLOR")
@@ -272,7 +272,7 @@ class addTracerObjectPanel(bpy.types.Panel):
                         row = box.row()
                         row.operator("object.colorblenderclear", text="Reset Material Keyframes", icon="KEY_DEHLT")
                         row.prop(Btrace, 'mmSkip', text="Keyframe every")
-                      
+
                     color_blender()
                 row = box.row()
             if Btrace.show_curve_settings:
@@ -336,7 +336,7 @@ class addTracerObjectPanel(bpy.types.Panel):
         row = col.row()
         row.prop(btracemenu, "tool_meshFollow", text="Mesh Follow", icon="DRIVER")
         row.prop(btracemenu, "tool_handwrite", text="Handwriting", icon='BRUSH_DATA')
-        row = col.row()   
+        row = col.row()
         row.prop(btracemenu, "tool_particleTrace", icon="PARTICLES", text="Particle Trace")
         row.prop(btracemenu, "tool_particleConnect", icon="MOD_PARTICLES", text="Particle Connect")
         row = layout.row()
@@ -808,7 +808,7 @@ class OBJECT_OT_particletrace(bpy.types.Operator):
             bpy.context.scene.objects.active = curveobject
             bpy.ops.object.group_link(group="Btrace")
             addtracemat(curveobject.data)  # Add material
-        
+
         if Btrace.animate:
             bpy.ops.curve.btgrow()  # Add grow curve
 
@@ -831,7 +831,7 @@ class OBJECT_OT_traceallparticles(bpy.types.Operator):
         return (bpy.context.object and bpy.context.object.particle_systems)
 
     def execute(self, context):
-        
+
         obj = bpy.context.object
         ps = obj.particle_systems.active
         set = ps.settings
@@ -840,7 +840,7 @@ class OBJECT_OT_traceallparticles(bpy.types.Operator):
         if set.distribution == 'GRID':
             self.report({'INFO'},"Grid distribution mode for particles not supported.")
             return{'FINISHED'}
-        
+
         Btrace = bpy.context.window_manager.curve_tracer
         particle_f_start = Btrace.particle_f_start # Get frame start
         particle_f_end = Btrace.particle_f_end # Get frame end
@@ -848,13 +848,13 @@ class OBJECT_OT_traceallparticles(bpy.types.Operator):
         if curve_handle == 'AUTOMATIC': # hackish because of naming conflict in api
             curve_handle = 'AUTO'
         if curve_handle == 'FREE_ALIGN':
-            curve_handle = 'FREE'        
+            curve_handle = 'FREE'
         tracer = bpy.data.curves.new('Splines','CURVE') # define what kind of object to create
         curve = bpy.data.objects.new('Tracer',tracer) # Create new object with settings listed above
         bpy.context.scene.objects.link(curve) # Link newly created object to the scene
         spline = tracer.splines.new('BEZIER')  # add a new Bezier point in the new curve
         spline.bezier_points.add(set.count-1)
-		
+
         tracer.dimensions = '3D'
         tracer.resolution_u = Btrace.curve_u
         tracer.bevel_resolution = Btrace.curve_resolution
@@ -874,7 +874,7 @@ class OBJECT_OT_traceallparticles(bpy.types.Operator):
             bpy.context.scene.frame_set(bFrames)
             if not (bFrames-f_start) % Btrace.particle_step:
                 for bFrames in range(set.count):
-                    if ps.particles[bFrames].alive_state != 'UNBORN': 
+                    if ps.particles[bFrames].alive_state != 'UNBORN':
                         e = bFrames
                     bp = spline.bezier_points[bFrames]
                     pt = ps.particles[e]
@@ -882,7 +882,7 @@ class OBJECT_OT_traceallparticles(bpy.types.Operator):
                     #bp.handle_left = pt.location
                     #bp.handle_right = pt.location
                     bp.handle_right_type = curve_handle
-                    bp.handle_left_type = curve_handle 
+                    bp.handle_left_type = curve_handle
                     bp.keyframe_insert('co')
                     bp.keyframe_insert('handle_left')
                     bp.keyframe_insert('handle_right')
@@ -898,7 +898,7 @@ class OBJECT_OT_traceallparticles(bpy.types.Operator):
 ################## ################## ################## ############
 ## Writing Tool
 ## Writes a curve by animating its point's radii
-## 
+##
 ################## ################## ################## ############
 class OBJECT_OT_writing(bpy.types.Operator):
     bl_idname = 'curve.btwriting'
@@ -941,7 +941,7 @@ class OBJECT_OT_writing(bpy.types.Operator):
         bpy.ops.object.shade_smooth()
         # Return to first frame
         bpy.context.scene.frame_set(Btrace.anim_f_start)
-        
+
         return{'FINISHED'}
 
 ################## ################## ################## ############
@@ -955,7 +955,7 @@ class OBJECT_OT_convertcurve(bpy.types.Operator):
     bl_label = "Btrace: Create Curve"
     bl_description = "Convert mesh to curve using either Continuous, All Edges, or Sharp Edges"
     bl_options = {'REGISTER', 'UNDO'}
-        
+
     def execute(self, context):
         import bpy, random, mathutils
         from mathutils import Vector
@@ -964,13 +964,13 @@ class OBJECT_OT_convertcurve(bpy.types.Operator):
         traceobjects = bpy.context.selected_objects # create a list with all the selected objects
 
         obj = bpy.context.object
-        
+
         ### Convert Font
         if obj.type == 'FONT':
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.convert(target='CURVE') # Convert edges to curve
             bpy.context.object.data.dimensions = '3D'
-            
+
         # make a continuous edge through all vertices
         if obj.type == 'MESH':
             # Add noise to mesh
@@ -988,9 +988,9 @@ class OBJECT_OT_convertcurve(bpy.types.Operator):
                 verts = bpy.context.object.data.vertices
                 bpy.ops.object.mode_set(mode='OBJECT')
                 li = []
-                p1 = random.randint(0,len(verts)-1) 
-                
-                for v in verts: 
+                p1 = random.randint(0,len(verts)-1)
+
+                for v in verts:
                     li.append(v.index)
                 li.remove(p1)
                 for z in range(len(li)):
@@ -1010,8 +1010,8 @@ class OBJECT_OT_convertcurve(bpy.types.Operator):
                     p1 = p2
                 # Convert edges to curve
                 bpy.ops.object.mode_set(mode='OBJECT')
-                bpy.ops.object.convert(target='CURVE') 
-            
+                bpy.ops.object.convert(target='CURVE')
+
             if Btrace.convert_edgetype == 'EDGEALL':
                 ## Start All edges
                 bpy.ops.object.mode_set(mode='EDIT')
@@ -1025,26 +1025,26 @@ class OBJECT_OT_convertcurve(bpy.types.Operator):
         obj = bpy.context.object
         # Set spline type to custom property in panel
         bpy.ops.object.editmode_toggle()
-        bpy.ops.curve.spline_type_set(type=Btrace.curve_spline) 
+        bpy.ops.curve.spline_type_set(type=Btrace.curve_spline)
         # Set handle type to custom property in panel
-        bpy.ops.curve.handle_type_set(type=Btrace.curve_handle) 
+        bpy.ops.curve.handle_type_set(type=Btrace.curve_handle)
         bpy.ops.object.editmode_toggle()
         obj.data.fill_mode = 'FULL'
         # Set resolution to custom property in panel
-        obj.data.bevel_resolution = Btrace.curve_resolution 
-        obj.data.resolution_u = Btrace.curve_u 
+        obj.data.bevel_resolution = Btrace.curve_resolution
+        obj.data.resolution_u = Btrace.curve_u
         # Set depth to custom property in panel
-        obj.data.bevel_depth = Btrace.curve_depth 
+        obj.data.bevel_depth = Btrace.curve_depth
         # Smooth object
         bpy.ops.object.shade_smooth()
         # Modulate curve radius and add distortion
-        if Btrace.distort_curve: 
+        if Btrace.distort_curve:
             scale = Btrace.distort_modscale
             if scale == 0:
                 return {'FINISHED'}
             for u in obj.data.splines:
                 for v in u.bezier_points:
-                    v.radius = scale*round(random.random(),3) 
+                    v.radius = scale*round(random.random(),3)
         return {'FINISHED'}
 
 
@@ -1059,8 +1059,8 @@ class OBJECT_OT_meshfollow(bpy.types.Operator):
     bl_label = "Btrace: Vertex Trace"
     bl_description = "Trace Vertex or Face on an animated mesh"
     bl_options = {'REGISTER', 'UNDO'}
-        
-    
+
+
     @classmethod
     def poll(cls, context):
         return (context.object and context.object.type in {'MESH'})
@@ -1175,12 +1175,12 @@ class OBJECT_OT_meshfollow(bpy.types.Operator):
         # Check if Btrace group exists, if not create
         bgroup = bpy.data.groups.keys()
         if 'Btrace' not in bgroup:
-            bpy.ops.group.create(name="Btrace") 
+            bpy.ops.group.create(name="Btrace")
 
         Btrace = bpy.context.window_manager.curve_tracer
         sel = getsel_option()  # Get selection
         curvelist = []  # list to use for grow curve
-        
+
         if Btrace.fol_mesh_type == 'OBJECT':
             vector_list = get_coord(obj)
             curvelist.append(make_curve(vector_list))
@@ -1306,11 +1306,11 @@ class OBJECT_OT_materialChango(bpy.types.Operator):
                     materialName = "colorblendMaterial"
                     madMat = bpy.data.materials.new(materialName)
                     theObj.data.materials.append(madMat)
-                else:                
+                else:
                     pass # pass since we have what we need
                 # assign the first material of the object to "mat"
-                madMat = theObj.data.materials[0] 
-                
+                madMat = theObj.data.materials[0]
+
 
             # Numbers of frames to skip between keyframes
             skip = Btrace.mmSkip
@@ -1327,7 +1327,7 @@ class OBJECT_OT_materialChango(bpy.types.Operator):
                     madMat.diffuse_color = mat_color
                 else:
                     madMat.diffuse_color = randomRGB
-            
+
             def colorblenderCustom():
                 if engine == 'CYCLES':
                     Diffuse_BSDF = madMat.node_tree.nodes['Diffuse BSDF']
@@ -1337,8 +1337,8 @@ class OBJECT_OT_materialChango(bpy.types.Operator):
                     madMat.diffuse_color = mat_color
                 else:
                     madMat.diffuse_color = random.choice(customColors)
-                
-            # Black and white color        
+
+            # Black and white color
             def colorblenderBW():
                 if engine == 'CYCLES':
                     Diffuse_BSDF = madMat.node_tree.nodes['Diffuse BSDF']
@@ -1348,7 +1348,7 @@ class OBJECT_OT_materialChango(bpy.types.Operator):
                     madMat.diffuse_color = mat_color
                 else:
                     madMat.diffuse_color = random.choice(bwColors)
-            
+
             # Bright colors
             def colorblenderBright():
                 if engine == 'CYCLES':
@@ -1359,7 +1359,7 @@ class OBJECT_OT_materialChango(bpy.types.Operator):
                     madMat.diffuse_color = mat_color
                 else:
                     madMat.diffuse_color = random.choice(brightColors)
-                
+
             # Earth Tones
             def colorblenderEarth():
                 if engine == 'CYCLES':
@@ -1370,7 +1370,7 @@ class OBJECT_OT_materialChango(bpy.types.Operator):
                     madMat.diffuse_color = mat_color
                 else:
                     madMat.diffuse_color = random.choice(earthColors)
-                
+
             # Green to Blue Tones
             def colorblenderGreenBlue():
                 if engine == 'CYCLES':
@@ -1381,16 +1381,16 @@ class OBJECT_OT_materialChango(bpy.types.Operator):
                     madMat.diffuse_color = mat_color
                 else:
                     madMat.diffuse_color = random.choice(greenblueColors)
-             
+
             # define frame start/end variables
-            scn = bpy.context.scene       
+            scn = bpy.context.scene
             start = scn.frame_start
-            end = scn.frame_end           
+            end = scn.frame_end
             # Go to each frame in iteration and add material
             while start<=(end+(skip-1)):
-               
+
                 bpy.context.scene.frame_set(frame=start)
-                
+
                 # Check what colors setting is checked and run the appropriate function
                 if Btrace.mmColors=='RANDOM':
                     colorblenderRandom()
@@ -1406,38 +1406,38 @@ class OBJECT_OT_materialChango(bpy.types.Operator):
                     colorblenderGreenBlue()
                 else:
                     pass
-                
+
                 # Add keyframe to material
                 if engine == 'CYCLES':
                     madMat.node_tree.nodes['Diffuse BSDF'].inputs[0].keyframe_insert('default_value')
                     madMat.keyframe_insert('diffuse_color') # not sure if this is need, it's viewport color only
                 else:
                     madMat.keyframe_insert('diffuse_color')
-                
+
                 # Increase frame number
                 start += skip
         return{'FINISHED'}
-    
+
 ###### This clears the keyframes ######
 class OBJECT_OT_clearColorblender(bpy.types.Operator):
     bl_idname = 'object.colorblenderclear'
     bl_label = 'Clear colorblendness'
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     def invoke(self, context, event):
-        
+
         import bpy, random
         mcolorblend = context.window_manager.colorblender_operator # properties panel
         colorObjects = bpy.context.selected_objects
-        
+
         # Go through each selected object and run the operator
         for i in colorObjects:
-            theObj = i    
+            theObj = i
             # assign the first material of the object to "mat"
-            matCl = theObj.data.materials[0] 
-            
+            matCl = theObj.data.materials[0]
+
             # define frame start/end variables
-            scn = bpy.context.scene       
+            scn = bpy.context.scene
             start = scn.frame_start
             end = scn.frame_end
 
@@ -1446,7 +1446,7 @@ class OBJECT_OT_clearColorblender(bpy.types.Operator):
                 bpy.context.scene.frame_set(frame=start)
                 matCl.keyframe_delete('diffuse_color')
                 start += 1
-            
+
         return{'FINISHED'}
 
 
@@ -1461,15 +1461,15 @@ class OBJECT_OT_fcnoise(bpy.types.Operator):
     bl_idname = "object.btfcnoise"
     bl_label = "Btrace: F-curve Noise"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     def execute(self, context):
         import bpy, random
-        
+
         Btrace = bpy.context.window_manager.curve_tracer
         amp = Btrace.fcnoise_amp
         timescale = Btrace.fcnoise_timescale
         addkeyframe = Btrace.fcnoise_key
-        
+
         # This sets properties for Loc, Rot and Scale if they're checked in the Tools window
         noise_rot = 'rotation'
         noise_loc = 'location'
@@ -1480,21 +1480,21 @@ class OBJECT_OT_fcnoise(bpy.types.Operator):
             noise_loc = 'none'
         if not Btrace.fcnoise_scale:
             noise_scale = 'none'
-            
+
         type = noise_loc, noise_rot, noise_scale # Add settings from panel for type of keyframes
         amplitude = amp
         time_scale = timescale
-        
+
         for i in bpy.context.selected_objects:
             # Add keyframes, this is messy and should only add keyframes for what is checked
             if addkeyframe == True:
-                bpy.ops.anim.keyframe_insert(type="LocRotScale")         
+                bpy.ops.anim.keyframe_insert(type="LocRotScale")
             for obj in bpy.context.selected_objects:
                 if obj.animation_data:
                     for c in obj.animation_data.action.fcurves:
                         if c.data_path.startswith(type):
                             # clean modifiers
-                            for m in c.modifiers : 
+                            for m in c.modifiers :
                                 c.modifiers.remove(m)
                             # add noide modifiers
                             n = c.modifiers.new('NOISE')
@@ -1506,17 +1506,17 @@ class OBJECT_OT_fcnoise(bpy.types.Operator):
 ################## ################## ################## ############
 ## Curve Grow Animation
 ## Animate curve radius over length of time
-################## ################## ################## ############     
+################## ################## ################## ############
 class OBJECT_OT_curvegrow(bpy.types.Operator):
     bl_idname = 'curve.btgrow'
     bl_label = 'Run Script'
     bl_description = 'Keyframe points radius'
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     @classmethod
     def poll(cls, context):
         return (context.object and context.object.type in {'CURVE'})
-    
+
     def execute(self, context):
         Btrace = bpy.context.window_manager.curve_tracer
         anim_f_start, anim_length, anim_auto = Btrace.anim_f_start, Btrace.anim_length, Btrace.anim_auto

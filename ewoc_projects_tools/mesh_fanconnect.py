@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 The FanConnect addon connects multiple selected verts to one single other vert.
 
 

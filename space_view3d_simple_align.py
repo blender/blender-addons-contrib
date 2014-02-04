@@ -27,10 +27,9 @@ bl_info = {
     "location": "View3D > Tool Shelf > Simple Align Panel",
     "description": "Align Selected Objects to Active Object",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/3D interaction/Align_Tools",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22389",
+    "tracker_url": "https://developer.blender.org/T22389",
     "category": "3D View"}
 
 """Align Selected Objects"""
@@ -54,16 +53,16 @@ class AlignUi(bpy.types.Panel):
             row.label(text="Active object is: ", icon='OBJECT_DATA')
             row = layout.row()
             row.label(obj.name, icon='EDITMODE_HLT')
-        
+
         layout.separator()
-        
+
         col = layout.column()
         col.label(text="Align Loc + Rot:", icon='MANIPUL')
 
-        
+
         col = layout.column(align=False)
         col.operator("object.align",text="XYZ")
-        
+
         col = layout.column()
         col.label(text="Align Location:", icon='MAN_TRANS')
 
@@ -81,7 +80,7 @@ class AlignUi(bpy.types.Panel):
         col.operator("object.align_rotation_y",text="Y")
         col.operator("object.align_rotation_z",text="Z")
         col.operator("object.align_rotation_all",text="All")
-        
+
         col = layout.column()
         col.label(text="Align Scale:", icon='MAN_SCALE')
 

@@ -21,7 +21,6 @@ bl_info = {
     "author": "dustractor",
     "version": (2, 0),
     "blender": (2, 60, 0),
-    "api": 41935,
     "location": "edit mesh vertices/edges/faces menus",
     "description": "",
     "warning": "",
@@ -63,7 +62,7 @@ class MESH_OT_vneighbors_edgewise(meshpoller,bpy.types.Operator):
     bl_idname = "mesh.v2v_by_edge"
     bl_label = "Neighbors by Edge"
     bl_options = {"REGISTER","UNDO"}
-    
+
     def execute(self,context):
         global cachedata
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -106,7 +105,7 @@ class MESH_OT_vneighbors_facewise(meshpoller,bpy.types.Operator):
     bl_idname = "mesh.v2v_facewise"
     bl_label = "Neighbors by Face - Edge"
     bl_options = {"REGISTER","UNDO"}
-    
+
     def execute(self,context):
         global cachedata
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -134,7 +133,7 @@ class MESH_OT_vneighbors_facewise(meshpoller,bpy.types.Operator):
                 for v in f.vertices:
                     if not mesh.vertices[v].select:
                         if v not in t:
-                            next_state[v]=1 
+                            next_state[v]=1
         mesh.vertices.foreach_set("select",next_state)
         cachedata[meshkey] = vert_to_vert_map
         bpy.ops.object.mode_set(mode="EDIT")
@@ -245,7 +244,7 @@ class MESH_OT_eneighbors_shared_f(meshpoller,bpy.types.Operator):
                     edge_to_edges_dict[edge_key_to_index[k]].update(fed)
             obj.tkkey = meshkey
         state_mask,esel = (bytearray(meshkey[1]),bytearray(meshkey[1]))
-        mesh.edges.foreach_get('select',esel) 
+        mesh.edges.foreach_get('select',esel)
         for e in filter(lambda _:mesh.edges[_].select,range(meshkey[1])):
             for n in edge_to_edges_dict[e]:
                 state_mask[n] = 1
@@ -279,7 +278,7 @@ class MESH_OT_eneighbors_shared_f_notv(meshpoller,bpy.types.Operator):
         state_mask = bytearray(meshkey[1])
         if (meshkey == obj.tkkey) and (meshkey in cachedata):
             edge_to_face_map,edge_key_to_index = cachedata[meshkey]
-        else:   
+        else:
             edge_key_to_index = {}
             edge_to_face_map = {i:set() for i in range(meshkey[1])}
             for i,k in enumerate(mesh.edge_keys):
@@ -358,7 +357,7 @@ class MESH_OT_eneighbors_shared_v_notf(meshpoller,bpy.types.Operator):
         cachedata[meshkey] = (edge_to_face_map,vert_to_vert_map,edge_key_to_index)
         bpy.ops.object.mode_set(mode="EDIT")
         return {"FINISHED"}
- 
+
 #deselects faces, leaving only edges selected
 class MESH_OT_just_the_edges(meshpoller,bpy.types.Operator):
     bl_idname = "mesh.je"
@@ -433,7 +432,7 @@ def eemenuitem(self,context):
 # here is another one which functions very similarly to the ctrl+NUMPAD_PLUS 'growth'
 # but it deselects the original selection, of course.
 # This would be your checkerboard-type growth.
-#   [0][0][0]          [0][1][0] 
+#   [0][0][0]          [0][1][0]
 #   [0][1][0]   --->   [1][0][1]
 #   [0][0][0]          [0][1][0]
 class MESH_OT_fneighbors_shared_e(meshpoller,bpy.types.Operator):
@@ -470,7 +469,7 @@ class MESH_OT_fneighbors_shared_e(meshpoller,bpy.types.Operator):
         return {"FINISHED"}
 
 
-#   [0][0][0]          [1][0][1] 
+#   [0][0][0]          [1][0][1]
 #   [0][1][0]   --->   [0][0][0]
 #   [0][0][0]          [1][0][1]
 class MESH_OT_fneighbors_shared_v_note(meshpoller,bpy.types.Operator):
@@ -544,7 +543,7 @@ class MESH_OT_conway(meshpoller,bpy.types.Operator):
         bpy.ops.object.mode_set(mode="EDIT")
         return {"FINISHED"}
 
-        
+
 
 def ffmenuitem(self,context):
     self.layout.operator(MESH_OT_fneighbors_shared_e.bl_idname)

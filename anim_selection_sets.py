@@ -37,9 +37,11 @@ bl_info = {
   "blender": (2, 65, 4),
   "location": "Properties > Object data (Armature) > Selection Sets",
   "description": "Selection Sets to select groups of posebones",
-  "warning": "Proxy armatures need to export sets and run generated script on re-opening file",
-  "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Animation/SelectionSets",
-  "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=31492",
+  "warning": "Proxy armatures need to export sets and "
+    "run generated script on re-opening file",
+  "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    "Scripts/Animation/SelectionSets",
+  "tracker_url": "https://developer.blender.org/T31492",
   "category": "Animation"
 }
 

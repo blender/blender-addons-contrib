@@ -3,14 +3,13 @@
     "author": "SayPRODUCTIONS",
     "version": (1, 0),
     "blender": (2, 59, 0),
-    "api": 33333,
     "location": "View3D > Add > Mesh > Say3D",
     "description": "Sove Framema",
     "warning": "",
     "wiki_url": "",
     "tracker_url": "",
     "category": "Add Mesh"}
-	'''
+'''
 import bpy
 from bpy.props import *
 from bpy_extras.object_utils import object_data_add
@@ -22,8 +21,8 @@ def MSVE():
     if 'Sove' not in bpy.data.materials:
         mtl=bpy.data.materials.new('Sove')
         mtl.diffuse_color     = (0.44,0.52,0.64)
-        mtl.diffuse_shader    = 'LAMBERT' 
-        mtl.diffuse_intensity = 1.0 
+        mtl.diffuse_shader    = 'LAMBERT'
+        mtl.diffuse_intensity = 1.0
     else:
         mtl=bpy.data.materials['Sove']
     return mtl
@@ -102,7 +101,7 @@ def add_object(self, context):
     if self.dr==False:
         fc.append([14,10,11,15]);fc.append([6,14,15,7])
     #Yuvarlak-----------
-    else:        
+    else:
         if dh>mx:dh=mx;self.dh=mx*100
         vr[ 6][2]-=dh;vr[ 7][2]-=dh
         vr[14][2]-=dh;vr[15][2]-=dh
@@ -197,7 +196,7 @@ class OBJECT_OT_add_object(bpy.types.Operator):
         row=box.row();row.prop(self, 'fh');row.prop(self, 'fd')
         for i in range(self.fg):
             box.prop(self,'f'+str(i))
-            
+
     def execute(self, context):
         if self.son!=self.prs:
             if self.prs=='1':Prs(self,200,15,590,44,33,15,20,30,True,1,2,3,90,30,30,30,30,30,30,30,30,30)

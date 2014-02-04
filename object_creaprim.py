@@ -19,26 +19,31 @@
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-__bpydoc__ = """\
-CreaPrim does what it says. I takes the active object and turns it into an Add Mesh addon.	When you
-enable this, your custom object will be added to the Add->Mesh menu.
+"""
+CreaPrim does what it says. I takes the active object and turns it into an
+Add Mesh addon.	When you enable this, your custom object will be added to the
+Add->Mesh menu.
 
 
 Documentation
 
-Go to User Preferences->Addons and enable the CreaPrim addon in the Object section.
-First select your object or objects.  The addon will show up in the 3dview properties panel.	
-The name (in panel) will be set to the active object name.	Select "Apply transform" if you
-want transforms to be applied to the selected objects.	Modifiers will taken into account.
-You can always change this. Just hit the button and the selected
-objects will be saved in your addons folder as an Add Mesh addon with the name 
-"add_mesh_XXXX.py" with XXXX being your object name.  The addon will show up in User
-Preferences->Addons in the Add Mesh section.  
-Enable this addon et voila, your new custom primitive will now show up in the Add Mesh menu.
+Go to User Preferences->Addons and enable the CreaPrim addon in the Object
+section. The addon will show up in the 3dview properties panel.
+
+First select your object or objects.
+The name (in panel) will be set to the active object name.
+Select "Apply transform" if you want transforms to be applied to the selected
+objects. Modifiers will taken into account. You can always change this.
+Just hit the button and the selected objects will be saved in your addons folder
+as an Add Mesh addon with the name "add_mesh_XXXX.py" with XXXX being your
+object name.  The addon will show up in User Preferences->Addons in the
+Add Mesh section. Enable this addon et voila, your new custom primitive will
+now show up in the Add Mesh menu.
 
 REMARK - dont need to be admin anymore - saves to user scripts dir
-			
-ALSO - dont forget to Apply rotation and scale to have your object show up correctly
+
+ALSO - dont forget to Apply rotation and scale to have your object
+show up correctly
 """
 
 bl_info = {
@@ -49,11 +54,10 @@ bl_info = {
     "location": "View3D > Object Tools",
     "description": "Create primitive addon",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
-        "Scripts",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=32801",
+    "wiki_url": "",
+    "tracker_url": "https://developer.blender.org/T32801",
     "category": "Object"}
+
 
 if "bpy" in locals():
 	import imp
@@ -73,7 +77,7 @@ bpy.types.Scene.Name = bpy.props.StringProperty(
 			maxlen= 1024)
 
 bpy.types.Scene.Apply = bpy.props.BoolProperty(
-		name = "Apply transform", 
+		name = "Apply transform",
 		description = "apply transform to selected objects",
 		default = False)
 
@@ -83,24 +87,24 @@ class CreaPrim(bpy.types.Operator):
 	bl_label = "CreaPrim"
 	bl_description = "Create primitive addon"
 	bl_options = {"REGISTER"}
-	
-	
+
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and obj.type == 'MESH' and context.mode == 'OBJECT')
 
 	def invoke(self, context, event):
-		
+
 		global oldname, groupname, message
-		
+
 		scn = bpy.context.scene
-				
+
 		objlist = []
 		for selobj in bpy.context.scene.objects:
 			if selobj.select:
 				objlist.append(selobj)
-				
+
 		try:
 			direc = bpy.utils.script_paths()[1]
 			scriptdir = 1
@@ -120,7 +124,7 @@ class CreaPrim(bpy.types.Operator):
 			print (addondir)
 			if not os.path.exists(addondir):
 				os.makedirs(addondir)
-			
+
 		actobj = bpy.context.active_object
 		txtlist = []
 		namelist = []
@@ -144,46 +148,46 @@ class CreaPrim(bpy.types.Operator):
 			txtlist.append(txt)
 		oldname = actobj.name
 		scn.objects.active = actobj
-			
+
 		if len(txtlist) > 1:
 			makeinit(txtlist, namelist, groupname, addondir)
 			bpy.ops.wm.addon_enable(module="add_mesh_" + groupname)
 		else:
 			bpy.ops.wm.addon_enable(module="add_mesh_" + str.lower(objname))
-			
+
 		if scriptdir == 1:
 			message = "Add Mesh addon " + groupname + " saved to user scripts directory."
 		else:
 			message = "Add Mesh addon " + groupname + " saved to main scripts directory."
 		bpy.ops.creaprim.message('INVOKE_DEFAULT')
-		
+
 		return {'FINISHED'}
 
 
 class MessageOperator(bpy.types.Operator):
 	bl_idname = "creaprim.message"
 	bl_label = "Saved"
-	 
+
 	def invoke(self, context, event):
 		wm = context.window_manager
 		return wm.invoke_popup(self, width=500, height=20)
 		return {'FINISHED'}
- 
+
 	def draw(self, context):
-		
+
 		global groupname
-		
+
 		layout = self.layout
 		row = layout.row()
 		row.label(text = '', icon = "PLUGIN")
 		row.label(message)
-		
+
 def panel_func(self, context):
-	
+
 	global started
-	
+
 	scn = bpy.context.scene
-		
+
 	self.layout.label(text="CreaPrim:")
 	self.layout.operator("object.creaprim", text="Create primitive", icon = 'PLUGIN')
 	self.layout.prop(scn, "Name")
@@ -193,7 +197,7 @@ def register():
 	bpy.utils.register_module(__name__)
 	bpy.types.VIEW3D_PT_tools_objectmode.append(panel_func)
 	bpy.app.handlers.scene_update_post.append(setname)
-	
+
 def unregister():
 	bpy.utils.unregister_module(__name__)
 	bpy.types.VIEW3D_PT_tools_objectmode.remove(panel_func)
@@ -206,21 +210,21 @@ if __name__ == "__main__":
 
 
 def do_creaprim(self, mesh, objname, addondir):
-	
+
 	global message
-	
+
 	objname = objname.replace(".", "")
 	objname = objname.replace(" ", "_")
 	bm = bmesh.new()
-	bm.from_mesh(mesh)	
-	
-	
+	bm.from_mesh(mesh)
+
+
 	try:
 		txt = bpy.data.texts[str.lower("add_mesh_" + objname) + ".py"]
 		txt.clear()
 	except:
 		txt = bpy.data.texts.new("add_mesh_" + str.lower(objname) + ".py")
-	
+
 	strlist = []
 	strlist.append("bl_info = {\n")
 	strlist.append("\"name\": \"" + objname + "\", \n")
@@ -234,7 +238,7 @@ def do_creaprim(self, mesh, objname, addondir):
 	strlist.append("\"tracker_url\": \"\",\n")
 	strlist.append("\"category\": \"Add Mesh\"}\n")
 	strlist.append("\n")
-	strlist.append("\n") 
+	strlist.append("\n")
 	strlist.append("if \"bpy\" in locals():\n")
 	strlist.append("	   import imp\n")
 	strlist.append("\n")
@@ -271,7 +275,7 @@ def do_creaprim(self, mesh, objname, addondir):
 			strlist.append(", ")
 		posn += 1
 		strlist.append(str(v.co[:]))
-	strlist.append("]\n")	
+	strlist.append("]\n")
 	strlist.append("		for co in vertlist:\n")
 	strlist.append("			v = bm.verts.new(co)\n")
 	strlist.append("			bm.verts.index_update()\n")
@@ -283,7 +287,7 @@ def do_creaprim(self, mesh, objname, addondir):
 			strlist.append(", ")
 		posn += 1
 		strlist.append("[" + str(e.verts[0].index) + ", " + str(e.verts[1].index) + "]")
-	strlist.append("]\n")	
+	strlist.append("]\n")
 	strlist.append("		for verts in edgelist:\n")
 	strlist.append("			try:\n")
 	strlist.append("				bm.edges.new((bm.verts[verts[0]], bm.verts[verts[1]]))\n")
@@ -302,11 +306,11 @@ def do_creaprim(self, mesh, objname, addondir):
 			strlist.append(str(v.index))
 			posn2 += 1
 		strlist.append(")")
-	strlist.append("]\n")	
+	strlist.append("]\n")
 	strlist.append("		for verts in facelist:\n")
-	strlist.append("			vlist = []\n")	
-	strlist.append("			for idx in verts:\n")	
-	strlist.append("				vlist.append(bm.verts[idxlist[idx]])\n")	
+	strlist.append("			vlist = []\n")
+	strlist.append("			for idx in verts:\n")
+	strlist.append("				vlist.append(bm.verts[idxlist[idx]])\n")
 	strlist.append("			try:\n")
 	strlist.append("				bm.faces.new(vlist)\n")
 	strlist.append("			except:\n")
@@ -314,31 +318,31 @@ def do_creaprim(self, mesh, objname, addondir):
 	strlist.append("\n")
 	strlist.append("		bm.to_mesh(mesh)\n")
 	strlist.append("		mesh.update()\n")
-	strlist.append("		bm.free()\n")	
+	strlist.append("		bm.free()\n")
 	strlist.append("		obj.rotation_quaternion = (Matrix.Rotation(math.radians(90), 3, \'X\').to_quaternion())\n")
 	strlist.append("\n")
 	strlist.append("		return {\'FINISHED\'}\n")
-		
+
 	strlist.append("\n")
 	strlist.append("\n")
 	strlist.append("\n")
-	strlist.append("\n") 
-	strlist.append("def menu_item(self, context):\n")	
+	strlist.append("\n")
+	strlist.append("def menu_item(self, context):\n")
 	strlist.append("	   self.layout.operator(" + objname + ".bl_idname, text=\"" + objname + "\", icon=\"PLUGIN\")\n")
-	strlist.append("\n") 
+	strlist.append("\n")
 	strlist.append("def register():\n")
 	strlist.append("	   bpy.utils.register_module(__name__)\n")
 	strlist.append("	   bpy.types.INFO_MT_mesh_add.append(menu_item)\n")
-	strlist.append("\n") 
+	strlist.append("\n")
 	strlist.append("def unregister():\n")
 	strlist.append("	   bpy.utils.unregister_module(__name__)\n")
 	strlist.append("	   bpy.types.INFO_MT_mesh_add.remove(menu_item)\n")
-	strlist.append("\n") 
-	strlist.append("if __name__ == \"__main__\":\n") 
-	strlist.append("	   register()\n")	
+	strlist.append("\n")
+	strlist.append("if __name__ == \"__main__\":\n")
+	strlist.append("	   register()\n")
 	endstring = ''.join(strlist)
 	txt.write(endstring)
-	
+
 	try:
 		fileobj = open(addondir + "add_mesh_" + str.lower(objname) + ".py", "w")
 	except:
@@ -348,22 +352,22 @@ def do_creaprim(self, mesh, objname, addondir):
 
 	fileobj.write(endstring)
 	fileobj.close()
-	
+
 	bm.free()
-	
+
 	return txt
-	
-	
+
+
 def makeinit(txtlist, namelist, groupname, addondir):
-	
+
 	global message
-	
+
 	try:
 		txt = bpy.data.texts["__init__.py"]
 		txt.clear()
 	except:
 		txt = bpy.data.texts.new("__init__.py")
-	
+
 	strlist = []
 	strlist.append("bl_info = {\n")
 	strlist.append("\"name\": \"" + groupname + "\", \n")
@@ -377,7 +381,7 @@ def makeinit(txtlist, namelist, groupname, addondir):
 	strlist.append("\"tracker_url\": \"\",\n")
 	strlist.append("\"category\": \"Add Mesh\"}\n")
 	strlist.append("\n")
-	strlist.append("\n") 
+	strlist.append("\n")
 	strlist.append("if \"bpy\" in locals():\n")
 	strlist.append("	import imp\n")
 	addonlist = []
@@ -385,10 +389,10 @@ def makeinit(txtlist, namelist, groupname, addondir):
 		name = txt.name.replace(".py", "")
 		addonlist.append(name)
 	for name in addonlist:
-		strlist.append("	imp.reload(" + name + ")\n")	
+		strlist.append("	imp.reload(" + name + ")\n")
 	strlist.append("else:\n")
 	for name in addonlist:
-		strlist.append("	from . import " + name + "\n")	
+		strlist.append("	from . import " + name + "\n")
 	strlist.append("\n")
 	strlist.append("\n")
 	strlist.append("import bpy\n")
@@ -408,23 +412,23 @@ def makeinit(txtlist, namelist, groupname, addondir):
 	strlist.append("\n")
 	strlist.append("\n")
 	strlist.append("\n")
-	strlist.append("\n") 
-	strlist.append("def menu_item(self, context):\n")	
+	strlist.append("\n")
+	strlist.append("def menu_item(self, context):\n")
 	strlist.append("	   self.layout.menu(\"INFO_MT_mesh_" + str.lower(groupname) + "_add\", icon=\"PLUGIN\")\n")
-	strlist.append("\n") 
+	strlist.append("\n")
 	strlist.append("def register():\n")
 	strlist.append("	   bpy.utils.register_module(__name__)\n")
 	strlist.append("	   bpy.types.INFO_MT_mesh_add.append(menu_item)\n")
-	strlist.append("\n") 
+	strlist.append("\n")
 	strlist.append("def unregister():\n")
 	strlist.append("	   bpy.utils.unregister_module(__name__)\n")
 	strlist.append("	   bpy.types.INFO_MT_mesh_add.remove(menu_item)\n")
-	strlist.append("\n") 
-	strlist.append("if __name__ == \"__main__\":\n") 
-	strlist.append("	   register()\n")	
+	strlist.append("\n")
+	strlist.append("if __name__ == \"__main__\":\n")
+	strlist.append("	   register()\n")
 	endstring = ''.join(strlist)
 	txt.write(endstring)
-	
+
 	try:
 		fileobj = open(addondir + "__init__.py", "w")
 	except:
@@ -437,15 +441,15 @@ def makeinit(txtlist, namelist, groupname, addondir):
 
 
 def setname(dummy):
-	
+
 	global oldname
-	
+
 	scn = bpy.context.scene
-	
+
 	if bpy.context.active_object.name != oldname:
 		scn.Name = bpy.context.active_object.name
 		oldname = scn.Name
-	
-	
-	
+
+
+
 

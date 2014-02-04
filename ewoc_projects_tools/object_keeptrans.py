@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 The KeepTrans addon works when you want to remove a ChildOf constraint, but keep the
 constrained objects transforms.
 

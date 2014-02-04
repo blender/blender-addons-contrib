@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 The SelProject addon enables you to "project" an object onto another object, every vertex inside the
 projection's shape will be selected.
 

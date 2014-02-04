@@ -18,19 +18,19 @@
 
 bl_info = {
     "name": "Add Symmetrical Empty",
-    "author": "Pablo Vazquez",			
-    "version": (1,0,2),
+    "author": "Pablo Vazquez",
+    "version": (1, 0, 2),
     "blender": (2, 64, 0),
     "location": "View3D > Add > Mesh > Symmetrical Empty",
     "description": "Add an empty mesh with a Mirror Modifier for quick symmetrical modeling",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Add_Mesh/Add_Symmetrical_Empty",
     "tracker_url": "",
     "category": "Add Mesh"}
 '''
 Adds an empty mesh with a mirror modifier.
-'''    
+'''
 
 import bpy
 from bpy.props import BoolProperty
@@ -55,7 +55,7 @@ def Add_Symmetrical_Empty():
 
 
 class AddSymmetricalEmpty(bpy.types.Operator):
-    
+
     bl_idname = "mesh.primitive_symmetrical_empty_add"
     bl_label = "Add Symmetrical Empty Mesh"
     bl_description = "Add an empty mesh with a Mirror Modifier for quick symmetrical modeling"

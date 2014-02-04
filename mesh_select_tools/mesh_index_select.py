@@ -3,7 +3,6 @@ bl_info = {
     "author": "liero",
     "version": (0, 2),
     "blender": (2, 55, 0),
-    "api": 33333,
     "location": "View3D > Tool Shelf",
     "description": "Select mesh data by index / area / length / cursor",
     "category": "Mesh"}

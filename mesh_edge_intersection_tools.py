@@ -26,11 +26,9 @@ bl_info = {
     "category": "Mesh",
     "location": "View3D > EditMode > (w) Specials",
     "warning": "Still under development",
-    "wiki_url": "http://wiki.blender.org/index.php/"\
-        "Extensions:2.6/Py/Scripts/Modeling/Edge_Slice",
-    "tracker_url": "http://projects.blender.org/tracker/"\
-        "?func=detail&aid=25227"
-   }
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Modeling/Edge_Slice",
+    "tracker_url": "https://developer.blender.org/T25227"}
 
 """
 parts based on Keith (Wahooney) Boshoff, cursor to intersection script and
@@ -73,7 +71,7 @@ def CountPointOnEdges(point, outer_points):
     return count
 
 
-#   takes Vector List and returns tuple of points in expected order. 
+#   takes Vector List and returns tuple of points in expected order.
 def edges_to_points(edges):
     (vp1, vp2) = (Vector((edges[0][0])), Vector((edges[0][1])))
     (vp3, vp4) = (Vector((edges[1][0])), Vector((edges[1][1])))
@@ -151,7 +149,7 @@ def ExtendEdge(vX, outer_points, count):
     if isPointOnEdge(vX, vC, vD):
         oe[edge_count].vertices = [vert_count, vert_count+3]
         oe[edge_count+1].vertices = [vert_count, vert_count+4]
-        # find which of A and B is farthest away from X 
+        # find which of A and B is farthest away from X
         if mDist(vB, vX) > mDist(vA, vX):
             oe[edge_count+2].vertices = [vert_count, vert_count+1]
             oe[edge_count+3].vertices = [vert_count+1, vert_count+2]
@@ -226,13 +224,13 @@ def initScriptV(context, self):
     (vert_count, edge_count) = getVertEdgeCount()
 
     #need 2 edges to be of any use.
-    if len(meshMatrix) < 2: 
+    if len(meshMatrix) < 2:
         print(str(len(meshMatrix)) +" select, make sure (only) 2 are selected")
         return
 
     #dont go any further if the verts are not coplanar
     if checkIsMatrixCoplanar(meshMatrix): print("seems within tolerance, proceed")
-    else: 
+    else:
         print("check your geometry, or decrease tolerance value")
         return
 
@@ -281,7 +279,7 @@ def initScriptX(context, self):
     else:
         if checkEdges(meshMatrix, obj) == None:
             print("lines dont intersect")
-        else: 
+        else:
             count = CountPointOnEdges(checkEdges(meshMatrix, obj), meshMatrix)
             if count == 2:
                 makeGeometryWeld(checkEdges(meshMatrix, obj), meshMatrix)

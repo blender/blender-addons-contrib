@@ -76,9 +76,11 @@ bl_info = {
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "warning": "",
     "description": "CAD style edge manipulation tools",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/EdgeTools",
-    "tracker_url": "https://svn.blender.org/svnroot/bf-extensions/contrib/py/scripts/addons/mesh_edgetools.py",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Modeling/EdgeTools",
+    "tracker_url": "",
     "category": "Mesh"}
+
 
 import bpy, bmesh, mathutils
 from math import acos, pi, radians, sqrt, tan
@@ -105,7 +107,7 @@ def sign(number):
 #
 # Checks to see if two lines are parallel
 def is_parallel(v1, v2, v3, v4):
-    result = intersect_line_line(v1, v2, v3, v4) 
+    result = intersect_line_line(v1, v2, v3, v4)
     return result == None
 
 
@@ -288,7 +290,7 @@ def interpolate_line_line(p1_co, p1_dir, p2_co, p2_dir, segments, tension = 1,
 # A quad may not be planar.  Therefore the treated definition of the surface is
 # that the surface is composed of all lines bridging two other lines defined by
 # the given four points.  The lines do not "cross".
-# 
+#
 # The two lines in 3-space can defined as:
 #   ┌  ┐         ┌   ┐     ┌   ┐  ┌  ┐         ┌   ┐     ┌   ┐
 #   │x1│         │a11│     │b11│  │x2│         │a21│     │b21│
@@ -514,7 +516,7 @@ def intersect_line_face(edge, face, is_infinite = False, error = 0.000002):
         y = (1 - t3) * a32 + t3 * b32
         z = (1 - t3) * a33 + t3 * b33
         int_co = Vector((x, y, z))
-        
+
         if bpy.app.debug:
             print(int_co)
 
@@ -561,7 +563,7 @@ def project_point_plane(pt, plane_co, plane_no):
     proj_co = intersect_line_plane(pt, pt + plane_no, plane_co, plane_no)
     proj_ve = proj_co - pt
     return (proj_ve, proj_co)
-    
+
 
 # ------------ FILLET/CHAMPHER HELPER METHODS -------------
 
@@ -604,7 +606,7 @@ def is_planar_edge(edge, error = 0.000002):
 # debuged.
 def fillet_axis(edge, radius):
     vectors = [None, None, None, None]
-    
+
     origin = Vector((0, 0, 0))
     axis = edge.verts[1].co - edge.verts[0].co
 
@@ -637,10 +639,10 @@ def fillet_axis(edge, radius):
     # Get the normal for face 0 and face 1:
     norm1 = edge.link_faces[0].normal
     norm2 = edge.link_faces[1].normal
-    
+
     # We need to find the angle between the two faces, then bisect it:
     theda = (pi - edge.calc_face_angle()) / 2
-    
+
     # We are dealing with a triangle here, and we will need the length
     # of its adjacent side.  The opposite is the radius:
     adj_len = radius / tan(theda)
@@ -653,7 +655,7 @@ def fillet_axis(edge, radius):
         vectors[i] = project_point_plane(vectors[i], origin, axis)[1]
         vectors[i].length = adj_len
         vectors[i] = vectors[i] + edge.verts[i % 2].co
-    
+
     # Compute fillet axis end points:
     v1 = intersect_line_line(vectors[0], vectors[0] + norm1, vectors[2], vectors[2] + norm2)[0]
     v2 = intersect_line_line(vectors[1], vectors[1] + norm1, vectors[3], vectors[3] + norm2)[0]
@@ -691,7 +693,7 @@ class Extend(bpy.types.Operator):
         layout.prop(self, "di1")
         layout.prop(self, "di2")
         layout.prop(self, "length")
-    
+
 
     @classmethod
     def poll(cls, context):
@@ -702,7 +704,7 @@ class Extend(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-    
+
     def execute(self, context):
         bpy.ops.object.editmode_toggle()
         bm = bmesh.new()
@@ -719,7 +721,7 @@ class Extend(bpy.types.Operator):
             for e in edges:
                 vector = e.verts[0].co - e.verts[1].co
                 vector.length = self.length
-                
+
                 if self.di1:
                     v = bVerts.new()
                     if (vector[0] + vector[1] + vector[2]) < 0:
@@ -774,7 +776,7 @@ class Spline(bpy.types.Operator):
     bl_label = "Spline"
     bl_description = "Create a spline interplopation between two edges"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     alg = EnumProperty(name = "Spline Algorithm",
                        items = [('Blender', 'Blender', 'Interpolation provided through \"mathutils.geometry\"'),
                                 ('Hermite', 'C-Spline', 'C-spline interpolation'),
@@ -825,7 +827,7 @@ class Spline(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-    
+
     def execute(self, context):
         bpy.ops.object.editmode_toggle()
         bm = bmesh.new()
@@ -834,7 +836,7 @@ class Spline(bpy.types.Operator):
 
         bEdges = bm.edges
         bVerts = bm.verts
-        
+
         seg = self.segments
         edges = [e for e in bEdges if e.select]
         verts = [edges[v // 2].verts[v % 2] for v in range(4)]
@@ -860,7 +862,7 @@ class Spline(bpy.types.Operator):
         else:
             v2 = verts[2]
             p2_co = verts[2].co
-            p2_dir = verts[3].co - verts[2].co 
+            p2_dir = verts[3].co - verts[2].co
         if self.ten2 < 0:
             p2_dir = -1 * p2_dir
             p2_dir.length = -self.ten2
@@ -960,7 +962,7 @@ class Ortho(bpy.types.Operator):
         row.prop(self, "neg")
         layout.prop(self, "angle")
         layout.prop(self, "length")
-    
+
     @classmethod
     def poll(cls, context):
         ob = context.active_object
@@ -970,7 +972,7 @@ class Ortho(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-    
+
     def execute(self, context):
         bpy.ops.object.editmode_toggle()
         bm = bmesh.new()
@@ -1019,7 +1021,7 @@ class Ortho(bpy.types.Operator):
 
             vectors.append(verts[0].co - verts[1].co)
             vectors.append(verts[2].co - verts[3].co)
-            
+
             # Normal of the plane formed by vector1 and vector2:
             vectors.append(vectors[0].cross(vectors[1]))
 
@@ -1086,7 +1088,7 @@ class Shaft(bpy.types.Operator):
                             min = 0, max = 1,
                             default = 0)
     last_flip = False
-    
+
     edge = IntProperty(name = "Edge",
                        description = "Edge to shaft around.",
                        min = 0, max = 1,
@@ -1139,7 +1141,7 @@ class Shaft(bpy.types.Operator):
 
         return self.execute(context)
 
-    
+
     def execute(self, context):
         bpy.ops.object.editmode_toggle()
         bm = bmesh.new()
@@ -1202,7 +1204,7 @@ class Shaft(bpy.types.Operator):
                     return {'CANCELLED'}
             elif self.edge == 1:
                 edge = [1, 0]
-                    
+
             verts.append(edges[edge[0]].verts[0])
             verts.append(edges[edge[0]].verts[1])
 
@@ -1279,7 +1281,7 @@ class Shaft(bpy.types.Operator):
                 # These will be rotated about the orgin so will need to be shifted:
                 for j in range(numV):
                     verts_out.append(co - (matrices[j] * init_vec))
-        # Else if a line and a point was selected:    
+        # Else if a line and a point was selected:
         elif self.shaftType == 2:
             init_vec = distance_point_line(verts[2].co, verts[0].co, verts[1].co)
             # These will be rotated about the orgin so will need to be shifted:
@@ -1403,7 +1405,7 @@ class Slice(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-    
+
     def execute(self, context):
         bpy.ops.object.editmode_toggle()
         bm = bmesh.new()
@@ -1464,7 +1466,7 @@ class Slice(bpy.types.Operator):
             # Get the end verts on the edge:
             v1 = e.verts[0]
             v2 = e.verts[1]
-            
+
             # Make sure that verts are not a part of the cutting plane:
             if e.select and (v1 not in face.verts and v2 not in face.verts):
                 if len(face.verts) < 5:  # Not an n-gon
@@ -1783,7 +1785,7 @@ class Fillet(bpy.types.Operator):
         layout.prop(self, "deg_seg")
         layout.prop(self, "res")
 
-    
+
     @classmethod
     def poll(cls, context):
         ob = context.active_object
@@ -1825,7 +1827,7 @@ class Fillet(bpy.types.Operator):
 
         for e in edges:
             axis_points = fillet_axis(e, self.radius)
-            
+
 
         bm.to_mesh(bpy.context.active_object.data)
         bpy.ops.object.editmode_toggle()
@@ -1858,7 +1860,7 @@ class Intersect_Line_Face(bpy.types.Operator):
             self.report({'ERROR_INVALID_INPUT'},
                         "This is for debugging only: you should not be able to run this!")
             return {'CANCELLED'}
-        
+
         bpy.ops.object.editmode_toggle()
         bm = bmesh.new()
         bm.from_mesh(bpy.context.active_object.data)
@@ -1897,11 +1899,11 @@ class Intersect_Line_Face(bpy.types.Operator):
 
 class VIEW3D_MT_edit_mesh_edgetools(bpy.types.Menu):
     bl_label = "EdgeTools"
-    
+
     def draw(self, context):
         global integrated
         layout = self.layout
-        
+
         layout.operator("mesh.edgetools_extend")
         layout.operator("mesh.edgetools_spline")
         layout.operator("mesh.edgetools_ortho")
@@ -1957,7 +1959,7 @@ def register():
     if os.path.isfile(path + "\mesh_edge_intersection_tools.py"):
         print("EdgeTools UI integration test - TinyCAD VTX Found")
         integrated = True
-    
+
     bpy.types.VIEW3D_MT_edit_mesh_specials.prepend(menu_func)
 
 
@@ -1971,4 +1973,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-    
+

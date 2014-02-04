@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 This addon enables you to "flood-select" or deselect entire areas of selected/deselected elements.
 
 

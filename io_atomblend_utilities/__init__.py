@@ -26,14 +26,14 @@
 #  First publication in Blender  : 2012-11-03
 #  Last modified                 : 2013-04-04
 #
-#  Acknowledgements 
+#  Acknowledgements
 #  ================
-#  Blender: ideasman_42, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG, 
+#  Blender: ideasman_42, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG,
 #           Valter, ...
 #  Other  : Frank Palmino
 #
 #
-#  To do: change radii also for the sticks represented by the skin modifier 
+#  To do: change radii also for the sticks represented by the skin modifier
 #
 
 bl_info = {
@@ -44,12 +44,11 @@ bl_info = {
     "blender": (2, 60, 0),
     "location": "Panel: View 3D - Tools",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/"
-                "Py/Scripts/Import-Export/PDB",
-    "tracker_url": "http://projects.blender.org/tracker/"
-                   "index.php?func=detail&aid=33071&group_id=153&atid=467",
-    "category": "Import-Export"
-}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Import-Export/PDB",
+    "tracker_url": "https://developer.blender.org/T33071",
+    "category": "Import-Export"}
+
 
 import bpy
 from bpy.types import Operator, Panel
@@ -74,17 +73,17 @@ class PreparePanel(Panel):
         scn    = context.scene.atom_blend
 
         box = layout.box()
-        col = box.column(align=True) 
+        col = box.column(align=True)
         col.label(text="Custom data file")
         col.prop(scn, "datafile")
         col.operator("atom_blend.datafile_apply")
-        
-        box = layout.box()  
-        col = box.column(align=True)   
+
+        box = layout.box()
+        col = box.column(align=True)
         col.label(text="Measure distances")
         col.operator("atom_blend.button_distance")
-        col.prop(scn, "distance")      
-        
+        col.prop(scn, "distance")
+
         box = layout.box()
         col = box.column(align=True)
         col.label(text="All changes concern:")
@@ -97,7 +96,7 @@ class PreparePanel(Panel):
         col.prop(scn, "radius_type")
         col2 = col.column()
         col2.active = (scn.radius_type == '3')
-        col2.prop(scn, "radius_type_ionic")   
+        col2.prop(scn, "radius_type_ionic")
         col = box.column(align=True)
         col.label(text="2. Radii in pm")
         col.prop(scn, "radius_pm_name")
@@ -108,7 +107,7 @@ class PreparePanel(Panel):
         row = col.row()
         row.operator("atom_blend.radius_all_smaller")
         row.operator("atom_blend.radius_all_bigger")
-        
+
         box = layout.box()
         col = box.column(align=True)
         col.label(text="Change stick size")
@@ -125,41 +124,41 @@ class PreparePanel(Panel):
         col2.prop(scn, "replace_objs")
         col2.prop(scn, "replace_objs_material")
         col.prop(scn, "replace_objs_special")
-        col.operator("atom_blend.replace_atom")  
+        col.operator("atom_blend.replace_atom")
         col.label(text="Default values")
-        col.operator("atom_blend.default_atoms") 
+        col.operator("atom_blend.default_atoms")
 
         box = layout.box()
         col = box.column(align=True)
         col.label(text="Separate atoms")
         col3 = col.column()
-        col3.active = (bpy.context.mode == 'EDIT_MESH')    
+        col3.active = (bpy.context.mode == 'EDIT_MESH')
         col3.operator("atom_blend.separate_atom")
-        
+
 
 # The properties of buttons etc. in the panel.
 class PanelProperties(bpy.types.PropertyGroup):
 
     def Callback_radius_type(self, context):
         scn = bpy.context.scene.atom_blend
-        io_atomblend_utilities.choose_objects("ATOM_RADIUS_TYPE", 
-                                              scn.action_type, 
+        io_atomblend_utilities.choose_objects("ATOM_RADIUS_TYPE",
+                                              scn.action_type,
                                               None,
                                               None,
                                               scn.radius_type,
                                               scn.radius_type_ionic,
-                                              None) 
+                                              None)
     def Callback_radius_pm(self, context):
         scn = bpy.context.scene.atom_blend
-        io_atomblend_utilities.choose_objects("ATOM_RADIUS_PM", 
-                                              scn.action_type, 
+        io_atomblend_utilities.choose_objects("ATOM_RADIUS_PM",
+                                              scn.action_type,
                                               None,
                                               [scn.radius_pm_name,
                                               scn.radius_pm],
                                               None,
                                               None,
-                                              None) 
-        
+                                              None)
+
     datafile = StringProperty(
         name = "", description="Path to your custom data file",
         maxlen = 256, default = "", subtype='FILE_PATH')
@@ -177,22 +176,22 @@ class PanelProperties(bpy.types.PropertyGroup):
         description="Choose a different atom shape.",
         items=(('0',"Unchanged", "Do not change the shape"),
                ('1a',"Sphere (Mesh)", "Replace with a sphere (Mesh)"),
-               ('1b',"Sphere (NURBS)", "Replace with a sphere (NURBS)"),        
+               ('1b',"Sphere (NURBS)", "Replace with a sphere (NURBS)"),
                ('2',"Cube", "Replace with a cube"),
                ('3',"Plane", "Replace with a plane"),
                ('4a',"Circle (Mesh)", "Replace with a circle (Mesh)"),
-               ('4b',"Circle (NURBS)", "Replace with a circle (NURBS)"),               
-               ('5a',"Icosphere 1", "Replace with a icosphere, subd=1"),  
-               ('5b',"Icosphere 2", "Replace with a icosphere, subd=2"),  
-               ('5c',"Icosphere 3", "Replace with a icosphere, subd=3"),  
+               ('4b',"Circle (NURBS)", "Replace with a circle (NURBS)"),
+               ('5a',"Icosphere 1", "Replace with a icosphere, subd=1"),
+               ('5b',"Icosphere 2", "Replace with a icosphere, subd=2"),
+               ('5c',"Icosphere 3", "Replace with a icosphere, subd=3"),
                ('5d',"Icosphere 4", "Replace with a icosphere, subd=4"),
-               ('5e',"Icosphere 5", "Replace with a icosphere, subd=5"),                                                         
+               ('5e',"Icosphere 5", "Replace with a icosphere, subd=5"),
                ('6a',"Cylinder (Mesh)", "Replace with a cylinder (Mesh)"),
-               ('6b',"Cylinder (NURBS)", "Replace with a cylinder (NURBS)"),               
+               ('6b',"Cylinder (NURBS)", "Replace with a cylinder (NURBS)"),
                ('7',"Cone", "Replace with a cone"),
                ('8a',"Torus (Mesh)", "Replace with a torus (Mesh)"),
                ('8b',"Torus (NURBS)", "Replace with a torus (NURBS)")),
-               default='0',)                      
+               default='0',)
     replace_objs_material = EnumProperty(
         name="Material",
         description="Choose a different material.",
@@ -210,7 +209,7 @@ class PanelProperties(bpy.types.PropertyGroup):
                ('2',"F2+ center", "Replace with a F2+ center"),
                ('3',"F+ center", "Replace with a F+ center"),
                ('4',"F0 center", "Replace with a F0 center")),
-               default='0',)                                     
+               default='0',)
     action_type = EnumProperty(
         name="",
         description="Which objects shall be modified?",
@@ -233,7 +232,7 @@ class PanelProperties(bpy.types.PropertyGroup):
                ('1',"-3", "Charge state -3"),
                ('2',"-2", "Charge state -2"),
                ('3',"-1", "Charge state -1"),
-               ('4'," 0", "Charge state  0: nothing is done"),              
+               ('4'," 0", "Charge state  0: nothing is done"),
                ('5',"+1", "Charge state +1"),
                ('6',"+2", "Charge state +2"),
                ('7',"+3", "Charge state +3"),
@@ -241,7 +240,7 @@ class PanelProperties(bpy.types.PropertyGroup):
                ('9',"+5", "Charge state +5"),
                ('10',"+6", "Charge state +6"),
                ('11',"+7", "Charge state +7")),
-               default='4',update=Callback_radius_type)           
+               default='4',update=Callback_radius_type)
     radius_pm_name = StringProperty(
         name="", default="Atom name",
         description="Put in the name of the atom (e.g. Hydrogen)")
@@ -255,7 +254,7 @@ class PanelProperties(bpy.types.PropertyGroup):
     sticks_all = FloatProperty(
         name="Scale", default = 1.05, min=1.0, max=5.0,
         description="Put in the scale factor")
-        
+
 
 # Button loading a custom data file
 class DatafileApply(Operator):
@@ -291,13 +290,13 @@ class DefaultAtom(Operator):
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend
-        io_atomblend_utilities.choose_objects("ATOM_DEFAULT_OBJ", 
-                                              scn.action_type, 
-                                              None, 
+        io_atomblend_utilities.choose_objects("ATOM_DEFAULT_OBJ",
+                                              scn.action_type,
                                               None,
                                               None,
                                               None,
-                                              None) 
+                                              None,
+                                              None)
         return {'FINISHED'}
 
 
@@ -317,13 +316,13 @@ class ReplaceAtom(Operator):
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend
-        io_atomblend_utilities.choose_objects("ATOM_REPLACE_OBJ", 
-                                              scn.action_type, 
-                                              None, 
+        io_atomblend_utilities.choose_objects("ATOM_REPLACE_OBJ",
+                                              scn.action_type,
                                               None,
                                               None,
                                               None,
-                                              None) 
+                                              None,
+                                              None)
         return {'FINISHED'}
 
 
@@ -372,14 +371,14 @@ class RadiusAllBiggerButton(Operator):
     bl_description = "Increase the radii of selected atoms"
 
     def execute(self, context):
-        scn = bpy.context.scene.atom_blend     
-        io_atomblend_utilities.choose_objects("ATOM_RADIUS_ALL", 
-                                              scn.action_type, 
-                                              scn.radius_all, 
+        scn = bpy.context.scene.atom_blend
+        io_atomblend_utilities.choose_objects("ATOM_RADIUS_ALL",
+                                              scn.action_type,
+                                              scn.radius_all,
                                               None,
                                               None,
                                               None,
-                                              None)        
+                                              None)
         return {'FINISHED'}
 
 
@@ -391,13 +390,13 @@ class RadiusAllSmallerButton(Operator):
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend
-        io_atomblend_utilities.choose_objects("ATOM_RADIUS_ALL", 
-                                              scn.action_type, 
-                                              1.0/scn.radius_all, 
+        io_atomblend_utilities.choose_objects("ATOM_RADIUS_ALL",
+                                              scn.action_type,
+                                              1.0/scn.radius_all,
                                               None,
                                               None,
                                               None,
-                                              None)                                     
+                                              None)
         return {'FINISHED'}
 
 
@@ -408,14 +407,14 @@ class SticksAllBiggerButton(Operator):
     bl_description = "Increase the radii of selected sticks"
 
     def execute(self, context):
-        scn = bpy.context.scene.atom_blend     
-        io_atomblend_utilities.choose_objects("STICKS_RADIUS_ALL", 
-                                              scn.action_type, 
-                                              None, 
+        scn = bpy.context.scene.atom_blend
+        io_atomblend_utilities.choose_objects("STICKS_RADIUS_ALL",
+                                              scn.action_type,
                                               None,
                                               None,
                                               None,
-                                              scn.sticks_all)        
+                                              None,
+                                              scn.sticks_all)
         return {'FINISHED'}
 
 
@@ -427,18 +426,18 @@ class SticksAllSmallerButton(Operator):
 
     def execute(self, context):
         scn = bpy.context.scene.atom_blend
-        io_atomblend_utilities.choose_objects("STICKS_RADIUS_ALL", 
-                                              scn.action_type, 
-                                              None, 
+        io_atomblend_utilities.choose_objects("STICKS_RADIUS_ALL",
+                                              scn.action_type,
                                               None,
                                               None,
                                               None,
-                                              1.0/scn.sticks_all)                                     
+                                              None,
+                                              1.0/scn.sticks_all)
         return {'FINISHED'}
 
 
 def register():
-    io_atomblend_utilities.read_elements()  
+    io_atomblend_utilities.read_elements()
     bpy.utils.register_module(__name__)
     bpy.types.Scene.atom_blend = bpy.props.PointerProperty(type=PanelProperties)
 

@@ -6,9 +6,9 @@ bl_info = {
     "version": (0, 4),
     "blender": (2, 66, 0),
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/booleanoperators",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=34502&group_id=153&atid=467",
-    "category": "3D View",
-    }
+    "tracker_url": "https://developer.blender.org/T34502",
+    "category": "3D View"}
+
 
 import bpy
 

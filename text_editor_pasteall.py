@@ -19,14 +19,13 @@
 bl_info = {
     "name": "PasteAll",
     "author": "Dalai Felinto (dfelinto)",
-    "version": (0,7),
+    "version": (0, 7),
     "blender": (2, 60, 0),
     "location": "Text editor > Properties panel",
     "description": "Send your selection or text to www.pasteall.org",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Text_Editor/PasteAll",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=23493",
+    "tracker_url": "https://developer.blender.org/T23493",
     "category": "Text Editor"}
 
 # ########################################################
@@ -58,7 +57,7 @@ class TEXT_PT_pasteall(bpy.types.Panel):
     bl_label = "PasteAll.org"
 
     def draw(self, context):
-        layout = self.layout        
+        layout = self.layout
         layout.operator("text.pasteall", icon='URL')
         layout.prop(context.scene, "use_webbrowser")
 
@@ -96,7 +95,7 @@ class TEXT_OT_pasteall(bpy.types.Operator):
 
         # get the link of the posted page
         page = self.get_page(str(html))
-        
+
         if page is None or page == "":
             self.report({'ERROR'}, "Error in retrieving the page.")
             return {'CANCELLED'}
@@ -113,7 +112,7 @@ class TEXT_OT_pasteall(bpy.types.Operator):
                 self.report({'WARNING'}, "Error in opening the page %s." % (page))
 
         return {'FINISHED'}
-            
+
     def send_text(self, text, format):
         """"""
         import urllib
@@ -148,10 +147,10 @@ class TEXT_OT_pasteall(bpy.types.Operator):
         """"""
         current_line = text.current_line
         select_end_line = text.select_end_line
-        
+
         current_character = text.current_character
         select_end_character = text.select_end_character
-        
+
         # if there is no selected text return None
         if current_line == select_end_line:
             if current_character == select_end_character:
@@ -191,7 +190,7 @@ class TEXT_OT_pasteall(bpy.types.Operator):
                         continue
 
         return text_return
-    
+
     def get_file_format(self, text):
         """Try to guess what is the format based on the file extension"""
         extensions =   {'diff':'24',

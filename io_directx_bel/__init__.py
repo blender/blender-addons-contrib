@@ -5,7 +5,6 @@ bl_info = {
     "author": "Littleneo (Jerome Mahieux)",
     "version": (0, 18),
     "blender": (2, 63, 0),
-    "api": 42615,
     "location": "File > Import > DirectX (.x)",
     "warning": "",
     "wiki_url": "https://github.com/littleneo/directX_blender/wiki",
@@ -35,7 +34,7 @@ from bpy_extras.io_utils import (ExportHelper,
                                  )
 try : import bel
 except : import io_directx_bel.bel
-    
+
 class ImportX(bpy.types.Operator, ImportHelper):
     '''Load a Direct x File'''
     bl_idname = "import_scene.x"
@@ -62,19 +61,19 @@ class ImportX(bpy.types.Operator, ImportHelper):
             description="display details for each imported thing",
             default=False,
             )
-    
+
     quickmode = BoolProperty(
             name="Quick mode",
             description="only retrieve mesh basics",
             default=False,
             )
-    
+
     parented = BoolProperty(
             name="Object Relationships",
             description="import armatures, empties, rebuild parent-childs relations",
             default=True,
             )
-    
+
     bone_maxlength = FloatProperty(
             name="Bone length",
             description="Bones max length",
@@ -82,7 +81,7 @@ class ImportX(bpy.types.Operator, ImportHelper):
             soft_min=0.1, soft_max=10.0,
             default=1.0,
             )
-    
+
     chunksize = EnumProperty(
             name="Chunksize",
             items=(('0', "all", ""),
@@ -157,7 +156,7 @@ class ImportX(bpy.types.Operator, ImportHelper):
             soft_min=0.0, soft_max=1000.0,
             default=0.0,
             )
-    
+
     axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "Left (x)", ""),
@@ -189,7 +188,7 @@ class ImportX(bpy.types.Operator, ImportHelper):
             self.use_split_groups = False
         else:
             self.use_groups_as_vgroups = False
-            
+
         keywords = self.as_keywords(ignore=("axis_forward",
                                             "axis_up",
                                             "filter_glob",
@@ -197,13 +196,13 @@ class ImportX(bpy.types.Operator, ImportHelper):
                                             ))
 
         keywords["naming_method"] = int(self.naming_method)
-        
+
         global_matrix = axis_conversion(from_forward=self.axis_forward,
                                         from_up=self.axis_up,
                                         ).to_4x4()
         keywords["global_matrix"] = global_matrix
 
-    
+
         bel.fs.saveOptions(self,'import_scene.x', self.as_keywords(ignore=(
                                             "filter_glob",
                                             "filepath",
@@ -212,11 +211,11 @@ class ImportX(bpy.types.Operator, ImportHelper):
 
     def draw(self, context):
         layout = self.layout
-        
+
         # import box
         box = layout.box()
         col = box.column(align=True)
-        col.label('Import Options :')  
+        col.label('Import Options :')
         col.prop(self, "chunksize")
         col.prop(self, "use_smooth_groups")
         actif = not(self.quickmode)
@@ -226,13 +225,13 @@ class ImportX(bpy.types.Operator, ImportHelper):
         if self.parented :
             row = col.row()
             row.enabled = actif
-            row.prop(self, "bone_maxlength")      
+            row.prop(self, "bone_maxlength")
         col.prop(self, "quickmode")
-        
+
         # source orientation box
         box = layout.box()
         col = box.column(align=True)
-        col.label('Source Orientation :')      
+        col.label('Source Orientation :')
         col.prop(self, "axis_forward")
         col.prop(self, "axis_up")
 
@@ -249,11 +248,11 @@ class ImportX(bpy.types.Operator, ImportHelper):
         col.prop(self, "show_tree")
         col.prop(self, "show_templates")
         col.prop(self, "show_geninfo")
-        
+
         #row = layout.row(align=True)
         #row.prop(self, "use_ngons")
         #row.prop(self, "use_edges")
-        
+
         '''
         box = layout.box()
         row = box.row()

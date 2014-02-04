@@ -18,6 +18,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
+
 bl_info = {
     "name": "Mangle Tools",
     "author": "Phil Cote",
@@ -26,11 +27,10 @@ bl_info = {
     "location": "View3D > Tools",
     "description": "Set of tools to mangle curves, meshes, and shape keys",
     "warning": "", # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
-        "Scripts/",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=29071",
+    "wiki_url": "",
+    "tracker_url": "https://developer.blender.org/T29071",
     "category": "Object"}
+
 
 import bpy
 import random
@@ -48,7 +48,7 @@ def move_coordinate(context, co, is_curve=False):
     if is_curve:
         multiplier = 2 * pi
     random_mag = context.scene.random_magnitude
-    if xyz_const[0]:    
+    if xyz_const[0]:
         co.x += .01 * random.randrange( -random_mag, random_mag ) * multiplier
     if xyz_const[1]:
         co.y += .01 * random.randrange( -random_mag, random_mag )  * multiplier
@@ -79,7 +79,7 @@ class MeshManglerOperator(bpy.types.Operator):
         if mesh.shape_keys != None:
             self.report({'INFO'}, "Cannot mangle mesh: Shape keys present")
             return {'CANCELLED'}
-        
+
         for vert in verts:
             xVal = .01 * random.randrange( -randomMag, randomMag )
             yVal = .01 * random.randrange( -randomMag, randomMag)
@@ -87,8 +87,8 @@ class MeshManglerOperator(bpy.types.Operator):
             vert.co.x = vert.co.x + xVal
             vert.co.y = vert.co.y + yVal
             vert.co.z = vert.co.z + zVal
-                
-        bm.to_mesh(mesh)   
+
+        bm.to_mesh(mesh)
         mesh.update()
         return {'FINISHED'}
 
@@ -111,10 +111,10 @@ class AnimanglerOperator(bpy.types.Operator):
         ob = context.object
         shapeKey = ob.shape_key_add( name=mangleName )
         verts = shapeKey.data
-        
+
         for vert in verts:
             move_coordinate(context, vert.co, is_curve=ob.type=='CURVE')
-            
+
         return {'FINISHED'}
 
 
@@ -137,7 +137,7 @@ class CurveManglerOp(bpy.types.Operator):
             self.report({'INFO'}, "Cannot mangle curve.  Shape keys present")
             return {'CANCELLED'}
         splines = context.object.data.splines
-        
+
         for spline in splines:
             if spline.type == 'BEZIER':
                 points = spline.bezier_points
@@ -181,17 +181,17 @@ def register():
     bpy.utils.register_class(CurveManglerOp)
     bpy.utils.register_class(MangleToolsPanel)
     scnType = bpy.types.Scene
-    
-                                    
-    scnType.constraint_vector = BoolVectorProperty(name="Mangle Constraint", 
+
+
+    scnType.constraint_vector = BoolVectorProperty(name="Mangle Constraint",
                                 default=(True,True,True),
                                 subtype='XYZ',
                                 description="Constrains Mangle Direction")
-                                
-    scnType.random_magnitude = IntProperty( name = "Mangle Severity", 
-                              default = 10, min = 1, max = 30, 
+
+    scnType.random_magnitude = IntProperty( name = "Mangle Severity",
+                              default = 10, min = 1, max = 30,
                               description = "Severity of mangling")
-    
+
     scnType.mangle_name = StringProperty(name="Shape Key Name",
                              default="mangle",
                              description="Name given for mangled shape keys")

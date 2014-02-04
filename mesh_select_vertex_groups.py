@@ -26,8 +26,7 @@ bl_info = {
     "warning": "Buggy", # used for warning icon and text in addons panel
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Modeling/Select_Vertex_Groups",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=22025",
+    "tracker_url": "https://developer.blender.org/T22025",
     "category": "Mesh"}
 
 """

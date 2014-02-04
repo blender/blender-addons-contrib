@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 This addon implements a smoothing algorithm for meshes based on Laplacian relaxation, but adapted
 to have no shrinkage.
 

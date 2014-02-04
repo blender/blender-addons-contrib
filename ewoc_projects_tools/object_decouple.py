@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 The DeCouple addon is really simple but useful: the selected parent object will be decoupled
 temporarily from its children so youll be able to reposition the parent without influencing
 the children.  This is mainly a workflow shortcut, cause unparenting and reparenting

@@ -2091,7 +2091,7 @@ class FptImporter():
                 pass
             else:
                 """
-                there are problems, see [#36007] http://projects.blender.org/tracker/index.php?func=detail&aid=36007&group_id=9&atid=498
+                there are problems, see [#36007] https://developer.blender.org/T36007
                 """
                 if index:
                     if last_fpx_point.get_value("left_guide"):

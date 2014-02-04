@@ -24,9 +24,8 @@
     bl_info = {
     "name": "Select connected faces",
     "author": "Dolf Veenvliet",
-    "version": 1,
+    "version": (1,),
     "blender": (2, 56, 0),
-    "api": 31847,
     "location": "View3D > Select",
     "description": "Select all faces connected to the current selection",
     "warning": "",
@@ -52,23 +51,23 @@ class Select_connected_faces():
 
 	# Initialise the class
 	def __init__(self, context, iterations, extend):
-	
+
 		self.ob = context.active_object
 		bpy.ops.object.mode_set(mode='OBJECT')
-		
+
 		# Make a list of all selected vertices
 		selVerts = [v.index for v in self.ob.data.vertices if v.select]
-		
+
 		hasSelected = self.hasSelected(self.ob.data.polygons)
-		
+
 		for i in range(iterations):
-		
+
 			nextVerts = []
-		
+
 			for f in self.ob.data.polygons:
-			
+
 				if self.selectCheck(f.select, hasSelected, extend):
-				
+
 					for v in f.vertices:
 						if v in selVerts:
 							f.select = True
@@ -77,73 +76,73 @@ class Select_connected_faces():
 						for v in f.vertices:
 							if v not in selVerts:
 								nextVerts.append(v)
-							
+
 				elif self.deselectCheck(f.select, hasSelected, extend):
-				
+
 					for v in f.vertices:
 						if v in selVerts:
 							f.select = False
-						
-							
-			selVerts = nextVerts
-		
-		bpy.ops.object.mode_set(mode='EDIT')
-		
 
-		
+
+			selVerts = nextVerts
+
+		bpy.ops.object.mode_set(mode='EDIT')
+
+
+
 	# See if the current item should be selected or not
 	def selectCheck(self, isSelected, hasSelected, extend):
-	
+
 		# If the current item is not selected we may want to select
 		if not isSelected:
 			return True
-				
+
 		return False
-	
-	
-	
+
+
+
 	# See if the current item should be deselected or not
 	def deselectCheck(self, isSelected, hasSelected, extend):
-	
+
 		# If the current item is selected we may want to deselect
 		if isSelected:
-		
+
 			# If something is selected and we're not extending we want to deselect
 			if hasSelected and not extend:
 				return True
 
 		return False
-		
-		
-		
+
+
+
 	# See if there is at least one selected item
 	def hasSelected(self, items):
-	
+
 		for item in items:
 			if item.select:
 				return True
-					
+
 		return False
-		
-		
-		
+
+
+
 class Select_init(bpy.types.Operator):
 	'''Select all faces connected to the current selection'''
 	bl_idname = 'mesh.select_connected_faces'
 	bl_label = 'Select connected faces'
 	bl_options = {'REGISTER', 'UNDO'}
-	
+
 	# Iterations
 	iterations = IntProperty(name='Iterations', default=1, min=0, max=1000, soft_min=0, soft_max=100)
-	
+
 	extend = BoolProperty(name='Extend', description='Extend the current selection', default=False)
-	
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and obj.type == 'MESH' and bpy.context.tool_settings.mesh_select_mode[0] == False and bpy.context.tool_settings.mesh_select_mode[1] == False and bpy.context.tool_settings.mesh_select_mode[2] == True)
 
 	def execute(self, context):
-		SELECT_CONNECTED = Select_connected_faces(context, self.iterations, self.extend) 
+		SELECT_CONNECTED = Select_connected_faces(context, self.iterations, self.extend)
 		return {'FINISHED'}
 

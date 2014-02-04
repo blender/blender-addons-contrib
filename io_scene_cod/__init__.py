@@ -39,8 +39,9 @@ bl_info = {
     "location": "File > Import  |  File > Export",
     "description": "Export models to *.XMODEL_EXPORT and animations to *.XANIM_EXPORT",
     "warning": "Alpha version, please report any bugs!",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/Call_of_Duty_IO",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=30482",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Import-Export/Call_of_Duty_IO",
+    "tracker_url": "https://developer.blender.org/T30482",
     "support": "TESTING",
     "category": "Import-Export"
 }

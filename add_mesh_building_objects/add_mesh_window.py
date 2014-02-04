@@ -3,7 +3,6 @@ bl_info = {
     "author": "SayPRODUCTIONS",
     "version": (2, 0),
     "blender": (2, 63, 0),
-    "api": 33333,
     "location": "View3D > Add > Mesh > Say3D",
     "description": "Window Generator 2",
     "warning": "",
@@ -158,7 +157,7 @@ def add_object(self, context):
         for i in range(0,mx*4+2,2):fc.extend([[z+i+Y+0,z+i+Y+2,z+i+Y+V+4,z+i+Y+V+2],[z+i+Y  +3,z+i+Y  +1,z+i+Y+V+3,z+i+Y+V+5]])
         for i in range(0,mx*4-3,4):fc.extend([[z+i+Y+2,z+i+Y+3,z+i+Y  +5,z+i+Y  +4],[z+i+Y+V+5,z+i+Y+V+4,z+i+Y+V+6,z+i+Y+V+7]])
     #Dikey
-    for Y in range(0,my):    
+    for Y in range(0,my):
         z=Y*(mx*4+4)*2
         for i in range(0,mx*4+2,4):fc.extend([[z+i+1,z+i+0,z+i+V+2,z+i+V+3],[z+i+3,z+i+1,z+i+V+3,z+i+V+5],[z+i+2,z+i+3,z+i+V+5,z+i+V+4],[z+i+0,z+i+2,z+i+V+4,z+i+V+2]])
     #Fitil-------------------
@@ -249,7 +248,7 @@ def add_object(self, context):
         y=my-1
         for x in range(0,mx):
             if  kx[x][y]==True:
-                fr=(k1+k2)*0.5-0.01;ek=k2                
+                fr=(k1+k2)*0.5-0.01;ek=k2
                 R=C-k1;K=R-k2
 
                 x1=X[x*2+1];x2=X[x*2+2]
@@ -329,7 +328,7 @@ def add_object(self, context):
             vr.extend([[x2,fr-0.005,sqrt(K**2-x2**2)+z],[x2,fr+0.005,sqrt(K**2-x2**2)+z]])
             n=len(vr);ON.extend([n-1,n-3,n-5,n-7]);AR.extend([n-2,n-4,n-6,n-8])
             fc.append(ON);AR.reverse();fc.append(AR)
-            m=len(fc);cam.extend([m-1,m-2])        
+            m=len(fc);cam.extend([m-1,m-2])
 
     elif self.UST=='3':#Egri
         if   self.DT3=='1':H=(self.VL1/200)/u

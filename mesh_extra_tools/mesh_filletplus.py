@@ -25,7 +25,6 @@ bl_info = {
     "author": "Gert De Roost - original by zmj100",
     "version": (0, 4, 2),
     "blender": (2, 61, 0),
-    "api": 43085,
     "location": "View3D > Tool Shelf",
     "description": "",
     "warning": "",
@@ -131,7 +130,7 @@ def f_(list_0, startv, vertlist, face, adj, n, out, flip, radius):
 
 		v = bm.verts.new(tmp2)
 		list_2.append(v)
-		
+
 	if flip == True:
 		list_3[1:2] = list_2
 	else:
@@ -146,7 +145,7 @@ def f_(list_0, startv, vertlist, face, adj, n, out, flip, radius):
 
 		v = bm.verts.new(p)
 		bm.edges.new([v, p_])
-	
+
 	if face != None:
 		for l in face.loops:
 			if l.vert == list_3[0]:
@@ -168,7 +167,7 @@ def f_(list_0, startv, vertlist, face, adj, n, out, flip, radius):
 		for v in list_3:
 			vertlist2.append(v)
 		bm.faces.new(vertlist2)
-		
+
 	bm.verts.remove(startv)
 	list_3[1].select = 1
 	list_3[-2].select = 1
@@ -177,17 +176,17 @@ def f_(list_0, startv, vertlist, face, adj, n, out, flip, radius):
 	bm.verts.index_update()
 	bm.edges.index_update()
 	bm.faces.index_update()
-	
+
 	me.update(calc_edges = True, calc_tessface=True)
-	
-	
+
+
 
 def do_filletplus(pair):
-	
+
 	global inaction
 	global flip
-	
-	
+
+
 	list_0 = [list([e.verts[0].index, e.verts[1].index]) for e in pair]
 
 	vertset = set([])
@@ -195,7 +194,7 @@ def do_filletplus(pair):
 	vertset.add(bm.verts[list_0[0][1]])
 	vertset.add(bm.verts[list_0[1][0]])
 	vertset.add(bm.verts[list_0[1][1]])
-	
+
 	v1, v2, v3 = vertset
 
 	if len(list_0) != 2:
@@ -225,7 +224,7 @@ def do_filletplus(pair):
 		if out == True:
 			flip = False
 		f_(list_0, startv, vertlist, face, adj, n, out, flip, radius)
-		
+
 
 '''
 
@@ -233,13 +232,13 @@ def do_filletplus(pair):
 class f_p0(bpy.types.Panel):
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'TOOLS'
-	#bl_idname = 'f_p0_id'												  
+	#bl_idname = 'f_p0_id'
 	bl_label = 'Fillet'
 	bl_context = 'mesh_edit'
 
 	def draw(self, context):
 		layout = self.layout
-		
+
 		row = layout.split(0.80)
 		row.operator('f.op0_id', text = 'Fillet plus')
 		row.operator('f.op1_id', text = '?')
@@ -256,13 +255,13 @@ class fillet_op0(bpy.types.Operator):
 	out = BoolProperty( name = 'Outside', default = False )
 	flip = BoolProperty( name = 'Flip', default = False )
 	radius = BoolProperty( name = 'Radius', default = False )
-	
-	
+
+
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
 		return (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH')
-	
+
 	def draw(self, context):
 		layout = self.layout
 
@@ -295,21 +294,21 @@ class fillet_op0(bpy.types.Operator):
 		out = self.out
 		flip = self.flip
 		radius = self.radius
-		
+
 		inaction = 0
 
 		ob_act = context.active_object
 		me = ob_act.data
 		bm = bmesh.from_edit_mesh(me)
 #		e_mode = bpy.context.tool_settings.mesh_select_mode
-		
+
 		done = 1
 		while done:
 			tempset = set([])
 			for v in bm.verts:
 				if v.select:
 					tempset.add(v)
-			done = 0		
+			done = 0
 			for v in tempset:
 				cnt = 0
 				edgeset = set([])
@@ -324,7 +323,7 @@ class fillet_op0(bpy.types.Operator):
 					#return {'FINISHED'}
 				if done:
 					break
-					
+
 		if inaction == 1:
 			bpy.ops.mesh.select_all(action="DESELECT")
 			for v in bm.verts:
@@ -347,7 +346,7 @@ class filletedgehelp(bpy.types.Operator):
 		layout.label('Select two adjacent edges and press Fillet button.')
 		layout.label('To Help:')
 		layout.label('best used on flat plane.')
-	
+
 	def execute(self, context):
 		return {'FINISHED'}
 

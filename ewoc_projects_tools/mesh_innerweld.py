@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 InnerWeld.  This addon welds parallel connected selected edges together.
 
 Documentation

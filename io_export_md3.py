@@ -24,10 +24,8 @@ bl_info = {
     "location": "File > Export",
     "description": "Save a Quake Model 3 File)",
     "warning": "", # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
-        "Scripts/",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=23160",
+    "wiki_url": "",
+    "tracker_url": "https://developer.blender.org/T23160",
     "category": "Import-Export"}
 
 
@@ -49,14 +47,14 @@ class md3Vert:
     xyz = []
     normal = 0
     binaryFormat = "<3hH"
-    
+
     def __init__(self):
         self.xyz = [0.0, 0.0, 0.0]
         self.normal = 0
-        
+
     def GetSize(self):
         return struct.calcsize(self.binaryFormat)
-    
+
     # copied from PhaethonH <phaethon@linux.ucla.edu> md3.py
     def Decode(self, latlng):
         lat = (latlng >> 8) & 0xFF;
@@ -68,7 +66,7 @@ class md3Vert:
         z =                 math.cos(lng)
         retval = [ x, y, z ]
         return retval
-    
+
     # copied from PhaethonH <phaethon@linux.ucla.edu> md3.py
     def Encode(self, normal):
         x = normal[0]
@@ -81,18 +79,18 @@ class md3Vert:
         x = x/l
         y = y/l
         z = z/l
-        
+
         if (x == 0.0) & (y == 0.0) :
             if z > 0.0:
                 return 0
             else:
                 return (128 << 8)
-        
+
         lng = math.acos(z) * 255 / (2 * math.pi)
         lat = math.atan2(y, x) * 255 / (2 * math.pi)
         retval = ((int(lat) & 0xFF) << 8) | (int(lng) & 0xFF)
         return retval
-        
+
     def Save(self, file):
         tmpData = [0] * 4
         tmpData[0] = int(self.xyz[0] * MD3_XYZ_SCALE)
@@ -101,7 +99,7 @@ class md3Vert:
         tmpData[3] = self.normal
         data = struct.pack(self.binaryFormat, tmpData[0], tmpData[1], tmpData[2], tmpData[3])
         file.write(data)
-        
+
 class md3TexCoord:
     u = 0.0
     v = 0.0
@@ -111,7 +109,7 @@ class md3TexCoord:
     def __init__(self):
         self.u = 0.0
         self.v = 0.0
-        
+
     def GetSize(self):
         return struct.calcsize(self.binaryFormat)
 
@@ -129,7 +127,7 @@ class md3Triangle:
 
     def __init__(self):
         self.indexes = [ 0, 0, 0 ]
-        
+
     def GetSize(self):
         return struct.calcsize(self.binaryFormat)
 
@@ -144,13 +142,13 @@ class md3Triangle:
 class md3Shader:
     name = ""
     index = 0
-    
+
     binaryFormat = "<%dsi" % MAX_QPATH
 
     def __init__(self):
         self.name = ""
         self.index = 0
-        
+
     def GetSize(self):
         return struct.calcsize(self.binaryFormat)
 
@@ -178,9 +176,9 @@ class md3Surface:
     triangles = []
     uv = []
     verts = []
-    
+
     binaryFormat = "<4s%ds10i" % MAX_QPATH  # 1 int, name, then 10 ints
-    
+
     def __init__(self):
         self.ident = ""
         self.name = ""
@@ -198,7 +196,7 @@ class md3Surface:
         self.triangles = []
         self.uv = []
         self.verts = []
-        
+
     def GetSize(self):
         sz = struct.calcsize(self.binaryFormat)
         self.ofsTriangles = sz
@@ -215,7 +213,7 @@ class md3Surface:
             sz += v.GetSize()
         self.ofsEnd = sz
         return self.ofsEnd
-    
+
     def Save(self, file):
         self.GetSize()
         tmpData = [0] * 12
@@ -254,17 +252,17 @@ class md3Tag:
     name = ""
     origin = []
     axis = []
-    
+
     binaryFormat="<%ds3f9f" % MAX_QPATH
-    
+
     def __init__(self):
         self.name = ""
         self.origin = [0, 0, 0]
         self.axis = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        
+
     def GetSize(self):
         return struct.calcsize(self.binaryFormat)
-        
+
     def Save(self, file):
         tmpData = [0] * 13
         tmpData[0] = self.name
@@ -282,23 +280,23 @@ class md3Tag:
         tmpData[12] = float(self.axis[8])
         data = struct.pack(self.binaryFormat, tmpData[0],tmpData[1],tmpData[2],tmpData[3],tmpData[4],tmpData[5],tmpData[6], tmpData[7], tmpData[8], tmpData[9], tmpData[10], tmpData[11], tmpData[12])
         file.write(data)
-    
+
 class md3Frame:
     mins = 0
     maxs = 0
     localOrigin = 0
     radius = 0.0
     name = ""
-    
+
     binaryFormat="<3f3f3ff16s"
-    
+
     def __init__(self):
         self.mins = [0, 0, 0]
         self.maxs = [0, 0, 0]
         self.localOrigin = [0, 0, 0]
         self.radius = 0.0
         self.name = ""
-        
+
     def GetSize(self):
         return struct.calcsize(self.binaryFormat)
 
@@ -367,7 +365,7 @@ class md3Object:
         for s in self.surfaces:
             self.ofsEnd += s.GetSize()
         return self.ofsEnd
-        
+
     def Save(self, file):
         self.GetSize()
         tmpData = [0] * 12
@@ -389,10 +387,10 @@ class md3Object:
 
         for f in self.frames:
             f.Save(file)
-            
+
         for t in self.tags:
             t.Save(file)
-            
+
         for s in self.surfaces:
             s.Save(file)
 
@@ -480,7 +478,7 @@ def print_md3(log,md3,dumpall):
       message(log," UVs:")
       for uv in s.uv:
         message(log,"  U: " + str(uv.u))
-        message(log,"  V: " + str(uv.v)) 
+        message(log,"  V: " + str(uv.v))
       message(log," Verts:")
       for vert in s.verts:
         message(log,"  XYZ: " + str(vert.xyz[0]) + " " + str(vert.xyz[1]) + " " + str(vert.xyz[2]))
@@ -528,7 +526,7 @@ def save_md3(settings):
       nsurface = md3Surface()
       nsurface.name = obj.name
       nsurface.ident = MD3_IDENT
- 
+
       vertlist = []
 
       for f,face in enumerate(obj.data.faces):
@@ -598,7 +596,7 @@ def save_md3(settings):
             minlength = math.sqrt(math.pow(nframe.mins[0],2) + math.pow(nframe.mins[1],2) + math.pow(nframe.mins[2],2))
             maxlength = math.sqrt(math.pow(nframe.maxs[0],2) + math.pow(nframe.maxs[1],2) + math.pow(nframe.maxs[2],2))
             nframe.radius = round(max(minlength,maxlength),5)
-            nsurface.verts.append(nvert) 
+            nsurface.verts.append(nvert)
         md3.frames.append(nframe)
         nsurface.numFrames += 1
         bpy.data.meshes.remove(fobj)
@@ -623,7 +621,7 @@ def save_md3(settings):
         ntag.axis[7] = obj.matrix_world[2][1]
         ntag.axis[8] = obj.matrix_world[2][2]
         md3.tags.append(ntag)
-  
+
   if md3.numSurfaces < 1:
     message(log,"Select a mesh to export!")
     if log:
@@ -682,7 +680,7 @@ class ExportMD3(bpy.types.Operator):
 
 def menu_func(self, context):
   newpath = os.path.splitext(bpy.context.blend_data.filepath)[0] + ".md3"
-  self.layout.operator(ExportMD3.bl_idname, text="Quake Model 3 (.md3)").filepath = newpath 
+  self.layout.operator(ExportMD3.bl_idname, text="Quake Model 3 (.md3)").filepath = newpath
 
 def register():
   bpy.types.INFO_MT_file_export.append(menu_func)

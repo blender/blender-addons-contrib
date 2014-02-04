@@ -19,16 +19,14 @@
 bl_info = {
     "name": "Make Thread Mesh",
     "author": "Oscurart",
-    "version": (1,0),
+    "version": (1, 0),
     "blender": (2, 59, 0),
-    "api": 4000,
     "location": "Add > Mesh > Thread",
     "description": "Make a thread.",
     "warning": "",
-    "wiki_url": "oscurart.blogspot.com",
+    "wiki_url": "http://oscurart.blogspot.com",
     "tracker_url": "",
     "category": "Object"}
-
 
 
 import math
@@ -38,27 +36,27 @@ import bpy
 def func_osc_screw(self, STRETCH,TURNS,DIAMETER,RESOLUTION):
     # DATA PARA EL MESH
     me = bpy.data.meshes.new("threadData")
-    obj = bpy.data.objects.new("Thread", me)     
-    bpy.context.scene.objects.link(obj)  
-      
+    obj = bpy.data.objects.new("Thread", me)
+    bpy.context.scene.objects.link(obj)
+
     # VARIABLES
     vertexlist=[]
     facelist=[]
-    facereset=0     
+    facereset=0
     CANTDIV=360/RESOLUTION
     ESPACIODIV=STRETCH/(TURNS+2+RESOLUTION)
 
-    # PARA CADA VERTICE EN EL RANGO DESDE CERO A LENGTH 
-    for vertice in range(0,TURNS+2+RESOLUTION):        
-        # SUMA EN LA LISTA UN VERTICE       
+    # PARA CADA VERTICE EN EL RANGO DESDE CERO A LENGTH
+    for vertice in range(0,TURNS+2+RESOLUTION):
+        # SUMA EN LA LISTA UN VERTICE
         vertexlist.append((math.sin(math.radians(vertice*CANTDIV))*DIAMETER,vertice*ESPACIODIV,math.cos(math.radians(vertice*CANTDIV))*DIAMETER))
         if vertice > RESOLUTION:
-            facelist.append((vertice-(RESOLUTION),vertice-((RESOLUTION)+1),vertice-1,vertice))    
+            facelist.append((vertice-(RESOLUTION),vertice-((RESOLUTION)+1),vertice-1,vertice))
 
-    # CONECTO OBJETO    
+    # CONECTO OBJETO
     me.from_pydata(vertexlist,[],facelist)
     me.update()
-    
+
 
 
 class oscMakeScrew (bpy.types.Operator):
@@ -72,9 +70,9 @@ class oscMakeScrew (bpy.types.Operator):
     stretch = bpy.props.FloatProperty (name="Stretch",default=1,min=0.000001,max=1000)
     turns = bpy.props.IntProperty (name="Turns Steps",default=19,min=0)
     diameter = bpy.props.FloatProperty (name="Diameter",default=1,min=0,max=1000)
-  
-    
-    
+
+
+
     def execute(self, context):
         func_osc_screw(self, self.stretch,self.turns,self.diameter,self.resolution)
         return {'FINISHED'}

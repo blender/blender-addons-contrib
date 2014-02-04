@@ -27,10 +27,9 @@ bl_info = {
     "location": "File > Export > Marmalade cross-platform Apps (.group)",
     "description": "Export Marmalade Format files (.group)",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/Marmalade_Exporter",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "",
+    "tracker_url": "https://developer.blender.org",
     "category": "Import-Export"}
 
 import os
@@ -129,7 +128,7 @@ def ExportMadeWithMarmaladeGroup(Config):
         CurrentFrame = bpy.context.scene.frame_current
     if Config.Verbose:
         print("Done")
-    
+
     Config.ObjectList = []
     if Config.Verbose:
         print("Writing Objects...")
@@ -198,8 +197,8 @@ def WriteObjects(Config, ObjectList, geoFile=None, mtlFile=None, GeoModel=None, 
     for Object in ObjectList:
         if Config.Verbose:
             print("  Writing Object: {}...".format(Object.name))
-        
-        if Config.ExportArmatures and Object.type == "ARMATURE":           
+
+        if Config.ExportArmatures and Object.type == "ARMATURE":
             Armature = Object.data
             ParentList = [Bone for Bone in Armature.bones if Bone.parent is None]
             if Config.Verbose:
@@ -211,7 +210,7 @@ def WriteObjects(Config, ObjectList, geoFile=None, mtlFile=None, GeoModel=None, 
                 print("      Creating skel file %s" % (skelfullname))
 
             skelFile = open(skelfullname, "w")
-            skelFile.write('// skel file exported from : %r\n' % os.path.basename(bpy.data.filepath))   
+            skelFile.write('// skel file exported from : %r\n' % os.path.basename(bpy.data.filepath))
             skelFile.write("CIwAnimSkel\n")
             skelFile.write("{\n")
             skelFile.write("\tnumBones %d\n" % (len(Armature.bones)))
@@ -274,13 +273,13 @@ def WriteObjects(Config, ObjectList, geoFile=None, mtlFile=None, GeoModel=None, 
                 Mesh.transform(SCALE_MAT * X_ROT * Object.matrix_world)
 
              # manage merge options
-   
+
             if Config.MergeModes == 0:
                 #one geo per Object, so use name of Object for the Geo file
                 geoFile, mtlFile = CreateGeoMtlFiles(Config, StripName(Object.name))
-                GeoModel = CGeoModel(StripName(Object.name))  
-                
-            # Write the Mesh in the Geo file   
+                GeoModel = CGeoModel(StripName(Object.name))
+
+            # Write the Mesh in the Geo file
             WriteMesh(Config, Object, Mesh, geoFile, mtlFile, GeoModel)
 
             if Config.MergeModes == 0:
@@ -291,7 +290,7 @@ def WriteObjects(Config, ObjectList, geoFile=None, mtlFile=None, GeoModel=None, 
                 GeoModel = None
             elif Config.MergeModes == 1:
                 # merge in one Mesh, so keep the Geo class and prepare to change object
-                GeoModel.NewObject() 
+                GeoModel.NewObject()
             elif Config.MergeModes == 2:
                 # merge several Meshes in one file: so clear the mesh data that we just written in the file,
                 # but keep Materials info that need to be merged across objects
@@ -322,7 +321,7 @@ def WriteObjects(Config, ObjectList, geoFile=None, mtlFile=None, GeoModel=None, 
                             GeoModel.skinnedVertices.append(i)
                             useBonesKey = pow(2, GeoModel.armatureRootBoneIndex)
                             vertexGroupIndices = list((GeoModel.armatureRootBoneIndex,))
-                            if useBonesKey not in GeoModel.useBonesDict:                          
+                            if useBonesKey not in GeoModel.useBonesDict:
                                 GeoModel.mapVertexGroupNames[GeoModel.armatureRootBoneIndex] = StripBoneName(GeoModel.armatureRootBone.name)
                                 VertexList = []
                                 VertexList.append("\t\tvertWeights { %d, 1.0}" % i)
@@ -346,7 +345,7 @@ def CreateGeoMtlFiles(Config, Name):
     geofullname = os.path.dirname(Config.FilePath) + os.sep + "models" + os.sep + "%s.geo" % Name
     ensure_dir(geofullname)
     if Config.Verbose:
-        print("      Creating geo file %s" % (geofullname))  
+        print("      Creating geo file %s" % (geofullname))
     geoFile = open(geofullname, "w")
     geoFile.write('// geo file exported from : %r\n' % os.path.basename(bpy.data.filepath))
     geoFile.write("CIwModel\n")
@@ -361,17 +360,17 @@ def CreateGeoMtlFiles(Config, Name):
     if Config.Verbose:
         print("      Creating mtl file %s" % (mtlfullname))
     mtlFile = open(mtlfullname, "w")
-    mtlFile.write('// mtl file exported from : %r\n' % os.path.basename(bpy.data.filepath))   
+    mtlFile.write('// mtl file exported from : %r\n' % os.path.basename(bpy.data.filepath))
     return geoFile, mtlFile
 
 
 def FinalizeGeoMtlFiles(Config, geoFile, mtlFile):
     if Config.Verbose:
-        print("      Closing geo file")  
+        print("      Closing geo file")
     geoFile.write("}\n")
     geoFile.close()
     if Config.Verbose:
-        print("      Closing mtl file")  
+        print("      Closing mtl file")
     mtlFile.close()
 
 
@@ -388,7 +387,7 @@ def WriteMesh(Config, Object, Mesh,  geoFile=None, mtlFile=None, GeoModel=None):
     if Config.MergeModes == 0 or Config.MergeModes == 2:
         #if we don't merge, or if we write several meshes into one file ... write the mesh everytime we do an object
         GeoModel.PrintGeoMesh(geoFile)
- 
+
     if Config.Verbose:
         print("      Done\n      Writing Mesh Materials...")
 
@@ -398,7 +397,7 @@ def WriteMesh(Config, Object, Mesh,  geoFile=None, mtlFile=None, GeoModel=None):
 
     if Config.Verbose:
         print("      Done")
-  
+
     if Config.ExportArmatures:
         if Config.Verbose:
             print("      Writing Mesh Weights...")
@@ -424,10 +423,10 @@ def WriteMesh(Config, Object, Mesh,  geoFile=None, mtlFile=None, GeoModel=None):
 
 #############
 #Store one Point of a Quad or Tri in marmalade geo format: //index-list is: { <int> <int> <int> <int> <int> }   //v,vn,uv0,uv1,vc
-#############                           
+#############
 class CGeoIndexList:
     __slots__ = "v", "vn", "uv0", "uv1", "vc"
-    
+
     def __init__(self, v, vn, uv0, uv1, vc):
         self.v = v
         self.vn = vn
@@ -435,13 +434,13 @@ class CGeoIndexList:
         self.uv1 = uv1
         self.vc = vc
 
-        
+
 #############
 #Store a Quad or a Tri in marmalade geo format : 3 or 4 CIndexList depending it is a Tri or a Quad
-#############                        
+#############
 class CGeoPoly:
     __slots__ = "pointsList",
-    
+
     def __init__(self):
         self.pointsList = []
 
@@ -463,10 +462,10 @@ class CGeoPoly:
 
 #############
 #Store all the poly (tri or quad) assigned to a Material in marmalade geo format
-#############                        
+#############
 class CGeoMaterialPolys:
     __slots__ = "name", "material", "quadList", "triList", "currentPoly"
-    
+
     def __init__(self, name, material=None):
         self.name = name
         self.material = material
@@ -478,8 +477,8 @@ class CGeoMaterialPolys:
         self.currentPoly = CGeoPoly()
 
     def AddPoint(self, v, vn, uv0, uv1, vc):
-        self.currentPoly.AddPoint(v, vn, uv0, uv1, vc)       
-             
+        self.currentPoly.AddPoint(v, vn, uv0, uv1, vc)
+
     def EndPoly(self):
         if (self.currentPoly.PointsCount() == 3):
             self.triList.append(self.currentPoly)
@@ -516,12 +515,12 @@ class CGeoMaterialPolys:
 
 #############
 #Store all the information on a Model/Mesh (vertices, normal, certcies color, uv0, uv1, TRI, QUAD) in marmalade geo format
-#############  
+#############
 class CGeoModel:
     __slots__ = ("name", "MaterialsDict", "vList", "vnList", "vcList", "uv0List", "uv1List",
                 "currentMaterialPolys", "vbaseIndex","vnbaseIndex", "uv0baseIndex", "uv1baseIndex",
                 "armatureObjectName", "useBonesDict", "mapVertexGroupNames", "armatureRootBone", "armatureRootBoneIndex", "skinnedVertices")
-                
+
     def __init__(self, name):
         self.name = name
         self.MaterialsDict = {}
@@ -559,11 +558,11 @@ class CGeoModel:
     # add a uv coordiantes and return the current Index in the stream (index is local to the object, when we merge several object into a one Mesh)
     def AddVertexUV0(self, u, v):
         self.uv0List.append((u, v))
-        return len(self.uv0List) - 1 - self.uv0baseIndex 
+        return len(self.uv0List) - 1 - self.uv0baseIndex
 
     def AddVertexUV1(self, u, v):
         self.uv1List.append((u, v))
-        return len(self.uv1List) - 1 - self.uv1baseIndex 
+        return len(self.uv1List) - 1 - self.uv1baseIndex
 
     # add a vertexcolor if it doesn't already exist and return the current Index in the stream (index is global to all objects, when we merge several object into a one Mesh)
     def AddVertexColor(self, r, g, b, a):
@@ -591,9 +590,9 @@ class CGeoModel:
             uv0 += self.uv0baseIndex
         if uv1 != -1:
             uv1 += self.uv1baseIndex
-                
-        self.currentMaterialPolys.AddPoint(v, vn, uv0, uv1, vc)       
-                              
+
+        self.currentMaterialPolys.AddPoint(v, vn, uv0, uv1, vc)
+
     def EndPoly(self):
         self.currentMaterialPolys.EndPoly()
         self.MaterialsDict[self.currentMaterialPolys.name] = self.currentMaterialPolys
@@ -637,7 +636,7 @@ class CGeoModel:
             geoFile.write("\t\t{\n")
             geoFile.write("\t\t\tnumVerts %d\n" % len(self.vList))
             for vertex in self.vList:
-                geoFile.write("\t\t\tv { %.9f, %.9f, %.9f }\n" % (vertex[0], vertex[1], vertex[2]))                      
+                geoFile.write("\t\t\tv { %.9f, %.9f, %.9f }\n" % (vertex[0], vertex[1], vertex[2]))
             geoFile.write("\t\t}\n")
 
         if self.vnList:
@@ -645,7 +644,7 @@ class CGeoModel:
             geoFile.write("\t\t{\n")
             geoFile.write("\t\t\tnumVertNorms  %d\n" % len(self.vnList))
             for vertexn in self.vnList:
-                geoFile.write("\t\t\tvn { %.9f, %.9f, %.9f }\n" % (vertexn[0], vertexn[1], vertexn[2]))                      
+                geoFile.write("\t\t\tvn { %.9f, %.9f, %.9f }\n" % (vertexn[0], vertexn[1], vertexn[2]))
             geoFile.write("\t\t}\n")
 
         if self.vcList:
@@ -653,7 +652,7 @@ class CGeoModel:
             geoFile.write("\t\t{\n")
             geoFile.write("\t\t\tnumVertCols %d\n" % len(self.vcList))
             for color in self.vcList:
-                geoFile.write("\t\t\tcol { %.6f, %.6f, %.6f, %.6f }\n" % (color[0], color[1], color[2], color[3])) #alpha is not supported on blender for vertex colors           
+                geoFile.write("\t\t\tcol { %.6f, %.6f, %.6f, %.6f }\n" % (color[0], color[1], color[2], color[3])) #alpha is not supported on blender for vertex colors
             geoFile.write("\t\t}\n")
 
         if self.uv0List:
@@ -662,7 +661,7 @@ class CGeoModel:
             geoFile.write("\t\t\tsetID 0\n")
             geoFile.write("\t\t\tnumUVs %d\n" % len(self.uv0List))
             for uv in self.uv0List:
-                 geoFile.write("\t\t\tuv { %.9f, %.9f }\n" % (uv[0], uv[1]))                       
+                 geoFile.write("\t\t\tuv { %.9f, %.9f }\n" % (uv[0], uv[1]))
             geoFile.write("\t\t}\n")
 
         if self.uv1List:
@@ -671,7 +670,7 @@ class CGeoModel:
             geoFile.write("\t\t\tsetID 1\n")
             geoFile.write("\t\t\tnumUVs %d\n" % len(self.uv1List))
             for uv in self.uv1List:
-                 geoFile.write("\t\t\tuv { %.9f, %.9f }\n" % (uv[0], uv[1]))                       
+                 geoFile.write("\t\t\tuv { %.9f, %.9f }\n" % (uv[0], uv[1]))
             geoFile.write("\t\t}\n")
 
         for GeoMaterialPolys in self.MaterialsDict.values():
@@ -685,7 +684,7 @@ class CGeoModel:
         if name in self.MaterialsDict:
             return self.MaterialsDict[name].material
         else:
-            return None       
+            return None
 
 
 
@@ -697,7 +696,7 @@ def BuildOptimizedGeo(Config, Object, Mesh, GeoModel):
 
     #Ensure tessfaces data are here
     Mesh.update (calc_tessface=True)
-    
+
     #Store Vertex stream, and Normal stream (use directly the order from blender collection
     for Vertex in Mesh.vertices:
         GeoModel.AddVertex(Vertex.co)
@@ -750,7 +749,7 @@ def BuildOptimizedGeo(Config, Object, Mesh, GeoModel):
                 uvVertices = uvVertices[::-1]
             uv0Index = []
             for uvVertex in uvVertices:
-                index = GeoModel.AddVertexUV0(uvVertex[0], 1 - uvVertex[1]) 
+                index = GeoModel.AddVertexUV0(uvVertex[0], 1 - uvVertex[1])
                 uv0Index.append(index)
         else:
             uv0Index = list((-1, -1, -1, -1))
@@ -765,8 +764,8 @@ def BuildOptimizedGeo(Config, Object, Mesh, GeoModel):
         if mat:
             matName =  mat.name
         else:
-            matName = "NoMaterialAssigned"  # There is no material assigned in blender !!!, exporter have generated a default one          
-            
+            matName = "NoMaterialAssigned"  # There is no material assigned in blender !!!, exporter have generated a default one
+
         # now on the material, generates the tri/quad in v,vn,uv0,uv1,vc stream index
         GeoModel.BeginPoly(matName, mat)
 
@@ -776,7 +775,7 @@ def BuildOptimizedGeo(Config, Object, Mesh, GeoModel):
         GeoModel.EndPoly()
 
 
-                              
+
 #############
 # Get the list of Material in use by the CGeoModel
 def WriteMeshMaterialsForGeoModel(Config, mtlFile, GeoModel):
@@ -803,7 +802,7 @@ def WriteMaterial(Config, mtlFile, Material=None):
             MatSpecularColor = min((255, 255, 255)[:],MatSpecularColor[:])
             mtlFile.write("\tcolSpecular  {%.2f,%.2f,%.2f} \n" % (MatSpecularColor[:]))
             # EmitColor = Material.emit * Material.diffuse_color
-            # mtlFile.write("\tcolEmissive {%.2f,%.2f,%.2f} \n" % (EmitColor* 255)[:])    
+            # mtlFile.write("\tcolEmissive {%.2f,%.2f,%.2f} \n" % (EmitColor* 255)[:])
     else:
         mtlFile.write("\tname \"NoMaterialAssigned\" // There is no material assigned in blender !!!, exporter have generated a default one\n")
 
@@ -812,7 +811,7 @@ def WriteMaterial(Config, mtlFile, Material=None):
         Texture = GetMaterialTextureFullPath(Config, Material)
         if Texture:
             mtlFile.write("\ttexture0 .\\textures\\%s\n" % (bpy.path.basename(Texture)))
-            
+
             if Config.CopyTextureFiles:
                 if not os.path.exists(Texture):
                     #try relative path to the blend file
@@ -860,7 +859,7 @@ def FindUniqueIndexForRootBone(Object, RootVertexGroup):
         #so use the next available free index
         return len(Object.vertex_groups)
 
-         
+
 def WriteMeshSkinWeightsForGeoModel(Config, Object, Mesh, GeoModel):
     ArmatureList = [Modifier for Modifier in Object.modifiers if Modifier.type == "ARMATURE"]
     if ArmatureList:
@@ -879,7 +878,7 @@ def WriteMeshSkinWeightsForGeoModel(Config, Object, Mesh, GeoModel):
         # Marmalade need to declare a vertex per list of affected bones
         # so first we have to get all the combinations of affected bones that exist in the mesh
         # to build thoses groups, we build a unique key (like a bit field, where each bit is a VertexGroup.Index): Sum(2^VertGroupIndex)... so we have a unique Number per combinations
-        
+
         for Vertex in Mesh.vertices:
             VertexIndex = Vertex.index + GeoModel.vbaseIndex
             AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, GeoModel.useBonesDict, GeoModel.mapVertexGroupNames, VertexIndex, RootBone, RootVertexGroup, BoneNames)
@@ -890,14 +889,14 @@ def WriteMeshSkinWeightsForGeoModel(Config, Object, Mesh, GeoModel):
             PrintSkinWeights(Config, GeoModel.armatureObjectName, GeoModel.useBonesDict, GeoModel.mapVertexGroupNames, StripName(Object.name))
 
 
-def PrintSkinWeights(Config, ArmatureObjectName, useBonesDict, mapVertexGroupNames, GeoName):        
+def PrintSkinWeights(Config, ArmatureObjectName, useBonesDict, mapVertexGroupNames, GeoName):
         #Create the skin file
         skinfullname = os.path.dirname(Config.FilePath) + os.sep + "models" + os.sep + "%s.skin" % GeoName
         ensure_dir(skinfullname)
         if Config.Verbose:
             print("      Creating skin file %s" % (skinfullname))
         skinFile = open(skinfullname, "w")
-        skinFile.write('// skin file exported from : %r\n' % os.path.basename(bpy.data.filepath))   
+        skinFile.write('// skin file exported from : %r\n' % os.path.basename(bpy.data.filepath))
         skinFile.write("CIwAnimSkin\n")
         skinFile.write("{\n")
         skinFile.write("\tskeleton \"%s\"\n" % ArmatureObjectName)
@@ -951,10 +950,10 @@ def AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, useBonesDict, 
             weightTotal = 1
     else:
         bWeightTotZero = False
-    
+
     if len(vertexGroupIndices) > 0:
         vertexGroupIndices.sort();
-           
+
         #build the vertex weight string: vertex indices, followed by influence weight for each bone
         VertexWeightString = "\t\tvertWeights { %d" % (VertexIndex)
         for vertexGroupIndex in vertexGroupIndices:
@@ -970,11 +969,11 @@ def AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, useBonesDict, 
                 VertexWeightString += ", %.7f" % (1.0 / len(vertexGroupIndices))
         VertexWeightString += "}"
         if bWeightTotZero:
-            VertexWeightString += " // total weight was zero in blender , export assign it to the RootBone with weight 1." 
+            VertexWeightString += " // total weight was zero in blender , export assign it to the RootBone with weight 1."
         if (len(Vertex.groups)) > 4:
             VertexWeightString += " // vertex is associated to more than 4 bones in blender !! skip some bone association (was associated to %d bones)." % (len(Vertex.groups))
         VertexWeightString += "\n"
-           
+
         #store in dictionnary information
         if useBonesKey not in useBonesDict:
             VertexList = []
@@ -985,19 +984,19 @@ def AddVertexToDicionarySkinWeights(Config, Object, Mesh, Vertex, useBonesDict, 
             pair_ListGroupIndices_ListAssignedVertices[1].append(VertexWeightString)
             useBonesDict[useBonesKey] = pair_ListGroupIndices_ListAssignedVertices
     else:
-        print ("ERROR Vertex %d is not skinned (it doesn't belong to any vertex group\n" % (VertexIndex)) 
+        print ("ERROR Vertex %d is not skinned (it doesn't belong to any vertex group\n" % (VertexIndex))
 
 
 
-############# ARMATURE: Bone export, and Bone animation export 
+############# ARMATURE: Bone export, and Bone animation export
 
-         
+
 def WriteArmatureParentRootBones(Config, Object, RootBonesList, skelFile):
 
     if len(RootBonesList) > 1:
         print(" /!\\  WARNING ,Marmelade need only one ROOT bone per armature, there is %d root bones " % len(RootBonesList))
         print(RootBonesList)
-        
+
     PoseBones = Object.pose.bones
     for Bone in RootBonesList:
         if Config.Verbose:
@@ -1009,7 +1008,7 @@ def WriteArmatureParentRootBones(Config, Object, RootBonesList, skelFile):
             print("      Done")
         WriteArmatureChildBones(Config, Object, Bone.children, skelFile)
 
-            
+
 def WriteArmatureChildBones(Config, Object, BonesList, skelFile):
     PoseBones = Object.pose.bones
     for Bone in BonesList:
@@ -1019,16 +1018,16 @@ def WriteArmatureChildBones(Config, Object, BonesList, skelFile):
         WriteBonePosition(Config, Object, Bone, PoseBones, PoseBone, skelFile, True)
         if Config.Verbose:
             print("      Done")
-            
+
         WriteArmatureChildBones(Config, Object, Bone.children, skelFile)
 
 
 def WriteBonePosition(Config, Object, Bone, PoseBones, PoseBone, File, isRestPoseNotAnimPose):
-    # Compute armature scale : 
+    # Compute armature scale :
     # Many others exporter require sthe user to do Apply Scale in Object Mode to have 1,1,1 scale and so that anim data are correctly scaled
     # Here we retreive the Scale of the Armture Object.matrix_world.to_scale() and we use it to scale the bones :-)
     # So new Blender user should not complain about bad animation export if they forgot to apply the Scale to 1,1,1
-    
+
     armScale = Object.matrix_world.to_scale()
     armRot = Object.matrix_world.to_quaternion()
     if isRestPoseNotAnimPose:
@@ -1064,7 +1063,7 @@ def WriteBonePosition(Config, Object, Bone, PoseBones, PoseBone, File, isRestPos
         else:
             localmat= X_ROT * armRot.to_matrix().to_4x4() * localmat #apply the armature rotation on the root bone
 
-    
+
     loc = localmat.to_translation()
     quat = localmat.to_quaternion()
 
@@ -1072,15 +1071,15 @@ def WriteBonePosition(Config, Object, Bone, PoseBones, PoseBone, File, isRestPos
     loc.x *= (armScale.x * Config.Scale)
     loc.y *= (armScale.y * Config.Scale)
     loc.z *= (armScale.z * Config.Scale)
-    
+
     File.write("\t\tpos { %.9f, %.9f, %.9f }\n" % (loc[0], loc[1], loc[2]))
     File.write("\t\trot { %.9f, %.9f, %.9f, %.9f }\n" % (quat.w, quat.x, quat.y, quat.z))
 
     if isRestPoseNotAnimPose:
         File.write("\t}\n")
 
-      
-def WriteKeyedAnimationSet(Config, Scene):  
+
+def WriteKeyedAnimationSet(Config, Scene):
     for Object in [Object for Object in Config.ObjectList if Object.animation_data]:
         if Config.Verbose:
             print("  Writing Animation Data for Object: {}".format(Object.name))
@@ -1088,16 +1087,16 @@ def WriteKeyedAnimationSet(Config, Scene):
         if Config.ExportAnimationActions == 0 and Object.animation_data.action:
             actions.append(Object.animation_data.action)
         else:
-            actions = bpy.data.actions[:]   
+            actions = bpy.data.actions[:]
             DefaultAction = Object.animation_data.action
-        
+
         for Action in actions:
             if Config.ExportAnimationActions == 0:
                 animFileName = StripName(Object.name)
             else:
                 Object.animation_data.action = Action
                 animFileName = "%s_%s" % (StripName(Object.name),StripName(Action.name))
-                          
+
             #Object animated (aka single bone object)
             #build key frame time list
 
@@ -1126,7 +1125,7 @@ def WriteKeyedAnimationSet(Config, Scene):
                 ##    if Config.Verbose:
                 ##        print("      Creating anim file (single bone animation) %s" % (animfullname))
                 ##    animFile = open(animfullname, "w")
-                ##    animFile.write('// anim file exported from : %r\n' % os.path.basename(bpy.data.filepath))   
+                ##    animFile.write('// anim file exported from : %r\n' % os.path.basename(bpy.data.filepath))
                 ##    animFile.write("CIwAnim\n")
                 ##    animFile.write("{\n")
                 ##    animFile.write("\tent \"%s\"\n" % (StripName(Object.name)))
@@ -1136,7 +1135,7 @@ def WriteKeyedAnimationSet(Config, Scene):
                 ##    Config.File.write("\t\".\\anims\\%s_offset.anim\"\n" % animFileName))
                 ##
                 ##    for KeyframeTime in keyframeTimes:
-                ##        #Scene.frame_set(KeyframeTime)    
+                ##        #Scene.frame_set(KeyframeTime)
                 ##        animFile.write("\tCIwAnimKeyFrame\n")
                 ##        animFile.write("\t{\n")
                 ##        animFile.write("\t\ttime %.2f // frame num %d \n" % (KeyframeTime/Config.AnimFPS, KeyframeTime))
@@ -1191,7 +1190,7 @@ def WriteKeyedAnimationSet(Config, Scene):
                     print("    Writing Armature Bone Animation Data...\n")
                 PoseBones = Object.pose.bones
                 Bones = Object.data.bones
-                #riged bones animated 
+                #riged bones animated
                 #build key frame time list
                 keyframeTimes = set()
                 if Config.ExportAnimationFrames == 1:
@@ -1207,7 +1206,7 @@ def WriteKeyedAnimationSet(Config, Scene):
                 else:
                     # Exports all frame
                     keyframeTimes.update(range(Scene.frame_start, Scene.frame_end + 1, 1))
-                   
+
                 keyframeTimes = list(keyframeTimes)
                 keyframeTimes.sort()
                 if Config.Verbose:
@@ -1226,7 +1225,7 @@ def WriteKeyedAnimationSet(Config, Scene):
                         print("      Creating anim file (bones animation) %s\n" % (animfullname))
                         print("      Frame count %d \n" % (len(keyframeTimes)))
                     animFile = open(animfullname, "w")
-                    animFile.write('// anim file exported from : %r\n' % os.path.basename(bpy.data.filepath))   
+                    animFile.write('// anim file exported from : %r\n' % os.path.basename(bpy.data.filepath))
                     animFile.write("CIwAnim\n")
                     animFile.write("{\n")
                     animFile.write("\tskeleton \"%s\"\n" % (StripName(Object.name)))
@@ -1261,25 +1260,25 @@ def WriteKeyedAnimationSet(Config, Scene):
             Object.animation_data.action = DefaultAction
         if Config.Verbose:
             print("  Done") #Done with Object
- 
 
-                                
- 
+
+
+
 ################## Utilities
-            
+
 def StripBoneName(name):
     return name.replace(" ", "")
 
 
 def StripName(Name):
-    
+
     def ReplaceSet(String, OldSet, NewChar):
         for OldChar in OldSet:
             String = String.replace(OldChar, NewChar)
         return String
-    
+
     import string
-    
+
     NewName = ReplaceSet(Name, string.punctuation + " ", "_")
     return NewName
 
@@ -1288,7 +1287,7 @@ def ensure_dir(f):
     d = os.path.dirname(f)
     if not os.path.exists(d):
         os.makedirs(d)
-        
+
 
 def CloseFile(Config):
     if Config.Verbose:
@@ -1351,13 +1350,13 @@ class MarmaladeExporter(bpy.types.Operator):
                     "Do not merge rigged character that have an armature.",
         items=MergeModes,
         default="0")
-    
+
     #General Options
     Scale = IntProperty(
         name="Scale Percent",
         description="Scale percentage applied for export",
         default=100, min=1, max=1000)
-    
+
     FlipNormals = BoolProperty(
         name="Flip Normals",
         description="",
@@ -1399,7 +1398,7 @@ class MarmaladeExporter(bpy.types.Operator):
                     "However if you have defined several animations on the same armature,"\
                     "you can select to export all animations. You can see the list of animation actions in the DopeSheet window.",
         items=AnimationActions,
-        default="0")           
+        default="0")
     AnimFPS = IntProperty(
         name="Animation FPS",
         description="Frame rate used to export animation in seconds (can be used to artficially slow down the exported animation, or to speed up it",
@@ -1411,7 +1410,7 @@ class MarmaladeExporter(bpy.types.Operator):
         description="Select a coordinate system to export to",
         items=CoordinateSystems,
         default="1")
-    
+
     Verbose = BoolProperty(
         name="Verbose",
         description="Run the exporter in debug mode. Check the console for output",

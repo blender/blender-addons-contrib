@@ -24,10 +24,9 @@ bl_info = {
     "location": "File > Import > Voodoo camera",
     "description": "Imports a Blender (2.4x or 2.5x) Python script from the Voodoo (version 1.1 or 1.2) camera tracker software.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/Voodoo_camera",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22510",
+    "tracker_url": "https://developer.blender.org/T22510",
     "category": "Import-Export"}
 
 """
@@ -144,7 +143,7 @@ def voodoo_import(infile,ld_cam,ld_points):
                             scene.frame_current = fr
                             # for up to 2.55
                             # vcam.matrix_world = eval('mathutils.' + line.rstrip()[pos+21:-1])
-                            # for 2.56, from Michael (Meikel) Oetjen 
+                            # for 2.56, from Michael (Meikel) Oetjen
                             # vcam.matrix_world = eval('mathutils.Matrix(' + line.rstrip()[pos+28:-2].replace('[','(',4).replace(']',')',4) + ')')
                             # for 2.57
                             # vcam.matrix_world = eval('mathutils.Matrix([' + line.rstrip()[pos+28:-2] + '])')

@@ -22,12 +22,12 @@ bl_info = {
     "version": (1, 0),
     "blender": (2, 59, 0),
     "location": "Search > (rename)",
-    "description": "Batch renaming of datablocks (e.g. rename materials after objectnames)",
+    "description": "Batch renaming of datablocks "
+        "(e.g. rename materials after objectnames)",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Object/Batch_Rename_Datablocks",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=25242",
+    "tracker_url": "https://developer.blender.org/T25242",
     "category": "Object"}
 
 
@@ -43,11 +43,11 @@ def get_first_material_name(ob):
 def get_name(self, ob):
     if self.naming_base == 'Object':
         return ob.name
-    
+
     if self.naming_base == 'Mesh':
         if ob.data: return ob.data.name
         else: return ob.name
-    
+
     if self.naming_base == 'Material':
         material_name = get_first_material_name(ob)
         if not material_name: return ob.name
@@ -55,20 +55,20 @@ def get_name(self, ob):
 
     if self.naming_base == 'Custom':
         return self.rename_custom
-    
-    
+
+
 def rename_datablocks_main(self, context):
     obs = context.selected_editable_objects
     for ob in obs:
         name = get_name(self, ob)
-        
+
         if self.rename_object:
             if (self.rename_use_prefix
             and self.prefix_object):
                 ob.name = self.rename_prefix + name
             else:
                 ob.name = name
-        
+
         if self.rename_data:
             if (ob.data
             and ob.data.users == 1):
@@ -77,7 +77,7 @@ def rename_datablocks_main(self, context):
                     ob.data.name = self.rename_prefix + name
                 else:
                     ob.data.name = name
-        
+
         if self.rename_material:
             if ob.material_slots:
                 for m_slot in ob.material_slots:
@@ -94,7 +94,7 @@ class OBJECT_OT_batch_rename_datablocks(bpy.types.Operator):
     bl_idname = "object.batch_rename_datablocks"
     bl_label = "Batch Rename Datablocks"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     name_origins = [
                     ('Object', 'Object', 'Object'),
                     ('Mesh', 'Mesh', 'Mesh'),
@@ -137,10 +137,10 @@ class OBJECT_OT_batch_rename_datablocks(bpy.types.Operator):
         layout = self.layout
         col = layout.column()
         col.label(text='Rename after:')
-        
+
         row = layout.row()
         row.prop(self.properties, 'naming_base', expand=True)
-        
+
         col = layout.column()
         col.prop(self.properties, 'rename_custom')
 
@@ -149,18 +149,18 @@ class OBJECT_OT_batch_rename_datablocks(bpy.types.Operator):
         col.prop(self.properties, 'rename_object')
         col.prop(self.properties, 'rename_data')
         col.prop(self.properties, 'rename_material')
-        
+
         col.separator()
         col.prop(self.properties, 'rename_use_prefix')
         col.prop(self.properties, 'rename_prefix')
-        
+
         row = layout.row()
         row.prop(self.properties, 'prefix_object')
         row.prop(self.properties, 'prefix_data')
         row.prop(self.properties, 'prefix_material')
-        
+
         col = layout.column()
-        
+
     @classmethod
     def poll(cls, context):
         return context.selected_objects != None
@@ -168,15 +168,15 @@ class OBJECT_OT_batch_rename_datablocks(bpy.types.Operator):
     def execute(self, context):
 
         rename_datablocks_main(self, context)
-        
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
         wm.invoke_props_dialog(self, self.dialog_width)
         return {'RUNNING_MODAL'}
-        
-        
+
+
 def register():
     bpy.utils.register_module(__name__)
     pass

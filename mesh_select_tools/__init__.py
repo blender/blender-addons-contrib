@@ -26,10 +26,8 @@ bl_info = {
     "location": "Editmode select menu",
     "description": "Adds More vert/face/edge select modes.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=32877",
+    "wiki_url": "",
+    "tracker_url": "https://developer.blender.org/T32877",
     "category": "Mesh"}
 
 
@@ -67,11 +65,11 @@ class VIEW3D_MT_selectface_edit_mesh_add(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.label(text = 'Face Select')
         layout.separator()
-        layout.operator("data.facetype_select", 
+        layout.operator("data.facetype_select",
             text="Triangles").face_type = "3"
-        layout.operator("data.facetype_select", 
+        layout.operator("data.facetype_select",
             text="Quads").face_type = "4"
-        layout.operator("data.facetype_select", 
+        layout.operator("data.facetype_select",
             text="Ngons").face_type = "5"
         layout.separator()
         layout.operator("mesh.select_vert_index",
@@ -118,7 +116,7 @@ class VIEW3D_MT_selectedge_edit_mesh_add(bpy.types.Menu):
             text="Longitudinal Edges")
 #        layout.operator("mesh.je",
 #            text="only_edge_selection")
-			
+
 class VIEW3D_MT_selectvert_edit_mesh_add(bpy.types.Menu):
     # Define the "Mesh_Select_Tools" menu
     bl_idname = "mesh.vert_select_tools"

@@ -19,19 +19,19 @@
 bl_info = {
     "name": "QuickPrefs",
     "author": "Sean Olson",
-    "version": (2,2),
+    "version": (2, 2),
     "blender": (2, 66, 0),
     "location": "3DView->Properties Panel (N-Key)",
     "description": "Add often changed User Preference options to Properties panel.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D_interaction/QuickPrefs",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-                   "func=detail&aid=27822",
+    "tracker_url": "https://developer.blender.org/T27822",
     "category": "3D View"}
 
+
 import os
-    
+
 import bpy
 from bpy.types import Menu, Panel
 from rna_prop_ui import PropertyPanel
@@ -40,9 +40,9 @@ from bpy.props import (
                        BoolProperty,
                        EnumProperty,
                        FloatProperty,
-                       CollectionProperty, 
+                       CollectionProperty,
                        IntProperty,
-                       StringProperty, 
+                       StringProperty,
                        PointerProperty
                        )
 
@@ -73,39 +73,39 @@ def gllightpreset_importall():
             if '.preset' in infile:                           #check that this is a .preset file
                 thefile=os.path.join(path, infile)       #join the filename with the path
                 gllightpreset_importsingle(thefile)     #import it!
-       
+
 #import single takes a given filename and imports it
 def gllightpreset_importsingle(filename):
-    
+
     if not os.path.isdir(filename):           #check if the file is a directory
         if '.preset' in filename:              #check to make sure this is a preset file
             readfile=open(filename, 'r')
-            
+
             name=readfile.readline()
             name=name[:-1]
-            
+
             illuminationString0=readfile.readline()
             illuminationString0=illuminationString0[:-1]
-            
+
             if illuminationString0=="True":
                 illumination0=True
             else:
                 illumination0=False
-           
+
             illuminationString1=readfile.readline()
             illuminationString1=illuminationString1[:-1]
             if illuminationString1=="True":
                 illumination1=True
             else:
                 illumination1=False
-                
+
             illuminationString2=readfile.readline()
             illuminationString2=illuminationString2[:-1]
             if illuminationString2=="True":
                 illumination2=True
             else:
                 illumination2=False
-            
+
             #convert strings to booleans
 
             str=readfile.readline()
@@ -161,7 +161,7 @@ def gllightpreset_importsingle(filename):
             spec2r=strArray[0]
             spec2g=strArray[1]
             spec2b=strArray[2]
-            
+
             #set the variables
             system=bpy.context.user_preferences.system
             system.solid_lights[0].use=illumination0
@@ -182,91 +182,91 @@ def gllightpreset_importsingle(filename):
             gllightpreset_add(name)
             gllightpreset_save()
 
-#Export all exports the entire contents of your presets list to the given file    
-@persistent     
+#Export all exports the entire contents of your presets list to the given file
+@persistent
 def gllightpreset_exportall(context):
    for i in range(len(bpy.context.scene.quickprefs.gllightpreset)):
         gllightpreset_exportsingle(i, True)
-             
-    
+
+
 def gllightpreset_exportsingle(index, multiimport):
     scn=bpy.context.scene.quickprefs
     name=scn.gllightpreset[index].name
-    
+
     illuminatedBool0=scn.gllightpreset[index].illuminated0
     illuminatedBool1=scn.gllightpreset[index].illuminated1
     illuminatedBool2=scn.gllightpreset[index].illuminated2
-    
+
     #illuminations
     if illuminatedBool0==True:
         illuminated0="True"
     else:
         illuminated0="False"
-    
+
     if illuminatedBool1==True:
         illuminated1="True"
     else:
         illuminated1="False"
-        
+
     if illuminatedBool2==True:
         illuminated2="True"
     else:
         illuminated2="False"
-        
+
     #direction light0
     dirx=str(scn.gllightpreset[index].direction0[0])
     diry=str(scn.gllightpreset[index].direction0[1])
     dirz=str(scn.gllightpreset[index].direction0[2])
     direction0=dirx + " " + diry + " " + dirz + " "
-    
+
     #direction light1
     dirx=str(scn.gllightpreset[index].direction1[0])
     diry=str(scn.gllightpreset[index].direction1[1])
     dirz=str(scn.gllightpreset[index].direction1[2])
     direction1=dirx + " " + diry + " " + dirz + " "
-    
+
     #direction light2
     dirx=str(scn.gllightpreset[index].direction2[0])
     diry=str(scn.gllightpreset[index].direction2[1])
     dirz=str(scn.gllightpreset[index].direction2[2])
     direction2=dirx + " " + diry + " " + dirz + " "
-    
+
     #diffuse light0
     difr=str(scn.gllightpreset[index].diffuse0[0])
     difg=str(scn.gllightpreset[index].diffuse0[1])
     difb=str(scn.gllightpreset[index].diffuse0[2])
     diffuse0=difr + " " + difg + " " + difb + " "
-    
+
     #diffuse light1
     difr=str(scn.gllightpreset[index].diffuse1[0])
     difg=str(scn.gllightpreset[index].diffuse1[1])
     difb=str(scn.gllightpreset[index].diffuse1[2])
     diffuse1=difr + " " + difg + " " + difb + " "
-    
+
     #diffuse light2
     difr=str(scn.gllightpreset[index].diffuse2[0])
     difg=str(scn.gllightpreset[index].diffuse2[1])
     difb=str(scn.gllightpreset[index].diffuse2[2])
     diffuse2=difr + " " + difg + " " + difb + " "
-    
+
     #specular light 0
     specr=str(scn.gllightpreset[index].specular0[0])
     specg=str(scn.gllightpreset[index].specular0[1])
     specb=str(scn.gllightpreset[index].specular0[2])
     specular0=specr + " " + specg + " " + specb + " "
-    
+
     #specular light 1
     specr=str(scn.gllightpreset[index].specular1[0])
     specg=str(scn.gllightpreset[index].specular1[1])
     specb=str(scn.gllightpreset[index].specular1[2])
     specular1=specr + " " + specg + " " + specb + " "
-    
+
     #specular light 2
     specr=str(scn.gllightpreset[index].specular2[0])
     specg=str(scn.gllightpreset[index].specular2[1])
     specb=str(scn.gllightpreset[index].specular2[2])
     specular2=specr + " " + specg + " " + specb + " "
-    
+
     printstring=name+"\n"
     printstring+=illuminated0 +"\n"+ illuminated1 +"\n"+ illuminated2+"\n"
     printstring+=direction0  +"\n"+ direction1 +"\n"+ direction2 +"\n"
@@ -280,72 +280,72 @@ def gllightpreset_exportsingle(index, multiimport):
 
     if not os.path.exists(filepath):
         os.mkdir(filepath)
-    filepath=os.path.join(filepath, (name+".preset"))        
-    writefile = open(filepath, 'w') 
-    writefile.write(printstring) 
+    filepath=os.path.join(filepath, (name+".preset"))
+    writefile = open(filepath, 'w')
+    writefile.write(printstring)
 
 ##########################################
 ####### General  Presets Functions #######
 ##########################################
 
 def gllightpreset_addPresets():
-  
+
     system=bpy.context.user_preferences.system
-  
+
     system.solid_lights[0].use=True
     system.solid_lights[1].use=True
     system.solid_lights[2].use=True
-  
+
     system.solid_lights[0].direction = (-0.8920, 0.3000, 0.8999)
     system.solid_lights[1].direction = (0.5880, 0.4600, 0.2480)
     system.solid_lights[2].direction = (0.2159, -0.3920, -0.2159)
-    
+
     system.solid_lights[0].diffuse_color=(0.8000, 0.8000, 0.8000)
     system.solid_lights[1].diffuse_color=(0.4980, 0.5000, 0.6000)
     system.solid_lights[2].diffuse_color=(0.7980, 0.8379, 1.0)
-    
+
     system.solid_lights[0].specular_color=(0.5, 0.5, 0.5)
     system.solid_lights[1].specular_color=(0.2000, 0.2, 0.2)
     system.solid_lights[2].specular_color=(0.0659, 0.0, 0.0)
     gllightpreset_add("(Default)")
     gllightpreset_save()
-    
+
     system.solid_lights[0].use=True
     system.solid_lights[1].use=True
     system.solid_lights[2].use=True
-    
+
     system.solid_lights[0].direction = (-0.3207, 0.4245, 0.8466)
     system.solid_lights[1].direction = (0.4259, -0.0555, 0.9030)
     system.solid_lights[2].direction = (-0.4485, 0.2400, -0.8609)
-    
+
     system.solid_lights[0].diffuse_color=(0.4292, 0.0457, 0.0457)
     system.solid_lights[1].diffuse_color=(0.7873, 0.4424, 0.2893)
     system.solid_lights[2].diffuse_color=(0.7483, 0.7168, 0.6764)
-    
+
     system.solid_lights[0].specular_color=(0.2000, 0.2000, 0.2000)
     system.solid_lights[1].specular_color=(0.0, 0.0, 0.0)
     system.solid_lights[2].specular_color=(0.0, 0.0, 0.0)
     gllightpreset_add("Orange Clay")
     gllightpreset_save()
-    
+
     system.solid_lights[0].use=True
     system.solid_lights[1].use=True
     system.solid_lights[2].use=True
-    
+
     system.solid_lights[0].direction=(-0.06666, 0.8222, 0.5652)
     system.solid_lights[1].direction=(-0.8555, 0.1111, 0.5056)
     system.solid_lights[2].direction=(0.9000, 0.1555, 0.4071)
-    
+
     system.solid_lights[0].diffuse_color=(0.1000, 0.1000, 0.1000)
     system.solid_lights[1].diffuse_color=(1.0, 0.9734, 0.8713)
     system.solid_lights[2].diffuse_color=(0.7835, 0.9215, 1.0)
-    
+
     system.solid_lights[0].specular_color=(0.0, 0.0, 0.0)
     system.solid_lights[1].specular_color=(0.0, 0.0, 0.0)
     system.solid_lights[2].specular_color=(0.0, 0.0, 0.0)
     gllightpreset_add("Softblend")
     gllightpreset_save()
-    
+
     system.solid_lights[0].use = True
     system.solid_lights[1].use = True
     system.solid_lights[2].use = True
@@ -381,7 +381,7 @@ def gllightpreset_addPresets():
     system.solid_lights[2].specular_color = (1.0, 1.0, 1.0)
     gllightpreset_add("Candy")
     gllightpreset_save();
-    
+
     system.solid_lights[0].use = True
     system.solid_lights[1].use = True
     system.solid_lights[2].use = True
@@ -399,7 +399,7 @@ def gllightpreset_addPresets():
     system.solid_lights[2].specular_color = (0.0, 0.0, 0.0)
     gllightpreset_add("Purpleboogers.com")
     gllightpreset_save();
-    
+
     system.solid_lights[0].use = True
     system.solid_lights[1].use = False
     system.solid_lights[2].use = False
@@ -453,7 +453,7 @@ def gllightpreset_addPresets():
     system.solid_lights[2].specular_color = (0.0, 0.0, 0.0)
     gllightpreset_add("Yellow Clay")
     gllightpreset_save()
-    
+
 ##########################################
 ####### LightPreset Functions #######
 ##########################################
@@ -473,7 +473,7 @@ def gllightpreset_name(self, context):
     #gllightpreset_sort()
 
     recursive=False
-    
+
 def gllightpreset_checkname(name):
     collection=bpy.context.scene.quickprefs.gllightpreset
     if name=="": name="Preset"
@@ -490,22 +490,22 @@ def gllightpreset_checkname(name):
         nr="00"+str(i)
         tmp=name[:pos+1]+nr[len(nr)-3:]
         if not tmp in collection:
-            return tmp        
+            return tmp
     return "Preset.???"
-    
+
 def gllightpreset_rename(old, new):
     for o in bpy.context.scene.quickprefs.objects:
         if o.get("gllightpreset", "Default")==old:
             o.gllightpreset=new
 
-@persistent            
+@persistent
 def gllightpreset_index(self, context):
     global recursive
     if recursive==True: return
     recursive=True
 
     scn=bpy.context.scene.quickprefs
-    
+
     if scn.gllightpreset_index > len(scn.gllightpreset)-1:
         scn.gllightpreset_index = len(scn.gllightpreset)-1
 
@@ -514,69 +514,69 @@ def gllightpreset_index(self, context):
 def gllightpreset_add(name=""):
     global renaming
     renaming=False
-    
+
     scn=bpy.context.scene.quickprefs
 
     entry=scn.gllightpreset.add()
     bpy.context.scene.quickprefs['gllightpreset_index']=len(scn.gllightpreset)-1
     entry.name=gllightpreset_checkname(name)
-    
+
     renaming=True
     gllightpreset_save()
-       
+
 def gllightpreset_delete():
     scn=bpy.context.scene
     index=scn.quickprefs.gllightpreset_index
     name=scn.quickprefs.gllightpreset[index].name
-    
+
     for o in scn.objects:
         if o.get("gllightpreset", "Default")==name:
             o.gllightpreset="Default"
-    
+
     scn.quickprefs.gllightpreset.remove(index)
-   
-    
+
+
 def gllightpreset_save():
     index=bpy.context.scene.quickprefs.gllightpreset_index
     name=bpy.context.scene.quickprefs.gllightpreset[index].name
-    
+
     bpy.context.scene.quickprefs.gllightpreset[index].illuminated0 = bpy.context.user_preferences.system.solid_lights[0].use
     bpy.context.scene.quickprefs.gllightpreset[index].illuminated1 = bpy.context.user_preferences.system.solid_lights[1].use
     bpy.context.scene.quickprefs.gllightpreset[index].illuminated2 = bpy.context.user_preferences.system.solid_lights[2].use
-    
+
     bpy.context.scene.quickprefs.gllightpreset[index].direction0 = bpy.context.user_preferences.system.solid_lights[0].direction
     bpy.context.scene.quickprefs.gllightpreset[index].direction1 = bpy.context.user_preferences.system.solid_lights[1].direction
     bpy.context.scene.quickprefs.gllightpreset[index].direction2 = bpy.context.user_preferences.system.solid_lights[2].direction
-    
+
     bpy.context.scene.quickprefs.gllightpreset[index].diffuse0 = bpy.context.user_preferences.system.solid_lights[0].diffuse_color
     bpy.context.scene.quickprefs.gllightpreset[index].diffuse1 = bpy.context.user_preferences.system.solid_lights[1].diffuse_color
     bpy.context.scene.quickprefs.gllightpreset[index].diffuse2 = bpy.context.user_preferences.system.solid_lights[2].diffuse_color
-    
+
     bpy.context.scene.quickprefs.gllightpreset[index].specular0 = bpy.context.user_preferences.system.solid_lights[0].specular_color
     bpy.context.scene.quickprefs.gllightpreset[index].specular1 = bpy.context.user_preferences.system.solid_lights[1].specular_color
     bpy.context.scene.quickprefs.gllightpreset[index].specular2 = bpy.context.user_preferences.system.solid_lights[2].specular_color
-        
-#select the current light    
+
+#select the current light
 def gllightpreset_select():
     index=bpy.context.scene.quickprefs.gllightpreset_index
     name=bpy.context.scene.quickprefs.gllightpreset[index].name
-    
+
     bpy.context.user_preferences.system.solid_lights[0].use=bpy.context.scene.quickprefs.gllightpreset[index].illuminated0
     bpy.context.user_preferences.system.solid_lights[1].use=bpy.context.scene.quickprefs.gllightpreset[index].illuminated1
     bpy.context.user_preferences.system.solid_lights[2].use=bpy.context.scene.quickprefs.gllightpreset[index].illuminated2
-    
+
     bpy.context.user_preferences.system.solid_lights[0].direction=bpy.context.scene.quickprefs.gllightpreset[index].direction0
     bpy.context.user_preferences.system.solid_lights[1].direction=bpy.context.scene.quickprefs.gllightpreset[index].direction1
     bpy.context.user_preferences.system.solid_lights[2].direction=bpy.context.scene.quickprefs.gllightpreset[index].direction2
-    
+
     bpy.context.user_preferences.system.solid_lights[0].diffuse_color=bpy.context.scene.quickprefs.gllightpreset[index].diffuse0
     bpy.context.user_preferences.system.solid_lights[1].diffuse_color=bpy.context.scene.quickprefs.gllightpreset[index].diffuse1
     bpy.context.user_preferences.system.solid_lights[2].diffuse_color=bpy.context.scene.quickprefs.gllightpreset[index].diffuse2
-    
+
     bpy.context.user_preferences.system.solid_lights[0].specular_color=bpy.context.scene.quickprefs.gllightpreset[index].specular0
     bpy.context.user_preferences.system.solid_lights[1].specular_color=bpy.context.scene.quickprefs.gllightpreset[index].specular1
     bpy.context.user_preferences.system.solid_lights[2].specular_color=bpy.context.scene.quickprefs.gllightpreset[index].specular2
-    
+
 #sort alphabetically
 def gllightpreset_sort():
     collection=bpy.context.scene.quickprefs.gllightpreset
@@ -588,7 +588,7 @@ def gllightpreset_sort():
 
 #Add default setting
 def gllightpreset_addDefault():
-    print('adding default presets')  
+    print('adding default presets')
     gllightpreset_addPresets()
     gllightpreset_sort();
     bpy.context.scene.quickprefs['gllightpreset_index']=0
@@ -596,7 +596,7 @@ def gllightpreset_addDefault():
 
 ##########################################
 ####### Persistant functions##############
-##########################################       
+##########################################
 #This function decides where to load presets from - The order goes: BPY>File>Defaults
 #@persistent
 def gllightpreset_chooseLoadLocation(context):
@@ -631,7 +631,7 @@ def gllightpreset_loadpresets(context):
        gllightpreset_importall()
        bpy.context.scene['gllightpreset_index']=0
        gllightpreset_select()
-           
+
 ##########################################
 ####### GUI ##############################
 ##########################################
@@ -659,19 +659,19 @@ class gllightpreset(bpy.types.PropertyGroup):
 
     props=bpy.props
     name = props.StringProperty(update=gllightpreset_name)
-    
+
     illuminated0 = props.BoolProperty(default = True)
     illuminated1 = props.BoolProperty(default = True)
     illuminated2 = props.BoolProperty(default = True)
-    
+
     direction0 = props.FloatVectorProperty(name="",  default=(-0.8920, 0.3000, 0.8999))
     direction1 = props.FloatVectorProperty(name="",  default=(0.5880, 0.4600, 0.2480))
     direction2 = props.FloatVectorProperty(name="",  default=(0.2159, -0.3920, -0.2159))
-    
+
     diffuse0 = props.FloatVectorProperty(name="",  default=(0.8000, 0.8000, 0.8000))
     diffuse1 = props.FloatVectorProperty(name="",  default=(0.4980, 0.5000, 0.6000))
     diffuse2 = props.FloatVectorProperty(name="",  default=(0.7980, 0.8379, 1.0))
-    
+
     specular0 = props.FloatVectorProperty(name="",  default=(0.5, 0.5, 0.5))
     specular1 = props.FloatVectorProperty(name="",  default=(0.2000, 0.2000, 0.2000))
     specular2 = props.FloatVectorProperty(name="",  default=(0.0659, 0.0, 0.0))
@@ -684,35 +684,35 @@ class SCENE_OT_gllightpreset(bpy.types.Operator):
     bl_idname="gllightpreset.action"
 
     #alias
-    
+
 
     button=bpy.props.StringProperty(default="")
 
     def execute(self, context):
         scn=bpy.context.scene
         button=self.button
-           
-        
+
+
         if   button=="add":
             gllightpreset_add()
-        elif button=="delete":   
+        elif button=="delete":
             if len(scn.quickprefs.gllightpreset)>1:
                 gllightpreset_delete()
             else:
                 self.report({'INFO'}, "Must have at least 1 Preset")
-                
-        elif button=="save":     
+
+        elif button=="save":
             gllightpreset_save()
             self.report({'INFO'}, "Saved Preset to Blend File.")
         elif button=="sort":     gllightpreset_sort()
         elif button=="select":   gllightpreset_select()
-        elif button=="export":   
+        elif button=="export":
             gllightpreset_exportsingle(scn.quickprefs.gllightpreset_index, False)
             self.report({'INFO'}, "Exported Preset to: "+scn.quickprefs.gllightpreset_exportfile)
         elif button=="exportall":
             gllightpreset_exportall(1)
             self.report({'INFO'}, "Exported Presets to: "+scn.quickprefs.gllightpreset_exportdirectory)
-        elif button=="import":   
+        elif button=="import":
             if not os.path.isdir(scn.quickprefs.gllightpreset_importfile):
                 if not scn.quickprefs.gllightpreset_importdirectory=="":
                     gllightpreset_importsingle(scn.quickprefs.gllightpreset_importfile)
@@ -725,12 +725,12 @@ class SCENE_OT_gllightpreset(bpy.types.Operator):
             self.report({'INFO'}, "Imported Presets from: "+scn.quickprefs.gllightpreset_importdirectory)
         elif button=="defaults":
                 gllightpreset_addDefault()
-  
+
         if scn.quickprefs.gllightpreset_index > len(scn.quickprefs.gllightpreset)-1:
             scn.quickprefs.gllightpreset_index = len(scn.quickprefs.gllightpreset)-1
 
         return {"FINISHED"}
-         
+
 #Panel for tools
 class PANEL(bpy.types.Panel):
     bl_label = 'Quick Preferences'
@@ -739,10 +739,10 @@ class PANEL(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_options = {'DEFAULT_CLOSED'}
 
-    
+
     def draw(self, context):
         global lastname
-    
+
         #aliases
         scn = bpy.context.scene.quickprefs
         system = context.user_preferences.system
@@ -750,7 +750,7 @@ class PANEL(bpy.types.Panel):
         edit = context.user_preferences.edit
         layout = self.layout
         split = layout.split()
-        
+
 #Setup the OpenGL lights box
 #Draw the Lights
         box = layout.box().column(align=False)
@@ -772,8 +772,8 @@ class PANEL(bpy.types.Panel):
             opengl_lamp_buttons(box, lamp)
 
             box.separator()
-            
-#Draw the selection box        
+
+#Draw the selection box
             split = box.split(percentage=0.7)
             col = split.row()
 			#original
@@ -787,22 +787,22 @@ class PANEL(bpy.types.Panel):
             col.operator("gllightpreset.action", icon="ZOOMOUT", text="Delete").button="delete"
             col.operator("gllightpreset.action", icon="FILE_TICK", text="Save to Blend").button="save"
             col.operator("gllightpreset.action", icon="SORTALPHA", text="Sort").button="sort"
-            col.operator("gllightpreset.action", icon="SHORTDISPLAY", text="Add Defaults").button="defaults"                     
+            col.operator("gllightpreset.action", icon="SHORTDISPLAY", text="Add Defaults").button="defaults"
             col=box.row()
             col=col.column()
-#Draw the text box            
-            count=len(scn.gllightpreset)           
+#Draw the text box
+            count=len(scn.gllightpreset)
             if count>0:
                 entry=scn.gllightpreset[scn.gllightpreset_index]
                 lastname=entry.name
-                
-                if entry.count==0: 
+
+                if entry.count==0:
                     col.prop(entry, "name", text="")
-                if entry.count> 0: 
+                if entry.count> 0:
                     col.prop(entry, "name", text="")
                 if bpy.context.scene.objects.active != None:
                     name=bpy.context.scene.objects.active.get("gllightpreset", "Default")
-#Draw the import/export part of the box                
+#Draw the import/export part of the box
                 col.prop(scn,'importexport')
                 if scn.importexport:
                     split = box.split(percentage=0.5)
@@ -813,24 +813,24 @@ class PANEL(bpy.types.Panel):
                     col.label("Export Directory or File")
                     col.prop(scn, 'gllightpreset_exportfile')
                     col.prop(scn, 'gllightpreset_exportdirectory')
-                                
+
                     split = split.split()
                     col = split.column()
-                    
+
                     col.label("")
                     col.operator("gllightpreset.action", icon="IMPORT", text="Import File").button="import"
-                    col.operator("gllightpreset.action", icon="IMPORT", text="Import All").button="importall"  
+                    col.operator("gllightpreset.action", icon="IMPORT", text="Import All").button="importall"
                     col.label("")
                     col.operator("gllightpreset.action", icon="EXPORT", text="Export Selection").button="export"
                     col.operator("gllightpreset.action", icon="EXPORT", text="Export All").button="exportall"
-                    
-                    
+
+
 #The second box containing interface options is here
-        #interface options   
+        #interface options
         box = layout.box().column(align=True)
         box.prop(scn,'interface')
-        
-        
+
+
         if scn.interface:
             #Select with
             boxrow=box.row()
@@ -843,7 +843,7 @@ class PANEL(bpy.types.Panel):
             boxrow.label(text="Orbit Style:")
             boxrow=box.row()
             boxrow.prop(inputs, "view_rotate_method", expand=True)
-        
+
             #continuous grab
             boxrow=box.row()
             boxrow.prop(inputs, "use_mouse_continuous")
@@ -859,7 +859,7 @@ class PANEL(bpy.types.Panel):
             boxrow.label(text="Align New Objects To:")
             boxrow=box.row()
             boxrow.prop(edit, "object_align", text="")
-         
+
 ##########################################
 ####### Registration Functions ############
 ##########################################
@@ -871,67 +871,67 @@ class quickprefproperties(bpy.types.PropertyGroup):
                     description="QuickPrefs render settings",
                     type=cls,
                     )
-            #strings for file IO       
+            #strings for file IO
             cls.gllightpreset_importfile = StringProperty(name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
-                    
+
             cls.gllightpreset_importdirectory = StringProperty(name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
-                    
+
             cls.gllightpreset_exportfile = StringProperty(name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
-                    
+
             cls.gllightpreset_exportdirectory = StringProperty(
                     name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
-                    
+
             cls.gllights = BoolProperty(
-                    name='Lights', 
+                    name='Lights',
                     default=True
                     )
-                    
+
             cls.gllightPresets = BoolProperty(
-                    name='GL Light Presets', 
+                    name='GL Light Presets',
                     default=True
                     )
-                    
+
             cls.interface = BoolProperty(
-                    name='Interface', 
+                    name='Interface',
                     default=True
                     )
-                    
+
             cls.importexport = BoolProperty(
-                    name='Import/Export', 
+                    name='Import/Export',
                     default=True
                     )
-                    
+
             cls.gllights = BoolProperty(
-                    name='Lights', 
+                    name='Lights',
                     default=True
                     )
-                    
+
             #important storage of stuff
             cls.gllightpreset = CollectionProperty(
                     type=gllightpreset
                     )
-                    
+
             cls.gllightpreset_index = IntProperty(
-                    min=0, 
-                    default=0, 
+                    min=0,
+                    default=0,
                     update=gllightpreset_index
                     )
-                    
+
     @classmethod
     def unregister(cls):
-        del bpy.types.Scene.quickprefs 
+        del bpy.types.Scene.quickprefs
 
 @persistent
 def setup(s):
@@ -952,10 +952,10 @@ def register():
     #handler.scene_update_pre.append(gllightpreset_scan)
     handler.scene_update_pre.append(setup)
     #handler.load_post.append(setup)     #was crashing blender on new file load - comment for now
-    
-    
-    
-           
+
+
+
+
 # unregistering and removing menus
 def unregister():
     bpy.utils.unregister_class(PANEL)
@@ -966,4 +966,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-    
+

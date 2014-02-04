@@ -4,7 +4,6 @@ bl_info = {
     "author": "SayPRODUCTIONS",
     "version": (1, 0),
     "blender": (2, 59, 0),
-    "api": 33333,
     "location": "View3D > Add > Mesh > Say3D",
     "description": "Balcony olusturma",
     "warning": "",

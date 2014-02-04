@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 The FastOrigin addon enables one to interactively set the active objects origin, either by 3D
 manipulator or Gkey with full support for snapping and realtime preview of this.
 

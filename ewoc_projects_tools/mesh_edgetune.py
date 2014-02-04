@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 This script is an implementation of the concept of sliding vertices around
    on edges.  It is used to finetune/redraw edges/edgeloops through the process of sliding
    vertices.  It can be used to slide anything anywhere.

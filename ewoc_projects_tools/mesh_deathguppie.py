@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 This addon implements a subdivision scheme called deathguppie.
 It is ideal for creating more detail locally when sculpting.
 

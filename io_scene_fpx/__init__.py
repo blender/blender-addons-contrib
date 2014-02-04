@@ -38,11 +38,10 @@ bl_info = {
     'blender': (2, 68, 0),
     'location': "File > Import",
     'warning': "",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/"\
-            "Py/Scripts/Import-Export/FuturePinball_FPx",
-    'tracker_url': "https://projects.blender.org/tracker/index.php?func=detail&aid=36215",
-    'category': "Import-Export",
-    }
+    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Import-Export/FuturePinball_FPx",
+    'tracker_url': "https://developer.blender.org/T36215",
+    'category': "Import-Export"}
 
 
 # KNOWN ISSUES & TODOs & MAYBEs (in a random order):

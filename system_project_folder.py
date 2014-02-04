@@ -22,14 +22,13 @@
 bl_info = {
     "name": "Project Folder",
     "author": "Dany Lebel (Axon_D), Spirou4D",
-    "version": (0,3, 1),
+    "version": (0, 3, 1),
     "blender": (2, 61, 0),
-    "api": 43260,
     "location": "Info -> File Menu -> Project Folder",
     "description": "Open the project folder in a file browser",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/System/Project_Folder",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25910",
+    "tracker_url": "https://developer.blender.org/T25910",
     "category": "System"}
 
 
@@ -42,18 +41,18 @@ class ProjectFolder(bpy.types.Operator):
     """Open the Project Folder in a file Browser"""
     bl_idname = "file.project_folder"
     bl_label = "Project Folder"
-    
-    
+
+
     def execute(self, context):
         try :
             path = self.path()
         except ValueError:
             self.report({'INFO'}, "No project folder yet")
             return {'FINISHED'}
-        
+
         bpy.ops.wm.path_open(filepath=path)
 
-        
+
         return {'FINISHED'}
 
     def path(self):
@@ -68,7 +67,7 @@ class ProjectFolder(bpy.types.Operator):
 def menu_func(self, context):
     self.layout.operator(
         ProjectFolder.bl_idname,
-        text="Project Folder", 
+        text="Project Folder",
         icon="FILESEL")
 
 def register():

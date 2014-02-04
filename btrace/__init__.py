@@ -25,9 +25,9 @@ bl_info = {
     "description": "Tools for converting/animating objects/particles into curves",
     "warning": "Still under development, bug reports appreciated",
     "wiki_url": "",
-    "tracker_url": "http://projects.blender.org/tracker/?func=detail&atid=468&aid=29563&group_id=153",
-    "category": "Add Curve"
-    }
+    "tracker_url": "https://developer.blender.org/T29563",
+    "category": "Add Curve"}
+
 
 import bpy
 from .bTrace import *

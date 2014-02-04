@@ -27,8 +27,7 @@ bl_info = {
     "description": "Set the size of the render for a print",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Render/Render to Print",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=24219",
+    "tracker_url": "https://developer.blender.org/T24219",
     "category": "Render"}
 
 

@@ -29,10 +29,10 @@ bl_info = {
     "location": "View3D > Tool Shelf",
     "description": "Repeat extrusions from faces to create organic shapes",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=28570",
+    "wiki_url": "",
+    "tracker_url": "https://developer.blender.org/T28570",
     "category": "Mesh"}
+
 
 import  bpy, bmesh, mathutils, random
 from random import gauss

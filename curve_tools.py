@@ -24,10 +24,9 @@ bl_info = {
     "location": "Properties > Object data",
     "description": "Creates driven Lofts or Birails between curves",
     "warning": "may be buggy or incomplete",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Curve/Curve_Tools",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=27720",
+    "tracker_url": "https://developer.blender.org/T27720",
     "category": "Add Curve"}
 
 ### UPDATES

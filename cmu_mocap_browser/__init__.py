@@ -29,10 +29,9 @@ bl_info = {
     "blender": (2, 66, 6),
     "location": "View3D > Tools",
     "description": "Assistant for using CMU Motion Capture data",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
-                "Scripts/3D_interaction/CMU_Mocap_Library_Browser",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-                   "func=detail&aid=29086",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/3D_interaction/CMU_Mocap_Library_Browser",
+    "tracker_url": "https://developer.blender.org/T29086",
     "category": "Animation"}
 
 
@@ -58,7 +57,7 @@ class CMUMocapSubjectBrowser(bpy.types.Panel):
         initialize_subjects(context)
         layout = self.layout
         cml = context.user_preferences.addons['cmu_mocap_browser'].preferences
-        layout.template_list("UI_UL_list", "SB", cml, "subject_list", 
+        layout.template_list("UI_UL_list", "SB", cml, "subject_list",
             cml, "subject_active")
         layout.prop(cml, "subject_import_name")
         if cml.subject_active != -1:

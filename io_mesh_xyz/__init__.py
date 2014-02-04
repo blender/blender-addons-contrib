@@ -26,10 +26,10 @@
 #  First publication in Blender  : 2011-12-18
 #  Last modified                 : 2012-11-10
 #
-#  Acknowledgements 
+#  Acknowledgements
 #  ================
 #
-#  Blender: ideasman, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG, 
+#  Blender: ideasman, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG,
 #           Valter, ...
 #  Other: Frank Palmino
 #
@@ -42,12 +42,11 @@ bl_info = {
     "blender": (2, 60, 0),
     "location": "File -> Import -> XYZ (.xyz)",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/"
-                "Import-Export/XYZ",
-    "tracker_url": "http://projects.blender.org/tracker/"
-                   "index.php?func=detail&aid=29646&group_id=153&atid=468",
-    "category": "Import-Export"
-}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Import-Export/XYZ",
+    "tracker_url": "https://developer.blender.org/T29646",
+    "category": "Import-Export"}
+
 
 import bpy
 from bpy.types import Operator
@@ -70,7 +69,7 @@ class ImportXYZ(Operator, ImportHelper):
     bl_idname = "import_mesh.xyz"
     bl_label  = "Import XYZ (*.xyz)"
     bl_options = {'PRESET', 'UNDO'}
-    
+
     filename_ext = ".xyz"
     filter_glob  = StringProperty(default="*.xyz", options={'HIDDEN'},)
 
@@ -86,7 +85,7 @@ class ImportXYZ(Operator, ImportHelper):
         items=(('0', "NURBS", "NURBS balls"),
                ('1', "Mesh" , "Mesh balls"),
                ('2', "Meta" , "Metaballs")),
-               default='0',) 
+               default='0',)
     mesh_azimuth = IntProperty(
         name = "Azimuth", default=32, min=1,
         description = "Number of sectors (azimuth)")
@@ -105,19 +104,19 @@ class ImportXYZ(Operator, ImportHelper):
         items=(('0', "Pre-defined", "Use pre-defined radius"),
                ('1', "Atomic", "Use atomic radius"),
                ('2', "van der Waals", "Use van der Waals radius")),
-               default='0',)            
+               default='0',)
     use_center = BoolProperty(
         name = "Object to origin (first frames)", default=False,
-        description = "Put the object into the global origin, the first frame only")           
+        description = "Put the object into the global origin, the first frame only")
     use_center_all = BoolProperty(
         name = "Object to origin (all frames)", default=True,
-        description = "Put the object into the global origin, all frames") 
+        description = "Put the object into the global origin, all frames")
     datafile = StringProperty(
         name = "", description="Path to your custom data file",
-        maxlen = 256, default = "", subtype='FILE_PATH')    
+        maxlen = 256, default = "", subtype='FILE_PATH')
     use_frames = BoolProperty(
         name = "Load all frames?", default=False,
-        description = "Do you want to load all frames?") 
+        description = "Do you want to load all frames?")
     skip_frames = IntProperty(
         name="", default=0, min=0,
         description="Number of frames you want to skip.")
@@ -135,7 +134,7 @@ class ImportXYZ(Operator, ImportHelper):
         col.prop(self, "ball")
         row = layout.row()
         row.active = (self.ball == "1")
-        col = row.column(align=True)        
+        col = row.column(align=True)
         col.prop(self, "mesh_azimuth")
         col.prop(self, "mesh_zenith")
         row = layout.row()
@@ -150,11 +149,11 @@ class ImportXYZ(Operator, ImportHelper):
         row.prop(self, "use_center_all")
         row = layout.row()
         row.prop(self, "atomradius")
-        
+
         row = layout.row()
-        row.prop(self, "use_frames")        
-        row = layout.row()        
-        row.active = self.use_frames        
+        row.prop(self, "use_frames")
+        row = layout.row()
+        row.active = self.use_frames
         col = row.column()
         col.label(text="Skip frames")
         col = row.column()
@@ -164,8 +163,8 @@ class ImportXYZ(Operator, ImportHelper):
         col = row.column()
         col.label(text="Frames/key")
         col = row.column()
-        col.prop(self, "images_per_key")            
-        
+        col.prop(self, "images_per_key")
+
     def execute(self, context):
 
         del import_xyz.ALL_FRAMES[:]
@@ -187,16 +186,16 @@ class ImportXYZ(Operator, ImportHelper):
                       self.use_center_all,
                       self.use_camera,
                       self.use_lamp,
-                      filepath_xyz)   
+                      filepath_xyz)
 
-        # Load frames                  
-        if len(import_xyz.ALL_FRAMES) > 1 and self.use_frames:  
-                  
-            import_xyz.build_frames(self.images_per_key, 
+        # Load frames
+        if len(import_xyz.ALL_FRAMES) > 1 and self.use_frames:
+
+            import_xyz.build_frames(self.images_per_key,
                                     self.skip_frames)
-        
+
         return {'FINISHED'}
-        
+
 
 # This is the class for the file dialog of the exporter.
 class ExportXYZ(Operator, ExportHelper):
@@ -213,7 +212,7 @@ class ExportXYZ(Operator, ExportHelper):
         items=(('0', "All", "Export all active objects"),
                ('1', "Elements", "Export only those active objects which have"
                                  " a proper element name")),
-               default='1',) 
+               default='1',)
 
     def draw(self, context):
         layout = self.layout
@@ -221,7 +220,7 @@ class ExportXYZ(Operator, ExportHelper):
         row.prop(self, "atom_xyz_export_type")
 
     def execute(self, context):
-        export_xyz.export_xyz(self.atom_xyz_export_type, 
+        export_xyz.export_xyz(self.atom_xyz_export_type,
                               bpy.path.abspath(self.filepath))
 
         return {'FINISHED'}
@@ -238,8 +237,8 @@ def menu_func_export(self, context):
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func)
-    bpy.types.INFO_MT_file_export.append(menu_func_export) 
-    
+    bpy.types.INFO_MT_file_export.append(menu_func_export)
+
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_func)

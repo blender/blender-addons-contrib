@@ -28,14 +28,13 @@ bl_info = {
     "description": "Display and Edit Layer Name",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D_interaction/layer_manager",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=32472",
+    "tracker_url": "https://developer.blender.org/T32472",
     "category": "3D View"}
 
 import bpy
 from bpy.props import StringProperty, BoolProperty, IntProperty, CollectionProperty, BoolVectorProperty
 
-EDIT = ["EDIT_MESH", "EDIT_CURVE", "EDIT_SURFACE", "EDIT_METABALL", "EDIT_TEXT", "EDIT_ARMATURE"]
+EDIT = {"EDIT_MESH", "EDIT_CURVE", "EDIT_SURFACE", "EDIT_METABALL", "EDIT_TEXT", "EDIT_ARMATURE"}
 
 class LayerGroups(bpy.types.PropertyGroup):
 

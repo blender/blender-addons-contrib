@@ -34,7 +34,7 @@
 #  1. Include other shapes: dodecahedron, ...
 #  2. Skin option for parabolic shaped clusters
 #  3. Skin option for icosahedron
-#  4. Icosahedron: unlimited size ... 
+#  4. Icosahedron: unlimited size ...
 #
 
 bl_info = {
@@ -45,11 +45,11 @@ bl_info = {
     "blender": (2, 60, 0),
     "location": "Panel: View 3D - Tools (left side)",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/Cluster",
-    "tracker_url": "http://projects.blender.org/tracker/"
-                   "index.php?func=detail&aid=31618&group_id=153&atid=468",
-    "category": "Add Mesh"
-}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Add_Mesh/Cluster",
+    "tracker_url": "https://developer.blender.org/T31618",
+    "category": "Add Mesh"}
+
 
 import os
 import io
@@ -93,15 +93,15 @@ class CLASS_atom_cluster_panel(Panel):
     @classmethod
     def poll(self, context):
         global ATOM_Cluster_PANEL
-        
+
         if ATOM_Cluster_PANEL == 0:
             return False
-        
+
         return True
 
     def draw(self, context):
         layout = self.layout
-        
+
         scn = context.scene.atom_cluster
 
         row = layout.row()
@@ -129,24 +129,24 @@ class CLASS_atom_cluster_panel(Panel):
         row = box.row()
         row.prop(scn, "element")
         row = box.row()
-        row.prop(scn, "radius_type")        
+        row.prop(scn, "radius_type")
         row = box.row()
         row.prop(scn, "scale_radius")
         row = box.row()
         row.prop(scn, "scale_distances")
-        
+
         row = layout.row()
         row.label(text="Load cluster")
         box = layout.box()
-        row = box.row()    
+        row = box.row()
         row.operator("atom_cluster.load")
         row = box.row()
         row.label(text="Number of atoms")
         row = box.row()
-        row.prop(scn, "atom_number_total")  
+        row.prop(scn, "atom_number_total")
         row = box.row()
-        row.prop(scn, "atom_number_drawn")  
-        
+        row.prop(scn, "atom_number_drawn")
+
         row = layout.row()
         row.label(text="Modify cluster")
         box = layout.box()
@@ -162,14 +162,14 @@ class CLASS_atom_cluster_panel(Panel):
         row.label(text="2. Change atom radii by scale")
         row = box.row()
         col = row.column()
-        col.prop(scn, "radius_all")         
+        col.prop(scn, "radius_all")
         col = row.column(align=True)
         col.operator( "atom_cluster.radius_all_bigger" )
         col.operator( "atom_cluster.radius_all_smaller" )
 
 
 # The properties (gadgets) in the panel. They all go to scene
-# during initialization (see end) 
+# during initialization (see end)
 class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
 
     def Callback_radius_type(self, context):
@@ -187,10 +187,10 @@ class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
         name = "Diameter", default=30.0, min=0.1,
         description = "Top diameter in Angstroem")
     parabol_height = FloatProperty(
-        name = "Height", default=30.0, min=0.1, 
+        name = "Height", default=30.0, min=0.1,
         description = "Height in Angstroem")
     icosahedron_size = IntProperty(
-        name = "Size", default=1, min=1, max=13, 
+        name = "Size", default=1, min=1, max=13,
         description = "Size n: 1 (13 atoms), 2 (55 atoms), 3 (147 atoms), 4 (309 atoms), 5 (561 atoms), ..., 13 (8217 atoms)")
     shape = EnumProperty(
         name="",
@@ -206,7 +206,7 @@ class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
                ('parabolid_square', "Paraboloid: square",  "Paraboloid with square lattice"),
                ('parabolid_ab',     "Paraboloid: hex ab",  "Paraboloid with ab-lattice"),
                ('parabolid_abc',    "Paraboloid: hex abc", "Paraboloid with abc-lattice")),
-               default='sphere_square',)  
+               default='sphere_square',)
     lattice_parameter = FloatProperty(
         name = "Lattice", default=4.08, min=1.0,
         description = "Lattice parameter in Angstroem")
@@ -225,12 +225,12 @@ class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
     scale_distances = FloatProperty(
         name = "Scale d", default=1.0, min=0.0,
         description = "Scale distances")
-        
+
     atom_number_total = StringProperty(name="Total",
-        default="---", description = "Number of all atoms in the cluster")    
+        default="---", description = "Number of all atoms in the cluster")
     atom_number_drawn = StringProperty(name="Drawn",
-        default="---", description = "Number of drawn atoms in the cluster")    
-        
+        default="---", description = "Number of drawn atoms in the cluster")
+
     radius_how = EnumProperty(
         name="",
         description="Which objects shall be modified?",
@@ -247,7 +247,7 @@ class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
     radius_all = FloatProperty(
         name="Scale", default = 1.05, min=0.0,
         description="Put in the scale factor")
-        
+
 
 # The button for reloading the atoms and creating the scene
 class CLASS_atom_cluster_load_button(Operator):
@@ -274,47 +274,47 @@ class CLASS_atom_cluster_load_button(Operator):
             parameter1 = scn.size * 1.4
             parameter2 = scn.skin
         elif scn.shape in ["icosahedron"]:
-            parameter1 = scn.icosahedron_size 
+            parameter1 = scn.icosahedron_size
         else:
             parameter1 = scn.size
             parameter2 = scn.skin
 
         if scn.shape in ["octahedron", "truncated_octahedron", "sphere_square", "pyramide_square", "parabolid_square"]:
             numbers = add_mesh_cluster.create_square_lattice(
-                                scn.shape, 
-                                parameter1, 
+                                scn.shape,
+                                parameter1,
                                 parameter2,
                                 (scn.lattice_parameter/2.0))
 
         if scn.shape in ["sphere_hex_ab", "parabolid_ab"]:
             numbers = add_mesh_cluster.create_hexagonal_abab_lattice(
-                                scn.shape, 
+                                scn.shape,
                                 parameter1,
-                                parameter2, 
+                                parameter2,
                                 scn.lattice_parameter)
 
         if scn.shape in ["sphere_hex_abc", "pyramide_hex_abc", "parabolid_abc"]:
             numbers = add_mesh_cluster.create_hexagonal_abcabc_lattice(
-                                scn.shape, 
+                                scn.shape,
                                 parameter1,
-                                parameter2, 
+                                parameter2,
                                 scn.lattice_parameter)
-                                
+
         if scn.shape in ["icosahedron"]:
-            numbers = add_mesh_cluster.create_icosahedron( 
-                                parameter1, 
+            numbers = add_mesh_cluster.create_icosahedron(
+                                parameter1,
                                 scn.lattice_parameter)
 
         DEF_atom_draw_atoms(scn.element,
                             scn.radius_type,
                             scn.scale_radius,
-                            scn.scale_distances)                        
+                            scn.scale_distances)
 
         scn.atom_number_total = str(numbers[0])
         scn.atom_number_drawn = str(numbers[1])
-        
+
         return {'FINISHED'}
-        
+
 
 def DEF_atom_draw_atoms(prop_element,
                         prop_radius_type,
@@ -322,15 +322,15 @@ def DEF_atom_draw_atoms(prop_element,
                         prop_scale_distances):
 
     current_layers=bpy.context.scene.layers
-                        
+
     for element in add_mesh_cluster.ATOM_CLUSTER_ELEMENTS:
         if prop_element in element.name:
             number = element.number
             name = element.name
             color = element.color
             radii = element.radii
-            break   
-    
+            break
+
     material = bpy.data.materials.new(name)
     material.name = name
     material.diffuse_color = color
@@ -338,14 +338,14 @@ def DEF_atom_draw_atoms(prop_element,
     atom_vertices = []
     for atom in add_mesh_cluster.ATOM_CLUSTER_ALL_ATOMS:
         atom_vertices.append( atom.location * prop_scale_distances )
-    
+
     # Build the mesh
     atom_mesh = bpy.data.meshes.new("Mesh_"+name)
     atom_mesh.from_pydata(atom_vertices, [], [])
     atom_mesh.update()
     new_atom_mesh = bpy.data.objects.new(name, atom_mesh)
     bpy.context.scene.objects.link(new_atom_mesh)
-    
+
     bpy.ops.surface.primitive_nurbs_surface_sphere_add(
                             view_align=False, enter_editmode=False,
                             location=(0,0,0), rotation=(0.0, 0.0, 0.0),
@@ -398,7 +398,7 @@ def DEF_atom_cluster_radius_type(rtype,how):
                     for element in add_mesh_cluster.ATOM_CLUSTER_ELEMENTS:
                         if element.name in obj.name:
                             obj.scale = (element.radii[int(rtype)],) * 3
-                            
+
 
 # Routine to scale the radii of all atoms
 def DEF_atom_cluster_radius_all(scale, how):
@@ -512,9 +512,9 @@ def DEF_menu_func(self, context):
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.Scene.atom_cluster = bpy.props.PointerProperty(type=
-                                                  CLASS_atom_cluster_Properties)    
+                                                  CLASS_atom_cluster_Properties)
     bpy.types.INFO_MT_mesh_add.append(DEF_menu_func)
-    
+
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_mesh_add.remove(DEF_menu_func)

@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-__bpydoc__ = """\
+"""
 This addon enables you to snakelike "grow" an edgeloop selection with arrow keys.
 
 

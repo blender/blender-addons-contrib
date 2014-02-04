@@ -19,14 +19,13 @@
 bl_info = {
     "name": "Grass Lab",
     "author": "Ondrej Raha(lokhorn), meta-androcto",
-    "version": (0,5),
+    "version": (0, 5),
     "blender": (2, 60, 0),
     "location": "View3D > Tool Shelf > Grass Preset Panel",
     "description": "Creates particle grass with material",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/Hair_Lab",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=30238",
+    "tracker_url": "https://developer.blender.org/T30238",
     "category": "Object"}
 
 
@@ -51,12 +50,12 @@ class saveSelectionPanel(bpy.types.Panel):
     bl_label = "Selection Save"
     bl_options = {'DEFAULT_CLOSED'}
     bl_context = "particlemode"
-    
+
 
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
-        
+
         col.operator("save.selection", text="Save Selection 1")
 """
 ######GRASS########################
@@ -65,24 +64,24 @@ class grassLabPanel(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_label = "Grass Lab"
     bl_context = "objectmode"
-    bl_options = {'DEFAULT_CLOSED'}  
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         active_obj = bpy.context.active_object
         active_scn = bpy.context.scene.name
         layout = self.layout
         col = layout.column(align=True)
-        
+
         WhatToDo = getActionToDo(active_obj)
-      
-        
+
+
         if WhatToDo == "GENERATE":
             col.operator("grass.generate_grass", text="Create grass")
 
             col.prop(context.scene, "grass_type")
         else:
             col.label(text="Select mesh object")
-        
+
         if active_scn == "TestgrassScene":
             col.operator("grass.switch_back", text="Switch back to scene")
         else:
@@ -96,9 +95,9 @@ class saveSelection(bpy.types.Operator):
     bl_description = "Save selected particles"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
-        
+
         return {'FINISHED'}
 """
 class testScene1(bpy.types.Operator):
@@ -107,21 +106,21 @@ class testScene1(bpy.types.Operator):
     bl_description = "If you want keep this scene, switch scene in info window"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
         scene = bpy.context.scene
         bpy.data.scenes.remove(scene)
-        
+
         return {'FINISHED'}
-        
-        
+
+
 class testScene2(bpy.types.Operator):
     bl_idname = "grass.test_scene"
     bl_label = "Create test scene"
     bl_description = "You can switch scene in info panel"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
 # add new scene
         bpy.ops.scene.new(type="NEW")
@@ -139,24 +138,24 @@ class testScene2(bpy.types.Operator):
         world.use_sky_paper = True
         world.horizon_color = (0.004393,0.02121,0.050)
         world.zenith_color = (0.03335,0.227,0.359)
-       
+
 # add text
         bpy.ops.object.text_add(location=(-0.292,0,-0.152), rotation =(1.571,0,0))
         text = bpy.context.active_object
         text.scale = (0.05,0.05,0.05)
         text.data.body = "Grass Lab"
-        
+
 # add material to text
         textMaterial = bpy.data.materials.new('textMaterial')
         text.data.materials.append(textMaterial)
         textMaterial.use_shadeless = True
-        
+
 # add camera
         bpy.ops.object.camera_add(location = (0,-1,0),rotation = (1.571,0,0))
         cam = bpy.context.active_object.data
         cam.lens = 50
         cam.draw_size = 0.1
-        
+
 # add spot lamp
         bpy.ops.object.lamp_add(type="SPOT", location = (-0.7,-0.5,0.3), rotation =(1.223,0,-0.960))
         lamp1 = bpy.context.active_object.data
@@ -167,7 +166,7 @@ class testScene2(bpy.types.Operator):
         lamp1.shadow_buffer_size = 8192
         lamp1.shadow_buffer_clip_end = 1.5
         lamp1.spot_blend = 0.5
-        
+
 # add spot lamp2
         bpy.ops.object.lamp_add(type="SPOT", location = (0.7,-0.6,0.1), rotation =(1.571,0,0.785))
         lamp2 = bpy.context.active_object.data
@@ -179,7 +178,7 @@ class testScene2(bpy.types.Operator):
         lamp2.shadow_buffer_size = 4096
         lamp2.shadow_buffer_clip_end = 1.5
         lamp2.spot_blend = 0.5
-        
+
 # light Rim
         """
         # add spot lamp3
@@ -198,7 +197,7 @@ class testScene2(bpy.types.Operator):
 # add sphere
         bpy.ops.mesh.primitive_uv_sphere_add(size=0.1)
         bpy.ops.object.shade_smooth()
-		
+
         return {'FINISHED'}
 
 
@@ -208,7 +207,7 @@ class Generategrass(bpy.types.Operator):
     bl_description = "Create a grass"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
 # Make variable that is the current .blend file main data blocks
         blend_data = context.blend_data
@@ -217,13 +216,13 @@ class Generategrass(bpy.types.Operator):
 
 ######################################################################
 ########################Test screen grass########################
-        if scene.grass_type == '0':              
-            
+        if scene.grass_type == '0':
+
 ###############Create New Material##################
 # add new material
             grassMaterial = bpy.data.materials.new('greengrassMat')
             ob.data.materials.append(grassMaterial)
-            
+
 #Material settings
             grassMaterial.preview_render_type = "HAIR"
             grassMaterial.diffuse_color = (0.09710, 0.288, 0.01687)
@@ -242,8 +241,8 @@ class Generategrass(bpy.types.Operator):
             grassMaterial.strand.width_fade = 0.1
             grassMaterial.strand.shape = 0.061
             grassMaterial.strand.blend_distance = 0.001
-            
-            
+
+
 # add texture
             grassTex = bpy.data.textures.new("greengrassTex", type='BLEND')
             grassTex.use_preview_alpha = True
@@ -262,23 +261,23 @@ class Generategrass(bpy.types.Operator):
             rampElement3.color = [0.247,0.713,0.006472,0.8]
             rampElement4 = rampElements.new(0.828)
             rampElement4.color = [0.01943,0.163,0.01242,0.64]
-    
+
 # add texture to material
             MTex = grassMaterial.texture_slots.add()
             MTex.texture = grassTex
             MTex.texture_coords = "STRAND"
             MTex.use_map_alpha = True
-            
-            
-            
+
+
+
 ###############  Create Particles  ##################
 # Add new particle system
-            
+
             NumberOfMaterials = 0
             for i in ob.data.materials:
                 NumberOfMaterials +=1
-            
-            
+
+
             bpy.ops.object.particle_system_add()
 #Particle settings setting it up!
             grassParticles = bpy.context.object.particle_systems.active
@@ -289,9 +288,9 @@ class Generategrass(bpy.types.Operator):
             grassParticles.settings.normal_factor = 0.05
             grassParticles.settings.factor_random = 0.001
             grassParticles.settings.use_dynamic_rotation = True
-            
+
             grassParticles.settings.material = NumberOfMaterials
-            
+
             grassParticles.settings.use_strand_primitive = True
             grassParticles.settings.use_hair_bspline = True
             grassParticles.settings.render_step = 5
@@ -308,8 +307,8 @@ class Generategrass(bpy.types.Operator):
             grassParticles.settings.roughness_end_shape = 0.80
             grassParticles.settings.roughness_2 = 0.043
             grassParticles.settings.roughness_2_size = 0.230
-        
-        
+
+
 ######################################################################
 ######################  Field Grass  ########################
         if scene.grass_type == '1':
@@ -317,7 +316,7 @@ class Generategrass(bpy.types.Operator):
 # add new material
             grassMaterial = bpy.data.materials.new('fieldgrassMat')
             ob.data.materials.append(grassMaterial)
-            
+
 #Material settings
             grassMaterial.preview_render_type = "HAIR"
             grassMaterial.diffuse_color = (0.229, 0.800, 0.010)
@@ -325,7 +324,7 @@ class Generategrass(bpy.types.Operator):
             grassMaterial.specular_intensity = 0.3
             grassMaterial.specular_hardness = 100
             grassMaterial.use_specular_ramp = True
-            
+
             ramp = grassMaterial.specular_ramp
             rampElements = ramp.elements
             rampElements[0].position = 0
@@ -336,7 +335,7 @@ class Generategrass(bpy.types.Operator):
             rampElement1.color = [0.214,0.342,0.0578,0.31]
             rampElement2 = rampElements.new(0.594)
             rampElement2.color = [0.096,0.643,0.0861,0.72]
-            
+
             grassMaterial.ambient = 0
             grassMaterial.use_cubic = True
             grassMaterial.use_transparency = True
@@ -350,8 +349,8 @@ class Generategrass(bpy.types.Operator):
             grassMaterial.strand.width_fade = 0.1
             grassMaterial.strand.shape = 0.02
             grassMaterial.strand.blend_distance = 0.001
-            
-            
+
+
 # add texture
             grassTex = bpy.data.textures.new("feildgrassTex", type='BLEND')
             grassTex.name = "feildgrassTex"
@@ -371,22 +370,22 @@ class Generategrass(bpy.types.Operator):
             rampElement3.color = [0.04445,0.02294,0.01729,0.8]
             rampElement4 = rampElements.new(0.828)
             rampElement4.color = [0.04092,0.0185,0.01161,0.64]
-            
+
 # add texture to material
             MTex = grassMaterial.texture_slots.add()
             MTex.texture = grassTex
             MTex.texture_coords = "STRAND"
             MTex.use_map_alpha = True
-            
-            
+
+
 ###############Create Particles##################
 # Add new particle system
-            
+
             NumberOfMaterials = 0
             for i in ob.data.materials:
                 NumberOfMaterials +=1
-            
-            
+
+
             bpy.ops.object.particle_system_add()
 #Particle settings setting it up!
             grassParticles = bpy.context.object.particle_systems.active
@@ -403,7 +402,7 @@ class Generategrass(bpy.types.Operator):
             grassParticles.settings.brownian_factor = 0.070
             grassParticles.settings.damping = 0.160
             grassParticles.settings.material = NumberOfMaterials
- # strands           
+ # strands
             grassParticles.settings.use_strand_primitive = True
             grassParticles.settings.use_hair_bspline = True
             grassParticles.settings.render_step = 7
@@ -419,8 +418,8 @@ class Generategrass(bpy.types.Operator):
             grassParticles.settings.roughness_end_shape = 1
             grassParticles.settings.roughness_2 = 0.200
             grassParticles.settings.roughness_2_size = 0.230
-        
-        
+
+
 ######################################################################
 ########################Short Clumpped grass##########################
         elif scene.grass_type == '2':
@@ -428,7 +427,7 @@ class Generategrass(bpy.types.Operator):
 # add new material
             grassMaterial = bpy.data.materials.new('clumpygrassMat')
             ob.data.materials.append(grassMaterial)
-            
+
 #Material settings
             grassMaterial.preview_render_type = "HAIR"
             grassMaterial.diffuse_color = (0.01504, 0.05222, 0.007724)
@@ -448,7 +447,7 @@ class Generategrass(bpy.types.Operator):
             grassMaterial.strand.width_fade = 0.1
             grassMaterial.strand.shape = -0.900
             grassMaterial.strand.blend_distance = 0.001
-            
+
 # add texture
             grassTex = bpy.data.textures.new("clumpygrasstex", type='BLEND')
             grassTex.use_preview_alpha = True
@@ -465,22 +464,22 @@ class Generategrass(bpy.types.Operator):
             rampElement2.color = [0.114,0.309,0.09822,0.87]
             rampElement3 = rampElements.new(0.828)
             rampElement3.color = [0.141,0.427,0.117,0.64]
-            
+
 # add texture to material
             MTex = grassMaterial.texture_slots.add()
             MTex.texture = grassTex
             MTex.texture_coords = "STRAND"
             MTex.use_map_alpha = True
-            
-            
+
+
 ###############Create Particles##################
 # Add new particle system
-            
+
             NumberOfMaterials = 0
             for i in ob.data.materials:
                 NumberOfMaterials +=1
-            
-            
+
+
             bpy.ops.object.particle_system_add()
 #Particle settings setting it up!
             grassParticles = bpy.context.object.particle_systems.active
@@ -494,9 +493,9 @@ class Generategrass(bpy.types.Operator):
             grassParticles.settings.tangent_phase = 0.250
             grassParticles.settings.factor_random = 0.001
             grassParticles.settings.use_dynamic_rotation = True
-            
+
             grassParticles.settings.material = NumberOfMaterials
-            
+
             grassParticles.settings.use_strand_primitive = True
             grassParticles.settings.use_hair_bspline = True
             grassParticles.settings.render_step = 3
@@ -512,11 +511,11 @@ class Generategrass(bpy.types.Operator):
             grassParticles.settings.clump_shape = -0.999
             grassParticles.settings.roughness_endpoint = 0.003
             grassParticles.settings.roughness_end_shape = 5
-            
-            
-        
+
+
+
         return {'FINISHED'}
-		
+
 ####
 ######### HAIR LAB ##########
 ####
@@ -525,24 +524,24 @@ class HairLabPanel(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_label = "Hair Lab"
     bl_context = "objectmode"
-    bl_options = {'DEFAULT_CLOSED'}    
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         active_obj = bpy.context.active_object
         active_scn = bpy.context.scene.name
         layout = self.layout
         col = layout.column(align=True)
-        
+
         WhatToDo = getActionToDo(active_obj)
-      
-        
+
+
         if WhatToDo == "GENERATE":
             col.operator("hair.generate_hair", text="Create Hair")
 
             col.prop(context.scene, "hair_type")
         else:
             col.label(text="Select mesh object")
-        
+
         if active_scn == "TestHairScene":
             col.operator("hair.switch_back", text="Switch back to scene")
         else:
@@ -556,9 +555,9 @@ class saveSelection(bpy.types.Operator):
     bl_description = "Save selected particles"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
-        
+
         return {'FINISHED'}
 """
 class testScene3(bpy.types.Operator):
@@ -567,21 +566,21 @@ class testScene3(bpy.types.Operator):
     bl_description = "If you want keep this scene, switch scene in info window"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
         scene = bpy.context.scene
         bpy.data.scenes.remove(scene)
-        
+
         return {'FINISHED'}
-        
-        
+
+
 class testScene4(bpy.types.Operator):
     bl_idname = "hair.test_scene"
     bl_label = "Create test scene"
     bl_description = "You can switch scene in info panel"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
 # add new scene
         bpy.ops.scene.new(type="NEW")
@@ -599,24 +598,24 @@ class testScene4(bpy.types.Operator):
         world.use_sky_paper = True
         world.horizon_color = (0.004393,0.02121,0.050)
         world.zenith_color = (0.03335,0.227,0.359)
-        
+
 # add text
         bpy.ops.object.text_add(location=(-0.292,0,-0.152), rotation =(1.571,0,0))
         text = bpy.context.active_object
         text.scale = (0.05,0.05,0.05)
         text.data.body = "Hair Lab"
-        
+
 # add material to text
         textMaterial = bpy.data.materials.new('textMaterial')
         text.data.materials.append(textMaterial)
         textMaterial.use_shadeless = True
-        
+
 # add camera
         bpy.ops.object.camera_add(location = (0,-1,0),rotation = (1.571,0,0))
         cam = bpy.context.active_object.data
         cam.lens = 50
         cam.draw_size = 0.1
-        
+
 # add spot lamp
         bpy.ops.object.lamp_add(type="SPOT", location = (-0.7,-0.5,0.3), rotation =(1.223,0,-0.960))
         lamp1 = bpy.context.active_object.data
@@ -627,7 +626,7 @@ class testScene4(bpy.types.Operator):
         lamp1.shadow_buffer_size = 8192
         lamp1.shadow_buffer_clip_end = 1.5
         lamp1.spot_blend = 0.5
-        
+
 # add spot lamp2
         bpy.ops.object.lamp_add(type="SPOT", location = (0.7,-0.6,0.1), rotation =(1.571,0,0.785))
         lamp2 = bpy.context.active_object.data
@@ -639,7 +638,7 @@ class testScene4(bpy.types.Operator):
         lamp2.shadow_buffer_size = 4096
         lamp2.shadow_buffer_clip_end = 1.5
         lamp2.spot_blend = 0.5
-        
+
 # light Rim
         """
         # add spot lamp3
@@ -656,7 +655,7 @@ class testScene4(bpy.types.Operator):
         """
 # add sphere
         bpy.ops.mesh.primitive_uv_sphere_add(size=0.1)
-        bpy.ops.object.shade_smooth()       
+        bpy.ops.object.shade_smooth()
         return {'FINISHED'}
 
 
@@ -666,7 +665,7 @@ class GenerateHair(bpy.types.Operator):
     bl_description = "Create a Hair"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
 # Make variable that is the current .blend file main data blocks
         blend_data = context.blend_data
@@ -675,13 +674,13 @@ class GenerateHair(bpy.types.Operator):
 
 ######################################################################
 ########################Long Red Straight Hair########################
-        if scene.hair_type == '0':              
-            
+        if scene.hair_type == '0':
+
 ###############Create New Material##################
 # add new material
             hairMaterial = bpy.data.materials.new('LongRedStraightHairMat')
             ob.data.materials.append(hairMaterial)
-            
+
 #Material settings
             hairMaterial.preview_render_type = "HAIR"
             hairMaterial.diffuse_color = (0.287, 0.216, 0.04667)
@@ -700,8 +699,8 @@ class GenerateHair(bpy.types.Operator):
             hairMaterial.strand.width_fade = 0.1
             hairMaterial.strand.shape = 0.061
             hairMaterial.strand.blend_distance = 0.001
-            
-            
+
+
 # add texture
             hairTex = bpy.data.textures.new("LongRedStraightHairTex", type='BLEND')
             hairTex.use_preview_alpha = True
@@ -720,23 +719,23 @@ class GenerateHair(bpy.types.Operator):
             rampElement3.color = [0.247,0.113,0.006472,0.8]
             rampElement4 = rampElements.new(0.828)
             rampElement4.color = [0.253,0.09919,0.01242,0.64]
-    
+
 # add texture to material
             MTex = hairMaterial.texture_slots.add()
             MTex.texture = hairTex
             MTex.texture_coords = "STRAND"
             MTex.use_map_alpha = True
-            
-            
-            
+
+
+
 ###############Create Particles##################
 # Add new particle system
-            
+
             NumberOfMaterials = 0
             for i in ob.data.materials:
                 NumberOfMaterials +=1
-            
-            
+
+
             bpy.ops.object.particle_system_add()
 #Particle settings setting it up!
             hairParticles = bpy.context.object.particle_systems.active
@@ -747,9 +746,9 @@ class GenerateHair(bpy.types.Operator):
             hairParticles.settings.normal_factor = 0.05
             hairParticles.settings.factor_random = 0.001
             hairParticles.settings.use_dynamic_rotation = True
-            
+
             hairParticles.settings.material = NumberOfMaterials
-            
+
             hairParticles.settings.use_strand_primitive = True
             hairParticles.settings.use_hair_bspline = True
             hairParticles.settings.render_step = 5
@@ -763,8 +762,8 @@ class GenerateHair(bpy.types.Operator):
             hairParticles.settings.roughness_end_shape = 5
             hairParticles.settings.roughness_2 = 0.003
             hairParticles.settings.roughness_2_size = 0.230
-        
-        
+
+
 ######################################################################
 ########################Long Brown Curl Hair##########################
         if scene.hair_type == '1':
@@ -772,7 +771,7 @@ class GenerateHair(bpy.types.Operator):
 # add new material
             hairMaterial = bpy.data.materials.new('LongBrownCurlHairMat')
             ob.data.materials.append(hairMaterial)
-            
+
 #Material settings
             hairMaterial.preview_render_type = "HAIR"
             hairMaterial.diffuse_color = (0.662, 0.518, 0.458)
@@ -780,7 +779,7 @@ class GenerateHair(bpy.types.Operator):
             hairMaterial.specular_intensity = 0.3
             hairMaterial.specular_hardness = 100
             hairMaterial.use_specular_ramp = True
-            
+
             ramp = hairMaterial.specular_ramp
             rampElements = ramp.elements
             rampElements[0].position = 0
@@ -791,7 +790,7 @@ class GenerateHair(bpy.types.Operator):
             rampElement1.color = [0.214,0.08244,0.0578,0.31]
             rampElement2 = rampElements.new(0.594)
             rampElement2.color = [0.296,0.143,0.0861,0.72]
-            
+
             hairMaterial.ambient = 0
             hairMaterial.use_cubic = True
             hairMaterial.use_transparency = True
@@ -805,8 +804,8 @@ class GenerateHair(bpy.types.Operator):
             hairMaterial.strand.width_fade = 0.1
             hairMaterial.strand.shape = 0.02
             hairMaterial.strand.blend_distance = 0.001
-            
-            
+
+
 # add texture
             hairTex = bpy.data.textures.new("HairTex", type='BLEND')
             hairTex.name = "LongBrownCurlHairTex"
@@ -826,22 +825,22 @@ class GenerateHair(bpy.types.Operator):
             rampElement3.color = [0.04445,0.02294,0.01729,0.8]
             rampElement4 = rampElements.new(0.828)
             rampElement4.color = [0.04092,0.0185,0.01161,0.64]
-            
+
 # add texture to material
             MTex = hairMaterial.texture_slots.add()
             MTex.texture = hairTex
             MTex.texture_coords = "STRAND"
             MTex.use_map_alpha = True
-            
-            
+
+
 ###############Create Particles##################
 # Add new particle system
-            
+
             NumberOfMaterials = 0
             for i in ob.data.materials:
                 NumberOfMaterials +=1
-            
-            
+
+
             bpy.ops.object.particle_system_add()
 #Particle settings setting it up!
             hairParticles = bpy.context.object.particle_systems.active
@@ -852,9 +851,9 @@ class GenerateHair(bpy.types.Operator):
             hairParticles.settings.normal_factor = 0.05
             hairParticles.settings.factor_random = 0.001
             hairParticles.settings.use_dynamic_rotation = True
-            
+
             hairParticles.settings.material = NumberOfMaterials
-            
+
             hairParticles.settings.use_strand_primitive = True
             hairParticles.settings.use_hair_bspline = True
             hairParticles.settings.render_step = 7
@@ -869,14 +868,14 @@ class GenerateHair(bpy.types.Operator):
             hairParticles.settings.roughness_end_shape = 5
             hairParticles.settings.roughness_2 = 0.003
             hairParticles.settings.roughness_2_size = 2
-            
+
             hairParticles.settings.kink = "CURL"
             hairParticles.settings.kink_amplitude = 0.007597
             hairParticles.settings.kink_frequency = 6
             hairParticles.settings.kink_shape = 0.4
             hairParticles.settings.kink_flat = 0.8
-        
-        
+
+
 ######################################################################
 ########################Short Dark Hair##########################
         elif scene.hair_type == '2':
@@ -884,7 +883,7 @@ class GenerateHair(bpy.types.Operator):
 # add new material
             hairMaterial = bpy.data.materials.new('ShortDarkHairMat')
             ob.data.materials.append(hairMaterial)
-            
+
 #Material settings
             hairMaterial.preview_render_type = "HAIR"
             hairMaterial.diffuse_color = (0.560, 0.536, 0.506)
@@ -904,7 +903,7 @@ class GenerateHair(bpy.types.Operator):
             hairMaterial.strand.width_fade = 0.1
             hairMaterial.strand.shape = 0
             hairMaterial.strand.blend_distance = 0.001
-            
+
 # add texture
             hairTex = bpy.data.textures.new("ShortDarkHair", type='BLEND')
             hairTex.use_preview_alpha = True
@@ -921,22 +920,22 @@ class GenerateHair(bpy.types.Operator):
             rampElement2.color = [0.114,0.109,0.09822,0.87]
             rampElement3 = rampElements.new(0.828)
             rampElement3.color = [0.141,0.127,0.117,0.64]
-            
+
 # add texture to material
             MTex = hairMaterial.texture_slots.add()
             MTex.texture = hairTex
             MTex.texture_coords = "STRAND"
             MTex.use_map_alpha = True
-            
-            
+
+
 ###############Create Particles##################
 # Add new particle system
-            
+
             NumberOfMaterials = 0
             for i in ob.data.materials:
                 NumberOfMaterials +=1
-            
-            
+
+
             bpy.ops.object.particle_system_add()
 #Particle settings setting it up!
             hairParticles = bpy.context.object.particle_systems.active
@@ -948,9 +947,9 @@ class GenerateHair(bpy.types.Operator):
             hairParticles.settings.normal_factor = 0.007
             hairParticles.settings.factor_random = 0.001
             hairParticles.settings.use_dynamic_rotation = True
-            
+
             hairParticles.settings.material = NumberOfMaterials
-            
+
             hairParticles.settings.use_strand_primitive = True
             hairParticles.settings.use_hair_bspline = True
             hairParticles.settings.render_step = 3
@@ -964,9 +963,9 @@ class GenerateHair(bpy.types.Operator):
             hairParticles.settings.clump_shape = 0.1
             hairParticles.settings.roughness_endpoint = 0.003
             hairParticles.settings.roughness_end_shape = 5
-            
-            
-        
+
+
+
         return {'FINISHED'}
 ####
 ######## FUR LAB ########
@@ -977,24 +976,24 @@ class FurLabPanel(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_label = "Fur Lab"
     bl_context = "objectmode"
-    bl_options = {'DEFAULT_CLOSED'}    
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         active_obj = bpy.context.active_object
         active_scn = bpy.context.scene.name
         layout = self.layout
         col = layout.column(align=True)
-        
+
         WhatToDo = getActionToDo(active_obj)
-      
-        
+
+
         if WhatToDo == "GENERATE":
             col.operator("fur.generate_fur", text="Create Fur")
 
             col.prop(context.scene, "fur_type")
         else:
             col.label(text="Select mesh object")
-        
+
         if active_scn == "TestFurScene":
             col.operator("hair.switch_back", text="Switch back to scene")
         else:
@@ -1008,9 +1007,9 @@ class saveSelection(bpy.types.Operator):
     bl_description = "Save selected particles"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
-        
+
         return {'FINISHED'}
 """
 class testScene5(bpy.types.Operator):
@@ -1019,21 +1018,21 @@ class testScene5(bpy.types.Operator):
     bl_description = "If you want keep this scene, switch scene in info window"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
         scene = bpy.context.scene
         bpy.data.scenes.remove(scene)
-        
+
         return {'FINISHED'}
-        
-        
+
+
 class testScene6(bpy.types.Operator):
     bl_idname = "fur.test_scene"
     bl_label = "Create test scene"
     bl_description = "You can switch scene in info panel"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
 # add new scene
         bpy.ops.scene.new(type="NEW")
@@ -1051,24 +1050,24 @@ class testScene6(bpy.types.Operator):
         world.use_sky_paper = True
         world.horizon_color = (0.004393,0.02121,0.050)
         world.zenith_color = (0.03335,0.227,0.359)
-        
+
 # add text
         bpy.ops.object.text_add(location=(-0.292,0,-0.152), rotation =(1.571,0,0))
         text = bpy.context.active_object
         text.scale = (0.05,0.05,0.05)
         text.data.body = "Fur Lab"
-        
+
 # add material to text
         textMaterial = bpy.data.materials.new('textMaterial')
         text.data.materials.append(textMaterial)
         textMaterial.use_shadeless = True
-        
+
 # add camera
         bpy.ops.object.camera_add(location = (0,-1,0),rotation = (1.571,0,0))
         cam = bpy.context.active_object.data
         cam.lens = 50
         cam.draw_size = 0.1
-        
+
 # add spot lamp
         bpy.ops.object.lamp_add(type="SPOT", location = (-0.7,-0.5,0.3), rotation =(1.223,0,-0.960))
         lamp1 = bpy.context.active_object.data
@@ -1079,7 +1078,7 @@ class testScene6(bpy.types.Operator):
         lamp1.shadow_buffer_size = 8192
         lamp1.shadow_buffer_clip_end = 1.5
         lamp1.spot_blend = 0.5
-        
+
 # add spot lamp2
         bpy.ops.object.lamp_add(type="SPOT", location = (0.7,-0.6,0.1), rotation =(1.571,0,0.785))
         lamp2 = bpy.context.active_object.data
@@ -1091,7 +1090,7 @@ class testScene6(bpy.types.Operator):
         lamp2.shadow_buffer_size = 4096
         lamp2.shadow_buffer_clip_end = 1.5
         lamp2.spot_blend = 0.5
-        
+
 # light Rim
         """
         # add spot lamp3
@@ -1108,7 +1107,7 @@ class testScene6(bpy.types.Operator):
         """
 # add sphere
         bpy.ops.mesh.primitive_uv_sphere_add(size=0.1)
-        bpy.ops.object.shade_smooth()       
+        bpy.ops.object.shade_smooth()
         return {'FINISHED'}
 
 
@@ -1118,7 +1117,7 @@ class GenerateFur(bpy.types.Operator):
     bl_description = "Create a Fur"
     bl_register = True
     bl_undo = True
-    
+
     def execute(self, context):
 # Make variable that is the current .blend file main data blocks
         blend_data = context.blend_data
@@ -1127,13 +1126,13 @@ class GenerateFur(bpy.types.Operator):
 
 ######################################################################
 ########################Short Fur########################
-        if scene.fur_type == '0':              
-            
+        if scene.fur_type == '0':
+
 ###############Create New Material##################
 # add new material
             furMaterial = bpy.data.materials.new('Fur 1')
             ob.data.materials.append(furMaterial)
-            
+
 #Material settings
             furMaterial.preview_render_type = "HAIR"
             furMaterial.diffuse_color = (0.287, 0.216, 0.04667)
@@ -1152,8 +1151,8 @@ class GenerateFur(bpy.types.Operator):
             furMaterial.strand.width_fade = 0.1
             furMaterial.strand.shape = 0.061
             furMaterial.strand.blend_distance = 0.001
-            
-            
+
+
 # add texture
             furTex = bpy.data.textures.new("Fur1Tex", type='BLEND')
             furTex.use_preview_alpha = True
@@ -1172,22 +1171,22 @@ class GenerateFur(bpy.types.Operator):
             rampElement3.color = [0.247,0.113,0.006472,0.8]
             rampElement4 = rampElements.new(0.828)
             rampElement4.color = [0.253,0.09919,0.01242,0.64]
-    
+
 # add texture to material
             MTex = furMaterial.texture_slots.add()
             MTex.texture = furTex
             MTex.texture_coords = "STRAND"
-            MTex.use_map_alpha = True  
-            
-            
+            MTex.use_map_alpha = True
+
+
 ###############Create Particles##################
 # Add new particle system
-            
+
             NumberOfMaterials = 0
             for i in ob.data.materials:
                 NumberOfMaterials +=1
-            
-            
+
+
             bpy.ops.object.particle_system_add()
 #Particle settings setting it up!
             furParticles = bpy.context.object.particle_systems.active
@@ -1198,9 +1197,9 @@ class GenerateFur(bpy.types.Operator):
             furParticles.settings.normal_factor = 0.05
             furParticles.settings.factor_random = 0.001
             furParticles.settings.use_dynamic_rotation = True
-            
+
             furParticles.settings.material = NumberOfMaterials
-            
+
             furParticles.settings.use_strand_primitive = True
             furParticles.settings.use_hair_bspline = True
             furParticles.settings.render_step = 5
@@ -1215,8 +1214,8 @@ class GenerateFur(bpy.types.Operator):
             furParticles.settings.roughness_end_shape = 5
             furParticles.settings.roughness_2 = 0.003
             furParticles.settings.roughness_2_size = 0.230
-        
-        
+
+
 ######################################################################
 ########################Dalmation Fur##########################
         if scene.fur_type == '1':
@@ -1224,14 +1223,14 @@ class GenerateFur(bpy.types.Operator):
 # add new material
             furMaterial = bpy.data.materials.new('Fur2Mat')
             ob.data.materials.append(furMaterial)
-            
+
 #Material settings
             furMaterial.preview_render_type = "HAIR"
             furMaterial.diffuse_color = (0.300, 0.280, 0.280)
             furMaterial.specular_color = (1.0, 1.0, 1.0)
             furMaterial.specular_intensity = 0.500
             furMaterial.specular_hardness = 50
-            
+
             furMaterial.ambient = 0
             furMaterial.use_cubic = True
             furMaterial.use_transparency = True
@@ -1245,8 +1244,8 @@ class GenerateFur(bpy.types.Operator):
             furMaterial.strand.width_fade = 0.1
             furMaterial.strand.shape = 0.061
             furMaterial.strand.blend_distance = 0.001
-            
-            
+
+
 # add texture
             furTex = bpy.data.textures.new("Fur2Tex", type='BLEND')
             furTex.name = "Fur2"
@@ -1260,14 +1259,14 @@ class GenerateFur(bpy.types.Operator):
             rampElements[1].color = [1.0,1.0,1.0,0.0]
             rampElement1 = rampElements.new(0.116)
             rampElement1.color = [1.0,1.0,1.0,1.0]
-       
-            
+
+
 # add texture to material
             MTex = furMaterial.texture_slots.add()
             MTex.texture = furTex
             MTex.texture_coords = "STRAND"
             MTex.use_map_alpha = True
-			
+
 # add texture 2
             furTex = bpy.data.textures.new("Fur2bTex", type='CLOUDS')
             furTex.name = "Fur2b"
@@ -1286,21 +1285,21 @@ class GenerateFur(bpy.types.Operator):
             rampElement1.color = [1.0,1.0,1.0,1.0]
             rampElement2 = rampElements.new(0.347)
             rampElement2.color = [0.0,0.0,0.0,1.0]
-            
+
 # add texture 2 to material
             MTex = furMaterial.texture_slots.add()
             MTex.texture = furTex
             MTex.texture_coords = "GLOBAL"
-            MTex.use_map_alpha = True      
-            
+            MTex.use_map_alpha = True
+
 ###############Create Particles##################
 # Add new particle system
-            
+
             NumberOfMaterials = 0
             for i in ob.data.materials:
                 NumberOfMaterials +=1
-            
-            
+
+
             bpy.ops.object.particle_system_add()
 #Particle settings setting it up!
             furParticles = bpy.context.object.particle_systems.active
@@ -1311,9 +1310,9 @@ class GenerateFur(bpy.types.Operator):
             furParticles.settings.normal_factor = 0.05
             furParticles.settings.factor_random = 0.001
             furParticles.settings.use_dynamic_rotation = True
-            
+
             furParticles.settings.material = NumberOfMaterials
-            
+
             furParticles.settings.use_strand_primitive = True
             furParticles.settings.use_hair_bspline = True
             furParticles.settings.render_step = 5
@@ -1328,7 +1327,7 @@ class GenerateFur(bpy.types.Operator):
             furParticles.settings.roughness_end_shape = 5
             furParticles.settings.roughness_2 = 0.003
             furParticles.settings.roughness_2_size = 0.230
-        
+
 ######################################################################
 ########################Spotted_fur##########################
         elif scene.fur_type == '2':
@@ -1337,7 +1336,7 @@ class GenerateFur(bpy.types.Operator):
 # add new material
             furMaterial = bpy.data.materials.new('Fur3Mat')
             ob.data.materials.append(furMaterial)
-            
+
 #Material settings
             furMaterial.preview_render_type = "HAIR"
             furMaterial.diffuse_color = (0.300, 0.280, 0.280)
@@ -1345,7 +1344,7 @@ class GenerateFur(bpy.types.Operator):
             furMaterial.specular_intensity = 0.500
             furMaterial.specular_hardness = 50
             furMaterial.use_specular_ramp = True
-            
+
             ramp = furMaterial.specular_ramp
             rampElements = ramp.elements
             rampElements[0].position = 0
@@ -1356,7 +1355,7 @@ class GenerateFur(bpy.types.Operator):
             rampElement1.color = [0.214,0.08244,0.0578,0.31]
             rampElement2 = rampElements.new(0.594)
             rampElement2.color = [0.296,0.143,0.0861,0.72]
-            
+
             furMaterial.ambient = 0
             furMaterial.use_cubic = True
             furMaterial.use_transparency = True
@@ -1370,8 +1369,8 @@ class GenerateFur(bpy.types.Operator):
             furMaterial.strand.width_fade = 0.1
             furMaterial.strand.shape = 0.02
             furMaterial.strand.blend_distance = 0.001
-            
-            
+
+
 # add texture
             furTex = bpy.data.textures.new("Fur3Tex", type='BLEND')
             furTex.name = "Fur3"
@@ -1391,13 +1390,13 @@ class GenerateFur(bpy.types.Operator):
             rampElement3.color = [0.04445,0.02294,0.01729,0.8]
             rampElement4 = rampElements.new(0.828)
             rampElement4.color = [0.04092,0.0185,0.01161,0.64]
-            
+
 # add texture to material
             MTex = furMaterial.texture_slots.add()
             MTex.texture = furTex
             MTex.texture_coords = "STRAND"
             MTex.use_map_alpha = True
-			
+
 # add texture 2
             furTex = bpy.data.textures.new("Fur3bTex", type='CLOUDS')
             furTex.name = "Fur3b"
@@ -1418,21 +1417,21 @@ class GenerateFur(bpy.types.Operator):
             rampElement3.color = [0.04445,0.02294,0.01729,0.8]
             rampElement4 = rampElements.new(0.828)
             rampElement4.color = [0.04092,0.0185,0.01161,0.64]
-            
+
 # add texture 2 to material
             MTex = furMaterial.texture_slots.add()
             MTex.texture = furTex
             MTex.texture_coords = "GLOBAL"
-            MTex.use_map_alpha = False      
-            
+            MTex.use_map_alpha = False
+
 ###############Create Particles##################
 # Add new particle system
-            
+
             NumberOfMaterials = 0
             for i in ob.data.materials:
                 NumberOfMaterials +=1
-            
-            
+
+
             bpy.ops.object.particle_system_add()
 #Particle settings setting it up!
             furParticles = bpy.context.object.particle_systems.active
@@ -1443,9 +1442,9 @@ class GenerateFur(bpy.types.Operator):
             furParticles.settings.normal_factor = 0.05
             furParticles.settings.factor_random = 0.001
             furParticles.settings.use_dynamic_rotation = True
-            
+
             furParticles.settings.material = NumberOfMaterials
-            
+
             furParticles.settings.use_strand_primitive = True
             furParticles.settings.use_hair_bspline = True
             furParticles.settings.render_step = 5
@@ -1460,7 +1459,7 @@ class GenerateFur(bpy.types.Operator):
             furParticles.settings.roughness_end_shape = 5
             furParticles.settings.roughness_2 = 0.003
             furParticles.settings.roughness_2_size = 0.230
-        
+
         return {'FINISHED'}
 def register():
     bpy.utils.register_module(__name__)
@@ -1470,7 +1469,7 @@ def register():
         items=[("0","Green Grass","Generate particle grass"),
                ("1","Grassy Field","Generate particle grass"),
                ("2","Clumpy Grass","Generate particle grass"),
-        
+
               ],
         default='0')
     bpy.types.Scene.hair_type = EnumProperty(
@@ -1479,7 +1478,7 @@ def register():
         items=[("0","Long Red Straight Hair","Generate particle Hair"),
                ("1","Long Brown Curl Hair","Generate particle Hair"),
                ("2","Short Dark Hair","Generate particle Hair"),
-        
+
               ],
         default='0')
     bpy.types.Scene.fur_type = EnumProperty(
@@ -1488,16 +1487,16 @@ def register():
         items=[("0","Short Fur","Generate particle Fur"),
                ("1","Dalmation","Generate particle Fur"),
                ("2","Fur3","Generate particle Fur"),
-        
+
               ],
         default='0')
-        
+
 def unregister():
     bpy.utils.unregister_module(__name__)
     del bpy.types.Scene.hair_type
-    
+
 if __name__ == "__main__":
     register()
-    
-    
+
+
 

@@ -19,15 +19,14 @@
 bl_info = {
     "name": "Surround Projection Tools",
     "author": "Cole Ingraham",
+    "version": (0, 1, 2),
+    "blender": (2, 60, 0),
     "location": "View3D > Tool Shelf > Surround Projection panel",
     "description": "Setup cameras and create rendering scenes for n-screen surround projection.",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Surround_Projection_Tools",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=29266",
-    "version": (0, 1, 2),
-    "blender": (2, 60, 0),
-    "category": "3D View"
-}
+    "tracker_url": "https://developer.blender.org/T29266",
+    "category": "3D View"}
+
 
 import bpy
 from bpy.props import IntProperty
@@ -68,14 +67,14 @@ class AddSurroundCamerasPanel(bpy.types.Panel):
         row = col.row()
         row.prop(context.window_manager, "num_surround_screens")
         row = col.row()
-        
+
         if context.window_manager.previous_num_surround_screens is not -1:
              row.operator('objects.remove_surround_cameras', icon='X')
         else:
              row.operator('objects.add_surround_cameras', icon='CAMERA_DATA')
-        
+
         row = col.row()
-        
+
         if context.window_manager.surround_screens_init is True:
              row.operator('objects.remove_linked_scenes_for_surround_cameras', icon='X')
         else:
@@ -174,7 +173,7 @@ class AddSurroundScenesOperator(bpy.types.Operator):
             camera_object = bpy.data.objects["Camera" + str(i)]
             scene_new.camera = camera_object
             scene_new.background_set = scene_base
-            
+
             # not essential but nice to have the camera in the scene
             scene_new.objects.link(camera_object)
 

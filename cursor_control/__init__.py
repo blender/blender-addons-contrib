@@ -20,6 +20,7 @@
 
 
 # Blender Add-Ons menu registration (in User Prefs)
+
 bl_info = {
     "name": "Cursor Control",
     "author": "Morgan Mörtsell (Seminumerical)",
@@ -29,10 +30,8 @@ bl_info = {
     "description": "Control the Cursor",
     "warning": "buggy, may crash other addons", # used for warning icon and text in addons panel
     "wiki_url": "http://blenderpythonscripts.wordpress.com/",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-                   "func=detail&aid=27253",
+    "tracker_url": "https://developer.blender.org/T27253",
     "category": "3D View"}
-
 
 
 import bpy

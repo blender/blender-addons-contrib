@@ -23,12 +23,13 @@ bl_info = {
     "author": "Vlassius",
     "version": (0, 70),
     "blender": (2, 64, 0),
-    "api": 52100,
-    "location": "Select a object -> go to the Object tab ->  Import Movement From Wav File",
-    "description": "Extract movement from sound file. See the Object Panel at the end.",
+    "location": "Select a object > Object tab > Import Movement From Wav File",
+    "description": "Extract movement from sound file. "
+        "See the Object Panel at the end.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/Import_Movement_From_Audio_File",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=23565&group_id=153&atid=467",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Import-Export/Import_Movement_From_Audio_File",
+    "tracker_url": "https://developer.blender.org/T23565",
     "category": "Import-Export"}
 
 """

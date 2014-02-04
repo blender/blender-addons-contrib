@@ -5,7 +5,7 @@ bl_info = {
     "version": (2, 0),
     "blender": (2, 66, 0),
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/bprojection",
-    "tracker_url":"http://projects.blender.org/tracker/index.php?func=detail&aid=30521&group_id=153&atid=468",
+    "tracker_url":"https://developer.blender.org/T30521",
     "category": "Paint"}
 
 import bpy

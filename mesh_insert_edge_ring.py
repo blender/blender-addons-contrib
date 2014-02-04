@@ -1,29 +1,29 @@
-#Simplified BSD License
+# Simplified BSD License
 #
-#Copyright (c) 2012, Florian Meyer
-#tstscr@web.de
-#All rights reserved.
+# Copyright (c) 2012, Florian Meyer
+# tstscr@web.de
+# All rights reserved.
 #
-#Redistribution and use in source and binary forms, with or without
-#modification, are permitted provided that the following conditions are met: 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-#1. Redistributions of source code must retain the above copyright notice, this
-#   list of conditions and the following disclaimer. 
-#2. Redistributions in binary form must reproduce the above copyright notice,
-#   this list of conditions and the following disclaimer in the documentation
-#   and/or other materials provided with the distribution. 
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
 #
-#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-#ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-#WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-#DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-#ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-#(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-#ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-#(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-#SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#################################################################
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 bl_info = {
     "name": "Insert Edge Ring",
     "author": "tstscr (tstscr@web.de)",
@@ -32,17 +32,20 @@ bl_info = {
     "location": "View3D > Edge Specials > Insert edge ring (Ctrl Alt R)",
     "description": "Insert an edge ring along the selected edge loop",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Mesh/Insert_Edge_Ring",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=32424",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Mesh/Insert_Edge_Ring",
+    "tracker_url": "https://developer.blender.org/T32424",
     "category": "Mesh"}
-###########################################################################
+
+
 import bpy, bmesh, math
 from bpy.types import Operator
 from bpy.props import FloatProperty, BoolProperty, EnumProperty
 from mathutils import Vector
 from collections import deque
 from bmesh.utils import vert_separate
-###########################################################################
+
+
 def update(bme):
     bme.verts.index_update()
     bme.edges.index_update()
@@ -63,7 +66,7 @@ def selected_edges(component, invert=False):
         return edges
 
 def edge_loop_from(v_start):
-    
+
     def walk(vert, vert_loop=deque()):
         #print('from', vert.index)
         edges_select = selected_edges(vert)
@@ -71,11 +74,11 @@ def edge_loop_from(v_start):
         if not vert_loop:
             #print('inserting %d into vert_loop' %vert.index)
             vert_loop.append(vert)
-        
+
         for edge in edges_select:
             other_vert = edge.other_vert(vert)
             #print('other_vert %d' %other_vert.index)
-            
+
             edge_is_valid = True
             if edge.is_boundary \
             or other_vert in vert_loop \
@@ -83,7 +86,7 @@ def edge_loop_from(v_start):
             or len(selected_edges(other_vert)) > 2:
                 #print('is not valid')
                 edge_is_valid = False
-            
+
             if edge_is_valid:
                 if vert == vert_loop[-1]:
                     #print('appending %d' %other_vert.index)
@@ -91,9 +94,9 @@ def edge_loop_from(v_start):
                 else:
                     #print('prepending %d' %other_vert.index)
                     vert_loop.appendleft(other_vert)
-                    
+
                 walk(other_vert, vert_loop)
-        
+
         return vert_loop
     #####################################
     v_loop = walk(v_start)
@@ -104,9 +107,9 @@ def edge_loop_from(v_start):
 def collect_edge_loops(bme):
     edge_loops = []
     verts_to_consider = [v for v in bme.verts if v.select]
-    
+
     while verts_to_consider:
-        
+
         v_start = verts_to_consider[-1]
         #print('\nverts_to_consider', [v.index for v in verts_to_consider])
         edge_loop = edge_loop_from(v_start)
@@ -118,17 +121,17 @@ def collect_edge_loops(bme):
             except:
                 print('tried to remove vert %d from verts_to_consider. \
                        Failed somehow' %v.index)
-        
+
         if len(edge_loop) >= 3:
             edge_loops.append(edge_loop)
         else:
             for v in edge_loop:
                 v.select = False
-    
+
     if not verts_to_consider:
         #print('no more verts_to_consider')
         pass
-    
+
     return edge_loops
 
 
@@ -147,7 +150,7 @@ def insert_edge_ring(self, context):
                     other_loop.append([v for v in v_new if v != vert][0])
                 else:
                     other_loop.append(vert)
-            
+
             if closed:
                 if not new_loop:
                     #print('start_new_loop')
@@ -165,11 +168,11 @@ def insert_edge_ring(self, context):
                             #print('v_not_detect')
                             new_loop.append(v_new[1])
                             other_loop.append(v_new[0])
-                
+
         return other_loop, new_loop
-    
+
     def move_verts(vert_loop, other_vert_loop):
-        
+
         ### Offsets ###
         def calc_offsets():
             #print('\nCALCULATING OFFSETS')
@@ -177,17 +180,17 @@ def insert_edge_ring(self, context):
             for i, vert in enumerate(vert_loop):
                 edges_select = selected_edges(vert)
                 edges_unselect = selected_edges(vert, invert=True)
-                
+
                 vert_opposite = other_vert_loop[i]
                 edges_select_opposite = selected_edges(vert_opposite)
                 edges_unselect_opposite = selected_edges(vert_opposite, invert=True)
-                
+
                 ### MESH END VERT
                 if vert == other_vert_loop[0] or vert == other_vert_loop[-1]:
                     #print('vert %d is start-end in middle of mesh, \
                     #       does not need moving\n' %vert.index)
                     continue
-                
+
                 ### BOUNDARY VERT
                 if len(edges_select) == 1:
                     #print('verts %d  %d are on boundary' \
@@ -206,7 +209,7 @@ def insert_edge_ring(self, context):
                         off *= 0
                     offset[vert_opposite] = off
                     continue
-                
+
                 ### MIDDLE VERT
                 if len(edges_select) == 2:
                     #print('\nverts %d  %d are in middle of loop' \
@@ -230,61 +233,61 @@ def insert_edge_ring(self, context):
                         off *= 0
                     offset[vert_opposite] = off
                     continue
-            
+
             return offset
-        
+
         ### Moving ###
         def move(offsets):
             #print('\nMOVING VERTS')
             for vert in offsets:
                 vert.co += offsets[vert] * self.distance
-        
+
         offsets = calc_offsets()
         move(offsets)
-    
+
     def generate_new_geo(vert_loop, other_vert_loop):
         #print('\nGENERATING NEW GEOMETRY')
-        
+
         for i, vert in enumerate(vert_loop):
             if vert == other_vert_loop[i]:
                 continue
             edge_new = bme.edges.new([vert, other_vert_loop[i]])
             edge_new.select = True
-        
+
         bpy.ops.mesh.edge_face_add()
 
     #####################################################################################
     #####################################################################################
     #####################################################################################
-    
+
     bme = bmesh.from_edit_mesh(context.object.data)
 
     ### COLLECT EDGE LOOPS ###
     e_loops = collect_edge_loops(bme)
-    
+
     for e_loop in e_loops:
-        
+
         #check for closed loop - douple vert at start-end
         closed = False
         edges_select = selected_edges(e_loop[0])
         for e in edges_select:
             if e_loop[-1] in e.verts:
                 closed = True
-        
+
         ### SPLITTING OF EDGES
         other_vert_loop, new_loop = split_edge_loop(e_loop)
         if closed:
             e_loop = new_loop
-    
+
         ### MOVE RIPPED VERTS ###
         move_verts(e_loop, other_vert_loop)
-        
+
         ### GENERATE NEW GEOMETRY ###
         if self.generate_geo:
             generate_new_geo(e_loop, other_vert_loop)
-    
+
     update(bme)
-    
+
 ###########################################################################
 # OPERATOR
 class MESH_OT_Insert_Edge_Ring(Operator):
@@ -300,17 +303,17 @@ class MESH_OT_Insert_Edge_Ring(Operator):
             min=0, soft_min=0,
             precision=4,
             description="distance to move verts from original location")
-    
+
     even = BoolProperty(
             name='even',
             default=True,
             description='keep 90 degrees angles straight')
-    
+
     generate_geo = BoolProperty(
             name='Generate Geo',
             default=True,
             description='Fill edgering with faces')
-    
+
     direction = EnumProperty(
             name='direction',
             description='Direction in which to expand the edge_ring',
@@ -320,11 +323,11 @@ class MESH_OT_Insert_Edge_Ring(Operator):
             ('RIGHT', '|>', 'only move verts right of loop (arbitrary)'),
             },
             default='CENTER')
-    
+
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
-        
+
         col.prop(self, 'distance', slider=False)
         col.prop(self, 'even', toggle=True)
         col.prop(self, 'generate_geo', toggle=True)
@@ -332,7 +335,7 @@ class MESH_OT_Insert_Edge_Ring(Operator):
         col.label(text='Direction')
         row = layout.row(align=True)
         row.prop(self, 'direction', expand=True)
-        
+
     @classmethod
     def poll(cls, context):
         return context.mode == 'EDIT_MESH'

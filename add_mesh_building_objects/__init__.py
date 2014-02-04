@@ -26,10 +26,8 @@ bl_info = {
     "location": "View3D > Add > Mesh > Cad Objects",
     "description": "Add building object types",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
-        "Scripts",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=32711",
+    "wiki_url": "",
+    "tracker_url": "https://developer.blender.org/T32711",
     "category": "Add Mesh"}
 
 

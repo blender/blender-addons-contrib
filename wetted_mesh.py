@@ -24,11 +24,11 @@ bl_info = {
     "location": "View3D > Tool Shelf > Wetted Mesh Panel",
     "description": "Adds separated fluid, dry and wetted mesh for selected pair.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Mesh/Wetted_Mesh",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=27156",
+    "tracker_url": "https://developer.blender.org/T27156",
     "category": "Mesh"}
+
 
 import bpy
 import collections
@@ -80,12 +80,12 @@ class AddWettedMesh(bpy.types.Operator):
             return {'CANCELLED'}
 
         print("add_wetted_mesh begin")
-        
+
         # super-selected object is solid, other object is fluid
         (solid, fluid) = getSelectedPair(context)
         print("   solid = "+solid.name)
         print("   fluid = "+fluid.name)
-            
+
         # make a copy of fluid object, convert to mesh if required
         print("   copy fluid")
         bpy.ops.object.select_all(action='DESELECT')
@@ -95,7 +95,7 @@ class AddWettedMesh(bpy.types.Operator):
         bpy.ops.object.convert(target='MESH', keep_original=False)
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         fluidCopy = context.object
-        
+
         # substract solid from fluidCopy
         print("   bool: fluidCopy DIFFERENCE solid")
         bpy.ops.object.modifier_add(type='BOOLEAN')
@@ -105,7 +105,7 @@ class AddWettedMesh(bpy.types.Operator):
         bpy.ops.object.modifier_apply(apply_as='DATA', modifier=bop[0])
         fluidMinusSolid = fluidCopy
         fluidMinusSolid.name = "fluidMinusSolid"
-        
+
         # make a second copy of fluid object
         print("   copy fluid")
         bpy.ops.object.select_all(action='DESELECT')
@@ -115,7 +115,7 @@ class AddWettedMesh(bpy.types.Operator):
         bpy.ops.object.convert(target='MESH', keep_original=False)
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         fluidCopy = context.object
-        
+
         # make union from fluidCopy and solid
         print("   bool: fluidCopy UNION solid")
         bpy.ops.object.modifier_add(type='BOOLEAN')
@@ -125,18 +125,18 @@ class AddWettedMesh(bpy.types.Operator):
         bpy.ops.object.modifier_apply(apply_as='DATA', modifier=bop[0])
         fluidUnionSolid = fluidCopy
         fluidUnionSolid.name = "fluidUnionSolid"
-        
+
         # index meshes
         print("   KDTree index fluidMinusSolid")
         fluidMinusSolidKDT = KDTree(3, fluidMinusSolid.data.vertices)
         print("   KDTree index fluidUnionSolid")
         fluidUnionSolidKDT = KDTree(3, fluidUnionSolid.data.vertices)
         kdtrees = (fluidMinusSolidKDT, fluidUnionSolidKDT)
-        
+
         # build mesh face sets
         faceDict = { }
         vertDict = { }
-        
+
         print("   processing fluidMinusSolid faces")
         cacheDict = { }
         setFMSfaces = set()
@@ -149,7 +149,7 @@ class AddWettedMesh(bpy.types.Operator):
             fuid = unifiedFaceId(kdtrees, f, fluidMinusSolid.data.vertices, \
                                  faceDict, vertDict, cacheDict)
             setFMSfaces.add(fuid)
-        
+
         print("   processing fluidUnionSolid faces")
         cacheDict = { }
         setFUSfaces = set()
@@ -162,7 +162,7 @@ class AddWettedMesh(bpy.types.Operator):
             fuid = unifiedFaceId(kdtrees, f, fluidUnionSolid.data.vertices, \
                                  faceDict, vertDict, cacheDict)
             setFUSfaces.add(fuid)
-        
+
         # remove boolean helpers
         print("   delete helper objects")
         bpy.ops.object.select_all(action='DESELECT')
@@ -185,7 +185,7 @@ class AddWettedMesh(bpy.types.Operator):
         verts, faces = buildMesh(setFluidFaces, faceDict, vertDict)
         print("   create fluid mesh")
         fluid = createMesh("Fluid", verts, faces)
-        
+
         # solid = FUS - FMS
         print("   set operation FUS diff FMS")
         setSolidFaces = setFUSfaces.difference(setFMSfaces)
@@ -193,7 +193,7 @@ class AddWettedMesh(bpy.types.Operator):
         verts, faces = buildMesh(setSolidFaces, faceDict, vertDict)
         print("   create solid mesh")
         solid = createMesh("Solid", verts, faces)
-        
+
         # parent wetted mesh
         print("   parent mesh")
         bpy.ops.object.add(type='EMPTY')
@@ -204,7 +204,7 @@ class AddWettedMesh(bpy.types.Operator):
         wettedMesh.select = True
         bpy.ops.object.parent_set(type='OBJECT')
         wettedMesh.name = 'WettedMesh'
-        
+
         print("add_wetted_mesh done")
         self.statusMessage = 'created '+wettedMesh.name
 
@@ -243,7 +243,7 @@ class KDTree(object):
     Usage:
     objects is an iterable of (co, index) tuples (so MeshVertex is useable)
     k is the number of dimensions (=3)
-    
+
     t = KDTree(k, objects)
     point, label, distance = t.nearest_neighbor(destination)
     """

@@ -25,12 +25,12 @@ bl_info = {
     "version": (0, 7, 2),
     "blender": (2, 65, 4),
     "location": "3D View > Properties Region > Show Weights",
-    "description": "Finds the vertex groups of a selected vertex and displays the corresponding weights",
+    "description": "Finds the vertex groups of a selected vertex "
+        "and displays the corresponding weights",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Modeling/Show_Vertex_Group_Weights",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=30609",
+    "tracker_url": "https://developer.blender.org/T30609",
     "category": "Mesh"}
 
 #TODO - Add button for selecting vertices with no groups

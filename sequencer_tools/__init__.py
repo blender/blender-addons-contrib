@@ -24,8 +24,9 @@ bl_info = {
     "location": "Sequencer menus/UI",
     "description": "Various Sequencer tools.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Sequencer/Tools",
-    "tracker_url": "projects.blender.org/tracker/index.php?func=detail&aid=31549",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Sequencer/Tools",
+    "tracker_url": "https://developer.blender.org/T31549",
     "support": 'TESTING',
     "category": "Sequencer",
 }

@@ -24,7 +24,6 @@ bl_info = {
     "author": "Witold Jaworski",
     "version": (1, 2, 0),
     "blender": (2, 57, 0),
-    "api": 36147,
     "location": "View3D >Specials (W-key)",
     "category": "Mesh",
     "description": "Bevels selected edges",
@@ -45,12 +44,12 @@ DEBUG = 0 #Debug flag - just some text printed on the console...
 def bevel(obj, width, use_vertices):
     """Bevels selected edges of the mesh
        Arguments:
-            @obj (Object):         an object with a mesh. 
+            @obj (Object):         an object with a mesh.
                                    It should have some edges selected
             @width (float):        width of the bevel
             @use_vertices (bool):  True, when bevel only vertices. False otherwise
        This function should be called in the Edit Mode, only!
-    """    
+    """
     #
     #edge = bpy.types.MeshEdge
     #obj = bpy.types.Object
@@ -58,7 +57,7 @@ def bevel(obj, width, use_vertices):
 
     bpy.ops.object.editmode_toggle() #switch into OBJECT mode
     #adding the Bevel modifier
-    bpy.ops.object.modifier_add(type = 'BEVEL')  
+    bpy.ops.object.modifier_add(type = 'BEVEL')
     bevel = obj.modifiers[-1] #the new modifier is always added at the end
     bevel.limit_method = 'WEIGHT'
     bevel.edge_weight_method = 'LARGEST'
@@ -67,18 +66,18 @@ def bevel(obj, width, use_vertices):
     #moving it up, to the first position on the modifier stack:
     while obj.modifiers[0] != bevel:
         bpy.ops.object.modifier_move_up(modifier = bevel.name)
-        
+
     for elm in (obj.data.vertices if use_vertices else obj.data.edges):
         if elm.select:
-            elm.bevel_weight = 1.0 
-    
+            elm.bevel_weight = 1.0
+
     bpy.ops.object.modifier_apply(apply_as = 'DATA', modifier = bevel.name)
-    
+
     #clean up after applying our modifier: remove bevel weights:
     for elm in (obj.data.vertices if use_vertices else obj.data.edges):
         if elm.select:
-            elm.bevel_weight = 0.0 
-            
+            elm.bevel_weight = 0.0
+
     bpy.ops.object.editmode_toggle() #switch back into EDIT_MESH mode
 
 class bevel_help(bpy.types.Operator):
@@ -93,7 +92,7 @@ class bevel_help(bpy.types.Operator):
 		layout.label('To Help:')
 		layout.label('best used on flat edges & simple edgeflow')
 		layout.label('may error if vert joins multiple edges/complex edge selection')
-	
+
 	def execute(self, context):
 		return {'FINISHED'}
 
@@ -105,31 +104,31 @@ class Bevel(bpy.types.Operator):
     bl_idname = "mesh.mbevel" #it is not named mesh.bevel, to not confuse with the standard bevel in the future...
     bl_label = "Bevel Selected"
     bl_description = "Bevels selected edges"
-    bl_options = {'REGISTER', 'UNDO'} #Set this options, if you want to update  
-    #                                  parameters of this operator interactively 
-    #                                  (in the Tools pane) 
+    bl_options = {'REGISTER', 'UNDO'} #Set this options, if you want to update
+    #                                  parameters of this operator interactively
+    #                                  (in the Tools pane)
     #--- parameters
     use_vertices = BoolProperty(name="Only Vertices", description="Bevel vertices (corners), not edges", default = False)
-    
-    width = FloatProperty(name="Width", description="Bevel width value (it is multiplied by 10^Exponent)", 
-                          subtype = 'DISTANCE', default = 0.1, min = 0.0, 
+
+    width = FloatProperty(name="Width", description="Bevel width value (it is multiplied by 10^Exponent)",
+                          subtype = 'DISTANCE', default = 0.1, min = 0.0,
                                                     step = 1, precision = 2)
 #    exponent = IntProperty(name="Exponent", description="Order of magnitude of the bevel width (the power of 10)", default = 0)
-    
+
     use_scale = BoolProperty(name="Use object scale", description="Multiply bevel width by the scale of this object", default = False)
 
     #--- other fields
-    LAST_VERT_NAME = "mesh.mbevel.last_vert" #the name of the custom scene property 
-    LAST_WIDTH_NAME = "mesh.mbevel.last_width" #the name of the custom scene property 
-    LAST_EXP_NAME = "mesh.mbevel.last_exponent" #the name of the custom scene property 
-    LAST_SCALE_NAME = "mesh.mbevel.last_scale" #scale Bevel width by the object scale 
+    LAST_VERT_NAME = "mesh.mbevel.last_vert" #the name of the custom scene property
+    LAST_WIDTH_NAME = "mesh.mbevel.last_width" #the name of the custom scene property
+    LAST_EXP_NAME = "mesh.mbevel.last_exponent" #the name of the custom scene property
+    LAST_SCALE_NAME = "mesh.mbevel.last_scale" #scale Bevel width by the object scale
     #--- Blender interface methods
     @classmethod
     def poll(cls,context):
         return (context.mode == 'EDIT_MESH')
 
     def invoke(self, context, event):
-        #input validation: 
+        #input validation:
         # 1. Require single-user mesh (modifiers cannot be applied to the multi-user ones):
         obj = context.object
         if obj.data.users > 1:
@@ -139,17 +138,17 @@ class Bevel(bpy.types.Operator):
         self.use_vertices = context.scene.get(self.LAST_VERT_NAME, self.use_vertices)
 
         bpy.ops.object.editmode_toggle()
-        
+
         if self.use_vertices :
             selected = list(filter(lambda e: e.select, context.object.data.vertices))
         else:
             selected = list(filter(lambda e: e.select, context.object.data.edges))
-            
+
         bpy.ops.object.editmode_toggle()
-            
+
         if len(selected) > 0:
             self.use_scale = context.object.get(self.LAST_SCALE_NAME, self.use_scale)
-            
+
             #setup the default width, to avoid user surprises :)
             def_exp = floor(log10(obj.dimensions.length)) #heuristic: default width exponent is derived from the object size...
             self.exponent = context.scene.get(self.LAST_EXP_NAME, def_exp) #Let's read the last used value, stored in the scene...
@@ -159,12 +158,12 @@ class Bevel(bpy.types.Operator):
             else: #the previous bevel size would be too small or too large - revert to defaults:
                 self.width = 0.1 #10% of the object order of magnitude
                 self.exponent = def_exp #the order of magnitude
-            #parameters adjusted, run the command!    
+            #parameters adjusted, run the command!
             return self.execute(context)
         else:
             self.report(type='ERROR', message="Nothing is selected")
             return {'CANCELLED'}
-        
+
     def execute(self,context):
         #calculate the bevel width, for this object size and scale
         width = self.width*pow(10,self.exponent)
@@ -181,18 +180,18 @@ class Bevel(bpy.types.Operator):
 def menu_draw(self, context):
     self.layout.operator_context = 'INVOKE_REGION_WIN'
     self.layout.operator(Bevel.bl_idname, "Bevel_Witold")
-    
+
 #--- ### Register
 def register():
     register_module(__name__)
     bpy.types.VIEW3D_MT_edit_mesh_specials.prepend(menu_draw)
-    
+
 def unregister():
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_draw)
     unregister_module(__name__)
-    
-#--- ### Main code    
+
+#--- ### Main code
 if __name__ == '__main__':
     register()
-    
+
 if DEBUG > 0: print("mesh_bevel.py loaded!")

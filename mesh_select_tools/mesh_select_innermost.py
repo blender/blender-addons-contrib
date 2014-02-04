@@ -26,7 +26,6 @@ bl_info = {
     "author": "Dolf Veenvliet",
     "version": (0,3),
     "blender": (2, 57, 0),
-    "api": 35851,
     "location": "Select > Innermost",
     "description": "Select the innermost faces",
     "warning": "",
@@ -54,78 +53,78 @@ class Select_innermost():
 
 	# Initialise the class
 	def __init__(self, context, invert):
-	
+
 		me = context.active_object.data
 		bpy.ops.object.mode_set(mode='OBJECT')
-		
+
 		oList = [f.index for f in mesh_extras.get_selected_faces()]
 		oLen = len(oList)
-		
+
 		# If no faces are selected, we just return
 		if not oLen:
 			bpy.ops.object.mode_set(mode='EDIT')
 			return
-		
+
 		# If all faces are selected, select nothing and return
 		if oLen == len(me.polygons):
 			bpy.ops.object.mode_set(mode='EDIT')
 			bpy.ops.mesh.select_all(action='DESELECT')
 			return
-		
+
 		fList = False
-		
+
 		# If we invert, we just want to select less once, and then we're done
 		if invert:
-			
+
 			bpy.ops.object.mode_set(mode='EDIT')
 			bpy.ops.mesh.select_less()
 			bpy.ops.object.mode_set(mode='OBJECT')
-			
+
 			fList = [f.index for f in mesh_extras.get_selected_faces()]
-			
+
 			# Only if there's now less selected do we change anything
 			if len(fList) < oLen:
-			
+
 				for f in me.polygons:
 					fIn = f.index
 					if fIn in oList and not fIn in fList:
 						f.select = True
 					else:
 						f.select = False
-						
+
 			bpy.ops.object.mode_set(mode='EDIT')
 			return
-			
+
 
 		# So now we can start and see what's up
 		while mesh_extras.contains_selected_item(me.polygons):
-				
+
 			if fList is False:
 				fList = oList
 			else:
 				fList = [f.index for f in mesh_extras.get_selected_faces()]
-			
+
 			bpy.ops.object.mode_set(mode='EDIT')
 			bpy.ops.mesh.select_less()
 			bpy.ops.object.mode_set(mode='OBJECT')
-			
+
 		if len(fList) < oLen:
 			for f in me.faces:
 				if f.index in fList:
 					f.select = True
 				else:
 					f.select = False
-		
+
 		bpy.ops.object.mode_set(mode='EDIT')
-		
-				
+
+
 
 class Select_innermost_init(bpy.types.Operator):
 	'''Select the innermost faces of the current selection'''
 	bl_idname = 'mesh.select_innermost'
 	bl_label = 'Select innermost'
 	bl_options = {'REGISTER', 'UNDO'}
-	
+
 	invert = BoolProperty(name='Invert', description='Invert the selection result (select outermost)', default=False)
 
 	@classmethod

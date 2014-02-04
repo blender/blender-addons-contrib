@@ -19,7 +19,7 @@
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-__bpydoc__ = """\
+"""
 Fills selected border verts/edges area with quads.
 Select several neighbouring verts/edges with at least one "border corner" selected.
 Invoke addon. (its on the Mesh Tools panel)
@@ -42,7 +42,6 @@ bl_info = {
 	"wiki_url": "",
 	"tracker_url": "",
 	"category": "Mesh"}
-
 
 
 import bpy

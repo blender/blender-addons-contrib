@@ -24,10 +24,9 @@ bl_info = {
     "location": "Properties > Object data > Face info / select",
     "description": "Displays triangle, quad and ngon count of the active object. Allows to select faces by these types.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Mesh/Face_Info_Select",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=31926",
+    "tracker_url": "https://developer.blender.org/T31926",
     "support": 'TESTING',
     "category": "Mesh"
 }
@@ -67,7 +66,7 @@ class DATA_OP_facetype_select(bpy.types.Operator):
             bpy.ops.mesh.select_face_by_sides(number=4, type='GREATER')
 
         return {'FINISHED'}
-        
+
 
 class DATA_PT_info_panel(bpy.types.Panel):
     """Creates a face info / select panel in the Object properties window"""
@@ -86,7 +85,7 @@ class DATA_PT_info_panel(bpy.types.Panel):
         layout = self.layout
 
         ob = context.active_object
-        
+
         info_str = ""
         tris = quads = ngons = 0
 
@@ -100,7 +99,7 @@ class DATA_PT_info_panel(bpy.types.Panel):
                 ngons += 1
 
         info_str = "  Ngons: %i  Quads: %i  Tris: %i" % (ngons, quads, tris)
-        
+
         col = layout.column()
         col.label(info_str, icon='MESH_DATA')
 

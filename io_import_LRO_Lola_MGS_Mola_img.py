@@ -24,10 +24,9 @@ bl_info = {
     "location": "3D window > Tool Shelf",
     "description": "Import DTM from LRO Lola and MGS Mola",
     "warning": "May consume a lot of memory",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/NASA_IMG_Importer",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=25462",
+    "tracker_url": "https://developer.blender.org/T25462",
     "category": "Import-Export"}
 
 
@@ -462,7 +461,7 @@ class Img_Importer(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOL_PROPS"
     bl_label = "LRO Lola & MGS Mola IMG Importer"
-    
+
     def __init__(self):
         typ = bpy.types.Scene
         var = bpy.props
@@ -585,12 +584,12 @@ def initialize():
     OFFSET = SCALING_FACTOR = 0.0
     SAMPLE_TYPE = UNIT = TARGET_NAME = RadiusUM = Message = ""
     start_up=True
-            
+
     bpy.types.Scene.fpath = bpy.props.StringProperty(
-        name="Import File ", 
-        description="Select your img file", 
-        subtype="FILE_PATH", 
-        default="", 
+        name="Import File ",
+        description="Select your img file",
+        subtype="FILE_PATH",
+        default="",
         update=update_fpath)
 
 def clear_properties():
@@ -618,10 +617,10 @@ def clear_properties():
         if p in bpy.context.scene:
             del bpy.context.scene[p]
     bpy.types.Scene.fpath = bpy.props.StringProperty(
-        name="Import File ", 
-        description="Select your img file", 
-        subtype="FILE_PATH", 
-        default="", 
+        name="Import File ",
+        description="Select your img file",
+        subtype="FILE_PATH",
+        default="",
         update=update_fpath)
 
 
