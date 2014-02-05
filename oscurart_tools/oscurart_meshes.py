@@ -335,13 +335,13 @@ class OscOverlapUv(bpy.types.Operator):
 ## ------------------------------- IO VERTEX COLORS --------------------
 
 def DefOscExportVC():
-    with open("%s/%s.vc" % (os.path.dirname(bpy.data.filepath),bpy.context.object.name), mode="w") as file:
+    with open(os.path.join(os.path.dirname(bpy.data.filepath),bpy.context.object.name) + ".vc", mode="w") as file:
         ob = bpy.context.object
         di = { loopind : ob.data.vertex_colors.active.data[loopind].color[:] for face in ob.data.polygons for loopind in face.loop_indices[:] }
         file.write(str(di))
         
 def DefOscImportVC():
-    with open("%s/%s.vc" % (os.path.dirname(bpy.data.filepath),bpy.context.object.name), mode="r") as file:
+    with open(os.path.join(os.path.dirname(bpy.data.filepath),bpy.context.object.name) + ".vc", mode="r") as file:
         di = eval(file.read())
         for loopind in di:
             bpy.context.object.data.vertex_colors.active.data[loopind].color = di[loopind]        
