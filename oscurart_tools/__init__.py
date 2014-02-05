@@ -133,6 +133,7 @@ class OscPollOverrides():
 class OscPanelObject(OscPollObject, bpy.types.Panel):
     bl_idname = "Oscurart Object Tools"
     bl_label = "Object Tools"
+    bl_category = "Oscurart Tools"
 
     def draw(self, context):
         active_obj = context.active_object
@@ -161,6 +162,7 @@ class OscPanelObject(OscPollObject, bpy.types.Panel):
 class OscPanelMesh(OscPollMesh, bpy.types.Panel):
     bl_idname = "Oscurart Mesh Tools"
     bl_label = "Mesh Tools"
+    bl_category = "Oscurart Tools"
 
     def draw(self, context):
         active_obj = context.active_object
@@ -186,6 +188,7 @@ class OscPanelMesh(OscPollMesh, bpy.types.Panel):
 class OscPanelShapes(OscPollShapes, bpy.types.Panel):
     bl_idname = "Oscurart Shapes Tools"
     bl_label = "Shapes Tools"
+    bl_category = "Oscurart Tools"
 
     def draw(self, context):
         active_obj = context.active_object
@@ -203,6 +206,7 @@ class OscPanelShapes(OscPollShapes, bpy.types.Panel):
 class OscPanelRender(OscPollRender, bpy.types.Panel):
     bl_idname = "Oscurart Render Tools"
     bl_label = "Render Tools"
+    bl_category = "Oscurart Tools"
 
     def draw(self, context):
         active_obj = context.active_object
@@ -238,6 +242,7 @@ class OscPanelRender(OscPollRender, bpy.types.Panel):
 class OscPanelFiles(OscPollFiles, bpy.types.Panel):
     bl_idname = "Oscurart Files Tools"
     bl_label = "Files Tools"
+    bl_category = "Oscurart Tools"
 
     def draw(self, context):
         active_obj = context.active_object
@@ -255,6 +260,7 @@ class OscPanelFiles(OscPollFiles, bpy.types.Panel):
 class OscPanelOverrides(OscPollOverrides, bpy.types.Panel):
     bl_idname = "Oscurart Overrides"
     bl_label = "Overrides Tools"
+    bl_category = "Oscurart Tools"
 
     def draw(self, context):
         layout = self.layout
