@@ -331,3 +331,35 @@ class OscOverlapUv(bpy.types.Operator):
     def execute(self, context):
         DefOscOverlapUv(self.precision)
         return {'FINISHED'}
+
+## ------------------------------- IO VERTEX COLORS --------------------
+
+def DefOscExportVC():
+    with open("%s/%s.vc" % (os.path.dirname(bpy.data.filepath),bpy.context.object.name), mode="w") as file:
+        ob = bpy.context.object
+        di = { loopind : ob.data.vertex_colors.active.data[loopind].color[:] for face in ob.data.polygons for loopind in face.loop_indices[:] }
+        file.write(str(di))
+        
+def DefOscImportVC():
+    with open("%s/%s.vc" % (os.path.dirname(bpy.data.filepath),bpy.context.object.name), mode="r") as file:
+        di = eval(file.read())
+        for loopind in di:
+            bpy.context.object.data.vertex_colors.active.data[loopind].color = di[loopind]        
+            
+class OscExportVC (bpy.types.Operator):
+    bl_idname = "mesh.export_vertex_colors"
+    bl_label = "Export Vertex Colors"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        DefOscExportVC()
+        return {'FINISHED'}    
+    
+class OscImportVC (bpy.types.Operator):
+    bl_idname = "mesh.import_vertex_colors"
+    bl_label = "Import Vertex Colors"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        DefOscImportVC()
+        return {'FINISHED'}              

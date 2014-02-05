@@ -184,6 +184,9 @@ class OscPanelMesh(OscPollMesh, bpy.types.Panel):
         colrow=col.row(align=1)
         colrow.operator("file.export_groups_osc", icon='GROUP_VCOL')
         colrow.operator("file.import_groups_osc", icon='GROUP_VCOL')
+        colrow=col.row(align=1)
+        colrow.operator("mesh.export_vertex_colors", icon='COLOR')
+        colrow.operator("mesh.import_vertex_colors", icon='COLOR')        
 
 class OscPanelShapes(OscPollShapes, bpy.types.Panel):
     bl_idname = "Oscurart Shapes Tools"
