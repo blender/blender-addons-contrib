@@ -5508,6 +5508,7 @@ class DelayRegistrationOperator(bpy.types.Operator):
 
     def cancel(self, context):
         DelayRegistrationOperator.timer_remove(context)
+        return {'CANCELLED'}
 
 
 def register():
