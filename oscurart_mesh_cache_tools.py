@@ -60,7 +60,6 @@ def OscFuncExportPc2(self):
     folderpath = bpy.context.scene.muu_pc2_folder
 
     for ob in bpy.data.groups[bpy.context.scene.muu_pc2_group].objects[:]:
-        pc2list = []
         bpy.context.window_manager.progress_begin(0, 100) #progressbar
         if ob.type == "MESH":
             with open("%s/%s.pc2" % (os.path.normpath(folderpath), ob.name), mode="wb") as file:
@@ -88,24 +87,20 @@ def OscFuncExportPc2(self):
                         me.calc_normals()
                     #creo archivo
                     for vert in me.vertices[:]:
-                        pc2list.append((
+                        i = (
                             float(vert.co[0]),
                             float(vert.co[1]),
                             float(vert.co[2])
-                            ))
+                            )
+                        file.write(struct.pack("<3f", *i))    
 
                     #dreno mesh
                     bpy.data.meshes.remove(me)
 
-                print("%s Bake finished! \nAwaiting Compile file..." % (ob.name))
-
-                # write file
-                for i, frame in enumerate(pc2list):
-                    file.write(struct.pack("<3f", *frame))
-                print("%s File Compiled Write finished!" % (ob.name))
-                del(pc2list)
+                print("%s Bake finished!" % (ob.name))
+                
         bpy.context.window_manager.progress_end()#progressBarClose
-    print("Bake Finished!")
+    print("Bake Totally Finished!")
 
 class OscPc2ExporterBatch(bpy.types.Operator):
     bl_idname = "export_shape.pc2_selection"
