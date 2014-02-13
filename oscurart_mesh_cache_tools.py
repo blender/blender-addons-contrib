@@ -87,13 +87,7 @@ def OscFuncExportPc2(self):
                         me.calc_normals()
                     #creo archivo
                     for vert in me.vertices[:]:
-                        i = (
-                            float(vert.co[0]),
-                            float(vert.co[1]),
-                            float(vert.co[2])
-                            )
-                        file.write(struct.pack("<3f", *i))    
-
+                        file.write(struct.pack("<3f", *vert.co)) 
                     #dreno mesh
                     bpy.data.meshes.remove(me)
 
