@@ -119,7 +119,7 @@ class resymVertexGroups (bpy.types.Operator):
         bpy.ops.mesh.select_all(action='DESELECT')
         for VERT in INL:
             BM.verts[VERT].select = True
-        bpy.ops.object.vertex_group_assign(new=False)    
+        bpy.ops.object.vertex_group_assign()    
         bpy.ops.object.mode_set(mode='WEIGHT_PAINT')        
         for VERT in INL:
             for i, GRA in enumerate(OBACTIVO.data.vertices[SYMAP[VERT]].groups[:]):
