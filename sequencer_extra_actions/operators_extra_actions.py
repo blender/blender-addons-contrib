@@ -973,12 +973,8 @@ class Sequencer_Extra_CopyProperties(bpy.types.Operator):
             return False
 
     def execute(self, context):
-        scn = context.scene
-        seq = scn.sequence_editor
-        meta_level = len(seq.meta_stack)
-        if meta_level > 0:
-            seq = seq.meta_stack[meta_level - 1]
         strip = functions.act_strip(context)
+        selectedstrips = context.selected_editable_sequences
 
         for i in seq.sequences:
             if (i.select == True and not i.mute):
