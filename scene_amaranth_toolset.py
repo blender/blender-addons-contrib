@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Amaranth Toolset",
     "author": "Pablo Vazquez, Bassam Kurdali, Sergey Sharybin",
-    "version": (0, 7, 3),
-    "blender": (2, 69, 0),
-    "location": "Scene Properties > Amaranth Toolset Panel",
+    "version": (0, 8, 1),
+    "blender": (2, 70),
+    "location": "Everywhere!",
     "description": "A collection of tools and settings to improve productivity",
     "warning": "",
     "wiki_url": "http://pablovazquez.org/amaranth",
@@ -31,10 +31,11 @@ bl_info = {
 
 import bpy
 import bmesh
-from bpy.types import Operator, AddonPreferences, Panel
+from bpy.types import Operator, AddonPreferences, Panel, Menu
 from bpy.props import BoolProperty
 from mathutils import Vector
 from bpy.app.handlers import persistent
+from bl_operators.presets import AddPresetBase
 
 # Preferences
 class AmaranthToolsetPreferences(AddonPreferences):
@@ -130,13 +131,13 @@ def init_properties():
     node = bpy.types.Node
     nodes_compo = bpy.types.CompositorNodeTree
 
-    scene.use_unsimplify_render = bpy.props.BoolProperty(
+    scene.use_unsimplify_render = BoolProperty(
         default=False,
         name="Unsimplify Render",
         description="Disable Simplify during render")
-    scene.simplify_status = bpy.props.BoolProperty(default=False)
+    scene.simplify_status = BoolProperty(default=False)
 
-    node.use_matching_indices = bpy.props.BoolProperty(
+    node.use_matching_indices = BoolProperty(
         default=True,
         description="If disabled, display all available indices")
 
@@ -152,8 +153,43 @@ def init_properties():
     nodes_compo.types = bpy.props.EnumProperty(
         items=test_items, name = "Types")
 
-    nodes_compo.toggle_mute = bpy.props.BoolProperty(default=False)
-    node.status = bpy.props.BoolProperty(default=False)
+    nodes_compo.toggle_mute = BoolProperty(default=False)
+    node.status = BoolProperty(default=False)
+
+    # Scene Debug
+    # Cycles Node Types
+    cycles_shader_node_types = [
+        ("BSDF_DIFFUSE", "Diffuse BSDF", "", 0),
+        ("BSDF_GLOSSY", "Glossy BSDF", "", 1),
+        ("BSDF_TRANSPARENT", "Transparent BSDF", "", 2),
+        ("BSDF_REFRACTION", "Refraction BSDF", "", 3),
+        ("BSDF_GLASS", "Glass BSDF", "", 4),
+        ("BSDF_TRANSLUCENT", "Translucent BSDF", "", 5),
+        ("BSDF_ANISOTROPIC", "Anisotropic BSDF", "", 6),
+        ("BSDF_VELVET", "Velvet BSDF", "", 7),
+        ("BSDF_TOON", "Toon BSDF", "", 8),
+        ("SUBSURFACE_SCATTERING", "Subsurface Scattering", "", 9),
+        ("EMISSION", "Emission", "", 10),
+        ("BSDF_HAIR", "Hair BSDF", "", 11),
+        ("BACKGROUND", "Background", "", 12),
+        ("AMBIENT_OCCLUSION", "Ambient Occlusion", "", 13),
+        ("HOLDOUT", "Holdout", "", 14),
+        ]
+
+    scene.amaranth_cycles_node_types = bpy.props.EnumProperty(
+        items=cycles_shader_node_types, name = "Shader")
+
+    scene.amaranth_debug_scene_list_lamps = BoolProperty(
+        default=False,
+        name="Lamps List",
+        description="Display a list of all the lamps")
+
+    scene.amaranth_debug_scene_list_missing_images = BoolProperty(
+        default=False,
+        name="List Missing Images",
+        description="Display a list of all the missing images")
+
+    global materials
 
 
 def clear_properties():
@@ -164,7 +200,7 @@ def clear_properties():
         "use_simplify_nodes_vector",
         "status"
     )
-
+    
     wm = bpy.context.window_manager
     for p in props:
         if p in wm:
@@ -175,16 +211,16 @@ class SCENE_OT_refresh(Operator):
     """Refresh the current scene"""
     bl_idname = "scene.refresh"
     bl_label = "Refresh!"
-
+    
     def execute(self, context):
         preferences = context.user_preferences.addons[__name__].preferences
         scene = context.scene
 
-        if preferences.use_scene_refresh:
+        if preferences.use_scene_refresh:    
             # Changing the frame is usually the best way to go
             scene.frame_current = scene.frame_current
             self.report({"INFO"}, "Scene Refreshed!")
-
+            
         return {'FINISHED'}
 
 def button_refresh(self, context):
@@ -258,7 +294,7 @@ def label_timeline_extra_info(self, context):
         # Check for preview range
         frame_start = scene.frame_preview_start if scene.use_preview_range else scene.frame_start
         frame_end = scene.frame_preview_end if scene.use_preview_range else scene.frame_end
-
+        
         row.label(text="%s / %s" % (bpy.utils.smpte_from_frame(scene.frame_current - frame_start),
                         bpy.utils.smpte_from_frame(frame_end - frame_start)))
 
@@ -316,23 +352,19 @@ class FILE_PT_libraries(Panel):
         libslist = sorted(libslist)
 
         # Draw the box with libs
-
+        
         row = layout.row()
         box = row.box()
-
+       
         if libslist:
             for filepath in libslist:
                 if filepath != '//':
-                    split = box.split(percentage=0.85)
-                    col = split.column()
-                    sub = col.column(align=True)
-                    sub.label(text=filepath)
-
-                    col = split.column()
-                    sub = col.column(align=True)
-                    props = sub.operator(
+                    row = box.row()
+                    row.alignment = 'LEFT'
+                    props = row.operator(
                         FILE_OT_directory_go_to.bl_idname,
-                        text="", icon="BOOKMARKS")
+                        text=filepath, icon="BOOKMARKS",
+                        emboss=False)
                     props.filepath = filepath
         else:
             box.label(text='No libraries loaded')
@@ -341,14 +373,14 @@ class FILE_OT_directory_go_to(Operator):
     """Go to this library's directory"""
     bl_idname = "file.directory_go_to"
     bl_label = "Go To"
-
+    
     filepath = bpy.props.StringProperty(subtype="FILE_PATH")
 
     def execute(self, context):
 
         bpy.ops.file.select_bookmark(dir=self.filepath)
         return {'FINISHED'}
-
+    
 # FEATURE: Node Templates
 class NODE_OT_AddTemplateVignette(Operator):
     bl_idname = "node.template_add_vignette"
@@ -416,7 +448,7 @@ class NODE_OT_AddTemplateVignette(Operator):
         frame.label = 'Vignette'
         frame.use_custom_color = True
         frame.color = (0.783538, 0.0241576, 0.0802198)
-
+        
         overlay.parent = None
         overlay.label = 'Vignette Overlay'
 
@@ -426,7 +458,7 @@ class NODE_OT_AddTemplateVignette(Operator):
         return {'FINISHED'}
 
 # Node Templates Menu
-class NODE_MT_amaranth_templates(bpy.types.Menu):
+class NODE_MT_amaranth_templates(Menu):
     bl_idname = 'NODE_MT_amaranth_templates'
     bl_space_type = 'NODE_EDITOR'
     bl_label = "Templates"
@@ -465,7 +497,7 @@ def node_stats(self,context):
             row.label(text="Nodes: %s/%s" % (nodes_selected, str(nodes_total)))
 
 # FEATURE: Simplify Compo Nodes
-class NODE_PT_simplify(bpy.types.Panel):
+class NODE_PT_simplify(Panel):
     '''Simplify Compositor Panel'''
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -488,7 +520,7 @@ class NODE_PT_simplify(bpy.types.Panel):
             layout.operator(NODE_OT_toggle_mute.bl_idname,
                 text="Turn On" if node_tree.toggle_mute else "Turn Off",
                 icon='RESTRICT_VIEW_OFF' if node_tree.toggle_mute else 'RESTRICT_VIEW_ON')
-
+        
             if node_tree.types == 'VECBLUR':
                 layout.label(text="This will also toggle the Vector pass {}".format(
                                     "on" if node_tree.toggle_mute else "off"), icon="INFO")
@@ -503,10 +535,10 @@ class NODE_OT_toggle_mute(Operator):
         node_tree = scene.node_tree
         node_type = node_tree.types
         rlayers = scene.render
-
+        
         if not 'amaranth_pass_vector' in scene.keys():
             scene['amaranth_pass_vector'] = []
-
+        
         #can't extend() the list, so make a dummy one
         pass_vector = scene['amaranth_pass_vector']
 
@@ -548,10 +580,10 @@ class NODE_OT_toggle_mute(Operator):
         scene['amaranth_pass_vector'] = pass_vector
 
         return {'FINISHED'}
-
+        
 
 # FEATURE: OB/MA ID panel in Node Editor
-class NODE_PT_indices(bpy.types.Panel):
+class NODE_PT_indices(Panel):
     '''Object / Material Indices Panel'''
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -585,10 +617,10 @@ class NODE_PT_indices(bpy.types.Panel):
         for ma in materials:
             if ma and ma.pass_index > 0:
                 show_ma_id = True
-        row = layout.row(align=True)
+        row = layout.row(align=True)  
         row.prop(node, 'index', text="Mask Index")
         row.prop(node, 'use_matching_indices', text="Only Matching IDs")
-
+        
         layout.separator()
 
         if not show_ob_id and not show_ma_id:
@@ -702,7 +734,7 @@ def stats_scene(self, context):
         cameras_selected = 0
         meshlights = 0
         meshlights_visible = 0
-
+    
         for ob in context.scene.objects:
             if ob.material_slots:
                 for ma in ob.material_slots:
@@ -710,16 +742,18 @@ def stats_scene(self, context):
                         if ma.material.node_tree:
                             for no in ma.material.node_tree.nodes:
                                 if no.type == 'EMISSION':
-                                    meshlights = meshlights + 1
-                                    if ob in context.visible_objects:
-                                        meshlights_visible = meshlights_visible + 1
-                                    break
+                                    for ou in no.outputs:
+                                        if ou.links:
+                                            meshlights = meshlights + 1
+                                            if ob in context.visible_objects:
+                                                meshlights_visible = meshlights_visible + 1
+                                            break
             if ob in context.selected_objects:
                 if ob.type == 'CAMERA':
                     cameras_selected = cameras_selected + 1
-
+    
         meshlights_string = '| Meshlights:{}/{}'.format(meshlights_visible, meshlights)
-
+    
         row = self.layout.row(align=True)
         row.label(text="Scenes:{} | Cameras:{}/{} {}".format(
                    scenes_count, cameras_selected, cameras_count,
@@ -750,7 +784,7 @@ class VIEW3D_OT_render_border_camera(Operator):
 def button_render_border_camera(self, context):
 
     view3d = context.space_data.region_3d
-
+    
     if view3d.view_perspective == 'CAMERA':
         layout = self.layout
         layout.separator()
@@ -764,7 +798,7 @@ def button_camera_passepartout(self, context):
 
     view3d = context.space_data.region_3d
     cam = context.scene.camera.data
-
+    
     if view3d.view_perspective == 'CAMERA':
         layout = self.layout
         if cam.show_passepartout:
@@ -779,7 +813,7 @@ class VIEW3D_OT_show_only_render(Operator):
 
     def execute(self, context):
         space = bpy.context.space_data
-
+        
         if space.show_only_render:
             space.show_only_render = False
         else:
@@ -811,7 +845,7 @@ class NODE_OT_show_active_node_image(Operator):
                                 if space.type == "IMAGE_EDITOR":
                                     space.image = active_node.image
                             break
-
+    
         return {'FINISHED'}
 # // FEATURE: Display Active Image Node on Image Editor
 
@@ -846,50 +880,10 @@ class OBJECT_OT_select_meshlights(Operator):
         return {'FINISHED'}
 
 def button_select_meshlights(self, context):
-
+    
     if context.scene.render.engine == 'CYCLES':
         self.layout.operator('object.select_meshlights', icon="LAMP_SUN")
 # // FEATURE: Select Meshlights
-
-# FEATURE: Cycles Viewport Extra Settings
-def material_cycles_settings_extra(self, context):
-
-    layout = self.layout
-    col = layout.column()
-    row = col.row(align=True)
-
-    obj = context.object
-    mat = context.material
-    if obj.type == 'MESH':
-        row.prop(obj, "show_transparent", text="Viewport Alpha")
-        row.active = obj.show_transparent
-        row.prop(mat, "alpha", text="Alpha")
-# // FEATURE: Cycles Viewport Extra Settings
-
-# FEATURE: Particles Material indicator
-def particles_material_info(self, context):
-
-    layout = self.layout
-
-    ob = context.object
-    psys = context.particle_system
-
-    mats = len(ob.material_slots)
-
-
-    if ob.material_slots:
-        if psys.settings.material <= len(ob.material_slots) \
-        and ob.material_slots[psys.settings.material-1].name == "":
-            layout.label(text="No material on this slot", icon="MATSPHERE")
-        else:
-            layout.label(
-                text="%s" % ob.material_slots[psys.settings.material-1].name \
-                    if psys.settings.material <= mats \
-                    else "No material with this index{}".format( \
-                        ". Using %s" % ob.material_slots[mats-1].name \
-                        if ob.material_slots[mats-1].name != "" else ""),
-                icon="MATERIAL_DATA")
-# // FEATURE: Particles Material indicator
 
 # FEATURE: Mesh Symmetry Tools by Sergey Sharybin
 class MESH_OT_find_asymmetric(Operator):
@@ -1033,35 +1027,524 @@ def render_cycles_scene_samples(self, context):
 
         if cscene.progressive == 'PATH':
             for s in bpy.data.scenes:
-                if s != scene and s.render.engine == 'CYCLES':
-                    cscene = s.cycles
-
-                    split = layout.split()
-                    col = split.column()
-                    sub = col.column(align=True)
-
-                    sub.label(text="%s" % s.name)
-
-                    col = split.column()
-                    sub = col.column(align=True)
-                    sub.prop(cscene, "samples", text="Render")
+                if s != scene:
+                    if s.render.engine == 'CYCLES':
+                        cscene = s.cycles
+        
+                        split = layout.split()
+                        col = split.column()
+                        sub = col.column(align=True)
+        
+                        sub.label(text="%s" % s.name)
+        
+                        col = split.column()
+                        sub = col.column(align=True)
+                        sub.prop(cscene, "samples", text="Samples")
+                    else:
+                        layout.label(text="Scene: '%s' is not using Cycles" % s.name)
         else:
             for s in bpy.data.scenes:
-                if s != scene and s.render.engine == 'CYCLES':
-                    cscene = s.cycles
-
-                    split = layout.split()
-                    col = split.column()
-                    sub = col.column(align=True)
-
-                    sub.label(text="%s" % s.name)
-
-                    col = split.column()
-                    sub = col.column(align=True)
-                    sub.prop(cscene, "aa_samples", text="Render")
+                if s != scene:
+                    if s.render.engine == 'CYCLES':
+                        cscene = s.cycles
+        
+                        split = layout.split()
+                        col = split.column()
+                        sub = col.column(align=True)
+        
+                        sub.label(text="%s" % s.name)
+        
+                        col = split.column()
+                        sub = col.column(align=True)
+                        sub.prop(cscene, "aa_samples", text="AA Samples")
+                    else:
+                        layout.label(text="Scene: '%s' is not using Cycles" % s.name)
 # // FEATURE: Cycles Render Samples per Scene
 
-classes = (SCENE_OT_refresh,
+# FEATURE: Motion Paths Extras
+class POSE_OT_paths_clear_all(Operator):
+    """Clear motion paths from all bones"""
+    bl_idname = "pose.paths_clear_all"
+    bl_label = "Clear All Motion Paths"
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'POSE'
+
+    def execute(self, context):
+        #silly but works
+        for b in context.object.data.bones:
+            b.select = True
+            bpy.ops.pose.paths_clear()
+            b.select = False
+        return {'FINISHED'}
+
+class POSE_OT_paths_frame_match(Operator):
+    """Match Start/End frame of scene to motion path range"""
+    bl_idname = "pose.paths_frame_match"
+    bl_label = "Match Frame Range"
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        avs = context.object.pose.animation_visualization
+        scene = context.scene
+
+        if avs.motion_path.type == 'RANGE':
+            if scene.use_preview_range:
+                avs.motion_path.frame_start = scene.frame_preview_start
+                avs.motion_path.frame_end = scene.frame_preview_end
+            else:
+                avs.motion_path.frame_start = scene.frame_start
+                avs.motion_path.frame_end = scene.frame_end
+
+        else:
+            if scene.use_preview_range:
+                avs.motion_path.frame_before = scene.frame_preview_start
+                avs.motion_path.frame_after = scene.frame_preview_end
+            else:
+                avs.motion_path.frame_before = scene.frame_start
+                avs.motion_path.frame_after = scene.frame_end
+
+        return {'FINISHED'}
+
+def pose_motion_paths_ui(self, context):
+
+    layout = self.layout
+    scene = context.scene
+    avs = context.object.pose.animation_visualization
+    if context.active_pose_bone:
+        mpath = context.active_pose_bone.motion_path
+    layout.separator()    
+    layout.label(text="Motion Paths Extras:")
+
+    split = layout.split()
+
+    col = split.column(align=True)
+
+    if context.selected_pose_bones:
+        if mpath:
+            sub = col.row(align=True)
+            sub.operator("pose.paths_update", text="Update Path", icon='BONE_DATA')
+            sub.operator("pose.paths_clear", text="", icon='X')
+        else:
+            col.operator("pose.paths_calculate", text="Calculate Path", icon='BONE_DATA')
+    else:
+        col.label(text="Select Bones First", icon="ERROR")
+
+    col = split.column(align=True)
+    col.operator(POSE_OT_paths_frame_match.bl_idname,
+        text="{}".format( "Set Preview Frame Range"
+                if scene.use_preview_range else "Set Frame Range"),
+        icon="{}".format("PREVIEW_RANGE"
+                if scene.use_preview_range else "TIME"))
+
+    col = layout.column()
+    row = col.row(align=True)
+
+    if avs.motion_path.type == 'RANGE':
+        row.prop(avs.motion_path, "frame_start", text="Start")
+        row.prop(avs.motion_path, "frame_end", text="End")
+    else:
+        row.prop(avs.motion_path, "frame_before", text="Before")
+        row.prop(avs.motion_path, "frame_after", text="After")
+
+    layout.separator()
+    layout.operator(POSE_OT_paths_clear_all.bl_idname, icon="X")
+# // FEATURE: Motion Paths Extras
+
+# FEATURE: Final Render Resolution Display
+def render_final_resolution_ui(self, context):
+
+    rd = context.scene.render
+    layout = self.layout
+
+    final_res_x = (rd.resolution_x * rd.resolution_percentage) / 100
+    final_res_y = (rd.resolution_y * rd.resolution_percentage) / 100
+
+    if rd.use_border:
+       final_res_x_border = round((final_res_x * (rd.border_max_x - rd.border_min_x)))
+       final_res_y_border = round((final_res_y * (rd.border_max_y - rd.border_min_y)))
+       layout.label(text="Final Resolution: {} x {} [Border: {} x {}]".format(
+             str(final_res_x)[:-2], str(final_res_y)[:-2],
+             str(final_res_x_border), str(final_res_y_border)))
+    else:
+        layout.label(text="Final Resolution: {} x {}".format(
+             str(final_res_x)[:-2], str(final_res_y)[:-2]))
+# // FEATURE: Final Render Resolution Display
+
+# FEATURE: Shader Nodes Extra Info
+def node_shader_extra(self, context):
+
+    if context.space_data.tree_type == 'ShaderNodeTree':
+        ob = context.active_object
+        snode = context.space_data
+        layout = self.layout
+
+        if ob and snode.shader_type != 'WORLD':
+            if ob.type == 'LAMP':
+                layout.label(text="%s" % ob.name,
+                             icon="LAMP_%s" % ob.data.type)        
+            else:
+                layout.label(text="%s" % ob.name,
+                             icon="OUTLINER_DATA_%s" % ob.type)
+             
+
+# // FEATURE: Shader Nodes Extra Info
+
+# FEATURE: Scene Debug
+class SCENE_OT_cycles_shader_list_nodes(Operator):
+    """List Cycles materials containing a specific shader"""
+    bl_idname = "scene.cycles_list_nodes"
+    bl_label = "List Materials"
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.render.engine == 'CYCLES'
+
+    def execute(self, context):
+        node_type = context.scene.amaranth_cycles_node_types
+        count_ma = 0
+        roughness = False
+        materials = []
+        global materials
+
+        print("\n=== Cycles Shader Type: %s === \n" % node_type)
+
+        for ma in bpy.data.materials:
+            if ma.node_tree:
+                nodes = ma.node_tree.nodes
+                for no in nodes:
+                    if no.type == node_type:
+                        for ou in no.outputs:
+                            if ou.links:
+                                if no.type in ['BSDF_GLOSSY','BSDF_DIFFUSE','BSDF_GLASS']:
+                                    roughness = 'R: %.4f' % no.inputs['Roughness'].default_value
+                                else:
+                                    roughness = False
+                            else:
+                                print('Note: \nOutput from "%s" node' % node_type,
+                                      'in material "%s"' % ma.name,
+                                      'not connected',
+                                      '\n')
+
+                            materials = list(set(materials))
+
+                            count_ma = len(materials)
+
+                            if ma.name not in materials:
+                                materials.append('%s%s [%s] %s%s' % (
+                                    '[L] ' if ma.library else '',
+                                    ma.name, ma.users,
+                                    '[F]' if ma.use_fake_user else '',
+                                    ' - [%s]' % roughness if roughness else ''))
+
+        if count_ma == 0:
+            print("* No materials with nodes type %s found" % node_type)
+
+        else:
+            print("* A total of %s materials using %s was found \n" % (
+                    count_ma + 1, node_type))
+
+            count = 0
+
+            for mat in materials:
+                print('%02d. %s' % (count + 1, materials[count]))
+                count = count + 1
+            print("\n")
+
+        materials = list(set(materials))
+
+        return {'FINISHED'}
+
+class SCENE_OT_cycles_shader_list_nodes_clear(Operator):
+    """Clear the list below"""
+    bl_idname = "scene.cycles_list_nodes_clear"
+    bl_label = "Clear Materials List"
+    
+    def execute(self, context):
+        materials[:] = []
+        return {'FINISHED'}
+
+class SCENE_OT_amaranth_debug_lamp_select(Operator):
+    '''Select Lamp'''
+    bl_idname = "scene.amaranth_debug_lamp_select"
+    bl_label = "Select Lamp"
+    lamp = bpy.props.StringProperty()
+ 
+    def execute(self, context):
+        if self.lamp:
+            lamp = bpy.data.objects[self.lamp]
+
+            bpy.ops.object.select_all(action='DESELECT')
+            lamp.select = True
+            context.scene.objects.active = lamp
+
+        return{'FINISHED'}    
+
+
+class SCENE_PT_scene_debug(Panel):
+    '''Scene Debug'''
+    bl_label = 'Scene Debug'
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+    bl_context = "scene"
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        objects =  bpy.data.objects
+        ob_act = context.active_object
+        images = bpy.data.images
+        lamps = bpy.data.lamps
+        images_missing = []
+        list_lamps = scene.amaranth_debug_scene_list_lamps
+        list_missing_images = scene.amaranth_debug_scene_list_missing_images
+        engine = scene.render.engine
+
+        if engine == 'CYCLES':
+
+            layout.label(text="List Cycles Materials:")
+
+            split = layout.split(percentage=0.5)
+            split.prop(scene, 'amaranth_cycles_node_types')
+
+            row = split.row(align=True)
+            row.operator(SCENE_OT_cycles_shader_list_nodes.bl_idname,
+                            icon="SORTALPHA")
+            row.operator(SCENE_OT_cycles_shader_list_nodes_clear.bl_idname,
+                            icon="X", text="")
+
+            try:
+                materials
+            except NameError:
+                layout.label(text="No materials to show", icon="INFO")
+            else:
+                count = 0
+                layout.label(text="%s %s found" % (len(materials),
+                    'material' if len(materials) < 2 else 'materials'), icon="INFO")
+                for mat in materials:
+                    count = count + 1
+                    layout.label(text='%s' % (materials[count-1]), icon="MATERIAL")
+
+        # List Lamps
+        box = layout.box()
+        row = box.row(align=True)
+        split = row.split()
+        col = split.column()
+        
+        if lamps:
+            row = col.row(align=True)
+            row.alignment = 'LEFT'
+            row.prop(scene, 'amaranth_debug_scene_list_lamps',
+                        icon="%s" % 'TRIA_DOWN' if list_lamps else 'TRIA_RIGHT',
+                        emboss=False)
+
+            if objects and list_lamps:
+                row = box.row(align=True)
+                split = row.split(percentage=0.42)
+                col = split.column()
+                col.label(text="Name")
+
+                split = split.split(percentage=0.1)
+                col = split.column()
+                col.label(text="", icon="BLANK1")
+                if engine in ['CYCLES', 'BLENDER_RENDER']:
+                    if engine == 'BLENDER_RENDER':
+                        split = split.split(percentage=0.7)
+                    else:
+                        split = split.split(percentage=0.35)
+                    col = split.column()
+                    col.label(text="Samples")
+
+                if engine == 'CYCLES':
+                    split = split.split(percentage=0.35)
+                    col = split.column()
+                    col.label(text="Size")
+
+                split = split.split(percentage=0.8)
+                col = split.column()
+                col.label(text="Visibility")
+
+                for ob in objects:
+                    if ob and ob.type == 'LAMP':
+                        lamp = ob.data
+                        clamp = ob.data.cycles
+
+                        row = box.row(align=True)
+                        split = row.split(percentage=0.5)
+                        col = split.column()
+                        row = col.row()
+                        row.alignment = 'LEFT'
+                        row.active = ob.name in context.scene.objects
+                        row.operator("scene.amaranth_debug_lamp_select",
+                                    text='%s %s%s' % (
+                                        " [L] " if ob.library else "",
+                                        ob.name,
+                                        "" if ob.name in context.scene.objects else " [Not in Scene]"),
+                                    icon="LAMP_%s" % ob.data.type,
+                                    emboss=False).lamp = ob.name
+
+                        if engine == 'CYCLES':
+                            split = split.split(percentage=0.35)
+                            col = split.column()
+                            if scene.cycles.progressive == 'BRANCHED_PATH':
+                                col.prop(clamp, "samples", text="")
+                            if scene.cycles.progressive == 'PATH':
+                               col.label(text="N/A")
+                           
+                        if engine == 'BLENDER_RENDER':
+                            split = split.split(percentage=0.7)
+                            col = split.column()
+                            if lamp.type == 'HEMI':
+                                col.label(text="Not Available")
+                            elif lamp.type == 'AREA' and lamp.shadow_method == 'RAY_SHADOW':
+                                row = col.row(align=True)
+                                row.prop(lamp, "shadow_ray_samples_x", text="X")
+                                if lamp.shape == 'RECTANGLE':
+                                    row.prop(lamp, "shadow_ray_samples_y", text="Y")
+                            elif lamp.shadow_method == 'RAY_SHADOW':
+                                col.prop(lamp, "shadow_ray_samples", text="Ray Samples")
+                            elif lamp.shadow_method == 'BUFFER_SHADOW':
+                                col.prop(lamp, "shadow_buffer_samples", text="Buffer Samples")
+                            else:
+                                col.label(text="No Shadow")
+
+                        if engine == 'CYCLES':
+                            split = split.split(percentage=0.4)
+                            col = split.column()    
+                            if lamp.type in ['POINT','SUN', 'SPOT']:
+                                col.label(text="%.2f" % lamp.shadow_soft_size)
+                            elif lamp.type == 'HEMI':
+                                col.label(text="N/A")
+                            else:
+                                col.label(text="%.2f" % lamp.size)
+
+                        split = split.split(percentage=0.8)
+                        col = split.column()
+                        row = col.row(align=True)
+                        row.prop(ob, "hide", text="", emboss=False)
+                        row.prop(ob, "hide_render", text="", emboss=False)
+
+                        split = split.split(percentage=0.3)
+                        col = split.column()
+                        col.label(text="", icon="%s" % "TRIA_LEFT" if ob == ob_act else "BLANK1")
+
+        else:
+            row = col.row(align=True)
+            row.alignment = 'LEFT'
+            row.label(text="Lamps List", icon="RIGHTARROW_THIN")
+
+            split = split.split()
+            col = split.column()
+
+            col.label(text="No Lamps", icon="LAMP_DATA")
+
+        # List Missing Images
+        if images:
+            import os.path
+
+            for im in images:
+                if im.type not in ['UV_TEST', 'RENDER_RESULT', 'COMPOSITING']: 
+                    if not os.path.exists(bpy.path.abspath(im.filepath, library=im.library)):
+                        images_missing.append(["%s%s [%s]%s" % (
+                            '[L] ' if im.library else '',
+                            im.name, im.users,
+                            ' [F]' if im.use_fake_user else ''),
+                            im.filepath if im.filepath else 'No Filepath'])
+
+            box = layout.box()
+            row = box.row(align=True)
+            split = row.split()
+            col = split.column()
+
+            if images_missing:
+                row = col.row(align=True)
+                row.alignment = 'LEFT'
+                row.prop(scene, 'amaranth_debug_scene_list_missing_images',
+                            icon="%s" % 'TRIA_DOWN' if list_missing_images else 'TRIA_RIGHT',
+                            emboss=False)
+
+                split = split.split()
+                col = split.column()
+
+                col.label(text="%s missing %s" % (
+                             str(len(images_missing)),
+                             'image' if len(images_missing) == 1 else 'images'),
+                             icon="ERROR")
+
+                if list_missing_images:
+                    col = box.column(align=True)
+                    for mis in images_missing:
+                        col.label(text=mis[0],
+                         icon="IMAGE_DATA")
+                        col.label(text=mis[1], icon="BLANK1")
+                        col.separator()
+            else:
+                row = col.row(align=True)
+                row.alignment = 'LEFT'
+                row.label(text="Great! No missing images", icon="RIGHTARROW_THIN")
+
+                split = split.split()
+                col = split.column()
+
+                col.label(text="%s %s loading correctly" % (
+                             str(len(images)),
+                             'image' if len(images) == 1 else 'images'),
+                             icon="IMAGE_DATA")
+
+# // FEATURE: Scene Debug
+
+# FEATURE: Color Management Presets
+class SCENE_MT_color_management_presets(Menu):
+    """List of Color Management presets"""
+    bl_label = "Color Management Presets"
+    preset_subdir = "color"
+    preset_operator = "script.execute_preset"
+    draw = Menu.draw_preset
+
+
+class AddPresetColorManagement(AddPresetBase, Operator):
+    """Add or remove a Color Management preset"""
+    bl_idname = "scene.color_management_preset_add"
+    bl_label = "Add Color Management Preset"
+    preset_menu = "SCENE_MT_color_management_presets"
+
+    preset_defines = [
+        "scene = bpy.context.scene"
+    ]
+
+    preset_values = [
+        "scene.view_settings.view_transform",
+        "scene.display_settings.display_device",
+        "scene.view_settings.exposure",
+        "scene.view_settings.gamma",
+        "scene.view_settings.look",
+        "scene.view_settings.use_curve_mapping",
+        "scene.sequencer_colorspace_settings.name",
+    ]
+
+    preset_subdir = "color"
+
+def ui_color_management_presets(self, context):
+    
+    layout = self.layout
+
+    row = layout.row(align=True)
+    row.menu("SCENE_MT_color_management_presets", text=bpy.types.SCENE_MT_color_management_presets.bl_label)
+    row.operator("scene.color_management_preset_add", text="", icon="ZOOMIN")
+    row.operator("scene.color_management_preset_add", text="", icon="ZOOMOUT").remove_active = True
+    layout.separator()
+# // FEATURE: Color Management Presets
+
+
+classes = (SCENE_MT_color_management_presets,
+           AddPresetColorManagement,
+           SCENE_PT_scene_debug,
+           SCENE_OT_refresh,
+           SCENE_OT_cycles_shader_list_nodes,
+           SCENE_OT_cycles_shader_list_nodes_clear,
+           SCENE_OT_amaranth_debug_lamp_select,
            WM_OT_save_reload,
            MESH_OT_find_asymmetric,
            MESH_OT_make_symmetric,
@@ -1076,6 +1559,8 @@ classes = (SCENE_OT_refresh,
            VIEW3D_OT_render_border_camera,
            VIEW3D_OT_show_only_render,
            OBJECT_OT_select_meshlights,
+           POSE_OT_paths_clear_all,
+           POSE_OT_paths_frame_match,
            FILE_PT_libraries)
 
 addon_keymaps = []
@@ -1085,8 +1570,6 @@ kmi_defs = (
 )
 
 def register():
-    import sys
-    have_cycles = ("_cycles" in sys.modules)
 
     bpy.utils.register_class(AmaranthToolsetPreferences)
 
@@ -1110,18 +1593,20 @@ def register():
 
     bpy.types.NODE_HT_header.append(node_templates_pulldown)
     bpy.types.NODE_HT_header.append(node_stats)
+    bpy.types.NODE_HT_header.append(node_shader_extra)
 
-    if have_cycles:
-        bpy.types.CyclesMaterial_PT_settings.append(material_cycles_settings_extra)
-        bpy.types.CyclesRender_PT_sampling.append(render_cycles_scene_samples)
+    bpy.types.CyclesRender_PT_sampling.append(render_cycles_scene_samples)
 
     bpy.types.FILEBROWSER_HT_header.append(button_directory_current_blend)
 
     bpy.types.SCENE_PT_simplify.append(unsimplify_ui)
-    if have_cycles:
-        bpy.types.CyclesScene_PT_simplify.append(unsimplify_ui)
+    bpy.types.CyclesScene_PT_simplify.append(unsimplify_ui)
 
-    bpy.types.PARTICLE_PT_render.prepend(particles_material_info)
+    bpy.types.DATA_PT_display.append(pose_motion_paths_ui)
+
+    bpy.types.RENDER_PT_dimensions.append(render_final_resolution_ui)
+
+    bpy.types.SCENE_PT_color_management.prepend(ui_color_management_presets)
 
     bpy.app.handlers.render_pre.append(unsimplify_render_pre)
     bpy.app.handlers.render_post.append(unsimplify_render_post)
@@ -1135,10 +1620,6 @@ def register():
 
         km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
         kmi = km.keymap_items.new('view3d.show_only_render', 'Z', 'PRESS', shift=True, alt=True)
-        kmi = km.keymap_items.new('wm.context_toggle_enum', 'Z', 'PRESS', shift=True, alt=False)
-        kmi.properties.data_path = 'space_data.viewport_shade'
-        kmi.properties.value_1 = 'SOLID'
-        kmi.properties.value_2 = 'RENDERED'
 
         km = kc.keymaps.new(name='Graph Editor', space_type='GRAPH_EDITOR')
         kmi = km.keymap_items.new('wm.context_set_enum', 'TAB', 'PRESS', ctrl=True)
@@ -1172,8 +1653,6 @@ def register():
             addon_keymaps.append((km, kmi))
 
 def unregister():
-    import sys
-    have_cycles = ("_cycles" in sys.modules)
 
     bpy.utils.unregister_class(AmaranthToolsetPreferences)
 
@@ -1195,18 +1674,20 @@ def unregister():
 
     bpy.types.NODE_HT_header.remove(node_templates_pulldown)
     bpy.types.NODE_HT_header.remove(node_stats)
+    bpy.types.NODE_HT_header.remove(node_shader_extra)
 
-    if have_cycles:
-        bpy.types.CyclesMaterial_PT_settings.remove(material_cycles_settings_extra)
-        bpy.types.CyclesRender_PT_sampling.remove(render_cycles_scene_samples)
+    bpy.types.CyclesRender_PT_sampling.remove(render_cycles_scene_samples)
 
     bpy.types.FILEBROWSER_HT_header.remove(button_directory_current_blend)
 
     bpy.types.SCENE_PT_simplify.remove(unsimplify_ui)
-    if have_cycles:
-        bpy.types.CyclesScene_PT_simplify.remove(unsimplify_ui)
+    bpy.types.CyclesScene_PT_simplify.remove(unsimplify_ui)
 
-    bpy.types.PARTICLE_PT_render.remove(particles_material_info)
+    bpy.types.DATA_PT_display.remove(pose_motion_paths_ui)
+
+    bpy.types.RENDER_PT_dimensions.remove(render_final_resolution_ui)
+
+    bpy.types.SCENE_PT_color_management.remove(ui_color_management_presets)
 
     bpy.app.handlers.render_pre.remove(unsimplify_render_pre)
     bpy.app.handlers.render_post.remove(unsimplify_render_post)
@@ -1214,7 +1695,7 @@ def unregister():
     for km, kmi in addon_keymaps:
         km.keymap_items.remove(kmi)
     addon_keymaps.clear()
-
+    
     clear_properties()
 
 if __name__ == "__main__":
