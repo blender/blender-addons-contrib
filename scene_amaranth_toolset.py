@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Amaranth Toolset",
     "author": "Pablo Vazquez, Bassam Kurdali, Sergey Sharybin",
-    "version": (0, 8, 1),
+    "version": (0, 8, 2),
     "blender": (2, 70),
     "location": "Everywhere!",
     "description": "A collection of tools and settings to improve productivity",
@@ -188,8 +188,6 @@ def init_properties():
         default=False,
         name="List Missing Images",
         description="Display a list of all the missing images")
-
-    global materials
 
 
 def clear_properties():
@@ -1197,6 +1195,8 @@ class SCENE_OT_cycles_shader_list_nodes(Operator):
     """List Cycles materials containing a specific shader"""
     bl_idname = "scene.cycles_list_nodes"
     bl_label = "List Materials"
+    count_ma = 0
+    materials = []
 
     @classmethod
     def poll(cls, context):
@@ -1204,10 +1204,11 @@ class SCENE_OT_cycles_shader_list_nodes(Operator):
 
     def execute(self, context):
         node_type = context.scene.amaranth_cycles_node_types
-        count_ma = 0
         roughness = False
-        materials = []
-        global materials
+
+        # Reset the list and counter
+        self.__class__.materials = []
+        self.__class__.count_ma = 0
 
         print("\n=== Cycles Shader Type: %s === \n" % node_type)
 
@@ -1228,32 +1229,33 @@ class SCENE_OT_cycles_shader_list_nodes(Operator):
                                       'not connected',
                                       '\n')
 
-                            materials = list(set(materials))
+                            self.__class__.materials = list(set(self.__class__.materials))
+                            self.__class__.count_ma += 1
 
-                            count_ma = len(materials)
-
-                            if ma.name not in materials:
-                                materials.append('%s%s [%s] %s%s' % (
+                            if ma.name not in self.__class__.materials:
+                                self.__class__.materials.append('%s%s [%s] %s%s' % (
                                     '[L] ' if ma.library else '',
                                     ma.name, ma.users,
                                     '[F]' if ma.use_fake_user else '',
                                     ' - [%s]' % roughness if roughness else ''))
 
-        if count_ma == 0:
-            print("* No materials with nodes type %s found" % node_type)
+        if self.__class__.count_ma == 0:
+            self.report({"INFO"}, "No materials with nodes type %s found" % node_type)
 
         else:
-            print("* A total of %s materials using %s was found \n" % (
-                    count_ma + 1, node_type))
+            print("* A total of %s %s using %s was found \n" % (
+                    self.__class__.count_ma,
+                    "material" if self.__class__.count_ma == 1 else "materials",
+                    node_type))
 
             count = 0
 
-            for mat in materials:
-                print('%02d. %s' % (count + 1, materials[count]))
-                count = count + 1
+            for mat in self.__class__.materials:
+                print('%02d. %s' % (count + 1, self.__class__.materials[count]))
+                count += 1
             print("\n")
 
-        materials = list(set(materials))
+        self.__class__.materials = list(set(self.__class__.materials))
 
         return {'FINISHED'}
 
@@ -1263,7 +1265,9 @@ class SCENE_OT_cycles_shader_list_nodes_clear(Operator):
     bl_label = "Clear Materials List"
     
     def execute(self, context):
-        materials[:] = []
+        SCENE_OT_cycles_shader_list_nodes.materials[:] = []
+        SCENE_OT_cycles_shader_list_nodes.count_ma = 0
+        print("* Cleared Cycles Materials List")
         return {'FINISHED'}
 
 class SCENE_OT_amaranth_debug_lamp_select(Operator):
@@ -1280,8 +1284,59 @@ class SCENE_OT_amaranth_debug_lamp_select(Operator):
             lamp.select = True
             context.scene.objects.active = lamp
 
-        return{'FINISHED'}    
+        return{'FINISHED'}
 
+class SCENE_OT_list_missing_node_tree(Operator):
+    '''Print a list of missing (link lost) node groups'''
+    bl_idname = "scene.list_missing_node_tree"
+    bl_label = "List Missing Node Groups"
+
+    count = 0
+
+    def execute(self, context):
+        missing = []
+        libraries = []
+        self.__class__.count = 0
+
+        print("\n* Missing Node Groups\n")
+        for ma in bpy.data.materials:
+            if ma.node_tree:
+                for no in ma.node_tree.nodes:
+                    if no.type == 'GROUP':
+                        if not no.node_tree:
+                            self.__class__.count += 1
+
+                            missing.append("%02d. %s%s%s [%s]%s" % (
+                                self.__class__.count,
+                                "[L] " if ma.library else "",
+                                "[F] " if ma.use_fake_user else "",
+                                ma.name, ma.users,
+                                "\n    %s" % 
+                                ma.library.filepath if ma.library else ""))
+
+                            if ma.library:
+                                libraries.append(ma.library.filepath)
+
+        # Remove duplicates and sort
+        missing = list(set(missing))
+        missing = sorted(missing)
+        libraries = list(set(libraries))
+
+        for mi in missing:
+            print(mi)
+
+        if missing:
+            self.report({"INFO"}, "%d missing node %s found! Check console" %
+                    (self.__class__.count, "group" if self.__class__.count == 1 else "groups"))
+            if libraries:
+                print("\nThat's bad, run this check on %s:" % (
+                    "this library" if len(libraries) == 1 else "these libraries"))
+                for li in libraries:
+                    print(li)
+            print("\n")
+        else:
+            self.report({"INFO"}, "Yay! No missing node groups")
+        return{'FINISHED'}
 
 class SCENE_PT_scene_debug(Panel):
     '''Scene Debug'''
@@ -1300,32 +1355,9 @@ class SCENE_PT_scene_debug(Panel):
         images_missing = []
         list_lamps = scene.amaranth_debug_scene_list_lamps
         list_missing_images = scene.amaranth_debug_scene_list_missing_images
+        materials = SCENE_OT_cycles_shader_list_nodes.materials
+        materials_count = SCENE_OT_cycles_shader_list_nodes.count_ma
         engine = scene.render.engine
-
-        if engine == 'CYCLES':
-
-            layout.label(text="List Cycles Materials:")
-
-            split = layout.split(percentage=0.5)
-            split.prop(scene, 'amaranth_cycles_node_types')
-
-            row = split.row(align=True)
-            row.operator(SCENE_OT_cycles_shader_list_nodes.bl_idname,
-                            icon="SORTALPHA")
-            row.operator(SCENE_OT_cycles_shader_list_nodes_clear.bl_idname,
-                            icon="X", text="")
-
-            try:
-                materials
-            except NameError:
-                layout.label(text="No materials to show", icon="INFO")
-            else:
-                count = 0
-                layout.label(text="%s %s found" % (len(materials),
-                    'material' if len(materials) < 2 else 'materials'), icon="INFO")
-                for mat in materials:
-                    count = count + 1
-                    layout.label(text='%s' % (materials[count-1]), icon="MATERIAL")
 
         # List Lamps
         box = layout.box()
@@ -1441,6 +1473,11 @@ class SCENE_PT_scene_debug(Panel):
             col.label(text="No Lamps", icon="LAMP_DATA")
 
         # List Missing Images
+        box = layout.box()
+        row = box.row(align=True)
+        split = row.split()
+        col = split.column()
+
         if images:
             import os.path
 
@@ -1452,11 +1489,6 @@ class SCENE_PT_scene_debug(Panel):
                             im.name, im.users,
                             ' [F]' if im.use_fake_user else ''),
                             im.filepath if im.filepath else 'No Filepath'])
-
-            box = layout.box()
-            row = box.row(align=True)
-            split = row.split()
-            col = split.column()
 
             if images_missing:
                 row = col.row(align=True)
@@ -1492,9 +1524,62 @@ class SCENE_PT_scene_debug(Panel):
                              str(len(images)),
                              'image' if len(images) == 1 else 'images'),
                              icon="IMAGE_DATA")
+        else:
+            row = col.row(align=True)
+            row.alignment = 'LEFT'
+            row.label(text="No images loaded yet", icon="RIGHTARROW_THIN")
+
+        # List Cycles Materials by Shader
+        if engine == 'CYCLES':
+            box = layout.box()
+            split = box.split()
+            col = split.column(align=True)
+            col.prop(scene, 'amaranth_cycles_node_types',
+                icon="MATERIAL")
+
+            row = split.row(align=True)
+            row.operator(SCENE_OT_cycles_shader_list_nodes.bl_idname,
+                            icon="SORTSIZE",
+                            text="List Materials Using Shader")
+            if materials_count != 0: 
+                row.operator(SCENE_OT_cycles_shader_list_nodes_clear.bl_idname,
+                                icon="X", text="")
+            col.separator()
+
+            try:
+                materials
+            except NameError:
+                pass
+            else:
+                if materials_count != 0: 
+                    count = 0
+                    col.label(text="%s %s found" % (materials_count,
+                        'material' if materials_count == 1 else 'materials'), icon="INFO")
+                    for mat in materials:
+                        count += 1
+                        col.label(text='%s' % (materials[count-1]), icon="MATERIAL")
+
+        # List Missing Node Trees
+        split = layout.split()
+        split.label(text="Missing Node Groups")
+        split.operator(SCENE_OT_list_missing_node_tree.bl_idname,
+                        icon="NODETREE")
+
+        if SCENE_OT_list_missing_node_tree.count != 0:
+            layout.label(text="%s" % ("%s missing %s found, check the console!" % (
+                     str(SCENE_OT_list_missing_node_tree.count),
+                     "group" if SCENE_OT_list_missing_node_tree.count == 1 else "groups")),
+                     icon="ERROR")
 
 # // FEATURE: Scene Debug
+# FEATURE: Dupli  Group Path
+def ui_dupli_group_library_path(self, context):
 
+    ob = context.object
+
+    if ob and ob.dupli_group and ob.dupli_group.library:
+        self.layout.label(text="Library: %s" % ob.dupli_group.library.filepath)
+# // FEATURE: Dupli  Group Path
 # FEATURE: Color Management Presets
 class SCENE_MT_color_management_presets(Menu):
     """List of Color Management presets"""
@@ -1537,6 +1622,28 @@ def ui_color_management_presets(self, context):
     layout.separator()
 # // FEATURE: Color Management Presets
 
+# FEATURE: Sequencer Extra Info
+def act_strip(context):
+    try:
+        return context.scene.sequence_editor.active_strip
+    except AttributeError:
+        return None
+
+def ui_sequencer_extra_info(self, context):
+
+    layout = self.layout
+    strip = act_strip(context)
+
+    if strip:
+        seq_type = strip.type
+
+        if seq_type and seq_type == 'IMAGE':
+            elem = strip.strip_elem_from_frame(context.scene.frame_current)
+            if elem:
+                layout.label(text="%s %s" % (
+                    elem.filename,
+                    "[%s]" % (context.scene.frame_current - strip.frame_start)))
+# // FEATURE: Sequencer Extra Info
 
 classes = (SCENE_MT_color_management_presets,
            AddPresetColorManagement,
@@ -1545,6 +1652,7 @@ classes = (SCENE_MT_color_management_presets,
            SCENE_OT_cycles_shader_list_nodes,
            SCENE_OT_cycles_shader_list_nodes_clear,
            SCENE_OT_amaranth_debug_lamp_select,
+           SCENE_OT_list_missing_node_tree,
            WM_OT_save_reload,
            MESH_OT_find_asymmetric,
            MESH_OT_make_symmetric,
@@ -1564,10 +1672,6 @@ classes = (SCENE_MT_color_management_presets,
            FILE_PT_libraries)
 
 addon_keymaps = []
-
-kmi_defs = (
-    ('wm.call_menu', 'W', False, False, False, (('name', NODE_MT_amaranth_templates.bl_idname),)),
-)
 
 def register():
 
@@ -1608,12 +1712,24 @@ def register():
 
     bpy.types.SCENE_PT_color_management.prepend(ui_color_management_presets)
 
+    bpy.types.SEQUENCER_HT_header.append(ui_sequencer_extra_info)
+
+    bpy.types.OBJECT_PT_duplication.append(ui_dupli_group_library_path)
+
     bpy.app.handlers.render_pre.append(unsimplify_render_pre)
     bpy.app.handlers.render_post.append(unsimplify_render_post)
 
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
     if kc:
+        km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
+        km.keymap_items.new("node.show_active_node_image", 'ACTIONMOUSE', 'RELEASE')
+        km.keymap_items.new("node.show_active_node_image", 'SELECTMOUSE', 'RELEASE')
+
+        km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
+        kmi = km.keymap_items.new('wm.call_menu', 'W', 'PRESS')
+        kmi.properties.name = "NODE_MT_amaranth_templates"
+
         km = kc.keymaps.new(name='Window')
         kmi = km.keymap_items.new('scene.refresh', 'F5', 'PRESS', shift=False, ctrl=False)
         kmi = km.keymap_items.new('wm.save_reload', 'W', 'PRESS', shift=True, ctrl=True)
@@ -1637,20 +1753,7 @@ def register():
         kmi.properties.value_1 = 'ACTION'
         kmi.properties.value_2 = 'DOPESHEET'
 
-        km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
-        km.keymap_items.new("node.show_active_node_image", 'ACTIONMOUSE', 'RELEASE')
-        km.keymap_items.new("node.show_active_node_image", 'SELECTMOUSE', 'RELEASE')
-
         addon_keymaps.append((km, kmi))
-
-        # copypasted from the awesome node efficiency tools, future hotkeys proof!
-        km = kc.keymaps.new(name='Node Editor', space_type="NODE_EDITOR")
-        for (identifier, key, CTRL, SHIFT, ALT, props) in kmi_defs:
-            kmi = km.keymap_items.new(identifier, key, 'PRESS', ctrl=CTRL, shift=SHIFT, alt=ALT)
-            if props:
-                for prop, value in props:
-                    setattr(kmi.properties, prop, value)
-            addon_keymaps.append((km, kmi))
 
 def unregister():
 
@@ -1688,6 +1791,10 @@ def unregister():
     bpy.types.RENDER_PT_dimensions.remove(render_final_resolution_ui)
 
     bpy.types.SCENE_PT_color_management.remove(ui_color_management_presets)
+
+    bpy.types.SEQUENCER_HT_header.remove(ui_sequencer_extra_info)
+
+    bpy.types.OBJECT_PT_duplication.remove(ui_dupli_group_library_path)
 
     bpy.app.handlers.render_pre.remove(unsimplify_render_pre)
     bpy.app.handlers.render_post.remove(unsimplify_render_post)
