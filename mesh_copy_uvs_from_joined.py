@@ -184,7 +184,7 @@ class  OBJECT_OT_copy_uv_from_joined(Operator):
                         new_uv = uv_layer.data[loop_index].uv
                         orig_uv_layer.data[orig_loop_index].uv = new_uv
                 else:
-                    print("Failed to lookup %r" % key)
+                    print("Failed to lookup %r" % (key,))
 
         return {'FINISHED'}
 
