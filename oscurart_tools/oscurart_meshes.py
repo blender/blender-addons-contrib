@@ -197,38 +197,42 @@ def reSymSave (self,quality):
         reldict.clear()
 
 def reSymMesh (self, SELECTED, SIDE):    
-    bpy.ops.object.mode_set(mode='OBJECT')     
+    bpy.ops.object.mode_set(mode='EDIT')     
     ENTFILEPATH= "%s_%s_SYM_TEMPLATE.xml" %  (os.path.join(os.path.dirname(bpy.data.filepath),bpy.context.scene.name), bpy.context.object.name)
     with open(ENTFILEPATH ,mode="r") as file: 
         SYMAP = eval(file.readlines()[0])    
-        
+        bm = bmesh.from_edit_mesh(bpy.context.object.data)
         object = bpy.context.object       
         
         def MAME (SYMAP):
             if SELECTED:
                 for vert in SYMAP:
-                    if object.data.vertices[SYMAP[vert]].select:
-                        object.data.vertices[vert].co = (-1*object.data.vertices[SYMAP[vert]].co[0],
-                            object.data.vertices[SYMAP[vert]].co[1],
-                                object.data.vertices[SYMAP[vert]].co[2])
+                    if bm.verts[SYMAP[vert]].select:
+                        bm.verts[vert].co = (-1*bm.verts[SYMAP[vert]].co[0],
+                            bm.verts[SYMAP[vert]].co[1],
+                                bm.verts[SYMAP[vert]].co[2])
             else:
                 for vert in SYMAP:
-                    object.data.vertices[vert].co = (-1*object.data.vertices[SYMAP[vert]].co[0],
-                        object.data.vertices[SYMAP[vert]].co[1],
-                        object.data.vertices[SYMAP[vert]].co[2])                
+                    bm.verts[vert].co = (-1*bm.verts[SYMAP[vert]].co[0],
+                        bm.verts[SYMAP[vert]].co[1],
+                        bm.verts[SYMAP[vert]].co[2])
+            bmesh.update_edit_mesh(object.data)  
+       
                                 
         def MEMA (SYMAP):
             if SELECTED:
                 for vert in SYMAP:
-                    if object.data.vertices[vert].select:
-                        object.data.vertices[SYMAP[vert]].co = (-1*object.data.vertices[vert].co[0],
-                            object.data.vertices[vert].co[1],
-                            object.data.vertices[vert].co[2])   
+                    if bm.verts[vert].select:
+                        bm.verts[SYMAP[vert]].co = (-1*bm.verts[vert].co[0],
+                            bm.verts[vert].co[1],
+                            bm.verts[vert].co[2])   
             else:
                 for vert in SYMAP:
-                    object.data.vertices[SYMAP[vert]].co = (-1*object.data.vertices[vert].co[0],
-                        object.data.vertices[vert].co[1],
-                        object.data.vertices[vert].co[2])                               
+                    bm.verts[SYMAP[vert]].co = (-1*bm.verts[vert].co[0],
+                        bm.verts[vert].co[1],
+                        bm.verts[vert].co[2])  
+            bmesh.update_edit_mesh(object.data)  
+                                        
                     
         if SIDE == "+-":
             MAME(SYMAP)
