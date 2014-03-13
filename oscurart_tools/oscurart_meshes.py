@@ -189,7 +189,7 @@ def reSymSave (self,quality):
     absol = lambda x : (abs(x[0]),x[1],x[2])
 
     inddict = { rd(vert.co[:]) : vert.index for vert in object.data.vertices[:]}
-    reldict = { inddict[vert] : inddict[absol(vert)] for vert in inddict if vert[0] <= 0 }          
+    reldict = { inddict[vert] : inddict[absol(vert)] for vert in inddict if vert[0] <= 0  if inddict.get(absol(vert))}       
         
     ENTFILEPATH= "%s_%s_SYM_TEMPLATE.xml" %  (os.path.join(os.path.dirname(bpy.data.filepath), bpy.context.scene.name), bpy.context.object.name)
     with open(ENTFILEPATH ,mode="w") as file:   
@@ -245,7 +245,7 @@ class OscResymSave (bpy.types.Operator):
     bl_label = "Resym save XML Map"
     bl_options = {"REGISTER", "UNDO"}
 
-    quality = bpy.props.IntProperty(default=5, name="Quality")
+    quality = bpy.props.IntProperty(default=4, name="Quality")
     
     def execute (self, context):
         reSymSave(self,self.quality)
