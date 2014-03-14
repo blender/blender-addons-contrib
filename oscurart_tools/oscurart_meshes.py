@@ -185,10 +185,10 @@ def reSymSave (self,quality):
     object = bpy.context.object
 
     rdqual = quality
-    rd = lambda x : (round(x[0],rdqual),round(x[1],rdqual),round(x[2],rdqual))
+    rd = lambda x : round(x,rdqual)
     absol = lambda x : (abs(x[0]),x[1],x[2])
 
-    inddict = { rd(vert.co[:]) : vert.index for vert in object.data.vertices[:]}
+    inddict = { tuple(map(rd, vert.co[:])) : vert.index for vert in object.data.vertices[:]}
     reldict = { inddict[vert] : inddict[absol(vert)] for vert in inddict if vert[0] <= 0  if inddict.get(absol(vert))}       
         
     ENTFILEPATH= "%s_%s_SYM_TEMPLATE.xml" %  (os.path.join(os.path.dirname(bpy.data.filepath), bpy.context.scene.name), bpy.context.object.name)
