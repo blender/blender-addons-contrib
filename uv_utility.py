@@ -21,7 +21,7 @@ bl_info = {
     "name": "UV Utility",
     "author": "Paul Geraskin",
     "version": (0, 1),
-    "blender": (2, 69, 0),
+    "blender": (2, 70, 0),
     "location": "View3D > ToolBar",
     "description": "Change Index Of UVMap.",
     "wiki_url": "",
@@ -43,6 +43,10 @@ from bpy.props import (IntProperty,
 class UV_IC_Panel():
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_category = 'Tools'
+    bl_label = "UV Utility"
+    bl_context = "objectmode"
+    bl_options = {'DEFAULT_CLOSED'}
 
 
 class UV_IC_TexIndex(PropertyGroup):
