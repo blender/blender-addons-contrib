@@ -61,6 +61,8 @@ def update_keymap(activate):
     # Add.
     if activate:
         kconf = bpy.context.window_manager.keyconfigs.addon
+        if not kconf:
+            return  # happens in background mode...
         for km_info, km_items in KEYMAPS:
             km_name, km_regtype, km_sptype, km_ismodal = km_info
             kmap = [k for k in kconf.keymaps
