@@ -154,10 +154,13 @@ class OscExportVG (bpy.types.Operator):
         with open(os.path.join(os.path.dirname(bpy.data.filepath),ob.name+".txt"), mode="w") as file:
             grs = {group.name for group in ob.vertex_groups}
             vg = {vert.index : list(map(  lambda x: (ob.vertex_groups[x.group].name, x.weight)  , vert.groups  )) for vert in ob.data.vertices if len(vert.groups) > 0}
-            i = {}
+            neworder = {}
+            for indice, data in vg.items():
+                for group, weight in data:
+                    neworder.setdefault(group,[]).append((indice,weight))
             file.write(str(grs))
             file.write(str("\n"))
-            file.write(str(vg))
+            file.write(str(neworder))
 
         return {'FINISHED'}
 
@@ -170,12 +173,12 @@ class OscImportVG (bpy.types.Operator):
         ob = bpy.context.object    
         with open(os.path.join(os.path.dirname(bpy.data.filepath),ob.name+".txt"), mode="r") as file:   
             grs = eval(file.readlines(1)[0] )
-            verts = eval(file.readlines(2)[0] )
+            neworder = eval(file.readlines(2)[0] )
             for gr in grs:
                 bpy.context.object.vertex_groups.new(name=gr)
-            for vert in verts:
-                for gr in verts[vert]:
-                    ob.vertex_groups[gr[0]].add([vert],gr[1],"REPLACE")
+            for group, data in neworder.items():
+                for indice, weight in data:
+                    ob.vertex_groups[group].add([indice],weight,"REPLACE")
         
         return {'FINISHED'}
 
