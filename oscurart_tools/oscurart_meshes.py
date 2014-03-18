@@ -94,44 +94,18 @@ class resymVertexGroups (bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
     def execute(self,context):
 
-        OBACTIVO = bpy.context.active_object
-        VGACTIVO = OBACTIVO.vertex_groups.active.index
-        
-        bpy.ops.object.mode_set(mode='EDIT')
-        BM = bmesh.from_edit_mesh(bpy.context.object.data)  
-        bpy.ops.mesh.select_all(action='DESELECT')
-        bpy.ops.object.vertex_group_select()
-        SELVER=[VERT.index for VERT in BM.verts[:] if VERT.select]   
-        
-        SYSBAR = os.sep     
-         
-        FILEPATH=bpy.data.filepath
-        ACTIVEFOLDER=FILEPATH.rpartition(SYSBAR)[0]
-        ENTFILEPATH= "%s%s%s_%s_SYM_TEMPLATE.xml" %  (ACTIVEFOLDER, SYSBAR, bpy.context.scene.name, bpy.context.object.name)
-        XML=open(ENTFILEPATH ,mode="r")        
-        SYMAP = eval(XML.readlines()[0])      
-        INL = [VERT for VERT in SYMAP if SYMAP[VERT] in SELVER if VERT!= SYMAP[VERT]] 
-        bpy.ops.mesh.select_all(action='DESELECT')
-        for VERT in INL:
-            BM.verts[VERT].select = True
-        bpy.ops.object.vertex_group_assign()    
-        bpy.ops.object.mode_set(mode='WEIGHT_PAINT')        
-        for VERT in INL:
-            for i, GRA in enumerate(OBACTIVO.data.vertices[SYMAP[VERT]].groups[:]):
-                if GRA.group == VGACTIVO:
-                    EM = i                    
+        with open("%s_%s_SYM_TEMPLATE.xml" % (os.path.join(os.path.dirname(bpy.data.filepath),bpy.context.scene.name),bpy.context.object.name)) as file:
+            ob = bpy.context.object
+            actgr = ob.vertex_groups.active
+            actind = ob.vertex_groups.active_index
+            ls = eval(file.read())
+            wdict = {left: actgr.weight(right)  for left, right in ls.items() for group in ob.data.vertices[right].groups  if group.group == actind}
+            actgr.remove([vert.index for vert in ob.data.vertices if vert.co[0] <= 0])       
+            for ind, weight in wdict.items():
+                actgr.add([ind],weight,'REPLACE')
+            bpy.context.object.data.update()                
 
-            for a, GRA in enumerate(OBACTIVO.data.vertices[VERT].groups[:]):     
-                if GRA.group == VGACTIVO:
-                    REC = a
-
-                    
-            OBACTIVO.data.vertices[VERT].groups[REC].weight = OBACTIVO.data.vertices[SYMAP[VERT]].groups[EM].weight  
-        XML.close()
-        SYMAP.clear()  
-      
-
-        print("===============(JOB DONE)=============")
+ 
         return {'FINISHED'}
 
 
