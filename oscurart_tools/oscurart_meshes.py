@@ -13,7 +13,7 @@ D = bpy.data
 ##-----------------------------RECONST---------------------------
 def defReconst(self, OFFSET): 
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-    bpy.context.tool_settings.mesh_select_mode = (True, False, False)
+    bpy.context.tool_settings.mesh_select_mode = (True, True, True)
     ob = bpy.context.active_object
     bm = bmesh.from_edit_mesh(ob.data)
     bm.select_flush(False)
