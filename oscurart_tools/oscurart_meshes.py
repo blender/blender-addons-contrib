@@ -26,7 +26,7 @@ def defReconst(self, OFFSET):
         bmesh.update_edit_mesh(ob.data) 
     mod = ob.modifiers.new("Mirror","MIRROR")
     uv = ob.data.uv_textures.new(name="SYMMETRICAL")
-    for v in bm.verts: v.select = 1
+    for v in bm.faces: v.select = 1
     bmesh.update_edit_mesh(ob.data)
     ob.data.uv_textures.active = ob.data.uv_textures['SYMMETRICAL']
     bpy.ops.uv.unwrap(method='ANGLE_BASED', fill_holes=True, correct_aspect=False, use_subsurf_data=0)
