@@ -11,37 +11,32 @@ C = bpy.context
 D = bpy.data
 
 ##-----------------------------RECONST---------------------------
-def defReconst(self, OFFSET):
+def defReconst(self, OFFSET): 
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
     bpy.context.tool_settings.mesh_select_mode = (True, False, False)
-    OBJETO = bpy.context.active_object
-    OBDATA = bmesh.from_edit_mesh(OBJETO.data)
-    OBDATA.select_flush(False)
-    for vertice in OBDATA.verts[:]:
+    ob = bpy.context.active_object
+    bm = bmesh.from_edit_mesh(ob.data)
+    bm.select_flush(False)
+    for vertice in bm.verts[:]:
         if abs(vertice.co[0]) < OFFSET:
-            vertice.co[0] = 0
-    bpy.ops.mesh.select_all(action="DESELECT")
-    for vertices in OBDATA.verts[:]:
-      if vertices.co[0] < 0:
-        vertices.select = 1
-    bpy.ops.mesh.delete()
-    bpy.ops.object.modifier_add(type='MIRROR')
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.mesh.uv_texture_add()
-    LENUVLISTSIM = len(bpy.data.objects[OBJETO.name].data.uv_textures)
-    LENUVLISTSIM = LENUVLISTSIM - 1
-    OBJETO.data.uv_textures[LENUVLISTSIM:][0].name = "SYMMETRICAL"
+            vertice.co[0] = 0            
+    for vertice in bm.verts[:]:
+      if vertice.co[0] < 0:
+        bm.verts.remove(vertice)
+        bmesh.update_edit_mesh(ob.data) 
+    mod = ob.modifiers.new("Mirror","MIRROR")
+    uv = ob.data.uv_textures.new(name="SYMMETRICAL")
+    for v in bm.verts: v.select = 1
+    bmesh.update_edit_mesh(ob.data)
+    ob.data.uv_textures.active = ob.data.uv_textures['SYMMETRICAL']
     bpy.ops.uv.unwrap(method='ANGLE_BASED', fill_holes=True, correct_aspect=False, use_subsurf_data=0)
     bpy.ops.object.mode_set(mode="OBJECT", toggle= False)
     bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Mirror")
     bpy.ops.object.mode_set(mode="EDIT", toggle= False)
-    OBDATA = bmesh.from_edit_mesh(OBJETO.data)
-    OBDATA.select_flush(0)
-    bpy.ops.mesh.uv_texture_add()
-    LENUVLISTASIM = len(OBJETO.data.uv_textures)
-    LENUVLISTASIM = LENUVLISTASIM  - 1
-    OBJETO.data.uv_textures[LENUVLISTASIM:][0].name = "ASYMMETRICAL"
-    OBJETO.data.uv_textures.active = OBJETO.data.uv_textures["ASYMMETRICAL"]
+    bm = bmesh.from_edit_mesh(ob.data)
+    bm.select_flush(0)
+    uv = ob.data.uv_textures.new(name="ASYMMETRICAL")
+    ob.data.uv_textures.active = ob.data.uv_textures['ASYMMETRICAL']
     bpy.ops.uv.unwrap(method='ANGLE_BASED', fill_holes=True, correct_aspect=False, use_subsurf_data=0)
 
 class reConst (bpy.types.Operator):
