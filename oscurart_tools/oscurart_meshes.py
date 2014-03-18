@@ -114,17 +114,15 @@ class resymVertexGroups (bpy.types.Operator):
         bpy.ops.mesh.select_all(action='DESELECT')
         for VERT in INL:
             BM.verts[VERT].select = True
-        bpy.ops.object.vertex_group_assign(new=False)    
+        bpy.ops.object.vertex_group_assign()    
         bpy.ops.object.mode_set(mode='WEIGHT_PAINT')        
         for VERT in INL:
             for i, GRA in enumerate(OBACTIVO.data.vertices[SYMAP[VERT]].groups[:]):
                 if GRA.group == VGACTIVO:
-                    print (i)
                     EM = i                    
 
             for a, GRA in enumerate(OBACTIVO.data.vertices[VERT].groups[:]):     
                 if GRA.group == VGACTIVO:
-                    print (a)
                     REC = a
 
                     
@@ -182,88 +180,77 @@ class OscImportVG (bpy.types.Operator):
 ## ------------------------------------ RESYM MESH--------------------------------------
 
 
-def reSymSave (self):
+def reSymSave (self,quality):
     
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode='OBJECT')
     
-    BM = bmesh.from_edit_mesh(bpy.context.object.data)   
-     
-    L = {VERT.index : [VERT.co[0],VERT.co[1],VERT.co[2]] for VERT in BM.verts[:] if VERT.co[0] < 0.0001}
-    R = {VERT.index : [-VERT.co[0],VERT.co[1],VERT.co[2]]  for VERT in BM.verts[:] if VERT.co[0] > -0.0001}
-    
-    SYMAP = {VERTL : VERTR for VERTR in R for VERTL in L if R[VERTR] == L[VERTL] }            
+    object = bpy.context.object
+
+    rdqual = quality
+    rd = lambda x : round(x,rdqual)
+    absol = lambda x : (abs(x[0]),x[1],x[2])
+
+    inddict = { tuple(map(rd, vert.co[:])) : vert.index for vert in object.data.vertices[:]}
+    reldict = { inddict[vert] : inddict[absol(vert)] for vert in inddict if vert[0] <= 0  if inddict.get(absol(vert))}       
         
-    FILEPATH=bpy.data.filepath
-    ACTIVEFOLDER = os.path.split(FILEPATH)[0]
-    ENTFILEPATH= "%s_%s_SYM_TEMPLATE.xml" %  (os.path.join(ACTIVEFOLDER, bpy.context.scene.name), bpy.context.object.name)
+    ENTFILEPATH= "%s_%s_SYM_TEMPLATE.xml" %  (os.path.join(os.path.dirname(bpy.data.filepath), bpy.context.scene.name), bpy.context.object.name)
     with open(ENTFILEPATH ,mode="w") as file:   
-        file.writelines(str(SYMAP))
-        SYMAP.clear()
+        file.writelines(str(reldict))
+        reldict.clear()
 
 def reSymMesh (self, SELECTED, SIDE):    
-    bpy.ops.object.mode_set(mode='EDIT')    
-    BM = bmesh.from_edit_mesh(bpy.context.object.data)    
-    FILEPATH=bpy.data.filepath
-    ACTIVEFOLDER = os.path.split(FILEPATH)[0]
-    ENTFILEPATH= "%s_%s_SYM_TEMPLATE.xml" %  (os.path.join(ACTIVEFOLDER,bpy.context.scene.name), bpy.context.object.name)
+    bpy.ops.object.mode_set(mode='EDIT')     
+    ENTFILEPATH= "%s_%s_SYM_TEMPLATE.xml" %  (os.path.join(os.path.dirname(bpy.data.filepath),bpy.context.scene.name), bpy.context.object.name)
     with open(ENTFILEPATH ,mode="r") as file: 
         SYMAP = eval(file.readlines()[0])    
+        bm = bmesh.from_edit_mesh(bpy.context.object.data)
+        object = bpy.context.object       
+        
+        def MAME (SYMAP):
+            if SELECTED:
+                for vert in SYMAP:
+                    if bm.verts[SYMAP[vert]].select:
+                        bm.verts[vert].co = (-1*bm.verts[SYMAP[vert]].co[0],
+                            bm.verts[SYMAP[vert]].co[1],
+                                bm.verts[SYMAP[vert]].co[2])
+            else:
+                for vert in SYMAP:
+                    bm.verts[vert].co = (-1*bm.verts[SYMAP[vert]].co[0],
+                        bm.verts[SYMAP[vert]].co[1],
+                        bm.verts[SYMAP[vert]].co[2])
+            bmesh.update_edit_mesh(object.data)  
+       
+                                
+        def MEMA (SYMAP):
+            if SELECTED:
+                for vert in SYMAP:
+                    if bm.verts[vert].select:
+                        bm.verts[SYMAP[vert]].co = (-1*bm.verts[vert].co[0],
+                            bm.verts[vert].co[1],
+                            bm.verts[vert].co[2])   
+            else:
+                for vert in SYMAP:
+                    bm.verts[SYMAP[vert]].co = (-1*bm.verts[vert].co[0],
+                        bm.verts[vert].co[1],
+                        bm.verts[vert].co[2])  
+            bmesh.update_edit_mesh(object.data)  
+                                        
+                    
         if SIDE == "+-":
-            if SELECTED:
-                for VERT in SYMAP:
-                    if BM.verts[SYMAP[VERT]].select:
-                        if VERT == SYMAP[VERT]:
-                            BM.verts[VERT].co[0] = 0
-                            BM.verts[VERT].co[1] = BM.verts[SYMAP[VERT]].co[1]
-                            BM.verts[VERT].co[2] = BM.verts[SYMAP[VERT]].co[2]            
-                        else:    
-                            BM.verts[VERT].co[0] = -BM.verts[SYMAP[VERT]].co[0]
-                            BM.verts[VERT].co[1] = BM.verts[SYMAP[VERT]].co[1]
-                            BM.verts[VERT].co[2] = BM.verts[SYMAP[VERT]].co[2]        
-            else:    
-                for VERT in SYMAP:
-                    if VERT == SYMAP[VERT]:
-                        BM.verts[VERT].co[0] = 0
-                        BM.verts[VERT].co[1] = BM.verts[SYMAP[VERT]].co[1]
-                        BM.verts[VERT].co[2] = BM.verts[SYMAP[VERT]].co[2]            
-                    else:    
-                        BM.verts[VERT].co[0] = -BM.verts[SYMAP[VERT]].co[0]
-                        BM.verts[VERT].co[1] = BM.verts[SYMAP[VERT]].co[1]
-                        BM.verts[VERT].co[2] = BM.verts[SYMAP[VERT]].co[2]
+            MAME(SYMAP)
         else:
-            if SELECTED:
-                for VERT in SYMAP:
-                    if BM.verts[VERT].select:
-                        if VERT == SYMAP[VERT]:
-                            BM.verts[SYMAP[VERT]].co[0] = 0
-                            BM.verts[SYMAP[VERT]].co[1] = BM.verts[VERT].co[1]
-                            BM.verts[SYMAP[VERT]].co[2] = BM.verts[VERT].co[2]            
-                        else:    
-                            BM.verts[SYMAP[VERT]].co[0] = -BM.verts[VERT].co[0]
-                            BM.verts[SYMAP[VERT]].co[1] = BM.verts[VERT].co[1]
-                            BM.verts[SYMAP[VERT]].co[2] = BM.verts[VERT].co[2]        
-            else:    
-                for VERT in SYMAP:
-                    if VERT == SYMAP[VERT]:
-                        BM.verts[SYMAP[VERT]].co[0] = 0
-                        BM.verts[SYMAP[VERT]].co[1] = BM.verts[VERT].co[1]
-                        BM.verts[SYMAP[VERT]].co[2] = BM.verts[VERT].co[2]            
-                    else:    
-                        BM.verts[SYMAP[VERT]].co[0] = -BM.verts[VERT].co[0]
-                        BM.verts[SYMAP[VERT]].co[1] = BM.verts[VERT].co[1]
-                        BM.verts[SYMAP[VERT]].co[2] = BM.verts[VERT].co[2]                    
-        
-        bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.ops.object.mode_set(mode='EDIT')
-        SYMAP.clear()
-        
+            MEMA(SYMAP)           
+                         
+   
 class OscResymSave (bpy.types.Operator):
     bl_idname = "mesh.resym_save_map"
     bl_label = "Resym save XML Map"
     bl_options = {"REGISTER", "UNDO"}
 
+    quality = bpy.props.IntProperty(default=4, name="Quality")
+    
     def execute (self, context):
-        reSymSave(self)
+        reSymSave(self,self.quality)
         return {'FINISHED'}
 
 class OscResymMesh (bpy.types.Operator):
@@ -339,13 +326,13 @@ class OscOverlapUv(bpy.types.Operator):
 ## ------------------------------- IO VERTEX COLORS --------------------
 
 def DefOscExportVC():
-    with open("%s/%s.vc" % (os.path.dirname(bpy.data.filepath),bpy.context.object.name), mode="w") as file:
+    with open(os.path.join(os.path.dirname(bpy.data.filepath),bpy.context.object.name) + ".vc", mode="w") as file:
         ob = bpy.context.object
         di = { loopind : ob.data.vertex_colors.active.data[loopind].color[:] for face in ob.data.polygons for loopind in face.loop_indices[:] }
         file.write(str(di))
         
 def DefOscImportVC():
-    with open("%s/%s.vc" % (os.path.dirname(bpy.data.filepath),bpy.context.object.name), mode="r") as file:
+    with open(os.path.join(os.path.dirname(bpy.data.filepath),bpy.context.object.name) + ".vc", mode="r") as file:
         di = eval(file.read())
         for loopind in di:
             bpy.context.object.data.vertex_colors.active.data[loopind].color = di[loopind]        
