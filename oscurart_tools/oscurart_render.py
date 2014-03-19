@@ -16,85 +16,70 @@ def checkOverridesExist():
 ##-------------------------------- RENDER ALL SCENES ----------------------------
 
 
-def defRenderAll (frametype):
-    
+def defRenderAll (frametype, scenes):
+
     checkOverridesExist()
     
-    LISTMAT=[]
-    SCENES=bpy.data.scenes[:]
-    ACTSCENE=bpy.context.scene
-    FC=bpy.context.scene.frame_current
-    FS=bpy.context.scene.frame_start
-    FE=bpy.context.scene.frame_end
+    activescene = bpy.context.scene
+    FC = bpy.context.scene.frame_current
+    FS = bpy.context.scene.frame_start
+    FE = bpy.context.scene.frame_end
     print("---------------------")
-    for OBJECT in bpy.data.objects[:]:
-        SLOTLIST=[]
-        try:
-            if OBJECT.type=="MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
-                for SLOT in OBJECT.material_slots[:]:
-                    SLOTLIST.append(SLOT.material)
-                LISTMAT.append((OBJECT,SLOTLIST))
-        except:
-            pass
-    for SCENE in SCENES:
-        PROPTOLIST=list(eval(SCENE['OVERRIDE']))
-        CURSC= SCENE.name
-        PATH = SCENE.render.filepath
-        ENDPATH = PATH
-        FILEPATH=bpy.data.filepath
-        bpy.context.window.screen.scene=SCENE
-        if frametype == True:
-            bpy.context.scene.frame_start=FC
-            bpy.context.scene.frame_end=FC
-            bpy.context.scene.frame_end=FC
-            bpy.context.scene.frame_start=FC
-        try:
-            for OVERRIDE in PROPTOLIST:
-                for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
-                    if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
-                        NUMAT = len(OBJECT.data.materials[:])
-                        OBJECT.data.materials.clear()
-                        for mat in range(NUMAT):
-                            OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])
-                        #for SLOT in OBJECT.material_slots[:]:
-                        #    SLOT.material=bpy.data.materials[OVERRIDE[1]]
-        except:
-            pass
-        SCENENAME=os.path.basename(FILEPATH.rpartition(".")[0])
-        LAYERLIST=[]
-        for layer in SCENE.render.layers:
-            if layer.use == 1:
-                LAYERLIST.append(layer)
-        for layers in LAYERLIST:
-            for rl in LAYERLIST:
-                rl.use= 0
-            print("SCENE: "+CURSC)
-            print("LAYER: "+layers.name)
-            print("OVERRIDE: "+str(PROPTOLIST))
-            SCENE.render.filepath = os.path.join(PATH,SCENENAME,CURSC,layers.name,"%s_%s_%s" % (SCENENAME,SCENE.name,layers.name))
-            SCENE.render.layers[layers.name].use = 1
-            bpy.ops.render.render(animation=True, write_still=True, layer=layers.name, scene= SCENE.name)
-            print("DONE")
-            print("---------------------")
-        for layer in LAYERLIST:
-            layer.use = 1
-        SCENE.render.filepath = ENDPATH
-        for OBJECT in LISTMAT:
-            print(OBJECT[0].data.materials[:])
-            OBJECT[0].data.materials.clear()
-            try:
-                for SLOT in OBJECT[1]:
-                    #OBJECT[0].material_slots[SLOTIND].material=SLOT
-                    #SLOTIND+=1
-                    OBJECT[0].data.materials.append(SLOT)
-            except:
-                print("OUT OF RANGE")
-        if frametype == True:
-            SCENE.frame_start=FS
-            SCENE.frame_end=FE
-            SCENE.frame_end=FE
-            SCENE.frame_start=FS
-    bpy.context.window.screen.scene=ACTSCENE
+    types = {'MESH','META','CURVE'}
+
+    for ob in bpy.data.objects:
+        if ob.type in types:
+            if not len(ob.material_slots):
+                ob.data.materials.append(None)
+
+    slotlist = { ob : [sl.material for sl in ob.material_slots] for ob in bpy.data.objects if ob.type in types if len (ob.material_slots)} 
+
+    for scene in scenes:     
+        proptolist = list(eval(scene['OVERRIDE']))
+        cursc = scene.name
+        renpath = scene.render.filepath
+        endpath = scene.render.filepath
+        filepath = bpy.data.filepath
+
+        if frametype:
+            scene.frame_start=FC
+            scene.frame_end=FC
+            scene.frame_end=FC
+            scene.frame_start=FC
+            
+        for group, material in proptolist:
+            for object in bpy.data.groups[group].objects:
+                if object.type in types:
+                    if len(object.data.materials):
+                        object.data.materials.clear()
+                        object.data.materials.append(bpy.data.materials[material])            
+        filename = os.path.basename(bpy.data.filepath.rpartition(".")[0])  
+        uselayers = {layer : layer.use for layer in scene.render.layers} 
+        for layer, usado in uselayers.items():
+            if usado:
+                for i in scene.render.layers: i.use = False  
+                layer.use = 1  
+                print("SCENE: %s" % scene.name)
+                print("LAYER: %s" % layer.name)
+                print("OVERRIDE: %s" % str(proptolist))   
+                scene.render.filepath = os.path.join(os.path.dirname(renpath), filename, scene.name, layer.name,"%s_%s_%s" % (filename,scene.name,layer.name))  
+                bpy.ops.render.render(animation=True, write_still=True, layer=layer.name, scene= scene.name)   
+                print("DONE")
+                print("---------------------") 
+        for layer, usado in uselayers.items():
+            layer.use = usado
+        scene.render.filepath = renpath
+        for ob,slots in slotlist.items():
+            ob.data.materials.clear()
+            for slot in slots:
+                ob.data.materials.append(slot)
+        if frametype:
+            scene.frame_start=FS
+            scene.frame_end=FE
+            scene.frame_end=FE
+            scene.frame_start=FS    
+                  
+    bpy.context.window.screen.scene = activescene   
 
 
 class renderAll (bpy.types.Operator):
@@ -104,7 +89,7 @@ class renderAll (bpy.types.Operator):
     frametype=bpy.props.BoolProperty(default=False)
 
     def execute(self,context):
-        defRenderAll(self.frametype)
+        defRenderAll(self.frametype,[scene for scene in bpy.data.scenes])
         return {'FINISHED'}
 
 
@@ -112,87 +97,6 @@ class renderAll (bpy.types.Operator):
 
 bpy.types.Scene.use_render_scene = bpy.props.BoolProperty()
 
-def defRenderSelected(frametype):
-    
-    checkOverridesExist()
-    
-    ACTSCENE = bpy.context.scene
-    LISTMAT = []
-    SCENES = bpy.data.scenes[:]
-    FC = bpy.context.scene.frame_current
-    FS = bpy.context.scene.frame_start
-    FE = bpy.context.scene.frame_end
-    for OBJECT in bpy.data.objects[:]:
-        SLOTLIST=[]
-        try:
-            if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
-                for SLOT in OBJECT.material_slots[:]:
-                    SLOTLIST.append(SLOT.material)
-
-                LISTMAT.append((OBJECT,SLOTLIST))
-        except:
-            pass
-    for SCENE in SCENES:
-        if SCENE.use_render_scene:
-            PROPTOLIST = list(eval(SCENE['OVERRIDE']))
-            CURSC = SCENE.name
-            PATH = SCENE.render.filepath
-            ENDPATH = PATH
-            FILEPATH = bpy.data.filepath
-            print("---------------------")
-            bpy.context.window.screen.scene = SCENE
-            if frametype  ==  True:
-                bpy.context.scene.frame_start = FC
-                bpy.context.scene.frame_end = FC
-                bpy.context.scene.frame_end = FC
-                bpy.context.scene.frame_start = FC
-            try:
-                for OVERRIDE in PROPTOLIST:
-                    for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
-                        if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
-                            NUMAT = len(OBJECT.data.materials[:])
-                            OBJECT.data.materials.clear()
-                            for mat in range(NUMAT):
-                                OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])                            
-                            #for SLOT in OBJECT.material_slots[:]:
-                                #SLOT.material=bpy.data.materials[OVERRIDE[1]]
-            except:
-                pass
-            SCENENAME=os.path.basename(FILEPATH.rpartition(".")[0])
-            LAYERLIST=[]
-            for layer in SCENE.render.layers:
-                if layer.use == 1:
-                    LAYERLIST.append(layer)
-            for layers in LAYERLIST:
-                for rl in LAYERLIST:
-                    rl.use= 0
-                print("SCENE: "+CURSC)
-                print("LAYER: "+layers.name)
-                print("OVERRIDE: "+str(PROPTOLIST))
-                SCENE.render.filepath = os.path.join(PATH,SCENENAME,CURSC,layers.name,"%s_%s_%s" % (SCENENAME,SCENE.name,layers.name))
-                SCENE.render.layers[layers.name].use = 1
-                bpy.ops.render.render(animation=True, layer=layers.name, write_still=True, scene= SCENE.name)
-                print("DONE")
-                print("---------------------")
-            for layer in LAYERLIST:
-                layer.use = 1
-            SCENE.render.filepath = ENDPATH
-            for OBJECT in LISTMAT:
-                #SLOTIND = 0
-                OBJECT[0].data.materials.clear()
-                try:
-                    for SLOT in OBJECT[1]:
-                        OBJECT[0].data.materials.append(SLOT)
-                        #OBJECT[0].material_slots[SLOTIND].material = SLOT
-                        #SLOTIND += 1
-                except:
-                    print("OUT OF RANGE")
-            if frametype == True:
-                SCENE.frame_start = FS
-                SCENE.frame_end = FE
-                SCENE.frame_end = FE
-                SCENE.frame_start = FS
-    bpy.context.window.screen.scene = ACTSCENE
 
 class renderSelected (bpy.types.Operator):
     bl_idname="render.render_selected_scenes_osc"
@@ -201,87 +105,11 @@ class renderSelected (bpy.types.Operator):
     frametype=bpy.props.BoolProperty(default=False)
 
     def execute(self,context):
-        defRenderSelected(self.frametype)
+        defRenderAll(self.frametype,[ sc for sc in bpy.data.scenes if sc.use_render_scene])
         return {'FINISHED'}
 
 ##--------------------------------RENDER CURRENT SCENE----------------------------
 
-def defRenderCurrent (frametype):
-    
-    checkOverridesExist()
-    
-    LISTMAT = []
-    SCENE = bpy.context.scene
-    FC = bpy.context.scene.frame_current
-    FS = bpy.context.scene.frame_start
-    FE = bpy.context.scene.frame_end
-
-    print("---------------------")
-    for OBJECT in bpy.data.objects[:]:
-        SLOTLIST = []
-        try:
-            if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
-                for SLOT in OBJECT.material_slots[:]:
-                    SLOTLIST.append(SLOT.material)
-                LISTMAT.append((OBJECT,SLOTLIST))
-        except:
-            pass
-    PROPTOLIST = list(eval(SCENE['OVERRIDE']))
-    CURSC = SCENE.name
-    PATH = SCENE.render.filepath
-    ENDPATH = PATH
-    FILEPATH = bpy.data.filepath
-    if frametype == True:
-        bpy.context.scene.frame_start = FC
-        bpy.context.scene.frame_end = FC
-        bpy.context.scene.frame_end = FC
-        bpy.context.scene.frame_start = FC
-    try:
-        for OVERRIDE in PROPTOLIST:
-            for OBJECT in bpy.data.groups[OVERRIDE[0]].objects[:]:
-                if OBJECT.type == "MESH" or OBJECT.type == "META" or OBJECT.type == "CURVE":
-                    NUMAT = len(OBJECT.data.materials[:])
-                    OBJECT.data.materials.clear()
-                    for mat in range(NUMAT):
-                        OBJECT.data.materials.append(bpy.data.materials[OVERRIDE[1]])  
-                    #for SLOT in OBJECT.material_slots[:]:
-                        #SLOT.material = bpy.data.materials[OVERRIDE[1]]
-    except:
-        pass
-    SCENENAME=os.path.basename(FILEPATH.rpartition(".")[0])
-    LAYERLIST=[]
-    for layer in SCENE.render.layers:
-        if layer.use == 1:
-            LAYERLIST.append(layer)
-    for layers in LAYERLIST:
-        for rl in LAYERLIST:
-            rl.use= 0
-        print("SCENE: "+CURSC)
-        print("LAYER: "+layers.name)
-        print("OVERRIDE: "+str(PROPTOLIST))
-        SCENE.render.filepath = os.path.join(PATH,SCENENAME,CURSC,layers.name,"%s_%s_%s" % (SCENENAME,SCENE.name,layers.name))
-        SCENE.render.layers[layers.name].use = 1
-        bpy.ops.render.render(animation=True, layer=layers.name, write_still=1, scene= SCENE.name)
-        print("DONE")
-        print("---------------------")
-    for layer in LAYERLIST:
-        layer.use = 1
-    SCENE.render.filepath = ENDPATH
-    for OBJECT in LISTMAT:
-        #SLOTIND = 0
-        OBJECT[0].data.materials.clear()
-        try:
-            for SLOT in OBJECT[1]:
-                OBJECT[0].data.materials.append(SLOT)
-                #OBJECT[0].material_slots[SLOTIND].material=SLOT
-                #SLOTIND += 1
-        except:
-            print("FUERA DE RANGO")
-    if frametype == True:
-        SCENE.frame_start = FS
-        SCENE.frame_end = FE
-        SCENE.frame_end = FE
-        SCENE.frame_start = FS
 
 class renderCurrent (bpy.types.Operator):
     bl_idname="render.render_current_scene_osc"
@@ -291,7 +119,7 @@ class renderCurrent (bpy.types.Operator):
 
     def execute(self,context):
 
-        defRenderCurrent(self.frametype)
+        defRenderAll(self.frametype,[bpy.context.scene])
 
         return {'FINISHED'}
 

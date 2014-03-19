@@ -20,7 +20,7 @@ bl_info = {
     "name": "Oscurart Tools",
     "author": "Oscurart, CodemanX",
     "version": (3,1),
-    "blender": (2, 65, 0),
+    "blender": (2, 7, 0),
     "location": "View3D > Tools > Oscurart Tools",
     "description": "Tools for objects, render, shapes, and files.",
     "warning": "",
@@ -152,7 +152,6 @@ class OscPanelObject(OscPollObject, bpy.types.Panel):
         colrow = col.row(align=1)
         colrow.prop(bpy.context.scene, "RenameObjectOt", text="")
         colrow.operator("object.rename_objects_osc", icon="SHORTDISPLAY")
-        col.operator("object.duplicate_object_symmetry_osc", icon="OBJECT_DATAMODE", text="Duplicate Symmetry")
         col.operator("object.distribute_osc", icon="OBJECT_DATAMODE", text="Distribute")
         colrow = col.row(align=1)
         colrow.operator("object.modifiers_remove_osc", icon="MODIFIER", text="Remove Modifiers")
