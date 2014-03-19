@@ -20,9 +20,9 @@ bl_info = {
     "name": "LipSync Importer & Blinker",
     "author": "Yousef Harfoush - bat3a ;)",
     "version": (0, 5, 1),
-    "blender": (2, 65, 0),
+    "blender": (2, 7, 0),
     "location": "3D window > Tool Shelf",
-    "description": "Plot Moho (Papagayo, Jlipsync, Yolo) file "
+    "description": "Plots Moho (Papagayo, Jlipsync, Yolo) file "
         "to frames and adds automatic blinking",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/"
@@ -296,7 +296,8 @@ class LipSyncBoneUI(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_label = "Phonemes"
-
+	bl_category = 'Animation'
+	
     def draw(self, context):
         layout = self.layout
         col = layout.column()
