@@ -318,11 +318,11 @@ bpy.utils.register_class(VarColArchivos)
 
 class SumaFile(bpy.types.Operator):
     bl_idname = "object.add_broken_file"
-    bl_label = "Add Broken FIle"
+    bl_label = "Add Broken Files"
 
     def execute(self, context):
         os.chdir(os.path.dirname(bpy.data.filepath))
-        absdir = os.path.join(os.path.dirname(bpy.data.filepath),bpy.context.scene.render.filepath.replace("%s%s" % (os.path.sep, os.path.sep),""))
+        absdir = os.path.join(os.path.dirname(bpy.data.filepath),bpy.context.scene.render.filepath.replace(r"//",""))
         for root, folder, files in os.walk(absdir):  
             for f in files:
                 if os.path.getsize(os.path.join(root,f)) <  10:    
