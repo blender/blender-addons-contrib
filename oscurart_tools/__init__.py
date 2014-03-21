@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Oscurart Tools",
     "author": "Oscurart, CodemanX",
-    "version": (3,1),
+    "version": (3,2),
     "blender": (2, 70, 0),
     "location": "View3D > Tools > Oscurart Tools",
     "description": "Tools for objects, render, shapes, and files.",

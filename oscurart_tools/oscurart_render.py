@@ -306,4 +306,74 @@ class oscPythonBatchMaker (bpy.types.Operator):
     def execute(self,context):
         defoscPythonBatchMaker(self.type, self.size)
         return {'FINISHED'}
- 
+
+
+# ---------------------------------- BROKEN FRAMES --------------------- 
+
+class VarColArchivos (bpy.types.PropertyGroup):
+    filename = bpy.props.StringProperty(name="", default="")
+    value = bpy.props.IntProperty(name="", default=10)    
+    fullpath = bpy.props.StringProperty(name="", default="")
+bpy.utils.register_class(VarColArchivos)
+
+class SumaFile(bpy.types.Operator):
+    bl_idname = "object.add_broken_file"
+    bl_label = "Add Broken FIle"
+
+    def execute(self, context):
+        os.chdir(os.path.dirname(bpy.data.filepath))
+        absdir = os.path.join(os.path.dirname(bpy.data.filepath),bpy.context.scene.render.filepath.replace("%s%s" % (os.path.sep, os.path.sep),""))
+        for root, folder, files in os.walk(absdir):  
+            for f in files:
+                if os.path.getsize(os.path.join(root,f)) <  10:    
+                    print(f)      
+                    i = bpy.context.scene.broken_files.add()
+                    i.filename = f
+                    i.fullpath = os.path.join(root,f)
+                    i.value = os.path.getsize(os.path.join(root,f))      
+        return {'FINISHED'}  
+
+class ClearFile(bpy.types.Operator):
+    bl_idname = "object.clear_broken_file"
+    bl_label = "Clear Broken Files"
+
+    def execute(self, context):
+        bpy.context.scene.broken_files.clear()
+        return {'FINISHED'} 
+
+class DeleteFiles(bpy.types.Operator):
+    bl_idname = "object.delete_broken_file"
+    bl_label = "Delete Broken Files"
+
+    def execute(self, context):
+        for file in bpy.context.scene.broken_files:
+            os.remove(file.fullpath)
+        bpy.context.scene.broken_files.clear()    
+        return {'FINISHED'}     
+
+
+bpy.types.Scene.broken_files = bpy.props.CollectionProperty(type=VarColArchivos)
+
+class BrokenFramesPanel (bpy.types.Panel):
+    bl_label = "Oscurart Broken Render Files"
+    bl_idname = "OBJECT_PT_osc_broken_files"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "render"
+
+    def draw(self, context):
+        layout = self.layout
+        obj = context.object
+        col = layout.column(align=1)
+               
+        for i in bpy.context.scene.broken_files:
+            colrow = col.row(align=1)
+            colrow.prop(i, "filename")
+            colrow.prop(i, "value")
+
+        col = layout.column(align=1)
+        colrow = col.row(align=1)
+        colrow.operator("object.add_broken_file")
+        colrow.operator("object.clear_broken_file")
+        colrow = col.row(align=1)
+        colrow.operator("object.delete_broken_file")
