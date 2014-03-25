@@ -314,6 +314,7 @@ class VarColArchivos (bpy.types.PropertyGroup):
     filename = bpy.props.StringProperty(name="", default="")
     value = bpy.props.IntProperty(name="", default=10)    
     fullpath = bpy.props.StringProperty(name="", default="")
+    checkbox = bpy.props.BoolProperty(name="", default=True)
 bpy.utils.register_class(VarColArchivos)
 
 class SumaFile(bpy.types.Operator):
@@ -330,7 +331,8 @@ class SumaFile(bpy.types.Operator):
                     i = bpy.context.scene.broken_files.add()
                     i.filename = f
                     i.fullpath = os.path.join(root,f)
-                    i.value = os.path.getsize(os.path.join(root,f))      
+                    i.value = os.path.getsize(os.path.join(root,f))   
+                    i.checkbox = True   
         return {'FINISHED'}  
 
 class ClearFile(bpy.types.Operator):
@@ -347,7 +349,8 @@ class DeleteFiles(bpy.types.Operator):
 
     def execute(self, context):
         for file in bpy.context.scene.broken_files:
-            os.remove(file.fullpath)
+            if file.checkbox:
+                os.remove(file.fullpath)
         bpy.context.scene.broken_files.clear()    
         return {'FINISHED'}     
 
@@ -370,6 +373,7 @@ class BrokenFramesPanel (bpy.types.Panel):
             colrow = col.row(align=1)
             colrow.prop(i, "filename")
             colrow.prop(i, "value")
+            colrow.prop(i, "checkbox")
 
         col = layout.column(align=1)
         colrow = col.row(align=1)
