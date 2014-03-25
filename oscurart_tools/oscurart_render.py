@@ -24,7 +24,7 @@ def defRenderAll (frametype, scenes):
     slotlist = { ob : [sl.material for sl in ob.material_slots] for ob in bpy.data.objects if ob.type in types if len (ob.material_slots)} 
 
     for scene in scenes:     
-        proptolist = list(eval(scene['OVERRIDE']))
+        proptolist = list(eval(scene.overrides))
         cursc = scene.name
         renpath = scene.render.filepath
         endpath = scene.render.filepath
