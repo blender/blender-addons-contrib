@@ -3,22 +3,11 @@ import math
 import os
 
 
-## ------------- CHECK OVERRIDE LIST EXIST -----------------
-
-def checkOverridesExist():
-    for scene in bpy.data.scenes[:]:
-        try:
-            scene["OVERRIDE"]
-        except:
-            scene["OVERRIDE"] = "[]"
-
-
 ##-------------------------------- RENDER ALL SCENES ----------------------------
 
 
 def defRenderAll (frametype, scenes):
 
-    checkOverridesExist()
     
     activescene = bpy.context.scene
     FC = bpy.context.scene.frame_current
@@ -129,7 +118,6 @@ bpy.types.Scene.rcPARTS = bpy.props.IntProperty(default=0, min=2, max=50, step=1
 
 def OscRenderCropFunc():
     
-    checkOverridesExist()
     
     SCENENAME = os.path.split(bpy.data.filepath)[-1].partition(".")[0]
     PARTS = bpy.context.scene.rcPARTS
@@ -155,7 +143,6 @@ class renderCrop (bpy.types.Operator):
 ##---------------------------BATCH MAKER------------------
 def defoscBatchMaker(TYPE):
     
-    checkOverridesExist() # overrides list exist
     
     if os.sys.platform.startswith("w"):
         print("PLATFORM: WINDOWS")
@@ -231,7 +218,6 @@ class oscBatchMaker (bpy.types.Operator):
 ## --------------------------------------PYTHON BATCH--------------------------------------------------------
 def defoscPythonBatchMaker(BATCHTYPE,SIZE):
     
-    checkOverridesExist() # overrides list exist
     
     # REVISO SISTEMA
     if os.sys.platform.startswith("w"):

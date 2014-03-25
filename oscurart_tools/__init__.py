@@ -269,10 +269,10 @@ class OscPanelOverrides(OscPollOverrides, bpy.types.Panel):
         obj = context.object
         col = layout.box().column(align=1)
         colrow = col.row()
-        col.operator("render.overrides_set_list", text="Create Override List", icon="GREASEPENCIL")
+        #col.operator("render.overrides_set_list", text="Create Override List", icon="GREASEPENCIL")
         col.label(text="Active Scene: " + bpy.context.scene.name)
         col.label(text="Example: [[Group,Material]]")
-        col.prop(bpy.context.scene, '["OVERRIDE"]', text="")
+        col.prop(bpy.context.scene, "overrides", text="")
         col.operator("render.check_overrides", text="Check List", icon="ZOOM_ALL")
         col.operator("render.overrides_on", text="On / Off", icon="QUIT")   
         col.label(text=str("OVERRIDES: ON" if bpy.use_overrides else "OVERRIDES: OFF"))             

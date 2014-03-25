@@ -8,18 +8,7 @@ import time
 ##--------------------------OVERRIDES-----------------------------
 
 ## PARA ESCENAS NUEVAS
-
-class OverridesOp (bpy.types.Operator):
-    bl_idname = "render.overrides_set_list"
-    bl_label = "Overrides set list"
-    bl_options = {"REGISTER", "UNDO"}
-    def execute(self,context):
-        for scene in bpy.data.scenes[:]:
-            try:
-                scene['OVERRIDE']
-            except:
-                scene['OVERRIDE']="[]"
-        return {'FINISHED'}
+bpy.types.Scene.overrides = bpy.props.StringProperty(default="[]")
 
 ## ------------------------------------ APPLY AND RESTORE OVERRIDES --------------------------------------
 
@@ -33,7 +22,7 @@ def DefOscApplyOverrides(self):
     with open("%s_override.txt" % (os.path.join(os.path.dirname(bpy.data.filepath),bpy.context.scene.name)), mode="w") as file:
         file.write(str(slotlist))
     scene = bpy.context.scene    
-    proptolist = list(eval(scene['OVERRIDE']))   
+    proptolist = list(eval(scene.overrides))   
     for group, material in proptolist:
         for object in bpy.data.groups[group].objects:
             if object.type in types:
@@ -120,7 +109,7 @@ class OscCheckOverrides (bpy.types.Operator):
 
             print("   %s Scene is checking" % (SCENE.name))
 
-            for OVERRIDE in list(eval(SCENE['OVERRIDE'])):
+            for OVERRIDE in list(eval(SCENE.overrides)):
                 # REVISO OVERRIDES EN GRUPOS
                 if OVERRIDE[0] in GROUPLIST:
                     pass
@@ -249,7 +238,7 @@ class OscTransferOverrides (bpy.types.Operator):
         # CREO LISTA
         OSCOV = [[OVERRIDE.grooverride,OVERRIDE.matoverride]for OVERRIDE in bpy.context.scene.ovlist[:] if OVERRIDE.matoverride != "" if OVERRIDE.grooverride != ""]
 
-        bpy.context.scene["OVERRIDE"] = str(OSCOV)
+        bpy.context.scene.overrides = str(OSCOV)
         return {'FINISHED'}   
     
 class OscAddOverridesSlot (bpy.types.Operator):    
