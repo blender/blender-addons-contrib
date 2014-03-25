@@ -296,8 +296,8 @@ class LipSyncBoneUI(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_label = "Phonemes"
-	bl_category = 'Animation'
-	
+    bl_category = 'Animation'
+    
     def draw(self, context):
         layout = self.layout
         col = layout.column()
