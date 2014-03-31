@@ -15,10 +15,14 @@ import bpy
 import sys
 import os
 import struct
+from bpy.types import Operator
+from bpy_extras.io_utils import ImportHelper
+from bpy.props import StringProperty, BoolProperty, EnumProperty
 
 class View3DMCPanel():
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+    bl_region_type = 'TOOLS'   
+  
 
 class OscEPc2ExporterPanel(View3DMCPanel, bpy.types.Panel):    
     """
@@ -28,7 +32,6 @@ class OscEPc2ExporterPanel(View3DMCPanel, bpy.types.Panel):
     bl_region_type = 'TOOLS'
     """
     bl_category = "Mesh Cache Tools"
-    #bl_context = "objectmode"
     bl_label = "Mesh Cache Tools"
 
     def draw(self, context):
@@ -37,8 +40,7 @@ class OscEPc2ExporterPanel(View3DMCPanel, bpy.types.Panel):
         obj = context.object
         row = layout.column(align=1)
         row.prop(bpy.context.scene, "muu_pc2_folder", text="Folder")
-        row.operator("import_shape.pc2_copy", icon='FILESEL', text="Set Filepath")
-        row.prop(bpy.context.scene, "muu_pc2_relative_path", text="Relative Path (Optional):")
+        row.operator("buttons.set_meshcache_folder", icon='FILESEL', text="Select Folder Path")
         row = layout.box().column(align=1)
         row.label("EXPORTER:")
         row.operator("group.linked_group_to_local", text="Linked To Local", icon="LINKED")
@@ -53,6 +55,23 @@ class OscEPc2ExporterPanel(View3DMCPanel, bpy.types.Panel):
         row.label("IMPORTER:")
         row.operator("import_shape.pc2_selection", text="Import", icon="POSE_DATA")
         row.operator("object.modifier_mesh_cache_up", text="MC Top", icon="TRIA_UP")
+
+def OscSetFolder(context, filepath):
+    fp =  filepath if os.path.isdir(filepath) else  os.path.dirname(filepath)
+    for sc in bpy.data.scenes:
+        sc.muu_pc2_folder = fp
+    return {'FINISHED'}
+
+
+class OscMeshCacheButtonSet(Operator, ImportHelper):
+    bl_idname = "buttons.set_meshcache_folder"  
+    bl_label = "Set Mesh Cache Folder"
+    filename_ext = ".txt"
+
+
+    def execute(self, context):
+        return OscSetFolder(context, self.filepath)
+
 
 def OscFuncExportPc2(self):
     start = bpy.context.scene.muu_pc2_start
@@ -150,26 +169,6 @@ class OscPc2iMporterBatch(bpy.types.Operator):
 
         return {'FINISHED'}
 
-class OscPc2iMporterCopy(bpy.types.Operator):
-    bl_idname = "import_shape.pc2_copy"
-    bl_label = "Copy Filepath"
-    bl_description = "Copy Filepath"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        filefolder = os.path.dirname(bpy.data.filepath)
-        os.chdir(filefolder)
-        if bpy.context.scene.muu_pc2_relative_path != "":
-            if os.path.exists("%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path))):
-                print("Folder Already Exists.")
-            else:
-                os.mkdir("%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path)))
-            bpy.context.scene.muu_pc2_folder = "%s" % (os.path.join(filefolder,bpy.context.scene.muu_pc2_relative_path))
-        else:
-            bpy.context.scene.muu_pc2_folder = "%s" % (filefolder)
-
-        return {'FINISHED'}
-
 def OscLinkedGroupToLocal():
     ACTOBJ = bpy.context.active_object
     GROBJS = [ob for ob in ACTOBJ.id_data.dupli_group.objects[:] if ob.type == "MESH"]
@@ -245,7 +244,6 @@ def register():
     Scene.muu_pc2_end = IntProperty(default=100, name="Frame End")
     Scene.muu_pc2_group = StringProperty()
     Scene.muu_pc2_folder = StringProperty(default="Set me Please!")
-    Scene.muu_pc2_relative_path = StringProperty(default="")
 
     bpy.utils.register_module(__name__)
 
@@ -261,7 +259,6 @@ def unregister():
     del Scene.muu_pc2_end
     del Scene.muu_pc2_group
     del Scene.muu_pc2_folder
-    del Scene.muu_pc2_relative_path
 
     bpy.utils.unregister_module(__name__)
 
