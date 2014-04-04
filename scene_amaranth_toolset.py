@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Amaranth Toolset",
     "author": "Pablo Vazquez, Bassam Kurdali, Sergey Sharybin",
-    "version": (0, 8, 4),
+    "version": (0, 8, 8),
     "blender": (2, 70),
     "location": "Everywhere!",
     "description": "A collection of tools and settings to improve productivity",
@@ -32,7 +32,9 @@ bl_info = {
 import bpy
 import bmesh
 from bpy.types import Operator, AddonPreferences, Panel, Menu
-from bpy.props import BoolProperty
+from bpy.props import (BoolProperty, EnumProperty,
+                       FloatProperty, IntProperty,
+                       StringProperty)
 from mathutils import Vector
 from bpy.app.handlers import persistent
 from bl_operators.presets import AddPresetBase
@@ -141,7 +143,7 @@ def init_properties():
         default=True,
         description="If disabled, display all available indices")
 
-    test_items = [
+    nodes_compo_types = [
         ("ALL", "All Types", "", 0),
         ("BLUR", "Blur", "", 1),
         ("BOKEHBLUR", "Bokeh Blur", "", 2),
@@ -150,8 +152,8 @@ def init_properties():
         ("R_LAYERS", "Render Layer", "", 5)
         ]
 
-    nodes_compo.types = bpy.props.EnumProperty(
-        items=test_items, name = "Types")
+    nodes_compo.types = EnumProperty(
+        items=nodes_compo_types, name = "Types")
 
     nodes_compo.toggle_mute = BoolProperty(default=False)
     node.status = BoolProperty(default=False)
@@ -174,9 +176,11 @@ def init_properties():
         ("BACKGROUND", "Background", "", 12),
         ("AMBIENT_OCCLUSION", "Ambient Occlusion", "", 13),
         ("HOLDOUT", "Holdout", "", 14),
+        ("VOLUME_ABSORPTION", "Volume Absorption", "", 15),
+        ("VOLUME_SCATTER", "Volume Scatter", "", 16)
         ]
 
-    scene.amaranth_cycles_node_types = bpy.props.EnumProperty(
+    scene.amaranth_cycles_node_types = EnumProperty(
         items=cycles_shader_node_types, name = "Shader")
 
     scene.amaranth_debug_scene_list_lamps = BoolProperty(
@@ -189,6 +193,18 @@ def init_properties():
         name="List Missing Images",
         description="Display a list of all the missing images")
 
+    scene.amaranth_cycles_list_sampling = BoolProperty(
+        default=False,
+        name="Samples Per:")
+
+    bpy.types.ShaderNodeNormal.normal_vector = prop_normal_vector
+    bpy.types.CompositorNodeNormal.normal_vector = prop_normal_vector
+    
+    bpy.types.CyclesRenderSettings.use_samples_final = BoolProperty(
+        name="Use Final Render Samples",
+        description="Use current shader samples as final render samples",
+        default=False,)
+
 
 def clear_properties():
     props = (
@@ -196,7 +212,15 @@ def clear_properties():
         "simplify_status",
         "use_matching_indices",
         "use_simplify_nodes_vector",
-        "status"
+        "status",
+        "types",
+        "toggle_mute",
+        "amaranth_cycles_node_types",
+        "amaranth_debug_scene_list_lamps",
+        "amaranth_debug_scene_list_missing_images",
+        "amarath_cycles_list_sampling",
+        "normal_vector",
+        "use_samples_final"
     )
     
     wm = bpy.context.window_manager
@@ -204,8 +228,35 @@ def clear_properties():
         if p in wm:
             del wm[p]
 
+# Some settings are bound to be saved on a startup py file
+def amaranth_text_startup(context):
+
+    amth_text_name = "AmaranthStartup.py"
+    amth_text_exists = False
+
+    global amth_text
+
+    try:
+        for tx in bpy.data.texts:
+            if tx.name == amth_text_name:
+                amth_text_exists = True
+                amth_text = bpy.data.texts[amth_text_name]
+                break
+            else:
+                amth_text_exists = False
+                bpy.ops.text.new()
+                amth_text = bpy.data.texts[-1]
+                amth_text.name = amth_text_name
+                amth_text.write("# Amaranth Startup Script\nimport bpy\n\n")
+                amth_text.use_module = True
+                break
+
+        return amth_text_exists
+    except AttributeError:
+        return None
+
 # FEATURE: Refresh Scene!
-class SCENE_OT_refresh(Operator):
+class AMTH_SCENE_OT_refresh(Operator):
     """Refresh the current scene"""
     bl_idname = "scene.refresh"
     bl_label = "Refresh!"
@@ -228,7 +279,7 @@ def button_refresh(self, context):
     if preferences.use_scene_refresh:
         self.layout.separator()
         self.layout.operator(
-            SCENE_OT_refresh.bl_idname,
+            AMTH_SCENE_OT_refresh.bl_idname,
             text="Refresh!",
             icon='FILE_REFRESH')
 # // FEATURE: Refresh Scene!
@@ -243,7 +294,7 @@ def save_reload(self, context, path):
     else:
         bpy.ops.wm.save_as_mainfile("INVOKE_AREA")
 
-class WM_OT_save_reload(Operator):
+class AMTH_WM_OT_save_reload(Operator):
     """Save and Reload the current blend file"""
     bl_idname = "wm.save_reload"
     bl_label = "Save & Reload"
@@ -261,7 +312,7 @@ def button_save_reload(self, context):
     if preferences.use_file_save_reload:
         self.layout.separator()
         self.layout.operator(
-            WM_OT_save_reload.bl_idname,
+            AMTH_WM_OT_save_reload.bl_idname,
             text="Save & Reload",
             icon='FILE_REFRESH')
 # // FEATURE: Save & Reload
@@ -308,7 +359,7 @@ def label_timeline_extra_info(self, context):
 # // FEATURE: Timeline Time + Frames Left
 
 # FEATURE: Directory Current Blend
-class FILE_OT_directory_current_blend(Operator):
+class AMTH_FILE_OT_directory_current_blend(Operator):
     """Go to the directory of the currently open blend file"""
     bl_idname = "file.directory_current_blend"
     bl_label = "Current Blend's Folder"
@@ -321,13 +372,13 @@ def button_directory_current_blend(self, context):
 
     if bpy.data.filepath:
         self.layout.operator(
-            FILE_OT_directory_current_blend.bl_idname,
+            AMTH_FILE_OT_directory_current_blend.bl_idname,
             text="Current Blend's Folder",
             icon='APPEND_BLEND')
 # // FEATURE: Directory Current Blend
 
 # FEATURE: Libraries panel on file browser
-class FILE_PT_libraries(Panel):
+class AMTH_FILE_PT_libraries(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'CHANNELS'
     bl_label = "Libraries"
@@ -350,37 +401,37 @@ class FILE_PT_libraries(Panel):
         libslist = sorted(libslist)
 
         # Draw the box with libs
-        
+
         row = layout.row()
         box = row.box()
-       
+
         if libslist:
+            col = box.column()
             for filepath in libslist:
                 if filepath != '//':
-                    row = box.row()
+                    row = col.row()
                     row.alignment = 'LEFT'
                     props = row.operator(
-                        FILE_OT_directory_go_to.bl_idname,
+                        AMTH_FILE_OT_directory_go_to.bl_idname,
                         text=filepath, icon="BOOKMARKS",
                         emboss=False)
                     props.filepath = filepath
         else:
             box.label(text='No libraries loaded')
 
-class FILE_OT_directory_go_to(Operator):
+class AMTH_FILE_OT_directory_go_to(Operator):
     """Go to this library's directory"""
     bl_idname = "file.directory_go_to"
     bl_label = "Go To"
-    
+
     filepath = bpy.props.StringProperty(subtype="FILE_PATH")
 
     def execute(self, context):
-
         bpy.ops.file.select_bookmark(dir=self.filepath)
         return {'FINISHED'}
-    
+
 # FEATURE: Node Templates
-class NODE_OT_AddTemplateVignette(Operator):
+class AMTH_NODE_OT_AddTemplateVignette(Operator):
     bl_idname = "node.template_add_vignette"
     bl_label = "Add Vignette"
     bl_description = "Add a vignette effect"
@@ -456,8 +507,8 @@ class NODE_OT_AddTemplateVignette(Operator):
         return {'FINISHED'}
 
 # Node Templates Menu
-class NODE_MT_amaranth_templates(Menu):
-    bl_idname = 'NODE_MT_amaranth_templates'
+class AMTH_NODE_MT_amaranth_templates(Menu):
+    bl_idname = 'AMTH_NODE_MT_amaranth_templates'
     bl_space_type = 'NODE_EDITOR'
     bl_label = "Templates"
     bl_description = "List of Amaranth Templates"
@@ -465,7 +516,7 @@ class NODE_MT_amaranth_templates(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator(
-            NODE_OT_AddTemplateVignette.bl_idname,
+            AMTH_NODE_OT_AddTemplateVignette.bl_idname,
             text="Vignette",
             icon='COLOR')
 
@@ -475,7 +526,7 @@ def node_templates_pulldown(self, context):
         layout = self.layout
         row = layout.row(align=True)
         row.scale_x = 1.3
-        row.menu("NODE_MT_amaranth_templates",
+        row.menu("AMTH_NODE_MT_amaranth_templates",
             icon="RADIO")
 # // FEATURE: Node Templates
 
@@ -495,7 +546,7 @@ def node_stats(self,context):
             row.label(text="Nodes: %s/%s" % (nodes_selected, str(nodes_total)))
 
 # FEATURE: Simplify Compo Nodes
-class NODE_PT_simplify(Panel):
+class AMTH_NODE_PT_simplify(Panel):
     '''Simplify Compositor Panel'''
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -515,7 +566,7 @@ class NODE_PT_simplify(Panel):
 
         if node_tree is not None:
             layout.prop(node_tree, 'types')
-            layout.operator(NODE_OT_toggle_mute.bl_idname,
+            layout.operator(AMTH_NODE_OT_toggle_mute.bl_idname,
                 text="Turn On" if node_tree.toggle_mute else "Turn Off",
                 icon='RESTRICT_VIEW_OFF' if node_tree.toggle_mute else 'RESTRICT_VIEW_ON')
         
@@ -523,7 +574,7 @@ class NODE_PT_simplify(Panel):
                 layout.label(text="This will also toggle the Vector pass {}".format(
                                     "on" if node_tree.toggle_mute else "off"), icon="INFO")
 
-class NODE_OT_toggle_mute(Operator):
+class AMTH_NODE_OT_toggle_mute(Operator):
     """"""
     bl_idname = "node.toggle_mute"
     bl_label = "Toggle Mute"
@@ -581,7 +632,7 @@ class NODE_OT_toggle_mute(Operator):
         
 
 # FEATURE: OB/MA ID panel in Node Editor
-class NODE_PT_indices(Panel):
+class AMTH_NODE_PT_indices(Panel):
     '''Object / Material Indices Panel'''
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -742,13 +793,13 @@ def stats_scene(self, context):
                                 if no.type == 'EMISSION':
                                     for ou in no.outputs:
                                         if ou.links:
-                                            meshlights = meshlights + 1
+                                            meshlights += 1
                                             if ob in context.visible_objects:
-                                                meshlights_visible = meshlights_visible + 1
+                                                meshlights_visible += 1
                                             break
             if ob in context.selected_objects:
                 if ob.type == 'CAMERA':
-                    cameras_selected = cameras_selected + 1
+                    cameras_selected += 1
     
         meshlights_string = '| Meshlights:{}/{}'.format(meshlights_visible, meshlights)
     
@@ -760,7 +811,7 @@ def stats_scene(self, context):
 # //FEATURE: Extra Info Stats
 
 # FEATURE: Camera Bounds as Render Border
-class VIEW3D_OT_render_border_camera(Operator):
+class AMTH_VIEW3D_OT_render_border_camera(Operator):
     """Set camera bounds as render border"""
     bl_idname = "view3d.render_border_camera"
     bl_label = "Camera as Render Border"
@@ -786,7 +837,7 @@ def button_render_border_camera(self, context):
     if view3d.view_perspective == 'CAMERA':
         layout = self.layout
         layout.separator()
-        layout.operator(VIEW3D_OT_render_border_camera.bl_idname,
+        layout.operator(AMTH_VIEW3D_OT_render_border_camera.bl_idname,
                         text="Camera as Render Border", icon="FULLSCREEN_ENTER")
 
 # //FEATURE: Camera Bounds as Render Border
@@ -805,7 +856,7 @@ def button_camera_passepartout(self, context):
             layout.prop(cam, "show_passepartout")
 
 # FEATURE: Show Only Render with Alt+Shift+Z
-class VIEW3D_OT_show_only_render(Operator):
+class AMTH_VIEW3D_OT_show_only_render(Operator):
     bl_idname = "view3d.show_only_render"
     bl_label = "Show Only Render"
 
@@ -825,7 +876,7 @@ image_nodes = {"CompositorNodeImage",
                "ShaderNodeTexImage",
                "ShaderNodeTexEnvironment"}
 
-class NODE_OT_show_active_node_image(Operator):
+class AMTH_NODE_OT_show_active_node_image(Operator):
     """Show active image node image in the image editor"""
     bl_idname = "node.show_active_node_image"
     bl_label = "Show Active Node Node"
@@ -848,7 +899,7 @@ class NODE_OT_show_active_node_image(Operator):
 # // FEATURE: Display Active Image Node on Image Editor
 
 # FEATURE: Select Meshlights
-class OBJECT_OT_select_meshlights(Operator):
+class AMTH_OBJECT_OT_select_meshlights(Operator):
     """Select light emitting meshes"""
     bl_idname = "object.select_meshlights"
     bl_label = "Select Meshlights"
@@ -884,7 +935,7 @@ def button_select_meshlights(self, context):
 # // FEATURE: Select Meshlights
 
 # FEATURE: Mesh Symmetry Tools by Sergey Sharybin
-class MESH_OT_find_asymmetric(Operator):
+class AMTH_MESH_OT_find_asymmetric(Operator):
     """
     Find asymmetric vertices
     """
@@ -935,7 +986,7 @@ class MESH_OT_find_asymmetric(Operator):
 
         return {'FINISHED'}
 
-class MESH_OT_make_symmetric(Operator):
+class AMTH_MESH_OT_make_symmetric(Operator):
     """
     Make symmetric
     """
@@ -1017,58 +1068,100 @@ def render_cycles_scene_samples(self, context):
     scenes = bpy.data.scenes
     scene = context.scene
     cscene = scene.cycles
+    render = scene.render
+    list_sampling = scene.amaranth_cycles_list_sampling
 
-    col = layout.column(align=True)
+    if cscene.progressive == 'BRANCHED_PATH':
+        layout.separator()
+        split = layout.split()
+        col = split.column()
 
-    if len(scene.render.layers) == 1 and \
-        scene.render.layers[0].samples == 0:
-        pass
-    else:
-        col.separator()
-        col.label(text="Samples Per RenderLayer:")
+        col.operator(
+            AMTH_RENDER_OT_cycles_samples_percentage_set.bl_idname,
+            text="%s" % 'Set as Render Samples' if cscene.use_samples_final else 'Set New Render Samples',
+            icon="%s" % 'PINNED' if cscene.use_samples_final else 'UNPINNED')
 
-        for rl in scene.render.layers:
-            row = col.row(align=True)
-            row.label(rl.name)
-            row.prop(rl, "samples", text="%s" %
-                "Samples" if rl.samples > 0 else "Samples [Auto]")
-
-    if (len(bpy.data.scenes) > 1):
-        col.separator()
-
-        col.label(text="Samples Per Scene:")
+        col = split.column()
         row = col.row(align=True)
+        row.enabled = True if scene.get('amth_cycles_samples_final') else False
 
-        if cscene.progressive == 'PATH':
-            for s in bpy.data.scenes:
-                if s != scene:
-                    row = col.row(align=True)
-                    if s.render.engine == 'CYCLES':
-                        cscene = s.cycles
+        row.operator(
+            AMTH_RENDER_OT_cycles_samples_percentage.bl_idname,
+            text="100%").percent=100
+        row.operator(
+            AMTH_RENDER_OT_cycles_samples_percentage.bl_idname,
+            text="75%").percent=75
+        row.operator(
+            AMTH_RENDER_OT_cycles_samples_percentage.bl_idname,
+            text="50%").percent=50
+        row.operator(
+            AMTH_RENDER_OT_cycles_samples_percentage.bl_idname,
+            text="25%").percent=25
 
-                        row.label(s.name)
-                        row.prop(cscene, "samples")
-                    else:
-                        row.label(text="Scene: '%s' is not using Cycles" % s.name)
+    # List Lamps
+    if (len(scene.render.layers) > 1) or \
+        (len(bpy.data.scenes) > 1):
+
+        layout.separator()
+        box = layout.box()
+        row = box.row(align=True)
+        col = row.column(align=True)
+
+        row = col.row(align=True)
+        row.alignment = 'LEFT'
+        row.prop(scene, 'amaranth_cycles_list_sampling',
+                    icon="%s" % 'TRIA_DOWN' if list_sampling else 'TRIA_RIGHT',
+                    emboss=False)
+
+    if list_sampling:
+        if len(scene.render.layers) == 1 and \
+            render.layers[0].samples == 0:
+            pass
         else:
-            for s in bpy.data.scenes:
-                if s != scene:
-                    row = col.row(align=True)
-                    if s.render.engine == 'CYCLES':
-                        cscene = s.cycles
+            col.separator()
+            col.label(text="RenderLayers:", icon='RENDERLAYERS')
 
-                        row.label(s.name)
-                        row.prop(cscene, "aa_samples",
-                            text="AA Samples")
-                    else:
-                        row.label(text="Scene: '%s' is not using Cycles" % s.name)
+            for rl in scene.render.layers:
+                row = col.row(align=True)
+                row.label(rl.name, icon='BLANK1')
+                row.prop(rl, "samples", text="%s" %
+                    "Samples" if rl.samples > 0 else "Automatic (%s)" % (
+                        cscene.aa_samples if cscene.progressive == 'BRANCHED_PATH' else cscene.samples))
 
-# // FEATURE: Dupli  Group Path
+        if (len(bpy.data.scenes) > 1):
+            col.separator()
+
+            col.label(text="Scenes:", icon='SCENE_DATA')
+            row = col.row(align=True)
+
+            if cscene.progressive == 'PATH':
+                for s in bpy.data.scenes:
+                    if s != scene:
+                        row = col.row(align=True)
+                        if s.render.engine == 'CYCLES':
+                            cscene = s.cycles
+
+                            row.label(s.name)
+                            row.prop(cscene, "samples", icon='BLANK1')
+                        else:
+                            row.label(text="Scene: '%s' is not using Cycles" % s.name)
+            else:
+                for s in bpy.data.scenes:
+                    if s != scene:
+                        row = col.row(align=True)
+                        if s.render.engine == 'CYCLES':
+                            cscene = s.cycles
+
+                            row.label(s.name, icon='BLANK1')
+                            row.prop(cscene, "aa_samples",
+                                text="AA Samples")
+                        else:
+                            row.label(text="Scene: '%s' is not using Cycles" % s.name)
 
 # // FEATURE: Cycles Render Sampling Extra
 
 # FEATURE: Motion Paths Extras
-class POSE_OT_paths_clear_all(Operator):
+class AMTH_POSE_OT_paths_clear_all(Operator):
     """Clear motion paths from all bones"""
     bl_idname = "pose.paths_clear_all"
     bl_label = "Clear All Motion Paths"
@@ -1086,7 +1179,7 @@ class POSE_OT_paths_clear_all(Operator):
             b.select = False
         return {'FINISHED'}
 
-class POSE_OT_paths_frame_match(Operator):
+class AMTH_POSE_OT_paths_frame_match(Operator):
     """Match Start/End frame of scene to motion path range"""
     bl_idname = "pose.paths_frame_match"
     bl_label = "Match Frame Range"
@@ -1139,7 +1232,7 @@ def pose_motion_paths_ui(self, context):
         col.label(text="Select Bones First", icon="ERROR")
 
     col = split.column(align=True)
-    col.operator(POSE_OT_paths_frame_match.bl_idname,
+    col.operator(AMTH_POSE_OT_paths_frame_match.bl_idname,
         text="{}".format( "Set Preview Frame Range"
                 if scene.use_preview_range else "Set Frame Range"),
         icon="{}".format("PREVIEW_RANGE"
@@ -1156,7 +1249,7 @@ def pose_motion_paths_ui(self, context):
         row.prop(avs.motion_path, "frame_after", text="After")
 
     layout.separator()
-    layout.operator(POSE_OT_paths_clear_all.bl_idname, icon="X")
+    layout.operator(AMTH_POSE_OT_paths_clear_all.bl_idname, icon="X")
 # // FEATURE: Motion Paths Extras
 
 # FEATURE: Final Render Resolution Display
@@ -1199,7 +1292,7 @@ def node_shader_extra(self, context):
 # // FEATURE: Shader Nodes Extra Info
 
 # FEATURE: Scene Debug
-class SCENE_OT_cycles_shader_list_nodes(Operator):
+class AMTH_SCENE_OT_cycles_shader_list_nodes(Operator):
     """List Cycles materials containing a specific shader"""
     bl_idname = "scene.cycles_list_nodes"
     bl_label = "List Materials"
@@ -1213,39 +1306,70 @@ class SCENE_OT_cycles_shader_list_nodes(Operator):
         node_type = context.scene.amaranth_cycles_node_types
         roughness = False
         self.__class__.materials = []
+        shaders_roughness = ['BSDF_GLOSSY','BSDF_DIFFUSE','BSDF_GLASS']
 
         print("\n=== Cycles Shader Type: %s === \n" % node_type)
 
         for ma in bpy.data.materials:
             if ma.node_tree:
                 nodes = ma.node_tree.nodes
+                
+                print_unconnected = ('Note: \nOutput from "%s" node' % node_type,
+                                        'in material "%s"' % ma.name, 'not connected\n')
+
                 for no in nodes:
                     if no.type == node_type:
                         for ou in no.outputs:
                             if ou.links:
-                                if no.type in ['BSDF_GLOSSY','BSDF_DIFFUSE','BSDF_GLASS']:
+                                connected = True
+                                if no.type in shaders_roughness:
                                     roughness = 'R: %.4f' % no.inputs['Roughness'].default_value
                                 else:
                                     roughness = False
                             else:
-                                print('Note: \nOutput from "%s" node' % node_type,
-                                      'in material "%s"' % ma.name,
-                                      'not connected',
-                                      '\n')
-
-                            self.__class__.materials = sorted(list(set(self.__class__.materials)))
+                                connected = False
+                                print(print_unconnected)
 
                             if ma.name not in self.__class__.materials:
-                                self.__class__.materials.append('%s%s [%s] %s%s' % (
+                                self.__class__.materials.append('%s%s [%s] %s%s%s' % (
                                     '[L] ' if ma.library else '',
                                     ma.name, ma.users,
                                     '[F]' if ma.use_fake_user else '',
-                                    ' - [%s]' % roughness if roughness else ''))
+                                    ' - [%s]' % roughness if roughness else '',
+                                    ' * Output not connected' if not connected else ''))
+
+                    elif no.type == 'GROUP':
+                        if no.node_tree:
+                            for nog in no.node_tree.nodes:
+                                if nog.type == node_type:
+                                    for ou in nog.outputs:
+                                        if ou.links:
+                                            connected = True
+                                            if nog.type in shaders_roughness:
+                                                roughness = 'R: %.4f' % nog.inputs['Roughness'].default_value
+                                            else:
+                                                roughness = False
+                                        else:
+                                            connected = False
+                                            print(print_unconnected)
+
+                                        if ma.name not in self.__class__.materials:
+                                            self.__class__.materials.append('%s%s%s [%s] %s%s%s' % (
+                                                '[L] ' if ma.library else '',
+                                                'Node Group:  %s%s  ->  ' % (
+                                                    '[L] ' if no.node_tree.library else '',
+                                                    no.node_tree.name),
+                                                ma.name, ma.users,
+                                                '[F]' if ma.use_fake_user else '',
+                                                ' - [%s]' % roughness if roughness else '',
+                                                ' * Output not connected' if not connected else ''))
+
+                    self.__class__.materials = sorted(list(set(self.__class__.materials)))
 
         if len(self.__class__.materials) == 0:
             self.report({"INFO"}, "No materials with nodes type %s found" % node_type)
         else:
-            print("* A total of %d %s using %s were found \n" % (
+            print("* A total of %d %s using %s was found \n" % (
                     len(self.__class__.materials),
                     "material" if len(self.__class__.materials) == 1 else "materials",
                     node_type))
@@ -1261,17 +1385,17 @@ class SCENE_OT_cycles_shader_list_nodes(Operator):
 
         return {'FINISHED'}
 
-class SCENE_OT_cycles_shader_list_nodes_clear(Operator):
+class AMTH_SCENE_OT_cycles_shader_list_nodes_clear(Operator):
     """Clear the list below"""
     bl_idname = "scene.cycles_list_nodes_clear"
     bl_label = "Clear Materials List"
     
     def execute(self, context):
-        SCENE_OT_cycles_shader_list_nodes.materials[:] = []
+        AMTH_SCENE_OT_cycles_shader_list_nodes.materials[:] = []
         print("* Cleared Cycles Materials List")
         return {'FINISHED'}
 
-class SCENE_OT_amaranth_debug_lamp_select(Operator):
+class AMTH_SCENE_OT_amaranth_debug_lamp_select(Operator):
     '''Select Lamp'''
     bl_idname = "scene.amaranth_debug_lamp_select"
     bl_label = "Select Lamp"
@@ -1287,20 +1411,23 @@ class SCENE_OT_amaranth_debug_lamp_select(Operator):
 
         return{'FINISHED'}
 
-class SCENE_OT_list_missing_node_links(Operator):
+class AMTH_SCENE_OT_list_missing_node_links(Operator):
     '''Print a list of missing node links'''
     bl_idname = "scene.list_missing_node_links"
     bl_label = "List Missing Node Links"
 
     count_groups = 0
     count_images = 0
+    count_image_node_unlinked = 0
 
     def execute(self, context):
         missing_groups = []
         missing_images = []
+        image_nodes_unlinked = []
         libraries = []
         self.__class__.count_groups = 0
         self.__class__.count_images = 0
+        self.__class__.count_image_node_unlinked = 0
 
         for ma in bpy.data.materials:
             if ma.node_tree:
@@ -1329,14 +1456,18 @@ class SCENE_OT_list_missing_node_links(Operator):
                             if ma.library:
                                 libraries.append(ma.library.filepath)
                     if no.type == 'TEX_IMAGE':
+
+                        outputs_empty = not no.outputs['Color'].is_linked and not no.outputs['Alpha'].is_linked
+
                         if no.image:
                             import os.path
                             image_path_exists = os.path.exists(
                                                     bpy.path.abspath(
                                                         no.image.filepath, library=no.image.library))
 
-                        if not no.image or not image_path_exists:
-                            self.__class__.count_images += 1
+                        if outputs_empty or not \
+                           no.image or not \
+                           image_path_exists:
 
                             users_images = []
 
@@ -1347,29 +1478,51 @@ class SCENE_OT_list_missing_node_links(Operator):
                                         "[F] " if ob.use_fake_user else "",
                                         ob.name))
 
-                            missing_images.append("MA: %s%s%s [%s]%s%s%s%s\n" % (
-                                "[L] " if ma.library else "",
-                                "[F] " if ma.use_fake_user else "",
-                                ma.name, ma.users,
-                                "\nLI: %s" % 
-                                ma.library.filepath if ma.library else "",
-                                "\nIM: %s" % no.image.name if no.image else "",
-                                "\nLI: %s" % no.image.filepath if no.image and no.image.filepath else "",
-                                "\nOB: %s" % ',  '.join(users_images) if users_images else ""))
+                            if outputs_empty:
+                                self.__class__.count_image_node_unlinked += 1
 
-                            if ma.library:
-                                libraries.append(ma.library.filepath)
+                                image_nodes_unlinked.append("%s%s%s%s%s [%s]%s%s%s%s\n" % (
+                                    "NO: %s" % no.name,
+                                    "\nMA: ",
+                                    "[L] " if ma.library else "",
+                                    "[F] " if ma.use_fake_user else "",
+                                    ma.name, ma.users,
+                                    "\nLI: %s" % 
+                                    ma.library.filepath if ma.library else "",
+                                    "\nIM: %s" % no.image.name if no.image else "",
+                                    "\nLI: %s" % no.image.filepath if no.image and no.image.filepath else "",
+                                    "\nOB: %s" % ',  '.join(users_images) if users_images else ""))
+                            
+
+                            if not no.image or not image_path_exists:
+                                self.__class__.count_images += 1
+
+                                missing_images.append("MA: %s%s%s [%s]%s%s%s%s\n" % (
+                                    "[L] " if ma.library else "",
+                                    "[F] " if ma.use_fake_user else "",
+                                    ma.name, ma.users,
+                                    "\nLI: %s" % 
+                                    ma.library.filepath if ma.library else "",
+                                    "\nIM: %s" % no.image.name if no.image else "",
+                                    "\nLI: %s" % no.image.filepath if no.image and no.image.filepath else "",
+                                    "\nOB: %s" % ',  '.join(users_images) if users_images else ""))
+
+                                if ma.library:
+                                    libraries.append(ma.library.filepath)
 
         # Remove duplicates and sort
         missing_groups = sorted(list(set(missing_groups)))
         missing_images = sorted(list(set(missing_images)))
+        image_nodes_unlinked = sorted(list(set(image_nodes_unlinked)))
         libraries = sorted(list(set(libraries)))
 
-        print("\n\n== %s missing image %s and %s missing node %s ==" %
+        print("\n\n== %s missing image %s, %s missing node %s and %s image %s unlinked ==" %
             ("No" if self.__class__.count_images == 0 else str(self.__class__.count_images),
             "node" if self.__class__.count_images == 1 else "nodes",
             "no" if self.__class__.count_groups == 0 else str(self.__class__.count_groups),
-            "group" if self.__class__.count_groups == 1 else "groups"))
+            "group" if self.__class__.count_groups == 1 else "groups",
+            "no" if self.__class__.count_image_node_unlinked == 0 else str(self.__class__.count_image_node_unlinked),
+            "node" if self.__class__.count_groups == 1 else "nodes"))
 
         # List Missing Node Groups
         if missing_groups:
@@ -1384,7 +1537,16 @@ class SCENE_OT_list_missing_node_links(Operator):
             for mii in missing_images:
                 print(mii)
 
-        if missing_groups or missing_images:
+        # List Image Nodes with its outputs unlinked
+        if image_nodes_unlinked:
+            print("\n* Image Nodes Unlinked [IM]\n")
+
+            for nou in image_nodes_unlinked:
+                print(nou)
+
+        if missing_groups or \
+           missing_images or \
+           image_nodes_unlinked:
             if libraries:
                 print("\nThat's bad, run check on %s:" % (
                     "this library" if len(libraries) == 1 else "these libraries"))
@@ -1402,15 +1564,17 @@ class SCENE_OT_list_missing_node_links(Operator):
 
         return{'FINISHED'}
 
-class SCENE_OT_list_missing_material_slots(Operator):
+class AMTH_SCENE_OT_list_missing_material_slots(Operator):
     '''List objects with empty material slots'''
     bl_idname = "scene.list_missing_material_slots"
     bl_label = "List Empty Material Slots"
- 
+
     objects = []
- 
+    libraries = []
+
     def execute(self, context):
         self.__class__.objects = []
+        self.__class__.libraries = []
 
         for ob in bpy.data.objects:
             for ma in ob.material_slots:
@@ -1418,7 +1582,11 @@ class SCENE_OT_list_missing_material_slots(Operator):
                     self.__class__.objects.append('%s%s' % (
                         '[L] ' if ob.library else '',
                         ob.name))
+                    if ob.library:
+                        self.__class__.libraries.append(ob.library.filepath)
+
         self.__class__.objects = sorted(list(set(self.__class__.objects)))
+        self.__class__.libraries = sorted(list(set(self.__class__.libraries)))
 
         if len(self.__class__.objects) == 0:
             self.report({"INFO"}, "No objects with empty material slots found")
@@ -1428,25 +1596,37 @@ class SCENE_OT_list_missing_material_slots(Operator):
                     "object" if len(self.__class__.objects) == 1 else "objects"))
 
             count = 0
+            count_lib = 0
 
             for obs in self.__class__.objects:
-                print('%02d. %s' % (count+1, self.__class__.objects[count]))
+                print('%02d. %s' % (
+                    count+1, self.__class__.objects[count]))
                 count += 1
+
+            if self.__class__.libraries:
+                print("\n\n* Check %s:\n" % 
+                    ("this library" if len(self.__class__.libraries) == 1
+                        else "these libraries"))
+
+                for libs in self.__class__.libraries:
+                    print('%02d. %s' % (
+                        count_lib+1, self.__class__.libraries[count_lib]))
+                    count_lib += 1
             print("\n")
 
         return{'FINISHED'}
 
-class SCENE_OT_list_missing_material_slots_clear(Operator):
+class AMTH_SCENE_OT_list_missing_material_slots_clear(Operator):
     """Clear the list below"""
     bl_idname = "scene.list_missing_material_slots_clear"
     bl_label = "Clear Empty Material Slots List"
     
     def execute(self, context):
-        SCENE_OT_list_missing_material_slots.objects[:] = []
+        AMTH_SCENE_OT_list_missing_material_slots.objects[:] = []
         print("* Cleared Empty Material Slots List")
         return {'FINISHED'}
 
-class SCENE_OT_blender_instance_open(Operator):
+class AMTH_SCENE_OT_blender_instance_open(Operator):
     '''Open in a new Blender instance'''
     bl_idname = "scene.blender_instance_open"
     bl_label = "Open Blender Instance"
@@ -1466,7 +1646,7 @@ class SCENE_OT_blender_instance_open(Operator):
 
         return{'FINISHED'}
 
-class SCENE_PT_scene_debug(Panel):
+class AMTH_SCENE_PT_scene_debug(Panel):
     '''Scene Debug'''
     bl_label = 'Scene Debug'
     bl_space_type = "PROPERTIES"
@@ -1483,10 +1663,11 @@ class SCENE_PT_scene_debug(Panel):
         images_missing = []
         list_lamps = scene.amaranth_debug_scene_list_lamps
         list_missing_images = scene.amaranth_debug_scene_list_missing_images
-        materials = SCENE_OT_cycles_shader_list_nodes.materials
-        materials_count = len(SCENE_OT_cycles_shader_list_nodes.materials)
-        missing_material_slots_obs = SCENE_OT_list_missing_material_slots.objects
-        missing_material_slots_count = len(SCENE_OT_list_missing_material_slots.objects)
+        materials = AMTH_SCENE_OT_cycles_shader_list_nodes.materials
+        materials_count = len(AMTH_SCENE_OT_cycles_shader_list_nodes.materials)
+        missing_material_slots_obs = AMTH_SCENE_OT_list_missing_material_slots.objects
+        missing_material_slots_count = len(AMTH_SCENE_OT_list_missing_material_slots.objects)
+        missing_material_slots_lib = AMTH_SCENE_OT_list_missing_material_slots.libraries
         engine = scene.render.engine
 
         # List Lamps
@@ -1538,7 +1719,6 @@ class SCENE_PT_scene_debug(Panel):
                         col = split.column()
                         row = col.row()
                         row.alignment = 'LEFT'
-                        row.active = ob.name in context.scene.objects
                         row.operator("scene.amaranth_debug_lamp_select",
                                     text='%s %s%s' % (
                                         " [L] " if ob.library else "",
@@ -1546,6 +1726,13 @@ class SCENE_PT_scene_debug(Panel):
                                         "" if ob.name in context.scene.objects else " [Not in Scene]"),
                                     icon="LAMP_%s" % ob.data.type,
                                     emboss=False).lamp = ob.name
+                        if ob.library:
+                            row = col.row(align=True)
+                            row.alignment = "LEFT"
+                            row.operator(AMTH_SCENE_OT_blender_instance_open.bl_idname,
+                                         text=ob.library.filepath,
+                                         icon="LINK_BLEND",
+                                         emboss=False).filepath=ob.library.filepath
 
                         if engine == 'CYCLES':
                             split = split.split(percentage=0.35)
@@ -1574,11 +1761,13 @@ class SCENE_PT_scene_debug(Panel):
 
                         if engine == 'CYCLES':
                             split = split.split(percentage=0.4)
-                            col = split.column()    
+                            col = split.column()
                             if lamp.type in ['POINT','SUN', 'SPOT']:
                                 col.label(text="%.2f" % lamp.shadow_soft_size)
                             elif lamp.type == 'HEMI':
                                 col.label(text="N/A")
+                            elif lamp.type == 'AREA' and lamp.shape == 'RECTANGLE':
+                                col.label(text="%.2fx%.2f" % (lamp.size, lamp.size_y))
                             else:
                                 col.label(text="%.2f" % lamp.size)
 
@@ -1645,7 +1834,7 @@ class SCENE_PT_scene_debug(Panel):
                         if mis[2]:
                             row = col.row(align=True)
                             row.alignment = "LEFT"
-                            row.operator(SCENE_OT_blender_instance_open.bl_idname,
+                            row.operator(AMTH_SCENE_OT_blender_instance_open.bl_idname,
                                          text=mis[2],
                                          icon="LINK_BLEND",
                                          emboss=False).filepath=mis[2]
@@ -1676,11 +1865,11 @@ class SCENE_PT_scene_debug(Panel):
                 icon="MATERIAL")
 
             row = split.row(align=True)
-            row.operator(SCENE_OT_cycles_shader_list_nodes.bl_idname,
+            row.operator(AMTH_SCENE_OT_cycles_shader_list_nodes.bl_idname,
                             icon="SORTSIZE",
                             text="List Materials Using Shader")
             if materials_count != 0: 
-                row.operator(SCENE_OT_cycles_shader_list_nodes_clear.bl_idname,
+                row.operator(AMTH_SCENE_OT_cycles_shader_list_nodes_clear.bl_idname,
                                 icon="X", text="")
             col.separator()
 
@@ -1706,25 +1895,30 @@ class SCENE_PT_scene_debug(Panel):
 
         split = col.split()
         split.label(text="Node Links")
-        split.operator(SCENE_OT_list_missing_node_links.bl_idname,
+        split.operator(AMTH_SCENE_OT_list_missing_node_links.bl_idname,
                         icon="NODETREE")
 
-        if SCENE_OT_list_missing_node_links.count_groups != 0 or \
-            SCENE_OT_list_missing_node_links.count_images != 0:
+        if AMTH_SCENE_OT_list_missing_node_links.count_groups != 0 or \
+            AMTH_SCENE_OT_list_missing_node_links.count_images != 0 or \
+            AMTH_SCENE_OT_list_missing_node_links.count_image_node_unlinked != 0:
             col.label(text="Warning! Check Console", icon="ERROR")
 
-        if SCENE_OT_list_missing_node_links.count_groups != 0:
+        if AMTH_SCENE_OT_list_missing_node_links.count_groups != 0:
             col.label(text="%s" % ("%s node %s missing link" % (
-                     str(SCENE_OT_list_missing_node_links.count_groups),
-                     "group" if SCENE_OT_list_missing_node_links.count_groups == 1 else "groups")),
+                     str(AMTH_SCENE_OT_list_missing_node_links.count_groups),
+                     "group" if AMTH_SCENE_OT_list_missing_node_links.count_groups == 1 else "groups")),
                      icon="NODETREE")
-        if SCENE_OT_list_missing_node_links.count_images != 0:
+        if AMTH_SCENE_OT_list_missing_node_links.count_images != 0:
             col.label(text="%s" % ("%s image %s missing link" % (
-                     str(SCENE_OT_list_missing_node_links.count_images),
-                     "node" if SCENE_OT_list_missing_node_links.count_images == 1 else "nodes")),
+                     str(AMTH_SCENE_OT_list_missing_node_links.count_images),
+                     "node" if AMTH_SCENE_OT_list_missing_node_links.count_images == 1 else "nodes")),
                      icon="IMAGE_DATA")
 
-        col.separator()
+        if AMTH_SCENE_OT_list_missing_node_links.count_image_node_unlinked != 0:
+            col.label(text="%s" % ("%s image %s with no output conected" % (
+                     str(AMTH_SCENE_OT_list_missing_node_links.count_image_node_unlinked),
+                     "node" if AMTH_SCENE_OT_list_missing_node_links.count_image_node_unlinked == 1 else "nodes")),
+                     icon="NODE")
 
         # List Empty Materials Slots
         box = layout.box()
@@ -1733,11 +1927,11 @@ class SCENE_PT_scene_debug(Panel):
         col.label(text="Material Slots")
 
         row = split.row(align=True)
-        row.operator(SCENE_OT_list_missing_material_slots.bl_idname,
+        row.operator(AMTH_SCENE_OT_list_missing_material_slots.bl_idname,
                         icon="MATERIAL",
                         text="List Empty Materials Slots")
         if missing_material_slots_count != 0: 
-            row.operator(SCENE_OT_list_missing_material_slots_clear.bl_idname,
+            row.operator(AMTH_SCENE_OT_list_missing_material_slots_clear.bl_idname,
                             icon="X", text="")
         col.separator()
 
@@ -1749,6 +1943,7 @@ class SCENE_PT_scene_debug(Panel):
             if missing_material_slots_count != 0: 
                 col = box.column(align=True)
                 count = 0
+                count_lib = 0
                 col.label(text="%s %s with empty material slots found" % (
                     missing_material_slots_count,
                     'object' if missing_material_slots_count == 1 else 'objects'),
@@ -1760,25 +1955,42 @@ class SCENE_PT_scene_debug(Panel):
                         missing_material_slots_obs[count-1]),
                         icon="OBJECT_DATA")
 
+                if missing_material_slots_lib:
+                    col.separator()
+                    col.label("Check %s:" % (
+                        "this library" if
+                            len(missing_material_slots_lib) == 1
+                                else "these libraries"))
+                    
+                    for libs in missing_material_slots_lib:
+                        count_lib += 1
+                        row = col.row(align=True)
+                        row.alignment = "LEFT"
+                        row.operator(AMTH_SCENE_OT_blender_instance_open.bl_idname,
+                                     text=missing_material_slots_lib[count_lib-1],
+                                     icon="LINK_BLEND",
+                                     emboss=False).filepath=missing_material_slots_lib[count_lib-1]
+
 # // FEATURE: Scene Debug
 # FEATURE: Dupli  Group Path
 def ui_dupli_group_library_path(self, context):
 
     ob = context.object
-    lib = ob.dupli_group.library.filepath
 
     row = self.layout.row()
     row.alignment = 'LEFT'
 
     if ob and ob.dupli_group and ob.dupli_group.library:
-        row.operator(SCENE_OT_blender_instance_open.bl_idname,
+        lib = ob.dupli_group.library.filepath
+
+        row.operator(AMTH_SCENE_OT_blender_instance_open.bl_idname,
             text="Library: %s" % lib,
             emboss=False,
             icon="LINK_BLEND").filepath=lib
 
 # // FEATURE: Dupli  Group Path
 # FEATURE: Color Management Presets
-class SCENE_MT_color_management_presets(Menu):
+class AMTH_SCENE_MT_color_management_presets(Menu):
     """List of Color Management presets"""
     bl_label = "Color Management Presets"
     preset_subdir = "color"
@@ -1786,11 +1998,11 @@ class SCENE_MT_color_management_presets(Menu):
     draw = Menu.draw_preset
 
 
-class AddPresetColorManagement(AddPresetBase, Operator):
+class AMTH_AddPresetColorManagement(AddPresetBase, Operator):
     """Add or remove a Color Management preset"""
     bl_idname = "scene.color_management_preset_add"
     bl_label = "Add Color Management Preset"
-    preset_menu = "SCENE_MT_color_management_presets"
+    preset_menu = "AMTH_SCENE_MT_color_management_presets"
 
     preset_defines = [
         "scene = bpy.context.scene"
@@ -1813,7 +2025,7 @@ def ui_color_management_presets(self, context):
     layout = self.layout
 
     row = layout.row(align=True)
-    row.menu("SCENE_MT_color_management_presets", text=bpy.types.SCENE_MT_color_management_presets.bl_label)
+    row.menu("AMTH_SCENE_MT_color_management_presets", text=bpy.types.AMTH_SCENE_MT_color_management_presets.bl_label)
     row.operator("scene.color_management_preset_add", text="", icon="ZOOMIN")
     row.operator("scene.color_management_preset_add", text="", icon="ZOOMOUT").remove_active = True
     layout.separator()
@@ -1842,34 +2054,301 @@ def ui_sequencer_extra_info(self, context):
                     "[%s]" % (context.scene.frame_current - strip.frame_start)))
 # // FEATURE: Sequencer Extra Info
 
-classes = (SCENE_MT_color_management_presets,
-           AddPresetColorManagement,
-           SCENE_PT_scene_debug,
-           SCENE_OT_refresh,
-           SCENE_OT_cycles_shader_list_nodes,
-           SCENE_OT_cycles_shader_list_nodes_clear,
-           SCENE_OT_amaranth_debug_lamp_select,
-           SCENE_OT_list_missing_node_links,
-           SCENE_OT_list_missing_material_slots,
-           SCENE_OT_list_missing_material_slots_clear,
-           SCENE_OT_blender_instance_open,
-           WM_OT_save_reload,
-           MESH_OT_find_asymmetric,
-           MESH_OT_make_symmetric,
-           NODE_OT_AddTemplateVignette,
-           NODE_MT_amaranth_templates,
-           FILE_OT_directory_current_blend,
-           FILE_OT_directory_go_to,
-           NODE_PT_indices,
-           NODE_PT_simplify,
-           NODE_OT_toggle_mute,
-           NODE_OT_show_active_node_image,
-           VIEW3D_OT_render_border_camera,
-           VIEW3D_OT_show_only_render,
-           OBJECT_OT_select_meshlights,
-           POSE_OT_paths_clear_all,
-           POSE_OT_paths_frame_match,
-           FILE_PT_libraries)
+# FEATURE: Normal Node Values, by Lukas Tönne
+def normal_vector_get(self):
+    return self.outputs['Normal'].default_value
+
+def normal_vector_set(self, values):
+    # default_value allows un-normalized values,
+    # do this here to prevent awkward results
+    values = Vector(values).normalized()
+    self.outputs['Normal'].default_value = values
+
+prop_normal_vector = bpy.props.FloatVectorProperty(
+                        name="Normal", size=3, subtype='XYZ',
+                        min=-1.0, max=1.0, soft_min=-1.0, soft_max=1.0,
+                        get=normal_vector_get, set=normal_vector_set
+                        )
+
+def act_node(context):
+    try:
+        return context.active_node
+    except AttributeError:
+        return None
+
+def ui_node_normal_values(self, context):
+
+    node = act_node(context)
+
+    if act_node:
+        if node and node.type == 'NORMAL':
+            self.layout.prop(node, "normal_vector", text="")
+
+# // FEATURE: Normal Node Values, by Lukas Tönne
+
+# FEATURE: Object ID for objects inside DupliGroups
+class AMTH_OBJECT_OT_id_dupligroup(Operator):
+    '''Set the Object ID for objects in the dupli group'''
+    bl_idname = "object.amaranth_object_id_duplis"
+    bl_label = "Apply Object ID to Duplis"
+
+    clear = False
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object.dupli_group
+
+    def execute(self, context):
+        self.__class__.clear = False
+        ob = context.active_object
+        amth_text_exists = amaranth_text_startup(context)
+
+        script_exists = False
+        script_intro = "# OB ID: %s" % ob.name
+        obdata = "bpy.data.objects['%s']" % ob.name
+        script = "%s" % (
+            "\nif %(obdata)s and %(obdata)s.dupli_group and %(obdata)s.pass_index != 0: %(obname)s \n"
+            "    for dob in %(obdata)s.dupli_group.objects: %(obname)s \n"
+            "        dob.pass_index = %(obdata)s.pass_index %(obname)s \n" %
+                {'obdata' : obdata, 'obname' : script_intro})
+
+        for txt in bpy.data.texts:
+            if txt.name == amth_text.name:
+                for li in txt.lines:
+                    if script_intro == li.body:
+                        script_exists = True
+                        continue
+
+        if not script_exists:
+            amth_text.write("\n")
+            amth_text.write(script_intro)
+            amth_text.write(script)
+
+        if ob and ob.dupli_group:
+            if ob.pass_index != 0:
+                for dob in ob.dupli_group.objects:
+                    dob.pass_index = ob.pass_index
+
+        self.report({'INFO'},
+            "%s ID: %s to all objects in this Dupli Group" % (
+                "Applied" if not script_exists else "Updated",
+                ob.pass_index))
+
+        return{'FINISHED'}
+
+class AMTH_OBJECT_OT_id_dupligroup_clear(Operator):
+    '''Clear the Object ID from objects in dupli group'''
+    bl_idname = "object.amaranth_object_id_duplis_clear"
+    bl_label = "Clear Object ID from Duplis"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object.dupli_group
+
+    def execute(self, context):
+        context.active_object.pass_index = 0
+        AMTH_OBJECT_OT_id_dupligroup.clear = True
+        amth_text_exists = amaranth_text_startup(context)
+        match_first = "# OB ID: %s" % context.active_object.name
+
+        if amth_text_exists:
+            for txt in bpy.data.texts:
+                if txt.name == amth_text.name:
+                    for li in txt.lines:
+                        if match_first in li.body:
+                            li.body = ''
+                            continue
+
+        self.report({'INFO'}, "Object IDs back to normal")
+        return{'FINISHED'}
+
+def ui_object_id_duplis(self, context):
+
+    if context.active_object.dupli_group:
+        split = self.layout.split()
+        row = split.row(align=True)
+        row.enabled = context.active_object.pass_index != 0
+        row.operator(
+            AMTH_OBJECT_OT_id_dupligroup.bl_idname)
+        row.operator(
+            AMTH_OBJECT_OT_id_dupligroup_clear.bl_idname,
+            icon="X", text="")
+        split.separator()
+
+        if AMTH_OBJECT_OT_id_dupligroup.clear:
+            self.layout.label(text="Next time you save/reload this file, "
+                                        "object IDs will be back to normal",
+                              icon="INFO")
+
+# // FEATURE: Object ID for objects inside DupliGroups
+# UI: Warning about Z not connected when using EXR
+def ui_render_output_z(self, context):
+
+    scene = bpy.context.scene
+    image = scene.render.image_settings
+    if scene.render.use_compositing and \
+        image.file_format == 'OPEN_EXR' and \
+        image.use_zbuffer:
+        if scene.node_tree and scene.node_tree.nodes:
+            for no in scene.node_tree.nodes:
+                if no.type == 'COMPOSITE':
+                    if not no.inputs['Z'].is_linked:
+                        self.layout.label(
+                            text="The Z output in node \"%s\" is not connected" % 
+                                no.name, icon="ERROR")
+
+# // UI: Warning about Z not connected
+
+# FEATURE: Delete Materials not assigned to any verts
+class AMTH_OBJECT_OT_material_remove_unassigned(Operator):
+    '''Remove materials not assigned to any vertex'''
+    bl_idname = "object.amaranth_object_material_remove_unassigned"
+    bl_label = "Remove Unassigned Materials"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object.material_slots
+
+    def execute(self, context):
+
+        act_ob = context.active_object
+        count = len(act_ob.material_slots)
+        materials_removed = []
+        act_ob.active_material_index = 0
+
+        for slot in act_ob.material_slots:
+            count -= 1
+
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.select_all(action='DESELECT')
+            act_ob.active_material_index = count
+            bpy.ops.object.material_slot_select()
+            
+            if act_ob.data.total_vert_sel == 0 or \
+                (len(act_ob.material_slots) == 1 and not \
+                    act_ob.material_slots[0].material):
+                materials_removed.append(
+                    "%s" % act_ob.active_material.name if act_ob.active_material else "Empty")
+                bpy.ops.object.mode_set(mode='OBJECT')
+                bpy.ops.object.material_slot_remove()
+            else:
+                pass
+
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='DESELECT')
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        if materials_removed:
+            print("\n* Removed %s Unassigned Materials \n" % len(materials_removed))
+
+            count_mr = 0
+
+            for mr in materials_removed:
+                count_mr += 1
+                print("%0.2d. %s" % (count_mr, materials_removed[count_mr - 1]))
+
+            print("\n")
+            self.report({'INFO'}, "Removed %s Unassigned Materials" %
+                len(materials_removed))
+
+        return{'FINISHED'}
+
+def ui_material_remove_unassigned(self, context):
+
+    self.layout.operator(
+        AMTH_OBJECT_OT_material_remove_unassigned.bl_idname,
+        icon="X")
+
+# // FEATURE: Delete Materials not assigned to any verts
+
+# FEATURE: Cycles Samples Percentage
+class AMTH_RENDER_OT_cycles_samples_percentage_set(Operator):
+    '''Save the current number of samples per shader as final (gets saved in .blend)'''
+    bl_idname = "scene.amaranth_cycles_samples_percentage_set"
+    bl_label = "Set as Render Samples"
+
+    def execute(self, context):
+        cycles = context.scene.cycles
+        cycles.use_samples_final = True
+
+        context.scene['amth_cycles_samples_final'] = [
+            cycles.diffuse_samples,
+            cycles.glossy_samples,
+            cycles.transmission_samples,
+            cycles.ao_samples,
+            cycles.mesh_light_samples,
+            cycles.subsurface_samples,
+            cycles.volume_samples]
+
+        self.report({'INFO'}, "Render Samples Saved")
+
+        return{'FINISHED'}
+
+
+class AMTH_RENDER_OT_cycles_samples_percentage(Operator):
+    '''Set a percentage of the final render samples'''
+    bl_idname = "scene.amaranth_cycles_samples_percentage"
+    bl_label = "Set Render Samples Percentage"
+
+    percent = IntProperty(
+                name="Percentage",
+                description="Percentage to divide render samples by",
+                subtype='PERCENTAGE',
+                default=0)
+
+    def execute(self, context):
+        percent = self.percent
+        cycles = context.scene.cycles
+        cycles_samples_final = context.scene['amth_cycles_samples_final']
+
+        cycles.use_samples_final = False
+
+        if percent == 100:
+            cycles.use_samples_final = True
+
+        cycles.diffuse_samples = int((cycles_samples_final[0] / 100) * percent)
+        cycles.glossy_samples = int((cycles_samples_final[1] / 100) * percent)
+        cycles.transmission_samples = int((cycles_samples_final[2] / 100) * percent)
+        cycles.ao_samples = int((cycles_samples_final[3] / 100) * percent)
+        cycles.mesh_light_samples = int((cycles_samples_final[4] / 100) * percent)
+        cycles.subsurface_samples = int((cycles_samples_final[5] / 100) * percent)
+        cycles.volume_samples = int((cycles_samples_final[6] / 100) * percent)
+
+        return{'FINISHED'}
+
+classes = (AMTH_SCENE_MT_color_management_presets,
+           AMTH_AddPresetColorManagement,
+           AMTH_SCENE_PT_scene_debug,
+           AMTH_SCENE_OT_refresh,
+           AMTH_SCENE_OT_cycles_shader_list_nodes,
+           AMTH_SCENE_OT_cycles_shader_list_nodes_clear,
+           AMTH_SCENE_OT_amaranth_debug_lamp_select,
+           AMTH_SCENE_OT_list_missing_node_links,
+           AMTH_SCENE_OT_list_missing_material_slots,
+           AMTH_SCENE_OT_list_missing_material_slots_clear,
+           AMTH_SCENE_OT_blender_instance_open,
+           AMTH_WM_OT_save_reload,
+           AMTH_MESH_OT_find_asymmetric,
+           AMTH_MESH_OT_make_symmetric,
+           AMTH_NODE_OT_AddTemplateVignette,
+           AMTH_NODE_MT_amaranth_templates,
+           AMTH_FILE_OT_directory_current_blend,
+           AMTH_FILE_OT_directory_go_to,
+           AMTH_NODE_PT_indices,
+           AMTH_NODE_PT_simplify,
+           AMTH_NODE_OT_toggle_mute,
+           AMTH_NODE_OT_show_active_node_image,
+           AMTH_VIEW3D_OT_render_border_camera,
+           AMTH_VIEW3D_OT_show_only_render,
+           AMTH_OBJECT_OT_select_meshlights,
+           AMTH_OBJECT_OT_id_dupligroup,
+           AMTH_OBJECT_OT_id_dupligroup_clear,
+           AMTH_OBJECT_OT_material_remove_unassigned,
+           AMTH_POSE_OT_paths_clear_all,
+           AMTH_POSE_OT_paths_frame_match,
+           AMTH_RENDER_OT_cycles_samples_percentage,
+           AMTH_RENDER_OT_cycles_samples_percentage_set,
+           AMTH_FILE_PT_libraries)
 
 addon_keymaps = []
 
@@ -1898,6 +2377,7 @@ def register():
     bpy.types.NODE_HT_header.append(node_templates_pulldown)
     bpy.types.NODE_HT_header.append(node_stats)
     bpy.types.NODE_HT_header.append(node_shader_extra)
+    bpy.types.NODE_PT_active_node_properties.append(ui_node_normal_values)
 
     bpy.types.CyclesRender_PT_sampling.append(render_cycles_scene_samples)
 
@@ -1909,12 +2389,17 @@ def register():
     bpy.types.DATA_PT_display.append(pose_motion_paths_ui)
 
     bpy.types.RENDER_PT_dimensions.append(render_final_resolution_ui)
+    bpy.types.RENDER_PT_output.append(ui_render_output_z)
 
     bpy.types.SCENE_PT_color_management.prepend(ui_color_management_presets)
 
     bpy.types.SEQUENCER_HT_header.append(ui_sequencer_extra_info)
 
     bpy.types.OBJECT_PT_duplication.append(ui_dupli_group_library_path)
+
+    bpy.types.OBJECT_PT_relations.append(ui_object_id_duplis)
+
+    bpy.types.MATERIAL_MT_specials.append(ui_material_remove_unassigned)
 
     bpy.app.handlers.render_pre.append(unsimplify_render_pre)
     bpy.app.handlers.render_post.append(unsimplify_render_post)
@@ -1928,7 +2413,7 @@ def register():
 
         km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
         kmi = km.keymap_items.new('wm.call_menu', 'W', 'PRESS')
-        kmi.properties.name = "NODE_MT_amaranth_templates"
+        kmi.properties.name = "AMTH_NODE_MT_amaranth_templates"
 
         km = kc.keymaps.new(name='Window')
         kmi = km.keymap_items.new('scene.refresh', 'F5', 'PRESS', shift=False, ctrl=False)
@@ -1978,6 +2463,7 @@ def unregister():
     bpy.types.NODE_HT_header.remove(node_templates_pulldown)
     bpy.types.NODE_HT_header.remove(node_stats)
     bpy.types.NODE_HT_header.remove(node_shader_extra)
+    bpy.types.NODE_PT_active_node_properties.remove(ui_node_normal_values)
 
     bpy.types.CyclesRender_PT_sampling.remove(render_cycles_scene_samples)
 
@@ -1989,12 +2475,17 @@ def unregister():
     bpy.types.DATA_PT_display.remove(pose_motion_paths_ui)
 
     bpy.types.RENDER_PT_dimensions.remove(render_final_resolution_ui)
+    bpy.types.RENDER_PT_output.remove(ui_render_output_z)
 
     bpy.types.SCENE_PT_color_management.remove(ui_color_management_presets)
 
     bpy.types.SEQUENCER_HT_header.remove(ui_sequencer_extra_info)
 
     bpy.types.OBJECT_PT_duplication.remove(ui_dupli_group_library_path)
+
+    bpy.types.OBJECT_PT_relations.remove(ui_object_id_duplis)
+
+    bpy.types.MATERIAL_MT_specials.remove(ui_material_remove_unassigned)
 
     bpy.app.handlers.render_pre.remove(unsimplify_render_pre)
     bpy.app.handlers.render_post.remove(unsimplify_render_post)
