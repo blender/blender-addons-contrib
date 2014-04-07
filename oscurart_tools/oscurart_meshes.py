@@ -343,7 +343,7 @@ def dibuja_callback(self, context):
     font_id = 0     
     bm = bmesh.from_edit_mesh(bpy.context.object.data)    
     for v in bm.verts:
-        cord = location_3d_to_region_2d(context.region, context.space_data.region_3d, v.co)
+        cord = location_3d_to_region_2d(context.region, context.space_data.region_3d, self.matr * v.co)
         blf.position(font_id, cord[0], cord[1], 0)
         blf.size(font_id, self.tsize, 72)
         blf.draw(font_id, str(v.index))
@@ -361,6 +361,7 @@ class ModalIndexOperator(bpy.types.Operator):
         context.area.tag_redraw()        
         if event.type == 'MOUSEMOVE':
             self.x = event.mouse_region_x
+            self.matr = context.object.matrix_world
         elif event.type == 'LEFTMOUSE':
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             return {'FINISHED'}
