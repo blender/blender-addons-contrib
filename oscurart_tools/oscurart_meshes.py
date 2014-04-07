@@ -6,6 +6,9 @@ import stat
 import bmesh
 import time
 import random
+import bgl
+import blf
+from bpy_extras.view3d_utils import location_3d_to_region_2d
 
 C = bpy.context
 D = bpy.data
@@ -331,3 +334,57 @@ class OscImportVC (bpy.types.Operator):
     def execute(self, context):
         DefOscImportVC()
         return {'FINISHED'}              
+    
+    
+## ------------------ PRINT VERTICES ----------------------
+
+
+def dibuja_callback(self, context):
+    font_id = 0     
+    bm = bmesh.from_edit_mesh(bpy.context.object.data)    
+    for v in bm.verts:
+        cord = location_3d_to_region_2d(context.region, context.space_data.region_3d, v.co)
+        blf.position(font_id, cord[0], cord[1], 0)
+        blf.size(font_id, self.tsize, 72)
+        blf.draw(font_id, str(v.index))
+    
+    
+class ModalIndexOperator(bpy.types.Operator):
+    bl_idname = "view3d.modal_operator"
+    bl_label = "Print Vertices"    
+    
+    @classmethod
+    def poll(cls, context):
+        return True if context.active_object is not None and context.object.type == "MESH" else False
+    
+    def modal(self, context, event):
+        context.area.tag_redraw()        
+        if event.type == 'MOUSEMOVE':
+            self.x = event.mouse_region_x
+        elif event.type == 'LEFTMOUSE':
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+            return {'FINISHED'}
+        elif event.type == 'PAGE_UP':
+            self.tsize += 1
+        elif event.type == 'PAGE_DOWN':
+            self.tsize -= 1            
+        elif event.type in {'RIGHTMOUSE', 'ESC', 'TAB'}:
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+            context.area.header_text_set()
+            return {'CANCELLED'}
+
+        return {'PASS_THROUGH'}
+    
+    def invoke(self, context, event):
+        if context.area.type == "VIEW_3D":
+            context.area.header_text_set("Esc: exit, PageUP/Down: text size")
+            bpy.ops.object.mode_set(mode="EDIT")
+            self.tsize = 20
+            args = (self, context)
+            self._handle = bpy.types.SpaceView3D.draw_handler_add(dibuja_callback, args, "WINDOW", "POST_PIXEL")  
+            context.window_manager.modal_handler_add(self)
+            return{'RUNNING_MODAL'}
+        else:
+            self.report({"WARNING"}, "Is not a 3D Space")
+            return {'CANCELLED'}
+                
