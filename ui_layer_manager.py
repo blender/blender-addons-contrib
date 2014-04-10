@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Layer Management",
     "author": "Alfonso Annarumma",
-    "version": (1, 5),
-    "blender": (2, 65, 4),
+    "version": (1, 5,1),
+    "blender": (2, 70, 0),
     "location": "View3D > Properties panel > Layer Management",
     "warning": "",
     "description": "Display and Edit Layer Name",
@@ -33,6 +33,7 @@ bl_info = {
     "category": "3D View"}
 
 import bpy
+from bpy.types import Menu, Panel, UIList
 from bpy.props import StringProperty, BoolProperty, IntProperty, CollectionProperty, BoolVectorProperty
 
 EDIT = ["EDIT_MESH", "EDIT_CURVE", "EDIT_SURFACE", "EDIT_METABALL", "EDIT_TEXT", "EDIT_ARMATURE"]
@@ -683,6 +684,58 @@ class LayerName(bpy.types.Panel):
         if len(scene.objects)==0:
             layout.label(text='No objects in scene')
 
+class UI_UL_layergroups(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        # assert(isinstance(item, bpy.types.VertexGroup)
+        lgroup = item
+        
+        scene = context.scene
+        view_3d = context.area.spaces.active
+
+        #check for lock camera and layer is active
+        if view_3d.lock_camera_and_layers is True:
+            space= scene
+            spacecheck = False
+        else:
+            space= view_3d
+            spacecheck = True
+        #######################
+        
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            
+            layout.prop(lgroup, "name", text="", emboss=False)
+            
+            if lgroup.toggle:
+                iconLayer = 'RESTRICT_VIEW_OFF'
+            
+            else:
+                iconLayer = 'RESTRICT_VIEW_ON'
+            
+            if lgroup.lock:
+                iconLock= 'LOCKED'
+            else:
+                iconLock='UNLOCKED'
+            
+            
+            lk = layout.operator("object.lockselected", text="", emboss=False, icon= iconLock)
+            lk.index_group = index
+            lk.lock=lgroup.lock
+            lk.layerN=-1
+           
+            
+            
+            view = layout.operator("object.layertoggle", text="", emboss=False, icon= iconLayer)
+            view.index_group = index
+            view.layerN=-1
+            view.spacecheck=spacecheck
+            
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+          
+
+
+
+
 class LayerGroupsUI(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = "TOOLS"
@@ -701,23 +754,14 @@ class LayerGroupsUI(bpy.types.Panel):
     def draw(self, context):
 
         scene = context.scene
-        view_3d = context.area.spaces.active
-
-        #check for lock camera and layer is active
-        if view_3d.lock_camera_and_layers is True:
-            space= scene
-            spacecheck = False
-        else:
-            space= view_3d
-            spacecheck = True
-        #######################
+      
 
         index_group =  scene.layergroups_index
         items =len(scene.layergroups)
         viewIcon = 'RESTRICT_VIEW_OFF'
         layout = self.layout
         row = layout.row()
-        row.template_list("UI_UL_list", "ui_layer_groups", context.scene, "layergroups",
+        row.template_list("UI_UL_layergroups", "", context.scene, "layergroups",
                           context.scene, "layergroups_index", rows=items)
         col =row.column(align =True)
         add = col.operator("object.layergroup_add", icon='ZOOMIN', text="")
@@ -727,55 +771,17 @@ class LayerGroupsUI(bpy.types.Panel):
         remove.index_group= index_group
         if items > 0:
 
-            lock=scene.layergroups[index_group].lock
-            toggle = scene.layergroups[index_group].toggle
-            if lock:
-                iconLock= 'LOCKED'
-            else:
-                iconLock='UNLOCKED'
 
-            lk = col.operator("object.lockselected", text="", emboss=True, icon= iconLock)
-            lk.index_group = index_group
-            lk.lock=lock
-            lk.layerN=-1
-
-            #set icon for layer view
-            if toggle:
-                iconLayer = 'RESTRICT_VIEW_OFF'
-                #noitem = True
-            else:
-                iconLayer = 'RESTRICT_VIEW_ON'
-                #noitem = False
-
-            view = col.operator("object.layertoggle", text="", icon= iconLayer, emboss=True)
-            view.index_group = index_group
-            view.layerN=-1
-            view.spacecheck=spacecheck
 
             layout.prop(scene.layergroups[index_group], "layer_groups", text="", toggle=True)
             layout.prop(scene.layergroups[index_group], "name", text="Name:")
 
 def register():
 
-    bpy.utils.register_class(AddLayerGroup)
-    bpy.utils.register_class(RemoveLayerGroup)
-    bpy.utils.register_class(LayerGroupsUI)
-    bpy.utils.register_class(AllLayersSelect)
-    bpy.utils.register_class(LayerToggle)
-    bpy.utils.register_class(MergeSelected)
-    bpy.utils.register_class(LayerName)
-    bpy.utils.register_class(LockSelected)
-    bpy.utils.register_class(SelectObjectsLayer)
 
+    bpy.utils.register_module(__name__)
 def unregister():
-    bpy.utils.unregister_class(AddLayerGroup)
-    bpy.utils.unregister_class(RemoveLayerGroup)
-    bpy.utils.unregister_class(LayerGroupsUI)
-    bpy.utils.unregister_class(LayerName)
-    bpy.utils.uregister_class(AllLayersSelect)
-    bpy.utils.unregister_class(LayerToggle)
-    bpy.utils.uregister_class(MergeSelected)
-    bpy.utils.unregister_class(LockSelected)
-    bpy.utils.unregister_class(SelectObjectsLayer)
+  
+    bpy.utils.register_module(__name__)
 if __name__ == "__main__":
     register()
