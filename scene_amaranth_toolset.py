@@ -2286,7 +2286,6 @@ def ui_material_remove_unassigned(self, context):
         icon="X")
 
 # // FEATURE: Delete Materials not assigned to any verts
-
 # FEATURE: Cycles Samples Percentage
 class AMTH_RENDER_OT_cycles_samples_percentage_set(Operator):
     '''Save the current number of samples per shader as final (gets saved in .blend)'''
@@ -2371,6 +2370,152 @@ def ui_userpreferences_edit(self, context):
                text="Frames to Jump")
 
 # // FEATURE: Jump forward/backward every N frames
+# FEATURE: Set Layers to Render
+class AMTH_SCENE_OT_layers_render_save(Operator):
+    '''Save the current scene layers as those that should be enabled for final renders'''
+    bl_idname = "scene.amaranth_layers_render_save"
+    bl_label = "Save as Layers for Render"
+
+    def execute(self, context):
+        which = []
+        n = -1
+
+        for l in context.scene.layers:
+            n += 1
+            if l:
+                which.append(n)
+
+        context.scene['amth_layers_for_render'] = which
+        self.report({'INFO'}, "Layers for Render Saved")
+
+        return{'FINISHED'}
+
+class AMTH_SCENE_OT_layers_render_set(Operator):
+    '''Enable the layers that should be active for final renders'''
+    bl_idname = "scene.amaranth_layers_render_view"
+    bl_label = "View Layers for Render"
+
+    def execute(self, context):
+        scene = context.scene
+        layers_render = scene['amth_layers_for_render']
+
+        for window in bpy.context.window_manager.windows:
+            screen = window.screen
+
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    override = {'window': window, 'screen': screen,
+                                'scene': scene, 'area': area}
+
+                    if layers_render:
+                        bpy.ops.view3d.layers(override, nr=layers_render[0]+1, extend=False, toggle=False)
+
+                        for n in layers_render:
+                            context.scene.layers[n] = True
+                    else:
+                        bpy.ops.view3d.layers(override, nr=1, extend=False, toggle=False)
+                        self.report({'INFO'}, "No layers set for render")
+
+                    break
+
+        return{'FINISHED'}
+
+class AMTH_SCENE_OT_layers_render_set_individual(Operator):
+    '''Wether this layer should be enabled for final render'''
+    bl_idname = "scene.amaranth_layers_render_set_individual"
+    bl_label = "Set This Layer for Render"
+
+    toggle = BoolProperty()
+    number = IntProperty()
+
+    def execute(self, context):
+        toggle = self.toggle
+        number = self.number
+
+        new_layers = []
+
+        for la in context.scene['amth_layers_for_render']:
+            new_layers.append(la)
+
+        if len(context.scene['amth_layers_for_render']) and number in new_layers:
+            new_layers.remove(number)
+        else:
+            new_layers.append(number)
+
+        # Remove Duplicates
+        new_layers = list(set(new_layers))
+        context.scene['amth_layers_for_render'] = new_layers
+
+        bpy.ops.scene.amaranth_layers_render_view()
+
+        return{'FINISHED'}
+
+class AMTH_SCENE_OT_layers_render_clear(Operator):
+    '''Clear layers for render'''
+    bl_idname = "scene.amaranth_layers_render_clear"
+    bl_label = "Clear Layers for Render"
+
+    def execute(self, context):
+
+        if context.scene.get('amth_layers_for_render'):
+            context.scene['amth_layers_for_render'] = []
+
+        return{'FINISHED'}
+
+def ui_layers_for_render(self, context):
+
+    lfr_available = context.scene.get('amth_layers_for_render')
+    if lfr_available:
+        lfr = context.scene['amth_layers_for_render']
+
+    layout = self.layout
+    layout.label("Layers for Rendering:")
+    split = layout.split()
+    col = split.column(align=True)
+    row = col.row(align=True)
+    row.operator(
+        AMTH_SCENE_OT_layers_render_save.bl_idname,
+        text="Replace Layers" if lfr_available else "Save Current Layers for Render",
+        icon="FILE_REFRESH" if lfr_available else 'LAYER_USED')
+
+    if lfr_available:
+        row.operator(
+            AMTH_SCENE_OT_layers_render_clear.bl_idname,
+            icon='X', text="")
+        col = col.column(align=True)
+        col.enabled = True if lfr_available else False
+        col.operator(
+            AMTH_SCENE_OT_layers_render_set.bl_idname,
+            icon="RESTRICT_VIEW_OFF")
+
+        split = split.split()
+        col = split.column(align=True)
+        row = col.row(align=True)
+
+        for n in range(0,5):
+            row.operator(
+                AMTH_SCENE_OT_layers_render_set_individual.bl_idname, text="",
+                icon='LAYER_ACTIVE' if n in lfr else 'LAYER_USED').number = n
+        row = col.row(align=True)
+        for n in range(10,15):
+            row.operator(
+                AMTH_SCENE_OT_layers_render_set_individual.bl_idname, text="",
+                icon='LAYER_ACTIVE' if n in lfr else 'LAYER_USED').number = n
+
+        split = split.split()
+        col = split.column(align=True)
+        row = col.row(align=True)
+
+        for n in range(5,10):
+            row.operator(
+                AMTH_SCENE_OT_layers_render_set_individual.bl_idname, text="",
+                icon='LAYER_ACTIVE' if n in lfr else 'LAYER_USED').number = n
+        row = col.row(align=True)
+        for n in range(15,20):
+            row.operator(
+                AMTH_SCENE_OT_layers_render_set_individual.bl_idname, text="",
+                icon='LAYER_ACTIVE' if n in lfr else 'LAYER_USED').number = n
+# // FEATURE: Set Layers to Render
 
 classes = (AMTH_SCENE_MT_color_management_presets,
            AMTH_AddPresetColorManagement,
@@ -2383,6 +2528,10 @@ classes = (AMTH_SCENE_MT_color_management_presets,
            AMTH_SCENE_OT_list_missing_material_slots,
            AMTH_SCENE_OT_list_missing_material_slots_clear,
            AMTH_SCENE_OT_blender_instance_open,
+           AMTH_SCENE_OT_layers_render_save,
+           AMTH_SCENE_OT_layers_render_set,
+           AMTH_SCENE_OT_layers_render_set_individual,
+           AMTH_SCENE_OT_layers_render_clear,
            AMTH_WM_OT_save_reload,
            AMTH_MESH_OT_find_asymmetric,
            AMTH_MESH_OT_make_symmetric,
@@ -2459,6 +2608,8 @@ def register():
     bpy.types.MATERIAL_MT_specials.append(ui_material_remove_unassigned)
 
     bpy.types.USERPREF_PT_edit.append(ui_userpreferences_edit)
+
+    bpy.types.RENDERLAYER_PT_layers.append(ui_layers_for_render)
 
     bpy.app.handlers.render_pre.append(unsimplify_render_pre)
     bpy.app.handlers.render_post.append(unsimplify_render_post)
@@ -2553,6 +2704,8 @@ def unregister():
     bpy.types.MATERIAL_MT_specials.remove(ui_material_remove_unassigned)
 
     bpy.types.USERPREF_PT_edit.remove(ui_userpreferences_edit)
+
+    bpy.types.RENDERLAYER_PT_layers.remove(ui_layers_for_render)
 
     bpy.app.handlers.render_pre.remove(unsimplify_render_pre)
     bpy.app.handlers.render_post.remove(unsimplify_render_post)
