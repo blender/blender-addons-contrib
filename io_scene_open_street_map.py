@@ -78,7 +78,8 @@ def parseBranch(nodes, bm, nmap, obj, scale=100.0, tag=False, UTM=False):
     vgroups = bm.verts.layers.deform.verify()
     tidx = 0
     inNode = 0
-    dlat = dlong = clat = clong = minlat = maxlat = minlong = maxlong = 0.0
+    dlong = clat = clong = minlat = maxlat = minlong = maxlong = 0.0
+    dlat = 1.0  # avoid divide by zero
 
     for node in nodes:
         if node.localName == "bounds":
