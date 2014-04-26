@@ -128,8 +128,8 @@ class NodeTemplatePrefs(AddonPreferences):
 class NODE_OT_template_add(Operator):
     """Add a node template"""
     bl_idname = "node.template_add"
-    bl_label = "Add Mesh Object"
-    bl_description = "Create a new Mesh Object"
+    bl_label = "Add node group template"
+    bl_description = "Add node group template"
     bl_options = {'REGISTER', 'UNDO'}
 
     filepath = StringProperty(
@@ -144,7 +144,7 @@ class NODE_OT_template_add(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        node_template_add(context, self.filepath, self.group_name, not event.shift, self.report)
+        node_template_add(context, self.filepath, self.group_name, event.shift, self.report)
 
         return {'FINISHED'}
 
@@ -164,7 +164,8 @@ def node_template_cache(context, reload=False):
             filepath = os.path.join(dirpath, fn)
             with bpy.data.libraries.load(filepath) as (data_from, data_to):
                 for group_name in data_from.node_groups:
-                    node_cache.append((filepath, group_name))
+                    if not group_name.startswith('_'):
+                        node_cache.append((filepath, group_name))
 
     return node_cache
 node_template_cache._node_cache = []
@@ -217,4 +218,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
