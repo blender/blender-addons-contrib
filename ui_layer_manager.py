@@ -41,6 +41,9 @@ EDIT = ["EDIT_MESH", "EDIT_CURVE", "EDIT_SURFACE", "EDIT_METABALL", "EDIT_TEXT",
 class LayerGroups(bpy.types.PropertyGroup):
 
     toggle = BoolProperty(name="", default=False)
+    wire = BoolProperty(name="", default=False)
+    
+    
 
     lock = BoolProperty(name="", default=False)
 
@@ -123,9 +126,9 @@ class LayerToggle(bpy.types.Operator):
 
     #prop definition
     #layer number
-    layerN = bpy.props.IntProperty()
-    spacecheck = bpy.props.BoolProperty()
-    index_group = bpy.props.IntProperty()
+    layerN = IntProperty()
+    spacecheck = BoolProperty()
+    index_group = IntProperty()
 
     @classmethod
 
@@ -146,25 +149,25 @@ class LayerToggle(bpy.types.Operator):
         else:
             space = context.scene
 
-        if layerN==-1:
+        if layerN == -1:
             index = self.index_group
             groups = scene.layergroups[index].layer_groups
             layergroups = scene.layergroups[index]
 
             layers = space.layers
-            union= [False]*20
+            union = [False]*20
 
             if not layergroups.toggle:
                 for i in range(0,20):
 
-                    union[i]= groups[i] or layers[i]
+                    union[i] = groups[i] or layers[i]
 
-                space.layers=union
-                layergroups.toggle=True
+                space.layers = union
+                layergroups.toggle = True
             else:
                 for i in range(0,20):
 
-                    union[i]=  not groups[i]  and layers[i]
+                    union[i] =  not groups[i]  and layers[i]
 
                 space.layers=union
                 layergroups.toggle=False
@@ -177,14 +180,14 @@ class LayerToggle(bpy.types.Operator):
                     toggle = False
                 else:
 
-                    toggle= True
-                space.layers[layerN]=toggle
+                    toggle = True
+                space.layers[layerN] = toggle
 
             else:
 
                 layer = [False]*20
-                layer[layerN]=True
-                space.layers=layer
+                layer[layerN] = True
+                space.layers = layer
 
                 if space.layers[layerN]:
                     toggle = False
@@ -202,7 +205,7 @@ class MergeSelected(bpy.types.Operator):
 
     #prop definition
     #layer number
-    layerN = bpy.props.IntProperty()
+    layerN = IntProperty()
 
     @classmethod
 
@@ -214,18 +217,18 @@ class MergeSelected(bpy.types.Operator):
 
         layerN = self.layerN
 
-        scene= context.scene
+        scene = context.scene
 
         #cyecle all object in the layer
 
         for obj in scene.objects:
 
             if obj.select:
-                visible=False
+                visible = False
 
                 for i in range(0,20):
                     if obj.layers[i] and scene.layers[i]:
-                        visible=True
+                        visible = True
                         break
 
                 if visible:
@@ -241,8 +244,8 @@ class MergeSelected(bpy.types.Operator):
                     else:
 
                         layer = [False]*20
-                        layer[layerN]=True
-                        obj.layers=layer
+                        layer[layerN] = True
+                        obj.layers = layer
 
                         if obj.layers[layerN]:
                             toggle = False
@@ -254,19 +257,19 @@ class MergeSelected(bpy.types.Operator):
 
         return self.execute(context)
 
-class LockSelected(bpy.types.Operator):
-    '''Loock All Objects on this Layer'''
-    bl_idname = "object.lockselected"
-    bl_label = "Hide Select of Selected"
+class MakeWireLayer(bpy.types.Operator):
+    '''Make Wire All Objects on this Layer'''
+    bl_idname = "object.wirelayer"
+    bl_label = "Make Wire Draw the object on this layer"
 
     #prop definition
     #layer number
-    layerN = bpy.props.IntProperty()
+    layerN = IntProperty()
 
     #lock status
-    lock = bpy.props.BoolProperty()
+    wire = BoolProperty()
 
-    index_group = bpy.props.IntProperty()
+    index_group = IntProperty()
 
     @classmethod
 
@@ -278,39 +281,110 @@ class LockSelected(bpy.types.Operator):
 
         scene = context.scene
         layerN = self.layerN
-        lock =self.lock
+        wire = self.wire
 
         view_3d = context.area.spaces.active
 
         #check if layer have some thing
-        if view_3d.layers_used[layerN] or  layerN==-1:
-
+        if view_3d.layers_used[layerN] or  layerN == -1:
+        
+            if wire:
+                display = 'WIRE'
+                
+            else:
+                display = 'TEXTURED'
             #cyecle all object in the layer
             for obj in context.scene.objects:
 
-                if layerN==-1:
+                if layerN == -1:
 
                     index = self.index_group
                     groups = scene.layergroups[index].layer_groups
                     layers = obj.layers
 
-                    layergroup=[False]*20
+                    layergroup = [False]*20
 
                     for i in range (0,20):
-                        layergroup[i]= layers[i] and groups[i]
+                        layergroup[i] = layers[i] and groups[i]
 
                     if True in layergroup:
-                        obj.hide_select=not lock
-                        obj.select=False
+                        obj.draw_type = display
+                        
 
-                        scene.layergroups[index].lock=not lock
+                        scene.layergroups[index].wire = not wire
 
                 else:
                     if obj.layers[layerN]:
-                        obj.hide_select=not lock
-                        obj.select=False
+                        
+                        obj.draw_type = display
+                        
 
-                        scene.LockLayer[layerN]= not lock
+                        scene.WireLayer[layerN] = not wire
+
+        return {'FINISHED'}
+
+
+
+
+
+
+class LockSelected(bpy.types.Operator):
+    '''Loock All Objects on this Layer'''
+    bl_idname = "object.lockselected"
+    bl_label = "Hide Select of Selected"
+
+    #prop definition
+    #layer number
+    layerN = IntProperty()
+
+    #lock status
+    lock = BoolProperty()
+
+    index_group = IntProperty()
+
+    @classmethod
+
+    def poll(cls, context):
+
+        return context.scene
+
+    def execute(self, context):
+
+        scene = context.scene
+        layerN = self.layerN
+        lock = self.lock
+
+        view_3d = context.area.spaces.active
+
+        #check if layer have some thing
+        if view_3d.layers_used[layerN] or  layerN == -1:
+
+            #cyecle all object in the layer
+            for obj in context.scene.objects:
+
+                if layerN == -1:
+
+                    index = self.index_group
+                    groups = scene.layergroups[index].layer_groups
+                    layers = obj.layers
+
+                    layergroup = [False]*20
+
+                    for i in range (0,20):
+                        layergroup[i] = layers[i] and groups[i]
+
+                    if True in layergroup:
+                        obj.hide_select = not lock
+                        obj.select = False
+
+                        scene.layergroups[index].lock = not lock
+
+                else:
+                    if obj.layers[layerN]:
+                        obj.hide_select = not lock
+                        obj.select = False
+
+                        scene.LockLayer[layerN] = not lock
 
         return {'FINISHED'}
 
@@ -329,7 +403,7 @@ class SelectObjectsLayer(bpy.types.Operator):
     def execute(self, context):
 
         view_3d = context.area.spaces.active
-        select_obj= self.select_obj
+        select_obj = self.select_obj
         layerN = self.layerN
         scene = context.scene
         i = 0
@@ -358,7 +432,7 @@ class SelectObjectsLayer(bpy.types.Operator):
                     
 
             else:
-                shift= self.shift
+                shift = self.shift
                 bpy.ops.object.select_by_layer(extend=shift, layers=layerN+1)
                 
 
@@ -374,7 +448,7 @@ class AllLayersSelect(bpy.types.Operator):
     bl_idname = "scene.layersselect"
     bl_label = "Select All Layer"
 
-    vis = bpy.props.BoolProperty()
+    vis = BoolProperty()
 
     @classmethod
     def poll(cls, context):
@@ -393,7 +467,7 @@ class AllLayersSelect(bpy.types.Operator):
             space= scene
 
         else:
-            space= view_3d
+            space = view_3d
 
         if not vis:
             for i in range (0,20):
@@ -425,44 +499,48 @@ class LayerName(bpy.types.Panel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Layer"
     # layer name prop definition
-    bpy.types.Scene.LayerName1 = bpy.props.StringProperty(name="Layer Name", default='layer1')
-    bpy.types.Scene.LayerName2 = bpy.props.StringProperty(name="Layer Name", default='layer2')
-    bpy.types.Scene.LayerName3 = bpy.props.StringProperty(name="Layer Name", default='layer3')
-    bpy.types.Scene.LayerName4 = bpy.props.StringProperty(name="Layer Name", default='layer4')
-    bpy.types.Scene.LayerName5 = bpy.props.StringProperty(name="Layer Name", default='layer5')
-    bpy.types.Scene.LayerName6 = bpy.props.StringProperty(name="Layer Name", default='layer6')
-    bpy.types.Scene.LayerName7 = bpy.props.StringProperty(name="Layer Name", default='layer7')
-    bpy.types.Scene.LayerName8 = bpy.props.StringProperty(name="Layer Name", default='layer8')
-    bpy.types.Scene.LayerName9 = bpy.props.StringProperty(name="Layer Name", default='layer9')
-    bpy.types.Scene.LayerName10 = bpy.props.StringProperty(name="Layer Name", default='layer10')
-    bpy.types.Scene.LayerName11 = bpy.props.StringProperty(name="Layer Name", default='layer11')
-    bpy.types.Scene.LayerName12 = bpy.props.StringProperty(name="Layer Name", default='layer12')
-    bpy.types.Scene.LayerName13 = bpy.props.StringProperty(name="Layer Name", default='layer13')
-    bpy.types.Scene.LayerName14 = bpy.props.StringProperty(name="Layer Name", default='layer14')
-    bpy.types.Scene.LayerName15 = bpy.props.StringProperty(name="Layer Name", default='layer15')
-    bpy.types.Scene.LayerName16 = bpy.props.StringProperty(name="Layer Name", default='layer16')
-    bpy.types.Scene.LayerName17 = bpy.props.StringProperty(name="Layer Name", default='layer17')
-    bpy.types.Scene.LayerName18 = bpy.props.StringProperty(name="Layer Name", default='layer18')
-    bpy.types.Scene.LayerName19 = bpy.props.StringProperty(name="Layer Name", default='layer19')
-    bpy.types.Scene.LayerName20 = bpy.props.StringProperty(name="Layer Name", default='layer20')
+    bpy.types.Scene.LayerName1 = StringProperty(name="Layer Name", default='layer1')
+    bpy.types.Scene.LayerName2 = StringProperty(name="Layer Name", default='layer2')
+    bpy.types.Scene.LayerName3 = StringProperty(name="Layer Name", default='layer3')
+    bpy.types.Scene.LayerName4 = StringProperty(name="Layer Name", default='layer4')
+    bpy.types.Scene.LayerName5 = StringProperty(name="Layer Name", default='layer5')
+    bpy.types.Scene.LayerName6 = StringProperty(name="Layer Name", default='layer6')
+    bpy.types.Scene.LayerName7 = StringProperty(name="Layer Name", default='layer7')
+    bpy.types.Scene.LayerName8 = StringProperty(name="Layer Name", default='layer8')
+    bpy.types.Scene.LayerName9 = StringProperty(name="Layer Name", default='layer9')
+    bpy.types.Scene.LayerName10 = StringProperty(name="Layer Name", default='layer10')
+    bpy.types.Scene.LayerName11 = StringProperty(name="Layer Name", default='layer11')
+    bpy.types.Scene.LayerName12 = StringProperty(name="Layer Name", default='layer12')
+    bpy.types.Scene.LayerName13 = StringProperty(name="Layer Name", default='layer13')
+    bpy.types.Scene.LayerName14 = StringProperty(name="Layer Name", default='layer14')
+    bpy.types.Scene.LayerName15 = StringProperty(name="Layer Name", default='layer15')
+    bpy.types.Scene.LayerName16 = StringProperty(name="Layer Name", default='layer16')
+    bpy.types.Scene.LayerName17 = StringProperty(name="Layer Name", default='layer17')
+    bpy.types.Scene.LayerName18 = StringProperty(name="Layer Name", default='layer18')
+    bpy.types.Scene.LayerName19 = StringProperty(name="Layer Name", default='layer19')
+    bpy.types.Scene.LayerName20 = StringProperty(name="Layer Name", default='layer20')
 
     #prop for hide empty
-    bpy.types.Scene.LayerVisibility = bpy.props.BoolProperty(name="Hide empty Layer", default=False)
+    bpy.types.Scene.LayerVisibility = BoolProperty(name="Hide empty Layer", default=False)
 
     #prop for extra option
-    bpy.types.Scene.ExtraOptions = bpy.props.BoolProperty(name="Show extra options", default=True)
+    bpy.types.Scene.ExtraOptions = BoolProperty(name="Show extra options", default=True)
 
     #lock layer status
-    bpy.types.Scene.LockLayer = bpy.props.BoolVectorProperty(name="Lock Layer", default = ([False]*20), size=20)
+    bpy.types.Scene.LockLayer = BoolVectorProperty(name="Lock Layer", default = ([False]*20), size=20)
 
     #prop for show index
-    bpy.types.Scene.LayerIndex = bpy.props.BoolProperty(name="Show Index", default=False)
+    bpy.types.Scene.LayerIndex = BoolProperty(name="Show Index", default=False)
 
     #prop for show classic
-    bpy.types.Scene.Classic = bpy.props.BoolProperty(name="Classic", default=False,description="Use a classic layer selection visibility")
+    bpy.types.Scene.Classic = BoolProperty(name="Classic", default=False,description="Use a classic layer selection visibility")
     #Select object Status
-    bpy.types.Scene.ObjectSelect = bpy.props.BoolVectorProperty(name="Object Select", default = ([True]*20), size=20)
+    bpy.types.Scene.ObjectSelect = BoolVectorProperty(name="Object Select", default = ([True]*20), size=20)
+   
+    #wire set up
+    bpy.types.Scene.WireLayer = BoolVectorProperty(name="Wire Layer", default = ([True]*20), size=20)
 
+    
     #toggle for merge
     #bpy.types.Scene.MergeToggle = bpy.props.BoolVectorProperty(name="Merge Toggle", default = (False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False), size=20)
 
@@ -480,31 +558,31 @@ class LayerName(bpy.types.Panel):
         view_3d = context.area.spaces.active
                 #check for lock camera and layer is active
         if view_3d.lock_camera_and_layers is True:
-            space= scene
-            spacecheck=False
+            space = scene
+            spacecheck = False
 
         else:
-            space= view_3d
-            spacecheck=True
+            space = view_3d
+            spacecheck = True
 
         #row = layout.row(align=True)
 
-        vis=False
-        allIcon='RESTRICT_VIEW_OFF'
-        allText="Isolate active"
+        vis = False
+        allIcon = 'RESTRICT_VIEW_OFF'
+        allText = "Isolate active"
 
         #check if there is a layer off
         for layer in space.layers:
 
             if not layer:
-                vis=True
-                allIcon='RESTRICT_VIEW_ON'
-                allText="All Visible"
+                vis = True
+                allIcon = 'RESTRICT_VIEW_ON'
+                allText = "All Visible"
 
         layout = self.layout
         column = layout.column()
         row = column.row()
-        col2= row.column()
+        col2 = row.column()
 
         #lock camera and layers button
 
@@ -513,19 +591,20 @@ class LayerName(bpy.types.Panel):
         #select all
 
         allView = col2.operator("scene.layersselect", emboss=False, icon=allIcon, text="")
-        allView.vis=vis
+        allView.vis = vis
 
-        col= row.column()
-        col.alignment='RIGHT'
+        col = row.column()
+        col.alignment = 'RIGHT'
+        
         #classic
         col.prop(scene, "Classic", text="Classic")
 
         #show extra option checkbox
 
-        col.alignment='RIGHT'
+        col.alignment = 'RIGHT'
         col.prop(scene, "ExtraOptions", text="Options")
 
-        col1= row.column()
+        col1 = row.column()
 
         #show index
         col1.prop(scene, "LayerIndex", text="Index")
@@ -533,7 +612,7 @@ class LayerName(bpy.types.Panel):
         # hide empty
 
         if context.object:
-            col1.alignment='RIGHT'
+            col1.alignment = 'RIGHT'
             col1.prop(scene, "LayerVisibility", toggle=False, text="Hide Empty")
 
         ##########
@@ -543,16 +622,16 @@ class LayerName(bpy.types.Panel):
 
             #inizializing the icon
             #lockIcon='UNLOCKED'
-            iconUsed= 'RADIOBUT_OFF'
-            iconAc='NONE'
-            iconLayer='NONE'
+            iconUsed = 'RADIOBUT_OFF'
+            iconAc = 'NONE'
+            iconLayer = 'NONE'
             #selectIcon ='RESTRICT_SELECT_OFF'
             #inizializing the bool value
             noitem = False
 
-            active=False
+            active = False
 
-            layer=20
+            layer = 20
             scene = context.scene
 
             extra = scene.ExtraOptions
@@ -567,25 +646,31 @@ class LayerName(bpy.types.Panel):
                     #print (i)
                     layer = i
 
-                    'Add ad object to see the layer'
+                    'Add an object to see the layer'
             else:
-                layer=i
+                layer = i
                 #the layer number
-
+            #set icon for wire layer
+            wire = scene.WireLayer[i]
+            wireIcon = 'POTATO'
+            if not wire:
+                wireIcon = 'WIRE'
+            else:
+                wireIcon = 'POTATO'
             #set icon for lock layer
             lock = scene.LockLayer[i]
 
             if lock:
-                lockIcon= 'LOCKED'
+                lockIcon = 'LOCKED'
             else:
-                lockIcon= 'UNLOCKED'
+                lockIcon = 'UNLOCKED'
 
             #check if there are Selected obj in the layer
 
             #check if layer have some thing
             if layer_used:
 
-                iconUsed= 'LAYER_USED'
+                iconUsed = 'LAYER_USED'
 
                 active_object = context.object
 
@@ -596,14 +681,14 @@ class LayerName(bpy.types.Panel):
                         active = True
 
             else:
-                scene.ObjectSelect[i]= True
+                scene.ObjectSelect[i] = True
 
-            if layer ==i:
+            if layer == i:
 
                 #check for active layer and set the icon
                 if view_3d.lock_camera_and_layers:
 
-                    if scene.active_layer==layer:
+                    if scene.active_layer == layer:
                         iconAc = 'FILE_TICK'
                         noitem = True
 
@@ -618,7 +703,7 @@ class LayerName(bpy.types.Panel):
                     viewIcon = 'RESTRICT_VIEW_ON'
                     noitem = False
 
-                row2=column.row(align=True)
+                row2 = column.row(align=True)
 #                if space==scene:
 #
 #                    colb1= row2.column()
@@ -628,31 +713,31 @@ class LayerName(bpy.types.Panel):
 #                    tog.toggle=True
 #                    viewemboss = True
 
-                iconLayer=viewIcon
+                iconLayer = viewIcon
 
                 # layer index
                 if scene.LayerIndex:
 
                     col6 = row2.column()
-                    col6.scale_x=0.14
+                    col6.scale_x = 0.14
                     col6.label(text=str(i+1)+".")
 
                 # visualization
                 classic = scene.Classic
                 if not classic:
 
-                    colb2= row2.column()
+                    colb2 = row2.column()
                     colb2.prop(space, "layers", index=layer, emboss=True, icon=iconLayer, toggle=True, text="")
                 else:
                     colb6 = row2.column()
                     used = colb6.operator("object.layertoggle", text="", icon= iconLayer, emboss=True)
-                    used.layerN=i
+                    used.layerN = i
                     used.spacecheck=spacecheck
 
                 #text prop
                 s = "LayerName"+str(i+1)
-                colb3= row2.column()
-                colb3.prop(scene,s,text="",icon=iconAc)
+                colb3 = row2.column()
+                colb3.prop(scene, s, text="",icon=iconAc)
 
                 if extra:
 
@@ -664,24 +749,30 @@ class LayerName(bpy.types.Panel):
 
                     #lock operator
                     colb5 = row2.column()
-                    lk = colb5.operator("object.lockselected", text="", emboss=True, icon= lockIcon)
+                    lk = colb5.operator("object.lockselected", text="", emboss=True, icon=lockIcon)
 
                     lk.layerN = i
-                    lk.lock=lock
+                    lk.lock = lock
 
     #                #occuped layer
     #                colb6.label(text="", icon=iconUsed)
 
                     #merge layer
                     colb7 = row2.column()
-                    merge = colb7.operator("object.mergeselected", text="", emboss=True, icon= iconUsed)
-                    merge.layerN=i
-
+                    merge = colb7.operator("object.mergeselected", text="", emboss=True, icon=iconUsed)
+                    merge.layerN = i
+                    
+                    #wire view:
+                    colb8 = row2.column()
+                    wirecol = colb8.operator("object.wirelayer", text="", emboss=True, icon=wireIcon)
+                    wirecol.layerN = i
+                    wirecol.wire = wire
+                    
                 if not scene.LayerVisibility:
-                    if i==4 or i==9 or i==14 or i==19:
+                    if i == 4 or i == 9 or i == 14 or i == 19:
                         row3 = column.row()
                         row3.separator()
-        if len(scene.objects)==0:
+        if len(scene.objects) == 0:
             layout.label(text='No objects in scene')
 
 class UI_UL_layergroups(UIList):
@@ -694,40 +785,53 @@ class UI_UL_layergroups(UIList):
 
         #check for lock camera and layer is active
         if view_3d.lock_camera_and_layers is True:
-            space= scene
+            space = scene
             spacecheck = False
         else:
-            space= view_3d
+            space = view_3d
             spacecheck = True
         #######################
         
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             
             layout.prop(lgroup, "name", text="", emboss=False)
-            
+            #set icon for view
             if lgroup.toggle:
                 iconLayer = 'RESTRICT_VIEW_OFF'
             
             else:
                 iconLayer = 'RESTRICT_VIEW_ON'
             
+            #set icon for lock
             if lgroup.lock:
-                iconLock= 'LOCKED'
+                iconLock = 'LOCKED'
             else:
-                iconLock='UNLOCKED'
+                iconLock = 'UNLOCKED'
             
+            #set icon for wire layer
             
+            wireIcon = 'POTATO'
+            if not lgroup.wire:
+                wireIcon = 'WIRE'
+            else:
+                wireIcon = 'POTATO'
+            #lock operato
             lk = layout.operator("object.lockselected", text="", emboss=False, icon= iconLock)
             lk.index_group = index
-            lk.lock=lgroup.lock
-            lk.layerN=-1
-           
+            lk.lock = lgroup.lock
+            lk.layerN = -1
             
-            
+            #viwe operator
             view = layout.operator("object.layertoggle", text="", emboss=False, icon= iconLayer)
             view.index_group = index
-            view.layerN=-1
-            view.spacecheck=spacecheck
+            view.layerN = -1
+            view.spacecheck = spacecheck
+            
+            #wire operator
+            wirecol = layout.operator("object.wirelayer", text="", emboss=False, icon= wireIcon)
+            wirecol.index_group = index
+            wirecol.wire = lgroup.wire
+            wirecol.layerN = -1
             
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
@@ -757,18 +861,18 @@ class LayerGroupsUI(bpy.types.Panel):
       
 
         index_group =  scene.layergroups_index
-        items =len(scene.layergroups)
+        items = len(scene.layergroups)
         viewIcon = 'RESTRICT_VIEW_OFF'
         layout = self.layout
         row = layout.row()
-        row.template_list("UI_UL_layergroups", "", context.scene, "layergroups",
-                          context.scene, "layergroups_index", rows=items)
-        col =row.column(align =True)
+        row.template_list("UI_UL_layergroups", "", context.scene, "layergroups", context.scene, "layergroups_index", rows=items)
+        col = row.column(align =True)
         add = col.operator("object.layergroup_add", icon='ZOOMIN', text="")
-        add.index= items
-        add.layer= scene.layers
+        add.index = items
+        add.layer = scene.layers
         remove = col.operator("object.layergroup_remove", icon='ZOOMOUT', text="")
-        remove.index_group= index_group
+        remove.index_group = index_group
+        
         if items > 0:
 
 
@@ -780,8 +884,34 @@ def register():
 
 
     bpy.utils.register_module(__name__)
+    
+    '''bpy.utils.register_class(LayerGroupsUI)
+    bpy.utils.register_class(UI_UL_layergroups)
+    bpy.utils.register_class(LayerName)
+    bpy.utils.register_class(AllLayersSelect)
+    bpy.utils.register_class(SelectObjectsLayer)
+    bpy.utils.register_class(MakeWireLayer)
+    bpy.utils.register_class(LockSelected)
+    bpy.utils.register_class(MergeSelected)
+    bpy.utils.register_class(LayerToggle)
+    bpy.utils.register_class(AddLayerGroup)
+    bpy.utils.register_class(RemoveLayerGroup)
+    bpy.utils.register_class(LayerGroup)'''
 def unregister():
   
-    bpy.utils.register_module(__name__)
+    bpy.utils.unregister_module(__name__)
+    
+    '''bpy.utils.unregister_class(LayerGroupsUI)
+    bpy.utils.unregister_class(UI_UL_layergroups)
+    bpy.utils.unregister_class(LayerName)
+    bpy.utils.unregister_class(AllLayersSelect)
+    bpy.utils.unregister_class(SelectObjectsLayer)
+    bpy.utils.unregister_class(MakeWireLayer)
+    bpy.utils.unregister_class(LockSelected)
+    bpy.utils.unregister_class(MergeSelected)
+    bpy.utils.unregister_class(LayerToggle)
+    bpy.utils.unregister_class(AddLayerGroup)
+    bpy.utils.unregister_class(RemoveLayerGroup)
+    bpy.utils.unregister_class(LayerGroup)'''
 if __name__ == "__main__":
     register()
