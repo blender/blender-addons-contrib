@@ -906,6 +906,8 @@ data_ = Data()
 
 def get_rv3d(context, spaceview3d):
 	rv3d = bpy.context.space_data.region_3d
+	# TODO, quadview
+	'''
 	if hasattr(spaceview3d, 'region_quadview_nw'):
 		available_quadview = True
 	else:
@@ -916,6 +918,7 @@ def get_rv3d(context, spaceview3d):
 	if available_quadview is False:
 		if spaceview3d.region_quadview:
 			return None
+	'''
 	return rv3d
 
 def get_localgrid_status(spaceview3d):
@@ -2517,11 +2520,8 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 				context.window_manager.modal_handler_add(self)
 
 				bpy.app.handlers.scene_update_post.append(scenechange)
-
-				if eval(str(bpy.app.build_revision)[2:7]) >= 53207:
-					_handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (self, context), 'WINDOW', 'POST_PIXEL')
-				else:
-					_handle = context.region.callback_add(draw_callback_px, (self, context), 'POST_PIXEL')
+				
+				_handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (self, context), 'WINDOW', 'POST_PIXEL')
 
 			print("Ruler display callback added")
 			context.area.tag_redraw()
@@ -2957,13 +2957,17 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 						if self.__class__.draw_cursor is not None:
 							self.__class__.draw_cursor = 1
 							self.__class__.draw_mc = 1
-							bpy.context.region.tag_redraw()
+							region = context.region
+							if region:
+								region.tag_redraw()
 						return {'RUNNING_MODAL'}
 					else:
 						if self.__class__.draw_cursor is not None:
 							self.__class__.draw_cursor = 0
 							self.__class__.draw_mc = 0
-							bpy.context.region.tag_redraw()
+							region = context.region
+							if region:
+								region.tag_redraw()
 						return {'RUNNING_MODAL'}
 
 			if event.type in ('MOUSEMOVE',):
@@ -3033,10 +3037,7 @@ class VIEW3D_OT_display_ruler(bpy.types.Operator):
 #			return {'FINISHED'}
 
 		elif mode == -1:
-			if eval(str(bpy.app.build_revision)[2:7]) >= 53207:
-				bpy.types.SpaceView3D.draw_handler_remove(_handle, "WINDOW")
-			else:
-				context.region.callback_remove(_handle)
+			bpy.types.SpaceView3D.draw_handler_remove(_handle, "WINDOW")
 			started = 0
 			bpy.context.area.tag_redraw()
 			# draw disable
