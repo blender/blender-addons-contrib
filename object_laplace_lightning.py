@@ -116,7 +116,7 @@ import struct
 import bisect
 import os.path
 notZero = 0.0000000001
-scn = bpy.context.scene
+#scn = bpy.context.scene
 
 ######################################################################
 ########################### UTILITY FXNS #############################
@@ -1056,57 +1056,58 @@ def FSLG():
 ###---NOT IN UI
 bpy.types.Scene.ORIGIN = bpy.props.FloatVectorProperty(name = "origin charge")
 bpy.types.Scene.GROUNDZ = bpy.props.IntProperty(name = "ground Z coordinate")
-bpy.types.Scene.HORDER = bpy.props.IntProperty(name = "secondary paths orders")
+bpy.types.Scene.HORDER = bpy.props.IntProperty(name = "secondary paths orders",default=1)
 ###---IN UI
-bpy.types.Scene.TSTEPS = bpy.props.IntProperty(
+bpy.types.Scene.TSTEPS = bpy.props.IntProperty(default=350,
     name = "iterations", description = "number of cells to create, will end early if hits ground plane or cloud")
-bpy.types.Scene.GSCALE = bpy.props.FloatProperty(
+bpy.types.Scene.GSCALE = bpy.props.FloatProperty(default=0.12,
     name = "grid unit size", description = "scale of cells, .25 = 4 cells per blenderUnit")
-bpy.types.Scene.BIGVAR = bpy.props.FloatProperty(
+bpy.types.Scene.BIGVAR = bpy.props.FloatProperty(default=6.3,
     name = "straightness", description = "straightness/branchiness of bolt, <2 is mush, >12 is staight line, 6.3 is good")
-bpy.types.Scene.GROUNDBOOL = bpy.props.BoolProperty(
+bpy.types.Scene.GROUNDBOOL = bpy.props.BoolProperty(default=True,
     name = "use ground object", description = "use ground plane or not")
-bpy.types.Scene.GROUNDC = bpy.props.IntProperty(
+bpy.types.Scene.GROUNDC = bpy.props.IntProperty(default=-250,
     name = "ground charge", description = "charge of ground plane")
-bpy.types.Scene.CLOUDBOOL = bpy.props.BoolProperty(
+bpy.types.Scene.CLOUDBOOL = bpy.props.BoolProperty(default=True,
     name = "use cloud object", description = "use cloud obj, attracts and terminates like ground but any obj instead of z plane, can slow down loop if obj is large, overrides ground")
-bpy.types.Scene.CLOUDC = bpy.props.IntProperty(
+bpy.types.Scene.CLOUDC = bpy.props.IntProperty(default=-1,
     name = "cloud charge", description = "charge of a cell in cloud object (so total charge also depends on obj size)")
 
-bpy.types.Scene.VMMESH = bpy.props.BoolProperty(
+bpy.types.Scene.VMMESH = bpy.props.BoolProperty(default=True,
     name = "multi mesh", description = "output to multi-meshes for different materials on main/sec/side branches")
-bpy.types.Scene.VSMESH = bpy.props.BoolProperty(
+bpy.types.Scene.VSMESH = bpy.props.BoolProperty(default=False,
     name = "single mesh", description = "output to single mesh for using build modifier and particles for effects")
-bpy.types.Scene.VCUBE = bpy.props.BoolProperty(
+bpy.types.Scene.VCUBE = bpy.props.BoolProperty(default=False,
     name = "cubes", description = "CTRL-J after run to JOIN, outputs a bunch of cube objest, mostly for testing")
-bpy.types.Scene.VVOX = bpy.props.BoolProperty(
+bpy.types.Scene.VVOX = bpy.props.BoolProperty(default=False,
     name = "voxel (experimental)", description = "output to a voxel file to bpy.data.filepath\FSLGvoxels.raw - doesn't work well right now")
-bpy.types.Scene.IBOOL = bpy.props.BoolProperty(
+bpy.types.Scene.IBOOL = bpy.props.BoolProperty(default=False,
     name = "use insulator object", description = "use insulator mesh object to prevent growth of bolt in areas")
-bpy.types.Scene.OOB = bpy.props.StringProperty(description = "origin of bolt, can be an Empty, if obj is mesh will use all verts as charges")
-bpy.types.Scene.GOB = bpy.props.StringProperty(description = "object to use as ground plane, uses z coord only")
-bpy.types.Scene.COB = bpy.props.StringProperty(description = "object to use as cloud, best to use a cube")
-bpy.types.Scene.IOB = bpy.props.StringProperty(description = "object to use as insulator, 'voxelized' before generating bolt, can be slow")
+bpy.types.Scene.OOB = bpy.props.StringProperty(default="ELorigin", description = "origin of bolt, can be an Empty, if obj is mesh will use all verts as charges")
+bpy.types.Scene.GOB = bpy.props.StringProperty(default="ELground", description = "object to use as ground plane, uses z coord only")
+bpy.types.Scene.COB = bpy.props.StringProperty(default="ELcloud", description = "object to use as cloud, best to use a cube")
+bpy.types.Scene.IOB = bpy.props.StringProperty(default="ELinsulator", description = "object to use as insulator, 'voxelized' before generating bolt, can be slow")
 
+'''
 ###---DEFAULT USER SETTINGS
-scn.TSTEPS = 350
-scn.HORDER = 1
-scn.GSCALE = 0.12
-scn.BIGVAR = 6.3
-scn.GROUNDBOOL = True
-scn.GROUNDC = -250
-scn.CLOUDBOOL = False
-scn.CLOUDC = -1
-scn.VMMESH = True
-scn.VSMESH = False
-scn.VCUBE = False
-scn.VVOX = False
-scn.IBOOL = False
+bpy.context.scene.TSTEPS = 350
+bpy.context.scene.HORDER = 1
+bpy.context.scene.GSCALE = 0.12
+bpy.context.scene.BIGVAR = 6.3
+bpy.context.scene.GROUNDBOOL = True
+bpy.context.scene.GROUNDC = -250
+bpy.context.scene.CLOUDBOOL = False
+bpy.context.scene.CLOUDC = -1
+bpy.context.scene.VMMESH = True
+bpy.context.scene.VSMESH = False
+bpy.context.scene.VCUBE = False
+bpy.context.scene.VVOX = False
+bpy.context.scene.IBOOL = False
 try:
-    scn.OOB = "ELorigin"
-    scn.GOB = "ELground"
-    scn.COB = "ELcloud"
-    scn.IOB = "ELinsulator"
+    bpy.context.scene.OOB = "ELorigin"
+    bpy.context.scene.GOB = "ELground"
+    bpy.context.scene.COB = "ELcloud"
+    bpy.context.scene.IOB = "ELinsulator"
 except: pass
 ### TESTING
 if False:
@@ -1116,14 +1117,14 @@ if False:
     #scn.VMMESH = False
     #scn.VCUBE = True
     #scn.TSTEPS = 7500
-    scn.TSTEPS = 100
+    bpy.context.scene
     #scn.GROUNDC = -500
     #scn.CLOUDC = -5
     #scn.GROUNDBOOL = False
     #scn.CLOUDBOOL = True
 
     #scn.IBOOL = True
-
+'''
 class runFSLGLoopOperator(bpy.types.Operator):
     """By The Mighty Hammer Of Thor!!!"""
     bl_idname = "object.runfslg_operator"
