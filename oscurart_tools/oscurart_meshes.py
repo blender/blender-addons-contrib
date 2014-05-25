@@ -278,7 +278,6 @@ class OscObjectToMesh(bpy.types.Operator):
 def DefOscOverlapUv(valprecision):
     inicio= time.time()
 
-    
     mode = bpy.context.object.mode
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     ob = bpy.context.object
@@ -297,13 +296,13 @@ def DefOscOverlapUv(valprecision):
     dict = { poly.index : {ob.data.loops[vertex].vertex_index :vertex  for vertex in poly.loop_indices} for poly in ob.data.polygons}
 
     for poly,data in dict.items():
-        if ob.data.polygons[poly].center.x < 0 and polyeq.get(poly):
+        if ob.data.polygons[poly].center.x < 0 and poly in polyeq:
             for   vertice, vertex in data.items():              
-                if len(dict[poly]) ==  len(dict[polyeq[poly]])  and verteq.get(vertice): # DEBUG
+                if len(dict[poly]) ==  len(dict[polyeq[poly]]) and vertice in verteq : # DEBUG
                     source, target = dict[poly][vertice] , dict[polyeq[poly]][verteq[vertice]]  
                     uvm.data[target].uv = uvm.data[source].uv
 
-    bpy.ops.object.mode_set(mode=mode, toggle=False)  
+    bpy.ops.object.mode_set(mode=mode, toggle=False) 
    
     print("Time elapsed: %4s seconds" % (time.time()-inicio))          
     
@@ -405,4 +404,5 @@ class ModalIndexOperator(bpy.types.Operator):
             self.report({"WARNING"}, "Is not a 3D Space")
             return {'CANCELLED'}
                 
+
 
