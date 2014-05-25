@@ -275,14 +275,13 @@ class OscObjectToMesh(bpy.types.Operator):
 ## ----------------------------- OVERLAP UV --------------------------------------------
 
 
-def DefOscOverlapUv(valprecision):
+def DefOscOverlapUv(valprecision,scale):
     inicio= time.time()
-
     mode = bpy.context.object.mode
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     ob = bpy.context.object
     uvm = ob.data.uv_layers.active
-    redondeo = lambda x : (round(x[0],valprecision),round(x[1],valprecision),round(x[2],valprecision))
+    redondeo = lambda x : (round(x[0]*scale,valprecision),round(x[1]*scale,valprecision),round(x[2]*scale,valprecision))
     absol = lambda x : (abs(x[0]),x[1],x[2])
 
     polydict = {redondeo(poly.center[:]) : poly  for poly in ob.data.polygons }
@@ -300,7 +299,8 @@ def DefOscOverlapUv(valprecision):
             for   vertice, vertex in data.items():              
                 if len(dict[poly]) ==  len(dict[polyeq[poly]]) and vertice in verteq : # DEBUG
                     source, target = dict[poly][vertice] , dict[polyeq[poly]][verteq[vertice]]  
-                    uvm.data[target].uv = uvm.data[source].uv
+                    if uvm.data[target].select:
+                        uvm.data[target].uv = uvm.data[source].uv
 
     bpy.ops.object.mode_set(mode=mode, toggle=False) 
    
@@ -312,10 +312,12 @@ class OscOverlapUv(bpy.types.Operator):
     bl_idname = "mesh.overlap_uv_faces"
     bl_label = "Overlap Uvs"
     bl_options = {"REGISTER", "UNDO"}
-
+    
+    scale = bpy.props.IntProperty(default=100, min=1, name="scale" )
     precision = bpy.props.IntProperty(default=4, min=1, max=10, name="precision" )
+    
     def execute(self, context):
-        DefOscOverlapUv(self.precision)
+        DefOscOverlapUv(self.precision,self.scale)
         return {'FINISHED'}
 
 ## ------------------------------- IO VERTEX COLORS --------------------
