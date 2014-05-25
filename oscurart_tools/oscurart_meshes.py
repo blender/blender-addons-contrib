@@ -276,6 +276,37 @@ class OscObjectToMesh(bpy.types.Operator):
 
 
 def DefOscOverlapUv(valprecision):
+    inicio= time.time()
+    mode = bpy.context.object.mode
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+    ob = bpy.context.object
+    uvm = ob.data.uv_layers.active
+    redondeo = lambda x : (round(x[0],valprecision),round(x[1],valprecision),round(x[2],valprecision))
+    absol = lambda x : (abs(x[0]),x[1],x[2])
+
+    polydict = {redondeo(poly.center[:]) : poly  for poly in ob.data.polygons }
+    vertdict = {redondeo(vert.co[:]) : vert for vert in ob.data.vertices }
+
+    polyeq = { indice.index : polydict[absol(center)].index for center,indice in polydict.items() if center[0] <= 0
+        if polydict.get(absol(center))}
+    verteq = { indice.index : vertdict[absol(co)].index for co,indice in vertdict.items() if co[0] <= 0
+        if vertdict.get(absol(co))}
+
+    dict = { poly.index : {ob.data.loops[vertex].vertex_index :vertex  for vertex in poly.loop_indices} for poly in ob.data.polygons}
+
+    for poly,data in dict.items():
+        if ob.data.polygons[poly].center.x <= 0:
+            poly, data
+            polyeq[poly], dict[polyeq[poly]]
+            for ind in data:
+                ind, verteq[ind]
+                data[ind], dict[polyeq[poly]][verteq[ind]]
+                uvm.data[data[ind]].uv = uvm.data[dict[polyeq[poly]][verteq[ind]]].uv 
+
+    bpy.ops.object.mode_set(mode=mode, toggle=False)      
+    print("Time elapsed: %4s seconds" % (time.time()-inicio))          
+    
+    """
     rd = 4
     ACTOBJ = bpy.context.object
     inicio= time.time()
@@ -292,6 +323,7 @@ def DefOscOverlapUv(valprecision):
 
     
     print("Time elapsed: %4s seconds" % (time.time()-inicio))
+    """
 
 class OscOverlapUv(bpy.types.Operator):
     bl_idname = "mesh.overlap_uv_faces"
