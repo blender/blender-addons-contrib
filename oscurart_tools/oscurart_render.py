@@ -1,6 +1,7 @@
 import bpy
 import math
 import os
+import stat
 
 
 ##-------------------------------- RENDER ALL SCENES ----------------------------
