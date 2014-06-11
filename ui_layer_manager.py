@@ -329,7 +329,7 @@ class MakeWireLayer(bpy.types.Operator):
 
 
 class LockSelected(bpy.types.Operator):
-    '''Loock All Objects on this Layer'''
+    '''Lock All Objects on this Layer'''
     bl_idname = "object.lockselected"
     bl_label = "Hide Select of Selected"
 
