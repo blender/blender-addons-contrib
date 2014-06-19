@@ -168,7 +168,7 @@ def reSymSave (self,quality):
     absol = lambda x : (abs(x[0]),x[1],x[2])
 
     inddict = { tuple(map(rd, vert.co[:])) : vert.index for vert in object.data.vertices[:]}
-    reldict = { inddict[vert] : inddict[absol(vert)] for vert in inddict if vert[0] <= 0  if inddict.get(absol(vert))}       
+    reldict = { inddict[vert] : inddict.get(absol(vert),inddict[vert]) for vert in inddict if vert[0] <= 0  }       
         
     ENTFILEPATH= "%s_%s_SYM_TEMPLATE.xml" %  (os.path.join(os.path.dirname(bpy.data.filepath), bpy.context.scene.name), bpy.context.object.name)
     with open(ENTFILEPATH ,mode="w") as file:   
@@ -406,5 +406,7 @@ class ModalIndexOperator(bpy.types.Operator):
             self.report({"WARNING"}, "Is not a 3D Space")
             return {'CANCELLED'}
                 
+
+
 
 
