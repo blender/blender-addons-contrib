@@ -275,32 +275,36 @@ class OscObjectToMesh(bpy.types.Operator):
 ## ----------------------------- OVERLAP UV --------------------------------------------
 
 
-def DefOscOverlapUv(valprecision,scale):
+def DefOscOverlapUv(valpresicion):
     inicio= time.time()
     mode = bpy.context.object.mode
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+    rd = valpresicion
     ob = bpy.context.object
-    uvm = ob.data.uv_layers.active
-    redondeo = lambda x : (round(x[0]*scale,valprecision),round(x[1]*scale,valprecision),round(x[2]*scale,valprecision))
-    absol = lambda x : (abs(x[0]),x[1],x[2])
+    absco = lambda x: (abs(round(x[0],rd)),round(x[1],rd),round(x[2],rd))
+    rounder = lambda x: (round(x[0],rd),round(x[1],rd),round(x[2],rd))
 
-    polydict = {redondeo(poly.center[:]) : poly  for poly in ob.data.polygons }
-    vertdict = {redondeo(vert.co[:]) : vert for vert in ob.data.vertices }
+    # vertice a vertex
+    vertvertex = {}
+    for vert in ob.data.loops:
+        vertvertex.setdefault(vert.vertex_index,[]).append(vert.index)
 
-    polyeq = { indice.index : polydict[absol(center)].index for center,indice in polydict.items() if center[0] < 0
-        if polydict.get(absol(center))}
-    verteq = { indice.index : vertdict[absol(co)].index for co,indice in vertdict.items() if co[0] <= 0
-        if vertdict.get(absol(co))}
+    # posicion de cada vertice y cada face 
+    vertloc = { rounder(vert.co[:]) : vert for vert in ob.data.vertices} 
+    faceloc = { rounder(poly.center[:]) : poly for poly in ob.data.polygons} 
 
-    dict = { poly.index : {ob.data.loops[vertex].vertex_index :vertex  for vertex in poly.loop_indices} for poly in ob.data.polygons}
+    # relativo de cada vertice y cada face
+    verteq = {vert : vertloc.get(absco(co),vertloc[co]) for co,vert in vertloc.items() if co[0] <= 0}    
+    polyeq = {face : faceloc.get(absco(center),faceloc[center]) for center,face in faceloc.items() if center[0] <= 0}  
 
-    for poly,data in dict.items():
-        if ob.data.polygons[poly].center.x < 0 and poly in polyeq:
-            for   vertice, vertex in data.items():              
-                if len(dict[poly]) ==  len(dict[polyeq[poly]]) and vertice in verteq : # DEBUG
-                    source, target = dict[poly][vertice] , dict[polyeq[poly]][verteq[vertice]]  
-                    if uvm.data[target].select:
-                        uvm.data[target].uv = uvm.data[source].uv
+    # loops in faces
+    lif = {poly : [i for i in poly.loop_indices] for poly in ob.data.polygons}
+
+    # acomoda
+    for l, r in polyeq.items():
+        for llif,rlif in zip(lif[l],lif[r]):
+            ob.data.uv_layers.active.data[rlif].uv = ob.data.uv_layers.active.data[llif].uv
 
     bpy.ops.object.mode_set(mode=mode, toggle=False) 
    
@@ -313,11 +317,10 @@ class OscOverlapUv(bpy.types.Operator):
     bl_label = "Overlap Uvs"
     bl_options = {"REGISTER", "UNDO"}
     
-    scale = bpy.props.IntProperty(default=100, min=1, name="scale" )
-    precision = bpy.props.IntProperty(default=4, min=1, max=10, name="precision" )
+    presicion = bpy.props.IntProperty(default=4, min=1, max=10, name="precision" )
     
     def execute(self, context):
-        DefOscOverlapUv(self.precision,self.scale)
+        DefOscOverlapUv(self.presicion)
         return {'FINISHED'}
 
 ## ------------------------------- IO VERTEX COLORS --------------------
@@ -406,6 +409,7 @@ class ModalIndexOperator(bpy.types.Operator):
             self.report({"WARNING"}, "Is not a 3D Space")
             return {'CANCELLED'}
                 
+
 
 
 
