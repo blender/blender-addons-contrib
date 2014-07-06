@@ -20,7 +20,7 @@ bl_info = {
     "name": "Grass Lab",
     "author": "Ondrej Raha(lokhorn), meta-androcto",
     "version": (0, 5),
-    "blender": (2, 60, 0),
+    "blender": (2, 71, 0),
     "location": "View3D > Tool Shelf > Grass Preset Panel",
     "description": "Creates particle grass with material",
     "warning": "",
@@ -65,6 +65,7 @@ class grassLabPanel(bpy.types.Panel):
     bl_label = "Grass Lab"
     bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "Addons"
 
     def draw(self, context):
         active_obj = bpy.context.active_object
@@ -525,6 +526,7 @@ class HairLabPanel(bpy.types.Panel):
     bl_label = "Hair Lab"
     bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "Addons"
 
     def draw(self, context):
         active_obj = bpy.context.active_object
@@ -977,6 +979,7 @@ class FurLabPanel(bpy.types.Panel):
     bl_label = "Fur Lab"
     bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "Addons"
 
     def draw(self, context):
         active_obj = bpy.context.active_object
