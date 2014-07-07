@@ -1,4 +1,4 @@
-bl_info = {
+'''bl_info = {
     "name": "Window Generator 2",
     "author": "SayPRODUCTIONS",
     "version": (2, 0),
@@ -9,9 +9,10 @@ bl_info = {
     "wiki_url": "",
     "tracker_url": "",
     "category": "Add Mesh"}
+	'''
 import bpy
 from bpy.props import *
-from math import pi, sin, cos, sqrt
+from math import pi, sin, cos, sqrt, radians
 def MAT(AD,R,G,B):
     if AD not in bpy.data.materials:
         mtl=bpy.data.materials.new(AD)
@@ -619,7 +620,8 @@ def add_object(self, context):
         mesh.polygons[i].use_smooth = 1
     mesh.update(calc_edges=True)
     from bpy_extras import object_utils
-    return object_utils.object_data_add(context, mesh, operator=None)
+    object_utils.object_data_add(context, mesh, operator=None)
+    return mesh.name
     if  bpy.context.mode!='EDIT_MESH':
         bpy.ops.object.editmode_toggle()
         bpy.ops.object.editmode_toggle()
@@ -704,6 +706,12 @@ class PENCERE(bpy.types.Operator):
     k42=BoolProperty(name='',default=False);k43=BoolProperty(name='',default=False)
     k44=BoolProperty(name='',default=False);k45=BoolProperty(name='',default=False)
     k46=BoolProperty(name='',default=False);k47=BoolProperty(name='',default=False)
+    rotationPropX=IntProperty(name='',min=0,max=360,default= 0,description='Window Rotation X')
+    rotationPropY=IntProperty(name='',min=0,max=360,default= 0,description='Window Rotation Y')
+    rotationPropZ=IntProperty(name='',min=0,max=360,default= 0,description='Window Rotation Z')
+    locationPropX=FloatProperty(name='',min=-10000,max=10000,default= 0,description='Window Location X')
+    locationPropY=FloatProperty(name='',min=-10000,max=10000,default= 0,description='Window Location Y')
+    locationPropZ=FloatProperty(name='',min=-10000,max=10000,default= 0,description='Window Location Z')
     #--------------------------------------------------------------
     def draw(self, context):
         layout = self.layout
@@ -744,20 +752,26 @@ class PENCERE(bpy.types.Operator):
             row.prop(self,'gny'+str(self.yuk-j-1))
             for i in range(0,self.gen):
                 row.prop(self,'k'+str(self.yuk-j-1)+str(i))
+        row =layout.row()
+        box.row();row.label('X');row.label('Y');row.label('Z')
+        row =layout.row()
+        row.label("Rotation")
+        row =layout.row()
+        box.row();row.prop(self,'rotationPropX');row.prop(self,'rotationPropY');row.prop(self,'rotationPropZ')
+        row =layout.row()
+        row.label("Location")
+        row =layout.row()
+        box.row();row.prop(self,'locationPropX');row.prop(self,'locationPropY');row.prop(self,'locationPropZ')
+
     def execute(self, context):
         if self.son!=self.prs:
             Prs(self)
             self.son=self.prs
-        add_object(self,context)
+        name = add_object(self,context)
+        bpy.data.objects[name].rotation_euler[0] = radians(self.rotationPropX)
+        bpy.data.objects[name].rotation_euler[1] = radians(self.rotationPropY)
+        bpy.data.objects[name].rotation_euler[2] = radians(self.rotationPropZ)
+        bpy.data.objects[name].location[0] = bpy.context.scene.cursor_location[0] + self.locationPropX
+        bpy.data.objects[name].location[1] = bpy.context.scene.cursor_location[1] + self.locationPropY
+        bpy.data.objects[name].location[2] = bpy.context.scene.cursor_location[2] + self.locationPropZ
         return {'FINISHED'}
-# Registration
-def menu_func_pencere(self, context):
-    self.layout.operator(PENCERE.bl_idname,text="Window",icon="MOD_LATTICE")
-def register():
-    bpy.utils.register_class(PENCERE)
-    bpy.types.INFO_MT_mesh_add.append(menu_func_pencere)
-def unregister():
-    bpy.utils.unregister_class(PENCERE)
-    bpy.types.INFO_MT_mesh_add.remove(menu_func_pencere)
-if __name__ == '__main__':
-    register()

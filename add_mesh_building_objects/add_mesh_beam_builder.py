@@ -15,7 +15,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
+'''
 bl_info = {
     "name": "Beam Builder",
     "description": "Creates various types of beams.",
@@ -28,7 +28,7 @@ bl_info = {
         "Scripts/Add_Mesh/BeamBuilder",
     "tracker_url": "https://developer.blender.org/Taid=26911",
     "category": "Add Mesh"}
-
+'''
 #
 # Creates a rectangluar, 'C', 'L', 'T', or 'I' - type beam.
 #
@@ -1449,30 +1449,3 @@ class INFO_MT_mesh_beambuilder_add(bpy.types.Menu):
         layout.operator("mesh.primitive_l_beam_add", text = "L Shaped Beam")
         layout.operator("mesh.primitive_t_beam_add", text = "T Shaped Beam")
         layout.operator("mesh.primitive_i_beam_add", text = "I Shaped Beam")
-
-
-
-# Define menu
-def menu_func(self, context):
-    self.layout.menu("INFO_MT_mesh_beambuilder_add", icon='PLUGIN')
-
-
-# Add
-def register():
-    bpy.utils.register_module(__name__)
-
-    # Add BeamBuilder menu to the 'Add Mesh' menu
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-
-# Remove
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    # Remove BeamBuilder menu from 'Add Mesh' menu
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-
-if __name__ == "__main__":
-    register()
-
