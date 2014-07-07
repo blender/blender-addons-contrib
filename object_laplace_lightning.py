@@ -15,25 +15,24 @@
 # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-
 bl_info = {
     "name": "Laplacian Lightning",
     "author": "teldredge",
-    "version": (0, 2, 6),
-    "blender": (2, 61, 0),
+    "version": (0, 2, 7),
+    "blender": (2, 71, 0),
     "location": "View3D > ToolShelf > Laplacian Lightning",
     "description": "Lightning mesh generator using laplacian growth algorithm",
-    "warning": "Beta/Buggy",
+    "warning": "Beta",
     "wiki_url": "http://www.funkboxing.com/wordpress/?p=301",
-    "tracker_url": "https://developer.blender.org/T27189",
+    "tracker_url": "http://www.funkboxing.com/wordpress/?p=301",
     "category": "Object"}
-
-
+        
 ######################################################################
 ######################################################################
 ##################### BLENDER LAPLACIAN LIGHTNING ####################
 ############################ teldredge ###############################
 ######################## www.funkboxing.com ##########################
+################# https://developer.blender.org/T27189 ###############
 ######################################################################
 ######################## using algorithm from ########################
 ######################################################################
@@ -46,7 +45,6 @@ bl_info = {
 ################ http://gamma.cs.unc.edu/FAST_LIGHTNING/ #############
 ######################################################################
 ######################################################################
-
 """           -----RELEASE LOG/NOTES/PONTIFICATIONS-----
 v0.1.0 - 04.11.11
     basic generate functions and UI
@@ -60,7 +58,7 @@ v0.2.0 - 04.15.11
 v0.2.1 - 04.16.11
     mesh classification speedup
 v0.2.2 - 04.21.11
-    fxns to write/read array to file
+    fxns to write/read array to file 
     restrict growth to insulator cells (object bounding box)
     origin/ground defineable by object
     gridunit more like 'resolution'
@@ -69,7 +67,7 @@ v0.2.3 - 04.24.11
     secondary path orders (hOrder) disabled in UI (set to 1)
 v0.2.4 - 04.26.11
     fixed object selection in UI
-    will not run if required object not selected
+    will not run if required object not selected   
     moved to view 3d > toolbox
 v0.2.5 - 05.08.11
     testing for 2.57b
@@ -84,20 +82,25 @@ v0.2.6 - 06.20.11
         must have rot=0, scale=1, origin set to geometry
         often fails to block bolt with curved/complex shapes
     separate single and multi mesh creation
+v0.2.7 - 01.05.13
+    fixed the issue that prevented enabling the add-on
+    fixed makeMeshCube fxn
+    disabled visualization for voxels
 
 v0.x -
+    -prevent create_setup_objects from generating duplicates
     -fix vis fxn to only buildCPGraph once for VM or VS
     -improve list fxns (rid of ((x,y,z),w) and use (x,y,z,w)), use 'sets'
     -create python cmodule for a few of most costly fxns
         i have pretty much no idea how to do this yet
     -cloud and insulator can be groups of MESH objs
-    -?text output, possibly to save on interrupt, allow continue from text
+    -text output, possibly to save on interrupt, allow continue from text
     -?hook modifiers from tips->sides->main, weight w/ vert groups
     -user defined 'attractor' path
     -fix add curve function
-    -animated arcs via. ionization path
-    -environment map boundary conditions - requires Eqn. 15 from FSLG...
-    -?assign wattage at each segment for HDRI
+    -animated arcs via. ionization path    
+    -environment map boundary conditions - requires Eqn. 15 from FSLG.
+    -assign wattage at each segment for HDRI
     -?default settings for -lightning, -teslacoil, -spark/arc
     -fix hOrder functionality
     -multiple 'MAIN' brances for non-lightning discharges
@@ -117,6 +120,7 @@ import bisect
 import os.path
 notZero = 0.0000000001
 #scn = bpy.context.scene
+winmgr = bpy.context.window_manager
 
 ######################################################################
 ########################### UTILITY FXNS #############################
@@ -159,7 +163,7 @@ def weightedRandomChoice(aList):
         if weight > 0.0:
             tweight += weight
             tL.append((tweight, idex))
-    i = bisect.bisect(tL, (random.uniform(0, tweight), None))
+    i = bisect.bisect(tL, (random.uniform(0, tweight), None))    
     r = tL[i][1]
     return r
 
@@ -182,7 +186,7 @@ def jitterCells(aList, jit):
         bList.append((ax, ay, az))
     return bList
 
-def deDupe(seq, idfun=None):
+def deDupe(seq, idfun=None): 
 ###---THANKS TO THIS GUY - http://www.peterbe.com/plog/uniqifiers-benchmark
     if idfun is None:
         def idfun(x): return x
@@ -215,7 +219,7 @@ def writeArrayToVoxel(arr, filename):
                 file.write(struct.pack('B', aGrid[x][y][z]))
     file.flush()
     file.close()
-
+        
 def writeArrayToFile(arr, filename):
     file = open(filename, "w")
     for a in arr:
@@ -231,7 +235,7 @@ def readArrayFromFile(filename):
         arr.append((int(pt[0]), int(pt[1]), int(pt[2])))
     return arr
 
-def makeMeshCube(msize):
+def makeMeshCube_OLD(msize):
     msize = msize/2
     mmesh = bpy.data.meshes.new('q')
     mmesh.vertices.add(8)
@@ -253,6 +257,26 @@ def makeMeshCube(msize):
     mmesh.update(calc_edges=True)
     return(mmesh)
 
+def makeMeshCube(msize):
+    m2 = msize/2
+    #verts = [(0,0,0),(0,5,0),(5,5,0),(5,0,0),(0,0,5),(0,5,5),(5,5,5),(5,0,5)]
+    verts = [(-m2,-m2,-m2),(-m2,m2,-m2),(m2,m2,-m2),(m2,-m2,-m2),
+             (-m2,-m2,m2),(-m2,m2,m2),(m2,m2,m2),(m2,-m2,m2)]
+    faces = [(0,1,2,3), (4,5,6,7), (0,4,5,1), (1,5,6,2), (2,6,7,3), (3,7,4,0)]
+ 
+    #Define mesh and object
+    mmesh = bpy.data.meshes.new("Cube")
+    #mobject = bpy.data.objects.new("Cube", mmesh)
+ 
+    #Set location and scene of object
+    #mobject.location = bpy.context.scene.cursor_location
+    #bpy.context.scene.objects.link(mobject)
+ 
+    #Create mesh
+    mmesh.from_pydata(verts,[],faces)
+    mmesh.update(calc_edges=True)
+    return(mmesh)
+
 def writeArrayToCubes(arr, gridBU, orig, cBOOL = False, jBOOL = True):
     for a in arr:
         x = a[0]; y = a[1]; z = a[2]
@@ -266,7 +290,7 @@ def writeArrayToCubes(arr, gridBU, orig, cBOOL = False, jBOOL = True):
             col = (1.0, 1.0, 1.0, 1.0)
             if a[3] == 0: col = (0.0, 0.0, 0.0, 1.0)
             if a[3] < 0: col = (-a[3], 0.0, 0.0, 1.0)
-            if a[3] > 0: col = (0.0, 0.0, a[3], 1.0)
+            if a[3] > 0: col = (0.0, 0.0, a[3], 1.0)                
             ob.color = col
         bpy.context.scene.objects.link(ob)
         bpy.context.scene.update()
@@ -295,13 +319,13 @@ def addEdge(ob, va, vb):
     mmesh.edges.add(1)
     ecounti = len(mmesh.edges)-1
     mmesh.edges[ecounti].vertices = [va, vb]
-    mmesh.update()
+    mmesh.update()    
 
 def newMesh(mname):
     mmesh = bpy.data.meshes.new(mname)
     omesh = bpy.data.objects.new(mname, mmesh)
     bpy.context.scene.objects.link(omesh)
-    return omesh
+    return omesh      
 
 def writeArrayToMesh(mname, arr, gridBU, rpt = None):
     mob = newMesh(mname)
@@ -311,15 +335,15 @@ def writeArrayToMesh(mname, arr, gridBU, rpt = None):
     for ai in range(1, len(arr)):
         a = arr[ai]
         addVert(mob, a, ai-1)
-    return mob
+    return mob        
 
 ###---!!!OUT OF ORDER - SOME PROBLEM WITH IT ADDING (0,0,0)
 def writeArrayToCurves(cname, arr, gridBU, bd = .05, rpt = None):
     cur = bpy.data.curves.new('fslg_curve', 'CURVE')
     cur.use_fill_front = False
-    cur.use_fill_back = False
+    cur.use_fill_back = False    
     cur.bevel_depth = bd
-    cur.bevel_resolution = 2
+    cur.bevel_resolution = 2    
     cob = bpy.data.objects.new(cname, cur)
     cob.scale = (gridBU, gridBU, gridBU)
     if rpt: addReportProp(cob, rpt)
@@ -336,7 +360,7 @@ def writeArrayToCurves(cname, arr, gridBU, bd = .05, rpt = None):
             hy = arr[a][1] - ((arr[a][1]-arr[a-1][1]) / div)
             hz = arr[a][2] - ((arr[a][2]-arr[a-1][2]) / div)
             hL = (hx,hy,hz)
-
+        
         if a+1 > len(arr)-1: hR = arr[a]
         else:
             hx = arr[a][0] + ((arr[a+1][0]-arr[a][0]) / div)
@@ -366,11 +390,11 @@ def writeStokeToMesh(arr, jarr, MAINi, HORDERi, TIPSi, orig, gs, rpt=None):
     for x in MAINi:
         llmain.append(jarr[x])
     mob = writeArrayToMesh('la0MAIN', llmain, gs)
-    mob.location = orig
+    mob.location = orig       
 
     ###---hORDER BRANCHES
     for hOi in range(len(HORDERi)):
-        print('   WRITING ORDER', hOi)
+        print('   WRITING ORDER', hOi)        
         hO = HORDERi[hOi]
         hob = newMesh('la1H'+str(hOi))
 
@@ -383,17 +407,17 @@ def writeStokeToMesh(arr, jarr, MAINi, HORDERi, TIPSi, orig, gs, rpt=None):
         hob.location = orig
 
     ###---TIPS
-    print('   WRITING TIP PATHS')
+    print('   WRITING TIP PATHS')    
     tob = newMesh('la2TIPS')
     for y in  TIPSi:
-        llt = []
+        llt = []        
         for x in y:
             llt.append(jarr[x])
         addArrayToMesh(tob, llt)
     tob.scale = (gs, gs, gs)
     tob.location = orig
 
-    ###---ADD MATERIALS TO OBJECTS (IF THEY EXIST)
+    ###---ADD MATERIALS TO OBJECTS (IF THEY EXIST)    
     try:
         addMaterial(mob, 'edgeMAT-h0')
         addMaterial(hob, 'edgeMAT-h1')
@@ -404,9 +428,9 @@ def writeStokeToMesh(arr, jarr, MAINi, HORDERi, TIPSi, orig, gs, rpt=None):
     if rpt:
         addReportProp(mob, rpt)
         addReportProp(hob, rpt)
-        addReportProp(tob, rpt)
+        addReportProp(tob, rpt)                
 
-def writeStokeToSingleMesh(arr, jarr, orig, gs, mct, rpt=None):
+def writeStokeToSingleMesh(arr, jarr, orig, gs, mct, rpt=None): 
     sgarr = buildCPGraph(arr, mct)
     llALL = []
 
@@ -437,17 +461,17 @@ def visualizeArray(cg, oob, gs, vm, vs, vc, vv, rst):
 
 
     if vm:  ###---WRITE ARRAY TO MULTI MESH
-
-        aMi, aHi, aTi = classifyStroke(cg, oct, scn.HORDER)
-        print(':::WRITING TO MULTI-MESH')
+        
+        aMi, aHi, aTi = classifyStroke(cg, oct, winmgr.HORDER)
+        print(':::WRITING TO MULTI-MESH')        
         writeStokeToMesh(cg, cjarr, aMi, aHi, aTi, origin, gs, rst)
         print(':::MULTI-MESH WRITTEN')
 
     if vs:  ###---WRITE TO SINGLE MESH
-        print(':::WRITING TO SINGLE MESH')
+        print(':::WRITING TO SINGLE MESH')         
         writeStokeToSingleMesh(cg, cjarr, origin, gs, oct, rst)
         print(':::SINGLE MESH WRITTEN')
-
+        
     if vc:  ###---WRITE ARRAY TO CUBE OBJECTS
         print(':::WRITING TO CUBES')
         writeArrayToCubes(cg, gs, origin)
@@ -466,7 +490,7 @@ def visualizeArray(cg, oob, gs, vm, vs, vc, vv, rst):
     #cg = readArrayFromFile(tfile)
 
     ###---READ/WRITE ARRAY TO CURVES (OUT OF ORDER)
-    #writeArrayToCurves('laMAIN', llmain, .10, .25)
+    #writeArrayToCurves('laMAIN', llmain, .10, .25)        
 
 ######################################################################
 ########################### ALGORITHM FXNS ###########################
@@ -498,7 +522,7 @@ def buildCPGraph_WORKINPROGRESS(arr, sti = 2):
     sgarr = []
     sgarr.append((1, 0)) #
     ctix = 0
-    for ai in range(sti, len(arr)):
+    for ai in range(sti, len(arr)):		
         cs = arr[ai]
         #cpts = arr[0:ai]
         cpts = arr[ctix:ai]
@@ -509,7 +533,7 @@ def buildCPGraph_WORKINPROGRESS(arr, sti = 2):
                 #cti = cpts.index(nc)
                 cti = ctix + cpts.index(nc)
                 ctix = cpts.index(nc)
-
+				
         sgarr.append((ai, cti))
     return sgarr
 
@@ -556,7 +580,7 @@ def findChannelRoots(path, ngraph, restrict = []):
         chi = ngraph[ai][0]
         par = ngraph[ai][1]
         if par in path and not chi in path and \
-            not chi in restrict:
+            not chi in restrict:        
             roots.append(par)
     droots = deDupe(roots)
     return droots
@@ -578,7 +602,7 @@ def findChannels(roots, tips, ngraph, restrict):
                     sPATHi = tPATHi
                     tTEMP = t; tiTEMP = ti
         if len(sPATHi) > 0:
-            print('   found path/idex from', ri, 'of',
+            print('   found path/idex from', ri, 'of', 
                   len(roots), 'possible | tips:', tTEMP, tiTEMP)
             cPATHS.append(sPATHi)
             tips.remove(tTEMP)
@@ -593,7 +617,7 @@ def findChannels_WORKINPROGRESS(roots, ttips, ngraph, restrict):
         sPATHi = []
         tipREMOVE = [] ###---CHECKED TIP INDEXES, TO BE REMOVED FOR NEXT LOOP
         for ti in range(len(tips)):
-            t = tips[ti]
+            t = tips[ti]            
             #print('-CHECKING RT/IDEX:', r, ri, 'AGAINST TIP', t, ti)
             #if t < r: continue
             if ti < ri: continue
@@ -605,9 +629,9 @@ def findChannels_WORKINPROGRESS(roots, ttips, ngraph, restrict):
                     sPATHi = tPATHi
                     tTEMP = t; tiTEMP = ti
             if tL > 0:
-                tipREMOVE.append(t)
+                tipREMOVE.append(t)                    
         if len(sPATHi) > 0:
-            print('   found path from root idex', ri, 'of',
+            print('   found path from root idex', ri, 'of', 
                    len(roots), 'possible roots | #oftips=', len(tips))
             cPATHS.append(sPATHi)
         for q in tipREMOVE:  tips.remove(q)
@@ -615,7 +639,7 @@ def findChannels_WORKINPROGRESS(roots, ttips, ngraph, restrict):
     return cPATHS
 
 def countChildrenOnPath(aPath, ngraph, quick = True):
-    ###---RETURN HOW MANY BRANCHES
+    ###---RETURN HOW MANY BRANCHES 
     ###   COUNT WHEN NODE IS A PARENT >1 TIMES
     ###   quick -STOP AND RETURN AFTER FIRST
     cCOUNT = 0
@@ -623,22 +647,22 @@ def countChildrenOnPath(aPath, ngraph, quick = True):
     for ai in range(len(aPath)-1):
         ap = aPath[ai]
         pc = pList.count(ap)
-        if quick and pc > 1:
+        if quick and pc > 1: 
             return pc
     return cCOUNT
 
 ###---CLASSIFY CHANNELS INTO 'MAIN', 'hORDER/SECONDARY' and 'SIDE'
 def classifyStroke(sarr, mct, hORDER = 1):
     print(':::CLASSIFYING STROKE')
-    ###---BUILD CHILD/PARENT GRAPH (INDEXES OF sarr)
+    ###---BUILD CHILD/PARENT GRAPH (INDEXES OF sarr)  
     sgarr = buildCPGraph(sarr, mct)
 
-    ###---FIND MAIN CHANNEL
+    ###---FIND MAIN CHANNEL 
     print('   finding MAIN')
     oCharge = sgarr[0][1]
     fCharge = sgarr[len(sgarr)-1][0]
     aMAINi = findChargePath(oCharge, fCharge, sgarr)
-
+    
     ###---FIND TIPS
     print('   finding TIPS')
     aTIPSi = findTips(sgarr)
@@ -669,7 +693,7 @@ def classifyStroke(sarr, mct, hORDER = 1):
                 for hri in aHPATHSi:
                     hRESTRICT += hri
         curPATHSi = aHPATHSi
-
+    
     ###---SIDE BRANCHES, FINAL ORDER OF HEIRARCHY
     ###   FROM TIPS THAT ARE NOT IN AN EXISTING PATH
     ###   BACK TO ANY OTHER POINT THAT IS ALREADY ON A PATH
@@ -684,7 +708,7 @@ def classifyStroke(sarr, mct, hORDER = 1):
             aPATHi = findChargePath(oCharge, a, sgarr, aDRAWNi)
             aDRAWNi += aPATHi
             aTPATHSi.append(aPATHi)
-
+            
     return aMAINi, allHPATHSi, aTPATHSi
 
 def voxelByVertex(ob, gs):
@@ -695,15 +719,15 @@ def voxelByVertex(ob, gs):
     for v in ob.data.vertices:
         x = int( v.co.x / gs )
         y = int( v.co.y / gs )
-        z = int( v.co.z / gs )
+        z = int( v.co.z / gs )      
         ll.append((x,y,z))
     return ll
-
+    
 def voxelByRays(ob, orig, gs):
 ###--- MESH INTO A 3DGRID W/ RESPECT GSCALE AND BOLT ORIGIN
 ###   -DOES NOT TAKE OBJECT ROTATION/SCALE INTO ACCOUNT
 ###   -THIS IS A HORRIBLE, INEFFICIENT FUNCTION
-###    MAYBE THE RAYCAST/GRID THING ARE A BAD IDEA. BUT I
+###    MAYBE THE RAYCAST/GRID THING ARE A BAD IDEA. BUT I 
 ###    HAVE TO 'VOXELIZE THE OBJECT W/ RESCT TO GSCALE/ORIGIN
     bbox = ob.bound_box
     bbxL = bbox[0][0]; bbxR = bbox[4][0]
@@ -713,7 +737,7 @@ def voxelByRays(ob, orig, gs):
     yct = int((bbyR - bbyL) / gs)
     zct = int((bbzR - bbzL) / gs)
     xs = int(xct/2); ys = int(yct/2); zs = int(zct/2)
-    print('  CASTING', xct, '/', yct, '/', zct, 'cells, total:', xct*yct*zct, 'in obj-', ob.name)
+    print('  CASTING', xct, '/', yct, '/', zct, 'cells, total:', xct*yct*zct, 'in obj-', ob.name)    
     ll = []
     rc = 100    ###---DISTANCE TO CAST FROM
     ###---RAYCAST TOP/BOTTOM
@@ -721,17 +745,17 @@ def voxelByRays(ob, orig, gs):
     for x in range(xct):
         for y in range(yct):
             xco = bbxL + (x*gs);  yco = bbyL + (y*gs)
-            v1 = ((xco, yco,  rc));    v2 = ((xco, yco, -rc))
-            vz1 = ob.ray_cast(v1,v2);   vz2 = ob.ray_cast(v2,v1)
+            v1 = ((xco, yco,  rc));    v2 = ((xco, yco, -rc))            
+            vz1 = ob.ray_cast(v1,v2);   vz2 = ob.ray_cast(v2,v1)            
             if vz1[2] != -1: ll.append((x-xs, y-ys, int(vz1[0][2] * (1/gs)) ))
             if vz2[2] != -1: ll.append((x-xs, y-ys, int(vz2[0][2] * (1/gs)) ))
     ###---RAYCAST FRONT/BACK
-    print('  RAYCASTING FRONT/BACK')
+    print('  RAYCASTING FRONT/BACK')    
     for x in range(xct):
         for z in range(zct):
             xco = bbxL + (x*gs);  zco = bbzL + (z*gs)
-            v1 = ((xco, rc,  zco));    v2 = ((xco, -rc, zco))
-            vy1 = ob.ray_cast(v1,v2);   vy2 = ob.ray_cast(v2,v1)
+            v1 = ((xco, rc,  zco));    v2 = ((xco, -rc, zco))            
+            vy1 = ob.ray_cast(v1,v2);   vy2 = ob.ray_cast(v2,v1)            
             if vy1[2] != -1: ll.append((x-xs, int(vy1[0][1] * (1/gs)), z-zs))
             if vy2[2] != -1: ll.append((x-xs, int(vy2[0][1] * (1/gs)), z-zs))
     ###---RAYCAST LEFT/RIGHT
@@ -739,9 +763,9 @@ def voxelByRays(ob, orig, gs):
     for y in range(yct):
         for z in range(zct):
             yco = bbyL + (y*gs);  zco = bbzL + (z*gs)
-            v1 = ((rc, yco,  zco));    v2 = ((-rc, yco, zco))
-            vx1 = ob.ray_cast(v1,v2);   vx2 = ob.ray_cast(v2,v1)
-            if vx1[2] != -1: ll.append((int(vx1[0][0] * (1/gs)), y-ys, z-zs))
+            v1 = ((rc, yco,  zco));    v2 = ((-rc, yco, zco))            
+            vx1 = ob.ray_cast(v1,v2);   vx2 = ob.ray_cast(v2,v1)            
+            if vx1[2] != -1: ll.append((int(vx1[0][0] * (1/gs)), y-ys, z-zs))            
             if vx2[2] != -1: ll.append((int(vx2[0][0] * (1/gs)), y-ys, z-zs))
 
     ###---ADD IN NEIGHBORS SO BOLT WONT GO THRU
@@ -751,10 +775,10 @@ def voxelByRays(ob, orig, gs):
         nlist += nl
 
     ###---DEDUPE
-    print('  ADDED NEIGHBORS, DEDUPING...')
+    print('  ADDED NEIGHBORS, DEDUPING...')    
     rlist = deDupe(ll+nlist)
     qlist = []
-
+    
     ###---RELOCATE GRID W/ RESPECT GSCALE AND BOLT ORIGIN
     ###   !!!NEED TO ADD IN OBJ ROT/SCALE HERE SOMEHOW...
     od = Vector(( (ob.location[0] - orig[0]) / gs,
@@ -768,7 +792,7 @@ def voxelByRays(ob, orig, gs):
 def fakeGroundChargePlane(z, charge):
     eCL = []
     xy = abs(z)/2
-    eCL += [(0, 0, z, charge)]
+    eCL += [(0, 0, z, charge)]    
     eCL += [(xy, 0, z, charge)]
     eCL += [(0, xy, z, charge)]
     eCL += [(-xy, 0, z, charge)]
@@ -782,7 +806,7 @@ def addCharges(ll, charge):
     for l in ll:
         clist.append((l[0], l[1], l[2], charge))
     return clist
-
+        
 ######################################################################
 ########################### ALGORITHM FXNS ###########################
 ############################## FROM FSLG #############################
@@ -806,7 +830,7 @@ def getGrowthProbability_KEEPFORREFERENCE(uN, aList):
         Pd = (pow(Ui, uN)) / E ###===(FSLG - Eqn. 12)
         PdINT = Pd * 100
         PdL.append(Pd)
-    return PdL
+    return PdL 
 
 ###---WORK IN PROGRESS, TRYING TO SPEED THESE UP
 def fslg_e13(x, min, max, u): return pow((x - min) / (max - min), u)
@@ -829,27 +853,27 @@ def getGrowthProbability(uN, aList):
     EL = [E for q in range(len(oList))]
     mp = map(fslg_e12, oList, minL, maxL, uNL, EL)
     for m in mp: PdL.append(m)
-    return PdL
+    return PdL 
 
 def updatePointCharges(p, cList, eList = []):
     ###---IN: pNew -NEW GROWTH CELL
     ###       cList -OLD CANDIDATE SITES, eList -SAME
     ###   OUT: LIST OF NEW CHARGE AT CANDIDATE SITES
     r1 = 1/2        ###===(FSLG - Eqn. 10)
-    nOiL = []
+    nOiL = []    
     for oi in range(len(cList)):
         o = cList[oi][1]
         c = cList[oi][0]
         iOe = 0
-        rit = dist(c[0], c[1], c[2], p[0], p[1], p[2])
+        rit = dist(c[0], c[1], c[2], p[0], p[1], p[2])        
         iOe += (1 - (r1/rit))
-        Oit =  o + iOe
+        Oit =  o + iOe            
         nOiL.append((c, Oit))
     return nOiL
 
 def initialPointCharges(pList, cList, eList = []):
     ###---IN: p -CHARGED CELL (XYZ), cList -CANDIDATE SITES (XYZ, POT, PROB)
-    ###   OUT: cList -WITH POTENTIAL CALCULATED
+    ###   OUT: cList -WITH POTENTIAL CALCULATED 
     r1 = 1/2        ###===(FSLG - Eqn. 10)
     npList = []
     for p in pList:
@@ -869,7 +893,7 @@ def initialPointCharges(pList, cList, eList = []):
 def getCandidateSites(aList, iList = []):
     ###---IN: aList -(X,Y,Z) OF CHARGED CELL SITES, iList -insulator sites
     ###   OUT: CANDIDATE LIST OF GROWTH SITES [(X,Y,Z)]
-    tt1 = time.clock()
+    tt1 = time.clock()    
     cList = []
     for c in aList:
         tempList = getStencil3D_26(c[0], c[1], c[2])
@@ -877,14 +901,15 @@ def getCandidateSites(aList, iList = []):
             if not t in aList and not t in iList:
                 cList.append(t)
     ncList = deDupe(cList)
-    tt2 = time.clock()
-    #print('FXNTIMER:getCandidateSites:', tt2-tt1, 'check 26 against:', len(aList)+len(iList))
+    tt2 = time.clock()	
+    #print('FXNTIMER:getCandidateSites:', tt2-tt1, 'check 26 against:', len(aList)+len(iList))    
     return ncList
 
 ######################################################################
 ############################# SETUP FXNS #############################
 ######################################################################
 def setupObjects():
+    #if winmgr.OOB == "" or winmgr.OOB.name not in scene...
     oOB = bpy.data.objects.new('ELorigin', None)
     oOB.location = ((0,0,10))
     bpy.context.scene.objects.link(oOB)
@@ -892,44 +917,44 @@ def setupObjects():
     gOB = bpy.data.objects.new('ELground', None)
     gOB.empty_draw_type = 'ARROWS'
     bpy.context.scene.objects.link(gOB)
-
+    
     cME = makeMeshCube(1)
     cOB = bpy.data.objects.new('ELcloud', cME)
     cOB.location = ((-2,8,12))
-    cOB.hide_render = True
+    cOB.hide_render = True    
     bpy.context.scene.objects.link(cOB)
-
+    
     iME = makeMeshCube(1)
-    for v in iME.vertices:
+    for v in iME.vertices: 
         xyl = 6.5; zl = .5
         v.co[0] = v.co[0] * xyl
         v.co[1] = v.co[1] * xyl
         v.co[2] = v.co[2] * zl
-    iOB = bpy.data.objects.new('ELinsulator', iME)
+    iOB = bpy.data.objects.new('ELinsulator', iME)    
     iOB.location = ((0,0,5))
     iOB.hide_render = True
     bpy.context.scene.objects.link(iOB)
 
     try:
-        scn.OOB = 'ELorigin'
-        scn.GOB = 'ELground'
-        scn.COB = 'ELcloud'
-        scn.IOB = 'ELinsulator'
+        winmgr.OOB = 'ELorigin'
+        winmgr.GOB = 'ELground'
+        winmgr.COB = 'ELcloud'
+        winmgr.IOB = 'ELinsulator'
     except: pass
 
 def checkSettings():
     check = True
-    if scn.OOB == "":
+    if winmgr.OOB == "": 
         print('ERROR: NO ORIGIN OBJECT SELECTED')
         check = False
-    if scn.GROUNDBOOL and scn.GOB == "":
+    if winmgr.GROUNDBOOL and winmgr.GOB == "":
         print('ERROR: NO GROUND OBJECT SELECTED')
         check = False
-    if scn.CLOUDBOOL and scn.COB == "":
-        print('ERROR: NO CLOUD OBJECT SELECTED')
+    if winmgr.CLOUDBOOL and winmgr.COB == "":
+        print('ERROR: NO CLOUD OBJECT SELECTED')        
         check = False
-    if scn.IBOOL and scn.IOB == "":
-        print('ERROR: NO INSULATOR OBJECT SELECTED')
+    if winmgr.IBOOL and winmgr.IOB == "":
+        print('ERROR: NO INSULATOR OBJECT SELECTED')        
         check = False
     #should make a popup here
     return check
@@ -942,51 +967,53 @@ def FSLG():
 ###======FAST SIMULATION OF LAPLACIAN GROWTH======###
     print('\n<<<<<<------GO GO GADGET: FAST SIMULATION OF LAPLACIAN GROWTH!')
     tc1 = time.clock()
-    TSTEPS = scn.TSTEPS
+    TSTEPS = winmgr.TSTEPS
 
-    obORIGIN = scn.objects[scn.OOB]
-    obGROUND = scn.objects[scn.GOB]
-    scn.ORIGIN = obORIGIN.location
-    scn.GROUNDZ = int((obGROUND.location[2] - scn.ORIGIN[2]) / scn.GSCALE)
-
+    #obORIGIN = scn.objects[winmgr.OOB]    
+    #obGROUND = scn.objects[winmgr.GOB]
+    obORIGIN = bpy.context.scene.objects[winmgr.OOB]
+    obGROUND = bpy.context.scene.objects[winmgr.GOB]        
+    winmgr.ORIGIN = obORIGIN.location
+    winmgr.GROUNDZ = int((obGROUND.location[2] - winmgr.ORIGIN[2]) / winmgr.GSCALE)
+    
     ###====== 1) INSERT INTIAL CHARGE(S) POINT (USES VERTS IF MESH)
     cgrid = [(0, 0, 0)]
     if obORIGIN.type == 'MESH':
         print("<<<<<<------ORIGIN OBJECT IS MESH, 'VOXELIZING' INTIAL CHARGES FROM VERTS")
-        cgrid = voxelByVertex(obORIGIN, scn.GSCALE)
-        if scn.VMMESH:
+        cgrid = voxelByVertex(obORIGIN, winmgr.GSCALE)
+        if winmgr.VMMESH:
             print("<<<<<<------CANNOT CLASSIFY STROKE FROM VERT ORIGINS YET, NO MULTI-MESH OUTPUT")
-            scn.VMMESH = False; scn.VSMESH = True
+            winmgr.VMMESH = False; winmgr.VSMESH = True
 
     ###---GROUND CHARGE CELL / INSULATOR LISTS (eChargeList/icList)
     eChargeList = []; icList = []
-    if scn.GROUNDBOOL:
-        eChargeList = fakeGroundChargePlane(scn.GROUNDZ, scn.GROUNDC)
-    if scn.CLOUDBOOL:
+    if winmgr.GROUNDBOOL:
+        eChargeList = fakeGroundChargePlane(winmgr.GROUNDZ, winmgr.GROUNDC)
+    if winmgr.CLOUDBOOL:
         print("<<<<<<------'VOXELIZING' CLOUD OBJECT (COULD TAKE SOME TIME)")
-        obCLOUD = scn.objects[scn.COB]
-        eChargeListQ = voxelByRays(obCLOUD, scn.ORIGIN, scn.GSCALE)
-        eChargeList = addCharges(eChargeListQ, scn.CLOUDC)
-        print('<<<<<<------CLOUD OBJECT CELL COUNT = ', len(eChargeList) )
-    if scn.IBOOL:
+        obCLOUD = bpy.context.scene.objects[winmgr.COB]
+        eChargeListQ = voxelByRays(obCLOUD, winmgr.ORIGIN, winmgr.GSCALE)
+        eChargeList = addCharges(eChargeListQ, winmgr.CLOUDC)
+        print('<<<<<<------CLOUD OBJECT CELL COUNT = ', len(eChargeList) )        
+    if winmgr.IBOOL:
         print("<<<<<<------'VOXELIZING' INSULATOR OBJECT (COULD TAKE SOME TIME)")
-        obINSULATOR = scn.objects[scn.IOB]
-        icList = voxelByRays(obINSULATOR, scn.ORIGIN, scn.GSCALE)
+        obINSULATOR = bpy.context.scene.objects[winmgr.IOB]
+        icList = voxelByRays(obINSULATOR, winmgr.ORIGIN, winmgr.GSCALE)
         print('<<<<<<------INSULATOR OBJECT CELL COUNT = ', len(icList) )
-        #writeArrayToCubes(icList, scn.GSCALE, scn.ORIGIN)
+        #writeArrayToCubes(icList, winmgr.GSCALE, winmgr.ORIGIN)
         #return 'THEEND'
-
+        
     ###====== 2) LOCATE CANDIDATE SITES AROUND CHARGE
     cSites = getCandidateSites(cgrid, icList)
-
+    
     ###====== 3) CALC POTENTIAL AT EACH SITE (Eqn. 10)
     cSites = initialPointCharges(cgrid, cSites, eChargeList)
-
+    
     ts = 1
     while ts <= TSTEPS:
         ###====== 1) SELECT NEW GROWTH SITE (Eqn. 12)
         ###===GET PROBABILITIES AT CANDIDATE SITES
-        gProbs = getGrowthProbability(scn.BIGVAR, cSites)
+        gProbs = getGrowthProbability(winmgr.BIGVAR, cSites)
         ###===CHOOSE NEW GROWTH SITE BASED ON PROBABILITIES
         gSitei = weightedRandomChoice(gProbs)
         gsite  = cSites[gSitei][0]
@@ -998,7 +1025,7 @@ def FSLG():
         cSites.remove(cSites[gSitei])
 
         ###====== 3) UPDATE POTENTIAL AT CANDIDATE SITES (Eqn. 11)
-        cSites = updatePointCharges(gsite, cSites, eChargeList)
+        cSites = updatePointCharges(gsite, cSites, eChargeList)        
 
         ###====== 4) ADD NEW CANDIDATES SURROUNDING GROWTH SITE
         ###===GET CANDIDATE 'STENCIL'
@@ -1012,7 +1039,7 @@ def FSLG():
                 ncSites.append((cn, 0))
 
         ###====== 5) CALC POTENTIAL AT NEW CANDIDATE SITES (Eqn. 10)
-        ncSplit = splitList(ncSites, 0)
+        ncSplit = splitList(ncSites, 0)        
         ncSites = initialPointCharges(cgrid, ncSplit, eChargeList)
 
         ###===ADD NEW CANDIDATE SITES TO CANDIDATE LIST
@@ -1020,113 +1047,114 @@ def FSLG():
             cSites.append(ncs)
 
         ###===ITERATION COMPLETE
-        istr1 = ':::T-STEP: ' + str(ts) + '/' + str(TSTEPS)
-        istr12 = ' | GROUNDZ: ' + str(scn.GROUNDZ) + ' | '
+        istr1 = ':::T-STEP: ' + str(ts) + '/' + str(TSTEPS) 
+        istr12 = ' | GROUNDZ: ' + str(winmgr.GROUNDZ) + ' | '
         istr2 = 'CANDS: ' + str(len(cSites)) + ' | '
         istr3 = 'GSITE: ' + str(gsite)
-        print(istr1 + istr12 + istr2 + istr3)
+        print(istr1 + istr12 + istr2 + istr3)        
         ts += 1
-
+        
         ###---EARLY TERMINATION FOR GROUND/CLOUD STRIKE
-        if scn.GROUNDBOOL:
-            if gsite[2] == scn.GROUNDZ:
+        if winmgr.GROUNDBOOL:
+            if gsite[2] == winmgr.GROUNDZ:
                 ts = TSTEPS+1
                 print('<<<<<<------EARLY TERMINATION DUE TO GROUNDSTRIKE')
                 continue
-        if scn.CLOUDBOOL:
+        if winmgr.CLOUDBOOL:
             #if gsite in cloudList:
             if gsite in splitListCo(eChargeList):
                 ts = TSTEPS+1
                 print('<<<<<<------EARLY TERMINATION DUE TO CLOUDSTRIKE')
-                continue
+                continue            
 
     tc2 = time.clock()
     tcRUN = tc2 - tc1
     print('<<<<<<------LAPLACIAN GROWTH LOOP COMPLETED: ' + str(len(cgrid)) + ' / ' + str(tcRUN)[0:5] + ' SECONDS')
     print('<<<<<<------VISUALIZING DATA')
 
-    reportSTRING = getReportString(tcRUN)
+    reportSTRING = getReportString(tcRUN)    
     ###---VISUALIZE ARRAY
-    visualizeArray(cgrid, obORIGIN, scn.GSCALE, scn.VMMESH, scn.VSMESH, scn.VCUBE, scn.VVOX, reportSTRING)
+    visualizeArray(cgrid, obORIGIN, winmgr.GSCALE, winmgr.VMMESH, winmgr.VSMESH, winmgr.VCUBE, winmgr.VVOX, reportSTRING)
     print('<<<<<<------COMPLETE')
 
 ######################################################################
 ################################ GUI #################################
 ######################################################################
 ###---NOT IN UI
-bpy.types.Scene.ORIGIN = bpy.props.FloatVectorProperty(name = "origin charge")
-bpy.types.Scene.GROUNDZ = bpy.props.IntProperty(name = "ground Z coordinate")
-bpy.types.Scene.HORDER = bpy.props.IntProperty(name = "secondary paths orders",default=1)
+bpy.types.WindowManager.ORIGIN = bpy.props.FloatVectorProperty(name = "origin charge")
+bpy.types.WindowManager.GROUNDZ = bpy.props.IntProperty(name = "ground Z coordinate")
+bpy.types.WindowManager.HORDER = bpy.props.IntProperty(name = "secondary paths orders")
 ###---IN UI
-bpy.types.Scene.TSTEPS = bpy.props.IntProperty(default=350,
+bpy.types.WindowManager.TSTEPS = bpy.props.IntProperty(
     name = "iterations", description = "number of cells to create, will end early if hits ground plane or cloud")
-bpy.types.Scene.GSCALE = bpy.props.FloatProperty(default=0.12,
+bpy.types.WindowManager.GSCALE = bpy.props.FloatProperty(
     name = "grid unit size", description = "scale of cells, .25 = 4 cells per blenderUnit")
-bpy.types.Scene.BIGVAR = bpy.props.FloatProperty(default=6.3,
+bpy.types.WindowManager.BIGVAR = bpy.props.FloatProperty(
     name = "straightness", description = "straightness/branchiness of bolt, <2 is mush, >12 is staight line, 6.3 is good")
-bpy.types.Scene.GROUNDBOOL = bpy.props.BoolProperty(default=True,
+bpy.types.WindowManager.GROUNDBOOL = bpy.props.BoolProperty(
     name = "use ground object", description = "use ground plane or not")
-bpy.types.Scene.GROUNDC = bpy.props.IntProperty(default=-250,
+bpy.types.WindowManager.GROUNDC = bpy.props.IntProperty(
     name = "ground charge", description = "charge of ground plane")
-bpy.types.Scene.CLOUDBOOL = bpy.props.BoolProperty(default=True,
+bpy.types.WindowManager.CLOUDBOOL = bpy.props.BoolProperty(
     name = "use cloud object", description = "use cloud obj, attracts and terminates like ground but any obj instead of z plane, can slow down loop if obj is large, overrides ground")
-bpy.types.Scene.CLOUDC = bpy.props.IntProperty(default=-1,
+bpy.types.WindowManager.CLOUDC = bpy.props.IntProperty(
     name = "cloud charge", description = "charge of a cell in cloud object (so total charge also depends on obj size)")
 
-bpy.types.Scene.VMMESH = bpy.props.BoolProperty(default=True,
+bpy.types.WindowManager.VMMESH = bpy.props.BoolProperty(
     name = "multi mesh", description = "output to multi-meshes for different materials on main/sec/side branches")
-bpy.types.Scene.VSMESH = bpy.props.BoolProperty(default=False,
+bpy.types.WindowManager.VSMESH = bpy.props.BoolProperty(
     name = "single mesh", description = "output to single mesh for using build modifier and particles for effects")
-bpy.types.Scene.VCUBE = bpy.props.BoolProperty(default=False,
+bpy.types.WindowManager.VCUBE = bpy.props.BoolProperty(
     name = "cubes", description = "CTRL-J after run to JOIN, outputs a bunch of cube objest, mostly for testing")
-bpy.types.Scene.VVOX = bpy.props.BoolProperty(default=False,
+bpy.types.WindowManager.VVOX = bpy.props.BoolProperty(        
     name = "voxel (experimental)", description = "output to a voxel file to bpy.data.filepath\FSLGvoxels.raw - doesn't work well right now")
-bpy.types.Scene.IBOOL = bpy.props.BoolProperty(default=False,
+bpy.types.WindowManager.IBOOL = bpy.props.BoolProperty(
     name = "use insulator object", description = "use insulator mesh object to prevent growth of bolt in areas")
-bpy.types.Scene.OOB = bpy.props.StringProperty(default="ELorigin", description = "origin of bolt, can be an Empty, if obj is mesh will use all verts as charges")
-bpy.types.Scene.GOB = bpy.props.StringProperty(default="ELground", description = "object to use as ground plane, uses z coord only")
-bpy.types.Scene.COB = bpy.props.StringProperty(default="ELcloud", description = "object to use as cloud, best to use a cube")
-bpy.types.Scene.IOB = bpy.props.StringProperty(default="ELinsulator", description = "object to use as insulator, 'voxelized' before generating bolt, can be slow")
+bpy.types.WindowManager.OOB = bpy.props.StringProperty(description = "origin of bolt, can be an Empty, if obj is mesh will use all verts as charges")
+bpy.types.WindowManager.GOB = bpy.props.StringProperty(description = "object to use as ground plane, uses z coord only")
+bpy.types.WindowManager.COB = bpy.props.StringProperty(description = "object to use as cloud, best to use a cube")
+bpy.types.WindowManager.IOB = bpy.props.StringProperty(description = "object to use as insulator, 'voxelized' before generating bolt, can be slow")
 
-'''
 ###---DEFAULT USER SETTINGS
-bpy.context.scene.TSTEPS = 350
-bpy.context.scene.HORDER = 1
-bpy.context.scene.GSCALE = 0.12
-bpy.context.scene.BIGVAR = 6.3
-bpy.context.scene.GROUNDBOOL = True
-bpy.context.scene.GROUNDC = -250
-bpy.context.scene.CLOUDBOOL = False
-bpy.context.scene.CLOUDC = -1
-bpy.context.scene.VMMESH = True
-bpy.context.scene.VSMESH = False
-bpy.context.scene.VCUBE = False
-bpy.context.scene.VVOX = False
-bpy.context.scene.IBOOL = False
+winmgr.TSTEPS = 350
+winmgr.HORDER = 1
+winmgr.GSCALE = 0.12
+winmgr.BIGVAR = 6.3
+winmgr.GROUNDBOOL = True
+winmgr.GROUNDC = -250
+winmgr.CLOUDBOOL = False
+winmgr.CLOUDC = -1
+winmgr.VMMESH = True
+winmgr.VSMESH = False
+winmgr.VCUBE = False
+winmgr.VVOX = False
+winmgr.IBOOL = False
 try:
-    bpy.context.scene.OOB = "ELorigin"
-    bpy.context.scene.GOB = "ELground"
-    bpy.context.scene.COB = "ELcloud"
-    bpy.context.scene.IOB = "ELinsulator"
+    winmgr.OOB = "ELorigin"
+    winmgr.GOB = "ELground"
+    winmgr.COB = "ELcloud"
+    winmgr.IOB = "ELinsulator"    
 except: pass
-### TESTING
+
+###---TESTING USER SETTINGS
 if False:
 #if True:
-    #scn.BIGVAR = 6.3
-    #scn.VSMESH = True
-    #scn.VMMESH = False
-    #scn.VCUBE = True
-    #scn.TSTEPS = 7500
-    bpy.context.scene
-    #scn.GROUNDC = -500
-    #scn.CLOUDC = -5
-    #scn.GROUNDBOOL = False
-    #scn.CLOUDBOOL = True
+    winmgr.TSTEPS = 40
+    #winmgr.HORDER = 1
+    #winmgr.GSCALE = 0.12    
+    #winmgr.BIGVAR = 6.3
+    winmgr.GROUNDBOOL = True
+    #winmgr.GROUNDC = -500
+    winmgr.CLOUDBOOL = True
+    #winmgr.CLOUDC = -5
+    #winmgr.VMMESH = True
+    #winmgr.VSMESH = True
+    #winmgr.VCUBE = True
+    #winmgr.VVOX = True
+    winmgr.IBOOL = True
 
-    #scn.IBOOL = True
-'''
 class runFSLGLoopOperator(bpy.types.Operator):
-    """By The Mighty Hammer Of Thor!!!"""
+    '''By The Mighty Hammer Of Thor!!!'''
     bl_idname = "object.runfslg_operator"
     bl_label = "run FSLG Loop Operator"
 
@@ -1135,78 +1163,79 @@ class runFSLGLoopOperator(bpy.types.Operator):
             FSLG()
         else: pass
         return {'FINISHED'}
-
+    
 class setupObjectsOperator(bpy.types.Operator):
-    """Create origin/ground/cloud/insulator objects"""
+    '''create origin/ground/cloud/insulator objects'''
     bl_idname = "object.setup_objects_operator"
     bl_label = "Setup Objects Operator"
 
     def execute(self, context):
-        setupObjects()
-        return {'FINISHED'}
+        setupObjects()        
+        return {'FINISHED'}    
 
 class OBJECT_PT_fslg(bpy.types.Panel):
     bl_label = "Laplacian Lightning - v0.2.6"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_context = "objectmode"
+    bl_category = "Addons"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         scn = context.scene
         layout = self.layout
-        colR = layout.column()
+        colR = layout.column()        
         #row1 = layout.row()
         #colL = row1.column()
         #colR = row1.column()
         colR.label('-for progress open console-')
-        colR.label('Help > Toggle System Console')
-        colR.prop(scn, 'TSTEPS')
-        colR.prop(scn, 'GSCALE')
-        colR.prop(scn, 'BIGVAR')
-        colR.operator('object.setup_objects_operator', text = 'create setup objects')
+        colR.label('Help > Toggle System Console')        
+        colR.prop(winmgr, 'TSTEPS')
+        colR.prop(winmgr, 'GSCALE')        
+        colR.prop(winmgr, 'BIGVAR')
+        colR.operator('object.setup_objects_operator', text = 'create setup objects')        
         colR.label('origin object')
-        colR.prop_search(scn, "OOB",  context.scene, "objects")
-        colR.prop(scn, 'GROUNDBOOL')
-        colR.prop_search(scn, "GOB",  context.scene, "objects")
-        colR.prop(scn, 'GROUNDC')
-        colR.prop(scn, 'CLOUDBOOL')
-        colR.prop_search(scn, "COB",  context.scene, "objects")
-        colR.prop(scn, 'CLOUDC')
-        colR.prop(scn, 'IBOOL')
-        colR.prop_search(scn, "IOB",  context.scene, "objects")
+        colR.prop_search(winmgr, "OOB",  context.scene, "objects")        
+        colR.prop(winmgr, 'GROUNDBOOL')
+        colR.prop_search(winmgr, "GOB",  context.scene, "objects")        
+        colR.prop(winmgr, 'GROUNDC') 
+        colR.prop(winmgr, 'CLOUDBOOL')
+        colR.prop_search(winmgr, "COB",  context.scene, "objects")        
+        colR.prop(winmgr, 'CLOUDC')
+        colR.prop(winmgr, 'IBOOL')
+        colR.prop_search(winmgr, "IOB",  context.scene, "objects")
         colR.operator('object.runfslg_operator', text = 'generate lightning')
-        #col.prop(scn, 'HORDER')
-        colR.prop(scn, 'VMMESH')
-        colR.prop(scn, 'VSMESH')
-        colR.prop(scn, 'VCUBE')
-        colR.prop(scn, 'VVOX')
+        #col.prop(winmgr, 'HORDER')
+        colR.prop(winmgr, 'VMMESH')
+        colR.prop(winmgr, 'VSMESH')        
+        colR.prop(winmgr, 'VCUBE')
+        #colR.prop(winmgr, 'VVOX')
 
 def getReportString(rtime):
-    rSTRING1 = 't:' + str(scn.TSTEPS) + ',sc:' + str(scn.GSCALE)[0:4] + ',uv:' + str(scn.BIGVAR)[0:4] + ','
-    rSTRING2 = 'ori:' + str(scn. ORIGIN[0]) + '/' + str(scn. ORIGIN[1]) + '/' + str(scn. ORIGIN[2]) + ','
-    rSTRING3 = 'gz:' + str(scn.GROUNDZ) + ',gc:' + str(scn.GROUNDC) + ',rtime:' + str(int(rtime))
+    rSTRING1 = 't:' + str(winmgr.TSTEPS) + ',sc:' + str(winmgr.GSCALE)[0:4] + ',uv:' + str(winmgr.BIGVAR)[0:4] + ',' 
+    rSTRING2 = 'ori:' + str(winmgr. ORIGIN[0]) + '/' + str(winmgr. ORIGIN[1]) + '/' + str(winmgr. ORIGIN[2]) + ','
+    rSTRING3 = 'gz:' + str(winmgr.GROUNDZ) + ',gc:' + str(winmgr.GROUNDC) + ',rtime:' + str(int(rtime))
     return rSTRING1 + rSTRING2 + rSTRING3
 
 def addReportProp(ob, str):
     bpy.types.Object.FSLG_REPORT = bpy.props.StringProperty(
 	   name = 'fslg_report', default = '')
     ob.FSLG_REPORT = str
-
+        
 def register():
-    bpy.utils.register_class(runFSLGLoopOperator)
+    bpy.utils.register_class(runFSLGLoopOperator)    
     bpy.utils.register_class(setupObjectsOperator)
     bpy.utils.register_class(OBJECT_PT_fslg)
 
 def unregister():
-    bpy.utils.unregister_class(runFSLGLoopOperator)
-    bpy.utils.unregister_class(setupObjectsOperator)
+    bpy.utils.unregister_class(runFSLGLoopOperator)    
+    bpy.utils.unregister_class(setupObjectsOperator)    
     bpy.utils.unregister_class(OBJECT_PT_fslg)
 
 if __name__ == "__main__":
     ### RUN FOR TESTING
     #FSLG()
-
+    
     ### UI
     register()
     pass
@@ -1239,9 +1268,9 @@ def BENCH():
     print('--->SETUP TIME    : ', btRUNa)
     print('--->BENCHMARK TIME: ', btRUNb)
     print('--->GRIDSIZE: ', tsize, ' - ', tsize*tsize*tsize)
-
+    
 #BENCH()
 
-
-##################################
-################################
+######################################################################
+############################### THE END ##############################
+######################################################################
