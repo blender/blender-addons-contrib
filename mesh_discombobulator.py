@@ -587,6 +587,7 @@ class VIEW3D_PT_tools_discombobulate(bpy.types.Panel):
     bl_label = "Discombobulator"
     bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "Addons"
 	
     def draw(self, context):
         layout = self.layout
