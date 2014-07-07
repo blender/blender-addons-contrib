@@ -282,7 +282,7 @@ class BB(bpy.types.Operator):
             scn.objects.active = obj
             for t in range(self.numb):
                 bpy.ops.object.mode_set(mode='EDIT')
-                bpy.ops.object.vertex_group_assign(new=True)
+                bpy.ops.object.vertex_group_add()
                 for m in range(self.skip+1):
                     bpy.ops.mesh.select_more()
                 bpy.ops.object.vertex_group_deselect()

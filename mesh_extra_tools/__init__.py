@@ -85,6 +85,7 @@ class ExtrasPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_context = 'mesh_edit'
+    bl_category = 'Addons'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -124,6 +125,7 @@ class ExtrudePanel(bpy.types.Panel):
     bl_label = 'Multi Extrude Plus'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_category = 'Addons'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
