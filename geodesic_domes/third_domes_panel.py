@@ -37,6 +37,8 @@ class Geodesic_Domes_Operator_Panel(bpy.types.Panel):
     bl_region_type = "TOOLS" #UI possible too
     bl_space_type = "VIEW_3D"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_context = "objectmode"
+    bl_category = "Addons"
 
     def draw(self,context):
         sce = context.scene
