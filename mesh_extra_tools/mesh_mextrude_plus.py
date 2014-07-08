@@ -20,19 +20,19 @@
 # Repeats extrusion + rotation + scale for one or more faces                   #
 
 ################################################################################
-
+'''
 bl_info = {
     "name": "MExtrude Plus",
     "author": "liero",
     "version": (1, 2, 8),
-    "blender": (2, 62, 0),
+    "blender": (2, 71, 0),
     "location": "View3D > Tool Shelf",
     "description": "Repeat extrusions from faces to create organic shapes",
     "warning": "",
     "wiki_url": "",
     "tracker_url": "https://developer.blender.org/T28570",
     "category": "Mesh"}
-
+'''
 
 import  bpy, bmesh, mathutils, random
 from random import gauss

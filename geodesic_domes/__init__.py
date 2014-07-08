@@ -20,8 +20,8 @@ bl_info = {
     "name": "Geodesic Domes",
     "author": "PKHG , Meta Androcto, Kilon original for 2.49 from Andy Houston",
     "version": (0, 2, 3),
-    "blender": (2, 61, 0),
-    "location": "View3D > UI > Geodesic...",
+    "blender": (2, 71, 0),
+    "location": "View3D > Toolshelf > Addons Tab",
     "description": "Choice for objects",
     "warning": "not yet finished",
     "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/"

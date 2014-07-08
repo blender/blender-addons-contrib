@@ -20,7 +20,7 @@ bl_info = {
     "author": "teldredge",
     "version": (0, 2, 7),
     "blender": (2, 71, 0),
-    "location": "View3D > ToolShelf > Laplacian Lightning",
+    "location": "View3D > Toolshelf > Addons Tab",
     "description": "Lightning mesh generator using laplacian growth algorithm",
     "warning": "Beta",
     "wiki_url": "http://www.funkboxing.com/wordpress/?p=301",

@@ -21,7 +21,7 @@ bl_info = {
     "author": "Ondrej Raha(lokhorn), meta-androcto",
     "version": (0, 5),
     "blender": (2, 71, 0),
-    "location": "View3D > Tool Shelf > Grass Preset Panel",
+    "location": "View3D > ToolShelf > Addons Tab",
     "description": "Creates particle grass with material",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/Hair_Lab",
