@@ -20,8 +20,8 @@ bl_info = {
     'name': 'Drop to Ground',
     'author': 'Unnikrishnan(kodemax), Florian Meyer(testscreenings)',
     'version': (1, 2),
-    "blender": (2, 63, 0),
-    'location': '3D View > Tool Shelf > Object Tools Panel (at the bottom)',
+    "blender": (2, 71, 0),
+    'location': '3D View > Toolshelf > Addons Tab',
     'description': 'Drop selected objects on active object',
     'warning': '',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/'
@@ -179,7 +179,7 @@ class drop_help(bpy.types.Operator):
 		layout.label("Select the object/s to drop")
 		layout.label("Then Shift Select 'Ground'")
 
-    def execute(self, context):
+	def execute(self, context):
 		return {'FINISHED'}
 
 	def invoke(self, context, event):
