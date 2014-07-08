@@ -22,8 +22,8 @@ bl_info = {
 	"name": "EWOCprojects tools",
 	"author": "Gert De Roost - paleajed",
 	"version": (1, 3, 1),
-	"blender": (2, 63, 0),
-	"location": "View3D > Toolbar and View3D > Specials (W-key)",
+	"blender": (2, 71, 0),
+	"location": "View3D > Tool Shelf > Addons & Specials (W-key)",
 	"description": "Edit mode tools - contrib version",
 	"warning": "",
 	"wiki_url": "",
@@ -115,6 +115,9 @@ class PaleajedPanel(bpy.types.Panel):
 	bl_label = "EWOCprojects tools"
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'TOOLS'
+	bl_options = {'DEFAULT_CLOSED'}
+	bl_category = "Addons"
+
 
 	def draw(self, context):
 		scn = bpy.context.scene

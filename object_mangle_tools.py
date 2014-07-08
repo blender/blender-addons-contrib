@@ -23,8 +23,8 @@ bl_info = {
     "name": "Mangle Tools",
     "author": "Phil Cote",
     "version": (0, 2),
-    "blender": (2, 63, 0),
-    "location": "View3D > Tools",
+    "blender": (2, 71, 0),
+    "location": "View3D > Toolshelf > Addons Tab",
     "description": "Set of tools to mangle curves, meshes, and shape keys",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "",
@@ -156,6 +156,7 @@ class MangleToolsPanel(bpy.types.Panel):
     bl_region_type="TOOLS"
     bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "Addons"
 
     def draw(self, context):
         scn = context.scene
