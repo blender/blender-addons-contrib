@@ -20,8 +20,8 @@ bl_info = {
     "name": "Add Objects Panel",
     "author": "Murat Egretli (Demohero)",
     "version": (1, 2),
-    "blender": (2, 61, 0),
-    "location": "View3D > Toolbar",
+    "blender": (2, 71, 0),
+    "location": "View3D > Toolshelf > Addons",
     "description": "add objects(mesh, curve etc.) from Toolbar",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -41,23 +41,29 @@ class View3DPanel():
 class VIEW3D_PT_add_menu(View3DPanel,bpy.types.Panel):
     bl_context = "objectmode"
     bl_label = "Add Objects"
-    bl_options = {"DEFAULT_CLOSED"}
+    bl_category = 'Addons'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
-
+        layout.label("Primitive Object")
         layout.menu("INFO_MT_mesh_add", text="Mesh", icon='OUTLINER_OB_MESH')
         layout.menu("INFO_MT_curve_add", text="Curve", icon='OUTLINER_OB_CURVE')
         layout.menu("INFO_MT_surface_add", text="Surface", icon='OUTLINER_OB_SURFACE')
         layout.operator_menu_enum("object.metaball_add", "type", text="Metaball", icon='OUTLINER_OB_META')
+        layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
+        layout.label("Object Helpers")
         layout.menu("INFO_MT_armature_add", icon='OUTLINER_OB_ARMATURE')
-        layout.operator_menu_enum("object.lamp_add", "type", text="Lamp", icon='OUTLINER_OB_LAMP')
-        layout.operator_menu_enum("object.effector_add", "type", text="Force Field", icon='OUTLINER_OB_EMPTY')
         layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
         layout.operator("object.add", text="Empty", icon='OUTLINER_OB_EMPTY').type = 'EMPTY'
-        layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
+        layout.operator_menu_enum("object.group_instance_add", "group",
+                                  text="Group Instance",
+                                  icon='OUTLINER_OB_EMPTY')
+        layout.label("3d View Objects")
         layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
-        layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
+        layout.operator_menu_enum("object.lamp_add", "type", text="Lamp", icon='OUTLINER_OB_LAMP')
+        layout.operator_menu_enum("object.effector_add", "type", text="Force Field", icon='OUTLINER_OB_EMPTY')
+
 
 # register the class
 def register():
