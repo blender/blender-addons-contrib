@@ -1,10 +1,10 @@
 bl_info = {
     "name": "Boolean Operators",
-    "location": "View3D > Toolbar",
+    "location": "View3D > Toolshelf > Addons",
     "description": "Add Boolean Tools for running boolean operations on two selected objects.",
     "author": "Jonathan Williamson",
     "version": (0, 4),
-    "blender": (2, 66, 0),
+    "blender": (2, 71, 0),
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/booleanoperators",
     "tracker_url": "https://developer.blender.org/T34502",
     "category": "3D View"}
@@ -93,6 +93,8 @@ class booleanToolbar(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_context = 'objectmode'
+    bl_category = 'Addons'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -113,7 +115,7 @@ class booleanToolbar(bpy.types.Panel):
 
 ###------- Define the Hotkeys and Register Operators ---------###
 
-addon_keymaps = []
+#addon_keymaps = []
 
 
 def register():
@@ -124,11 +126,11 @@ def register():
     wm = bpy.context.window_manager
 
     # create the boolean menu hotkey
-    km = wm.keyconfigs.addon.keymaps.new(name='Object Mode')
-    kmi = km.keymap_items.new('wm.call_menu', 'B', 'PRESS', ctrl=True, shift=True)
-    kmi.properties.name = 'object.boolean_menu'
+#    km = wm.keyconfigs.addon.keymaps.new(name='Object Mode')
+#    kmi = km.keymap_items.new('wm.call_menu', 'B', 'PRESS', ctrl=True, shift=True)
+#    kmi.properties.name = 'object.boolean_menu'
 
-    addon_keymaps.append(km)
+#    addon_keymaps.append(km)
 
 def unregister():
     bpy.utils.unregister_class(boolean)
