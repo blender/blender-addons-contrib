@@ -33,29 +33,6 @@ bl_info = {
 # import/export functionality is mostly based
 #   on Bart Crouch's Theme Manager Addon
 
-
-# CHANGELOG
-# =========
-# 0.1.0 : _ initial release
-# 0.2.0 : _ quadview support
-#         _ import/export functionality from/to preset files
-#           inspired - that is an euphemism - from Bart Crouch Theme Manager Addon
-#         _ import data from an another scene
-# 0.2.1 : _ improved previous / toggle logic
-#         _ fix : object reference works if name has changed
-#         _ fix for python api change 36710
-#         _ checks on data import (scene or preset file)
-# 0.2.2 : _ fix : previous / toggle
-#         _ io filtering
-#         _ stored views name display in 3d view (experimental)
-#         _ UI tweaks
-#         _ generate unique view name
-#         _ added wiki and tracker url
-# 0.3.0   _ refactor
-#         _ removed previous, io ui
-#         _ fix: POV.is_modified - use perspective_matrix insted of view_matrix
-#                                - presets are no longer backward compatible
-
 # TODO: check against 2.63
 # TODO: quadview complete support : investigate. Where's the data?
 # TODO: lock_camera_and_layers. investigate usage
