@@ -7,7 +7,7 @@ bl_info = {
     "blender": (2, 71, 0),
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/booleanoperators",
     "tracker_url": "https://developer.blender.org/T34502",
-    "category": "3D View"}
+    "category": "Object"}
 
 
 import bpy
@@ -93,7 +93,7 @@ class booleanToolbar(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_context = 'objectmode'
-    bl_category = 'Addons'
+    bl_category = 'Tools'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
