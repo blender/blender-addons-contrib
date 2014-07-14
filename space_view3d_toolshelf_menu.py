@@ -38,7 +38,6 @@ class View3DPanel():
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
-
 class VIEW3D_PT_add_menu(View3DPanel,bpy.types.Panel):
     bl_label = "Dynamic Toolshelf"
     bl_category = "Dynamic"
