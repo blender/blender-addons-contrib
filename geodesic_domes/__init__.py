@@ -18,28 +18,23 @@
 
 bl_info = {
     "name": "Geodesic Domes",
-    "author": "PKHG , Meta Androcto, Kilon original for 2.49 from Andy Houston",
-    "version": (0, 2, 3),
-    "blender": (2, 71, 0),
-    "location": "View3D > Toolshelf > Addons Tab",
-    "description": "Choice for objects",
+    "author": "Noctumsolis, updated from 2.5 PKHG now for 2.71, Meta Androcto, original for 2.49 from Andy Houston",
+    "version": (0, 3, 2),
+    "blender": (2, 7, 1),
+    "location": "View3D > UI > Geodesic...",
+    "description": "Script, with GUI, to create geodesic dome objects.",
     "warning": "not yet finished",
-    "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/"
-        "Scripts/Modeling/Geodesic_Domes",
-    "tracker_url": "https://developer.blender.org/T29609",
-    "category": "Object"}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/Geodesic_Domes",
+    "tracker_url": "",
+    "category": "Mesh"}
 
-"""
-Added save and load of parameters 14-12-2011 PKHG
-Added one possible *.bak for GD_0.GD (one time) 17-12-2011
-"""
 if "bpy" in locals():
     import imp
-    imp.reload(third_domes_panel)
-
+    imp.reload(third_domes_panel_271)
+    
 else:
-    from geodesic_domes import third_domes_panel
-
+    from geodesic_domes import third_domes_panel_271
+   
 import bpy
 from bpy.props import *
 

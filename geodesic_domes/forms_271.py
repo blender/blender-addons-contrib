@@ -1,11 +1,14 @@
 import math
-from math import pi,sin,cos,atan,tan,fabs
-from geodesic_domes.vefm_259 import *
+#PKHG>TOOMUCH?? from math import pi, sin, cos, atan, tan, fabs
+from math import sin, cos
+from geodesic_domes.vefm_271 import *
 class form(mesh):
-    def __init__(self,uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform):
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart,\
+                 vpart, uphase, vphase, utwist, vtwist, xscale, yscale, sform):
         mesh.__init__(self)
-        #PKHG alredey in vefm259 mesh: self.a360 = pi * 2.0
-        self.PKHG_parameters = [uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform]
+        #PKHG already in vefm271 mesh: self.a360 = pi * 2.0
+        self.PKHG_parameters = [uresolution, vresolution, uscale, vscale, upart,
+                                vpart, uphase, vphase, utwist, vtwist, xscale, yscale, sform]
         self.ures = uresolution
         self.vres = vresolution
         
@@ -57,19 +60,23 @@ class form(mesh):
                 u = self.ustep * i + self.uphase
                 v = self.vstep * j + self.vphase
             #    if self.xscaleflag:
-            #        u = self.ellipsecomp(self.xscale,u) 
+            #        u = self.ellipsecomp(self.xscale, u) 
             #    if self.yscaleflag:
-            #        v = self.ellipsecomp(self.yscale,v)            
+            #        v = self.ellipsecomp(self.yscale, v)            
                 if self.sform[12]:
-                    r1 = self.superform(self.sform[0],self.sform[1],self.sform[2],self.sform[3],self.sform[14] + u,self.sform[4],self.sform[5],self.sform[16] * v)
+                    r1 = self.superform(self.sform[0], self.sform[1], self.sform[2],\
+                                        self.sform[3], self.sform[14] + u, self.sform[4],\
+                    self.sform[5], self.sform[16] * v)
                 else:
                     r1 = 1.0
                 if self.sform[13]:
-                    r2 = self.superform(self.sform[6],self.sform[7],self.sform[8],self.sform[9],self.sform[15] + v,self.sform[10],self.sform[11],self.sform[17] * v)
+                    r2 = self.superform(self.sform[6], self.sform[7], self.sform[8],\
+                                        self.sform[9], self.sform[15] + v, self.sform[10],\
+                    self.sform[11], self.sform[17] * v)
                 else:
                     r2 = 1.0
-                x,y,z = self.formula(u,v,r1,r2)
-                point = vertex((x,y,z))
+                x, y, z = self.formula(u, v, r1, r2)
+                point = vertex((x, y, z))
                 row.append(point)
                 self.verts.append(point)
             self.rowlist.append(row)
@@ -83,7 +90,7 @@ class form(mesh):
         else:
             self.rowlist.append(self.rowlist[0])
 
-#    def formula(self,u,v,r1,r2):
+#    def formula(self, u, v, r1, r2):
 #        pass
 
     def generatefaces(self):
@@ -99,28 +106,30 @@ class form(mesh):
                 b = self.rowlist[top][right]
                 c = self.rowlist[bottom][right]
                 d = self.rowlist[bottom][left]
-                face1 = face([a,b,c,d])
+                face1 = face([a, b, c, d])
                 self.faces.append(face1)
-                edge1 = edge(a,b)
-                edge2 = edge(a,d)
+                edge1 = edge(a, b)
+                edge2 = edge(a, d)
                 self.edges.append(edge1)
                 self.edges.append(edge2)
                 if i + 1 == ufin:
-                    edge3 = edge(d,c)
+                    edge3 = edge(d, c)
                     self.edges.append(edge3)
                 if j + 1 == vfin:
-                    edge4 = edge(b,c)
+                    edge4 = edge(b, c)
                     self.edges.append(edge4)
     
 class grid(form):
-    def __init__(self,uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform):
-        form.__init__(self,uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform)
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+                 uphase, vphase, utwist, vtwist, xscale, yscale, sform):
+        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+                        uphase, vphase, utwist, vtwist, xscale, yscale, sform)
         unit = 1.0 / self.a360
         if self.ures == 1 :            
-            print("\n***ERRORin forms_259.grid L121***, ures is  1, changed into 2\n\n")
+            print("\n***ERRORin forms_271.grid L121***, ures is  1, changed into 2\n\n")
             self.ures = 2
         if self.vres == 1 :            
-            print("\n***ERROR in grid forms_259.grid L124***, vres is 1, changed into 2\n\n")
+            print("\n***ERROR in grid forms_271.grid L124***, vres is 1, changed into 2\n\n")
             self.vres = 2            
         self.ustep = self.a360 / (self.ures - 1)
         self.vstep = self.a360 / (self.vres - 1)
@@ -141,16 +150,18 @@ class grid(form):
             self.verts[i].index = i
         self.connectivity()
                 
-    def formula(self,u,v,r1,r2):     
+    def formula(self, u, v, r1, r2):     
         x = u * self.uexpand - self.ushift
         y = v * self.vexpand - self.vshift
         z = r1 * r2 - 1.0         
-        return x,y,z
+        return x, y, z
     
     
 class cylinder(form):
-    def __init__(self,uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform):
-        form.__init__(self,uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform)
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+                 uphase, vphase, utwist, vtwist, xscale, yscale, sform):
+        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+                      uphase, vphase, utwist, vtwist, xscale, yscale, sform)
         unit = 1.0 / self.a360
         self.vshift = self.vscale * 0.5
         self.vexpand = unit * self.vscale
@@ -161,15 +172,17 @@ class cylinder(form):
             self.verts[i].index = i
         self.connectivity()    
 
-    def formula(self,u,v,r1,r2):
+    def formula(self, u, v, r1, r2):
         x = sin(u) * self.uscale * r1 * r2 * self.xscale
         y = cos(u) * self.uscale * r1 * r2
         z = v * self.vexpand - self.vshift
-        return x,y,z
+        return x, y, z
 
 class parabola(form):
-    def __init__(self,uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform):
-        form.__init__(self,uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform)
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+                 uphase, vphase, utwist, vtwist, xscale, yscale, sform):
+        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+                      uphase, vphase, utwist, vtwist, xscale, yscale, sform)
         unit = 1.0 / self.a360
         self.vshift = self.vscale * 0.5
         self.vexpand = unit * self.vscale
@@ -180,32 +193,35 @@ class parabola(form):
             self.verts[i].index = i
         self.connectivity()        
     
-    def formula(self,u,v,r1,r2):
+    def formula(self, u, v, r1, r2):
         factor = sqrt(v) + 0.001
         x = sin(u) * factor * self.uscale * r1 * r2 * self.xscale
         y = cos(u) * factor * self.uscale * r1 * r2
         z = - v * self.vexpand + self.vshift
-        return x,y,z
+        return x, y, z
         
 class torus(form):    
-    def __init__(self,uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform):
-        form.__init__(self,uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform)
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+                 uphase, vphase, utwist, vtwist, xscale, yscale, sform):
+        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+                      uphase, vphase, utwist, vtwist, xscale, yscale, sform)
         self.generatepoints()
         self.generatefaces()
         for i in range(len(self.verts)):
             self.verts[i].index = i
         self.connectivity()        
                     
-    def formula(self,u,v,r1,r2):
+    def formula(self, u, v, r1, r2):
         z = sin(v) * self.uscale * r2 * self.yscale
         y = (self.vscale + self.uscale * cos(v)) * cos(u) * r1 * r2
         x = (self.vscale + self.uscale * cos(v)) * sin(u) * r1 * r2 * self.xscale
-        return x,y,z
+        return x, y, z
 
 class sphere(form):
-    
-    def __init__(self,uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform):
-        form.__init__(self,uresolution,vresolution,uscale,vscale,upart,vpart,uphase,vphase,utwist,vtwist,xscale,yscale,sform)
+    def __init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+                 uphase, vphase, utwist, vtwist, xscale, yscale, sform):
+        form.__init__(self, uresolution, vresolution, uscale, vscale, upart, vpart,\
+                      uphase,vphase,utwist,vtwist,xscale,yscale,sform)
         self.vstep = (self.a360 / (self.vres - 1)) * self.vpart
         self.vflag = 1
         self.generatepoints()
@@ -214,9 +230,9 @@ class sphere(form):
             self.verts[i].index = i
         self.connectivity()        
         
-    def formula(self,u,v,r1,r2):
+    def formula(self, u, v, r1, r2):
         v = (v * 0.5) - (self.a360 * 0.25)
         x = r1 * cos(u) * r2 * cos(v) * self.uscale * self.xscale
         y = r1 * sin(u) * r2 * cos(v) * self.uscale
         z = r2 * sin(v) * self.uscale * self.yscale
-        return x,y,z
+        return x, y, z

@@ -1,26 +1,42 @@
 # vert class and overloading experiments
 import bpy
+#PKHG>NEEDED? 
+import bmesh 
 import math
 from math import sqrt,acos,pi,sin,cos,atan,tan,fabs
 from mathutils import Vector
 
-#dbg = True
-sgn = lambda x : (x>0) - (x<0) #missing signum functin in Python
+#PKHG>DBG change the DBG_info and use  extra_DBG_info
+DBG_info ={"MeshInfo":False, "StrutMesh":False, "HubMesh":False}
+
+#in de functie load_images_from had ik debug informatie nodig
+#def load_images_from(name_list = ["no image"], where = [], p = "\\addons\\stepwise2PKHG\\" ):
+ 
+def extra_DBG_info(name = "value from DBG_info", info_text="default\n", info_obj=None):
+    global DBG_info
+    DBG_keys = DBG_info.keys()
+    if name in DBG_keys:
+        if DBG_info[name]:
+            print(info_text, info_obj)
+
+sgn = lambda x : (x>0) - (x<0) #missing signum function in Python
+"""
+not in Blender 2.7*?
 try:
     breakpoint = bpy.types.bp.bp
 except:
     pass    
+"""
 
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
-
 from collections import Counter
 
 '''PKHG not needed?
-def find_twice_vert(l1,l2):
+def find_twice_vert(l1, l2):
     tmp = [el for el in l1]
     tmp.extend(l2)
     tt = Counter(tmp)
-    result = max(tt.keys(),key = lambda k:tt[k])
+    result = max(tt.keys(), key = lambda k:tt[k])
     print("twice give", result)
     return result
 '''
@@ -28,32 +44,30 @@ def find_twice_vert(l1,l2):
 def vefm_add_object(selfobj):
     for i in range(len(selfobj.verts)):
         selfobj.verts[i].index = i
-    v = [el.vector for el in selfobj.verts]    
-#    e = [[edge.a.index,edge.b.index] for edge in selfobj.edges]
-    e = []
+    v = [el.vector for el in selfobj.verts]
+    #PKHG>??? 14jul14 11:00  print("\n************* edges?", selfobj.edges)
+    e = [[edge.a.index, edge.b.index] for edge in selfobj.edges]
+    #PKHG> OLD??? e = []
     if type(selfobj.faces[0]) == type([]):
-#    print("\n=========== selfobj.faces[0]", selfobj.faces[0],type(selfobj.faces[0]))
+#    print("\n=========== selfobj.faces[0]", selfobj.faces[0], type(selfobj.faces[0]))
 #PKHG should be a list of vertices, which have an index
         f =  [[v.index for v in  face] for face in selfobj.faces]
     else:
         f =  [[v.index for v in  face.vertices] for face in selfobj.faces]
-#PKHG_DBG_25-11    print("dbg 25-11 f list =",f)
-#PKHG_DBG_25-11    print("dgb 25-11 v list +",v)
+#PKHG_DBG_25-11    print("dbg 25-11 f list =", f)
+#PKHG_DBG_25-11    print("dgb 25-11 v list +", v)
     m = bpy.data.meshes.new(name= selfobj.name)
     m.from_pydata(v, e, f )
     # useful for development when the mesh may be invalid.
-#PKHG not needed, as ideasman_42 says    m.validate(verbose = False)
-    object_data_add(bpy.context, m, operator = None)
-#???ERROR PKHG in AddSelf    setMaterial(bpy.context.active_object,pkhg_red_color)
+    m.validate(verbose = False)
+    object_data_add(bpy.context, m, operator = None)    
+#???ERROR PKHG in AddSelf    setMaterial(bpy.context.active_object, pkhg_red_color)
 
 #extra test phase
 
 
-
-
 class vertex:
-
-    def __init__(self,vec=(0,0,0)): #default x = 0,y = 0,z = 0):        
+    def __init__(self, vec=(0,0,0)): #default x = 0, y = 0, z = 0):        
         self.vector  = Vector(vec)
         self.length = self.vector.length
         self.index = 0
@@ -85,7 +99,7 @@ class vertex:
         self.normal = average(target).centroid()
         self.normal.findlength()
         if self.length == 0:
-            print("******ERROR*** length zero in findnormal, j = (0,1,0) replcaced")
+            print("******ERROR*** lenght zero in findnormal, j = (0,1,0) replcaced")
             self.normal = vertex((0,1,0))
         self.normal.normalize()
 
@@ -118,29 +132,29 @@ class vertex:
 
     def boundarystart(self):
         #PKHG not implemented, needed?
+        #Noctumsolis: What's it supposed to do?
         pass
 
-#???PKHG TODO why are add and sub different? Solved check the two cases used 
-    def __add__(self,other):
+#Noctumsolis: add and sub nolonger differ in structure. Replaced str(type()) cast with isinstance().
+    def __add__(self, other):
         if isinstance(other, Vector):
             tmp = self.vector + other
         else:
             tmp = self.vector + other.vector
         return vertex(tmp)
 
-    def __sub__(self,other):
+    def __sub__(self, other):
         if isinstance(other, Vector):
             tmp = self.vector -  other
         else:
             tmp = self.vector - other.vector
-#        tmp = self.vector - other.vector
         return vertex(tmp)
 
-    def __mul__(self,other):
+    def __mul__(self, other):
         tmp = self.vector * other
         return vertex(tmp)
 
-    def __truediv__(self,other):
+    def __truediv__(self, other):
         denom = 1.0/other
         tmp = self.vector * denom
         return (tmp)
@@ -150,7 +164,7 @@ class vertex:
 
 class crossp:
     ##   Takes in two vertices(vectors), returns the cross product.
-    def __init__(self,v1,v2):
+    def __init__(self, v1, v2):
         self.v1 = v1
         self.v2 = v2
 #
@@ -160,7 +174,7 @@ class crossp:
 
 class average:
     ##   Takes a list of vertices and returns the average. If two verts are passed, returns midpoint.
-    def __init__(self,vertlist):
+    def __init__(self, vertlist):
         self.vertlist = vertlist
  
     def centroid(self):
@@ -171,14 +185,14 @@ class average:
         if nr_vertices > 1:
             divisor = 1.0 / len(self.vertlist)
         elif nr_vertices == 0:
-            print("\n***WARNING*** empty list in vefm_259.centroid! L180")
+            print("\n***WARNING*** empty list in vefm_271.centroid! L180")
         for vert in self.vertlist:
             tmp = tmp + vert.vector
         tmp = tmp * divisor
         return vertex(tmp)
 
 class edge:
-    def __init__(self,a = 0,b = 0):
+    def __init__(self, a = 0, b = 0):
         self.a = a
         self.b = b
         self.index = 0
@@ -191,9 +205,9 @@ class edge:
 #        self.length = 0
         self.boundary = 0
         self.findvect()
-#        print("vect len before",self.vect.length)
+#        print("vect len before", self.vect.length)
         self.findlength()
-#        print("vect after",self.vect.length)
+#        print("vect after", self.vect.length)
 
     def findvect(self):
         self.vect = self.b - self.a
@@ -206,11 +220,11 @@ class edge:
     def findnormal(self):
                 
         if self.boundary:
-            self.normal = self.faces[0].normal    #average([self.a,self.b]).centroid()
+            self.normal = self.faces[0].normal    #average([self.a, self.b]).centroid()
         else:
-            self.normal = average([self.faces[0].normal,self.faces[1].normal]).centroid()
+            self.normal = average([self.faces[0].normal, self.faces[1].normal]).centroid()
         self.normal.normalize()
-#     def findother(self,vertindex):
+#     def findother(self, vertindex):
 #
 #         if vertindex==self.a:
 #
@@ -221,22 +235,23 @@ class edge:
 ##        different classes for 3,4,> sides??
 
 class face:
-    def __init__(self,vertices=[]):
-#PKHG ok good for tri's at least        print("\n ========= vefm L226======dbg face vertices = ",vertices)
-        self.vertices = vertices    ##   List of vertex instances.
-        self.edges=[]            ##   Will be filled with the sides of the face.
-        self.boundary = 0        ##   When set will have bool and id of edge concerned.
-        self.normal = 0            ##   Face normal found through cross product.
+    def __init__(self, vertices=[]):
+#PKHG ok good for tri's at least        print("\n ========= vefm L226======dbg face vertices = ", vertices)
+        self.vertices = vertices    ## List of vertex instances.
+        self.edges=[]               ##   Will be filled with the sides of the face.
+        self.boundary = 0           ##   When set will have bool and id of edge concerned.
+        self.normal = 0             ##   Face normal found through cross product.
         self.corners=[]
-        self.spokes=[]            ##   Vectors of the bisecting angles from each corner to the centre + dotproduct.
+        self.spokes=[]              ## Vectors of the bisecting angles from each corner
+                                    ##          to the centre + dotproduct.
         self.index = 0
  
  #dotproduct is misleading name, it is the hook between two vectors!
-    def dotproduct(self,v1,v2):
+    def dotproduct(self, v1, v2):
         v1.findlength()
         v2.findlength()
         if v1.length == 0 or v2.length == 0:
-            print("\nPKHG warning, =====vefm_259 dotproduct L245====== at least one zero vector 0 used")         
+            print("\nPKHG warning, =====vefm_271 dotproduct L245====== at least one zero vector 0 used")         
             return 0 # pi * 0.25 #PKHT_TEST04nov pi * 0.25  #45 degrees??? #PKHG???TODO
         dot = v1.vector.dot(v2.vector)
         costheta = dot / (v1.length * v2.length)
@@ -284,13 +299,13 @@ class face:
         if finish == 3 and len(self.edges) == 2 :    
             print("\n***ERROR*** only two edges should be three")
       #      return        
-            occur1 = [self.vertices.index(self.edges[0].a),self.vertices.index(self.edges[0].b)]
-            occur2 = [self.vertices.index(self.edges[1].a),self.vertices.index(self.edges[1].b)]
+            occur1 = [self.vertices.index(self.edges[0].a), self.vertices.index(self.edges[0].b)]
+            occur2 = [self.vertices.index(self.edges[1].a), self.vertices.index(self.edges[1].b)]
             #occur2 = [self.edges[1].a.index, self.edges[1].b.index]
-            twice = find_twice_vert(occur1,occur2)
+            twice = find_twice_vert(occur1, occur2)
             occur1.remove(twice)
             occur2.remove(twice)
-            #new_edge = edge(self.vertices[occur1[0]],self.vertices[occur2[0]])
+            #new_edge = edge(self.vertices[occur1[0]], self.vertices[occur2[0]])
             #self.edges.append(new_edge)
         '''
         for i in range(finish):
@@ -309,8 +324,11 @@ class face:
             leftedge = None
             teller = -1
             for edge in self.edges:
+        #PKHG?>>> 14jul 12:39
         #        if finish == 3 and len(self.edges) == 2  and i == 2:
         #            return    
+                if finish == 3 and len(self.edges) == 2  and i == 2:
+                    return    
                 teller += 1                                                        
                 currentinfo = (current, edge.a, edge.b, edge.a is current, edge.b is current)
                 #next and previous are vertex with respect to ith vertex
@@ -334,12 +352,12 @@ class face:
             if rightedge and leftedge:
                 '''
                 if rightedge:
-                    print("rightedge",rightedge.index)
+                    print("rightedge", rightedge.index)
                 if leftedge:
-                    print( "leftedge",leftedge.index)
-                print("corner",corner)
+                    print( "leftedge", leftedge.index)
+                print("corner", corner)
                 #'''
-                dotty = self.dotproduct(rightvect,leftvect)
+                dotty = self.dotproduct(rightvect, leftvect)
                 corner.append(dotty)
             self.corners.append(corner)
      
@@ -355,7 +373,7 @@ class face:
             two = two.vect
         elif two.b is self.corners[1][0]:
             two = two.vectb
-        self.normal = crossp(one,two).docrossproduct()
+        self.normal = crossp(one, two).docrossproduct()
         self.normal.findlength()
         self.normal.normalize()
 
@@ -383,7 +401,7 @@ class face:
     def artspokes(self):
         centre = average(self.vertices).centroid()
         for point in self.vertices:
-            newedge = edge(point,centre)
+            newedge = edge(point, centre)
             spokes.append(newedge)
             
 class mesh:
@@ -410,14 +428,14 @@ class mesh:
         self.a360 = pi * 2        
 
         
-    def power(self,a,b):         ## Returns a power, including negative numbers
+    def power(self, a, b):         ## Returns a power, including negative numbers
         result = sgn(a)*(abs(a)**b)
         return result
 
-    def sign(self,d):    ## Works out the sign of a number.
+    def sign(self, d):    ## Works out the sign of a number.
         return sgn(d)
 
-    def ellipsecomp(self,efactor,theta):
+    def ellipsecomp(self, efactor, theta):
         if theta==self.a90:
             result = self.a90
         elif theta==self.a180:
@@ -447,7 +465,7 @@ class mesh:
         self.dofaceedge()
         self.boundary()
 
-    def superell(self,n1,uv,turn):
+    def superell(self, n1, uv, turn):
         t1 = sin(uv+turn)
         t1 = abs(t1)
         t1 = t1**n1
@@ -457,16 +475,14 @@ class mesh:
         r = self.power(1.0/(t1+t2),(1.0/n1))
         return r
 
-#PKHG changed according to http://de.wikipedia.org/wiki/Superformel
-#a and b a semi-diameter
-    def superform(self,m,n1,n2,n3,uv,a,b,twist):
-        t1 = cos(m*(uv+twist)*.25) / a
+    def superform(self, m, n1, n2, n3, uv, a, b, twist):
+        t1 = cos(m*(uv+twist)*.25)*a
         t1 = abs(t1)
         t1 = t1**n2
-        t2 = sin(m*(uv+twist)*.25) / b
+        t2 = sin(m*(uv+twist)*.25)*b
         t2 = abs(t2)
         t2 = t2**n3
-        r = self.power(1.0/(t1+t2),n1)        
+        r = self.power(1.0/(t1+t2), n1)        
         return r
         
     def dovertedge(self):
@@ -537,11 +553,11 @@ class mesh:
         hexvert_counter = 0
         for edge in self.edges:
 #            print("21-11 >>>>>>>>>>>>>>dbg hexify L552")
-#            breakpoint(locals(),True)
-            self.hexshorten(edge,hexvert_counter)
+#            breakpoint(locals(), True)
+            self.hexshorten(edge, hexvert_counter)
             hexvert_counter += 2 #PKHG two new vertices done
 #PKHG 21-11            print("21-11 <<<<<<<<<<<<<<< na hexshorten L557", hexvert_counter)
-#PKHG 21-11            breakpoint(locals(),True)
+#PKHG 21-11            breakpoint(locals(), True)
 
         for face in self.faces:
             self.makehexfaces(face)
@@ -556,9 +572,9 @@ class mesh:
         self.vertfaceflag = 0
         self.faceedgeflag = 0
 #PKHG_DBG        print("\n ==========================self hexified I hope")
-        #breakpoint(locals(),True)
+        #breakpoint(locals(), True)
  
-    def hexshorten(self,currentedge, hexvert_counter):
+    def hexshorten(self, currentedge, hexvert_counter):
         third = vertex(currentedge.vect/3.0)
         newvert1 = vertex(currentedge.a.vector)
         newvert2 = vertex(currentedge.b.vector)
@@ -566,13 +582,13 @@ class mesh:
         newvert1.index = hexvert_counter
         newvert2 = newvert2 - third
         newvert2.index = hexvert_counter + 1 #PKHG caller adjusts +=2 
-        newedge = edge(newvert1,newvert2)
+        newedge = edge(newvert1, newvert2)
         newedge.index = currentedge.index
         self.hexverts.append(newvert1)
         self.hexverts.append(newvert2)
         self.hexedges.append(newedge)
  
-    def makehexfaces(self,currentface):
+    def makehexfaces(self, currentface):
         vertices=[]
         currentface.docorners()
         for corner in currentface.corners:
@@ -593,15 +609,15 @@ class mesh:
                 vertices.append(self.hexedges[rid].b)
                 
         newface = face(vertices)
-        newedge1 = edge(vertices[0],vertices[1])
-        newedge2 = edge(vertices[2],vertices[3])
-        newedge3 = edge(vertices[4],vertices[5])
+        newedge1 = edge(vertices[0], vertices[1])
+        newedge2 = edge(vertices[2], vertices[3])
+        newedge3 = edge(vertices[4], vertices[5])
         self.hexfaces.append(newface)
         self.hexedges.append(newedge1)
         self.hexedges.append(newedge2)
         self.hexedges.append(newedge3)
 
-    def hexvertface(self,vert):
+    def hexvertface(self, vert):
         vertices=[]
         for edge in vert.edges:
             eid = edge.index
@@ -623,7 +639,7 @@ class mesh:
         self.connectivity()
         star_vert_counter = 0
         for currentedge in self.edges:
-            newvert = average([currentedge.a,currentedge.b]).centroid()
+            newvert = average([currentedge.a, currentedge.b]).centroid()
             newvert.index = star_vert_counter
             star_vert_counter += 1
             self.starverts.append(newvert)
@@ -640,11 +656,11 @@ class mesh:
             newface = face(vertices)
             newface.index = star_face_counter
             star_face_counter += 1
-            newedge1 = edge(vertices[0],vertices[1])
+            newedge1 = edge(vertices[0], vertices[1])
             newedge1.index = star_edge_counter
-            newedge2 = edge(vertices[1],vertices[2])
+            newedge2 = edge(vertices[1], vertices[2])
             newedge2.index = star_edge_counter + 1
-            newedge3 = edge(vertices[2],vertices[0])
+            newedge3 = edge(vertices[2], vertices[0])
             newedge3.index = star_edge_counter + 2
             star_edge_counter += 3
             self.starfaces.append(newface)
@@ -691,9 +707,9 @@ class mesh:
 #PKHG_??? 20-11
             counter_verts += 1
             self.verts.append(newvert)
-            newedge1 = edge(currentface.vertices[0],newvert)
-            newedge2 = edge(currentface.vertices[1],newvert)
-            newedge3 = edge(currentface.vertices[2],newvert)
+            newedge1 = edge(currentface.vertices[0], newvert)
+            newedge2 = edge(currentface.vertices[1], newvert)
+            newedge3 = edge(currentface.vertices[2], newvert)
             self.edges.append(newedge1)
             self.edges.append(newedge2)
             self.edges.append(newedge3)
@@ -701,25 +717,25 @@ class mesh:
             self.edges[currentedge].a = self.verts[self.edges[currentedge].faces[0].index+newvertstart]
             self.edges[currentedge].b = self.verts[self.edges[currentedge].faces[1].index+newvertstart]
             self.edges[currentedge].findvect()
-        #breakpoint(locals(),True)                
+        #breakpoint(locals(), True)                
         for currentvert in range(newvertstart):
             vert = self.verts[currentvert]
             vertices=[]
             vert.clockwise()
             for currentface in vert.faces:
                 eid = currentface.index
-#PKHG_OK                print(">>>>eid = ", eid,newvertstart + eid)
+#PKHG_OK                print(">>>>eid = ", eid, newvertstart + eid)
                 vertices.append(self.verts[newvertstart + eid])
             #print("21-11 L710  currentvert is=", currentvert)
-            #breakpoint(locals(),True)    
+            #breakpoint(locals(), True)    
             for i in range(len(vertices)):
                 if i == len(vertices) - 1:
                     next = vertices[0]
                 else:
                     next = vertices[i+1]
                 #print("21-11 L710  i is=", i)
-                #breakpoint(locals(),True)    
-                newface = face([vert,vertices[i],next])
+                #breakpoint(locals(), True)    
+                newface = face([vert, vertices[i], next])
                 self.class2faces.append(newface)
         #self.verts = self.class2verts
         #self.edges = self.class2edges
@@ -767,7 +783,7 @@ class mesh:
         self.faceedgeflag = 0
  
 class facetype(mesh):
-    def __init__(self,basegeodesic,parameters,width,height,relative):
+    def __init__(self, basegeodesic, parameters, width, height, relative):
         mesh.__init__(self)
         self.detatch = parameters[0]
         self.endtype = parameters[1]
@@ -786,10 +802,10 @@ class facetype(mesh):
             coord[1]=coord[1]*self.height
         if not self.base.facenormalflag:
             for currentface in self.base.faces:
-            #    print("face normal ",currentface.normal)
+            #    print("face normal ", currentface.normal)
                 currentface.docorners()
                 currentface.findnormal()
-            #    print("face normal ",currentface.normal.x,currentface.normal.y,currentface.normal.z)
+            #    print("face normal ", currentface.normal.x, currentface.normal.y, currentface.normal.z)
             self.base.facenormalflag = 1
         if self.endtype==4 and not self.base.vertnormalflag:
             for currentvert in self.base.verts:
@@ -801,15 +817,15 @@ class facetype(mesh):
         centre = average(self.base.faces[0].vertices).centroid()
         edgelist=[]
         for point in self.base.faces[0].vertices:
-            newedge = edge(centre,point)
+            newedge = edge(centre, point)
             edgelist.append(newedge)
         length = 0
         for edg in edgelist:
             extra = edg.vect.length
             length = length+extra
-        #    print("length",length,"extra",extra)
+        #    print("length", length,"extra", extra)
         length = length/len(edgelist)
-    #    print("find relative",length)
+    #    print("find relative", length)
         return length
  
     def createfaces(self):
@@ -827,10 +843,10 @@ class facetype(mesh):
             newvert = vert + (vert.normal * self.coords[-1][1])
             self.verts.append(newvert)
         
-    def doface(self,candidate):
+    def doface(self, candidate):
         grid=[]
         candidate.dospokes()
-    #    print("Candidate normal",candidate.normal.x,candidate.normal.y,candidate.normal.z)
+    #    print("Candidate normal", candidate.normal.x, candidate.normal.y, candidate.normal.z)
         if not self.detatch:
             line=[]
             for vert in candidate.vertices:
@@ -851,7 +867,8 @@ class facetype(mesh):
             line=[]
             for j in range(len(candidate.vertices)):
                 dotfac = candidate.corners[j][3]*0.5
-                vec=(candidate.spokes[j]*(self.coords[i][0]/sin(dotfac)))        #self.coords[i][0])#(self.coords[i][0]/sin(dotfac)))#+up
+                vec=(candidate.spokes[j]*(self.coords[i][0]/sin(dotfac)))       
+                #self.coords[i][0])#(self.coords[i][0]/sin(dotfac)))#+up
                 newvert = candidate.vertices[j]+vec+up
                 line.append(newvert)
                 self.verts.append(newvert)
@@ -886,46 +903,63 @@ class facetype(mesh):
             self.verts.append(newvert)
             ring = grid[-1]
             for i in range(len(ring)-1):
-                newface = face([newvert,ring[i],ring[i+1]])
+                newface = face([newvert, ring[i], ring[i+1]])
                 self.faces.append(newface)
 
 class importmesh(mesh):
-    def __init__(self,meshname,breakquadflag):    
+    def __init__(self, meshname, breakquadflag):    
         mesh.__init__(self)
-#        print("mesh and breakquad",meshname,breakquadflag)
-#        impmesh = NMesh.GetRawFromObject(meshname)
-        impmesh = bpy.data.objects[meshname]
+        #PKHG>DBG: print("vefm L913 mesh and breakquad", meshname,  breakquadflag, "\n\n")
+        #        impmesh = NMesh.GetRawFromObject(meshname)  #NMesh is not anymore
+        #Does not have faces:        impmesh = bpy.data.objects[meshname] #PKHG>TODO error? struts?22
+        obj = bpy.data.objects[meshname]
+        bpy.context.scene.objects.active = obj
+        obj.select = True
         copied_mesh = None
+        impmesh = None
+        if not breakquadflag:
+            bpy.ops.object.mode_set(mode='EDIT')  
+            impmesh = bmesh.new()   # create an empty BMesh
+            impmesh.from_mesh(obj.data)   # fill it in from a Mesh
+            bpy.ops.object.mode_set(mode='OBJECT')  
+
         if breakquadflag:
-            name = impmesh.name
+            #PKHG>OLD name = impmesh.name
+            name = obj.name
 #PKHG???needed???NO 3-11-2011            impmesh.name = "Original_" + name
-            impmesh.name =  name
+            impmesh_name =  "Original_" + name
 #PKHG TODO use a copy?   no not necessary         bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, 0,0}))
 #PKHG TODO use a copy?            copied_mesh = bpy.context.active_object
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.quads_convert_to_tris()
-            bpy.ops.object.mode_set(mode='OBJECT')
+            impmesh = bmesh.new()   # create an empty BMesh
+            impmesh.from_mesh(obj.data)   # fill it in from a Mesh
+            bpy.ops.object.mode_set(mode='OBJECT')  
 
-        for v in impmesh.data.vertices:
+        #PKHG>OLD        for v in impmesh.data.vertices:
+        for v in impmesh.verts:
             vert = vertex(v.co)
             vert.index = v.index
             self.verts.append(vert)
-#PKHG verts is now a list of vertex, so to say a copy of the Vectors
+            #PKHG verts is now a list of vertex, so to say a copy of the Vectors
 
-#PKHG edges
-        for e in impmesh.data.edges:
+        #PKHG edges
+        #PKHF>OLD for e in impmesh.data.edges:
+        for e in impmesh.edges:
             tmp = []
-            for vert in e.vertices:
-                a = self.verts[vert]
+            for vert in e.verts:
+                a = self.verts[vert.index]
                 tmp.append(a)
-            newedge = edge(tmp[0],tmp[1])
+            newedge = edge(tmp[0], tmp[1])
             newedge.index = e.index
             self.edges.append(newedge)            
-#PKHG faces with out bmesh replace next line polygons by faces
-        for f in impmesh.data.polygons:
+        #PKHG faces
+        extra_DBG_info("MeshInfo","vefm L995 the mesh impmesh", impmesh.faces[:])
+        #PKHG>OLD for f in impmesh.data.faces:
+        for f in impmesh.faces:
             temp=[]
-            for vert in f.vertices:  #PKHG a list! of indices 
-                a = self.verts[vert] #PKHG verts contains already vertex objects
+            for vert in f.verts:  #PKHG a list! of indices ??? PKHG>??? 
+                a = self.verts[vert.index] #PKHG verts contains already vertex objects
                 temp.append(a)
             newface = face(temp)
             newface.index = f.index #indexcount
@@ -941,17 +975,17 @@ class importmesh(mesh):
             target = self.surroundingverts(self.verts[i])    
             for j in range(len(target)):                ## go through those verts
                 temptarg = self.temp[target[j].index]        
-                flag = 0                    ## set a flag up
+                flag = 0                                ## set a flag up
         
-                for k in range(len(temptarg)):        ## go through temp list for each of those verts
+                for k in range(len(temptarg)):          ## go through temp list for each of those verts
                     
-                    if temptarg[k]==i:            ## if we find a match to the current vert...
-                        flag = 1            ## raise the flag
+                    if temptarg[k]==i:                  ## if we find a match to the current vert...
+                        flag = 1           ## raise the flag
             
                 if flag==0:                ## if there is no flag after all that...
                     self.temp[target[j].index].append(i)    ## add current vert to temp list of this surrounding vert
                     self.temp[i].append(target[j].index)    ## add this surrounding vert to the current temp list
-                    newedge = edge(self.verts[i],self.verts[target[j].index])
+                    newedge = edge(self.verts[i], self.verts[target[j].index])
                     self.edges.append(newedge)    ## add the newly found edge to the edges list
         
         for edg in self.edges:
@@ -961,8 +995,8 @@ class importmesh(mesh):
         self.connectivity()
 #PKHG_DBG_OK        print("\n======= mesh imported")
                                                     
-    def surroundingverts(self,vert):
-        """ Find the verts surrounding vert"""        
+    def surroundingverts(self, vert):
+        ''' Find the verts surrounding vert'''        
         surround=[]                    ## list to be filled and returned        
         for faces in vert.faces:        ## loop through faces attached to vert
             finish = len(faces.vertices)
@@ -975,22 +1009,23 @@ class importmesh(mesh):
                     surround.append(next)                                    
         return surround
 
-    def breakquad(self,quad_face):
-        """ turn quads into triangles"""
+    def breakquad(self, quad_face):
+        ''' turn quads into triangles'''
         distance1 = quad_face.vertices[0]-quad_face.vertices[2]
         distance2 = quad_face.vertices[1]-quad_face.vertices[3]        
         distance1.findlength()
         distance2.findlength()        
         if abs(distance1.length)<abs(distance2.length):
-            self.faces[quad_face.index]=face([quad_face.vertices[0],quad_face.vertices[1],quad_face.vertices[2]])
-            self.faces.append(face([quad_face.vertices[0],quad_face.vertices[2],quad_face.vertices[3]]))
+            self.faces[quad_face.index]=face([quad_face.vertices[0], quad_face.vertices[1], quad_face.vertices[2]])
+            self.faces.append(face([quad_face.vertices[0], quad_face.vertices[2], quad_face.vertices[3]]))
         else:
-            self.faces[quad_face.index]=face([quad_face.vertices[0],quad_face.vertices[1],quad_face.vertices[3]])
-            self.faces.append(face([quad_face.vertices[1],quad_face.vertices[2],quad_face.vertices[3]]))            
+            self.faces[quad_face.index]=face([quad_face.vertices[0], quad_face.vertices[1], quad_face.vertices[3]])
+            self.faces.append(face([quad_face.vertices[1], quad_face.vertices[2], quad_face.vertices[3]]))            
         
                         
 class strut(mesh):
-    def __init__(self,base,struttype,width,height,length,widthtog,heighttog,lengthtog,meshname,stretchflag,lift):
+    def __init__(self, base, struttype, width, height, length, widthtog, heighttog, lengthtog, meshname, stretchflag, lift):
+        extra_DBG_info(name = "StrutMesh", info_text="vefm L1026\nstrut called: ", info_obj=[base, struttype, width, height, length, widthtog, heighttog, lengthtog, meshname, stretchflag, lift])
         mesh.__init__(self)
         ## put in strut prep stuff here
         if struttype==None:
@@ -1020,10 +1055,10 @@ class strut(mesh):
             base.facenormalflag = 1
         for edj in base.edges:
             edj.findnormal()
-            side = edge(edj.a,edj.b)
+            side = edge(edj.a, edj.b)
             edj.unit = side.vect
             edj.unit.normalize()    
-            edj.cross = crossp(edj.normal,edj.unit).docrossproduct()
+            edj.cross = crossp(edj.normal, edj.unit).docrossproduct()
         template = importmesh(meshname,0)
         maxx = 0
         minx = 0
@@ -1038,7 +1073,7 @@ class strut(mesh):
                 minx = vert.vector.x
         for edj in base.edges:
             start = len(self.verts)
-            centre = average([edj.a,edj.b]).centroid()
+            centre = average([edj.a, edj.b]).centroid()
             split = edj.vect.length/2
             #PKHG no division by zero!!
             tmp = 1.0
@@ -1076,7 +1111,7 @@ class strut(mesh):
             for edjy in template.edges:
                 one = edjy.a.index+start
                 two = edjy.b.index+start
-                newedge = edge(self.verts[one],self.verts[two])
+                newedge = edge(self.verts[one], self.verts[two])
                 self.edges.append(newedge)
             for facey in template.faces:
                 faceverts=[]
@@ -1087,15 +1122,18 @@ class strut(mesh):
                 self.faces.append(newface)
         self.vertedgeflag = 0    
         self.vertedgeflag = 0                        
-        self.connectivity()    
+        self.connectivity() 
+        
         
 class hub(mesh):
-    def __init__(self,base,hubtype,width,height,length,widthtog,heighttog,lengthtog,meshname):
+    def __init__(self, base, hubtype, width, height, length,\
+                 widthtog, heighttog, lengthtog, meshname):
         mesh.__init__(self)
         self.width = 1.0
         self.height = 1.0
         self.shrink = 1.0
         ## put in strut prep stuff here
+        extra_DBG_info("vefm L1133 HubMesh","base is ", str(dir(base))+"\n and meshname = " +  meshname)
         if hubtype==None:
             return
         total = 0
@@ -1122,16 +1160,16 @@ class hub(mesh):
                 currentface.docorners()
                 currentface.findnormal()
             base.facenormalflag = 1
-#PKHG_2411        breakpoint(locals(),True) #PKHG_DBG 24-11 reason ERROR**** findnormal has no faces
+#PKHG_2411        breakpoint(locals(), True) #PKHG_DBG 24-11 reason ERROR**** findnormal has no faces
 
             
         for apex in base.verts:
             apex.findnormal()
-            side = edge(apex.edges[0].a,apex.edges[0].b)
+            side = edge(apex.edges[0].a, apex.edges[0].b)
             apex.unit = side.vect #PKHG is Vector: b -a
             apex.unit.normalize()    
-            apex.cross = crossp(apex.normal,apex.unit).docrossproduct()
-            apex.unit = crossp(apex.cross,apex.normal).docrossproduct()
+            apex.cross = crossp(apex.normal, apex.unit).docrossproduct()
+            apex.unit = crossp(apex.cross, apex.normal).docrossproduct()
             
         template = importmesh(meshname,0)
         for apex in base.verts:
@@ -1147,7 +1185,7 @@ class hub(mesh):
             for edjy in template.edges:
                 one = edjy.a.index+start
                 two = edjy.b.index+start
-                newedge = edge(self.verts[one],self.verts[two])
+                newedge = edge(self.verts[one], self.verts[two])
                 self.edges.append(newedge)
             for facey in template.faces:
                 faceverts=[]
@@ -1161,25 +1199,25 @@ class hub(mesh):
         self.connectivity()
 
 #???PKHG TODO Nmesh used yet wrong!            
-def finalfill(source,target):
+def finalfill(source, target):
     if source == target: #PKHG: otherewise >infinite< loop
-        print("\n***WARNING*** vefm_259.finalfill L1148 source == target empty mesh used")
+        print("\n***WARNING*** vefm_271.finalfill L1148 source == target empty mesh used")
         target = mesh() #
 #PKHG_??? maybe renumverting and checkkin faces wiht >=4 5 vertices?        
     count = 0
-#PKHG_OK    print("\n>>>>>>>>20-11 DBG vefm_259 in finalfill L1152, len(source.verts) =",len(source.verts))
+#PKHG_OK    print("\n>>>>>>>>20-11 DBG vefm_271 in finalfill L1152, len(source.verts) =", len(source.verts))
     for point in source.verts:
-#        newvert = NMesh.Vert(point.x,point.y,point.z)
+#        newvert = NMesh.Vert(point.x, point.y, point.z)
         newvert = vertex(point.vector)
 #PKHG_??? needed???
         newvert.index = count 
         target.verts.append(newvert)
         point.index = count  #PKHG_INFO source renumbered too!
-#PKHG_OK        print("test gelijk",newvert.vector == point.vector)
+#PKHG_OK        print("test gelijk", newvert.vector == point.vector)
         count += 1 #count+1
     
     #PKHG indices of the vertex in faceyvertices are renumbered!
-#PKHG_OK    print("\n>>>>>>>>20-11 DBG vefm_259 in finalfill L1163, len(source.faces) =",len(source.faces))    
+#PKHG_OK    print("\n>>>>>>>>20-11 DBG vefm_271 in finalfill L1163, len(source.faces) =", len(source.faces))    
     for facey in source.faces:
         row = len(facey.vertices)
         if row >= 5:
@@ -1192,7 +1230,7 @@ def finalfill(source,target):
             centre.index = count #PKHG_??? give it a good index
             count += 1
 #PKHG_DBG 21-11
-            #breakpoint(locals(),True)
+            #breakpoint(locals(), True)
             
             target.verts.append(centre)
             for i in range(row):
@@ -1202,13 +1240,13 @@ def finalfill(source,target):
                 else:
                     a = target.verts[facey.vertices[i].index]
                     b = target.verts[facey.vertices[i+1].index]
-                target.faces.append([a,b,centre])
+                target.faces.append([a, b, centre])
         else:
             f = []
 #PKHG_DBG 21-11
 #            print("\n-----++++ L1217 dbg final dual", facey )
 #PKHG_DBG 21-11
-#            breakpoint(locals(),True)
+#            breakpoint(locals(), True)
 
             for j in range(len(facey.vertices)):
                 a = facey.vertices[j]

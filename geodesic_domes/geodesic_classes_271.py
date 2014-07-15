@@ -1,5 +1,5 @@
-#werkt from geodesic_domes.vefm_259 import *
-from geodesic_domes.vefm_259 import mesh, vertex, edge, face
+#werkt from geodesic_domes.vefm_270 import *
+from geodesic_domes.vefm_271 import mesh, vertex, edge, face
 
 import math
 from math import pi,acos,sin,cos,atan,tan,fabs, sqrt
@@ -114,7 +114,7 @@ class geodesic(mesh):
 
 #PKHG 23.1    def config(self, frequency = 1): #???PKHG frequency problem  20 oct.
     def config(self): #???PKHG frequency problem  20 oct.
-#PKHG_OK        print("\n20-11 >>>>>>>>>DBG geodesic_classes_259 config L117 called")
+#PKHG_OK        print("\n20-11 >>>>>>>>>DBG geodesic_classes_270 config L117 called")
         for i in range(len(self.vertskeleton)):
             self.vertskeleton[i].index = i
         for edges in self.edgeskeleton:
@@ -182,12 +182,16 @@ class geodesic(mesh):
                     r2 = 1.0
                 
             #    print "sform",self.sform,"  u",u,"  v",v
-                if self.sform[12]:
-                    
-                    r1 = r1 * self.superform(self.sform[0],self.sform[1],self.sform[2],self.sform[3],self.sform[14] + u,self.sform[4],self.sform[5],self.sform[16] * v)
+                if self.sform[12]:                    
+                    r1 = r1 * self.superform(self.sform[0],self.sform[1],\
+                                             self.sform[2],self.sform[3],\
+                                             self.sform[14] + u,self.sform[4],\
+                                             self.sform[5],self.sform[16] * v)
                 if self.sform[13]:
-                
-                    r2 = r2 * self.superform(self.sform[6],self.sform[7],self.sform[8],self.sform[9],self.sform[15] + v,self.sform[10],self.sform[11],self.sform[17] * v)
+                    r2 = r2 * self.superform(self.sform[6],self.sform[7],\
+                                             self.sform[8],self.sform[9],\
+                                             self.sform[15] + v,self.sform[10],\
+                                             self.sform[11],self.sform[17] * v)
                 x,y,z = self.cartesian(u,v,r1,r2)
 #PKHG test 20111030                        
 #            self.verts[i].x = x
