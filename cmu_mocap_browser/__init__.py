@@ -51,6 +51,7 @@ class CMUMocapSubjectBrowser(bpy.types.Panel):
     bl_label = "CMU Mocap Subject Browser"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_category = 'Animation'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -89,6 +90,7 @@ class CMUMocapMotionBrowser(bpy.types.Panel):
     bl_label = "CMU Mocap Motion Browser"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_category = 'Animation'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -141,6 +143,7 @@ class CMUMocapToMakeHuman(bpy.types.Panel):
     bl_label = "CMU Mocap to MakeHuman"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_category = 'Animation'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
