@@ -20,7 +20,7 @@ bl_info = {
     "name": "Select Vertex Groups",
     "author": "Martin Ellison",
     "version": (1, 0),
-    "blender": (2, 59, 0),
+    "blender": (2, 71, 0),
     "location": "Toolbox",
     "description": "Finds all the vertex groups that chosen verts are in, & any verts that are not in any group",
     "warning": "Buggy", # used for warning icon and text in addons panel
@@ -183,6 +183,7 @@ class VIEW3D_PT_FixVertexGroups(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label = "Select Vertex Groups"
+    bl_category = 'Tools'
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
