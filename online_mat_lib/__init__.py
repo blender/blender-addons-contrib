@@ -36,7 +36,7 @@ bl_info = {
     "description": "Browse and download materials from online CC0 libraries.",
     "warning": "Beta version",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Material/Online_Material_Library",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=31802",
+    "tracker_url": "",
     "category": "Material"}
 
 node_types = {
