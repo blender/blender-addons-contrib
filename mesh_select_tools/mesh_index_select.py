@@ -151,6 +151,8 @@ class GUI(bpy.types.Panel):
     bl_label = 'Select mesh data'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_category = 'Addons'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout

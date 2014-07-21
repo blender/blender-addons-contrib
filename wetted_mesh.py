@@ -41,6 +41,7 @@ class VIEW3D_PT_tools_WettedMesh(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_label = 'Wetted Mesh'
     bl_context = 'objectmode'
+    bl_category = 'Addons'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
