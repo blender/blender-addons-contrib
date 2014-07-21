@@ -473,7 +473,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    del bpy.context.scene.regMenuTypes
+    del bpy.types.Scene.regMenuTypes
 
     clear_properties()
 

@@ -139,10 +139,10 @@ def unregister():
 
 
     # remove keymaps when add-on is deactivated
-    wm = bpy.context.window_manager
-    for km in addon_keymaps:
-        wm.keyconfigs.addon.keymaps.remove(km)
-    del addon_keymaps[:]
+    #wm = bpy.context.window_manager
+    #for km in addon_keymaps:
+        #wm.keyconfigs.addon.keymaps.remove(km)
+    #del addon_keymaps[:]
 
 if __name__ == "__main__":
     register()

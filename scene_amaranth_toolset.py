@@ -40,8 +40,17 @@ from bpy.app.handlers import persistent
 from bl_operators.presets import AddPresetBase
 
 # Addon wide, we need to know if cycles is available
-global cycles_exists
-cycles_exists = 'cycles' in dir(bpy.types.Scene)
+cycles_exists = False
+
+
+def check_cycles_exists():
+    global cycles_exists
+    cycles_exists = ('cycles' in dir(bpy.types.Scene))
+    return cycles_exists
+
+
+check_cycles_exists()
+
 
 # Preferences
 class AmaranthToolsetPreferences(AddonPreferences):
@@ -177,7 +186,7 @@ def init_properties():
 
     # Scene Debug
     # Cycles Node Types
-    if cycles_exists:
+    if check_cycles_exists():
         cycles_shader_node_types = [
             ("BSDF_DIFFUSE", "Diffuse BSDF", "", 0),
             ("BSDF_GLOSSY", "Glossy BSDF", "", 1),
@@ -3053,7 +3062,7 @@ def register():
     bpy.types.NODE_HT_header.append(node_shader_extra)
     bpy.types.NODE_PT_active_node_properties.append(ui_node_normal_values)
 
-    if cycles_exists:
+    if check_cycles_exists():
         bpy.types.CyclesRender_PT_sampling.append(render_cycles_scene_samples)
         bpy.types.CyclesScene_PT_simplify.append(unsimplify_ui)
 
@@ -3159,7 +3168,7 @@ def unregister():
     bpy.types.NODE_HT_header.remove(node_shader_extra)
     bpy.types.NODE_PT_active_node_properties.remove(ui_node_normal_values)
 
-    if cycles_exists:
+    if check_cycles_exists():
         bpy.types.CyclesRender_PT_sampling.remove(render_cycles_scene_samples)
         bpy.types.CyclesScene_PT_simplify.remove(unsimplify_ui)
 

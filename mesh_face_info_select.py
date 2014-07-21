@@ -37,7 +37,7 @@ bl_info = {
 import bpy
 from bpy.props import EnumProperty
 
-class DATA_OP_facetype_select(bpy.types.Operator):
+class DATA_OT_facetype_select(bpy.types.Operator):
     """Select all faces of a certain type"""
     bl_idname = "data.facetype_select"
     bl_label = "Select by face type"
@@ -71,7 +71,6 @@ class DATA_OP_facetype_select(bpy.types.Operator):
 class DATA_PT_info_panel(bpy.types.Panel):
     """Creates a face info / select panel in the Object properties window"""
     bl_label = "Face info / select"
-    bl_idname = "DATA_PT_face_info"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "data"
@@ -114,12 +113,12 @@ class DATA_PT_info_panel(bpy.types.Panel):
 
 def register():
     bpy.utils.register_class(DATA_PT_info_panel)
-    bpy.utils.register_class(DATA_OP_facetype_select)
+    bpy.utils.register_class(DATA_OT_facetype_select)
 
 
 def unregister():
     bpy.utils.unregister_class(DATA_PT_info_panel)
-    bpy.utils.unregister_class(DATA_OP_facetype_select)
+    bpy.utils.unregister_class(DATA_OT_facetype_select)
 
 
 if __name__ == "__main__":
