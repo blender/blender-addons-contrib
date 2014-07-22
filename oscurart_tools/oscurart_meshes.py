@@ -290,21 +290,31 @@ def DefOscOverlapUv(valpresicion):
     for vert in ob.data.loops:
         vertvertex.setdefault(vert.vertex_index,[]).append(vert.index)
 
+    vertexvert = {}
+    for vertex in ob.data.loops:
+        vertexvert[vertex.index]=vertex.vertex_index  
+
     # posicion de cada vertice y cada face 
     vertloc = { rounder(vert.co[:]) : vert for vert in ob.data.vertices} 
     faceloc = { rounder(poly.center[:]) : poly for poly in ob.data.polygons} 
 
     # relativo de cada vertice y cada face
-    verteq = {vert : vertloc.get(absco(co),vertloc[co]) for co,vert in vertloc.items() if co[0] <= 0}    
+    verteq = {vert : vertloc.get(absco(co),vertloc[co]) for co,vert in vertloc.items() if co[0] <= 0}  
+    verteqind = {vert.index : vertloc.get(absco(co),vertloc[co]).index for co,vert in vertloc.items() if co[0] <= 0}     
     polyeq = {face : faceloc.get(absco(center),faceloc[center]) for center,face in faceloc.items() if center[0] <= 0}  
 
     # loops in faces
     lif = {poly : [i for i in poly.loop_indices] for poly in ob.data.polygons}
 
     # acomoda
+    vertexeq = {}
     for l, r in polyeq.items():
-        for llif,rlif in zip(lif[l],lif[r]):
-            ob.data.uv_layers.active.data[rlif].uv = ob.data.uv_layers.active.data[llif].uv
+        if l.select:
+            for lloop in lif[l]:
+                for rloop in lif[r]:
+                    #lloop,verteq[vertexvert[lloop]],rloop,vertexvert[rloop]
+                    if verteqind[vertexvert[lloop]] == vertexvert[rloop]:
+                        ob.data.uv_layers.active.data[lloop].uv = ob.data.uv_layers.active.data[rloop].uv
 
     bpy.ops.object.mode_set(mode=mode, toggle=False) 
    
@@ -409,6 +419,9 @@ class ModalIndexOperator(bpy.types.Operator):
             self.report({"WARNING"}, "Is not a 3D Space")
             return {'CANCELLED'}
                 
+
+
+
 
 
 
