@@ -21,8 +21,8 @@ bl_info = {
     "name": "Enhanced 3D Cursor",
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
-    "version": (2, 9, 2),
-    "blender": (2, 65, 4),
+    "version": (2, 9, 4),
+    "blender": (2, 7, 0),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -31,19 +31,6 @@ bl_info = {
     "category": "3D View"}
 
 """
-ATTENTION:
-somewhere around 45447 revision object.ray_cast() starts conflicting with
-mesh.update(calc_tessface=True) -- at least when invoked within one
-operator cycle, object.ray_cast() crashes if object's tessfaces were
-update()d earlier in the code. However, not update()ing the meshes
-seems to work fine -- ray_cast() does its job, and it's possible to
-access tessfaces afterwards.
-mesh.calc_tessface() -- ? crashes too
-
-Seems like now axes are stored in columns instead of rows.
-Perhaps it's better to write utility functions to create/decompose
-matrices from/to 3D-vector axes and a translation component
-
 Breakdown:
     Addon registration
     Keymap utils
@@ -405,7 +392,8 @@ class EnhancedSetCursor(bpy.types.Operator):
                 return self.finalize(context)
 
         if event.type in self.key_map["cancel"]:
-            return self.cancel(context)
+            self.cancel(context)
+            return {'CANCELLED'}
 
         tool_settings = context.tool_settings
 
@@ -2326,7 +2314,9 @@ class SnapUtilityBase:
     def snap(self, xy, src_matrix, initial_matrix, do_raycast, \
         alt_snap, vu, csu, modify_Surface, use_object_centers):
 
-        grid_step = self.grid_steps[alt_snap]
+        v3d = csu.space_data
+
+        grid_step = self.grid_steps[alt_snap] * v3d.grid_scale
 
         su = self
         use_relative_coords = su.use_relative_coords
@@ -4562,7 +4552,8 @@ class CursorMonitor(bpy.types.Operator):
             # Another (newer) monitor was launched;
             # this one should stop.
             # (OR addon was disabled)
-            return self.cancel(context)
+            self.cancel(context)
+            return {'CANCELLED'}
 
         # Somewhy after addon re-registration
         # this permanently becomes False
@@ -5494,7 +5485,8 @@ class DelayRegistrationOperator(bpy.types.Operator):
             #if bpy.ops.view3d.cursor3d_monitor.poll():
             #    bpy.ops.view3d.cursor3d_monitor()
 
-            return self.cancel(context)
+            self.cancel(context)
+            return {'CANCELLED'}
 
         return {'PASS_THROUGH'}
 
@@ -5508,7 +5500,6 @@ class DelayRegistrationOperator(bpy.types.Operator):
 
     def cancel(self, context):
         DelayRegistrationOperator.timer_remove(context)
-        return {'CANCELLED'}
 
 
 def register():
