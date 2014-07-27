@@ -24,14 +24,14 @@
 
 bl_info = {
     "name": "Convert Materials to Cycles",
-    "author": "Silvio Falcinelli",
-    "version": (0, 11),
-    "blender": (2, 68, 0),
+    "author": "Silvio Falcinelli, updates by community",
+    "version": (0, 11, 1),
+    "blender": (2, 71, 0),
     "location": "Properties > Material > Convert to Cycles",
     "description": "Convert non-nodes materials to Cycles",
     "warning": "beta",
-    "wiki_url": 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/System/Convert_Materials_to_Cycles',
-    "category": "Materials"}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Material/Blender_Cycles_Materials_Converter",
+    "category": "Material"}
 
 
 import bpy
@@ -454,7 +454,7 @@ class mlrefresh_active(bpy.types.Operator):
 class mlrestore(bpy.types.Operator):
     bl_idname = "ml.restore"
     bl_label = "Restore"
-    bl_description = "Restore"
+    bl_description = "Switch Back to non nodes & Blender Internal"
     bl_register = True
     bl_undo = True
     @classmethod
@@ -472,7 +472,7 @@ sc.EXTRACT_OW = BoolProperty(attr="Overwrite", default=False, description="Extra
 
 
 class OBJECT_PT_scenemassive(bpy.types.Panel):
-    bl_label = "Convert All Materials to Cycles"
+    bl_label = "Convert Materials to Cycles"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "material"
@@ -491,12 +491,12 @@ class OBJECT_PT_scenemassive(bpy.types.Panel):
         row.operator("ml.restore", text='Back to Blender', icon='MATERIAL')
 
         # Locking of nodes objects
-        try:
+'''        try:
             cmat = bpy.context.selected_objects[0].active_material
             TreeNodes = cmat.node_tree # throws exception for non-nodes mats
             locked = False
             for n in TreeNodes.nodes: # throws exception if no node mat
-                if n.type == 'OUTPUT_MATERIAL':
+                if n.type == 'ShaderNodeOutputMaterial':
                     if n.label == 'Locked':
                         locked = True
                         break
@@ -506,7 +506,7 @@ class OBJECT_PT_scenemassive(bpy.types.Panel):
             row.operator("ml.lock", text=("Unlock" if locked else "Lock"))
         except:
             pass
-
+'''
 def register():
     bpy.utils.register_module(__name__)
     pass
