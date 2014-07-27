@@ -36,7 +36,7 @@ bl_info = {
 import bpy
 
 
-source_object = None
+#source_object = None
 copy_buffer = ''
 
 
@@ -59,10 +59,10 @@ class CopyPasteUVs_Copy(bpy.types.Operator):
         # print("------START------")
 
         global copy_buffer
-        global source_object
+        #global source_object
 
         copy_buffer = []
-        source_object = None
+        #source_object = None
 
         obj = bpy.context.active_object
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -73,7 +73,7 @@ class CopyPasteUVs_Copy(bpy.types.Operator):
             self.report({'WARNING'}, "Must have selected vertices to copy.")
         else:
             copy_buffer = vertex_indexes
-            source_object = obj
+            #source_object = obj
 
         bpy.ops.object.mode_set(mode='EDIT')
 
@@ -100,7 +100,7 @@ class CopyPasteUVs_Paste(bpy.types.Operator):
         # print("------START------")
 
         global copy_buffer
-        global source_object
+        #global source_object
 
         if len(copy_buffer) == 0:
             print("Must have copied first!")
@@ -108,49 +108,49 @@ class CopyPasteUVs_Paste(bpy.types.Operator):
             obj = bpy.context.active_object
             bpy.ops.object.mode_set(mode='OBJECT')
 
-            vertex_indexes = [i for i, v in enumerate(obj.data.vertices) if v.select]
+            selectedVertexIndexes = [i for i, v in enumerate(obj.data.vertices) if v.select]
 
-            if len(vertex_indexes) == 0:
+            if len(selectedVertexIndexes) == 0:
                 self.report(
                     {'WARNING'},
                     "Must have vertices selected to paste.")
-            elif len(vertex_indexes) != len(copy_buffer):
+            elif len(selectedVertexIndexes) != len(copy_buffer):
                 self.report(
                     {'WARNING'},
                     "Number of copied verts is not the same as number selected now.")
             else:
 
+                source_loops = []
+                destination_loops = []
+
                 for i, source_index in enumerate(copy_buffer):
                     #source_index = copy_buffer[i]
-                    destination_index = vertex_indexes[i]
-
-                    source_loops = []
-                    destination_loops = []
+                    destination_index = selectedVertexIndexes[i]
 
                     for loop_index, loop_obj in enumerate(obj.data.loops):
                         if obj.data.loops[loop_index].vertex_index == destination_index:
                             destination_loops.append(loop_index)
 
-                    for loop_index, loop_obj in enumerate(source_object.data.loops):
-                        if source_object.data.loops[loop_index].vertex_index == source_index:
+                        if obj.data.loops[loop_index].vertex_index == source_index:
                             source_loops.append(loop_index)
 
-                    if len(source_loops) != len(destination_loops):
-                        self.report(
-                            {'WARNING'},
-                            "Error; source loops and destination loops do not "
-                            "match; geometry seems dissimilar")
-                    else:
+                if len(source_loops) != len(destination_loops):
+                    self.report(
+                        {'WARNING'},
+                        "Error; source loops and destination loops do not "
+                        "match; geometry seems dissimilar")
+                else:
+                    uvlayer_destination = obj.data.uv_layers.active
+                    #uvlayer_source = source_object.data.uv_layers.active
 
-                        uvlayer_destination = obj.data.uv_layers.active
-                        uvlayer_source = source_object.data.uv_layers.active
-
-                        for j, source in enumerate(source_loops):
-                            #source = source_loops[j]
+                    for j, source in enumerate(source_loops):
+                            source =  source_loops[j]
                             dest = destination_loops[j]
+                            #print("aa", dest, "aa", source, "ss", obj.data.loops[i])
+                            uvlayer_destination.data[dest].uv = uvlayer_destination.data[source].uv
 
-                            uvlayer_destination.data[
-                                dest].uv = uvlayer_source.data[source].uv
+                source_loops = [] # Clear array
+                destination_loops = [] # Clear array
 
         bpy.ops.object.mode_set(mode='EDIT')
 
