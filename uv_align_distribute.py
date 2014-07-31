@@ -67,8 +67,8 @@ def update():
 
 
 def GBBox(islands):
-    minX, minY = +1000
-    maxX, maxY = -1000
+    minX = minY = 1000
+    maxX = maxY = -1000
     for island in islands:
         for face_id in island:
             face = bm.faces[face_id]
@@ -83,8 +83,8 @@ def GBBox(islands):
 
 
 def GBBoxCenter(islands):
-    minX, minY = +1000
-    maxX, maxY = -1000
+    minX = minY = 1000
+    maxX = maxY = -1000
     for island in islands:
         for face_id in island:
             face = bm.faces[face_id]
@@ -100,8 +100,8 @@ def GBBoxCenter(islands):
 
 
 def BBox(island):
-    minX, minY = +1000
-    maxX, maxY = -1000
+    minX = minY = 1000
+    maxX = maxY = -1000
     # for island in islands:
     # print(island)
     for face_id in island:
@@ -117,8 +117,8 @@ def BBox(island):
 
 
 def BBoxCenter(island):
-    minX, minY = +1000
-    maxX, maxY = -1000
+    minX = minY = 1000
+    maxX = maxY = -1000
     # for island in islands:
     for face_id in island:
         face = bm.faces[face_id]
@@ -1063,4 +1063,5 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
 
