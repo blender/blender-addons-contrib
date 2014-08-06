@@ -173,8 +173,6 @@ class SCENE_OT_namedlayer_move_to_layer(bpy.types.Operator):
     bl_idname = "scene.namedlayer_move_to_layer"
     bl_label = "Move Objects To Layer"
 
-    #prop definition
-    #layer number
     layer_idx = IntProperty()
     extend = BoolProperty(options={'SKIP_SAVE'})
 
@@ -224,7 +222,7 @@ class SCENE_OT_namedlayer_toggle_wire(bpy.types.Operator):
 
         view_3d = context.area.spaces.active
 
-        #check if layer have some thing
+        # Check if layer have some thing
         if view_3d.layers_used[layer_idx] or layer_idx == -1:
             display = 'WIRE' if use_wire else 'TEXTURED'
             # Cycle all objects in the layer.
@@ -387,7 +385,7 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
         use_indices = namedlayers.use_layer_indices
         use_classic = namedlayers.use_classic
 
-        #check for lock camera and layer is active
+        # Check for lock camera and layer is active
         if view_3d.lock_camera_and_layers:
             layer_cont = scene
             use_spacecheck = False
