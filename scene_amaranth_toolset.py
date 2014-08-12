@@ -20,7 +20,7 @@ bl_info = {
     "name": "Amaranth Toolset",
     "author": "Pablo Vazquez, Bassam Kurdali, Sergey Sharybin, Lukas Tönne",
     "version": (0, 9, 4),
-    "blender": (2, 70),
+    "blender": (2, 71),
     "location": "Everywhere!",
     "description": "A collection of tools and settings to improve productivity",
     "warning": "",
@@ -93,6 +93,12 @@ class AmaranthToolsetPreferences(AddonPreferences):
                 default=10,
                 min=1)
 
+    use_framerate = BoolProperty(
+        name="Framerate Jump",
+        description="Jump the amount of frames forward/backward that you have set as your framerate",
+        default=False,
+    )
+
     use_layers_for_render = BoolProperty(
             name="Current Layers for Render",
             description="Save the layers that should be enabled for render",
@@ -122,6 +128,7 @@ class AmaranthToolsetPreferences(AddonPreferences):
         sub.prop(self, "use_timeline_extra_info")
         sub.prop(self, "use_scene_stats")
         sub.prop(self, "use_layers_for_render")
+        sub.prop(self, "use_framerate")
 
         sub.separator()
 
@@ -137,7 +144,7 @@ class AmaranthToolsetPreferences(AddonPreferences):
             text="Refresh the current Scene. Hotkey: F5 or in Specials menu [W]")
 
         sub.separator()
-        sub.label(text="") # General
+        sub.label(text="") # General icon
         sub.label(
             text="Quickly save and reload the current file (no warning!). "
                  "File menu or Ctrl+Shift+W")
@@ -145,7 +152,9 @@ class AmaranthToolsetPreferences(AddonPreferences):
             text="SMPTE Timecode and frames left/ahead on Timeline's header")
         sub.label(
             text="Display extra statistics for Scenes, Cameras, and Meshlights (Cycles)")
-
+        sub.label(text="Save the set of layers that should be activated for a final render")
+        sub.label(text="Jump the amount of frames forward/backward that you've set as your framerate")
+        
         sub.separator()
         sub.label(text="") # Nodes
         sub.label(
@@ -2369,10 +2378,14 @@ class AMTH_SCREEN_OT_frame_jump(Operator):
         scene = context.scene
         preferences = context.user_preferences.addons[__name__].preferences
 
-        if self.forward:
-            scene.frame_current = scene.frame_current + preferences.frames_jump
+        if preferences.use_framerate:
+            framedelta = scene.render.fps
         else:
-            scene.frame_current = scene.frame_current - preferences.frames_jump
+            framedelta = preferences.frames_jump
+        if self.forward:
+            scene.frame_current = scene.frame_current + framedelta
+        else:
+            scene.frame_current = scene.frame_current - framedelta
 
         return{'FINISHED'}
 
