@@ -313,7 +313,7 @@ def DefOscOverlapUv(valpresicion):
             for lloop in lif[l]:
                 for rloop in lif[r]:
                     #lloop,verteq[vertexvert[lloop]],rloop,vertexvert[rloop]
-                    if verteqind[vertexvert[lloop]] == vertexvert[rloop]:
+                    if verteqind[vertexvert[lloop]] == vertexvert[rloop] and ob.data.uv_layers.active.data[rloop].select:
                         ob.data.uv_layers.active.data[lloop].uv = ob.data.uv_layers.active.data[rloop].uv
 
     bpy.ops.object.mode_set(mode=mode, toggle=False) 
@@ -419,6 +419,9 @@ class ModalIndexOperator(bpy.types.Operator):
             self.report({"WARNING"}, "Is not a 3D Space")
             return {'CANCELLED'}
                 
+
+
+
 
 
 
