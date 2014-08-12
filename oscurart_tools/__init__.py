@@ -216,31 +216,26 @@ class OscPanelRender(OscPollRender, bpy.types.Panel):
         active_obj = context.active_object
         layout = self.layout
         col = layout.column(align=1)
-        row = col.row()
 
         col.operator("file.create_batch_maker_osc", icon="LINENUMBERS_ON", text="Make Render Batch")
-        colrow = col.row()
         col.operator("file.create_batch_python", icon="LINENUMBERS_ON", text="Make Python Batch")
-        colrow = col.row()
+        colrow = col.row(align=1)
         colrow.operator("render.render_all_scenes_osc", icon="RENDER_STILL", text="All Scenes").frametype=False
-        colrow.operator("render.render_all_scenes_osc", icon="RENDER_STILL", text="> Frame").frametype=True
-        colrow = col.row()
+        colrow.operator("render.render_all_scenes_osc", text="> Frame").frametype=True
+        colrow = col.row(align=1)
         colrow.operator("render.render_current_scene_osc", icon="RENDER_STILL", text="Active Scene").frametype=False
-        colrow.operator("render.render_current_scene_osc", icon="RENDER_STILL", text="> Frame").frametype=True
-
+        colrow.operator("render.render_current_scene_osc", text="> Frame").frametype=True
 
         colrow = col.row(align=1)
         colrow.operator("render.render_crop_osc", icon="RENDER_REGION")
-        colrow.prop(bpy.context.scene, "rcPARTS", text="Render Crop Parts")        
+        colrow.prop(bpy.context.scene, "rcPARTS", text="Parts")        
         
         boxcol = layout.box().column(align=1)
         colrow = boxcol.row(align=1)
-        #colrow.prop(bpy.context.scene, "use_render_scene", text="")  
         colrow.operator("render.render_selected_scenes_osc", icon="RENDER_STILL", text="Selected Scenes").frametype=False
-        colrow.operator("render.render_selected_scenes_osc", icon="RENDER_STILL", text="> Fame").frametype=True
+        colrow.operator("render.render_selected_scenes_osc", text="> Fame").frametype=True
 
         for sc in bpy.data.scenes[:]:
-            #col = layout.column(align=1)
             boxcol.prop(sc, "use_render_scene", text=sc.name)    
 
 class OscPanelFiles(OscPollFiles, bpy.types.Panel):
