@@ -152,6 +152,18 @@
                              shadedown="0">
           </ThemeWidgetColors>
         </wcol_menu_back>
+        <wcol_pie_menu>
+          <ThemeWidgetColors outline="#0a0a0a"
+                             inner="#191919e6"
+                             inner_sel="#8c8c8cff"
+                             item="#2d2d2de6"
+                             text="#a0a0a0"
+                             text_sel="#ffffff"
+                             show_shaded="TRUE"
+                             shadetop="10"
+                             shadedown="-10">
+          </ThemeWidgetColors>
+        </wcol_pie_menu>
         <wcol_tooltip>
           <ThemeWidgetColors outline="#000000"
                              inner="#191919e6"
@@ -231,6 +243,7 @@
                    lamp="#ffe56666"
                    speaker="#c2e787"
                    camera="#000000"
+                   view_overlay="#000000"
                    empty="#000000"
                    object_selected="#ffffff"
                    object_active="#ffffff"
@@ -260,10 +273,10 @@
                    handle_free="#c6c6c6"
                    handle_auto="#30b6e5"
                    handle_vect="#afafaf"
+                   handle_sel_vect="#ffffff"
                    handle_align="#e277b1"
                    handle_sel_free="#ffffff"
                    handle_sel_auto="#ffffff"
-                   handle_sel_vect="#ffffff"
                    handle_sel_align="#ffffff"
                    lastsel_point="#ffffff"
                    extra_edge_len="#200000"
@@ -280,7 +293,9 @@
                    outline_width="1"
                    bundle_solid="#c8c8c8"
                    camera_path="#000000"
-                   skin_root="#000000">
+                   skin_root="#000000"
+                   paint_curve_handle="#7fff7f7f"
+                   paint_curve_pivot="#ff7f7f7f">
         <space>
           <ThemeSpaceGradient title="#ffffff"
                               text="#ffffff"
@@ -329,10 +344,10 @@
                         handle_free="#252525"
                         handle_auto="#696969"
                         handle_vect="#191919"
+                        handle_sel_vect="#ffffff"
                         handle_align="#1d1d1d"
                         handle_sel_free="#ececec"
                         handle_sel_auto="#d4d4d4"
-                        handle_sel_vect="#ffffff"
                         handle_sel_align="#f3f3f3"
                         handle_auto_clamped="#000000"
                         handle_sel_auto_clamped="#000000"
@@ -545,7 +560,21 @@
                         preview_stitch_unstitchable="#ff0000ff"
                         preview_stitch_active="#e1d2c323"
                         uv_shadow="#707070ff"
-                        uv_others="#606060ff">
+                        uv_others="#606060ff"
+                        frame_current="#60c040"
+                        handle_free="#000000"
+                        handle_auto="#909000"
+                        handle_align="#803060"
+                        handle_sel_free="#000000"
+                        handle_sel_auto="#f0ff40"
+                        handle_sel_align="#f090a0"
+                        handle_auto_clamped="#000000"
+                        handle_sel_auto_clamped="#000000"
+                        handle_vertex="#000000"
+                        handle_vertex_select="#ffff00"
+                        handle_vertex_size="5"
+                        paint_curve_handle="#7fff7f7f"
+                        paint_curve_pivot="#ff7f7f7f">
         <space>
           <ThemeSpaceGeneric back="#aca8a7"
                              title="#000000"
@@ -942,11 +971,19 @@
                        path_after="#5a7575"
                        grid="#5e5e5e"
                        frame_current="#f06868"
+                       strips="#0c0a0a"
+                       strips_selected="#ff8c00"
+                       handle_free="#000000"
+                       handle_auto="#909000"
+                       handle_align="#803060"
+                       handle_sel_free="#000000"
+                       handle_sel_auto="#f0ff40"
+                       handle_sel_align="#f090a0"
+                       handle_auto_clamped="#000000"
+                       handle_sel_auto_clamped="#000000"
                        handle_vertex="#000000"
                        handle_vertex_select="#ff2f7a"
-                       handle_vertex_size="4"
-                       strips="#0c0a0a"
-                       strips_selected="#ff8c00">
+                       handle_vertex_size="4">
         <space>
           <ThemeSpaceGeneric back="#aca8a7"
                              title="#1a1a1a"
@@ -1089,9 +1126,9 @@
       <ThemeFontStyle points="12"
                       font_kerning_style="FITTED"
                       shadow="1"
-                      shadow_offset_x="1"
+                      shadow_offset_x="0"
                       shadow_offset_y="-1"
-                      shadow_alpha="0.278"
+                      shadow_alpha="0.15"
                       shadow_value="1">
       </ThemeFontStyle>
     </panel_title>
