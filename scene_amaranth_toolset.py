@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Amaranth Toolset",
     "author": "Pablo Vazquez, Bassam Kurdali, Sergey Sharybin, Lukas Tönne",
-    "version": (0, 9, 4),
+    "version": (0, 9, 5),
     "blender": (2, 71),
     "location": "Everywhere!",
     "description": "A collection of tools and settings to improve productivity",
@@ -1024,6 +1024,8 @@ class AMTH_VIEW3D_OT_show_only_render(Operator):
 # FEATURE: Display Active Image Node on Image Editor
 # Made by Sergey Sharybin, tweaks from Bassam Kurdali
 image_nodes = {"CompositorNodeImage",
+               "CompositorNodeViewer",
+               "CompositorNodeComposite",
                "ShaderNodeTexImage",
                "ShaderNodeTexEnvironment"}
 
@@ -1038,14 +1040,20 @@ class AMTH_NODE_OT_show_active_node_image(Operator):
         if preferences.use_image_node_display:
             if context.active_node:
                 active_node = context.active_node
-                if active_node.bl_idname in image_nodes and active_node.image:
+
+                if active_node.bl_idname in image_nodes:
                     for area in context.screen.areas:
                         if area.type == "IMAGE_EDITOR":
                             for space in area.spaces:
                                 if space.type == "IMAGE_EDITOR":
-                                    space.image = active_node.image
+                                    if active_node.bl_idname == 'CompositorNodeViewer':
+                                        space.image = bpy.data.images['Viewer Node']
+                                    elif active_node.bl_idname == 'CompositorNodeComposite':
+                                        space.image = bpy.data.images['Render Result']
+                                    elif active_node.image:
+                                        space.image = active_node.image
                             break
-    
+
         return {'FINISHED'}
 # // FEATURE: Display Active Image Node on Image Editor
 
@@ -3223,3 +3231,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
