@@ -6,6 +6,7 @@ import stat
 import bmesh
 import time
 import random
+from bpy_extras.object_utils import world_to_camera_view
 
 ##------------------------ SEARCH AND SELECT ------------------------
 
@@ -284,3 +285,51 @@ class SetLayersToOtherScenes (bpy.types.Operator):
     def execute (self, context):
         DefSetLayersToOtherScenes()
         return {'FINISHED'}
+    
+    
+      
+## ======================== RENDER OBJECTS IN CAMERA =====================================
+
+
+def DefRenderOnlyInCamera():
+    #crea grupos
+    if "INCAMERA" not in bpy.data.groups:
+        bpy.data.groups.new("INCAMERA")
+    if "NOTINCAMERA" not in bpy.data.groups:
+        bpy.data.groups.new("NOTINCAMERA")
+        
+    #limpio grupos
+    for ob in bpy.data.objects:
+        if ob.name in bpy.data.groups["INCAMERA"].objects:
+            bpy.data.groups["INCAMERA"].objects.unlink(ob)
+        if ob.name in bpy.data.groups["NOTINCAMERA"].objects:    
+            bpy.data.groups["NOTINCAMERA"].objects.unlink(ob)
+
+    #ordeno grupos
+    for ob in bpy.data.objects:
+        obs = False    
+        if ob.type == "MESH":  
+            tm = ob.to_mesh(bpy.context.scene, True, "RENDER")      
+            for vert in tm.vertices:
+                cam = world_to_camera_view(bpy.context.scene,bpy.context.scene.camera,vert.co+ob.location)            
+                if cam[0] >= -0 and cam[0] <= 1 and cam[1] >= 0 and cam[1] <= 1:
+                    obs = True  
+            del(tm)          
+        else:
+            obs = True 
+        if obs:
+            bpy.data.groups["INCAMERA"].objects.link(ob)   
+        else:
+            bpy.data.groups["NOTINCAMERA"].objects.link(ob)      
+    
+    
+class RenderOnlyInCamera (bpy.types.Operator):
+    bl_idname = "group.group_in_out_camera"
+    bl_label = "Make a group for objects in outer camera"
+    bl_options = {"REGISTER", "UNDO"}
+
+
+    def execute (self, context):
+        DefRenderOnlyInCamera()
+        return {'FINISHED'}
+

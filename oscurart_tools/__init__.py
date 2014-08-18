@@ -156,7 +156,8 @@ class OscPanelObject(OscPollObject, bpy.types.Panel):
         colrow = col.row(align=1)
         colrow.operator("object.modifiers_remove_osc", icon="MODIFIER", text="Remove Modifiers")
         colrow.operator("object.modifiers_apply_osc", icon="MODIFIER", text="Apply Modifiers")
-
+        colrow = col.row(align=1)
+        colrow.operator("group.group_in_out_camera", icon="RENDER_REGION", text="Make Groups in out Camera")
 
 class OscPanelMesh(OscPollMesh, bpy.types.Panel):
     bl_idname = "Oscurart Mesh Tools"
@@ -293,3 +294,5 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
+
