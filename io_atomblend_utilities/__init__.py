@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2012-11-03
-#  Last modified                 : 2013-04-04
+#  Last modified                 : 2014-08-19
 #
 #  Acknowledgements
 #  ================
@@ -41,7 +41,7 @@ bl_info = {
     "description": "Utilities for manipulating atom structures",
     "author": "Clemens Barth",
     "version": (0, 95),
-    "blender": (2, 60, 0),
+    "blender": (2, 71, 0),
     "location": "Panel: View 3D - Tools",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
