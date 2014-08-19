@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2012-03-25 by Clemens Barth
 #  First publication in Blender  : 2012-05-27 by Clemens Barth
-#  Last modified                 : 2013-01-03
+#  Last modified                 : 2014-08-19
 #
 #
 #
@@ -42,7 +42,7 @@ bl_info = {
     "description": "Creating cluster formed by atoms",
     "author": "Clemens Barth",
     "version": (0, 5),
-    "blender": (2, 60, 0),
+    "blender": (2, 71, 0),
     "location": "Panel: View 3D - Tools (left side)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
