@@ -22,7 +22,7 @@
         </wcol_regular>
         <wcol_tool>
           <ThemeWidgetColors outline="#303030"
-                             inner="#3d4b59b5"
+                             inner="#2d4463b5"
                              inner_sel="#4179b8ff"
                              item="#1e252cb5"
                              text="#b8b8b8"
@@ -60,7 +60,7 @@
           <ThemeWidgetColors outline="#303030"
                              inner="#3d4b59b5"
                              inner_sel="#4179b8ff"
-                             item="#1e252cb5"
+                             item="#ffecd7b5"
                              text="#b8b8b8"
                              text_sel="#ffffff"
                              show_shaded="TRUE"
@@ -118,7 +118,7 @@
         </wcol_box>
         <wcol_menu>
           <ThemeWidgetColors outline="#303030"
-                             inner="#3d4b59ff"
+                             inner="#1e2e41ff"
                              inner_sel="#4179b8ff"
                              item="#97b5daff"
                              text="#b8b8b8"
@@ -155,8 +155,8 @@
         <wcol_pie_menu>
           <ThemeWidgetColors outline="#000000"
                              inner="#3d4b59e6"
-                             inner_sel="#4179b8ff"
-                             item="#1e252ce6"
+                             inner_sel="#29476dff"
+                             item="#4179b8ad"
                              text="#b8b8b8"
                              text_sel="#ffffff"
                              show_shaded="TRUE"
@@ -927,31 +927,31 @@
       </ThemeUserPreferences>
     </user_preferences>
     <console>
-      <ThemeConsole line_output="#b8b8b8"
+      <ThemeConsole line_output="#6080ff"
                     line_input="#ffffff"
                     line_info="#00aa00"
                     line_error="#dc6060"
                     cursor="#dc6060"
                     select="#ffffff30">
         <space>
-          <ThemeSpaceGeneric back="#202020"
+          <ThemeSpaceGeneric back="#000000"
                              title="#000000"
                              text="#000000"
                              text_hi="#ffffff"
-                             header="#202b36"
+                             header="#15202b"
                              header_text="#000000"
                              header_text_hi="#ffffff"
-                             button="#3b3b3bff"
+                             button="#7272727f"
                              button_title="#000000"
                              button_text="#000000"
                              button_text_hi="#ffffff"
-                             tab_active="#464646"
-                             tab_inactive="#393939"
-                             tab_back="#000000ff"
-                             tab_outline="#323232">
+                             tab_active="#727272"
+                             tab_inactive="#535353"
+                             tab_back="#404040ff"
+                             tab_outline="#3c3c3c">
             <panelcolors>
-              <ThemePanelColors header="#00000019"
-                                back="#72727280"
+              <ThemePanelColors header="#00000002"
+                                back="#7272727f"
                                 show_header="FALSE"
                                 show_back="FALSE">
               </ThemePanelColors>
@@ -983,7 +983,7 @@
                        handle_sel_auto_clamped="#000000"
                        handle_vertex="#000000"
                        handle_vertex_select="#ffff00"
-                       handle_vertex_size="4">
+                       handle_vertex_size="5">
         <space>
           <ThemeSpaceGeneric back="#1d2329"
                              title="#000000"
