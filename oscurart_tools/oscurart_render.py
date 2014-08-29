@@ -369,3 +369,73 @@ class BrokenFramesPanel (bpy.types.Panel):
         colrow.operator("object.clear_broken_file")
         colrow = col.row(align=1)
         colrow.operator("object.delete_broken_file")
+
+
+##--------------------------------COPY RENDER SETTINGS----------------------------
+
+def defCopyRenderSettings(mode):
+    
+    sc = bpy.context.scene
+    sceneslist = bpy.data.scenes[:]
+    sceneslist.remove(sc)    
+
+    excludes = {'name','objects', 'object_bases', 'has_multiple_engines', 'display_settings', 'broken_files', 'rna_type', 'frame_subframe', 'view_settings', 'tool_settings', 'render', 'user_clear', 'animation_data_create', 'collada_export', 'keying_sets', 'icon_props', 'image_settings', 'library', 'bake', 'active_layer', 'frame_current_final', 'sequence_editor_clear', 'rigidbody_world', 'unit_settings', 'orientations', '__slots__', 'ray_cast', 'sequencer_colorspace_settings', 'ffmpeg', 'is_movie_format', 'frame_path', 'frame_set', 'network_render', 'animation_data_clear', 'is_nla_tweakmode', 'keying_sets_all', 'sequence_editor', '__doc__', 'ovlist', 'file_extension', 'users', 'node_tree', 'is_updated_data', 'bl_rna', 'is_library_indirect', 'cycles_curves', 'timeline_markers', 'statistics', 'use_shading_nodes', 'use_game_engine', 'sequence_editor_create', 'is_updated', '__module__', 'update_tag', 'update', 'animation_data', 'cycles', 'copy', 'game_settings', 'layers','__weakref__','string'}
+   
+
+    
+    
+    if mode == "render":    
+        scenerenderdict = {prop : eval("bpy.context.scene.render.%s" % (prop)) for prop in dir(bpy.context.scene.render)}        
+        scenedict = {prop : eval("bpy.context.scene.%s" % (prop)) for prop in dir(bpy.context.scene) if prop not in excludes}
+        sceneimagesettingdict = {prop : eval("bpy.context.scene.render.image_settings.%s" % (prop)) for prop in dir(bpy.context.scene.render.image_settings)}        
+   
+        # render
+        for escena in sceneslist:
+            for prop,value in scenerenderdict.items():
+                try:
+                    setattr(escena.render, str(prop),value)
+                except:
+                    print("%s was not copied!" % (prop))
+                    pass
+        # scene        
+        for escena in sceneslist:    
+            for prop,value in scenedict.items():
+                try:
+                    setattr(escena, str(prop),value)
+                except:
+                    print("%s was not copied!" % (prop))
+                    pass
+        # imageSettings             
+        for escena in sceneslist:
+            for prop,value in sceneimagesettingdict.items():  
+                try:
+                    setattr(escena.render.image_settings, str(prop),value)
+                except:
+                    print("%s was not copied!" % (prop))                             
+                    pass
+                    
+    if mode == "cycles":  
+        scenecyclesdict = {prop : eval("bpy.context.scene.cycles.%s" % (prop)) for prop in dir(bpy.context.scene.cycles)}              
+        # cycles
+        for escena in sceneslist:
+            for prop,value in scenecyclesdict.items():   
+                try:
+                    setattr(escena.cycles, str(prop),value)
+                except:
+                    print("%s was not copied!" % (prop))                             
+                    pass
+              
+   
+
+class copyRenderSettings (bpy.types.Operator):
+    bl_idname="render.copy_render_settings_osc"
+    bl_label="Copy Render Settings"
+    #bl_options = {'REGISTER', 'UNDO'}
+
+    mode = bpy.props.StringProperty(default="")
+
+    def execute(self,context):
+        
+        defCopyRenderSettings(self.mode)
+
+        return {'FINISHED'}

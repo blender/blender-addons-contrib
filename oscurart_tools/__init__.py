@@ -217,7 +217,10 @@ class OscPanelRender(OscPollRender, bpy.types.Panel):
         active_obj = context.active_object
         layout = self.layout
         col = layout.column(align=1)
-
+        
+        colrow = col.row(align=1)
+        colrow.operator("render.copy_render_settings_osc", icon="LIBRARY_DATA_DIRECT", text="Copy Render Settings").mode="render"
+        colrow.operator("render.copy_render_settings_osc", icon="LIBRARY_DATA_DIRECT", text="Copy Cycles Settings").mode="cycles"
         col.operator("file.create_batch_maker_osc", icon="LINENUMBERS_ON", text="Make Render Batch")
         col.operator("file.create_batch_python", icon="LINENUMBERS_ON", text="Make Python Batch")
         colrow = col.row(align=1)
@@ -294,5 +297,6 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
 
 
