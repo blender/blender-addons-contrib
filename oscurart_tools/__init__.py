@@ -204,7 +204,7 @@ class OscPanelShapes(OscPollShapes, bpy.types.Panel):
         col.operator("object.shape_key_to_objects_osc", icon="OBJECT_DATAMODE")
         col.operator("mesh.create_lmr_groups_osc", icon="GROUP_VERTEX")
         col.operator("mesh.split_lr_shapes_osc", icon="SHAPEKEY_DATA")
-        colrow=col.row()
+        colrow=col.row(align=1)
         colrow.operator("mesh.create_symmetrical_layout_osc", icon="SETTINGS")
         colrow.operator("mesh.create_asymmetrical_layout_osc", icon="SETTINGS")
 
@@ -251,9 +251,8 @@ class OscPanelFiles(OscPollFiles, bpy.types.Panel):
         active_obj = context.active_object
         layout = self.layout
         col = layout.column(align=1)
-        colrow = col.row()
-        colrow.operator("file.save_incremental_osc", icon="NEW")
-        colrow.operator("image.reload_images_osc", icon="IMAGE_COL")
+        col.operator("file.save_incremental_osc", icon="NEW")
+        col.operator("image.reload_images_osc", icon="IMAGE_COL")
         col = layout.column(align=1)
         colrow = col.row(align=1)
         colrow.prop(bpy.context.scene, "oscSearchText", text="")
@@ -268,8 +267,9 @@ class OscPanelOverrides(OscPollOverrides, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         obj = context.object
-        col = layout.box().column(align=1)
-        colrow = col.row()
+        box = layout.box()
+        col = box.column(align=1)
+        colrow = col.row(align=1)
         #col.operator("render.overrides_set_list", text="Create Override List", icon="GREASEPENCIL")
         col.label(text="Active Scene: " + bpy.context.scene.name)
         col.label(text="Example: [[Group,Material]]")
@@ -277,10 +277,11 @@ class OscPanelOverrides(OscPollOverrides, bpy.types.Panel):
         col.operator("render.check_overrides", text="Check List", icon="ZOOM_ALL")
         col.operator("render.overrides_on", text="On / Off", icon="QUIT")   
         col.label(text=str("OVERRIDES: ON" if bpy.use_overrides else "OVERRIDES: OFF"))             
-
-        boxcol=layout.box().column(align=1)
+        
+        box = layout.box()
+        boxcol = box.column(align=1)
         boxcol.label(text="Danger Zone")
-        boxcolrow=boxcol.row()
+        boxcolrow = boxcol.row(align=1)
         boxcolrow.operator("render.apply_overrides", text="Apply Overrides", icon="ERROR")
         boxcolrow.operator("render.restore_overrides", text="Restore Overrides", icon="ERROR")
 
@@ -297,6 +298,7 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
 
 
 

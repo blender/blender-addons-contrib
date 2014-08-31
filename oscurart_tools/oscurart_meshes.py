@@ -50,7 +50,7 @@ class reConst (bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False
+        return context.active_object is not None
 
     def execute(self,context):
         defReconst(self, self.OFFSET)
@@ -84,7 +84,7 @@ class SelectMenor (bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False
+        return context.active_object is not None
 
     side = bpy.props.BoolProperty(name="Greater than zero", default=False)
     offset = bpy.props.FloatProperty(name="Offset", default=0)
@@ -106,7 +106,7 @@ class resymVertexGroups (bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False
+        return context.active_object is not None
     
     def execute(self,context):
 
@@ -134,7 +134,7 @@ class OscExportVG (bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False
+        return context.active_object is not None
     
     def execute(self,context):
         
@@ -159,7 +159,7 @@ class OscImportVG (bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False    
+        return context.active_object is not None   
     
     def execute(self,context):
         
@@ -249,7 +249,7 @@ class OscResymSave (bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False
+        return context.active_object is not None
 
     quality = bpy.props.IntProperty(default=4, name="Quality")
     
@@ -264,7 +264,7 @@ class OscResymMesh (bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False
+        return context.active_object is not None
 
     selected=bpy.props.BoolProperty(default=False, name="Only Selected")
     
@@ -296,7 +296,7 @@ class OscObjectToMesh(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False
+        return context.active_object is not None
 
     def execute(self, context):
         DefOscObjectToMesh()
@@ -360,7 +360,7 @@ class OscOverlapUv(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False
+        return context.active_object is not None
     
     presicion = bpy.props.IntProperty(default=4, min=1, max=10, name="precision" )
     
@@ -389,7 +389,7 @@ class OscExportVC (bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False
+        return context.active_object is not None
 
     def execute(self, context):
         DefOscExportVC()
@@ -402,7 +402,7 @@ class OscImportVC (bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False
+        return context.active_object is not None
 
     def execute(self, context):
         DefOscImportVC()
@@ -428,7 +428,7 @@ class ModalIndexOperator(bpy.types.Operator):
     
     @classmethod
     def poll(cls, context):
-        return True if context.active_object is not None and context.object.type == "MESH" else False
+        return context.active_object is not None
     
     def modal(self, context, event):
         context.area.tag_redraw()        
@@ -462,6 +462,8 @@ class ModalIndexOperator(bpy.types.Operator):
             self.report({"WARNING"}, "Is not a 3D Space")
             return {'CANCELLED'}
                 
+
+
 
 
 
