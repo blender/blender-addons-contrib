@@ -592,8 +592,8 @@ def MapAdd_Window(kc):
 
     # Open
     kmi = km.keymap_items.new('wm.open_mainfile', 'O', 'PRESS', ctrl=True)
-    kmi = km.keymap_items.new('wm.link_append', 'O', 'PRESS', ctrl=True, alt=True)
-    kmi = km.keymap_items.new('wm.link_append', 'O', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new('wm.link', 'O', 'PRESS', ctrl=True, alt=True)
+    kmi = km.keymap_items.new('wm.append', 'O', 'PRESS', ctrl=True, shift=True)
     kmi.properties.link = False
     kmi = km.keymap_items.new('wm.read_homefile', 'N', 'PRESS', ctrl=True)
 
