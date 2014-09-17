@@ -5,9 +5,9 @@
                           menu_shadow_width="12"
                           icon_file=""
                           icon_alpha="1"
-                          axis_x="#ff4c4c"
-                          axis_y="#40ff40"
-                          axis_z="#4040ff">
+                          axis_x="#ff5a5a"
+                          axis_y="#58ff58"
+                          axis_z="#6262ff">
         <wcol_regular>
           <ThemeWidgetColors outline="#949190"
                              inner="#aca8a7ff"
@@ -154,12 +154,12 @@
         </wcol_menu_back>
         <wcol_pie_menu>
           <ThemeWidgetColors outline="#0a0a0a"
-                             inner="#191919e6"
-                             inner_sel="#8c8c8cff"
-                             item="#2d2d2de6"
-                             text="#a0a0a0"
-                             text_sel="#ffffff"
-                             show_shaded="TRUE"
+                             inner="#aca8a7ff"
+                             inner_sel="#b1d1d8ff"
+                             item="#b4d8b1ff"
+                             text="#000000"
+                             text_sel="#000000"
+                             show_shaded="FALSE"
                              shadetop="10"
                              shadedown="-10">
           </ThemeWidgetColors>
@@ -286,6 +286,7 @@
                    editmesh_active="#ffffffb3"
                    normal="#9cfcc8"
                    vertex_normal="#68a1db"
+                   split_normal="#dd23dd"
                    bone_solid="#c8c8c8"
                    bone_pose="#50c8ff"
                    bone_pose_active="#8cffff"
@@ -982,8 +983,8 @@
                        handle_auto_clamped="#000000"
                        handle_sel_auto_clamped="#000000"
                        handle_vertex="#000000"
-                       handle_vertex_select="#ff2f7a"
-                       handle_vertex_size="4">
+                       handle_vertex_select="#ffff00"
+                       handle_vertex_size="5">
         <space>
           <ThemeSpaceGeneric back="#aca8a7"
                              title="#1a1a1a"
@@ -1126,9 +1127,9 @@
       <ThemeFontStyle points="12"
                       font_kerning_style="FITTED"
                       shadow="1"
-                      shadow_offset_x="0"
+                      shadow_offset_x="1"
                       shadow_offset_y="-1"
-                      shadow_alpha="0.15"
+                      shadow_alpha="0.278"
                       shadow_value="1">
       </ThemeFontStyle>
     </panel_title>
