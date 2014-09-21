@@ -119,6 +119,7 @@ def OscFuncExportPc2(self):
     start = bpy.context.scene.muu_pc2_start
     end = bpy.context.scene.muu_pc2_end
     folderpath = bpy.context.scene.muu_pc2_folder
+    framerange = end-start
 
     for ob in bpy.data.groups[bpy.context.scene.muu_pc2_group].objects[:]:
         bpy.context.window_manager.progress_begin(0, 100) #progressbar
@@ -131,9 +132,9 @@ def OscFuncExportPc2(self):
                 file.write(headerStr)
                 #bakeado
                 obmat = ob.matrix_world
-                for frame in range(start,end+1):
-                    print("Percentage of %s bake: %s " % (ob.name, frame / end * 100))
-                    bpy.context.window_manager.progress_update(frame / end * 100) #progressbarUpdate
+                for i,frame in enumerate(range(start,end+1)):
+                    print("Percentage of %s bake: %s " % (ob.name, i * 100 / framerange))
+                    bpy.context.window_manager.progress_update(i * 100 / framerange) #progressbarUpdate
                     bpy.context.scene.frame_set(frame)
                     me = bpy.data.meshes.new_from_object(
                         scene=bpy.context.scene,
