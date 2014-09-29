@@ -153,21 +153,21 @@
           </ThemeWidgetColors>
         </wcol_menu_back>
         <wcol_pie_menu>
-          <ThemeWidgetColors outline="#0a0a0a"
-                             inner="#aaaaaae6"
+          <ThemeWidgetColors outline="#2a2a2a"
+                             inner="#2a2a2aff"
                              inner_sel="#8c8c8cff"
-                             item="#a2a2a2e6"
-                             text="#000000"
+                             item="#607f9ee6"
+                             text="#b8b8b8"
                              text_sel="#ffffff"
-                             show_shaded="TRUE"
+                             show_shaded="FALSE"
                              shadetop="10"
                              shadedown="-10">
           </ThemeWidgetColors>
         </wcol_pie_menu>
         <wcol_tooltip>
-          <ThemeWidgetColors outline="#191919"
-                             inner="#191919e6"
-                             inner_sel="#2d2d2de6"
+          <ThemeWidgetColors outline="#202020"
+                             inner="#202020ff"
+                             inner_sel="#202020ff"
                              item="#646464ff"
                              text="#ffffff"
                              text_sel="#ffffff"
@@ -286,7 +286,6 @@
                    editmesh_active="#00f6ff5e"
                    normal="#22dddd"
                    vertex_normal="#2361dd"
-                   split_normal="#dd23dd"
                    bone_solid="#ffffff"
                    bone_pose="#00b5ff"
                    bone_pose_active="#fff3fa"
@@ -861,7 +860,7 @@
       </ThemeOutliner>
     </outliner>
     <info>
-      <ThemeInfo info_selected="#6080ff"
+      <ThemeInfo info_selected="#607f9e"
                  info_selected_text="#ffffff"
                  info_error="#3b3b3b"
                  info_error_text="#ff0000"
@@ -877,7 +876,7 @@
                              text="#868686"
                              text_hi="#ffffff"
                              header="#3b3b3b"
-                             header_text="#535353"
+                             header_text="#ffffff"
                              header_text_hi="#000000"
                              button="#3b3b3bff"
                              button_title="#c7c7c7"
@@ -984,7 +983,7 @@
                        handle_sel_auto_clamped="#000000"
                        handle_vertex="#000000"
                        handle_vertex_select="#ffff00"
-                       handle_vertex_size="4">
+                       handle_vertex_size="5">
         <space>
           <ThemeSpaceGeneric back="#5e5e5e"
                              title="#ffffff"

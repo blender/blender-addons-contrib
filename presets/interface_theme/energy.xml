@@ -154,11 +154,11 @@
         </wcol_menu_back>
         <wcol_pie_menu>
           <ThemeWidgetColors outline="#0a0a0a"
-                             inner="#aaaaaae6"
+                             inner="#262626e6"
                              inner_sel="#8c8c8cff"
-                             item="#a2a2a2e6"
-                             text="#000000"
-                             text_sel="#ffffff"
+                             item="#333333e6"
+                             text="#ffffff"
+                             text_sel="#ffa600"
                              show_shaded="TRUE"
                              shadetop="10"
                              shadedown="-10">
@@ -308,8 +308,8 @@
                               button_title="#ffffff"
                               button_text="#d9d9d9"
                               button_text_hi="#ffffff"
-                              tab_active="#616161"
-                              tab_inactive="#333333"
+                              tab_active="#593a00"
+                              tab_inactive="#262626"
                               tab_back="#404040ff"
                               tab_outline="#1a1a1a">
             <gradients>

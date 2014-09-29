@@ -145,7 +145,7 @@
                              inner="#606060e6"
                              inner_sel="#2d2d2de6"
                              item="#646464ff"
-                             text="#a0a0a0"
+                             text="#d3d3d3"
                              text_sel="#ffffff"
                              show_shaded="FALSE"
                              shadetop="25"
@@ -154,10 +154,10 @@
         </wcol_menu_back>
         <wcol_pie_menu>
           <ThemeWidgetColors outline="#0a0a0a"
-                             inner="#191919e6"
+                             inner="#606060e6"
                              inner_sel="#8c8c8cff"
-                             item="#2d2d2de6"
-                             text="#a0a0a0"
+                             item="#f49c1ce6"
+                             text="#dfdfdf"
                              text_sel="#ffffff"
                              show_shaded="TRUE"
                              shadetop="10"
@@ -286,6 +286,7 @@
                    editmesh_active="#ffffff80"
                    normal="#22dddd"
                    vertex_normal="#2361dd"
+                   split_normal="#dd23dd"
                    bone_solid="#c8c8c8"
                    bone_pose="#50c8ff"
                    bone_pose_active="#8cffff"
@@ -307,10 +308,10 @@
                               button_title="#000000"
                               button_text="#000000"
                               button_text_hi="#ffffff"
-                              tab_active="#aca8a7"
-                              tab_inactive="#bfbfbf"
-                              tab_back="#bfbfbfff"
-                              tab_outline="#d1cccb">
+                              tab_active="#9098a0"
+                              tab_inactive="#484848"
+                              tab_back="#484848ff"
+                              tab_outline="#000000">
             <gradients>
               <ThemeGradientColors show_grad="TRUE"
                                    gradient="#3a3e47"

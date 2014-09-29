@@ -1,8 +1,8 @@
 <bpy>
   <Theme>
     <user_interface>
-      <ThemeUserInterface menu_shadow_fac="0.5"
-                          menu_shadow_width="12"
+      <ThemeUserInterface menu_shadow_fac="0.8"
+                          menu_shadow_width="18"
                           icon_file=""
                           icon_alpha="1"
                           axis_x="#dc0000"
@@ -10,10 +10,10 @@
                           axis_z="#0000dc">
         <wcol_regular>
           <ThemeWidgetColors outline="#000000"
-                             inner="#606060ff"
+                             inner="#444444ff"
                              inner_sel="#cf8418ff"
                              item="#000000ff"
-                             text="#ffffff"
+                             text="#ebebeb"
                              text_sel="#ffffff"
                              show_shaded="TRUE"
                              shadetop="0"
@@ -22,10 +22,10 @@
         </wcol_regular>
         <wcol_tool>
           <ThemeWidgetColors outline="#191919"
-                             inner="#606060ff"
+                             inner="#444444ff"
                              inner_sel="#cf8418ff"
                              item="#000000ff"
-                             text="#f1f1f1"
+                             text="#ebebeb"
                              text_sel="#000000"
                              show_shaded="TRUE"
                              shadetop="15"
@@ -34,10 +34,10 @@
         </wcol_tool>
         <wcol_radio>
           <ThemeWidgetColors outline="#000000"
-                             inner="#464646ff"
+                             inner="#444444ff"
                              inner_sel="#cf8418ff"
                              item="#ffffffff"
-                             text="#ffffff"
+                             text="#ebebeb"
                              text_sel="#000000"
                              show_shaded="TRUE"
                              shadetop="15"
@@ -49,20 +49,20 @@
                              inner="#5a5a5aff"
                              inner_sel="#999999ff"
                              item="#5a5a5aff"
-                             text="#fdfdfd"
-                             text_sel="#ffffff"
-                             show_shaded="TRUE"
+                             text="#ebebeb"
+                             text_sel="#ebebeb"
+                             show_shaded="FALSE"
                              shadetop="0"
                              shadedown="25">
           </ThemeWidgetColors>
         </wcol_text>
         <wcol_option>
           <ThemeWidgetColors outline="#000000"
-                             inner="#686868ff"
+                             inner="#505050ff"
                              inner_sel="#cf8418ff"
                              item="#000000ff"
-                             text="#ffffff"
-                             text_sel="#ffffff"
+                             text="#ebebeb"
+                             text_sel="#ebebeb"
                              show_shaded="TRUE"
                              shadetop="15"
                              shadedown="-15">
@@ -70,11 +70,11 @@
         </wcol_option>
         <wcol_toggle>
           <ThemeWidgetColors outline="#302e2e"
-                             inner="#999999ff"
+                             inner="#868686ff"
                              inner_sel="#cf8418ff"
                              item="#5a5a5aff"
                              text="#000000"
-                             text_sel="#ffffff"
+                             text_sel="#ebebeb"
                              show_shaded="TRUE"
                              shadetop="0"
                              shadedown="0">
@@ -86,7 +86,7 @@
                              inner_sel="#cf8418ff"
                              item="#5a5a5aff"
                              text="#000000"
-                             text_sel="#ffffff"
+                             text_sel="#ebebeb"
                              show_shaded="TRUE"
                              shadetop="-20"
                              shadedown="0">
@@ -94,11 +94,11 @@
         </wcol_num>
         <wcol_numslider>
           <ThemeWidgetColors outline="#191919"
-                             inner="#b4b4b4ff"
+                             inner="#9e9e9eff"
                              inner_sel="#999999ff"
-                             item="#9098a0ff"
-                             text="#000000"
-                             text_sel="#ffffff"
+                             item="#565b5fff"
+                             text="#ececec"
+                             text_sel="#ebebeb"
                              show_shaded="TRUE"
                              shadetop="-20"
                              shadedown="0">
@@ -109,9 +109,9 @@
                              inner="#68727980"
                              inner_sel="#646464ff"
                              item="#000000ff"
-                             text="#ffffff"
-                             text_sel="#ffffff"
-                             show_shaded="TRUE"
+                             text="#ebebeb"
+                             text_sel="#ebebeb"
+                             show_shaded="FALSE"
                              shadetop="0"
                              shadedown="0">
           </ThemeWidgetColors>
@@ -121,8 +121,8 @@
                              inner="#606060ff"
                              inner_sel="#cf8418ff"
                              item="#ffffffff"
-                             text="#ffffff"
-                             text_sel="#000000"
+                             text="#ebebeb"
+                             text_sel="#cf8418"
                              show_shaded="TRUE"
                              shadetop="15"
                              shadedown="-15">
@@ -133,7 +133,7 @@
                              inner="#606060ff"
                              inner_sel="#cf8418ff"
                              item="#ffffffff"
-                             text="#888888"
+                             text="#ebebeb"
                              text_sel="#000000"
                              show_shaded="TRUE"
                              shadetop="25"
@@ -142,11 +142,11 @@
         </wcol_pulldown>
         <wcol_menu_back>
           <ThemeWidgetColors outline="#000000"
-                             inner="#606060e6"
-                             inner_sel="#2d2d2de6"
+                             inner="#252c2dff"
+                             inner_sel="#181818ff"
                              item="#646464ff"
-                             text="#a0a0a0"
-                             text_sel="#ffffff"
+                             text="#ebebeb"
+                             text_sel="#ebebeb"
                              show_shaded="TRUE"
                              shadetop="25"
                              shadedown="-20">
@@ -155,11 +155,11 @@
         <wcol_pie_menu>
           <ThemeWidgetColors outline="#646464"
                              inner="#282f31cc"
-                             inner_sel="#8c8c8cff"
+                             inner_sel="#cf8418ff"
                              item="#5f6d75cc"
                              text="#cecece"
-                             text_sel="#ffffff"
-                             show_shaded="TRUE"
+                             text_sel="#cf8418"
+                             show_shaded="FALSE"
                              shadetop="10"
                              shadedown="-10">
           </ThemeWidgetColors>
@@ -169,8 +169,8 @@
                              inner="#191919e6"
                              inner_sel="#2d2d2de6"
                              item="#646464ff"
-                             text="#ffffff"
-                             text_sel="#ffffff"
+                             text="#ebebeb"
+                             text_sel="#ebebeb"
                              show_shaded="TRUE"
                              shadetop="25"
                              shadedown="-20">
@@ -181,7 +181,7 @@
                              inner="#00000000"
                              inner_sel="#cf8418ff"
                              item="#ffffffff"
-                             text="#ffffff"
+                             text="#ebebeb"
                              text_sel="#000000"
                              show_shaded="TRUE"
                              shadetop="38"
@@ -194,7 +194,7 @@
                              inner_sel="#646464b4"
                              item="#606060ff"
                              text="#000000"
-                             text_sel="#ffffff"
+                             text_sel="#ebebeb"
                              show_shaded="TRUE"
                              shadetop="5"
                              shadedown="-5">
@@ -206,7 +206,7 @@
                              inner_sel="#646464b4"
                              item="#444444ff"
                              text="#000000"
-                             text_sel="#ffffff"
+                             text_sel="#ebebeb"
                              show_shaded="TRUE"
                              shadetop="5"
                              shadedown="-5">
@@ -279,10 +279,10 @@
                    handle_sel_auto="#f0ff40"
                    handle_sel_align="#f090a0"
                    lastsel_point="#ffffff"
-                   extra_edge_len="#200000"
-                   extra_edge_angle="#000000"
-                   extra_face_angle="#002000"
-                   extra_face_area="#000080"
+                   extra_edge_len="#3bcfcf"
+                   extra_edge_angle="#ff0000"
+                   extra_face_angle="#72ed72"
+                   extra_face_area="#6c01c1"
                    editmesh_active="#f0ff3b80"
                    normal="#22dddd"
                    vertex_normal="#2361dd"
@@ -308,7 +308,7 @@
                               button_title="#000000"
                               button_text="#e7e7e7"
                               button_text_hi="#ffffff"
-                              tab_active="#3b4348"
+                              tab_active="#515c63"
                               tab_inactive="#393939"
                               tab_back="#282f3100"
                               tab_outline="#323232">
@@ -586,9 +586,9 @@
                              header_text_hi="#ffffff"
                              button="#282f3100"
                              button_title="#000000"
-                             button_text="#000000"
+                             button_text="#e7e7e7"
                              button_text_hi="#ffffff"
-                             tab_active="#3b4348"
+                             tab_active="#515c63"
                              tab_inactive="#393939"
                              tab_back="#404040ff"
                              tab_outline="#323232">
@@ -879,8 +879,8 @@
                              header="#282f31"
                              header_text="#cf8418"
                              header_text_hi="#ffffff"
-                             button="#725864ff"
-                             button_title="#f1c2d8"
+                             button="#3e444800"
+                             button_title="#868686"
                              button_text="#f0f0f0"
                              button_text_hi="#ffffff"
                              tab_active="#464646"
@@ -903,7 +903,7 @@
         <space>
           <ThemeSpaceGeneric back="#3b4348"
                              title="#000000"
-                             text="#ffffff"
+                             text="#e5e5e5"
                              text_hi="#ffffff"
                              header="#282f31"
                              header_text="#cf8418"
@@ -995,9 +995,9 @@
                              header_text_hi="#ffffff"
                              button="#3b4348ff"
                              button_title="#000000"
-                             button_text="#000000"
+                             button_text="#e7e7e7"
                              button_text_hi="#ffffff"
-                             tab_active="#464646"
+                             tab_active="#515c63"
                              tab_inactive="#393939"
                              tab_back="#404040ff"
                              tab_outline="#323232">

@@ -154,9 +154,9 @@
         </wcol_menu_back>
         <wcol_pie_menu>
           <ThemeWidgetColors outline="#0a0a0a"
-                             inner="#191919e6"
+                             inner="#1d2329e6"
                              inner_sel="#8c8c8cff"
-                             item="#2d2d2de6"
+                             item="#416184e6"
                              text="#a0a0a0"
                              text_sel="#ffffff"
                              show_shaded="TRUE"
@@ -308,10 +308,10 @@
                               button_title="#979797"
                               button_text="#e8e8e8"
                               button_text_hi="#ffffff"
-                              tab_active="#aca8a7"
-                              tab_inactive="#bfbfbf"
-                              tab_back="#bfbfbfff"
-                              tab_outline="#d1cccb">
+                              tab_active="#2f5175"
+                              tab_inactive="#1d2329"
+                              tab_back="#42505eff"
+                              tab_outline="#42505e">
             <gradients>
               <ThemeGradientColors show_grad="TRUE"
                                    gradient="#0f0f0f"

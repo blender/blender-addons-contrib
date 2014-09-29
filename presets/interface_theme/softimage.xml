@@ -46,8 +46,8 @@
         </wcol_radio>
         <wcol_text>
           <ThemeWidgetColors outline="#989594"
-                             inner="#343234ff"
-                             inner_sel="#343234ff"
+                             inner="#8a888aff"
+                             inner_sel="#919fa9ff"
                              item="#4849ceff"
                              text="#ffffff"
                              text_sel="#ffffff"
@@ -82,8 +82,8 @@
         </wcol_toggle>
         <wcol_num>
           <ThemeWidgetColors outline="#4b4b4b"
-                             inner="#373334ff"
-                             inner_sel="#353432ff"
+                             inner="#898789ff"
+                             inner_sel="#93a0aaff"
                              item="#101010ff"
                              text="#ffffff"
                              text_sel="#ffffff"
@@ -94,9 +94,9 @@
         </wcol_num>
         <wcol_numslider>
           <ThemeWidgetColors outline="#4b4b4b"
-                             inner="#373334ff"
-                             inner_sel="#353432ff"
-                             item="#292627ff"
+                             inner="#898789ff"
+                             inner_sel="#93a0aaff"
+                             item="#635c5fff"
                              text="#f9f9f9"
                              text_sel="#ffffff"
                              show_shaded="FALSE"
