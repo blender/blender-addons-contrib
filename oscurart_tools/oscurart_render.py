@@ -143,7 +143,7 @@ class renderCrop (bpy.types.Operator):
         return {'FINISHED'}
 
 ##---------------------------BATCH MAKER------------------
-def defoscBatchMaker(TYPE):
+def defoscBatchMaker(TYPE,BIN):
     
     
     if os.sys.platform.startswith("w"):
@@ -168,11 +168,14 @@ def defoscBatchMaker(TYPE):
                 os.chmod(SHFILE, stat.S_IRWXU)
             except:
                 print("** Oscurart Batch maker can not modify the permissions.")    
-    
-        FILE.writelines("%s%s%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" %
-            (QUOTES,BINDIR,QUOTES,bpy.data.filepath,bpy.context.scene.render.filepath,bpy.data.filepath.rpartition(SYSBAR)[0]+
-            SYSBAR,TYPE,str(bpy.context.scene.frame_start),str(bpy.context.scene.frame_end)) )
-
+        if not BIN:
+            FILE.writelines("%s%s%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" %
+                (QUOTES,BINDIR,QUOTES,bpy.data.filepath,bpy.context.scene.render.filepath,bpy.data.filepath.rpartition(SYSBAR)[0]+
+                SYSBAR,TYPE,str(bpy.context.scene.frame_start),str(bpy.context.scene.frame_end)) )
+        else:
+            FILE.writelines("%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" %
+                ("blender",bpy.data.filepath,bpy.context.scene.render.filepath,bpy.data.filepath.rpartition(SYSBAR)[0]+
+                SYSBAR,TYPE,str(bpy.context.scene.frame_start),str(bpy.context.scene.frame_end)) )            
     
     RLATFILE =  "%s%sosRlat.py" % (bpy.data.filepath.rpartition(SYSBAR)[0] , SYSBAR )
     if not os.path.isfile(RLATFILE):
@@ -212,9 +215,10 @@ class oscBatchMaker (bpy.types.Operator):
             default='osRlat',
             )
 
-
+    bin = bpy.props.BoolProperty(default=False,name="Use Environment Variable")
+    
     def execute(self,context):
-        defoscBatchMaker(self.type)
+        defoscBatchMaker(self.type,self.bin)
         return {'FINISHED'}
 
 ## --------------------------------------PYTHON BATCH--------------------------------------------------------
