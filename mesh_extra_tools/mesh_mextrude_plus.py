@@ -54,7 +54,7 @@ def vsca(self, r):
     random.seed(self.ran + r)
     return self.sca * (1 + random.gauss(0, self.var3 / 3))
 
-# centroide de una seleccion de vertices
+# centre of a selection of vertex
 def centro(ver):
     vvv = [v for v in ver if v.select]
     if not vvv or len(vvv) == len(ver): return ('error')
@@ -63,7 +63,7 @@ def centro(ver):
     z = sum([round(v.co[2],4) for v in vvv]) / len(vvv)
     return (x,y,z)
 
-# recuperar el estado original del objeto
+# restore the original state of the object
 def volver(obj, copia, om, msm, msv):
     for i in copia: obj.data.vertices[i].select = True
     bpy.context.tool_settings.mesh_select_mode = msm
@@ -181,7 +181,7 @@ class mextrude_help(bpy.types.Operator):
 		layout.label('To use:')
 		layout.label('Make a selection or selection of Faces.')
 		layout.label('Extrude, rotate extrusions & more.')
-		layout.label('For rigging capabilities, see Multi Extrude Plus panel.')
+
 	def invoke(self, context, event):
 		return context.window_manager.invoke_popup(self, width = 300)
 
@@ -242,7 +242,7 @@ class BB(bpy.types.Operator):
         scn = bpy.context.scene
         obj = bpy.context.object
         fac = obj.data.polygons
-        # guardar estado y seleccion
+        # save state and selection
         ver, om = obj.data.vertices, obj.mode
         msm, msv = list(bpy.context.tool_settings.mesh_select_mode), []
         for i in range(len(obj.modifiers)):
@@ -257,7 +257,7 @@ class BB(bpy.types.Operator):
         txt = 'Select a face or a vertex where the chain should end...'
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        # crear rig unico -desde vertice/s y no desde caras-
+        # create-from single vertex rig / s and not from faces-
         if sel == []:
             sel = ['simple']
             for i in copia:
@@ -267,7 +267,7 @@ class BB(bpy.types.Operator):
         try: scn.objects.unlink(rig)
         except: pass
 
-        # loop de caras
+        # Face Loop
         for i in sel:
             if sel[0] != 'simple':
                 for v in ver: v.select = False
@@ -278,7 +278,7 @@ class BB(bpy.types.Operator):
                 volver(obj, copia, om, msm, msv)
                 return{'FINISHED'}
 
-            # crear lista de coordenadas para los huesos
+            # create list of coordinates for bones
             scn.objects.active = obj
             for t in range(self.numb):
                 bpy.ops.object.mode_set(mode='EDIT')
@@ -303,7 +303,7 @@ class BB(bpy.types.Operator):
             bpy.ops.mesh.select_all(action='DESELECT')
             bpy.ops.object.mode_set(mode='OBJECT')
 
-            # crear armature y copiar transformaciones del objeto
+            # create and copy armature object transformations
             lista.reverse()
             if len(lista) < 2:
                 self.report({'INFO'}, txt)
@@ -322,7 +322,7 @@ class BB(bpy.types.Operator):
             scn.objects.active = rig
             bpy.ops.object.mode_set(mode='EDIT')
 
-            # crear la cadena de huesos desde la lista
+            # create the chain of bones from the list
             for i in range(len(lista)-1):
                 bon = arm.edit_bones.new(self.nam+'.000')
                 bon.use_connect = True
@@ -335,7 +335,7 @@ class BB(bpy.types.Operator):
                 padre = bon
             bpy.ops.object.mode_set(mode='OBJECT')
 
-            # crear IK constraint y un Empty como target
+            # IK constraint and create an Empty as target
             if self.ika:
                 ik = rig.data.bones[-1].name
                 loc = rig.matrix_world * Vector(lista[-1])
