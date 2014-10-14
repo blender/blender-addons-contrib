@@ -131,6 +131,8 @@ class MExtrude(bpy.types.Operator):
         bm.from_mesh(obj.data)
         sel = [f for f in bm.faces if f.select]
 
+        after = []
+
         # faces loop
         for i, of in enumerate(sel):
             rot = vrot(self, i)
@@ -159,9 +161,14 @@ class MExtrude(bpy.types.Operator):
 
                 bm.faces.remove(of)
                 of = nf
+            after.append(of)
 
         for v in bm.verts: v.select = False
         for e in bm.edges: e.select = False
+
+        for f in after:
+            f.select = True
+
         bm.to_mesh(obj.data)
         obj.data.update()
 
