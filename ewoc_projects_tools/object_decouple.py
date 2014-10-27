@@ -41,7 +41,7 @@ Save as Default (Optional).
 bl_info = {
 	"name": "DeCouple",
 	"author": "Gert De Roost",
-	"version": (0, 2, 0),
+	"version": (0, 2, 1),
 	"blender": (2, 65, 0),
 	"location": "View3D > Tools",
 	"description": "Temporarily decouples parent and children",
@@ -69,7 +69,7 @@ class DeCouple(bpy.types.Operator):
 	@classmethod
 	def poll(cls, context):
 		obj = context.active_object
-		return (obj and context.mode == 'OBJECT')
+		return (obj and context.mode == 'OBJECT' and obj.children)
 
 	def execute(self, context):
 

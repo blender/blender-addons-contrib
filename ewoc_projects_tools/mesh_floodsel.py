@@ -42,8 +42,8 @@ Save as Default (Optional).
 bl_info = {
 	"name": "FloodSel",
 	"author": "Gert De Roost",
-	"version": (1, 0, 0),
-	"blender": (2, 63, 0),
+	"version": (1, 1, 2),
+	"blender": (2, 65, 0),
 	"location": "View3D > Tools",
 	"description": "Flood-(de)select areas.",
 	"warning": "",
@@ -142,6 +142,7 @@ class FloodSel(bpy.types.Operator):
 				for elem in self.doneset:
 					elem.select = not(self.state)
 			if not(self.Multiple):
+				started = False
 				self.bm.free()
 				bpy.ops.object.editmode_toggle()
 				bpy.ops.object.editmode_toggle()
@@ -170,14 +171,14 @@ class FloodSel(bpy.types.Operator):
 				if not(a.type == 'VIEW_3D'):
 					continue
 				for r in a.regions:
-					if not(r.type == 'WINDOW'):
-						continue
 					if mxa > r.x and mya > r.y and mxa < r.x + r.width and mya < r.y + r.height:
+						if not(r.type == 'WINDOW'):
+							self.region = None
+							break
 						self.region = r
 						for sp in a.spaces:
 							if sp.type == 'VIEW_3D':
 								self.space = sp
-						break
 
 			if not(self.region):
 				if len(self.doneset):
@@ -236,7 +237,7 @@ class FloodSel(bpy.types.Operator):
 			if 'EDGE' in self.bm.select_mode:
 				startlist = []
 				for e in face.edges:
-					if e.select == state:
+					if e.select == self.state:
 						startlist.append(e)
 				scanlist = list(startlist)
 				self.doneset = set(startlist)
@@ -271,7 +272,7 @@ class FloodSel(bpy.types.Operator):
 							for f in v.link_faces:
 								cands.append(f)
 					for f in cands:
-						if f != face and not(f in doneset) and f.select == self.state:
+						if f != face and not(f in self.doneset) and f.select == self.state:
 							self.doneset.add(f)
 							scanlist.append(f)
 			if self.Preselection:

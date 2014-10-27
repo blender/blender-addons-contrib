@@ -37,8 +37,8 @@ Save as Default (Optional).
 bl_info = {
 	"name": "FanConnect",
 	"author": "Gert De Roost",
-	"version": (0, 2, 0),
-	"blender": (2, 63, 0),
+	"version": (0, 2, 1),
+	"blender": (2, 65, 0),
 	"location": "View3D > Tools",
 	"description": "Connects multiple selected verts to one single other vert.",
 	"warning": "",
@@ -101,7 +101,7 @@ class FanConnect(bpy.types.Operator):
 			for f in actvert.link_faces:
 				if v in f.verts:
 					# when already face: split it
-					bmesh.utils.face_split(f, v, actvert)
+					bmesh.ops.connect_verts(self.bm, verts=[v, actvert])
 		for v in vertlist:
 			v2 = None
 			for e in v.link_edges:

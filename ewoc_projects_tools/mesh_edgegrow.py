@@ -43,8 +43,8 @@ Save as Default (Optional).
 bl_info = {
 	"name": "EdgeGrow",
 	"author": "Gert De Roost",
-	"version": (0, 4, 0),
-	"blender": (2, 68, 0),
+	"version": (0, 4, 1),
+	"blender": (2, 65, 0),
 	"location": "View3D > Tools",
 	"description": "Growing edgeloops with arrowkeys",
 	"warning": "",
@@ -342,7 +342,7 @@ class EdgeGrow(bpy.types.Operator):
 				if len(self.edgelist[i]) == 1:
 					if i == 0:
 						x1, y = self.getscreencoords(v.co)
-						x2, y = self.getscreencoords(edgelist[i][0].other_vert(v).co)
+						x2, y = self.getscreencoords(self.edgelist[i][0].other_vert(v).co)
 						if x1 < x2:
 							self.singledir[0] = v
 						else:
@@ -618,7 +618,7 @@ class EdgeGrow(bpy.types.Operator):
 			glEnd()
 
 
-	def setcursors(self, v):
+	def setcursors(self, v, posn):
 
 		# what it says
 		if self.oldstate[posn] == 'START':
@@ -653,7 +653,7 @@ class EdgeGrow(bpy.types.Operator):
 					# if snake is one edge, use singledir vert for orientation
 					v = lst[0].verts[0]
 					self.drawedges(v, lst[0])
-					self.setcursors(v)
+					self.setcursors(v, posn)
 					if self.oldstate[posn] == 'INIT':
 						if self.singledir[posn] == v:
 							self.startcur[posn] = self.tempcur
@@ -661,7 +661,7 @@ class EdgeGrow(bpy.types.Operator):
 							self.endcur[posn] = self.tempcur
 					v = lst[0].verts[1]
 					self.drawedges(v, lst[0])
-					self.setcursors(v)
+					self.setcursors(v, posn)
 					if self.oldstate[posn] == 'INIT':
 						if self.singledir[posn] == v:
 							self.startcur[posn] = self.tempcur

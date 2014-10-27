@@ -61,8 +61,8 @@ This script is an implementation of the concept of sliding vertices around
 bl_info = {
 	"name": "EdgeTune",
 	"author": "Gert De Roost",
-	"version": (3, 5, 0),
-	"blender": (2, 63, 0),
+	"version": (3, 5, 1),
+	"blender": (2, 65, 0),
 	"location": "View3D > Tools",
 	"description": "Tuning edgeloops by redrawing them manually, sliding verts.",
 	"warning": "",
@@ -125,7 +125,6 @@ class EdgeTune(bpy.types.Operator):
 		if event.type == 'RIGHTMOUSE':
 			# cancel operation, reset to bmumdo mesh
 			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-			self.bm.free()
 			bpy.ops.object.editmode_toggle()
 			self.bmundo.to_mesh(self.mesh)
 			bpy.ops.object.editmode_toggle()
@@ -155,9 +154,9 @@ class EdgeTune(bpy.types.Operator):
 		elif event.type == 'RET':
 			# Consolidate changes.
 			# Free the bmesh.
-			self.bm.free()
 			self.bmundo.free()
 			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+			self.region.tag_redraw()
 			return {'FINISHED'}
 
 		elif event.type == 'MOUSEMOVE':

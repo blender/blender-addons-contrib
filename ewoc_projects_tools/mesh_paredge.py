@@ -42,8 +42,8 @@ Save as Default (Optional).
 bl_info = {
 	"name": "ParEdge",
 	"author": "Gert De Roost",
-	"version": (0, 5, 0),
-	"blender": (2, 63, 0),
+	"version": (0, 5, 3),
+	"blender": (2, 65, 0),
 	"location": "View3D > Tools",
 	"description": "Inserting of parallel edges",
 	"warning": "",
@@ -134,11 +134,11 @@ class ParEdge(bpy.types.Operator):
 			if not(a.type == 'VIEW_3D'):
 				continue
 			for r in a.regions:
-				if not(r.type == 'WINDOW'):
-					continue
 				if mxa > r.x and mya > r.y and mxa < r.x + r.width and mya < r.y + r.height:
+					if not(r.type == 'WINDOW'):
+						self.region = None
+						break
 					self.region = r
-					break
 
 		if event.type in {'RIGHTMOUSE', 'ESC'} or self.wrongsel or self.stop:
 			self.area.header_text_set()
@@ -178,7 +178,7 @@ class ParEdge(bpy.types.Operator):
 			bpy.ops.mesh.select_all(action = 'DESELECT')
 			for posn in range(len(self.vertlist)):
 				if self.capped:
-					for e in capsellist:
+					for e in self.capsellist:
 						if e == None:
 							continue
 						e.select = True
@@ -203,7 +203,7 @@ class ParEdge(bpy.types.Operator):
 							vert.select = True
 						for edge in self.dissedges1[posn]:
 							edge.select = True
-						bpy.ops.mesh.dissolve_limited()
+						bpy.ops.mesh.dissolve_edges(use_verts=True)
 						self.mesh.calc_tessface()
 						self.negsubd[posn] = False
 						self.possubd[posn] = False
@@ -213,7 +213,7 @@ class ParEdge(bpy.types.Operator):
 							vert.select = True
 						for edge in self.dissedges2[posn]:
 							edge.select = True
-						bpy.ops.mesh.dissolve_limited()
+						bpy.ops.mesh.dissolve_edges(use_verts=True)
 						self.mesh.calc_tessface()
 						self.negsubd[posn] = False
 						self.possubd[posn] = False
@@ -290,7 +290,7 @@ class ParEdge(bpy.types.Operator):
 								vert.select = True
 							for edge in self.dissedges2[posn]:
 								edge.select = True
-							bpy.ops.mesh.dissolve_limited()
+							bpy.ops.mesh.dissolve_edges(use_verts=True)
 							self.mesh.calc_tessface()
 							for vert in self.dissverts1[posn]:
 								vert.select = True
@@ -309,7 +309,7 @@ class ParEdge(bpy.types.Operator):
 									vert.select = True
 								for edge in self.dissedges1[posn]:
 									edge.select = True
-								bpy.ops.mesh.dissolve_limited()
+								bpy.ops.mesh.dissolve_edges(use_verts=True)
 								self.mesh.calc_tessface()
 								for vert in self.dissverts2[posn]:
 									vert.select = True
@@ -343,7 +343,7 @@ class ParEdge(bpy.types.Operator):
 			# dont do anything if zero - removing edges will be handled once exiting with ENTER
 			if self.Distance == 0:
 				return
-
+				
 			#negative side handling
 			if self.dist < 0 or self.Both == True:
 				for posn in range(len(self.vertlist)):
@@ -356,7 +356,8 @@ class ParEdge(bpy.types.Operator):
 									vert.select = True
 								for edge in self.dissedges2[posn]:
 									edge.select = True
-								bpy.ops.mesh.dissolve_limited()
+								self.mesh.update()
+								bpy.ops.mesh.dissolve_edges(use_verts=True, use_face_split=False)
 								self.railedges2[posn] = []
 								self.railverts2[posn] = []
 								self.dissverts2[posn] = []
@@ -372,11 +373,11 @@ class ParEdge(bpy.types.Operator):
 					if not(self.negsubd[posn]):
 						self.negsubd[posn] = True
 						# if just switched sides: look for slide constellations
-						for vert in self.vertlist[posn]:
-							if self.vertlist[posn].index(vert) == len(self.vertlist[posn]) - 1:
+						for i, vert in enumerate(self.vertlist[posn]):
+							if i == len(self.vertlist[posn]) - 1:
 								break
 							for loop in vert.link_loops:
-								if loop.link_loop_next.vert == self.vertlist[posn][self.vertlist[posn].index(vert) + 1]:
+								if loop.link_loop_next.vert == self.vertlist[posn][i + 1]:
 									self.railverts1[posn].append(loop.link_loop_prev.vert)
 									e = loop.link_loop_prev.edge
 									self.railedges1[posn].append(e)
@@ -392,7 +393,7 @@ class ParEdge(bpy.types.Operator):
 								if popout:
 									break
 								edge = self.railedges1[posn][idx]
-								if idx == len(self.railedges1[posn]) - 2 and self.railverts1[posn][0] == self.railverts1[posn][len(self.railverts1[posn]) - 1]:
+								if idx == len(self.railedges1[posn]) - 1 and self.railverts1[posn][0] == self.railverts1[posn][len(self.railverts1[posn]) - 1]:
 									# this handles closed edgeloops
 									vert = startvert
 									self.railedges1[posn].pop(len(self.railedges1[posn]) - 1)
@@ -404,16 +405,9 @@ class ParEdge(bpy.types.Operator):
 									startvert = vert
 								self.dissverts1[posn].append(vert)
 								if not(prev == None):
-									for f in edge.link_faces:
-										if prevedge in f.edges:
-											bmesh.utils.face_split(f, vert, prev)
-											bmesh.utils.face_split(f, prev, vert)
-											self.bm.faces.remove(f)
-											for e in vert.link_edges:
-												if prev in e.verts:
-													self.dissedges1[posn].append(e)
+									e = bmesh.ops.connect_verts(self.bm, verts=[vert, prev])
+									self.dissedges1[posn].append(e['edges'][0])
 								prev = vert
-								prevedge = edge
 							self.mesh.calc_tessface()
 
 				# select inserted edges/verts
@@ -447,7 +441,7 @@ class ParEdge(bpy.types.Operator):
 									vert.select = True
 								for edge in self.dissedges1[posn]:
 									edge.select = True
-								bpy.ops.mesh.dissolve_limited()
+								bpy.ops.mesh.dissolve_edges(use_verts=True, use_face_split=False)
 								self.railedges1[posn] = []
 								self.railverts1[posn] = []
 								self.dissverts1[posn] = []
@@ -461,11 +455,11 @@ class ParEdge(bpy.types.Operator):
 				for posn in range(len(self.vertlist)):
 					if not(self.possubd[posn]):
 						# if just switched sides: look for slide constellations
-						for vert in self.vertlist[posn]:
-							if self.vertlist[posn].index(vert) == len(self.vertlist[posn]) - 1:
+						for i, vert in enumerate(self.vertlist[posn]):
+							if (i == len(self.vertlist[posn]) - 1) or (i > 0 and vert == self.vertlist[posn][0]):
 								break
 							for loop in vert.link_loops:
-								if loop.link_loop_prev.vert == self.vertlist[posn][self.vertlist[posn].index(vert) + 1]:
+								if loop.link_loop_prev.vert == self.vertlist[posn][i + 1]:
 									self.railverts2[posn].append(loop.link_loop_next.vert)
 									e = loop.edge
 									self.railedges2[posn].append(e)
@@ -484,7 +478,7 @@ class ParEdge(bpy.types.Operator):
 								if popout:
 									break
 								edge = self.railedges2[posn][idx]
-								if idx == len(self.railedges2[posn]) - 2 and self.railverts2[posn][0] == self.railverts2[posn][len(self.railverts2[posn]) - 1]:
+								if idx == len(self.railedges2[posn]) - 1 and self.railverts2[posn][0] == self.railverts2[posn][len(self.railverts2[posn]) - 1]:
 									# this handles closed edgeloops
 									vert = startvert
 									self.railedges2[posn].pop(len(self.railedges2[posn]) - 1)
@@ -496,14 +490,8 @@ class ParEdge(bpy.types.Operator):
 									startvert = vert
 								self.dissverts2[posn].append(vert)
 								if not(prev == None):
-									for f in edge.link_faces:
-										if prevedge in f.edges:
-											bmesh.utils.face_split(f, vert, prev)
-											bmesh.utils.face_split(f, prev, vert)
-											self.bm.faces.remove(f)
-											for e in vert.link_edges:
-												if prev in e.verts:
-													self.dissedges2[posn].append(e)
+									e = bmesh.ops.connect_verts(self.bm, verts=[vert, prev])
+									self.dissedges2[posn].append(e['edges'][0])
 								prev = vert
 								prevedge = edge
 							self.mesh.calc_tessface()
@@ -529,7 +517,7 @@ class ParEdge(bpy.types.Operator):
 
 			# create cap
 			if not(self.capped):
-				capsellist = []
+				self.capsellist = []
 				for posn in range(len(self.vertlist)):
 					if self.Both and self.Cap:
 						self.capped = True
@@ -577,8 +565,8 @@ class ParEdge(bpy.types.Operator):
 								self.caplist[posn].append((None, None, None, None, None, None, None))
 							else:
 								self.caplist[posn].append((es1, es2, vert, v2, f3, fo1, fo2))
-							capsellist.append(es1)
-							capsellist.append(es2)
+							self.capsellist.append(es1)
+							self.capsellist.append(es2)
 
 						self.caplist[posn] = []
 						capendpoint(0)
@@ -636,26 +624,45 @@ class ParEdge(bpy.types.Operator):
 		self.bmundo = self.bm.copy()
 		started = True
 
-		self.sellist = []
-		self.sellist2 = []
+		self.selset = set([])
 		self.edgelist = []
 		self.vertlist = []
-		for v in self.bm.verts:
-			if v.select:
-				self.sellist.append(v)
-				self.sellist2.append(v)
-		if len(self.sellist) <= 1:
+		for edge in self.bm.edges:
+			if edge.select:
+				self.selset.add(edge)
+		if len(self.selset) <= 1:
 			self.wrongsel = True
 			return
-		# find first two connected verts: v and nxv
-		# they consitute edge e
 
-		# self.vertlist: make ordered list of selected vert-string
-		# self.edgelist: make ordered list of selected edges-string
-		p = 0
-		while len(self.sellist) > 0:
-			# as long as verts in selection list, keep creating new connected vert/edgelists
-			v = self.sellist[0]
+
+		# get edge-snakes
+
+		def addstart(vert):
+
+			# recursive: adds to initial edgelist at start
+			for e in vert.link_edges:
+				if e in self.selset:
+					self.selset.discard(e)
+					v = e.other_vert(vert)
+					self.edgelist[posn].insert(0, e)
+					self.vertlist[posn].insert(0, v)
+					addstart(v)
+					break
+
+		def addend(vert):
+
+			# recursive: adds to initial edgelist at end
+			for e in vert.link_edges:
+				if e in self.selset:
+					self.selset.discard(e)
+					v = e.other_vert(vert)
+					self.edgelist[posn].append(e)
+					self.vertlist[posn].append(v)
+					addend(v)
+					break
+
+		posn = 0
+		while len(self.selset) > 0:
 			self.railedges1.append([])
 			self.railedges2.append([])
 			self.railverts1.append([])
@@ -671,119 +678,29 @@ class ParEdge(bpy.types.Operator):
 			self.negsubd.append(False)
 			self.singledir.append(None)
 			self.firstvert.append(None)
-			for e in v.link_edges:
-				if e.select:
-					self.vertlist[p].append(v)
-					self.edgelist[p].append(e)
-					nxv = e.other_vert(v)
-					self.vertlist[p].append(nxv)
-					break
-			self.sellist.pop(self.sellist.index(v))
-			try:
-				self.sellist.pop(self.sellist.index(nxv))
-			except:
-				pass
-			print (self.vertlist[0])
+			
+			elem = self.selset.pop()
+			vert = elem.verts[0]
+			self.selset.add(elem)
+			# add to START and END of arbitrary START vert
+			self.vertlist[posn].insert(0, vert)
+			addstart(vert)
+			addend(vert)
+			# add first vert at end when closed loop
+			for loop in self.vertlist[posn][0].link_loops:
+				if loop.link_loop_prev.vert == self.vertlist[posn][-1]:
+					self.vertlist[posn].append(self.vertlist[posn][0])
+					self.edgelist[posn].append(self.edgelist[posn][0])
+			posn += 1
 
-			# add in front of lists
-			while len(self.sellist) > 0:
-				self.facelist = []
-				invlist = []
-				found = False
-				l = len(self.vertlist[p])
-				for f in self.vertlist[p][0].link_faces:
-					if not(self.vertlist[p][1] in f.verts):
-						self.facelist.append(f)
-					else:
-						invlist.append(f)
-				# must be edgeloop(slice)
-				if len(self.facelist) == 2:
-					for fe in self.facelist[0].edges:
-						if fe in self.facelist[1].edges:
-							if fe.select:
-								found = True
-								break
-				elif len(self.facelist) == 1:
-					for fe in self.vertlist[p][0].link_edges:
-						if fe in self.facelist[0].edges:
-							nt = False
-							for invf in invlist:
-								if fe in invf.edges:
-									nt = True
-							if not(nt):
-								found = True
-								break
-				if found:
-					if fe.select:
-						for fv in fe.verts:
-							if fv != self.vertlist[p][0]:
-								break
-						self.vertlist[p].insert(0, fv)
-						self.edgelist[p].insert(0, fe)
-						self.sellist.pop(self.sellist.index(fv))
-						continue
-				break
-
-			#store first vert for closedness checking
-			self.firstvert[p] = self.vertlist[p][0]
-			self.sellist.append(self.firstvert[p])
-
-			# add to end of lists
-			while len(self.sellist) > 0:
-				self.facelist = []
-				invlist = []
-				found = False
-				l = len(self.vertlist[p])
-				for f in self.vertlist[p][l - 1].link_faces:
-					if not(self.vertlist[p][l - 2] in f.verts):
-						self.facelist.append(f)
-					else:
-						invlist.append(f)
-				# must be edgeloop(slice)
-				if len(self.facelist) == 2:
-					for fe in self.facelist[0].edges:
-						if fe in self.facelist[1].edges:
-							if fe.select:
-								found = True
-								break
-				elif len(self.facelist) == 1:
-					found = False
-					for fe in self.vertlist[p][l - 1].link_edges:
-						if fe in self.facelist[0].edges:
-							nt = False
-							for invf in invlist:
-								if fe in invf.edges:
-									nt = True
-							if not(nt):
-								found = True
-								break
-				if found:
-					if fe.select:
-						for fv in fe.verts:
-							if fv != self.vertlist[p][l - 1]:
-								break
-						self.vertlist[p].append(fv)
-						self.edgelist[p].append(fe)
-						self.sellist.pop(self.sellist.index(fv))
-						continue
-				break
-			# handle closed/open selections
-			if self.vertlist[p][len(self.vertlist[p]) - 1] == self.firstvert[p]:
-				for edge in self.firstvert[p].link_edges:
-					if edge.other_vert(self.firstvert[p]) == self.vertlist[p][len(self.vertlist[p]) - 2]:
-						self.edgelist[p].append(edge)
-						break
-						self.vertlist[p].append(self.firstvert[p])
-			else:
-				self.sellist.pop(self.sellist.index(self.firstvert[p]))
-			# next selected edgeloopslice
-			p += 1
-
+			
+			
 
 		# orient edge and vertlists parallel - reverse if necessary
 
 		self.singledir[0] = self.edgelist[0][0].verts[0]
 
+		e1 = None
 		for i in range(len(self.edgelist) - 1):
 			bpy.ops.mesh.select_all(action = 'DESELECT')
 			# get first vert and edge for two adjacent slices
@@ -836,6 +753,7 @@ class ParEdge(bpy.types.Operator):
 								e1.select = False
 								v1 = e1.other_vert(v1)
 								e1 = lst[lst.index(e1) + 1]
+								break
 							else:
 								templ = list(e1.other_vert(v1).link_faces)
 								for f in e1.link_faces:
@@ -851,6 +769,7 @@ class ParEdge(bpy.types.Operator):
 										e1.select = False
 										v1 = e1.other_vert(v1)
 										e1 = edge
+								break
 							found = False
 
 				# check situation where left/right connection is on vert thats outside slice
@@ -951,7 +870,14 @@ class ParEdge(bpy.types.Operator):
 			for e in self.edgelist[posn]:
 				e.select = True
 
-
+		# recalculate normals for affected faces
+		recalcfaces = set([])
+		for posn in range(len(self.vertlist)):
+			for vert in self.vertlist[posn]:
+				for face in	vert.link_faces:
+					recalcfaces.add(face)
+		bmesh.ops.recalc_face_normals(self.bm, faces=list(recalcfaces))
+		
 		# try to guess min and max values for distance slider - can always use mouse to override
 		co1 = self.vertlist[0][0].co
 		co2 = self.vertlist[0][len(self.vertlist[0]) - 1].co
