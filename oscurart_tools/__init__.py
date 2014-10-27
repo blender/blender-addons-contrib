@@ -153,6 +153,7 @@ class OscPanelObject(OscPollObject, bpy.types.Panel):
         colrow.prop(bpy.context.scene, "RenameObjectOt", text="")
         colrow.operator("object.rename_objects_osc", icon="SHORTDISPLAY")
         col.operator("object.distribute_osc", icon="OBJECT_DATAMODE", text="Distribute")
+        col.operator("object.duplicate_object_symmetry_osc", icon="OUTLINER_OB_EMPTY", text="Duplicate Sym")
         colrow = col.row(align=1)
         colrow.operator("object.modifiers_remove_osc", icon="MODIFIER", text="Remove Modifiers")
         colrow.operator("object.modifiers_apply_osc", icon="MODIFIER", text="Apply Modifiers")

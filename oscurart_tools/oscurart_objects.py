@@ -333,3 +333,83 @@ class RenderOnlyInCamera (bpy.types.Operator):
         DefRenderOnlyInCamera()
         return {'FINISHED'}
 
+
+##------------------------ DUPLICATE OBJECTS SYMMETRY ------------------------
+
+def duplicateSymmetrical (self, disconect):
+    for objeto in bpy.context.selected_objects:
+
+        OBSEL = objeto
+        bpy.ops.object.select_all(action='DESELECT')
+        objeto.select = 1
+        bpy.context.scene.objects.active = objeto
+        bpy.ops.object.duplicate(linked=1)
+        OBDUP=bpy.context.active_object
+        print(OBDUP)
+        OBDUP.driver_add("location")
+        OBDUP.animation_data.drivers[0].driver.expression = "-var"
+        OBDUP.animation_data.drivers[0].driver.variables.new()
+        OBDUP.animation_data.drivers[0].driver.variables[0].type = "TRANSFORMS"
+        OBDUP.animation_data.drivers[0].driver.variables[0].targets[0].id = objeto
+        OBDUP.animation_data.drivers[0].driver.variables[0].targets[0].transform_type = 'LOC_X'
+        OBDUP.animation_data.drivers[1].driver.expression = "var"
+        OBDUP.animation_data.drivers[1].driver.variables.new()
+        OBDUP.animation_data.drivers[1].driver.variables[0].type = "TRANSFORMS"
+        OBDUP.animation_data.drivers[1].driver.variables[0].targets[0].id = objeto
+        OBDUP.animation_data.drivers[1].driver.variables[0].targets[0].transform_type = 'LOC_Y'
+        OBDUP.animation_data.drivers[2].driver.expression = "var"
+        OBDUP.animation_data.drivers[2].driver.variables.new()
+        OBDUP.animation_data.drivers[2].driver.variables[0].type = "TRANSFORMS"
+        OBDUP.animation_data.drivers[2].driver.variables[0].targets[0].id = objeto
+        OBDUP.animation_data.drivers[2].driver.variables[0].targets[0].transform_type = 'LOC_Z'
+        OBDUP.driver_add("scale")
+        OBDUP.animation_data.drivers[3].driver.expression = "-var"
+        OBDUP.animation_data.drivers[3].driver.variables.new()
+        OBDUP.animation_data.drivers[3].driver.variables[0].type = "TRANSFORMS"
+        OBDUP.animation_data.drivers[3].driver.variables[0].targets[0].id = objeto
+        OBDUP.animation_data.drivers[3].driver.variables[0].targets[0].transform_type = 'SCALE_X'
+        OBDUP.animation_data.drivers[4].driver.expression = "var"
+        OBDUP.animation_data.drivers[4].driver.variables.new()
+        OBDUP.animation_data.drivers[4].driver.variables[0].type = "TRANSFORMS"
+        OBDUP.animation_data.drivers[4].driver.variables[0].targets[0].id = objeto
+        OBDUP.animation_data.drivers[4].driver.variables[0].targets[0].transform_type = 'SCALE_Y'
+        OBDUP.animation_data.drivers[5].driver.expression = "var"
+        OBDUP.animation_data.drivers[5].driver.variables.new()
+        OBDUP.animation_data.drivers[5].driver.variables[0].type = "TRANSFORMS"
+        OBDUP.animation_data.drivers[5].driver.variables[0].targets[0].id = objeto
+        OBDUP.animation_data.drivers[5].driver.variables[0].targets[0].transform_type = 'SCALE_Z'
+        OBDUP.driver_add("rotation_euler")
+        OBDUP.animation_data.drivers[6].driver.expression = "var"
+        OBDUP.animation_data.drivers[6].driver.variables.new()
+        OBDUP.animation_data.drivers[6].driver.variables[0].type = "TRANSFORMS"
+        OBDUP.animation_data.drivers[6].driver.variables[0].targets[0].id = objeto
+        OBDUP.animation_data.drivers[6].driver.variables[0].targets[0].transform_type = 'ROT_X'
+        OBDUP.animation_data.drivers[7].driver.expression = "-var"
+        OBDUP.animation_data.drivers[7].driver.variables.new()
+        OBDUP.animation_data.drivers[7].driver.variables[0].type = "TRANSFORMS"
+        OBDUP.animation_data.drivers[7].driver.variables[0].targets[0].id = objeto
+        OBDUP.animation_data.drivers[7].driver.variables[0].targets[0].transform_type = 'ROT_Y'
+        OBDUP.animation_data.drivers[8].driver.expression = "-var"
+        OBDUP.animation_data.drivers[8].driver.variables.new()
+        OBDUP.animation_data.drivers[8].driver.variables[0].type = "TRANSFORMS"
+        OBDUP.animation_data.drivers[8].driver.variables[0].targets[0].id = objeto
+        OBDUP.animation_data.drivers[8].driver.variables[0].targets[0].transform_type = 'ROT_Z'
+
+        if disconect != True:
+            bpy.ops.object.make_single_user(obdata=True, object=True)
+            bpy.context.active_object.driver_remove("location")
+            bpy.context.active_object.driver_remove("rotation_euler")
+            bpy.context.active_object.driver_remove("scale")
+
+class oscDuplicateSymmetricalOp (bpy.types.Operator):
+    bl_idname = "object.duplicate_object_symmetry_osc"
+    bl_label = "Oscurart Duplicate Symmetrical"
+    bl_options = {"REGISTER", "UNDO"}
+
+    desconecta = bpy.props.BoolProperty(name="Keep Connection", default=True)
+
+    def execute(self,context):
+
+        duplicateSymmetrical(self, self.desconecta)
+
+        return {'FINISHED'}
