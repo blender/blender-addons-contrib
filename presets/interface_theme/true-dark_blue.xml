@@ -5,6 +5,7 @@
                           menu_shadow_width="12"
                           icon_file=""
                           icon_alpha="1"
+                          emboss="#ffffff05"
                           axis_x="#801a1a"
                           axis_y="#1a801a"
                           axis_z="#1a1a80">
@@ -747,6 +748,7 @@
       <ThemeNodeEditor node_selected="#6797c5"
                        node_active="#1f76b2"
                        wire="#ffffff"
+                       wire_inner="#737373"
                        wire_select="#ffffff"
                        selected_text="#38427f"
                        node_backdrop="#253d54a0"
@@ -970,7 +972,6 @@
                        locked_marker="#7f7f7f"
                        path_before="#ff0000"
                        path_after="#0000ff"
-                       grid="#5e5e5e"
                        frame_current="#60c040"
                        strips="#0c0a0a"
                        strips_selected="#ff8c00"
