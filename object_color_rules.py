@@ -201,7 +201,7 @@ def object_colors_select(rule, objects):
 def object_colors_rule_validate(rule, report):
     rule_type = rule.type
 
-    if rule_type in {'NAME', 'GROUP', 'MATERIAL'}:
+    if rule_type in {'NAME', 'DATA', 'GROUP', 'MATERIAL'}:
         if rule.use_match_regex:
             import re
             try:
