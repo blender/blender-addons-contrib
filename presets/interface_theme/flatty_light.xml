@@ -1,7 +1,7 @@
 <bpy>
   <Theme>
     <user_interface>
-      <ThemeUserInterface menu_shadow_fac="0.4"
+      <ThemeUserInterface menu_shadow_fac="0.3"
                           menu_shadow_width="4"
                           icon_file=""
                           icon_alpha="1"
@@ -59,7 +59,7 @@
         </wcol_text>
         <wcol_option>
           <ThemeWidgetColors outline="#999999"
-                             inner="#4d4d4dff"
+                             inner="#434343ff"
                              inner_sel="#5680c2ff"
                              item="#ffffffff"
                              text="#000000"
@@ -119,7 +119,7 @@
         </wcol_box>
         <wcol_menu>
           <ThemeWidgetColors outline="#2d2d2d"
-                             inner="#4d4d4dff"
+                             inner="#434343ff"
                              inner_sel="#596880ff"
                              item="#ffffffff"
                              text="#e6e6e6"
@@ -142,8 +142,8 @@
           </ThemeWidgetColors>
         </wcol_pulldown>
         <wcol_menu_back>
-          <ThemeWidgetColors outline="#000000"
-                             inner="#333333eb"
+          <ThemeWidgetColors outline="#1f1f1f"
+                             inner="#1f1f1fef"
                              inner_sel="#5680c2ff"
                              item="#646464ff"
                              text="#e6e6e6"
@@ -167,7 +167,7 @@
         </wcol_pie_menu>
         <wcol_tooltip>
           <ThemeWidgetColors outline="#000000"
-                             inner="#191919e6"
+                             inner="#1f1f1fef"
                              inner_sel="#2d2d2de6"
                              item="#646464ff"
                              text="#ffffff"
@@ -834,7 +834,7 @@
     </logic_editor>
     <outliner>
       <ThemeOutliner match="#337f33"
-                     selected_highlight="#5680c2">
+                     selected_highlight="#7297d0">
         <space>
           <ThemeSpaceGeneric back="#b3b3b3"
                              title="#000000"
