@@ -72,7 +72,7 @@
         <wcol_toggle>
           <ThemeWidgetColors outline="#808080"
                              inner="#b3b3b3ff"
-                             inner_sel="#646464ff"
+                             inner_sel="#5680c2ff"
                              item="#191919ff"
                              text="#000000"
                              text_sel="#ffffff"
@@ -108,7 +108,7 @@
         <wcol_box>
           <ThemeWidgetColors outline="#959595"
                              inner="#cccccccc"
-                             inner_sel="#666666ff"
+                             inner_sel="#5680c2ff"
                              item="#191919ff"
                              text="#333333"
                              text_sel="#ffffff"
@@ -154,13 +154,13 @@
           </ThemeWidgetColors>
         </wcol_menu_back>
         <wcol_pie_menu>
-          <ThemeWidgetColors outline="#0a0a0a"
-                             inner="#191919e6"
-                             inner_sel="#8c8c8cff"
-                             item="#2d2d2de6"
-                             text="#a0a0a0"
+          <ThemeWidgetColors outline="#4d4d4d"
+                             inner="#1a1a1aff"
+                             inner_sel="#5680c2ff"
+                             item="#5680c2ff"
+                             text="#e6e6e6"
                              text_sel="#ffffff"
-                             show_shaded="TRUE"
+                             show_shaded="FALSE"
                              shadetop="10"
                              shadedown="-10">
           </ThemeWidgetColors>
