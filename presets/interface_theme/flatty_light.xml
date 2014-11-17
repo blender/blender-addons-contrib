@@ -1135,7 +1135,7 @@
       </ThemeFontStyle>
     </panel_title>
     <widget_label>
-      <ThemeFontStyle points="10"
+      <ThemeFontStyle points="11"
                       font_kerning_style="FITTED"
                       shadow="1"
                       shadow_offset_x="1"
@@ -1145,7 +1145,7 @@
       </ThemeFontStyle>
     </widget_label>
     <widget>
-      <ThemeFontStyle points="10"
+      <ThemeFontStyle points="11"
                       font_kerning_style="FITTED"
                       shadow="1"
                       shadow_offset_x="1"
