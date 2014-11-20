@@ -42,6 +42,7 @@ from oscurart_tools.oscurart_objects import *
 from oscurart_tools.oscurart_shapes import *
 from oscurart_tools.oscurart_render import *
 from oscurart_tools.oscurart_overrides import *
+from oscurart_tools.oscurart_animation import *
 
 class View3DOscPanel():
     bl_space_type = 'VIEW_3D'
@@ -54,6 +55,8 @@ bpy.types.Scene.osc_shapes_tools = bpy.props.BoolProperty(default=False)
 bpy.types.Scene.osc_render_tools = bpy.props.BoolProperty(default=False)
 bpy.types.Scene.osc_files_tools = bpy.props.BoolProperty(default=False)
 bpy.types.Scene.osc_overrides_tools = bpy.props.BoolProperty(default=False)
+bpy.types.Scene.osc_animation_tools = bpy.props.BoolProperty(default=False)
+
 # PANEL DE CONTROL
 class OscPanelControl(View3DOscPanel, bpy.types.Panel):
     """
@@ -74,6 +77,7 @@ class OscPanelControl(View3DOscPanel, bpy.types.Panel):
         col.prop(bpy.context.scene, "osc_object_tools", text="Object", icon="OBJECT_DATAMODE")
         col.prop(bpy.context.scene, "osc_mesh_tools", text="Mesh", icon="EDITMODE_HLT")
         col.prop(bpy.context.scene, "osc_shapes_tools", text="Shapes", icon="SHAPEKEY_DATA")
+        col.prop(bpy.context.scene, "osc_animation_tools", text="Animation", icon="POSE_DATA")
         col.prop(bpy.context.scene, "osc_render_tools", text="Render", icon="SCENE")
         col.prop(bpy.context.scene, "osc_files_tools", text="Files", icon="IMASEL")
         col.prop(bpy.context.scene, "osc_overrides_tools", text="Overrides", icon="GREASEPENCIL")
@@ -127,6 +131,14 @@ class OscPollOverrides():
     @classmethod
     def poll(cls, context):
         return context.scene.osc_overrides_tools
+
+class OscPollAnimation():
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.osc_animation_tools
 
 
 ## PANELES
@@ -286,6 +298,20 @@ class OscPanelOverrides(OscPollOverrides, bpy.types.Panel):
         boxcolrow.operator("render.apply_overrides", text="Apply Overrides", icon="ERROR")
         boxcolrow.operator("render.restore_overrides", text="Restore Overrides", icon="ERROR")
 
+class OscPanelAnimation(OscPollAnimation, bpy.types.Panel):
+    bl_idname = "Oscurart Animation Tools"
+    bl_label = "Animation Tools"
+    bl_category = "Oscurart Tools"
+
+    def draw(self, context):
+        active_obj = context.active_object
+        layout = self.layout
+        col = layout.column(align=1)
+        row = col.row()
+        col.operator("anim.quick_parent_osc", icon="OUTLINER_DATA_POSE")
+        row = col.row(align=1)
+        row.prop(bpy.context.scene, "quick_animation_in", text="")
+        row.prop(bpy.context.scene, "quick_animation_out", text="")
 
 ##======================================================================================FIN DE SCRIPTS
 
