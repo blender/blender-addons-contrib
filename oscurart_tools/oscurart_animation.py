@@ -12,6 +12,7 @@ def DefQuickParent(inf,out):
         target = [object for object in bpy.context.selected_objects if object != ob][0]
         ob = bpy.context.active_pose_bone if bpy.context.object.type == 'ARMATURE' else bpy.context.object
         target.select = False
+        bpy.context.scene.frame_set(frame=bpy.context.scene.quick_animation_in)
         a = Matrix(target.matrix_world)
         a.invert()
         i = Matrix(ob.matrix)
@@ -24,6 +25,7 @@ def DefQuickParent(inf,out):
         target = [object for object in bpy.context.selected_objects if object != ob][0]
         ob = bpy.context.active_pose_bone if bpy.context.object.type == 'ARMATURE' else bpy.context.object
         target.select = False
+        bpy.context.scene.frame_set(frame=bpy.context.scene.quick_animation_in)
         a = Matrix(target.matrix_world)
         a.invert()
         i = Matrix(ob.matrix_world)
