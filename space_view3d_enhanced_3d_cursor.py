@@ -5401,6 +5401,11 @@ def update_keymap(activate):
     cur_idname = 'view3d.cursor3d'
 
     wm = bpy.context.window_manager
+    userprefs = bpy.context.user_preferences
+    addon_prefs = userprefs.addons[__name__].preferences
+
+    if not addon_prefs.auto_register_keymaps:
+        return
 
     try:
         km = wm.keyconfigs.user.keymaps['3D View']
@@ -5484,6 +5489,19 @@ class DelayRegistrationOperator(bpy.types.Operator):
 
     def cancel(self, context):
         DelayRegistrationOperator.timer_remove(context)
+
+class ThisAddonPreferences(bpy.types.AddonPreferences):
+    # this must match the addon name, use '__package__'
+    # when defining this in a submodule of a python package.
+    bl_idname = __name__
+
+    auto_register_keymaps = bpy.props.BoolProperty(
+        name="Auto Register Keymaps",
+        default=True)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "auto_register_keymaps")
 
 
 def register():
