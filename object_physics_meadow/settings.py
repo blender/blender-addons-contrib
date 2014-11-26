@@ -38,10 +38,24 @@ def dupli_draw_type_update(self, context):
 class MeadowAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
-    patch_groupname = StringProperty(name="Patch Group Name", description="Object group for storing patch copies of templates", default="Patches")
-    blob_groupname = StringProperty(name="Blob Group Name", description="Object group for storing blob duplicators", default="Blobs")
+    patch_groupname = StringProperty(
+        name="Patch Group Name",
+        description="Object group for storing patch copies of templates",
+        default="Patches"
+        )
+    blob_groupname = StringProperty(
+        name="Blob Group Name",
+        description="Object group for storing blob duplicators",
+        default="Blobs"
+        )
 
-    dupli_draw_type = EnumProperty(name="Dupli Draw Type", description="Maximum draw type in the viewport for duplis", items=dupli_draw_type_items, default='BOUNDS', update=dupli_draw_type_update)
+    dupli_draw_type = EnumProperty(
+        name="Dupli Draw Type",
+        description="Maximum draw type in the viewport for duplis",
+        items=dupli_draw_type_items,
+        default='BOUNDS',
+        update=dupli_draw_type_update
+        )
 
     def patch_group(self, context):
         return bpy.data.groups.get(self.patch_groupname)
@@ -82,17 +96,46 @@ def type_update(self, context):
                 ob.meadow.type = 'NONE'
 
 class MeadowObjectSettings(PropertyGroup):
-    type = EnumProperty(name="Type", description="Role of the object in the meadow simulation", items=type_items, update=type_update)
+    type = EnumProperty(
+        name="Type",
+        description="Role of the object in the meadow simulation",
+        items=type_items,
+        update=type_update
+        )
     
-    use_as_dupli = BoolProperty(name="Use as Dupli", description="Use the object for dupli instances", default=True)
+    use_as_dupli = BoolProperty(
+        name="Use as Dupli",
+        description="Use the object for dupli instances",
+        default=True
+        )
     
-    seed = IntProperty(name="Seed", description="General random number seed value", default=12345)
+    seed = IntProperty(
+        name="Seed",
+        description="General random number seed value",
+        default=12345
+        )
     
-    patch_radius = FloatProperty(name="Patch Radius", description="Free area around each patch where no other patch overlaps", default=1.0, min=0.01)
-    max_patches = IntProperty(name="Maximum Patch Number", description="Maximum number of patches", default=1000, max=1000000, soft_max=10000)
+    patch_radius = FloatProperty(
+        name="Patch Radius",
+        description="Free area around each patch where no other patch overlaps",
+        default=1.0,
+        min=0.01
+        )
+    max_patches = IntProperty(
+        name="Maximum Patch Number",
+        description="Maximum number of patches",
+        default=1000,
+        max=1000000,
+        soft_max=10000
+        )
     
     # internal
-    blob_index = IntProperty(name="Blob Index", description="Unique blob index of the object", default=-1, options={'HIDDEN'})
+    blob_index = IntProperty(
+        name="Blob Index",
+        description="Unique blob index of the object",
+        default=-1,
+        options={'HIDDEN'}
+        )
 
 #-----------------------------------------------------------------------
 
