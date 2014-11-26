@@ -23,6 +23,8 @@ from bpy_extras import object_utils
 from math import *
 from mathutils import *
 from mathutils.kdtree import KDTree
+from itertools import accumulate
+import random
 
 from object_physics_meadow import settings as _settings
 from object_physics_meadow import duplimesh
@@ -85,9 +87,23 @@ def assign_blob(blobtree, loc, nor):
     num_nearest = 4 # number of blobs to consider
     
     nearest = blobtree.find_n(loc, num_nearest)
-    if nearest:
-        return nearest[0][1]
     
+    totn = len(nearest)
+    if totn == 0:
+        return -1
+    if totn == 1:
+        return nearest[0][1]
+    totdist = fsum(dist for co, index, dist in nearest)
+    if totdist == 0.0:
+        return -1
+    
+    norm = 1.0 / (float(totn-1) * totdist)
+    accum = list(accumulate(((totdist - dist) * norm) ** 8 for co, index, dist in nearest))
+    
+    u = random.uniform(0.0, accum[-1])
+    for a, (co, index, dist) in zip(accum, nearest):
+        if u < a:
+            return index
     return -1
 
 def make_blob_object(context, index, loc, samples):
@@ -115,7 +131,8 @@ def make_blobs(context, gridob, groundob, samples):
     
     blobtree = KDTree(len(gridob.data.vertices))
     for i, v in enumerate(gridob.data.vertices):
-        blobtree.insert(v.co, i)
+        # note: only using 2D coordinates, otherwise weights get distorted by z offset
+        blobtree.insert((v.co[0], v.co[1], 0.0), i)
     blobtree.balance()
     
     blob_list = []
@@ -124,7 +141,8 @@ def make_blobs(context, gridob, groundob, samples):
         blob_list.append((loc, []))
     
     for loc, nor in samples:
-        index = assign_blob(blobtree, loc, nor)
+        # note: use only 2D coordinates for weighting, z component should be 0
+        index = assign_blob(blobtree, (loc[0], loc[1], 0.0), nor)
         if index >= 0:
             blob_list[index][1].append((loc, nor))
     

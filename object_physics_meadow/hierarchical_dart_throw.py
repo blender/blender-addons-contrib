@@ -22,14 +22,11 @@ import random, time
 import bpy
 from math import *
 
-from object_physics_meadow.util import Profiling
+from object_physics_meadow.util import *
 
 # Implements Poisson Disk sampling according to
 # "Poisson Disk Point Sets by Hierarchical Dart Throwing"
 # (White, Cline, Egbert)
-
-def ifloor(x):
-    return int(x) if x >= 0.0 else int(x) - 1
 
 prof_find_cell = Profiling("find_cell")
 prof_test_coverage = Profiling("test_coverage")

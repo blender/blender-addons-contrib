@@ -20,6 +20,9 @@
 
 import bpy, time
 
+def ifloor(x):
+    return int(x) if x >= 0.0 else int(x) - 1
+
 class ObjectSelection():
     def __enter__(self):
         scene = bpy.context.scene
