@@ -34,8 +34,6 @@ def ifloor(x):
 prof_find_cell = Profiling("find_cell")
 prof_test_coverage = Profiling("test_coverage")
 prof_test_disk = Profiling("test_disk")
-grid_verts = []
-grid_edges = []
 
 class GridCell():
     __slots__ = ('i', 'j', 'k')
@@ -272,47 +270,3 @@ class MeshDebug:
         
         ob = object_utils.object_data_add(context, mesh, operator=None).object
         return ob
-
-def add_grid_level_mesh(verts, edges, gridmin, grid_level):
-    for cell in grid_level.cells:
-        ax = cell.i * grid_level.size + gridmin[0]
-        ay = cell.j * grid_level.size + gridmin[1]
-        bx = ax + grid_level.size
-        by = ay + grid_level.size
-        
-        N = len(verts)
-        verts += [(ax, ay, 0.0), (bx, ay, 0.0), (bx, by, 0.0), (ax, by, 0.0)]
-        edges += [(N+0, N+1), (N+1, N+2), (N+2, N+3), (N+3, N+0)]
-
-def make_mesh(mesh, samples):
-    global grid_verts, grid_edges
-    
-    verts = []
-    edges = []
-    verts = grid_verts[:]
-    edges = grid_edges[:]
-    
-    add_sample_mesh(verts, edges, samples, 0.02)
-    
-    mesh.from_pydata(verts, edges, [])
-    mesh.update()
-
-def uniform_samples(num, seed, xmin, xmax, ymin, ymax):
-    return [(random.uniform(xmin, xmax), random.uniform(ymin, ymax)) for i in range(num)]
-
-def simple_object_test():
-    ob = bpy.context.active_object
-    mesh = bpy.data.meshes.new("PoissonSamples")
-
-    xmin = -3.0
-    xmax = 3.0
-    ymin = -3.0
-    ymax = 3.0
-
-    #samples = uniform_samples(100, 2598, xmin, xmax, ymin, ymax)
-    samples = gen_poisson_samples(100, 4, 0.5, (xmin, ymin), (xmax, ymax))
-
-    make_mesh(mesh, samples)
-    ob.data = mesh
-
-#simple_object_test()
