@@ -120,10 +120,10 @@ class PointGrid():
         width = gridmax[0] - gridmin[0]
         height = gridmax[1] - gridmin[1]
         
-        self.amin = ifloor(gridmin[0] / radius)
-        self.bmin = ifloor(gridmin[1] / radius)
-        self.na = ifloor(gridmax[0] / radius) + 1 - self.amin
-        self.nb = ifloor(gridmax[1] / radius) + 1 - self.bmin
+        self.amin = ifloor(gridmin[0] / radius) - 1
+        self.bmin = ifloor(gridmin[1] / radius) - 1
+        self.na = ifloor(gridmax[0] / radius) + 2 - self.amin
+        self.nb = ifloor(gridmax[1] / radius) + 2 - self.bmin
         
         self.size = radius
         self.invsize = 1.0 / radius
