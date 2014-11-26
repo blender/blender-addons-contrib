@@ -30,7 +30,7 @@ from object_physics_meadow.duplimesh import project_on_ground
 from object_physics_meadow.best_candidate import best_candidate_gen
 from object_physics_meadow.hierarchical_dart_throw import hierarchical_dart_throw_gen, MeshDebug
 
-def make_samples(context, groundob):
+def make_samples(context, gridob, groundob):
     settings = _settings.get(context)
     
     xmin = min(p[0] for p in groundob.bound_box)
@@ -42,10 +42,10 @@ def make_samples(context, groundob):
     
     debug = MeshDebug(drawsize=0.1)
     # get a sample generator implementation
-    #gen = best_candidate_gen(settings.patch_radius, xmin, xmax, ymin, ymax)
-    gen = hierarchical_dart_throw_gen(settings.patch_radius, 4, xmin, xmax, ymin, ymax, debug)
+    #gen = best_candidate_gen(gridob.meadow.patch_radius, xmin, xmax, ymin, ymax)
+    gen = hierarchical_dart_throw_gen(gridob.meadow.patch_radius, 4, xmin, xmax, ymin, ymax, debug)
     
-    loc2D = [(p[0], p[1]) for p in gen(settings.seed, settings.max_patches)]
+    loc2D = [(p[0], p[1]) for p in gen(gridob.meadow.seed, gridob.meadow.max_patches)]
     debug.to_object(context)
     
     # project samples onto the ground object
@@ -68,7 +68,7 @@ def generate_meadow(context, gridob, groundob):
     
     ### Samples ###
     
-    samples = make_samples(context, groundob)
+    samples = make_samples(context, gridob, groundob)
     
     ### Duplicators for instancing ###
     
