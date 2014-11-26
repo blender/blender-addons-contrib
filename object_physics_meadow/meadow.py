@@ -21,14 +21,14 @@
 import bpy, os
 from mathutils import *
 
-from meadow import settings as _settings
-from meadow import patch, blob
-from meadow.duplimesh import project_on_ground
-#from meadow import dupliparticle
-#from meadow.pointcache import cache_filename
+from object_physics_meadow import settings as _settings
+from object_physics_meadow import patch, blob
+from object_physics_meadow.duplimesh import project_on_ground
+#from object_physics_meadow import dupliparticle
+#from object_physics_meadow.pointcache import cache_filename
 
-from meadow.best_candidate import best_candidate_gen
-from meadow.hierarchical_dart_throw import hierarchical_dart_throw_gen, MeshDebug
+from object_physics_meadow.best_candidate import best_candidate_gen
+from object_physics_meadow.hierarchical_dart_throw import hierarchical_dart_throw_gen, MeshDebug
 
 def make_samples(context, groundob):
     settings = _settings.get(context)

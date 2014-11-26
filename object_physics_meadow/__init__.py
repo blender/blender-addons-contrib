@@ -29,7 +29,7 @@ bl_info = {
     "category": "Development"}
 
 import bpy
-from meadow import settings, ui
+from object_physics_meadow import settings, ui
  
 def register():
     settings.register()

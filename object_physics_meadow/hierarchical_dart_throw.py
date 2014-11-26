@@ -22,7 +22,7 @@ import random, time
 import bpy
 from math import *
 
-from meadow.util import Profiling
+from object_physics_meadow.util import Profiling
 
 # Implements Poisson Disk sampling according to
 # "Poisson Disk Point Sets by Hierarchical Dart Throwing"

@@ -24,10 +24,10 @@ from math import *
 from mathutils import *
 from mathutils.kdtree import KDTree
 
-from meadow import settings as _settings
-from meadow import duplimesh
-from meadow.duplimesh import project_on_ground
-from meadow.util import *
+from object_physics_meadow import settings as _settings
+from object_physics_meadow import duplimesh
+from object_physics_meadow.duplimesh import project_on_ground
+from object_physics_meadow.util import *
 
 _blob_object_name = "__MeadowBlob__"
 
@@ -133,7 +133,7 @@ def make_blobs(context, gridob, groundob, samples):
 
 #-----------------------------------------------------------------------
 
-from meadow.patch import patch_objects
+from object_physics_meadow.patch import patch_objects
 
 def setup_blob_duplis(context):
     # build patch map for lookup

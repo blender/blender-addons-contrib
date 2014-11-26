@@ -30,7 +30,7 @@ def copy_rna_enum_items(type, prop):
 dupli_draw_type_items = copy_rna_enum_items(bpy.types.Object, 'draw_type')
 
 def dupli_draw_type_update(self, context):
-    from meadow import blob # import here to avoid cyclic import
+    from object_physics_meadow import blob # import here to avoid cyclic import
     
     for ob in blob.blob_objects(context):
         blob.blob_apply_settings(ob, self)

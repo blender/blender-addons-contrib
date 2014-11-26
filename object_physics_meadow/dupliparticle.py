@@ -21,7 +21,7 @@
 import bpy
 from mathutils import *
 
-from meadow.pointcache import OCacheFrame, ParticleTimes, BoidData
+from object_physics_meadow.pointcache import OCacheFrame, ParticleTimes, BoidData
 
 def write_cache(cachedir, filename, locations):
     totpoint = len(locations)

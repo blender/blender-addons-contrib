@@ -22,7 +22,7 @@ import bpy, os
 from bpy.types import Operator, Panel
 from bpy.props import *
 
-from meadow import meadow, settings as _settings, patch, blob
+from object_physics_meadow import meadow, settings as _settings, patch, blob
 
 class OBJECT_PT_Meadow(Panel):
     """Settings for meadow components"""

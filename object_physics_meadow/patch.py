@@ -22,8 +22,8 @@ import bpy, time, sys
 from mathutils import *
 from bpy_extras import object_utils
 
-from meadow import settings as _settings
-from meadow.util import *
+from object_physics_meadow import settings as _settings
+from object_physics_meadow.util import *
 
 # supported relation types between patch objects
 # yields (data, property) pairs to object pointer properties
