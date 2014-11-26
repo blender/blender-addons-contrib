@@ -54,6 +54,7 @@ class OBJECT_PT_Meadow(Panel):
                 layout.prop(meadow, "use_as_dupli")
             elif meadow.type == 'BLOBGRID':
                 layout.prop(meadow, "seed")
+                layout.prop(meadow, "sampling_levels")
                 
                 layout.prop(meadow, "patch_radius")
                 layout.prop(meadow, "max_patches")

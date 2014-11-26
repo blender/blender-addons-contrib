@@ -114,6 +114,11 @@ class MeadowObjectSettings(PropertyGroup):
         description="General random number seed value",
         default=12345
         )
+    sampling_levels = IntProperty(
+        name="Sampling Levels",
+        description="Maximum number of sampling subdivision levels",
+        default=4
+        )
     
     patch_radius = FloatProperty(
         name="Patch Radius",
