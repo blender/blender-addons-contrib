@@ -21,7 +21,7 @@ bl_info = {
     "name": "Enhanced 3D Cursor",
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
-    "version": (2, 9, 5),
+    "version": (2, 9, 6),
     "blender": (2, 7, 0),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
@@ -4067,6 +4067,10 @@ class Cursor3DToolsSettings(bpy.types.PropertyGroup):
         min=0,
         max=10,
         options={'HIDDEN'})
+    
+    auto_register_keymaps = bpy.props.BoolProperty(
+        name="Auto Register Keymaps",
+        default=True)
 
 class Cursor3DToolsSceneSettings(bpy.types.PropertyGroup):
     stick_obj_name = bpy.props.StringProperty(
@@ -4572,6 +4576,8 @@ class CursorMonitor(bpy.types.Operator):
             context.area.tag_redraw()
 
         settings = find_settings()
+        
+        propagate_settings_to_all_screens(settings)
 
         # ================== #
         # Update bookmark enums when addon is initialized.
@@ -5344,11 +5350,23 @@ def set_stick_obj(scene, name=None, pos=None):
 #   the pre-chosen screen names may not exist
 #   in the user's blend.
 
+def propagate_settings_to_all_screens(settings):
+    # At least the most vital "user preferences" stuff
+    for screen in bpy.data.screens:
+        _settings = screen.cursor_3d_tools_settings
+        _settings.auto_register_keymaps = settings.auto_register_keymaps
+        _settings.free_coord_precision = settings.free_coord_precision
+
 def find_settings():
     #wm = bpy.data.window_managers[0]
     #settings = wm.cursor_3d_tools_settings
 
-    screen = bpy.data.screens.get("Default", bpy.data.screens[0])
+    try:
+        screen = bpy.data.screens.get("Default", bpy.data.screens[0])
+    except:
+        # find_settings() was called from register()/unregister()
+        screen = bpy.context.window_manager.windows[0].screen
+
     try:
         settings = screen.cursor_3d_tools_settings
     except:
@@ -5401,10 +5419,11 @@ def update_keymap(activate):
     cur_idname = 'view3d.cursor3d'
 
     wm = bpy.context.window_manager
-    userprefs = bpy.context.user_preferences
-    addon_prefs = userprefs.addons[__name__].preferences
+    #userprefs = bpy.context.user_preferences
+    #addon_prefs = userprefs.addons[__name__].preferences
+    settings = find_settings()
 
-    if not addon_prefs.auto_register_keymaps:
+    if not settings.auto_register_keymaps:
         return
 
     try:
@@ -5495,13 +5514,16 @@ class ThisAddonPreferences(bpy.types.AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __name__
 
-    auto_register_keymaps = bpy.props.BoolProperty(
-        name="Auto Register Keymaps",
-        default=True)
+    #auto_register_keymaps = bpy.props.BoolProperty(
+    #    name="Auto Register Keymaps",
+    #    default=True)
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "auto_register_keymaps")
+        settings = find_settings()
+        row = layout.row()
+        row.prop(settings, "auto_register_keymaps")
+        row.prop(settings, "free_coord_precision")
 
 
 def register():
