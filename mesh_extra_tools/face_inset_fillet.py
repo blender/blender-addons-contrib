@@ -42,7 +42,10 @@ def angle_rotation(rp,q,axis,angle):
 def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_sides, out, radius, type_enum, kp):
 
     list_del = []
+
     for faceindex in face_index_list:
+
+        bme.faces.ensure_lookup_table()
         #loops through the faces...
         f = bme.faces[faceindex]
         f.select_set(0)
@@ -55,6 +58,7 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
         for i in range(n):
             #loops through the vertices
             dict_0[i] = []
+            bme.verts.ensure_lookup_table()
             p  = (bme.verts[ vertex_index_list[i] ].co).copy()
             p1 = (bme.verts[ vertex_index_list[(i - 1) % n] ].co).copy()
             p2 = (bme.verts[ vertex_index_list[(i + 1) % n] ].co).copy()
@@ -148,8 +152,9 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
                     bme.verts.new(q5)
                     
                     #creates new bmesh vertices from it
-                    
+                    bme.verts.ensure_lookup_table()                    
                     bme.verts.index_update()
+
                     dict_0[j].append(bme.verts[-1])
                     cornerverts.append(bme.verts[-1])
                     
@@ -158,7 +163,9 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
 
         if out == False:
             bme.faces.new(new_inner_face)
+ 
             bme.faces.index_update()
+            bme.faces.ensure_lookup_table() 
             bme.faces[-1].select_set(1)
         elif out == True and kp == True:
             bme.faces.new(new_inner_face)

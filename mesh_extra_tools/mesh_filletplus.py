@@ -190,6 +190,7 @@ def do_filletplus(pair):
 	list_0 = [list([e.verts[0].index, e.verts[1].index]) for e in pair]
 
 	vertset = set([])
+	bm.verts.ensure_lookup_table()  
 	vertset.add(bm.verts[list_0[0][0]])
 	vertset.add(bm.verts[list_0[0][1]])
 	vertset.add(bm.verts[list_0[1][0]])
