@@ -140,15 +140,13 @@ class OscExportVG (bpy.types.Operator):
         
         ob = bpy.context.object
         with open(os.path.join(os.path.dirname(bpy.data.filepath),ob.name+".txt"), mode="w") as file:
-            grs = {group.name for group in ob.vertex_groups}
-            vg = {vert.index : list(map(  lambda x: (ob.vertex_groups[x.group].name, x.weight)  , vert.groups  )) for vert in ob.data.vertices if len(vert.groups) > 0}
-            neworder = {}
-            for indice, data in vg.items():
-                for group, weight in data:
-                    neworder.setdefault(group,[]).append((indice,weight))
-            file.write(str(grs))
-            file.write(str("\n"))
-            file.write(str(neworder))
+            vgindex =  {vg.index : vg.name for vg in ob.vertex_groups[:]}
+            vgdict = {}
+            for vert in ob.data.vertices:
+                for vg in vert.groups:
+                    vgdict.setdefault(vg.group,[]).append((vert.index,vg.weight))
+            file.write(str(vgdict)+"\n")      
+            file.write(str(vgindex))              
 
         return {'FINISHED'}
 
@@ -162,16 +160,18 @@ class OscImportVG (bpy.types.Operator):
         return context.active_object is not None   
     
     def execute(self,context):
-        
-        ob = bpy.context.object    
-        with open(os.path.join(os.path.dirname(bpy.data.filepath),ob.name+".txt"), mode="r") as file:   
-            grs = eval(file.readlines(1)[0] )
-            neworder = eval(file.readlines(2)[0] )
-            for gr in grs:
-                bpy.context.object.vertex_groups.new(name=gr)
-            for group, data in neworder.items():
-                for indice, weight in data:
-                    ob.vertex_groups[group].add([indice],weight,"REPLACE")
+                  
+        ob = bpy.context.object 
+        with open(os.path.join(os.path.dirname(bpy.data.filepath),ob.name+".txt"), mode="r") as file:
+            vgdict = eval(file.readlines(1)[0].replace("\n",""))
+            vgindex = eval(file.readlines(2)[0].replace("\n",""))
+
+        for index,name in vgindex.items():
+            ob.vertex_groups.new(name=name)
+
+        for group, vdata in vgdict.items():
+            for index, weight in vdata:
+                ob.vertex_groups[group].add(index=[index],weight=weight,type="REPLACE")                    
         
         return {'FINISHED'}
 
