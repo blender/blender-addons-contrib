@@ -103,6 +103,8 @@ def get_blob_material(context):
     # setup new blob material
     ma = materials.new(_blob_object_name)
     ma.use_object_color = True
+    # make the material stand out a bit more using emission
+    ma.emit = 1.0
     return ma
 
 # assign sample to a blob, based on distance weighting
