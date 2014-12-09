@@ -61,6 +61,9 @@ def make_samples(context, gridob, groundob):
 
 ### Duplicators for later instancing ###
 def make_blobs(context, gridob, groundob):
+    # patches are linked to current blobs, clear to avoid confusing reset
+    patch.patch_group_clear(context)
+    
     samples = make_samples(context, gridob, groundob)
     blob.make_blobs(context, gridob, groundob, samples)
 
