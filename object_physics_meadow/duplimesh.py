@@ -25,8 +25,8 @@ def project_on_ground(groundob, co):
     groundmat4 = groundob.matrix_world
     groundmat3 = groundmat4.to_3x3()
     
-    zmin = min(p[2] for p in groundob.bound_box)
-    zmax = max(p[2] for p in groundob.bound_box)
+    zmin = min(p[2] for p in groundob.bound_box) - 1.0
+    zmax = max(p[2] for p in groundob.bound_box) + 1.0
     
     ray_start = (co[0], co[1], zmax)
     ray_end = (co[0], co[1], zmin)
