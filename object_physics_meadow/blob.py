@@ -153,22 +153,6 @@ def make_blob_object(context, index, loc, samples, display_radius):
     
     return ob
 
-def make_blob_duplicator(context, index, blob, display_radius, patchob):
-    samples = blob.samples # TODO filtering here by vertex group
-    
-    blobob = make_blob_object(context, index, blob.loc, samples, display_radius)
-    
-    if patchob.meadow.use_as_dupli:
-        patchob.parent = blobob
-        # make sure duplis are placed at the sample locations
-        patchob.matrix_world = Matrix.Identity(4)
-    else:
-        # move to the blob center
-        patchob.matrix_world = blobob.matrix_world
-    blobob.dupli_type = 'FACES'
-    
-    return blobob
-
 class Blob():
     def __init__(self, loc, nor, face_index):
         self.loc = loc
@@ -200,14 +184,15 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
         if index >= 0:
             blob = blobs[index]
             if blob:
-                blob.samples.append((loc, nor))
+                blob.samples.append((loc, nor, face_index))
     
     # preliminary display object
     # XXX this could be removed eventually, but it's helpful as visual feedback to the user
     # before creating the actual duplicator blob meshes
     for index, blob in enumerate(blobs):
         if blob:
-            ob = make_blob_object(context, index, blob.loc, blob.samples, display_radius)
+            samples = [(loc, nor) for loc, nor, _ in blob.samples]
+            ob = make_blob_object(context, index, blob.loc, samples, display_radius)
             # put it in the blob group
             blob_group_assign(context, ob)
 
@@ -215,16 +200,47 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
 
 from object_physics_meadow.patch import patch_objects, patch_group_assign
 
+# select one patch object for each sample based on vertex groups
+def assign_sample_patches(vgroups, blob):
+    vgroup_samples = { name : [] for name in vgroups }
+    
+    for loc, nor, face_index in blob.samples:
+        # XXX testing
+        vgroup_samples[vgroups[-1]].append((loc, nor))
+    
+    return vgroup_samples
+
 def setup_blob_duplis(context, display_radius):
     global blobs
     
-    for ob in patch_objects(context):
-        index = ob.meadow.blob_index
-        blob = blobs[index]
-        if not blob:
+    patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
+    
+    vgroups = [""] + list(set(ob.meadow.density_vgroup_name for ob in patches))
+    for blob_index, blob in enumerate(blobs):
+        if blob is None:
             continue
         
-        dob = make_blob_duplicator(context, index, blob, display_radius, ob)
-        # put the duplicator in the patch group,
-        # so it gets removed together with patch copies
-        patch_group_assign(context, dob)
+        vgroup_samples = assign_sample_patches(vgroups, blob)
+        
+        for ob in patches:
+            if ob.meadow.blob_index != blob_index:
+                continue
+            
+            samples = vgroup_samples.get(ob.meadow.density_vgroup_name, [])
+            if not samples:
+                continue
+            
+            dob = make_blob_object(context, blob_index, blob.loc, samples, display_radius)
+            # put the duplicator in the patch group,
+            # so it gets removed together with patch copies
+            patch_group_assign(context, dob)
+            
+            # make it a duplicator for the patch object
+            if ob.meadow.use_as_dupli:
+                ob.parent = dob
+                # make sure duplis are placed at the sample locations
+                ob.matrix_world = Matrix.Identity(4)
+            else:
+                # move to the blob center
+                ob.matrix_world = dob.matrix_world
+            dob.dupli_type = 'FACES'
