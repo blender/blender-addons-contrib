@@ -32,33 +32,46 @@ class OBJECT_PT_Meadow(Panel):
     bl_region_type = 'WINDOW'
     bl_context = "object"
     
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        if not ob:
+            return False
+        return True
+    
     def draw(self, context):
         settings = _settings.get(context)
         ob = context.object
+        meadow = ob.meadow
         layout = self.layout
         
-        # draw general settings here as well
-        type(settings).draw_ex(settings, layout, context)
+        layout.prop(meadow, "type", expand=True)
         
-        layout.operator("meadow.make_blobs", icon='STICKY_UVS_DISABLE')
-        layout.operator("meadow.make_patches", icon='PARTICLE_PATH')
-        layout.operator("meadow.rebake_meadow")
+        layout.separator()
         
-        if ob:
-            meadow = ob.meadow
+        if meadow.type == 'TEMPLATE':
+            layout.prop(meadow, "use_as_dupli")
+            layout.operator("meadow.make_patches", icon='PARTICLE_PATH')
+        
+        elif meadow.type == 'BLOBGRID':
+            layout.prop(meadow, "seed")
             
-            layout.separator()
+            col = layout.column(align=True)
+            col.prop(meadow, "patch_radius")
+            col.prop(meadow, "max_patches")
             
-            layout.prop(meadow, "type", expand=True)
+            layout.prop(meadow, "sampling_levels")
             
-            if meadow.type == 'TEMPLATE':
-                layout.prop(meadow, "use_as_dupli")
-            elif meadow.type == 'BLOBGRID':
-                layout.prop(meadow, "seed")
-                layout.prop(meadow, "sampling_levels")
-                
-                layout.prop(meadow, "patch_radius")
-                layout.prop(meadow, "max_patches")
+            layout.operator("meadow.make_blobs", icon='STICKY_UVS_DISABLE')
+            layout.operator("meadow.rebake_meadow")
+        
+        layout.separator()
+        
+        # common stuff
+        if meadow.type != 'NONE':
+            layout.label("Settings:")
+            # draw general settings here as well
+            type(settings).draw_ex(settings, layout, context)
 
 
 class MeadowOperatorBase():
