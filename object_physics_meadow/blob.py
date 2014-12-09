@@ -166,10 +166,10 @@ def make_blobs(context, gridob, groundob, samples):
     
     blob_list = []
     for v in gridob.data.vertices:
-        ok, loc, nor = project_on_ground(groundob, v.co)
+        ok, loc, nor, index = project_on_ground(groundob, v.co)
         blob_list.append((loc, []))
     
-    for loc, nor in samples:
+    for loc, nor, face_index in samples:
         # note: use only 2D coordinates for weighting, z component should be 0
         index = assign_blob(blobtree, (loc[0], loc[1], 0.0), nor)
         if index >= 0:

@@ -25,6 +25,12 @@ from bpy.props import *
 def copy_rna_enum_items(type, prop):
     return [(item.identifier, item.name, item.description) for item in type.bl_rna.properties[prop].enum_items]
 
+def find_meadow_object(context, type):
+    scene = context.scene
+    for ob in scene.objects:
+        if ob.meadow.type == type:
+            return ob
+
 #-----------------------------------------------------------------------
 
 class MeadowAddonPreferences(AddonPreferences):
@@ -74,6 +80,12 @@ def type_update(self, context):
             if ob != self.id_data and ob.meadow.type == self.type:
                 ob.meadow.type = 'NONE'
 
+def vgroup_items(self, context):
+    groundob = find_meadow_object(context, 'GROUND')
+    if groundob:
+        return [(v.name, v.name, "", 'NONE', v.index) for v in groundob.vertex_groups]
+    return []
+
 class MeadowObjectSettings(PropertyGroup):
     type = EnumProperty(
         name="Type",
@@ -113,6 +125,19 @@ class MeadowObjectSettings(PropertyGroup):
         soft_max=10000
         )
     
+    density_vgroup_name = StringProperty(
+        name="Density Vertex Group Name",
+        description="Name of the vertex group to use for patch density",
+        default=""
+        )
+
+    # XXX enum wrapper would be more convenient, but harder to manage
+#    density_vgroup = EnumProperty(
+#        name="Density Vertex Group",
+#        description="Vertex group to use for patch density",
+#        items=vgroup_items
+#        )
+
     # internal
     blob_index = IntProperty(
         name="Blob Index",

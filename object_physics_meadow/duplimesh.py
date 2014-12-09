@@ -21,6 +21,29 @@
 import bpy
 from mathutils import *
 
+def get_vgroup_index(ob, name):
+    for v in ob.vertex_groups:
+        if v.name == name:
+            return v.index
+    return -1
+
+def get_vgroup_weight(vertex, index):
+    for elem in vertex.groups:
+        if elem.group == index:
+            return elem.weight
+    return 0.0
+
+def interp_vgroup(ob, face_index, co, vgroup):
+    vgroup_index = get_vgroup_index(ob, vgroup)
+    if vgroup_index < 0:
+        return 0.0
+    
+    mesh = ob.data
+    face = mesh.tessfaces[face_index]
+    verts = [mesh.vertices[i] for i in face.vertices]
+    weights = [get_vgroup_weight(v, vgroup_index) for v in verts]
+    return weights[0] # XXX TODO
+
 def project_on_ground(groundob, co):
     groundmat4 = groundob.matrix_world
     groundmat3 = groundmat4.to_3x3()
@@ -33,9 +56,9 @@ def project_on_ground(groundob, co):
     
     hit, nor, index = groundob.ray_cast(ray_start, ray_end)
     if index >= 0:
-        return True, groundmat4 * hit, groundmat3 * nor
+        return True, groundmat4 * hit, groundmat3 * nor, index
     else:
-        return False, co, (0.0, 0.0, 1.0)
+        return False, co, (0.0, 0.0, 1.0), -1
 
 
 def make_dupli_mesh(name, obmat, samples, scale):

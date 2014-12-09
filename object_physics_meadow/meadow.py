@@ -53,9 +53,9 @@ def make_samples(context, gridob, groundob):
     # project samples onto the ground object
     samples = []
     for loc in loc2D:
-        ok, loc, nor = project_on_ground(groundob, loc)
+        ok, loc, nor, face_index = project_on_ground(groundob, loc)
         if ok:
-            samples.append((loc, nor))
+            samples.append((loc, nor, face_index))
     
     return samples
 

@@ -23,6 +23,7 @@ from bpy.types import Operator, Panel
 from bpy.props import *
 
 from object_physics_meadow import meadow, settings as _settings, patch, blob
+from object_physics_meadow.settings import find_meadow_object
 
 class OBJECT_PT_Meadow(Panel):
     """Settings for meadow components"""
@@ -50,7 +51,16 @@ class OBJECT_PT_Meadow(Panel):
         layout.separator()
         
         if meadow.type == 'TEMPLATE':
+            row = layout.row()
+            groundob = find_meadow_object(context, 'GROUND')
+            if groundob:
+                row.prop_search(meadow, "density_vgroup_name", groundob, "vertex_groups", text="Density Vertex Group")
+            else:
+                row.active = False
+                row.prop(meadow, "density_vgroup_name", text="Density Vertex Group")
+            
             layout.prop(meadow, "use_as_dupli")
+            
             layout.operator("meadow.make_patches", icon='PARTICLE_PATH')
         
         elif meadow.type == 'BLOBGRID':
@@ -92,12 +102,6 @@ class MeadowOperatorBase():
                 self.report({'ERROR'}, "{0}".format(err))
                 return False, ""
         return True, cache_dir
-    
-    def find_meadow_object(self, context, type):
-        scene = context.scene
-        for ob in scene.objects:
-            if ob.meadow.type == type:
-                return ob
 
 
 class MakeBlobsOperator(MeadowOperatorBase, Operator):
@@ -116,11 +120,11 @@ class MakeBlobsOperator(MeadowOperatorBase, Operator):
         if not settings.blob_group(context):
             bpy.data.groups.new(settings.blob_groupname)
         
-        groundob = self.find_meadow_object(context, 'GROUND')
+        groundob = find_meadow_object(context, 'GROUND')
         if not groundob:
             self.report({'ERROR'}, "Could not find meadow Ground object")
             return {'CANCELLED'}
-        blobgridob = self.find_meadow_object(context, 'BLOBGRID')
+        blobgridob = find_meadow_object(context, 'BLOBGRID')
         if not blobgridob:
             self.report({'ERROR'}, "Could not find meadow Blob Grid object")
             return {'CANCELLED'}
@@ -145,11 +149,11 @@ class MakePatchesOperator(MeadowOperatorBase, Operator):
         if not settings.blob_group(context):
             bpy.data.groups.new(settings.blob_groupname)
         
-        groundob = self.find_meadow_object(context, 'GROUND')
+        groundob = find_meadow_object(context, 'GROUND')
         if not groundob:
             self.report({'ERROR'}, "Could not find meadow Ground object")
             return {'CANCELLED'}
-        blobgridob = self.find_meadow_object(context, 'BLOBGRID')
+        blobgridob = find_meadow_object(context, 'BLOBGRID')
         if not blobgridob:
             self.report({'ERROR'}, "Could not find meadow Blob Grid object")
             return {'CANCELLED'}
