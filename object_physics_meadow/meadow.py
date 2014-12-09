@@ -65,11 +65,11 @@ def make_blobs(context, gridob, groundob):
     patch.patch_group_clear(context)
     
     samples = make_samples(context, gridob, groundob)
-    blob.make_blobs(context, gridob, groundob, samples)
+    blob.make_blobs(context, gridob, groundob, samples, gridob.meadow.patch_radius)
 
 ### Patch copies for simulation ###
 def make_patches(context, gridob, groundob):
     scene = context.scene
     template_objects = [ob for ob in scene.objects if ob.meadow.type == 'TEMPLATE']
     patch.make_patches(context, gridob, template_objects)
-    blob.setup_blob_duplis(context)
+    blob.setup_blob_duplis(context, 0.333 * gridob.meadow.patch_radius)

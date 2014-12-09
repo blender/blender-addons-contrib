@@ -131,17 +131,15 @@ def assign_blob(blobtree, loc, nor):
             return index
     return -1
 
-def make_blob_object(context, index, loc, samples, radius):
+def make_blob_object(context, index, loc, samples, display_radius):
     settings = _settings.get(context)
     
     obmat = Matrix.Translation(loc)
     
-    mesh = duplimesh.make_dupli_mesh(_blob_object_name, obmat, samples, radius)
+    mesh = duplimesh.make_dupli_mesh(_blob_object_name, obmat, samples, display_radius)
     mesh.materials.append(get_blob_material(context))
     
     ob = object_utils.object_data_add(bpy.context, mesh, operator=None).object
-    # put it in the blob group
-    blob_group_assign(context, ob)
     # assign the index for mapping
     ob.meadow.blob_index = index
     # objects get put at the cursor location by object_utils
@@ -155,8 +153,36 @@ def make_blob_object(context, index, loc, samples, radius):
     
     return ob
 
-def make_blobs(context, gridob, groundob, samples):
+def make_blob_duplicator(context, index, blob, display_radius, patchob):
+    samples = blob.samples # TODO filtering here by vertex group
+    
+    blobob = make_blob_object(context, index, blob.loc, samples, display_radius)
+    
+    if patchob.meadow.use_as_dupli:
+        patchob.parent = blobob
+        # make sure duplis are placed at the sample locations
+        patchob.matrix_world = Matrix.Identity(4)
+    else:
+        # move to the blob center
+        patchob.matrix_world = blobob.matrix_world
+    blobob.dupli_type = 'FACES'
+    
+    return blobob
+
+class Blob():
+    def __init__(self, loc, nor, face_index):
+        self.loc = loc
+        self.nor = nor
+        self.face_index = face_index
+        self.samples = []
+
+blobs = []
+
+def make_blobs(context, gridob, groundob, samples, display_radius):
+    global blobs
+    
     blob_group_clear(context)
+    blobs = []
     
     blobtree = KDTree(len(gridob.data.vertices))
     for i, v in enumerate(gridob.data.vertices):
@@ -164,45 +190,41 @@ def make_blobs(context, gridob, groundob, samples):
         blobtree.insert((v.co[0], v.co[1], 0.0), i)
     blobtree.balance()
     
-    blob_list = []
     for v in gridob.data.vertices:
-        ok, loc, nor, index = project_on_ground(groundob, v.co)
-        blob_list.append((loc, []))
+        ok, loc, nor, face_index = project_on_ground(groundob, v.co)
+        blobs.append(Blob(loc, nor, face_index) if ok else None)
     
     for loc, nor, face_index in samples:
         # note: use only 2D coordinates for weighting, z component should be 0
         index = assign_blob(blobtree, (loc[0], loc[1], 0.0), nor)
         if index >= 0:
-            blob_list[index][1].append((loc, nor))
+            blob = blobs[index]
+            if blob:
+                blob.samples.append((loc, nor))
     
-    for index, (loc, samples) in enumerate(blob_list):
-        make_blob_object(context, index, loc, samples, gridob.meadow.patch_radius)
+    # preliminary display object
+    # XXX this could be removed eventually, but it's helpful as visual feedback to the user
+    # before creating the actual duplicator blob meshes
+    for index, blob in enumerate(blobs):
+        if blob:
+            ob = make_blob_object(context, index, blob.loc, blob.samples, display_radius)
+            # put it in the blob group
+            blob_group_assign(context, ob)
 
 #-----------------------------------------------------------------------
 
-from object_physics_meadow.patch import patch_objects
+from object_physics_meadow.patch import patch_objects, patch_group_assign
 
-def setup_blob_duplis(context):
-    # build patch map for lookup
-    patches = {}
+def setup_blob_duplis(context, display_radius):
+    global blobs
+    
     for ob in patch_objects(context):
         index = ob.meadow.blob_index
+        blob = blobs[index]
+        if not blob:
+            continue
         
-        if index not in patches:
-            patches[index] = []
-        patches[index].append(ob)
-    
-    # now make each blob a duplicator for the patches
-    for ob in blob_objects(context):
-        index = ob.meadow.blob_index
-        
-        if index in patches:
-            for pob in patches[index]:
-                if pob.meadow.use_as_dupli:
-                    pob.parent = ob
-                    # make sure duplis are placed at the sample locations
-                    pob.matrix_world = Matrix.Identity(4)
-                else:
-                    # move to the blob center
-                    pob.matrix_world = ob.matrix_world
-            ob.dupli_type = 'FACES'
+        dob = make_blob_duplicator(context, index, blob, display_radius, ob)
+        # put the duplicator in the patch group,
+        # so it gets removed together with patch copies
+        patch_group_assign(context, dob)
