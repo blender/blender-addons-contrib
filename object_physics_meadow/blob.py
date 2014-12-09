@@ -74,11 +74,7 @@ def blob_group_remove(context, blobob):
     blob_group.objects.unlink(blobob)
 
 def blob_apply_settings(ob, settings):
-    ob.draw_type = settings.dupli_draw_type
-    
-    particle_draw_method = 'NONE' if settings.dupli_draw_type in {'BOUNDS'} else 'RENDER'
-    for psys in ob.particle_systems:
-        psys.settings.draw_method = particle_draw_method
+    pass # TODO
 
 #-----------------------------------------------------------------------
 

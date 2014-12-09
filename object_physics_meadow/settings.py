@@ -27,14 +27,6 @@ def copy_rna_enum_items(type, prop):
 
 #-----------------------------------------------------------------------
 
-dupli_draw_type_items = copy_rna_enum_items(bpy.types.Object, 'draw_type')
-
-def dupli_draw_type_update(self, context):
-    from object_physics_meadow import blob # import here to avoid cyclic import
-    
-    for ob in blob.blob_objects(context):
-        blob.blob_apply_settings(ob, self)
-
 class MeadowAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
@@ -49,14 +41,6 @@ class MeadowAddonPreferences(AddonPreferences):
         default="Blobs"
         )
 
-    dupli_draw_type = EnumProperty(
-        name="Dupli Draw Type",
-        description="Maximum draw type in the viewport for duplis",
-        items=dupli_draw_type_items,
-        default='BOUNDS',
-        update=dupli_draw_type_update
-        )
-
     def patch_group(self, context):
         return bpy.data.groups.get(self.patch_groupname)
     def blob_group(self, context):
@@ -65,11 +49,6 @@ class MeadowAddonPreferences(AddonPreferences):
     def draw_ex(self, layout, context):
         layout.prop(self, "patch_groupname")
         layout.prop(self, "blob_groupname")
-        
-        layout.separator()
-        
-        layout.prop(self, "dupli_draw_type")
-
 
     def draw(self, context):
         self.draw_ex(self, self.layout, context)
