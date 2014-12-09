@@ -59,21 +59,14 @@ def make_samples(context, gridob, groundob):
     
     return samples
 
-def generate_meadow(context, gridob, groundob):
-    settings = _settings.get(context)
-    scene = context.scene
-    template_objects = [ob for ob in scene.objects if ob.meadow.type == 'TEMPLATE']
-    
-    ### Patch copies for simulation ###
-    
-    patch.make_patches(context, gridob, template_objects)
-    
-    ### Samples ###
-    
+### Duplicators for later instancing ###
+def make_blobs(context, gridob, groundob):
     samples = make_samples(context, gridob, groundob)
-    
-    ### Duplicators for instancing ###
-    
     blob.make_blobs(context, gridob, groundob, samples)
 
+### Patch copies for simulation ###
+def make_patches(context, gridob, groundob):
+    scene = context.scene
+    template_objects = [ob for ob in scene.objects if ob.meadow.type == 'TEMPLATE']
+    patch.make_patches(context, gridob, template_objects)
     blob.setup_blob_duplis(context)
