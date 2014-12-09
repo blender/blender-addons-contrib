@@ -203,17 +203,11 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
 
 from object_physics_meadow.patch import patch_objects, patch_group_assign
 
-def find_vertex_groups(groundob, patches):
-    names = set(ob.meadow.density_vgroup_name for ob in patches)
-    return [vg for vg in groundob.vertex_groups if vg.name in names]
-
 # select one patch object for each sample based on vertex groups
-def assign_sample_patches(groundob, vgroups, blob):
+def assign_sample_patches(groundob, blob):
+    vgroups = groundob.vertex_groups
     faces = groundob.data.tessfaces
     vertices = groundob.data.vertices
-    indexmap = [-1 for i in range(max(vg.index for vg in groundob.vertex_groups)+1)] if groundob.vertex_groups else []
-    for i, vg in enumerate(vgroups):
-        indexmap[vg.index] = i
     
     vgroup_samples = { vg.name : [] for vg in vgroups }
     vgroup_samples[""] = [] # samples for unassigned patches
@@ -222,13 +216,11 @@ def assign_sample_patches(groundob, vgroups, blob):
         # XXX this throws an exception if testing for vertex outside the group
         # but there seems to be no nice way to test beforehand ...
         #weights = [ [vg.weight(i) for i in face.vertices] for vg in vgroups ]
-        weights = [0.0 for vg in vgroups]
+        weights = [ 0.0 for vg in vgroups ]
         for i in face.vertices:
             v = vertices[i]
             for vg in v.groups:
-                index = indexmap[vg.group]
-                if index >= 0:
-                    weights[index] = vg.weight
+                weights[vg.group] += 0.25 * vg.weight # TODO
         
         # XXX testing
         if weights:
@@ -249,13 +241,12 @@ def setup_blob_duplis(context, groundob, display_radius):
     
     groundob.data.calc_tessface()
     patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
-    vgroups = find_vertex_groups(groundob, patches)
     
     for blob_index, blob in enumerate(blobs):
         if blob is None:
             continue
         
-        vgroup_samples = assign_sample_patches(groundob, vgroups, blob)
+        vgroup_samples = assign_sample_patches(groundob, blob)
         
         for ob in patches:
             if ob.meadow.blob_index != blob_index:
