@@ -131,12 +131,12 @@ def assign_blob(blobtree, loc, nor):
             return index
     return -1
 
-def make_blob_object(context, index, loc, samples):
+def make_blob_object(context, index, loc, samples, radius):
     settings = _settings.get(context)
     
     obmat = Matrix.Translation(loc)
     
-    mesh = duplimesh.make_dupli_mesh(_blob_object_name, obmat, samples)
+    mesh = duplimesh.make_dupli_mesh(_blob_object_name, obmat, samples, radius)
     mesh.materials.append(get_blob_material(context))
     
     ob = object_utils.object_data_add(bpy.context, mesh, operator=None).object
@@ -176,7 +176,7 @@ def make_blobs(context, gridob, groundob, samples):
             blob_list[index][1].append((loc, nor))
     
     for index, (loc, samples) in enumerate(blob_list):
-        make_blob_object(context, index, loc, samples)
+        make_blob_object(context, index, loc, samples, gridob.meadow.patch_radius)
 
 #-----------------------------------------------------------------------
 

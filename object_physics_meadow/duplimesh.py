@@ -38,10 +38,10 @@ def project_on_ground(groundob, co):
         return False, co, (0.0, 0.0, 1.0)
 
 
-def make_dupli_mesh(name, obmat, samples):
+def make_dupli_mesh(name, obmat, samples, scale):
     tot = len(samples)
     scalemat = Matrix()
-    scalemat[0][0] = scalemat[1][1] = scalemat[2][2] = 0.1
+    scalemat[0][0] = scalemat[1][1] = scalemat[2][2] = scale
     scalemat[3][3] = 1.0
     
     invobmat = obmat.inverted()
