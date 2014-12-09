@@ -100,6 +100,12 @@ class MeadowObjectSettings(PropertyGroup):
         default=True
         )
     
+    use_centered = BoolProperty(
+        name="Use Centered",
+        description="Move copies to the center before duplifying (use with particle instance)",
+        default=False
+        )
+    
     seed = IntProperty(
         name="Seed",
         description="General random number seed value",

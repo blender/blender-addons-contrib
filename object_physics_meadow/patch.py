@@ -45,6 +45,9 @@ def patch_group_clear(context):
     patch_group = settings.patch_group(context)
     scene = context.scene
     
+    if not patch_group:
+        return
+    
     # local list copy to avoid messing up the iterator
     objects = [ob for ob in patch_group.objects]
     

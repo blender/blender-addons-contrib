@@ -59,7 +59,11 @@ class OBJECT_PT_Meadow(Panel):
                 row.active = False
                 row.prop(meadow, "density_vgroup_name", text="Density Vertex Group")
             
-            layout.prop(meadow, "use_as_dupli")
+            row = layout.row()
+            row.prop(meadow, "use_as_dupli")
+            sub = row.row()
+            sub.enabled = meadow.use_as_dupli
+            sub.prop(meadow, "use_centered")
             
             layout.operator("meadow.make_patches", icon='PARTICLE_PATH')
         

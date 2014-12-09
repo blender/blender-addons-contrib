@@ -44,6 +44,9 @@ def blob_group_clear(context):
     blob_group = settings.blob_group(context)
     scene = context.scene
     
+    if not blob_group:
+        return
+    
     # local list copy to avoid messing up the iterator
     objects = [ob for ob in blob_group.objects]
     
@@ -230,17 +233,22 @@ def setup_blob_duplis(context, display_radius):
             if not samples:
                 continue
             
-            dob = make_blob_object(context, blob_index, blob.loc, samples, display_radius)
-            # put the duplicator in the patch group,
-            # so it gets removed together with patch copies
-            patch_group_assign(context, dob)
-            
-            # make it a duplicator for the patch object
             if ob.meadow.use_as_dupli:
+                # make a duplicator for the patch object
+                dob = make_blob_object(context, blob_index, blob.loc, samples, display_radius)
+                # put the duplicator in the patch group,
+                # so it gets removed together with patch copies
+                patch_group_assign(context, dob)
+                
+                dob.dupli_type = 'FACES'
+                
                 ob.parent = dob
                 # make sure duplis are placed at the sample locations
-                ob.matrix_world = Matrix.Identity(4)
+                if ob.meadow.use_centered:
+                    # XXX centering is needed for particle instance modifier (this might be a bug!)
+                    ob.matrix_world = Matrix.Identity(4)
+                else:
+                    ob.matrix_world = dob.matrix_world
             else:
                 # move to the blob center
                 ob.matrix_world = dob.matrix_world
-            dob.dupli_type = 'FACES'
