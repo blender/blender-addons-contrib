@@ -82,6 +82,33 @@ def blob_apply_settings(ob, settings):
 
 #-----------------------------------------------------------------------
 
+# 8-class qualitative Brewer color scheme for high-contrast colors
+# http://colorbrewer2.org/
+color_schemes = [
+    (228, 26, 28),
+    (55, 126, 184),
+    (77, 175, 74),
+    (152, 78, 163),
+    (255, 127, 0),
+    (255, 255, 51),
+    (166, 86, 40),
+    (247, 129, 191),
+    ]
+
+def select_color(index):
+    base = color_schemes[hash(str(index)) % len(color_schemes)]
+    return (base[0]/255.0, base[1]/255.0, base[2]/255.0, 1.0)
+
+def get_blob_material(context):
+    materials = context.blend_data.materials
+    if _blob_object_name in materials:
+        return materials[_blob_object_name]
+    
+    # setup new blob material
+    ma = materials.new(_blob_object_name)
+    ma.use_object_color = True
+    return ma
+
 # assign sample to a blob, based on distance weighting
 def assign_blob(blobtree, loc, nor):
     num_nearest = 4 # number of blobs to consider
@@ -112,18 +139,22 @@ def make_blob_object(context, index, loc, samples):
     obmat = Matrix.Translation(loc)
     
     mesh = duplimesh.make_dupli_mesh(_blob_object_name, obmat, samples)
-    ob = object_utils.object_data_add(bpy.context, mesh, operator=None).object
+    mesh.materials.append(get_blob_material(context))
     
+    ob = object_utils.object_data_add(bpy.context, mesh, operator=None).object
     # put it in the blob group
     blob_group_assign(context, ob)
     # assign the index for mapping
     ob.meadow.blob_index = index
-    
     # objects get put at the cursor location by object_utils
     ob.matrix_world = obmat
     
     blob_apply_settings(ob, settings)
-
+    
+    # assign color and material settings
+    ob.color = select_color(index)
+    ob.show_wire_color = True # XXX this is debatable, could make it an option
+    
     return ob
 
 def make_blobs(context, gridob, groundob, samples):
