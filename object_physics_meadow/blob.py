@@ -203,27 +203,59 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
 
 from object_physics_meadow.patch import patch_objects, patch_group_assign
 
+def find_vertex_groups(groundob, patches):
+    names = set(ob.meadow.density_vgroup_name for ob in patches)
+    return [vg for vg in groundob.vertex_groups if vg.name in names]
+
 # select one patch object for each sample based on vertex groups
-def assign_sample_patches(vgroups, blob):
-    vgroup_samples = { name : [] for name in vgroups }
+def assign_sample_patches(groundob, vgroups, blob):
+    faces = groundob.data.tessfaces
+    vertices = groundob.data.vertices
+    indexmap = [-1 for i in range(max(vg.index for vg in groundob.vertex_groups)+1)] if groundob.vertex_groups else []
+    for i, vg in enumerate(vgroups):
+        indexmap[vg.index] = i
     
+    vgroup_samples = { vg.name : [] for vg in vgroups }
+    vgroup_samples[""] = [] # samples for unassigned patches
     for loc, nor, face_index in blob.samples:
+        face = faces[face_index]
+        # XXX this throws an exception if testing for vertex outside the group
+        # but there seems to be no nice way to test beforehand ...
+        #weights = [ [vg.weight(i) for i in face.vertices] for vg in vgroups ]
+        weights = [0.0 for vg in vgroups]
+        for i in face.vertices:
+            v = vertices[i]
+            for vg in v.groups:
+                index = indexmap[vg.group]
+                if index >= 0:
+                    weights[index] = vg.weight
+        
         # XXX testing
-        vgroup_samples[vgroups[-1]].append((loc, nor))
+        if weights:
+            select, (vg, w) = max(enumerate(zip(vgroups, weights)), key=lambda x: x[1][1])
+            if w > 0.0:
+                vgroup_samples[vg.name].append((loc, nor))
+            else:
+                vgroup_samples[""].append((loc, nor))
+        else:
+            vgroup_samples[""].append((loc, nor))
     
     return vgroup_samples
 
-def setup_blob_duplis(context, display_radius):
+def setup_blob_duplis(context, groundob, display_radius):
     global blobs
     
-    patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
+    assert(blobs)
     
-    vgroups = [""] + list(set(ob.meadow.density_vgroup_name for ob in patches))
+    groundob.data.calc_tessface()
+    patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
+    vgroups = find_vertex_groups(groundob, patches)
+    
     for blob_index, blob in enumerate(blobs):
         if blob is None:
             continue
         
-        vgroup_samples = assign_sample_patches(vgroups, blob)
+        vgroup_samples = assign_sample_patches(groundob, vgroups, blob)
         
         for ob in patches:
             if ob.meadow.blob_index != blob_index:
