@@ -18,8 +18,66 @@
 
 # <pep8 compliant>
 
-import bpy
+import bpy, sys
+from math import *
 from mathutils import *
+
+def tri_signed_area(v1, v2, v3, i, j):
+    return 0.5 * ((v1[i] - v2[i]) * (v2[j] - v3[j]) + (v1[j] - v2[j]) * (v3[i] - v2[i]))
+
+# get the 2 dominant axis values, 0==X, 1==Y, 2==Z
+def axis_dominant(axis):
+    xn = fabs(axis[0])
+    yn = fabs(axis[1])
+    zn = fabs(axis[2])
+    if zn >= xn and zn >= yn:
+        return 0, 1
+    elif yn >= xn and yn >= zn:
+        return 0, 2
+    else:
+        return 1, 2
+
+def barycentric_weights(v1, v2, v3, co, n):
+    i, j = axis_dominant(n)
+    
+    w = (tri_signed_area(v2, v3, co, i, j),
+         tri_signed_area(v3, v1, co, i, j),
+         tri_signed_area(v1, v2, co, i, j))
+    wtot = w[0] + w[1] + w[2]
+    
+    if fabs(wtot) > sys.float_info.epsilon:
+        inv_w = 1.0 / wtot
+        return True, tuple(x*inv_w for x in w)
+    else:
+        return False, tuple(1.0/3.0 for x in w)
+
+def interp_weights_face(verts, co):
+    w = (0.0, 0.0, 0.0, 0.0)
+    
+    # OpenGL seems to split this way, so we do too
+    if len(verts) > 3:
+        n = (verts[0] - verts[2]).cross(verts[1] - verts[3])
+        
+        ok, w3 = barycentric_weights(verts[0], verts[1], verts[3], co, n)
+        w = (w3[0], w3[1], 0.0, w3[2])
+        idx = (0, 1, 3)
+        
+        if not ok or w[0] < 0.0:
+            # if w[1] is negative, co is on the other side of the v1-v3 edge,
+            # so we interpolate using the other triangle
+            ok, w3 = barycentric_weights(verts[1], verts[2], verts[3], co, n)
+            w = (0.0, w3[0], w3[1], w3[2])
+            idx = (1, 2, 3)
+        
+    else:
+        n = (verts[0] - verts[2]).cross(verts[1] - verts[2])
+        
+        ok, w3 = barycentric_weights(verts[0], verts[1], verts[2], co, n)
+        w = (w3[0], w3[1], w3[2], 0.0)
+        idx = (0, 1, 2)
+    
+    return w, idx
+
 
 def project_on_ground(groundob, co):
     groundmat4 = groundob.matrix_world

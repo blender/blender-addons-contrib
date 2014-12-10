@@ -28,7 +28,7 @@ import random
 
 from object_physics_meadow import settings as _settings
 from object_physics_meadow import duplimesh
-from object_physics_meadow.duplimesh import project_on_ground
+from object_physics_meadow.duplimesh import project_on_ground, interp_weights_face
 from object_physics_meadow.util import *
 
 _blob_object_name = "__MeadowBlob__"
@@ -213,12 +213,13 @@ def assign_sample_patches(groundob, blob):
     vgroup_samples[""] = [] # samples for unassigned patches
     for loc, nor, face_index in blob.samples:
         face = faces[face_index]
-        # XXX this throws an exception if testing for vertex outside the group
-        # but there seems to be no nice way to test beforehand ...
-        #weights = [ [vg.weight(i) for i in face.vertices] for vg in vgroups ]
+        verts = [vertices[i] for i in face.vertices]
+        assert(len(verts) in {3, 4})
+        
+        fweight, findex = interp_weights_face(tuple(v.co for v in verts[0:4]), loc)
+        
         weights = [ 0.0 for vg in vgroups ]
-        for i in face.vertices:
-            v = vertices[i]
+        for v in verts:
             for vg in v.groups:
                 weights[vg.group] += 0.25 * vg.weight # TODO
         
