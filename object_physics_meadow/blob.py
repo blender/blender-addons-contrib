@@ -206,10 +206,12 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
 from object_physics_meadow.patch import patch_objects, patch_group_assign
 
 # select one patch object for each sample based on vertex groups
-def assign_sample_patches(groundob, blob):
+def assign_sample_patches(groundob, blob, patches):
     vgroups = groundob.vertex_groups
     faces = groundob.data.tessfaces
     vertices = groundob.data.vertices
+    
+    used_vgroup_names = set(ob.meadow.density_vgroup_name for ob in patches)
     
     vgroup_samples = { vg.name : [] for vg in vgroups }
     vgroup_samples[""] = [] # samples for unassigned patches
@@ -229,12 +231,14 @@ def assign_sample_patches(groundob, blob):
         def select_vgroup():
             if not weights:
                 return None
-            totweight = sum(weights)
+            used_vgroups = [(vg, w) for vg, w in zip(vgroups, weights) if vg.name in used_vgroup_names]
+            
+            totweight = sum(w for vg, w in used_vgroups)
             # using 1.0 as the minimum total weight means we select
             # the default "non-group" in uncovered areas:
             # there is a 1.0-totweight chance of selecting no vgroup at all
             u = random.uniform(0.0, max(totweight, 1.0))
-            for vg, w in zip(vgroups, weights):
+            for vg, w in used_vgroups:
                 if u < w:
                     return vg
                 u -= w
@@ -250,17 +254,19 @@ def assign_sample_patches(groundob, blob):
 
 def setup_blob_duplis(context, groundob, display_radius):
     global blobs
-    
     assert(blobs)
+    
+    scene = context.scene
     
     groundob.data.calc_tessface()
     patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
     
+    del_patches = set() # patches to delete, keep this separate for iterator validity
     for blob_index, blob in enumerate(blobs):
         if blob is None:
             continue
         
-        vgroup_samples = assign_sample_patches(groundob, blob)
+        vgroup_samples = assign_sample_patches(groundob, blob, patches)
         
         for ob in patches:
             if ob.meadow.blob_index != blob_index:
@@ -268,6 +274,7 @@ def setup_blob_duplis(context, groundob, display_radius):
             
             samples = vgroup_samples.get(ob.meadow.density_vgroup_name, [])
             if not samples:
+                del_patches.add(ob)
                 continue
             
             if ob.meadow.use_as_dupli:
@@ -289,3 +296,9 @@ def setup_blob_duplis(context, groundob, display_radius):
             else:
                 # move to the blob center
                 ob.matrix_world = Matrix.Translation(blob.loc)
+        
+    # unlink unused patch objects
+    # (does not delete them, but removes from the scene)
+    while del_patches:
+        ob = del_patches.pop()
+        scene.objects.unlink(ob)
