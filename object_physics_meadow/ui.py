@@ -65,10 +65,8 @@ class OBJECT_PT_Meadow(Panel):
             sub = row.row()
             sub.enabled = meadow.use_as_dupli
             sub.prop(meadow, "use_centered")
-            
-            layout.operator("meadow.make_patches", icon='PARTICLE_PATH')
         
-        elif meadow.type == 'BLOBGRID':
+        elif meadow.type == 'GROUND':
             layout.prop(meadow, "seed")
             
             col = layout.column(align=True)
@@ -76,17 +74,12 @@ class OBJECT_PT_Meadow(Panel):
             col.prop(meadow, "max_patches")
             
             layout.prop(meadow, "sampling_levels")
-            
-            layout.operator("meadow.make_blobs", icon='STICKY_UVS_DISABLE')
-            layout.operator("meadow.rebake_meadow")
         
         layout.separator()
         
-        # common stuff
-        if meadow.type != 'NONE':
-            layout.label("Settings:")
-            # draw general settings here as well
-            type(settings).draw_ex(settings, layout, context)
+        layout.operator("meadow.make_blobs", icon='STICKY_UVS_DISABLE')
+        layout.operator("meadow.make_patches", icon='PARTICLE_PATH')
+        layout.operator("meadow.rebake_meadow")
 
 
 class MeadowOperatorBase():

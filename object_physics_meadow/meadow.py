@@ -44,11 +44,11 @@ def make_samples(context, gridob, groundob):
     #debug = MeshDebug(drawsize=0.1)
     
     # get a sample generator implementation
-    #gen = best_candidate_gen(gridob.meadow.patch_radius, xmin, xmax, ymin, ymax)
-    gen = hierarchical_dart_throw_gen(gridob.meadow.patch_radius, gridob.meadow.sampling_levels, xmin, xmax, ymin, ymax, debug)
+    #gen = best_candidate_gen(groundob.meadow.patch_radius, xmin, xmax, ymin, ymax)
+    gen = hierarchical_dart_throw_gen(groundob.meadow.patch_radius, groundob.meadow.sampling_levels, xmin, xmax, ymin, ymax, debug)
     
     mat = groundob.matrix_world
-    loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(gridob.meadow.seed, gridob.meadow.max_patches)]
+    loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
     #debug.to_object(context)
     
     # project samples onto the ground object
@@ -66,11 +66,11 @@ def make_blobs(context, gridob, groundob):
     patch.patch_group_clear(context)
     
     samples = make_samples(context, gridob, groundob)
-    blob.make_blobs(context, gridob, groundob, samples, gridob.meadow.patch_radius)
+    blob.make_blobs(context, gridob, groundob, samples, groundob.meadow.patch_radius)
 
 ### Patch copies for simulation ###
 def make_patches(context, gridob, groundob):
     scene = context.scene
     template_objects = [ob for ob in scene.objects if ob.meadow.type == 'TEMPLATE']
     patch.make_patches(context, groundob, gridob, template_objects)
-    blob.setup_blob_duplis(context, groundob, 0.333 * gridob.meadow.patch_radius)
+    blob.setup_blob_duplis(context, groundob, 0.333 * groundob.meadow.patch_radius)
