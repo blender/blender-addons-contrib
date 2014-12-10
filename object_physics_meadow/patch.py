@@ -40,9 +40,12 @@ def patch_group_clear(context):
     if patch_group:
         delete_objects(context, patch_group.objects)
 
-def patch_group_assign(context, patchob):
+def patch_group_assign(context, patchob, test=False):
     settings = _settings.get(context)
     patch_group = settings.patch_group(context)
+    
+    if test and patchob in patch_group.objects.values():
+        return
     
     patch_group.objects.link(patchob)
     # NOTE: unsetting the type is important, otherwise gathering templates

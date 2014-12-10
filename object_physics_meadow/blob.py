@@ -32,6 +32,7 @@ from object_physics_meadow.duplimesh import project_on_ground, interp_weights_fa
 from object_physics_meadow.util import *
 
 _blob_object_name = "__MeadowBlob__"
+_blob_object_parent_name = "__MeadowBlobParent__"
 
 def blob_objects(context):
     settings = _settings.get(context)
@@ -46,9 +47,12 @@ def blob_group_clear(context):
     if blob_group:
         delete_objects(context, blob_group.objects)
 
-def blob_group_assign(context, blobob):
+def blob_group_assign(context, blobob, test=False):
     settings = _settings.get(context)
     blob_group = settings.blob_group(context)
+    
+    if test and blobob in blob_group.objects.values():
+        return
     
     blob_group.objects.link(blobob)
     # NOTE: unsetting the type is important, otherwise gathering templates
@@ -94,6 +98,17 @@ def get_blob_material(context):
     # make the material stand out a bit more using emission
     ma.emit = 1.0
     return ma
+
+def get_blob_parent(context, obmat):
+    ob = context.blend_data.objects.get(_blob_object_parent_name, None)
+    if not ob:
+        ob = object_utils.object_data_add(bpy.context, None, name=_blob_object_parent_name).object
+    # put it in the blob group
+    blob_group_assign(context, ob, test=True)
+    
+    ob.matrix_world = obmat
+    
+    return ob
 
 # assign sample to a blob, based on distance weighting
 def assign_blob(blobtree, loc, nor):
@@ -176,6 +191,9 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
             if blob:
                 blob.samples.append((loc, nor, face_index))
     
+    # common parent empty for blobs
+    blob_parent = get_blob_parent(context, groundob.matrix_world)
+    
     # preliminary display object
     # XXX this could be removed eventually, but it's helpful as visual feedback to the user
     # before creating the actual duplicator blob meshes
@@ -185,8 +203,8 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
             ob = make_blob_object(context, index, blob.loc, samples, display_radius)
             # put it in the blob group
             blob_group_assign(context, ob)
-            # use ground object as parent to keep the outliner clean
-            set_object_parent(ob, groundob)
+            # use parent to keep the outliner clean
+            set_object_parent(ob, blob_parent)
 
 #-----------------------------------------------------------------------
 
@@ -246,6 +264,9 @@ def setup_blob_duplis(context, groundob, display_radius):
     groundob.data.calc_tessface()
     patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
     
+    # common parent empty for blobs
+    blob_parent = get_blob_parent(context, groundob.matrix_world)
+    
     del_patches = set() # patches to delete, keep this separate for iterator validity
     for blob_index, blob in enumerate(blobs):
         if blob is None:
@@ -268,12 +289,12 @@ def setup_blob_duplis(context, groundob, display_radius):
                 # put the duplicator in the patch group,
                 # so it gets removed together with patch copies
                 patch_group_assign(context, dob)
-                # use ground object as parent to keep the outliner clean
-                set_object_parent(dob, groundob)
+                # use parent to keep the outliner clean
+                set_object_parent(dob, blob_parent)
+                set_object_parent(ob, dob)
                 
                 dob.dupli_type = 'FACES'
-
-                ob.parent = dob
+                
                 # make sure duplis are placed at the sample locations
                 if ob.meadow.use_centered:
                     # XXX centering is needed for particle instance modifier (this might be a bug!)
@@ -281,6 +302,8 @@ def setup_blob_duplis(context, groundob, display_radius):
                 else:
                     ob.matrix_world = dob.matrix_world
             else:
+                # use parent to keep the outliner clean
+                set_object_parent(ob, blob_parent)
                 # move to the blob center
                 ob.matrix_world = Matrix.Translation(blob.loc)
         
