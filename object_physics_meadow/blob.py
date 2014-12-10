@@ -216,20 +216,31 @@ def assign_sample_patches(groundob, blob):
         verts = [vertices[i] for i in face.vertices]
         assert(len(verts) in {3, 4})
         
+        # accumulate weights for each vertex group,
+        # by interpolating the face and 
         fweight, findex = interp_weights_face(tuple(v.co for v in verts[0:4]), loc)
-        
         weights = [ 0.0 for vg in vgroups ]
-        for v in verts:
+        for v, fac in zip(verts, fweight):
             for vg in v.groups:
-                weights[vg.group] += 0.25 * vg.weight # TODO
+                weights[vg.group] += vg.weight * fac
         
-        # XXX testing
-        if weights:
-            select, (vg, w) = max(enumerate(zip(vgroups, weights)), key=lambda x: x[1][1])
-            if w > 0.0:
-                vgroup_samples[vg.name].append((loc, nor))
-            else:
-                vgroup_samples[""].append((loc, nor))
+        def select_vgroup():
+            if not weights:
+                return None
+            totweight = sum(weights)
+            # using 1.0 as the minimum total weight means we select
+            # the default "non-group" in uncovered areas:
+            # there is a 1.0-totweight chance of selecting no vgroup at all
+            u = random.uniform(0.0, max(totweight, 1.0))
+            for vg, w in zip(vgroups, weights):
+                if u < w:
+                    return vg
+                u -= w
+            return None
+        
+        vg = select_vgroup()
+        if vg:
+            vgroup_samples[vg.name].append((loc, nor))
         else:
             vgroup_samples[""].append((loc, nor))
     
