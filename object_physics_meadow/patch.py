@@ -25,13 +25,6 @@ from bpy_extras import object_utils
 from object_physics_meadow import settings as _settings
 from object_physics_meadow.util import *
 
-# supported relation types between patch objects
-# yields (data, property) pairs to object pointer properties
-def object_relations(ob):
-    for md in ob.modifiers:
-        if md.type == 'PARTICLE_INSTANCE':
-            yield md, "object"
-
 #-----------------------------------------------------------------------
 
 def patch_objects(context):
@@ -43,29 +36,9 @@ def patch_objects(context):
 def patch_group_clear(context):
     settings = _settings.get(context)
     patch_group = settings.patch_group(context)
-    scene = context.scene
     
-    if not patch_group:
-        return
-    
-    # local list copy to avoid messing up the iterator
-    objects = [ob for ob in patch_group.objects]
-    
-    # unlink objects to avoid invalid pointers when deleting them
-    for ob in objects:
-        for data, prop in object_relations(ob):
-            setattr(data, prop, None)
-    
-    for ob in objects:
-        scene.objects.unlink(ob)
-        patch_group.objects.unlink(ob)
-        
-        # note: this can fail if something still references the object
-        # we try to unlink own pointers above, but users might add own
-        if ob.users == 0:
-            bpy.data.objects.remove(ob)
-        else:
-            print("Warning: could not remove object %r" % ob.name)
+    if patch_group:
+        delete_objects(context, patch_group.objects)
 
 def patch_group_assign(context, patchob):
     settings = _settings.get(context)

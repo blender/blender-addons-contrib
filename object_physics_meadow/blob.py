@@ -42,24 +42,9 @@ def blob_objects(context):
 def blob_group_clear(context):
     settings = _settings.get(context)
     blob_group = settings.blob_group(context)
-    scene = context.scene
     
-    if not blob_group:
-        return
-    
-    # local list copy to avoid messing up the iterator
-    objects = [ob for ob in blob_group.objects]
-    
-    for ob in objects:
-        scene.objects.unlink(ob)
-        blob_group.objects.unlink(ob)
-        
-        # note: this can fail if something still references the object
-        # we try to unlink own pointers above, but users might add own
-        if ob.users == 0:
-            bpy.data.objects.remove(ob)
-        else:
-            print("Warning: could not remove object %r" % ob.name)
+    if blob_group:
+        delete_objects(context, blob_group.objects)
 
 def blob_group_assign(context, blobob):
     settings = _settings.get(context)
@@ -256,8 +241,6 @@ def setup_blob_duplis(context, groundob, display_radius):
     global blobs
     assert(blobs)
     
-    scene = context.scene
-    
     groundob.data.calc_tessface()
     patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
     
@@ -297,8 +280,5 @@ def setup_blob_duplis(context, groundob, display_radius):
                 # move to the blob center
                 ob.matrix_world = Matrix.Translation(blob.loc)
         
-    # unlink unused patch objects
-    # (does not delete them, but removes from the scene)
-    while del_patches:
-        ob = del_patches.pop()
-        scene.objects.unlink(ob)
+    # delete unused patch objects
+    delete_objects(context, del_patches)

@@ -48,6 +48,46 @@ def select_single_object(ob):
 
 #-----------------------------------------------------------------------
 
+# supported relation types between patch objects
+# yields (data, property) pairs to object pointer properties
+def object_relations(ob):
+    for md in ob.modifiers:
+        if md.type == 'PARTICLE_INSTANCE':
+            yield md, "object"
+
+def delete_objects(context, objects):
+    scene = context.scene
+    
+    obset = set(objects)
+    
+    while obset:
+        ob = obset.pop()
+        
+        #remove from groups
+        for g in bpy.data.groups:
+            if ob in g.objects.values():
+                g.objects.unlink(ob)
+        
+        # unlink from other objects
+        for relob in bpy.data.objects:
+            for data, prop in object_relations(relob):
+                if getattr(data, prop, None) == ob:
+                    setattr(data, prop, None)
+        
+        # unlink from scenes
+        for scene in bpy.data.scenes:
+            if ob in scene.objects.values():
+                scene.objects.unlink(ob)
+        
+        # note: this can fail if something still references the object
+        # we try to unlink own pointers above, but users might add own
+        if ob.users == 0:
+            bpy.data.objects.remove(ob)
+        else:
+            print("Warning: could not remove object %r" % ob.name)
+
+#-----------------------------------------------------------------------
+
 class Profiling():
     def __init__(self, name):
         self.name = name
