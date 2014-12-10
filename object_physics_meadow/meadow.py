@@ -47,7 +47,8 @@ def make_samples(context, gridob, groundob):
     #gen = best_candidate_gen(gridob.meadow.patch_radius, xmin, xmax, ymin, ymax)
     gen = hierarchical_dart_throw_gen(gridob.meadow.patch_radius, gridob.meadow.sampling_levels, xmin, xmax, ymin, ymax, debug)
     
-    loc2D = [(p[0], p[1]) for p in gen(gridob.meadow.seed, gridob.meadow.max_patches)]
+    mat = groundob.matrix_world
+    loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(gridob.meadow.seed, gridob.meadow.max_patches)]
     #debug.to_object(context)
     
     # project samples onto the ground object

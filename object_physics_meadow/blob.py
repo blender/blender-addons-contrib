@@ -173,12 +173,14 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
     
     blobtree = KDTree(len(gridob.data.vertices))
     for i, v in enumerate(gridob.data.vertices):
+        co = gridob.matrix_world * v.co
         # note: only using 2D coordinates, otherwise weights get distorted by z offset
-        blobtree.insert((v.co[0], v.co[1], 0.0), i)
+        blobtree.insert((co[0], co[1], 0.0), i)
     blobtree.balance()
     
     for v in gridob.data.vertices:
-        ok, loc, nor, face_index = project_on_ground(groundob, v.co)
+        co = gridob.matrix_world * v.co
+        ok, loc, nor, face_index = project_on_ground(groundob, co)
         blobs.append(Blob(loc, nor, face_index) if ok else None)
     
     for loc, nor, face_index in samples:
