@@ -286,4 +286,4 @@ def setup_blob_duplis(context, groundob, display_radius):
                     ob.matrix_world = dob.matrix_world
             else:
                 # move to the blob center
-                ob.matrix_world = dob.matrix_world
+                ob.matrix_world = Matrix.Translation(blob.loc)
