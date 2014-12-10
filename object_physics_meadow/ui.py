@@ -24,6 +24,7 @@ from bpy.props import *
 
 from object_physics_meadow import meadow, settings as _settings, patch, blob
 from object_physics_meadow.settings import find_meadow_object
+from object_physics_meadow.util import *
 
 class OBJECT_PT_Meadow(Panel):
     """Settings for meadow components"""
@@ -133,7 +134,8 @@ class MakeBlobsOperator(MeadowOperatorBase, Operator):
             self.report({'ERROR'}, "Could not find meadow Blob Grid object")
             return {'CANCELLED'}
         
-        meadow.make_blobs(context, blobgridob, groundob)
+        with ObjectSelection():
+            meadow.make_blobs(context, blobgridob, groundob)
         
         return {'FINISHED'}
 
@@ -162,7 +164,8 @@ class MakePatchesOperator(MeadowOperatorBase, Operator):
             self.report({'ERROR'}, "Could not find meadow Blob Grid object")
             return {'CANCELLED'}
         
-        meadow.make_patches(context, blobgridob, groundob)
+        with ObjectSelection():
+            meadow.make_patches(context, blobgridob, groundob)
         
         return {'FINISHED'}
 
@@ -192,7 +195,8 @@ class RebakeMeadowOperator(MeadowOperatorBase, Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        patch.patch_objects_rebake(context)
+        with ObjectSelection():
+            patch.patch_objects_rebake(context)
         return {'FINISHED'}
 
 

@@ -129,30 +129,29 @@ def make_patches(context, gridob, template_objects):
     patch_group_clear(context)
     
     temp_copies = {}
-    with ObjectSelection():
-        for tempob in template_objects:
-            # create patch copies
-            copies = make_copies(scene, gridob, tempob)
+    for tempob in template_objects:
+        # create patch copies
+        copies = make_copies(scene, gridob, tempob)
+        
+        # customize copies
+        for ob, (index, vert) in zip(copies, enumerate(gridob.data.vertices)):
+            # put it in the patch group
+            patch_group_assign(context, ob)
+            # assign the index for mapping
+            ob.meadow.blob_index = index
             
-            # customize copies
-            for ob, (index, vert) in zip(copies, enumerate(gridob.data.vertices)):
-                # put it in the patch group
-                patch_group_assign(context, ob)
-                # assign the index for mapping
-                ob.meadow.blob_index = index
-                
-                # apply transform
-                vertmat = Matrix.Translation(vert.co)
-                duplimat = gridmat * vertmat
-                ob.matrix_world = duplimat
-                
-                # XXX WARNING: having lots of objects in the scene slows down
-                # the make-duplis-real operator to an absolute crawl!!
-                # Therefore we unlink all copies here until the copying
-                # of other objects is done
-                scene.objects.unlink(ob)
+            # apply transform
+            vertmat = Matrix.Translation(vert.co)
+            duplimat = gridmat * vertmat
+            ob.matrix_world = duplimat
             
-            temp_copies[tempob] = copies
+            # XXX WARNING: having lots of objects in the scene slows down
+            # the make-duplis-real operator to an absolute crawl!!
+            # Therefore we unlink all copies here until the copying
+            # of other objects is done
+            scene.objects.unlink(ob)
+        
+        temp_copies[tempob] = copies
     
     # copying is done, re-link stuff to the scene
     for tempob, copies in temp_copies.items():
@@ -281,15 +280,14 @@ def patch_objects_rebake(context):
     settings = _settings.get(context)
     wm = context.window_manager
     
-    with ObjectSelection():
-        # we disable all sim modifiers selectively to make sure only one sim has to be calculated at a time
-        with BakeSimContext():
-            scene = context.scene
-            curframe = scene.frame_current
-            
-            # XXX have to set this because bake operator only bakes up to the last frame ...
-            scene.frame_current = scene.frame_end
-            
-            bake_all(context)
-            
-            scene.frame_set(curframe)
+    # we disable all sim modifiers selectively to make sure only one sim has to be calculated at a time
+    with BakeSimContext():
+        scene = context.scene
+        curframe = scene.frame_current
+        
+        # XXX have to set this because bake operator only bakes up to the last frame ...
+        scene.frame_current = scene.frame_end
+        
+        bake_all(context)
+        
+        scene.frame_set(curframe)
