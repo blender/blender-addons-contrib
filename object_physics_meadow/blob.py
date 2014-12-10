@@ -185,8 +185,8 @@ def blobs_from_customprops(data):
     iter_samples_nor = iter(data['samples_nor'])
     iter_samples_idx = iter(data['samples_idx'])
 
-    while(True):
-        try:
+    try:
+        while(True):
             loc = (next(iter_loc), next(iter_loc), next(iter_loc))
             nor = (next(iter_nor), next(iter_nor), next(iter_nor))
             face_index = next(iter_face_index)
@@ -202,8 +202,8 @@ def blobs_from_customprops(data):
             blob = Blob(loc, nor, face_index)
             blob.samples = samples
             blobs.append(blob)
-        except StopIteration:
-            break
+    except StopIteration:
+        break
 
     return blobs
 
