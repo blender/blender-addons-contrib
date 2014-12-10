@@ -185,6 +185,8 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
             ob = make_blob_object(context, index, blob.loc, samples, display_radius)
             # put it in the blob group
             blob_group_assign(context, ob)
+            # use ground object as parent to keep the outliner clean
+            set_object_parent(ob, groundob)
 
 #-----------------------------------------------------------------------
 
@@ -266,9 +268,11 @@ def setup_blob_duplis(context, groundob, display_radius):
                 # put the duplicator in the patch group,
                 # so it gets removed together with patch copies
                 patch_group_assign(context, dob)
+                # use ground object as parent to keep the outliner clean
+                set_object_parent(dob, groundob)
                 
                 dob.dupli_type = 'FACES'
-                
+
                 ob.parent = dob
                 # make sure duplis are placed at the sample locations
                 if ob.meadow.use_centered:

@@ -72,5 +72,5 @@ def make_blobs(context, gridob, groundob):
 def make_patches(context, gridob, groundob):
     scene = context.scene
     template_objects = [ob for ob in scene.objects if ob.meadow.type == 'TEMPLATE']
-    patch.make_patches(context, gridob, template_objects)
+    patch.make_patches(context, groundob, gridob, template_objects)
     blob.setup_blob_duplis(context, groundob, 0.333 * gridob.meadow.patch_radius)

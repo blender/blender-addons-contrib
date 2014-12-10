@@ -122,7 +122,7 @@ def make_copies(scene, gridob, childob):
     
     return duplicates
 
-def make_patches(context, gridob, template_objects):
+def make_patches(context, groundob, gridob, template_objects):
     scene = context.scene
     gridmat = gridob.matrix_world
     
@@ -139,6 +139,8 @@ def make_patches(context, gridob, template_objects):
             patch_group_assign(context, ob)
             # assign the index for mapping
             ob.meadow.blob_index = index
+            # use ground object as parent to keep the outliner clean
+            set_object_parent(ob, groundob)
             
             # apply transform
             vertmat = Matrix.Translation(vert.co)

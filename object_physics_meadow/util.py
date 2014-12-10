@@ -88,6 +88,14 @@ def delete_objects(context, objects):
 
 #-----------------------------------------------------------------------
 
+# set the object parent without modifying world space transform
+def set_object_parent(ob, parent):
+    mat = ob.matrix_world
+    ob.parent = parent
+    ob.matrix_world = mat
+
+#-----------------------------------------------------------------------
+
 class Profiling():
     def __init__(self, name):
         self.name = name
