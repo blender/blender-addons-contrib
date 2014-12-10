@@ -81,13 +81,15 @@ def interp_weights_face(verts, co):
 
 def project_on_ground(groundob, co):
     groundmat4 = groundob.matrix_world
+    inv_groundmat4 = groundmat4.inverted()
     groundmat3 = groundmat4.to_3x3()
     
     zmin = min(p[2] for p in groundob.bound_box) - 1.0
     zmax = max(p[2] for p in groundob.bound_box) + 1.0
     
-    ray_start = (co[0], co[1], zmax)
-    ray_end = (co[0], co[1], zmin)
+    obco = inv_groundmat4 * Vector(co[0:3] + (1.0,)) # co expected to be in world space
+    ray_start = (obco[0], obco[1], zmax)
+    ray_end = (obco[0], obco[1], zmin)
     
     hit, nor, index = groundob.ray_cast(ray_start, ray_end)
     if index >= 0:
