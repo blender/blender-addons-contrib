@@ -163,11 +163,51 @@ class Blob():
         self.face_index = face_index
         self.samples = []
 
-blobs = []
+# store blobs list in ID datablock as customdata
+def blobs_to_customprops(data, blobs):
+    data['loc'] = [x for b in blobs for x in b.loc]
+    data['nor'] = [x for b in blobs for x in b.nor]
+    data['face_index'] = [b.face_index for b in blobs]
+    data['samples_len'] = [len(b.samples) for b in blobs]
+    data['samples_loc'] = [x for b in blobs for loc, nor, idx in b.samples for x in loc]
+    data['samples_nor'] = [x for b in blobs for loc, nor, idx in b.samples for x in nor]
+    data['samples_idx'] = [idx for b in blobs for loc, nor, idx in b.samples]
+
+# load blobs list from ID datablock customdata
+def blobs_from_customprops(data):
+    blobs = []
+
+    iter_loc = iter(data['loc'])
+    iter_nor = iter(data['nor'])
+    iter_face_index = iter(data['face_index'])
+    iter_samples_len = iter(data['samples_len'])
+    iter_samples_loc = iter(data['samples_loc'])
+    iter_samples_nor = iter(data['samples_nor'])
+    iter_samples_idx = iter(data['samples_idx'])
+
+    while(True):
+        try:
+            loc = (next(iter_loc), next(iter_loc), next(iter_loc))
+            nor = (next(iter_nor), next(iter_nor), next(iter_nor))
+            face_index = next(iter_face_index)
+            
+            samples = []
+            num_samples = next(iter_samples_len)
+            for k in range(num_samples):
+                sample_loc = (next(iter_samples_loc), next(iter_samples_loc), next(iter_samples_loc))
+                sample_nor = (next(iter_samples_nor), next(iter_samples_nor), next(iter_samples_nor))
+                sample_idx = next(iter_samples_idx)
+                samples.append((sample_loc, sample_nor, sample_idx))
+
+            blob = Blob(loc, nor, face_index)
+            blob.samples = samples
+            blobs.append(blob)
+        except StopIteration:
+            break
+
+    return blobs
 
 def make_blobs(context, gridob, groundob, samples, display_radius):
-    global blobs
-    
     blob_group_clear(context)
     blobs = []
     
@@ -205,6 +245,8 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
             blob_group_assign(context, ob)
             # use parent to keep the outliner clean
             set_object_parent(ob, blob_parent)
+    
+    blobs_to_customprops(groundob.meadow, blobs)
 
 #-----------------------------------------------------------------------
 
@@ -258,9 +300,8 @@ def assign_sample_patches(groundob, blob, patches):
     return vgroup_samples
 
 def setup_blob_duplis(context, groundob, display_radius):
-    global blobs
-    assert(blobs)
-    
+    blobs = blobs_from_customprops(groundob.meadow)
+
     groundob.data.calc_tessface()
     patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
     
