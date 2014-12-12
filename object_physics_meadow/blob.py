@@ -203,7 +203,7 @@ def blobs_from_customprops(data):
             blob.samples = samples
             blobs.append(blob)
     except StopIteration:
-        break
+        pass
 
     return blobs
 
