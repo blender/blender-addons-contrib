@@ -162,49 +162,31 @@ class Blob():
         self.nor = nor
         self.face_index = face_index
         self.samples = []
+    
+    # note: Vector instances cannot be pickled directly,
+    # therefore define own pickle methods here
+    def __getstate__(self):
+        return self.loc[:], self.nor[:], self.face_index, [(sloc[:], snor[:], sidx) for sloc, snor, sidx in self.samples]
+    
+    def __setstate__(self, state):
+        self.loc = Vector(state[0])
+        self.nor = Vector(state[1])
+        self.face_index = state[2]
+        self.samples = [(Vector(sloc), Vector(snor), sidx) for sloc, snor, sidx in state[3]]
 
 # store blobs list in ID datablock as customdata
 def blobs_to_customprops(data, blobs):
-    data['loc'] = [x for b in blobs for x in b.loc]
-    data['nor'] = [x for b in blobs for x in b.nor]
-    data['face_index'] = [b.face_index for b in blobs]
-    data['samples_len'] = [len(b.samples) for b in blobs]
-    data['samples_loc'] = [x for b in blobs for loc, nor, idx in b.samples for x in loc]
-    data['samples_nor'] = [x for b in blobs for loc, nor, idx in b.samples for x in nor]
-    data['samples_idx'] = [idx for b in blobs for loc, nor, idx in b.samples]
+    import pickle, array
+    B = pickle.dumps(blobs)
+    pad = (4 - len(B)) % 4
+    A = array.array('i', B + b'\x00' * pad)
+    data['blobs'] = A.tolist()
 
 # load blobs list from ID datablock customdata
 def blobs_from_customprops(data):
-    blobs = []
-
-    iter_loc = iter(data['loc'])
-    iter_nor = iter(data['nor'])
-    iter_face_index = iter(data['face_index'])
-    iter_samples_len = iter(data['samples_len'])
-    iter_samples_loc = iter(data['samples_loc'])
-    iter_samples_nor = iter(data['samples_nor'])
-    iter_samples_idx = iter(data['samples_idx'])
-
-    try:
-        while(True):
-            loc = (next(iter_loc), next(iter_loc), next(iter_loc))
-            nor = (next(iter_nor), next(iter_nor), next(iter_nor))
-            face_index = next(iter_face_index)
-            
-            samples = []
-            num_samples = next(iter_samples_len)
-            for k in range(num_samples):
-                sample_loc = (next(iter_samples_loc), next(iter_samples_loc), next(iter_samples_loc))
-                sample_nor = (next(iter_samples_nor), next(iter_samples_nor), next(iter_samples_nor))
-                sample_idx = next(iter_samples_idx)
-                samples.append((sample_loc, sample_nor, sample_idx))
-
-            blob = Blob(loc, nor, face_index)
-            blob.samples = samples
-            blobs.append(blob)
-    except StopIteration:
-        pass
-
+    import pickle, array
+    A = array.array('i', data['blobs'])
+    blobs = pickle.loads(A.tobytes())
     return blobs
 
 def make_blobs(context, gridob, groundob, samples, display_radius):
