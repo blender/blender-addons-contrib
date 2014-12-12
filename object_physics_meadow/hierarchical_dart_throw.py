@@ -28,10 +28,6 @@ from object_physics_meadow.util import *
 # "Poisson Disk Point Sets by Hierarchical Dart Throwing"
 # (White, Cline, Egbert)
 
-prof_find_cell = Profiling("find_cell")
-prof_test_coverage = Profiling("test_coverage")
-prof_test_disk = Profiling("test_disk")
-
 class GridCell():
     __slots__ = ('i', 'j', 'k')
     
@@ -153,7 +149,6 @@ class PointGrid():
                     yield p
 
 def is_covered(radius2, b0, pgrid, level, cell_i, cell_j, x0, x1, y0, y1):
-    #with prof_test_coverage:
     cx = 0.5*(x0 + x1)
     cy = 0.5*(y0 + y1)
     for point in pgrid.neighbors(level, cell_i, cell_j):
@@ -166,7 +161,6 @@ def is_covered(radius2, b0, pgrid, level, cell_i, cell_j, x0, x1, y0, y1):
     return False
 
 def test_disk(radius2, pgrid, point, level, cell_i, cell_j):
-    #with prof_test_disk:
     for npoint in pgrid.neighbors(level, cell_i, cell_j):
         dx = point[0] - npoint[0]
         dy = point[1] - npoint[1]
@@ -211,7 +205,6 @@ def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax, debu
             if not any(level.cells for level in levels):
                 break
             
-            #with prof_find_cell:
             level, cell = pop_cell(levels)
             if level:
                 x0, x1, y0, y1, z0, z1 = level.cell_corners(cell)
@@ -229,10 +222,6 @@ def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax, debu
                             split_cell(radius2, b0, pgrid, levels[level.index+1], cell, x0, x1, y0, y1, z0, z1)
             else:
                 break
-    
-        #print(prof_find_cell.as_string())
-        #print(prof_test_coverage.as_string())
-        #print(prof_test_disk.as_string())
     
     return gen
 

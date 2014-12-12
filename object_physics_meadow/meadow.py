@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-import bpy, os
+import bpy, os, cProfile, pstats, io
 from mathutils import *
 
 from object_physics_meadow import settings as _settings
@@ -29,6 +29,8 @@ from object_physics_meadow.duplimesh import project_on_ground
 
 from object_physics_meadow.best_candidate import best_candidate_gen
 from object_physics_meadow.hierarchical_dart_throw import hierarchical_dart_throw_gen, MeshDebug
+
+use_profiling = False
 
 def make_samples(context, gridob, groundob):
     settings = _settings.get(context)
@@ -48,7 +50,18 @@ def make_samples(context, gridob, groundob):
     gen = hierarchical_dart_throw_gen(groundob.meadow.patch_radius, groundob.meadow.sampling_levels, xmin, xmax, ymin, ymax, debug)
     
     mat = groundob.matrix_world
-    loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
+    if use_profiling:
+        prof = cProfile.Profile()
+        prof.enable()
+        loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
+        prof.disable()
+
+        s = io.StringIO()
+        ps = pstats.Stats(prof, stream=s).sort_stats('cumulative')
+        ps.print_stats()
+        print(s.getvalue())
+    else:
+        loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
     #debug.to_object(context)
     
     # project samples onto the ground object
