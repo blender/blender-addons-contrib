@@ -57,7 +57,9 @@ class GridLevel():
         return cell
 
     def deactivate(self, index):
-        return self.cells.pop(index)
+        c = self.cells[index]
+        self.cells[index] = self.cells.pop()
+        return c
 
     def cell_corners(self, cell):
         x0 = float(cell.i)
