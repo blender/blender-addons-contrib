@@ -163,16 +163,19 @@ class Blob():
         self.face_index = face_index
         self.samples = []
     
+    def add_sample(self, loc, nor, face, verts, weights):
+        self.samples.append((loc, nor, face, verts, weights))
+    
     # note: Vector instances cannot be pickled directly,
     # therefore define own pickle methods here
     def __getstate__(self):
-        return self.loc[:], self.nor[:], self.face_index, [(sloc[:], snor[:], sidx) for sloc, snor, sidx in self.samples]
+        return self.loc[:], self.nor[:], self.face_index, [(sloc[:], snor[:], sface, sverts, sweights) for sloc, snor, sface, sverts, sweights in self.samples]
     
     def __setstate__(self, state):
         self.loc = Vector(state[0])
         self.nor = Vector(state[1])
         self.face_index = state[2]
-        self.samples = [(Vector(sloc), Vector(snor), sidx) for sloc, snor, sidx in state[3]]
+        self.samples = [(Vector(sloc), Vector(snor), sface, sverts, sweights) for sloc, snor, sface, sverts, sweights in state[3]]
 
 # store blobs list in ID datablock as customdata
 def blobs_to_customprops(data, blobs):
@@ -189,7 +192,8 @@ def blobs_from_customprops(data):
     blobs = pickle.loads(A.tobytes())
     return blobs
 
-def make_blobs(context, gridob, groundob, samples, display_radius):
+
+def make_blobs(context, gridob, groundob, samples2D, display_radius):
     blob_group_clear(context)
     blobs = []
     
@@ -205,13 +209,32 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
         ok, loc, nor, face_index = project_on_ground(groundob, co)
         blobs.append(Blob(loc, nor, face_index) if ok else None)
     
-    for loc, nor, face_index in samples:
+    groundob.data.calc_tessface()
+    mfaces = groundob.data.tessfaces
+    mverts = groundob.data.vertices
+    for xy in samples2D:
         # note: use only 2D coordinates for weighting, z component should be 0
-        index = assign_blob(blobtree, (loc[0], loc[1], 0.0), nor)
-        if index >= 0:
-            blob = blobs[index]
-            if blob:
-                blob.samples.append((loc, nor, face_index))
+        index = assign_blob(blobtree, (xy[0], xy[1], 0.0), nor)
+        if index < 0:
+            continue
+        blob = blobs[index]
+        if blob is None:
+            continue
+        
+        # project samples onto the ground object
+        ok, sloc, snor, sface = project_on_ground(groundob, xy[0:2]+(0,))
+        if not ok:
+            continue
+        
+        # calculate barycentric vertex weights on the face
+        face = mfaces[sface]
+        verts = [mverts[i] for i in face.vertices]
+        assert(len(verts) in {3, 4})
+        sweights, sverts = interp_weights_face(tuple(v.co for v in verts[0:4]), sloc)
+        # interpolation indices are for the face, make them into mesh indices
+        sverts = tuple(face.vertices[i] for i in sverts)
+        
+        blob.add_sample(sloc, snor, sface, sverts, sweights)
     
     # common parent empty for blobs
     blob_parent = get_blob_parent(context, groundob.matrix_world)
@@ -221,7 +244,7 @@ def make_blobs(context, gridob, groundob, samples, display_radius):
     # before creating the actual duplicator blob meshes
     for index, blob in enumerate(blobs):
         if blob:
-            samples = [(loc, nor) for loc, nor, _ in blob.samples]
+            samples = [(loc, nor) for loc, nor, _, _, _ in blob.samples]
             ob = make_blob_object(context, index, blob.loc, samples, display_radius)
             # put it in the blob group
             blob_group_assign(context, ob)
@@ -237,23 +260,17 @@ from object_physics_meadow.patch import patch_objects, patch_group_assign
 # select one patch object for each sample based on vertex groups
 def assign_sample_patches(groundob, blob, patches):
     vgroups = groundob.vertex_groups
-    faces = groundob.data.tessfaces
-    vertices = groundob.data.vertices
+    mverts = groundob.data.vertices
     
     used_vgroup_names = set(ob.meadow.density_vgroup_name for ob in patches)
     
     vgroup_samples = { vg.name : [] for vg in vgroups }
     vgroup_samples[""] = [] # samples for unassigned patches
-    for loc, nor, face_index in blob.samples:
-        face = faces[face_index]
-        verts = [vertices[i] for i in face.vertices]
-        assert(len(verts) in {3, 4})
-        
-        # accumulate weights for each vertex group,
-        # by interpolating the face and 
-        fweight, findex = interp_weights_face(tuple(v.co for v in verts[0:4]), loc)
+    for sloc, snor, sface, sverts, sweights in blob.samples:
+        verts = [mverts[i] for i in sverts]
+        # accumulate weights for each vertex group by interpolating the face
         weights = [ 0.0 for vg in vgroups ]
-        for v, fac in zip(verts, fweight):
+        for v, fac in zip(verts, sweights):
             for vg in v.groups:
                 weights[vg.group] += vg.weight * fac
         
@@ -275,9 +292,9 @@ def assign_sample_patches(groundob, blob, patches):
         
         vg = select_vgroup()
         if vg:
-            vgroup_samples[vg.name].append((loc, nor))
+            vgroup_samples[vg.name].append((sloc, snor))
         else:
-            vgroup_samples[""].append((loc, nor))
+            vgroup_samples[""].append((sloc, snor))
     
     return vgroup_samples
 

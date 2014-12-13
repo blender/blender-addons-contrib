@@ -60,22 +60,15 @@ def make_samples(context, gridob, groundob):
     else:
         loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
     
-    # project samples onto the ground object
-    samples = []
-    for loc in loc2D:
-        ok, loc, nor, face_index = project_on_ground(groundob, loc)
-        if ok:
-            samples.append((loc, nor, face_index))
-    
-    return samples
+    return loc2D
 
 ### Duplicators for later instancing ###
 def make_blobs(context, gridob, groundob):
     # patches are linked to current blobs, clear to avoid confusing reset
     patch.patch_group_clear(context)
     
-    samples = make_samples(context, gridob, groundob)
-    blob.make_blobs(context, gridob, groundob, samples, groundob.meadow.patch_radius)
+    samples2D = make_samples(context, gridob, groundob)
+    blob.make_blobs(context, gridob, groundob, samples2D, groundob.meadow.patch_radius)
 
 ### Patch copies for simulation ###
 def make_patches(context, gridob, groundob):
