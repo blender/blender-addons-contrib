@@ -37,11 +37,12 @@ class GridCell():
         self.k = k
 
 class GridLevel():
-    __slots__ = ('index', 'size', 'weight', 'cells', 'debug')
+    __slots__ = ('index', 'size', 'grid_factor', 'weight', 'cells', 'debug')
     
-    def __init__(self, index, size):
+    def __init__(self, index, size, radius):
         self.index = index
         self.size = size
+        self.grid_factor = size / radius
         self.weight = size * size # 2D
         self.cells = []
         self.debug = None
@@ -137,7 +138,7 @@ class PointGrid():
 
     def neighbors(self, level, cell_i, cell_j):
         # multiplier between cell grid and base grid
-        grid_factor = self.cell_grid_factor / (2 ** level.index)
+        grid_factor = level.grid_factor
         
         ca = ifloor(cell_i * grid_factor)
         cb = ifloor(cell_j * grid_factor)
@@ -188,8 +189,8 @@ def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax, debu
     nj = jmax - jmin
     nk = 1 # for 2D grid
 
-    base_level = GridLevel(0, b0)
-    levels = [base_level] + [GridLevel(i, base_level.size / (2**i)) for i in range(1, max_levels)]
+    base_level = GridLevel(0, b0, radius)
+    levels = [base_level] + [GridLevel(i, base_level.size / (2**i), radius) for i in range(1, max_levels)]
     epsilon = levels[-1].weight * 0.5
     for level in levels:
         level.debug = debug
