@@ -110,43 +110,70 @@ class PointGrid():
     def __init__(self, radius, b0, gridmin, gridmax):
         width = gridmax[0] - gridmin[0]
         height = gridmax[1] - gridmin[1]
+        size = radius
         
-        self.amin = ifloor(gridmin[0] / radius) - 1
-        self.bmin = ifloor(gridmin[1] / radius) - 1
-        self.na = ifloor(gridmax[0] / radius) + 2 - self.amin
-        self.nb = ifloor(gridmax[1] / radius) + 2 - self.bmin
+        self.size = size
+        self.invsize = 1.0 / size
         
-        self.size = radius
-        self.invsize = 1.0 / radius
-        
-        # factor to get point grid index from cell grid index
-        self.cell_grid_factor = b0 / radius
+        self.amin = ifloor(gridmin[0] / size) - 1
+        self.bmin = ifloor(gridmin[1] / size) - 1
+        self.na = ifloor(gridmax[0] / size) + 2 - self.amin
+        self.nb = ifloor(gridmax[1] / size) + 2 - self.bmin
         
         # note: row-major, so we can address it with cells[i][j]
         self.cells = tuple(tuple(PointCell() for j in range(self.nb)) for i in range(self.na))
 
-    def insert(self, point):
+    def grid_from_loc(self, point):
         s = self.invsize
-        a = ifloor(point[0] * s) - self.amin
-        b = ifloor(point[1] * s) - self.bmin
-        cell = self.cells[a][b]
-        assert(len(cell.points) <= 3)
-        cell.points.append(point)
+        return (point[0] * s, point[1] * s)
+
+    def insert(self, point):
+        def add_to_cell(point, a, b):
+            #if a < 0 or a >= self.na or b < 0 or b >= self.nb:
+            #    return
+            cell = self.cells[a][b]
+            cell.points.append(point)
+        
+        s = self.invsize
+        u = point[0] * s
+        v = point[1] * s
+        
+        a = ifloor(u) - self.amin
+        b = ifloor(v) - self.bmin
+        
+        # optimization: also store the point in neighboring cells,
+        # so slow loops over multiple cells in neighbor lookup
+        # can be avoided (as suggested in the original paper)
+        use_aminus = a > 0
+        use_aplus = a < self.na-1
+        use_bminus = b > 0
+        use_bplus = b < self.nb-1
+        if use_bminus:
+            if use_aminus:
+                add_to_cell(point, a-1, b-1)
+            add_to_cell(point, a  , b-1)
+            if use_aplus:
+                add_to_cell(point, a+1, b-1)
+        if use_aminus:
+            add_to_cell(point, a-1, b  )
+        add_to_cell(point, a  , b  )
+        if use_aplus:
+            add_to_cell(point, a+1, b  )
+        if use_bplus:
+            if use_aminus:
+                add_to_cell(point, a-1, b+1)
+            add_to_cell(point, a  , b+1)
+            if use_aplus:
+                add_to_cell(point, a+1, b+1)
 
     def neighbors(self, level, cell_i, cell_j):
         # multiplier between cell grid and base grid
         grid_factor = level.grid_factor
         
-        ca = ifloor(cell_i * grid_factor)
-        cb = ifloor(cell_j * grid_factor)
-        amin = max(ca - self.amin - 1, 0)
-        amax = min(ca - self.amin + 2, self.na)
-        bmin = max(cb - self.bmin - 1, 0)
-        bmax = min(cb - self.bmin + 2, self.nb)
-        for a in range(amin, amax):
-            for b in range(bmin, bmax):
-                for p in self.cells[a][b].points:
-                    yield p
+        a = ifloor(cell_i * grid_factor) - self.amin
+        b = ifloor(cell_j * grid_factor) - self.bmin
+        for p in self.cells[a][b].points:
+            yield p
 
 def is_covered(radius2, b0, pgrid, level, cell_i, cell_j, x0, x1, y0, y1):
     cx = 0.5*(x0 + x1)
