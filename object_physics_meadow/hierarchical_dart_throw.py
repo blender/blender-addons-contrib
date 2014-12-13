@@ -56,7 +56,10 @@ class GridLevel():
 
     def deactivate(self, index):
         c = self.cells[index]
-        self.cells[index] = self.cells.pop()
+        if index < len(self.cells)-1:
+            self.cells[index] = self.cells.pop()
+        else:
+            self.cells.pop()
         return c
 
     def cell_corners(self, cell):
@@ -93,7 +96,9 @@ def pop_cell(levels):
     for level in levels:
         level_totweight = len(level.cells) * level.weight
         if u < level_totweight:
-            cell_index = int(u / level.weight)
+            # Note: using int(u / level.weight) as cell index works in theory,
+            # but rounding errors can cause an invalid index >= len(level.cells)
+            cell_index = random.randrange(len(level.cells))
             cell = level.deactivate(cell_index)
             return level, cell
         else:
