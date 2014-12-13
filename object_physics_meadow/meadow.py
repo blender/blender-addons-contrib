@@ -47,18 +47,7 @@ def make_samples(context, gridob, groundob):
     gen = hierarchical_dart_throw_gen(groundob.meadow.patch_radius, groundob.meadow.sampling_levels, xmin, xmax, ymin, ymax)
     
     mat = groundob.matrix_world
-    if use_profiling:
-        prof = cProfile.Profile()
-        prof.enable()
-        loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
-        prof.disable()
-
-        s = io.StringIO()
-        ps = pstats.Stats(prof, stream=s).sort_stats('cumulative')
-        ps.print_stats()
-        print(s.getvalue())
-    else:
-        loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
+    loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
     
     return loc2D
 
@@ -67,8 +56,20 @@ def make_blobs(context, gridob, groundob):
     # patches are linked to current blobs, clear to avoid confusing reset
     patch.patch_group_clear(context)
     
-    samples2D = make_samples(context, gridob, groundob)
-    blob.make_blobs(context, gridob, groundob, samples2D, groundob.meadow.patch_radius)
+    if use_profiling:
+        prof = cProfile.Profile()
+        prof.enable()
+        samples2D = make_samples(context, gridob, groundob)
+        blob.make_blobs(context, gridob, groundob, samples2D, groundob.meadow.patch_radius)
+        prof.disable()
+
+        s = io.StringIO()
+        ps = pstats.Stats(prof, stream=s).sort_stats('tottime')
+        ps.print_stats()
+        print(s.getvalue())
+    else:
+        samples2D = make_samples(context, gridob, groundob)
+        blob.make_blobs(context, gridob, groundob, samples2D, groundob.meadow.patch_radius)
 
 ### Patch copies for simulation ###
 def make_patches(context, gridob, groundob):
