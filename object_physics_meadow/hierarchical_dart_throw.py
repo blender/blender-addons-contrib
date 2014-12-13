@@ -37,7 +37,7 @@ class GridCell():
         self.k = k
 
 class GridLevel():
-    __slots__ = ('index', 'size', 'grid_factor', 'weight', 'cells', 'debug')
+    __slots__ = ('index', 'size', 'grid_factor', 'weight', 'cells')
     
     def __init__(self, index, size, radius):
         self.index = index
@@ -45,15 +45,12 @@ class GridLevel():
         self.grid_factor = size / radius
         self.weight = size * size # 2D
         self.cells = []
-        self.debug = None
 
     def activate(self, i, j, k):
         cell = GridCell(i, j, k)
         self.cells.append(cell)
         
         x0, x1, y0, y1, _, _ = self.cell_corners(cell)
-        if self.debug:
-            self.debug.add_grid_cell(x0, x1, y0, y1)
         
         return cell
 
@@ -180,7 +177,7 @@ def split_cell(radius2, b0, pgrid, child_level, cell, x0, x1, y0, y1, z0, z1):
             if not is_covered(radius2, b0, pgrid, child_level, ci, cj, cx0, cx1, cy0, cy1):
                 child_cell = child_level.activate(ci, cj, ck)
 
-def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax, debug=None):
+def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax):
     radius2 = radius * radius
     gridmin = (xmin, ymin)
     gridmax = (xmax, ymax)
@@ -192,8 +189,6 @@ def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax, debu
     base_level = GridLevel(0, b0, radius)
     levels = [base_level] + [GridLevel(i, base_level.size / (2**i), radius) for i in range(1, max_levels)]
     epsilon = levels[-1].weight * 0.5
-    for level in levels:
-        level.debug = debug
     
     for j in range(jmin, jmax):
         for i in range(imin, imax):
@@ -218,8 +213,6 @@ def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax, debu
                     if test_disk(radius2, pgrid, point, level, cell.i, cell.j):
                         yield point
                         pgrid.insert(point)
-                        if debug:
-                            debug.add_sample(point)
                     else:
                         if level.index < max_levels - 1:
                             split_cell(radius2, b0, pgrid, levels[level.index+1], cell, x0, x1, y0, y1, z0, z1)
@@ -227,35 +220,3 @@ def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax, debu
                 break
     
     return gen
-
-#-----------------------------------------------------------------------
-
-class MeshDebug:
-    def __init__(self, drawsize = 0.1):
-        self.verts = []
-        self.edges = []
-        self.drawsize = drawsize
-    
-    def add_grid_cell(self, x0, x1, y0, y1):
-        N = len(self.verts)
-        self.verts += [(x0, y0, 0.0), (x1, y0, 0.0), (x1, y1, 0.0), (x0, y1, 0.0)]
-        self.edges += [(N+0, N+1), (N+1, N+2), (N+2, N+3), (N+3, N+0)]
-    
-    def add_sample(self, sample):
-        #verts += (sample[0], sample[1], 0.0)
-        u = self.drawsize * 0.5
-        N = len(self.verts)
-        self.verts += [(sample[0]-u, sample[1]-u, 0.0), (sample[0]+u, sample[1]+u, 0.0), (sample[0]-u, sample[1]+u, 0.0), (sample[0]+u, sample[1]-u, 0.0)]
-        self.edges += [(N+0, N+1), (N+2, N+3)]
-    
-    def to_object(self, context):
-        from bpy_extras import object_utils
-        
-        name = "PoissonSamplesDebug"
-        
-        mesh = bpy.data.meshes.new(name)
-        mesh.from_pydata(self.verts, self.edges, [])
-        mesh.update()
-        
-        ob = object_utils.object_data_add(context, mesh, operator=None).object
-        return ob

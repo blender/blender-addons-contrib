@@ -28,7 +28,7 @@ from object_physics_meadow.duplimesh import project_on_ground
 #from object_physics_meadow.pointcache import cache_filename
 
 from object_physics_meadow.best_candidate import best_candidate_gen
-from object_physics_meadow.hierarchical_dart_throw import hierarchical_dart_throw_gen, MeshDebug
+from object_physics_meadow.hierarchical_dart_throw import hierarchical_dart_throw_gen
 
 use_profiling = False
 
@@ -42,12 +42,9 @@ def make_samples(context, gridob, groundob):
     zmin = min(p[2] for p in groundob.bound_box)
     zmax = max(p[2] for p in groundob.bound_box)
     
-    debug = None
-    #debug = MeshDebug(drawsize=0.1)
-    
     # get a sample generator implementation
     #gen = best_candidate_gen(groundob.meadow.patch_radius, xmin, xmax, ymin, ymax)
-    gen = hierarchical_dart_throw_gen(groundob.meadow.patch_radius, groundob.meadow.sampling_levels, xmin, xmax, ymin, ymax, debug)
+    gen = hierarchical_dart_throw_gen(groundob.meadow.patch_radius, groundob.meadow.sampling_levels, xmin, xmax, ymin, ymax)
     
     mat = groundob.matrix_world
     if use_profiling:
@@ -62,7 +59,6 @@ def make_samples(context, gridob, groundob):
         print(s.getvalue())
     else:
         loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
-    #debug.to_object(context)
     
     # project samples onto the ground object
     samples = []
