@@ -218,18 +218,18 @@ def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax):
     nj = jmax - jmin
     nk = 1 # for 2D grid
 
-    base_level = GridLevel(0, b0, radius)
-    levels = [base_level] + [GridLevel(i, base_level.size / (2**i), radius) for i in range(1, max_levels)]
-    epsilon = levels[-1].weight * 0.5
-    
-    for j in range(jmin, jmax):
-        for i in range(imin, imax):
-            base_level.activate(i, j, 0)
-    
-    pgrid = PointGrid(radius, b0, gridmin, gridmax)
-    
     def gen(seed, num):
         random.seed(seed)
+        
+        base_level = GridLevel(0, b0, radius)
+        levels = [base_level] + [GridLevel(i, base_level.size / (2**i), radius) for i in range(1, max_levels)]
+        epsilon = levels[-1].weight * 0.5
+        
+        for j in range(jmin, jmax):
+            for i in range(imin, imax):
+                base_level.activate(i, j, 0)
+        
+        pgrid = PointGrid(radius, b0, gridmin, gridmax)
         
         for i in range(num):
             if not any(level.cells for level in levels):
