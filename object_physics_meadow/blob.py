@@ -33,7 +33,8 @@ from object_physics_meadow.duplimesh import project_on_ground
 from object_physics_meadow.util import *
 
 _blob_object_name = "__MeadowBlob__"
-_blob_object_parent_name = "__MeadowBlobParent__"
+_sampleviz_parent_name = "Meadow_SampleViz_Root"
+_duplicator_parent_name = "Meadow_Duplicators_Root"
 
 def blob_objects(context):
     settings = _settings.get(context)
@@ -100,10 +101,10 @@ def get_blob_material(context):
     ma.emit = 1.0
     return ma
 
-def get_blob_parent(context, obmat):
-    ob = context.blend_data.objects.get(_blob_object_parent_name, None)
+def get_blob_parent(context, obmat, name):
+    ob = context.blend_data.objects.get(name, None)
     if not ob:
-        ob = object_utils.object_data_add(bpy.context, None, name=_blob_object_parent_name).object
+        ob = object_utils.object_data_add(bpy.context, None, name=name).object
     # put it in the blob group
     blob_group_assign(context, ob, test=True)
     
@@ -234,7 +235,7 @@ def make_blobs(context, gridob, groundob, samples2D, display_radius):
         blob.add_sample(sloc, snor, spoly, sverts, sweights)
 
     # common parent empty for blobs
-    blob_parent = get_blob_parent(context, groundob.matrix_world)
+    blob_parent = get_blob_parent(context, groundob.matrix_world, _sampleviz_parent_name)
     
     # preliminary display object
     # XXX this could be removed eventually, but it's helpful as visual feedback to the user
@@ -301,7 +302,7 @@ def setup_blob_duplis(context, groundob, display_radius):
     patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
     
     # common parent empty for blobs
-    blob_parent = get_blob_parent(context, groundob.matrix_world)
+    blob_parent = get_blob_parent(context, groundob.matrix_world, _duplicator_parent_name)
     
     del_patches = set() # patches to delete, keep this separate for iterator validity
     for blob_index, blob in enumerate(blobs):
