@@ -253,34 +253,10 @@ def bake_all(context, progress_reporter):
     total = count_bakeable(context)
     
     with progress_reporter("Bake Blob", 0, total):
-        """
-        num = 0
-        """
         for ob in patch_objects(context):
             for psys in ob.particle_systems:
-                """
-                sys.stdout.write("Baking blob {}/{} ... ".format(str(num).rjust(5), str(total).ljust(5)))
-                sys.stdout.flush()
-                
-                start_time = time.time()
-                """
-                
                 progress_add(1)
                 bake_psys(context, ob, psys)
-                
-                """
-                duration = time.time() - start_time
-                total_time += duration
-                avg_time = total_time / float(num + 1)
-                
-                time_string = lambda x: time.strftime("%H:%M:%S", time.gmtime(x)) + ".%02d" % (int(x * 100.0) % 100)
-                durstr = time_string(duration)
-                avgstr = time_string(avg_time) if avg_time > 0.0 else "--:--:--"
-                etastr = time_string(avg_time * (total - num)) if avg_time > 0.0 else "--:--:--"
-                sys.stdout.write("{} (avg. {}, ETA {})\n".format(durstr, avgstr, etastr))
-                sys.stdout.flush()
-                num += 1
-                """
 
 def patch_objects_rebake(context, progress_reporter=DummyProgressContext):
     settings = _settings.get(context)

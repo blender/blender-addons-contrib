@@ -99,6 +99,12 @@ def set_object_parent(ob, parent):
 
 _progress_context = None
 
+def get_time_string(x):
+    if x >= 0.0:
+        return time.strftime("%H:%M:%S", time.gmtime(x)) + ".%02d" % (int(x * 100.0) % 100)
+    else:
+        return "??:??:??.??"
+
 def make_progress_reporter(show_progress_bar=True, show_stdout=False):
 
     # internal class returned by the function, bound to output args
@@ -113,12 +119,17 @@ def make_progress_reporter(show_progress_bar=True, show_stdout=False):
             self.pcur = pmin
             self.perc_show = -2.0 # last displayed percentage, init to make sure we show the first time
 
+            self.duration = 0.0
+            self.start_time = 0.0
+
         def __enter__(self):
             global _progress_context
 
             assert(_progress_context is None)
             _progress_context = self
             
+            self.start_time = time.time()
+
             if show_progress_bar:
                 wm = bpy.context.window_manager
                 # always use 0..100 percentage on the progress counter,
@@ -133,12 +144,24 @@ def make_progress_reporter(show_progress_bar=True, show_stdout=False):
                 wm.progress_end()
 
             if show_stdout:
+                # make a final report
+                done = self.pcur - self.pmin
+                sys.stdout.write("\r>> {}: {}/{}, {}".format(self.name,
+                                                                    str(done).rjust(len(str(self.tot))), str(self.tot),
+                                                                    get_time_string(self.duration)))
                 # clean newline
                 sys.stdout.write("\n")
                 sys.stdout.flush()
 
             assert(_progress_context is self)
             _progress_context = None
+
+        def estimate_total_duration(self):
+            done = self.pcur - self.pmin
+            if done > 0:
+                return self.duration * self.tot / done
+            else:
+                return -1.0
 
         def set_progress(self, value, message):
             self.pcur = value
@@ -149,14 +172,25 @@ def make_progress_reporter(show_progress_bar=True, show_stdout=False):
             # avoids overhead for very frequent updates
             if perc > self.perc_show + 1.0:
                 self.perc_show = perc
-                perc = min(max(int(perc), 0), 100)
+                perc = min(max(perc, 0), 100)
+
+                self.duration = time.time() - self.start_time
 
                 if show_progress_bar:
                     wm = bpy.context.window_manager
                     wm.progress_update(perc)
 
                 if show_stdout:
-                    sys.stdout.write("\r>> {}: {}/{} [{}{}] {}".format(self.name, str(done).rjust(len(str(self.tot))), str(self.tot), '.' * perc, ' ' * (100 - perc), message))
+                    bar = 50
+                    filled = int(bar * done * self.norm)
+
+                    eta = self.estimate_total_duration()
+
+                    sys.stdout.write("\r>> {}: {}/{} [{}{}] {}/{} | {}".format(self.name,
+                                                                               str(done).rjust(len(str(self.tot))), str(self.tot),
+                                                                               '.' * filled, ' ' * (bar - filled),
+                                                                               get_time_string(self.duration), get_time_string(eta),
+                                                                               message))
                     sys.stdout.flush()
 
     return ProgressContext
