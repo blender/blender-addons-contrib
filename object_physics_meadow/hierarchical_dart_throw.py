@@ -49,10 +49,17 @@ class GridLevel():
     def activate(self, i, j, k):
         cell = GridCell(i, j, k)
         self.cells.append(cell)
-        
-        x0, x1, y0, y1, _, _ = self.cell_corners(cell)
-        
         return cell
+
+    def set_active_cells(self, imin, imax, jmin, jmax, kmin, kmax):
+        tot = (imax - imin) * (jmax - jmin) * (kmax - kmin)
+        self.cells = [None] * tot
+        c = 0
+        for k in range(kmin, kmax):
+            for j in range(jmin, jmax):
+                for i in range(imin, imax):
+                    self.cells[c] = GridCell(i, j, k)
+                    c += 1
 
     def deactivate(self, index):
         c = self.cells[index]
@@ -225,9 +232,7 @@ def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax):
         levels = [base_level] + [GridLevel(i, base_level.size / (2**i), radius) for i in range(1, max_levels)]
         epsilon = levels[-1].weight * 0.5
         
-        for j in range(jmin, jmax):
-            for i in range(imin, imax):
-                base_level.activate(i, j, 0)
+        base_level.set_active_cells(imin, imax, jmin, jmax, 0, 1)
         
         pgrid = PointGrid(radius, b0, gridmin, gridmax)
         
