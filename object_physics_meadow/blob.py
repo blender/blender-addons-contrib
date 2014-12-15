@@ -23,12 +23,13 @@ from bpy_extras import object_utils
 from math import *
 from mathutils import *
 from mathutils.kdtree import KDTree
+from mathutils.interpolate import poly_3d_calc
 from itertools import accumulate
 import random
 
 from object_physics_meadow import settings as _settings
 from object_physics_meadow import duplimesh
-from object_physics_meadow.duplimesh import project_on_ground, interp_weights_face
+from object_physics_meadow.duplimesh import project_on_ground
 from object_physics_meadow.util import *
 
 _blob_object_name = "__MeadowBlob__"
@@ -157,25 +158,25 @@ def make_blob_object(context, index, loc, samples, display_radius):
     return ob
 
 class Blob():
-    def __init__(self, loc, nor, face_index):
+    def __init__(self, loc, nor, poly_index):
         self.loc = loc
         self.nor = nor
-        self.face_index = face_index
+        self.poly_index = poly_index
         self.samples = []
     
-    def add_sample(self, loc, nor, face, verts, weights):
-        self.samples.append((loc, nor, face, verts, weights))
+    def add_sample(self, loc, nor, poly, verts, weights):
+        self.samples.append((loc, nor, poly, verts, weights))
     
     # note: Vector instances cannot be pickled directly,
     # therefore define own pickle methods here
     def __getstate__(self):
-        return self.loc[:], self.nor[:], self.face_index, [(sloc[:], snor[:], sface, sverts, sweights) for sloc, snor, sface, sverts, sweights in self.samples]
+        return self.loc[:], self.nor[:], self.poly_index, [(sloc[:], snor[:], spoly, sverts, sweights) for sloc, snor, spoly, sverts, sweights in self.samples]
     
     def __setstate__(self, state):
         self.loc = Vector(state[0])
         self.nor = Vector(state[1])
-        self.face_index = state[2]
-        self.samples = [(Vector(sloc), Vector(snor), sface, sverts, sweights) for sloc, snor, sface, sverts, sweights in state[3]]
+        self.poly_index = state[2]
+        self.samples = [(Vector(sloc), Vector(snor), spoly, sverts, sweights) for sloc, snor, spoly, sverts, sweights in state[3]]
 
 # store blobs list in ID datablock as customdata
 def blobs_to_customprops(data, blobs):
@@ -206,11 +207,10 @@ def make_blobs(context, gridob, groundob, samples2D, display_radius):
     
     for v in gridob.data.vertices:
         co = gridob.matrix_world * v.co
-        ok, loc, nor, face_index = project_on_ground(groundob, co)
-        blobs.append(Blob(loc, nor, face_index) if ok else None)
+        ok, loc, nor, poly_index = project_on_ground(groundob, co)
+        blobs.append(Blob(loc, nor, poly_index) if ok else None)
     
-    groundob.data.calc_tessface()
-    mfaces = groundob.data.tessfaces
+    mpolys = groundob.data.polygons
     mverts = groundob.data.vertices
     for xy in samples2D:
         # note: use only 2D coordinates for weighting, z component should be 0
@@ -222,20 +222,17 @@ def make_blobs(context, gridob, groundob, samples2D, display_radius):
             continue
         
         # project samples onto the ground object
-        ok, sloc, snor, sface = project_on_ground(groundob, xy[0:2]+(0,))
+        ok, sloc, snor, spoly = project_on_ground(groundob, xy[0:2]+(0,))
         if not ok:
             continue
         
-        # calculate barycentric vertex weights on the face
-        face = mfaces[sface]
-        verts = [mverts[i] for i in face.vertices]
-        assert(len(verts) in {3, 4})
-        sweights, sverts = interp_weights_face(tuple(v.co for v in verts[0:4]), sloc)
-        # interpolation indices are for the face, make them into mesh indices
-        sverts = tuple(face.vertices[i] for i in sverts)
-        
-        blob.add_sample(sloc, snor, sface, sverts, sweights)
-    
+        # calculate barycentric vertex weights on the poly
+        poly = mpolys[spoly]
+        sverts = list(poly.vertices)
+        sweights = poly_3d_calc(tuple(mverts[i].co for i in sverts), sloc)
+
+        blob.add_sample(sloc, snor, spoly, sverts, sweights)
+
     # common parent empty for blobs
     blob_parent = get_blob_parent(context, groundob.matrix_world)
     
@@ -266,9 +263,9 @@ def assign_sample_patches(groundob, blob, patches):
     
     vgroup_samples = { vg.name : [] for vg in vgroups }
     vgroup_samples[""] = [] # samples for unassigned patches
-    for sloc, snor, sface, sverts, sweights in blob.samples:
+    for sloc, snor, spoly, sverts, sweights in blob.samples:
         verts = [mverts[i] for i in sverts]
-        # accumulate weights for each vertex group by interpolating the face
+        # accumulate weights for each vertex group by interpolating the poly
         weights = [ 0.0 for vg in vgroups ]
         for v, fac in zip(verts, sweights):
             for vg in v.groups:
@@ -301,7 +298,6 @@ def assign_sample_patches(groundob, blob, patches):
 def setup_blob_duplis(context, groundob, display_radius):
     blobs = blobs_from_customprops(groundob.meadow)
 
-    groundob.data.calc_tessface()
     patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
     
     # common parent empty for blobs
