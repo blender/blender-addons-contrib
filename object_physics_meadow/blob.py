@@ -195,6 +195,29 @@ def blobs_from_customprops(data):
     return blobs
 
 
+def make_blob_visualizer(context, groundob, blobs, display_radius, hide, hide_render=True):
+    # common parent empty for blobs
+    blob_parent = get_blob_parent(context, groundob.matrix_world, _sampleviz_parent_name)
+    blob_parent.hide = hide
+    blob_parent.hide_render = hide_render
+
+    # preliminary display object
+    # XXX this could be removed eventually, but it's helpful as visual feedback to the user
+    # before creating the actual duplicator blob meshes
+    for index, blob in enumerate(blobs):
+        if blob:
+            samples = [(loc, nor) for loc, nor, _, _, _ in blob.samples]
+            ob = make_blob_object(context, index, blob.loc, samples, display_radius)
+            # put it in the blob group
+            blob_group_assign(context, ob)
+            # use parent to keep the outliner clean
+            set_object_parent(ob, blob_parent)
+            
+            ob.hide = hide
+            ob.hide_render = hide_render
+            # make children unselectable by default
+            ob.hide_select = True
+
 def make_blobs(context, gridob, groundob, samples2D, display_radius):
     blob_group_clear(context)
     blobs = []
@@ -233,23 +256,10 @@ def make_blobs(context, gridob, groundob, samples2D, display_radius):
         sweights = poly_3d_calc(tuple(mverts[i].co for i in sverts), sloc)
 
         blob.add_sample(sloc, snor, spoly, sverts, sweights)
-
-    # common parent empty for blobs
-    blob_parent = get_blob_parent(context, groundob.matrix_world, _sampleviz_parent_name)
-    
-    # preliminary display object
-    # XXX this could be removed eventually, but it's helpful as visual feedback to the user
-    # before creating the actual duplicator blob meshes
-    for index, blob in enumerate(blobs):
-        if blob:
-            samples = [(loc, nor) for loc, nor, _, _, _ in blob.samples]
-            ob = make_blob_object(context, index, blob.loc, samples, display_radius)
-            # put it in the blob group
-            blob_group_assign(context, ob)
-            # use parent to keep the outliner clean
-            set_object_parent(ob, blob_parent)
     
     blobs_to_customprops(groundob.meadow, blobs)
+
+    make_blob_visualizer(context, groundob, blobs, display_radius, hide=True)
 
 #-----------------------------------------------------------------------
 
@@ -300,10 +310,13 @@ def setup_blob_duplis(context, groundob, display_radius):
     blobs = blobs_from_customprops(groundob.meadow)
 
     patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
+    for ob in patches:
+        # make unselectable by default
+        ob.hide_select = True
     
     # common parent empty for blobs
     blob_parent = get_blob_parent(context, groundob.matrix_world, _duplicator_parent_name)
-    
+
     del_patches = set() # patches to delete, keep this separate for iterator validity
     for blob_index, blob in enumerate(blobs):
         if blob is None:
@@ -322,12 +335,17 @@ def setup_blob_duplis(context, groundob, display_radius):
             
             if ob.meadow.use_as_dupli:
                 # make a duplicator for the patch object
-                dob = make_blob_object(context, blob_index, blob.loc, samples, display_radius)
+                # XXX use a tiny radius here to hide them in the viewport as much as possible
+                # this is not ideal, but we can't easily separate duplicator visibility and dupli visibility
+                dob = make_blob_object(context, blob_index, blob.loc, samples, 0.0001)
                 # put the duplicator in the patch group,
                 # so it gets removed together with patch copies
                 patch_group_assign(context, dob)
                 # use parent to keep the outliner clean
                 set_object_parent(dob, blob_parent)
+                # make unselectable by default
+                dob.hide_select = True
+
                 set_object_parent(ob, dob)
                 
                 dob.dupli_type = 'FACES'
