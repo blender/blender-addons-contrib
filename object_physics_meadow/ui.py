@@ -43,6 +43,8 @@ class OBJECT_PT_Meadow(Panel):
     
     def draw(self, context):
         settings = _settings.get(context)
+        groundob = find_meadow_object(context, 'GROUND')
+        has_samples = blob.object_has_blob_data(groundob) if groundob else False
         ob = context.object
         meadow = ob.meadow
         layout = self.layout
@@ -53,7 +55,6 @@ class OBJECT_PT_Meadow(Panel):
         
         if meadow.type == 'TEMPLATE':
             row = layout.row()
-            groundob = find_meadow_object(context, 'GROUND')
             if groundob:
                 row.prop_search(meadow, "density_vgroup_name", groundob, "vertex_groups", text="Density Vertex Group")
             else:
@@ -67,19 +68,29 @@ class OBJECT_PT_Meadow(Panel):
             sub.prop(meadow, "use_centered")
         
         elif meadow.type == 'GROUND':
-            layout.prop(meadow, "seed")
+            box = layout.box()
             
-            col = layout.column(align=True)
+            sub = box.column()
+            # this politely prevents users from changing settings unwantedly,
+            # they have to delete the samples first
+            sub.enabled = not has_samples
+            sub.prop(meadow, "seed")
+            col = sub.column(align=True)
             col.prop(meadow, "patch_radius")
             col.prop(meadow, "max_patches")
+            sub.prop(meadow, "sampling_levels")
             
-            layout.prop(meadow, "sampling_levels")
+            if has_samples:
+                box.operator("meadow.delete_blobs", icon='X', text="Delete Samples")
+            else:
+                box.operator("meadow.make_blobs", icon='STICKY_UVS_DISABLE', text="Create Samples")
         
         layout.separator()
         
-        layout.operator("meadow.make_blobs", icon='STICKY_UVS_DISABLE')
-        layout.operator("meadow.make_patches", icon='PARTICLE_PATH')
-        layout.operator("meadow.rebake_meadow")
+        sub = layout.column()
+        sub.enabled = has_samples
+        sub.operator("meadow.make_patches", icon='PARTICLE_PATH', text="Update Patches")
+        sub.operator("meadow.rebake_meadow", icon='MOD_PHYSICS', text="Update Physics Cache")
 
 
 class MeadowOperatorBase():
@@ -129,6 +140,24 @@ class MakeBlobsOperator(MeadowOperatorBase, Operator):
         
         with ObjectSelection():
             meadow.make_blobs(context, blobgridob, groundob)
+        
+        return {'FINISHED'}
+
+
+class DeleteBlobsOperator(MeadowOperatorBase, Operator):
+    """Delete Blob objects storing dupli distribution"""
+    bl_idname = "meadow.delete_blobs"
+    bl_label = "Delete Blobs"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        scene = context.scene
+        settings = _settings.get(context)
+        
+        groundob = find_meadow_object(context, 'GROUND')
+        
+        with ObjectSelection():
+            meadow.delete_blobs(context, groundob)
         
         return {'FINISHED'}
 
@@ -202,6 +231,7 @@ def register():
     bpy.utils.register_class(OBJECT_PT_Meadow)
     
     bpy.utils.register_class(MakeBlobsOperator)
+    bpy.utils.register_class(DeleteBlobsOperator)
     bpy.utils.register_class(MakePatchesOperator)
     bpy.utils.register_class(MakeMeadowOperator)
     bpy.utils.register_class(RebakeMeadowOperator)
@@ -212,6 +242,7 @@ def unregister():
     
     bpy.types.INFO_MT_add.remove(menu_generate_meadow)
     bpy.utils.unregister_class(MakeBlobsOperator)
+    bpy.utils.unregister_class(DeleteBlobsOperator)
     bpy.utils.unregister_class(MakePatchesOperator)
     bpy.utils.unregister_class(MakeMeadowOperator)
     bpy.utils.unregister_class(RebakeMeadowOperator)

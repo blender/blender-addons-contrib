@@ -72,6 +72,13 @@ def make_blobs(context, gridob, groundob):
         ps.print_stats()
         print(s.getvalue())
 
+def delete_blobs(context, groundob):
+    if groundob:
+        blob.object_free_blob_data(groundob)
+
+    patch.patch_group_clear(context)
+    blob.blob_group_clear(context)
+
 ### Patch copies for simulation ###
 def make_patches(context, gridob, groundob):
     scene = context.scene

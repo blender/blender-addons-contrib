@@ -194,6 +194,12 @@ def blobs_from_customprops(data):
     blobs = pickle.loads(A.tobytes())
     return blobs
 
+def object_has_blob_data(ob):
+    return ob.meadow.get('blobs') is not None
+
+def object_free_blob_data(ob):
+    if ob.meadow.get('blobs') is not None:
+        del ob.meadow['blobs']
 
 def make_blob_visualizer(context, groundob, blobs, display_radius, hide, hide_render=True):
     # common parent empty for blobs
