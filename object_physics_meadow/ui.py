@@ -189,7 +189,9 @@ class RebakeMeadowOperator(MeadowOperatorBase, Operator):
     
     def execute(self, context):
         with ObjectSelection():
-            patch.patch_objects_rebake(context)
+            # XXX Note: wm.progress updates are disabled for now, because the bake
+            # operator overrides this with it's own progress numbers ...
+            patch.patch_objects_rebake(context, progress_reporter=make_progress_reporter(show_progress_bar=False, show_stdout=True))
         return {'FINISHED'}
 
 

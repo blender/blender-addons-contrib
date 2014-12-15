@@ -26,6 +26,7 @@ from object_physics_meadow import patch, blob
 from object_physics_meadow.duplimesh import project_on_ground
 #from object_physics_meadow import dupliparticle
 #from object_physics_meadow.pointcache import cache_filename
+from object_physics_meadow.util import *
 
 from object_physics_meadow.best_candidate import best_candidate_gen
 from object_physics_meadow.hierarchical_dart_throw import hierarchical_dart_throw_gen
@@ -44,7 +45,7 @@ def make_samples(context, gridob, groundob):
     
     # get a sample generator implementation
     #gen = best_candidate_gen(groundob.meadow.patch_radius, xmin, xmax, ymin, ymax)
-    gen = hierarchical_dart_throw_gen(groundob.meadow.patch_radius, groundob.meadow.sampling_levels, xmin, xmax, ymin, ymax)
+    gen = hierarchical_dart_throw_gen(groundob.meadow.patch_radius, groundob.meadow.sampling_levels, xmin, xmax, ymin, ymax, progress_reporter=make_progress_reporter(True, True))
     
     mat = groundob.matrix_world
     loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
@@ -59,17 +60,17 @@ def make_blobs(context, gridob, groundob):
     if use_profiling:
         prof = cProfile.Profile()
         prof.enable()
-        samples2D = make_samples(context, gridob, groundob)
-        blob.make_blobs(context, gridob, groundob, samples2D, groundob.meadow.patch_radius)
+    
+    samples2D = make_samples(context, gridob, groundob)
+    blob.make_blobs(context, gridob, groundob, samples2D, groundob.meadow.patch_radius)
+
+    if use_profiling:
         prof.disable()
 
         s = io.StringIO()
         ps = pstats.Stats(prof, stream=s).sort_stats('tottime')
         ps.print_stats()
         print(s.getvalue())
-    else:
-        samples2D = make_samples(context, gridob, groundob)
-        blob.make_blobs(context, gridob, groundob, samples2D, groundob.meadow.patch_radius)
 
 ### Patch copies for simulation ###
 def make_patches(context, gridob, groundob):

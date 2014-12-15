@@ -51,6 +51,10 @@ class GridLevel():
         self.cells.append(cell)
         return cell
 
+    @staticmethod
+    def num_cells_in_range(imin, imax, jmin, jmax, kmin, kmax):
+        return (imax - imin) * (jmax - jmin) * (kmax - kmin)
+
     def set_active_cells(self, imin, imax, jmin, jmax, kmin, kmax):
         tot = (imax - imin) * (jmax - jmin) * (kmax - kmin)
         self.cells = [None] * tot
@@ -58,6 +62,7 @@ class GridLevel():
         for k in range(kmin, kmax):
             for j in range(jmin, jmax):
                 for i in range(imin, imax):
+                    progress_add(1)
                     self.cells[c] = GridCell(i, j, k)
                     c += 1
 
@@ -119,7 +124,17 @@ class PointCell():
         self.points = []
 
 class PointGrid():
-    def __init__(self, radius, b0, gridmin, gridmax):
+    @staticmethod
+    def num_cells(radius, gridmin, gridmax):
+        size = radius
+        amin = ifloor(gridmin[0] / size) - 1
+        bmin = ifloor(gridmin[1] / size) - 1
+        na = ifloor(gridmax[0] / size) + 2 - amin
+        nb = ifloor(gridmax[1] / size) + 2 - bmin
+        
+        return na * nb
+
+    def __init__(self, radius, gridmin, gridmax):
         width = gridmax[0] - gridmin[0]
         height = gridmax[1] - gridmin[1]
         size = radius
@@ -132,8 +147,13 @@ class PointGrid():
         self.na = ifloor(gridmax[0] / size) + 2 - self.amin
         self.nb = ifloor(gridmax[1] / size) + 2 - self.bmin
         
+        # modified range generator for progress reports
+        def range_progress(tot):
+            for i in range(tot):
+                progress_add(1)
+                yield i
         # note: row-major, so we can address it with cells[i][j]
-        self.cells = tuple(tuple(PointCell() for j in range(self.nb)) for i in range(self.na))
+        self.cells = tuple(tuple(PointCell() for j in range_progress(self.nb)) for i in range(self.na))
 
     def grid_from_loc(self, point):
         s = self.invsize
@@ -216,7 +236,8 @@ def split_cell(radius2, b0, pgrid, child_level, cell, x0, x1, y0, y1, z0, z1):
             if not is_covered(radius2, b0, pgrid, child_level, ci, cj, cx0, cx1, cy0, cy1):
                 child_cell = child_level.activate(ci, cj, ck)
 
-def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax):
+def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax,
+                                progress_reporter=DummyProgressContext):
     radius2 = radius * radius
     gridmin = (xmin, ymin)
     gridmax = (xmax, ymax)
@@ -232,28 +253,33 @@ def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax):
         levels = [base_level] + [GridLevel(i, base_level.size / (2**i), radius) for i in range(1, max_levels)]
         epsilon = levels[-1].weight * 0.5
         
-        base_level.set_active_cells(imin, imax, jmin, jmax, 0, 1)
+        with progress_reporter("Activate Cells", 0, GridLevel.num_cells_in_range(imin, imax, jmin, jmax, 0, 1)):
+            base_level.set_active_cells(imin, imax, jmin, jmax, 0, 1)
         
-        pgrid = PointGrid(radius, b0, gridmin, gridmax)
+        with progress_reporter("Init Spatial Grid", 0, PointGrid.num_cells(radius, gridmin, gridmax)):
+            pgrid = PointGrid(radius, gridmin, gridmax)
         
-        for i in range(num):
-            if not any(level.cells for level in levels):
-                break
-            
-            level, cell = pop_cell(levels)
-            if level:
-                x0, x1, y0, y1, z0, z1 = level.cell_corners(cell)
+        with progress_reporter("Generate Samples", 0, num):
+            for i in range(num):
+                progress_add(1)
                 
-                # test coverage
-                if not is_covered(radius2, b0, pgrid, level, cell.i, cell.j, x0, x1, y0, y1):
-                    point = level.sample(x0, x1, y0, y1, z0, z1)
-                    if test_disk(radius2, pgrid, point, level, cell.i, cell.j):
-                        yield point
-                        pgrid.insert(point)
-                    else:
-                        if level.index < max_levels - 1:
-                            split_cell(radius2, b0, pgrid, levels[level.index+1], cell, x0, x1, y0, y1, z0, z1)
-            else:
-                break
-    
+                if not any(level.cells for level in levels):
+                    break
+                
+                level, cell = pop_cell(levels)
+                if level:
+                    x0, x1, y0, y1, z0, z1 = level.cell_corners(cell)
+                    
+                    # test coverage
+                    if not is_covered(radius2, b0, pgrid, level, cell.i, cell.j, x0, x1, y0, y1):
+                        point = level.sample(x0, x1, y0, y1, z0, z1)
+                        if test_disk(radius2, pgrid, point, level, cell.i, cell.j):
+                            yield point
+                            pgrid.insert(point)
+                        else:
+                            if level.index < max_levels - 1:
+                                split_cell(radius2, b0, pgrid, levels[level.index+1], cell, x0, x1, y0, y1, z0, z1)
+                else:
+                    break
+
     return gen

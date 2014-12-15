@@ -18,7 +18,8 @@
 
 # <pep8 compliant>
 
-import bpy, time
+import bpy, time, sys
+from math import *
 
 def ifloor(x):
     return int(x) if x >= 0.0 else int(x) - 1
@@ -93,3 +94,94 @@ def set_object_parent(ob, parent):
     mat = ob.matrix_world
     ob.parent = parent
     ob.matrix_world = mat
+
+#-----------------------------------------------------------------------
+
+_progress_context = None
+
+def make_progress_reporter(show_progress_bar=True, show_stdout=False):
+
+    # internal class returned by the function, bound to output args
+    class ProgressContext():
+        def __init__(self, name, pmin, pmax):
+            self.name = name
+            self.pmin = pmin
+            self.pmax = pmax
+            self.tot = pmax - pmin
+            self.norm = 1.0 / float(self.tot) if self.tot > 0 else 0.0
+
+            self.pcur = pmin
+            self.perc_show = -2.0 # last displayed percentage, init to make sure we show the first time
+
+        def __enter__(self):
+            global _progress_context
+
+            assert(_progress_context is None)
+            _progress_context = self
+            
+            if show_progress_bar:
+                wm = bpy.context.window_manager
+                # always use 0..100 percentage on the progress counter,
+                # it does not display large numbers well
+                wm.progress_begin(0, 100)
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            global _progress_context
+
+            if show_progress_bar:
+                wm = bpy.context.window_manager
+                wm.progress_end()
+
+            if show_stdout:
+                # clean newline
+                sys.stdout.write("\n")
+                sys.stdout.flush()
+
+            assert(_progress_context is self)
+            _progress_context = None
+
+        def set_progress(self, value, message):
+            self.pcur = value
+            done = value - self.pmin
+            perc = 100.0 * done * self.norm
+
+            # only write to progress indicator or stdout if the percentage actually changed
+            # avoids overhead for very frequent updates
+            if perc > self.perc_show + 1.0:
+                self.perc_show = perc
+                perc = min(max(int(perc), 0), 100)
+
+                if show_progress_bar:
+                    wm = bpy.context.window_manager
+                    wm.progress_update(perc)
+
+                if show_stdout:
+                    sys.stdout.write("\r>> {}: {}/{} [{}{}] {}".format(self.name, str(done).rjust(len(str(self.tot))), str(self.tot), '.' * perc, ' ' * (100 - perc), message))
+                    sys.stdout.flush()
+
+    return ProgressContext
+
+# dummy context manager class to avoid clumsy conditionals when passing None
+class DummyProgressContext():
+    def __init__(self, name, pmin, pmax):
+        pass
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+def progress_set(value, message=""):
+    global _progress_context
+    
+    if not _progress_context:
+        return
+    _progress_context.set_progress(value, message)
+
+def progress_add(value, message=""):
+    global _progress_context
+
+    if not _progress_context:
+        return
+    _progress_context.set_progress(_progress_context.pcur + value, message)

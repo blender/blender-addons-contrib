@@ -236,44 +236,6 @@ def bake_psys(context, ob, psys):
     # restore
     ob.particle_systems.active = curpsys
 
-def bake_all(context):
-    settings = _settings.get(context)
-    wm = context.window_manager
-    
-    total_time = 0.0
-    avg_time = 0.0
-    
-    # XXX Note: wm.progress updates are disabled for now, because the bake
-    # operator overrides this with it's own progress numbers ...
-    
-    total = count_bakeable(context)
-    #wm.progress_begin(0, total)
-    
-    num = 0
-    for ob in patch_objects(context):
-        for psys in ob.particle_systems:
-            sys.stdout.write("Baking blob {}/{} ... ".format(str(num).rjust(5), str(total).ljust(5)))
-            sys.stdout.flush()
-            
-            start_time = time.time()
-            
-            bake_psys(context, ob, psys)
-            
-            duration = time.time() - start_time
-            total_time += duration
-            avg_time = total_time / float(num + 1)
-            
-            #wm.progress_update(num)
-            time_string = lambda x: time.strftime("%H:%M:%S", time.gmtime(x)) + ".%02d" % (int(x * 100.0) % 100)
-            durstr = time_string(duration)
-            avgstr = time_string(avg_time) if avg_time > 0.0 else "--:--:--"
-            etastr = time_string(avg_time * (total - num)) if avg_time > 0.0 else "--:--:--"
-            sys.stdout.write("{} (avg. {}, ETA {})\n".format(durstr, avgstr, etastr))
-            sys.stdout.flush()
-            num += 1
-    
-    #wm.progress_end()
-
 def count_bakeable(context):
     num = 0
     for ob in patch_objects(context):
@@ -281,7 +243,46 @@ def count_bakeable(context):
             num += 1
     return num
 
-def patch_objects_rebake(context):
+def bake_all(context, progress_reporter):
+    settings = _settings.get(context)
+    wm = context.window_manager
+    
+    total_time = 0.0
+    avg_time = 0.0
+    
+    total = count_bakeable(context)
+    
+    with progress_reporter("Bake Blob", 0, total):
+        """
+        num = 0
+        """
+        for ob in patch_objects(context):
+            for psys in ob.particle_systems:
+                """
+                sys.stdout.write("Baking blob {}/{} ... ".format(str(num).rjust(5), str(total).ljust(5)))
+                sys.stdout.flush()
+                
+                start_time = time.time()
+                """
+                
+                progress_add(1)
+                bake_psys(context, ob, psys)
+                
+                """
+                duration = time.time() - start_time
+                total_time += duration
+                avg_time = total_time / float(num + 1)
+                
+                time_string = lambda x: time.strftime("%H:%M:%S", time.gmtime(x)) + ".%02d" % (int(x * 100.0) % 100)
+                durstr = time_string(duration)
+                avgstr = time_string(avg_time) if avg_time > 0.0 else "--:--:--"
+                etastr = time_string(avg_time * (total - num)) if avg_time > 0.0 else "--:--:--"
+                sys.stdout.write("{} (avg. {}, ETA {})\n".format(durstr, avgstr, etastr))
+                sys.stdout.flush()
+                num += 1
+                """
+
+def patch_objects_rebake(context, progress_reporter=DummyProgressContext):
     settings = _settings.get(context)
     wm = context.window_manager
     
@@ -293,6 +294,6 @@ def patch_objects_rebake(context):
         # XXX have to set this because bake operator only bakes up to the last frame ...
         scene.frame_current = scene.frame_end
         
-        bake_all(context)
+        bake_all(context, progress_reporter)
         
         scene.frame_set(curframe)
