@@ -50,6 +50,7 @@ def make_dupli_mesh(name, obmat, samples, scale):
     
     def make_verts():
         verts = []
+        i = 0
         for i, (loc, rot) in enumerate(samples):
             mat = Matrix.Translation(loc) * invobmat * rot * scalemat
             verts.append(mat * Vector((-0.86603, -0.5, 0.0)))
