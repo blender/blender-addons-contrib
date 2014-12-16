@@ -31,6 +31,7 @@ from object_physics_meadow import settings as _settings
 from object_physics_meadow import duplimesh
 from object_physics_meadow.duplimesh import project_on_ground
 from object_physics_meadow.util import *
+from object_physics_meadow import progress
 
 _blob_object_name = "__MeadowBlob__"
 _sampleviz_parent_name = "Meadow_SampleViz_Root"
@@ -212,25 +213,27 @@ def make_blob_visualizer(context, groundob, blobs, display_radius, hide, hide_re
     # preliminary display object
     # XXX this could be removed eventually, but it's helpful as visual feedback to the user
     # before creating the actual duplicator blob meshes
-    for index, blob in enumerate(blobs):
-        if blob:
-            # generator for duplimesh, yielding (loc, rot) pairs
-            def mesh_samples():
-                up = Vector((0,0,1))
-                for loc, nor, _, _, _ in blob.samples:
-                    mat = (slope_factor * up.rotation_difference(nor)).to_matrix()
-                    mat.resize_4x4()
-                    yield loc, mat
-            ob = make_blob_object(context, index, blob.loc, mesh_samples(), display_radius)
-            # put it in the blob group
-            blob_group_assign(context, ob)
-            # use parent to keep the outliner clean
-            set_object_parent(ob, blob_parent)
-            
-            ob.hide = hide
-            ob.hide_render = hide_render
-            # make children unselectable by default
-            ob.hide_select = True
+    with progress.ProgressContext("Sample Visualization", 0, len(blobs)):
+        for index, blob in enumerate(blobs):
+            progress.progress_add(1)
+            if blob:
+                # generator for duplimesh, yielding (loc, rot) pairs
+                def mesh_samples():
+                    up = Vector((0,0,1))
+                    for loc, nor, _, _, _ in blob.samples:
+                        mat = (slope_factor * up.rotation_difference(nor)).to_matrix()
+                        mat.resize_4x4()
+                        yield loc, mat
+                ob = make_blob_object(context, index, blob.loc, mesh_samples(), display_radius)
+                # put it in the blob group
+                blob_group_assign(context, ob)
+                # use parent to keep the outliner clean
+                set_object_parent(ob, blob_parent)
+                
+                ob.hide = hide
+                ob.hide_render = hide_render
+                # make children unselectable by default
+                ob.hide_select = True
 
 def make_blobs(context, gridob, groundob, samples2D, display_radius):
     blob_group_clear(context)
@@ -248,28 +251,31 @@ def make_blobs(context, gridob, groundob, samples2D, display_radius):
         ok, loc, nor, poly_index = project_on_ground(groundob, co)
         blobs.append(Blob(loc, nor, poly_index) if ok else None)
     
-    mpolys = groundob.data.polygons
-    mverts = groundob.data.vertices
-    for xy in samples2D:
-        # note: use only 2D coordinates for weighting, z component should be 0
-        index = assign_blob(blobtree, (xy[0], xy[1], 0.0), nor)
-        if index < 0:
-            continue
-        blob = blobs[index]
-        if blob is None:
-            continue
-        
-        # project samples onto the ground object
-        ok, sloc, snor, spoly = project_on_ground(groundob, xy[0:2]+(0,))
-        if not ok:
-            continue
-        
-        # calculate barycentric vertex weights on the poly
-        poly = mpolys[spoly]
-        sverts = list(poly.vertices)
-        sweights = poly_3d_calc(tuple(mverts[i].co for i in sverts), sloc)
+    with progress.ProgressContext("Grouping Samples", 0, len(samples2D)):
+        mpolys = groundob.data.polygons
+        mverts = groundob.data.vertices
+        for xy in samples2D:
+            progress.progress_add(1)
+            
+            # note: use only 2D coordinates for weighting, z component should be 0
+            index = assign_blob(blobtree, (xy[0], xy[1], 0.0), nor)
+            if index < 0:
+                continue
+            blob = blobs[index]
+            if blob is None:
+                continue
+            
+            # project samples onto the ground object
+            ok, sloc, snor, spoly = project_on_ground(groundob, xy[0:2]+(0,))
+            if not ok:
+                continue
+            
+            # calculate barycentric vertex weights on the poly
+            poly = mpolys[spoly]
+            sverts = list(poly.vertices)
+            sweights = poly_3d_calc(tuple(mverts[i].co for i in sverts), sloc)
 
-        blob.add_sample(sloc, snor, spoly, sverts, sweights)
+            blob.add_sample(sloc, snor, spoly, sverts, sweights)
     
     blobs_to_customprops(groundob.meadow, blobs)
 
