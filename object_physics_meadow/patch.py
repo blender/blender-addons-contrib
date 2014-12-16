@@ -154,6 +154,10 @@ def make_patches(context, groundob, gridob, template_objects):
             duplimat = gridmat * vertmat
             ob.matrix_world = duplimat
             
+            # optional visibility override
+            if ob.meadow.hide:
+                ob.hide = True
+
             # XXX WARNING: having lots of objects in the scene slows down
             # the make-duplis-real operator to an absolute crawl!!
             # Therefore we unlink all copies here until the copying

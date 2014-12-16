@@ -111,6 +111,12 @@ class MeadowObjectSettings(PropertyGroup):
         default=True
         )
 
+    hide = BoolProperty(
+        name="Hide",
+        description="Hide copies in the viewport",
+        default=False
+        )
+
     use_layers = BoolProperty(
         name="Use Layers",
         description="Put new objects into custom layers",
