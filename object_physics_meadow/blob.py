@@ -239,6 +239,8 @@ def make_blobs(context, gridob, groundob, samples2D, display_radius):
     blob_group_clear(context)
     blobs = []
     
+    imat = groundob.matrix_world.inverted()
+
     blobtree = KDTree(len(gridob.data.vertices))
     for i, v in enumerate(gridob.data.vertices):
         co = gridob.matrix_world * v.co
@@ -256,7 +258,7 @@ def make_blobs(context, gridob, groundob, samples2D, display_radius):
         mverts = groundob.data.vertices
         for xy in samples2D:
             progress.progress_add(1)
-            
+
             # note: use only 2D coordinates for weighting, z component should be 0
             index = assign_blob(blobtree, (xy[0], xy[1], 0.0), nor)
             if index < 0:
@@ -273,7 +275,8 @@ def make_blobs(context, gridob, groundob, samples2D, display_radius):
             # calculate barycentric vertex weights on the poly
             poly = mpolys[spoly]
             sverts = list(poly.vertices)
-            sweights = poly_3d_calc(tuple(mverts[i].co for i in sverts), sloc)
+            # note: coordinate space has to be consistent, use sloc in object space
+            sweights = poly_3d_calc(tuple(mverts[i].co for i in sverts), imat * sloc)
 
             blob.add_sample(sloc, snor, spoly, sverts, sweights)
     
