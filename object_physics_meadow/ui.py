@@ -98,6 +98,15 @@ class OBJECT_PT_Meadow(Panel):
         
         layout.separator()
         
+        row = layout.row()
+        row.prop(groundob.meadow, "use_layers")
+        sub = row.row()
+        if groundob.meadow.use_layers:
+            sub.template_layers(groundob.meadow, "layers", groundob.meadow, "used_layers", -1)
+        else:
+            sub.enabled = False
+            sub.template_layers(groundob, "layers", groundob.meadow, "used_layers", -1)
+
         sub = layout.column()
         sub.enabled = has_samples
         sub.operator("meadow.make_patches", icon='PARTICLE_PATH', text="Update Patches")

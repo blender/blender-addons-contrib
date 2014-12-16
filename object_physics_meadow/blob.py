@@ -229,6 +229,9 @@ def make_blob_visualizer(context, groundob, blobs, display_radius, hide, hide_re
                 blob_group_assign(context, ob)
                 # use parent to keep the outliner clean
                 set_object_parent(ob, blob_parent)
+                # apply layers
+                if groundob.meadow.use_layers:
+                    ob.layers = groundob.meadow.layers
                 
                 ob.hide = hide
                 ob.hide_render = hide_render
@@ -378,6 +381,9 @@ def setup_blob_duplis(context, groundob, display_radius):
                 set_object_parent(dob, blob_parent)
                 # make unselectable by default
                 dob.hide_select = True
+                # apply layers
+                if groundob.meadow.use_layers:
+                    dob.layers = groundob.meadow.layers
 
                 set_object_parent(ob, dob)
                 

@@ -74,6 +74,7 @@ type_items = [
 unique_types = {'GROUND', 'BLOBGRID'}
 
 def type_update(self, context):
+    # ensure unique types
     if self.type in unique_types:
         scene = context.scene
         for ob in scene.objects:
@@ -85,6 +86,16 @@ def vgroup_items(self, context):
     if groundob:
         return [(v.name, v.name, "", 'NONE', v.index) for v in groundob.vertex_groups]
     return []
+
+def use_layers_update(self, context):
+    if self.use_layers:
+        # copy layer settings from the object when enabling for the first time
+        if all(layer == False for layer in self.layers):
+            self.layers = self.id_data.layers
+
+def used_layers_get(self):
+    # XXX dummy property
+    return tuple(False for i in range(20))
 
 class MeadowObjectSettings(PropertyGroup):
     type = EnumProperty(
@@ -98,6 +109,28 @@ class MeadowObjectSettings(PropertyGroup):
         name="Use as Dupli",
         description="Use the object for dupli instances",
         default=True
+        )
+
+    use_layers = BoolProperty(
+        name="Use Layers",
+        description="Put new objects into custom layers",
+        default=False,
+        update=use_layers_update
+        )
+    
+    layers = BoolVectorProperty(
+        name="Layers",
+        description="Object copies and duplicators will be placed in these layers",
+        size=20,
+        options=set()
+        )
+
+    used_layers = BoolVectorProperty(
+        name="Used Layers",
+        description="Object copies and duplicators will be placed in these layers",
+        size=20,
+        get=used_layers_get,
+        options={'HIDDEN'}
         )
     
     use_centered = BoolProperty(

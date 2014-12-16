@@ -145,7 +145,10 @@ def make_patches(context, groundob, gridob, template_objects):
             ob.meadow.blob_index = index
             # use ground object as parent to keep the outliner clean
             set_object_parent(ob, groundob)
-            
+            # apply layers
+            if groundob.meadow.use_layers:
+                ob.layers = groundob.meadow.layers
+
             # apply transform
             vertmat = Matrix.Translation(vert.co)
             duplimat = gridmat * vertmat
