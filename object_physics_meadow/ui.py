@@ -25,6 +25,17 @@ from bpy.props import *
 from object_physics_meadow import meadow, settings as _settings, patch, blob
 from object_physics_meadow.settings import find_meadow_object
 from object_physics_meadow.util import *
+from object_physics_meadow import progress
+
+# default progress reports
+def progress_default():
+    progress.show_progress_bar = True
+    progress.show_stdout = True
+# XXX baking: wm.progress updates are disabled for now,
+# because the bake operator overrides this with it's own progress numbers ...
+def progress_baking():
+    progress.show_progress_bar = False
+    progress.show_stdout = True
 
 class OBJECT_PT_Meadow(Panel):
     """Settings for meadow components"""
@@ -139,6 +150,7 @@ class MakeBlobsOperator(MeadowOperatorBase, Operator):
             return {'CANCELLED'}
         
         with ObjectSelection():
+            progress_default()
             meadow.make_blobs(context, blobgridob, groundob)
         
         return {'FINISHED'}
@@ -157,6 +169,7 @@ class DeleteBlobsOperator(MeadowOperatorBase, Operator):
         groundob = find_meadow_object(context, 'GROUND')
         
         with ObjectSelection():
+            progress_default()
             meadow.delete_blobs(context, groundob)
         
         return {'FINISHED'}
@@ -187,6 +200,7 @@ class MakePatchesOperator(MeadowOperatorBase, Operator):
             return {'CANCELLED'}
         
         with ObjectSelection():
+            progress_default()
             meadow.make_patches(context, blobgridob, groundob)
         
         return {'FINISHED'}
@@ -218,9 +232,8 @@ class RebakeMeadowOperator(MeadowOperatorBase, Operator):
     
     def execute(self, context):
         with ObjectSelection():
-            # XXX Note: wm.progress updates are disabled for now, because the bake
-            # operator overrides this with it's own progress numbers ...
-            patch.patch_objects_rebake(context, progress_reporter=make_progress_reporter(show_progress_bar=False, show_stdout=True))
+            progress_baking()
+            patch.patch_objects_rebake(context)
         return {'FINISHED'}
 
 

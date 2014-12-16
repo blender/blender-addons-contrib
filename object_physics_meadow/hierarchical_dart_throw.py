@@ -23,6 +23,7 @@ import bpy
 from math import *
 
 from object_physics_meadow.util import *
+from object_physics_meadow import progress
 
 # Implements Poisson Disk sampling according to
 # "Poisson Disk Point Sets by Hierarchical Dart Throwing"
@@ -62,7 +63,7 @@ class GridLevel():
         for k in range(kmin, kmax):
             for j in range(jmin, jmax):
                 for i in range(imin, imax):
-                    progress_add(1)
+                    progress.progress_add(1)
                     self.cells[c] = GridCell(i, j, k)
                     c += 1
 
@@ -150,7 +151,7 @@ class PointGrid():
         # modified range generator for progress reports
         def range_progress(tot):
             for i in range(tot):
-                progress_add(1)
+                progress.progress_add(1)
                 yield i
         # note: row-major, so we can address it with cells[i][j]
         self.cells = tuple(tuple(PointCell() for j in range_progress(self.nb)) for i in range(self.na))
@@ -236,8 +237,7 @@ def split_cell(radius2, b0, pgrid, child_level, cell, x0, x1, y0, y1, z0, z1):
             if not is_covered(radius2, b0, pgrid, child_level, ci, cj, cx0, cx1, cy0, cy1):
                 child_cell = child_level.activate(ci, cj, ck)
 
-def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax,
-                                progress_reporter=DummyProgressContext):
+def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax):
     radius2 = radius * radius
     gridmin = (xmin, ymin)
     gridmax = (xmax, ymax)
@@ -253,15 +253,15 @@ def hierarchical_dart_throw_gen(radius, max_levels, xmin, xmax, ymin, ymax,
         levels = [base_level] + [GridLevel(i, base_level.size / (2**i), radius) for i in range(1, max_levels)]
         epsilon = levels[-1].weight * 0.5
         
-        with progress_reporter("Activate Cells", 0, GridLevel.num_cells_in_range(imin, imax, jmin, jmax, 0, 1)):
+        with progress.ProgressContext("Activate Cells", 0, GridLevel.num_cells_in_range(imin, imax, jmin, jmax, 0, 1)):
             base_level.set_active_cells(imin, imax, jmin, jmax, 0, 1)
         
-        with progress_reporter("Init Spatial Grid", 0, PointGrid.num_cells(radius, gridmin, gridmax)):
+        with progress.ProgressContext("Init Spatial Grid", 0, PointGrid.num_cells(radius, gridmin, gridmax)):
             pgrid = PointGrid(radius, gridmin, gridmax)
         
-        with progress_reporter("Generate Samples", 0, num):
+        with progress.ProgressContext("Generate Samples", 0, num):
             for i in range(num):
-                progress_add(1)
+                progress.progress_add(1)
                 
                 if not any(level.cells for level in levels):
                     break

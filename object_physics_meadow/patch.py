@@ -24,6 +24,7 @@ from bpy_extras import object_utils
 
 from object_physics_meadow import settings as _settings
 from object_physics_meadow.util import *
+from object_physics_meadow import progress
 
 #-----------------------------------------------------------------------
 
@@ -243,7 +244,7 @@ def count_bakeable(context):
             num += 1
     return num
 
-def bake_all(context, progress_reporter):
+def bake_all(context):
     settings = _settings.get(context)
     wm = context.window_manager
     
@@ -252,13 +253,13 @@ def bake_all(context, progress_reporter):
     
     total = count_bakeable(context)
     
-    with progress_reporter("Bake Blob", 0, total):
+    with progress.ProgressContext("Bake Blob", 0, total):
         for ob in patch_objects(context):
             for psys in ob.particle_systems:
-                progress_add(1)
+                progress.progress_add(1)
                 bake_psys(context, ob, psys)
 
-def patch_objects_rebake(context, progress_reporter=DummyProgressContext):
+def patch_objects_rebake(context):
     settings = _settings.get(context)
     wm = context.window_manager
     
@@ -270,6 +271,6 @@ def patch_objects_rebake(context, progress_reporter=DummyProgressContext):
         # XXX have to set this because bake operator only bakes up to the last frame ...
         scene.frame_current = scene.frame_end
         
-        bake_all(context, progress_reporter)
+        bake_all(context)
         
         scene.frame_set(curframe)
