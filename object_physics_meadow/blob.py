@@ -202,6 +202,8 @@ def object_free_blob_data(ob):
         del ob.meadow['blobs']
 
 def make_blob_visualizer(context, groundob, blobs, display_radius, hide, hide_render=True):
+    slope_factor = 1.0
+
     # common parent empty for blobs
     blob_parent = get_blob_parent(context, groundob.matrix_world, _sampleviz_parent_name)
     blob_parent.hide = hide
@@ -212,8 +214,14 @@ def make_blob_visualizer(context, groundob, blobs, display_radius, hide, hide_re
     # before creating the actual duplicator blob meshes
     for index, blob in enumerate(blobs):
         if blob:
-            samples = [(loc, nor) for loc, nor, _, _, _ in blob.samples]
-            ob = make_blob_object(context, index, blob.loc, samples, display_radius)
+            # generator for duplimesh, yielding (loc, rot) pairs
+            def mesh_samples():
+                up = Vector((0,0,1))
+                for loc, nor, _, _, _ in blob.samples:
+                    mat = (slope_factor * up.rotation_difference(nor)).to_matrix()
+                    mat.resize_4x4()
+                    yield loc, mat
+            ob = make_blob_object(context, index, blob.loc, mesh_samples(), display_radius)
             # put it in the blob group
             blob_group_assign(context, ob)
             # use parent to keep the outliner clean
@@ -313,6 +321,8 @@ def assign_sample_patches(groundob, blob, patches):
     return vgroup_samples
 
 def setup_blob_duplis(context, groundob, display_radius):
+    slope_factor = 0.0
+
     blobs = blobs_from_customprops(groundob.meadow)
 
     patches = [ob for ob in patch_objects(context) if blobs[ob.meadow.blob_index] is not None]
@@ -339,11 +349,19 @@ def setup_blob_duplis(context, groundob, display_radius):
                 del_patches.add(ob)
                 continue
             
+            # generator for duplimesh, yielding (loc, rot) pairs
+            def mesh_samples():
+                up = Vector((0,0,1))
+                for loc, nor in samples:
+                    mat = (slope_factor * up.rotation_difference(nor)).to_matrix()
+                    mat.resize_4x4()
+                    yield loc, mat
+
             if ob.meadow.use_as_dupli:
                 # make a duplicator for the patch object
                 # XXX use a tiny radius here to hide them in the viewport as much as possible
                 # this is not ideal, but we can't easily separate duplicator visibility and dupli visibility
-                dob = make_blob_object(context, blob_index, blob.loc, samples, 0.0001)
+                dob = make_blob_object(context, blob_index, blob.loc, mesh_samples(), 0.0001)
                 # put the duplicator in the patch group,
                 # so it gets removed together with patch copies
                 patch_group_assign(context, dob)
