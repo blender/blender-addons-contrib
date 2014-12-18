@@ -22,7 +22,7 @@ import bpy, os
 from bpy.types import Operator, Panel
 from bpy.props import *
 
-from object_physics_meadow import meadow, settings as _settings, patch, blob
+from object_physics_meadow import meadow, settings as _settings, patch, blob, physics
 from object_physics_meadow.settings import find_meadow_object
 from object_physics_meadow.util import *
 from object_physics_meadow import progress
@@ -244,7 +244,7 @@ class RebakeMeadowOperator(MeadowOperatorBase, Operator):
     def execute(self, context):
         with ObjectSelection():
             progress_baking()
-            patch.patch_objects_rebake(context)
+            physics.scene_bake_all(context)
         return {'FINISHED'}
 
 
