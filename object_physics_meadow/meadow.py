@@ -82,6 +82,19 @@ def delete_blobs(context, groundob):
 ### Patch copies for simulation ###
 def make_patches(context, gridob, groundob):
     scene = context.scene
+
+    if use_profiling:
+        prof = cProfile.Profile()
+        prof.enable()
+    
     template_objects = [ob for ob in scene.objects if ob.meadow.type == 'TEMPLATE']
     patch.make_patches(context, groundob, gridob, template_objects)
     blob.setup_blob_duplis(context, groundob, 0.333 * groundob.meadow.patch_radius)
+
+    if use_profiling:
+        prof.disable()
+
+        s = io.StringIO()
+        ps = pstats.Stats(prof, stream=s).sort_stats('tottime')
+        ps.print_stats()
+        print(s.getvalue())
