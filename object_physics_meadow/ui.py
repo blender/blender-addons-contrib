@@ -100,10 +100,13 @@ class OBJECT_PT_Meadow(Panel):
         
         layout.separator()
         
-        sub = layout.column()
-        sub.enabled = has_samples
-        sub.operator("meadow.make_patches", icon='PARTICLE_PATH', text="Update Patches")
-        sub.operator("meadow.rebake_meadow", icon='MOD_PHYSICS', text="Update Physics Cache")
+        col = layout.column()
+        col.enabled = has_samples
+        col.operator("meadow.make_patches", icon='PARTICLE_PATH', text="Update Patches")
+        
+        row = col.row()
+        row.operator("meadow.bake_physics", icon='MOD_PHYSICS')
+        row.operator("meadow.free_physics", icon='X')
 
         row = layout.row()
         row.prop(groundob.meadow, "use_layers")
@@ -235,16 +238,29 @@ class MakeMeadowOperator(MeadowOperatorBase, Operator):
         return {'FINISHED'}
 
 
-class RebakeMeadowOperator(MeadowOperatorBase, Operator):
-    """Rebake meadow simulation"""
-    bl_idname = "meadow.rebake_meadow"
-    bl_label = "Rebake Meadow"
+class MEADOW_OT_BakePhysics(MeadowOperatorBase, Operator):
+    """Bake all physics caches"""
+    bl_idname = "meadow.bake_physics"
+    bl_label = "Bake Physics"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         with ObjectSelection():
             progress_baking()
             physics.scene_bake_all(context)
+        return {'FINISHED'}
+
+
+class MEADOW_OT_FreePhysics(MeadowOperatorBase, Operator):
+    """Free all physics caches"""
+    bl_idname = "meadow.free_physics"
+    bl_label = "Free Physics"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        with ObjectSelection():
+            progress_baking()
+            physics.scene_free_all(context)
         return {'FINISHED'}
 
 
@@ -258,7 +274,8 @@ def register():
     bpy.utils.register_class(DeleteBlobsOperator)
     bpy.utils.register_class(MakePatchesOperator)
     bpy.utils.register_class(MakeMeadowOperator)
-    bpy.utils.register_class(RebakeMeadowOperator)
+    bpy.utils.register_class(MEADOW_OT_BakePhysics)
+    bpy.utils.register_class(MEADOW_OT_FreePhysics)
     bpy.types.INFO_MT_add.append(menu_generate_meadow)
 
 def unregister():
@@ -269,4 +286,5 @@ def unregister():
     bpy.utils.unregister_class(DeleteBlobsOperator)
     bpy.utils.unregister_class(MakePatchesOperator)
     bpy.utils.unregister_class(MakeMeadowOperator)
-    bpy.utils.unregister_class(RebakeMeadowOperator)
+    bpy.utils.unregister_class(MEADOW_OT_BakePhysics)
+    bpy.utils.unregister_class(MEADOW_OT_FreePhysics)
