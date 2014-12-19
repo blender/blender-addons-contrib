@@ -31,11 +31,6 @@ from object_physics_meadow import progress
 def progress_default():
     progress.show_progress_bar = True
     progress.show_stdout = True
-# XXX baking: wm.progress updates are disabled for now,
-# because the bake operator overrides this with it's own progress numbers ...
-def progress_baking():
-    progress.show_progress_bar = False
-    progress.show_stdout = True
 
 class OBJECT_PT_Meadow(Panel):
     """Settings for meadow components"""
@@ -246,7 +241,7 @@ class MEADOW_OT_BakePhysics(MeadowOperatorBase, Operator):
     
     def execute(self, context):
         with ObjectSelection():
-            progress_baking()
+            progress_default()
             physics.scene_bake_all(context)
         return {'FINISHED'}
 
@@ -259,7 +254,7 @@ class MEADOW_OT_FreePhysics(MeadowOperatorBase, Operator):
     
     def execute(self, context):
         with ObjectSelection():
-            progress_baking()
+            progress_default()
             physics.scene_free_all(context)
         return {'FINISHED'}
 
