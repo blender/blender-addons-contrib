@@ -24,6 +24,16 @@ from math import *
 def ifloor(x):
     return int(x) if x >= 0.0 else int(x) - 1
 
+def iceil(x):
+    return int(x) + 1 if x >= 0.0 else int(x)
+
+# based on http://code.activestate.com/recipes/578114-round-number-to-specified-number-of-significant-di/
+def round_sigfigs(num, sig_figs):
+    if num != 0:
+        return round(num, -int(floor(log10(abs(num))) - (sig_figs - 1)))
+    else:
+        return 0  # Can't take the log of 0
+
 class ObjectSelection():
     def __enter__(self):
         scene = bpy.context.scene

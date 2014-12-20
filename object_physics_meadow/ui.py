@@ -85,7 +85,9 @@ class OBJECT_PT_Meadow(Panel):
             sub.prop(meadow, "seed")
             col = sub.column(align=True)
             col.prop(meadow, "sample_distance")
-            col.prop(meadow, "max_samples")
+            sub2 = col.row(align=True)
+            sub2.prop(meadow, "max_samples")
+            sub2.operator("meadow.estimate_max_samples", text="Estimate")
             sub.prop(meadow, "sampling_levels")
             
             if has_samples:
@@ -131,6 +133,23 @@ class MeadowOperatorBase():
                 self.report({'ERROR'}, "{0}".format(err))
                 return False, ""
         return True, cache_dir
+
+
+class EstimateMaxSamplesOperator(MeadowOperatorBase, Operator):
+    """Estimate an upper bound for the number of samples fitting on the ground object"""
+    bl_idname = "meadow.estimate_max_samples"
+    bl_label = "Estimate Maximum Samples"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        groundob = find_meadow_object(context, 'GROUND')
+        if not groundob:
+            self.report({'ERROR'}, "Could not find meadow Ground object")
+            return {'CANCELLED'}
+        
+        meadow.estimate_max_samples(context, groundob)
+        
+        return {'FINISHED'}
 
 
 class MakeBlobsOperator(MeadowOperatorBase, Operator):
@@ -265,6 +284,7 @@ def menu_generate_meadow(self, context):
 def register():
     bpy.utils.register_class(OBJECT_PT_Meadow)
     
+    bpy.utils.register_class(EstimateMaxSamplesOperator)
     bpy.utils.register_class(MakeBlobsOperator)
     bpy.utils.register_class(DeleteBlobsOperator)
     bpy.utils.register_class(MakePatchesOperator)
@@ -276,6 +296,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(OBJECT_PT_Meadow)
     
+    bpy.utils.unregister_class(EstimateMaxSamplesOperator)
     bpy.types.INFO_MT_add.remove(menu_generate_meadow)
     bpy.utils.unregister_class(MakeBlobsOperator)
     bpy.utils.unregister_class(DeleteBlobsOperator)

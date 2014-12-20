@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy, os, cProfile, pstats, io
+from math import *
 from mathutils import *
 
 from object_physics_meadow import settings as _settings
@@ -33,16 +34,35 @@ from object_physics_meadow.hierarchical_dart_throw import hierarchical_dart_thro
 
 use_profiling = False
 
+# estimate an upper bound on sample number based on optimal circle packing
+def estimate_max_samples(context, groundob, precision=3):
+    radius = groundob.meadow.sample_distance
+    area_circle = pi * radius*radius
+    
+    mat = groundob.matrix_world
+    bbmin = mat * Vector(tuple(min(p[i] for p in groundob.bound_box) for i in range(3)))
+    bbmax = mat * Vector(tuple(max(p[i] for p in groundob.bound_box) for i in range(3)))
+    area_bounds = (bbmax[0] - bbmin[0]) * (bbmax[1] - bbmin[1])
+    # optimal circle packing area ratio is pi/(2*sqrt(3)) ~= 0.9069
+    # http://en.wikipedia.org/wiki/Circle_packing
+    area_max = area_bounds * pi / (2.0*sqrt(3.0))
+
+    num = area_max / area_circle
+    # round to precision
+    num = int(round_sigfigs(num + 0.5, precision))
+
+    groundob.meadow.max_samples = num
+
 def make_samples(context, gridob, groundob):
     settings = _settings.get(context)
     
     mat = groundob.matrix_world
-    gmin = mat * Vector(tuple(min(p[i] for p in groundob.bound_box) for i in range(3)))
-    gmax = mat * Vector(tuple(max(p[i] for p in groundob.bound_box) for i in range(3)))
+    bbmin = mat * Vector(tuple(min(p[i] for p in groundob.bound_box) for i in range(3)))
+    bbmax = mat * Vector(tuple(max(p[i] for p in groundob.bound_box) for i in range(3)))
     
     # get a sample generator implementation
-    #gen = best_candidate_gen(groundob.meadow.sample_distance, gmin[0], gmax[0], gmin[1], gmax[1])
-    gen = hierarchical_dart_throw_gen(groundob.meadow.sample_distance, groundob.meadow.sampling_levels, gmin[0], gmax[0], gmin[1], gmax[1])
+    #gen = best_candidate_gen(groundob.meadow.sample_distance, bbmin[0], bbmax[0], bbmin[1], bbmax[1])
+    gen = hierarchical_dart_throw_gen(groundob.meadow.sample_distance, groundob.meadow.sampling_levels, bbmin[0], bbmax[0], bbmin[1], bbmax[1])
     
     loc2D = [p[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_samples)]
     
