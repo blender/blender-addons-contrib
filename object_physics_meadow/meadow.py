@@ -36,19 +36,15 @@ use_profiling = False
 def make_samples(context, gridob, groundob):
     settings = _settings.get(context)
     
-    xmin = min(p[0] for p in groundob.bound_box)
-    xmax = max(p[0] for p in groundob.bound_box)
-    ymin = min(p[1] for p in groundob.bound_box)
-    ymax = max(p[1] for p in groundob.bound_box)
-    zmin = min(p[2] for p in groundob.bound_box)
-    zmax = max(p[2] for p in groundob.bound_box)
+    mat = groundob.matrix_world
+    gmin = mat * Vector(tuple(min(p[i] for p in groundob.bound_box) for i in range(3)))
+    gmax = mat * Vector(tuple(max(p[i] for p in groundob.bound_box) for i in range(3)))
     
     # get a sample generator implementation
-    #gen = best_candidate_gen(groundob.meadow.patch_radius, xmin, xmax, ymin, ymax)
-    gen = hierarchical_dart_throw_gen(groundob.meadow.patch_radius, groundob.meadow.sampling_levels, xmin, xmax, ymin, ymax)
+    #gen = best_candidate_gen(groundob.meadow.patch_radius, gmin[0], gmax[0], gmin[1], gmax[1])
+    gen = hierarchical_dart_throw_gen(groundob.meadow.patch_radius, groundob.meadow.sampling_levels, gmin[0], gmax[0], gmin[1], gmax[1])
     
-    mat = groundob.matrix_world
-    loc2D = [(mat * Vector(p[0:3] + (1.0,)))[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
+    loc2D = [p[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
     
     return loc2D
 
