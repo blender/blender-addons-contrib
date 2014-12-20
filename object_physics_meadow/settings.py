@@ -156,15 +156,15 @@ class MeadowObjectSettings(PropertyGroup):
         default=4
         )
     
-    patch_radius = FloatProperty(
-        name="Patch Radius",
-        description="Free area around each patch where no other patch overlaps",
+    sample_distance = FloatProperty(
+        name="Sample Distance",
+        description="Minimum distance between samples to prevent overlap",
         default=1.0,
         min=0.01
         )
-    max_patches = IntProperty(
-        name="Maximum Patch Number",
-        description="Maximum number of patches",
+    max_samples = IntProperty(
+        name="Maximum Samples",
+        description="Maximum number of samples",
         default=1000,
         max=1000000,
         soft_max=10000

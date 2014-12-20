@@ -371,9 +371,7 @@ def setup_blob_duplis(context, groundob, display_radius):
 
             if ob.meadow.use_as_dupli:
                 # make a duplicator for the patch object
-                # XXX use a tiny radius here to hide them in the viewport as much as possible
-                # this is not ideal, but we can't easily separate duplicator visibility and dupli visibility
-                dob = make_blob_object(context, blob_index, blob.loc, mesh_samples(), 0.0001)
+                dob = make_blob_object(context, blob_index, blob.loc, mesh_samples(), display_radius)
                 # put the duplicator in the patch group,
                 # so it gets removed together with patch copies
                 patch_group_assign(context, dob)

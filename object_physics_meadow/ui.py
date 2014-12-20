@@ -84,8 +84,8 @@ class OBJECT_PT_Meadow(Panel):
             sub.enabled = not has_samples
             sub.prop(meadow, "seed")
             col = sub.column(align=True)
-            col.prop(meadow, "patch_radius")
-            col.prop(meadow, "max_patches")
+            col.prop(meadow, "sample_distance")
+            col.prop(meadow, "max_samples")
             sub.prop(meadow, "sampling_levels")
             
             if has_samples:

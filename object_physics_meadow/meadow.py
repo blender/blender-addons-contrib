@@ -41,10 +41,10 @@ def make_samples(context, gridob, groundob):
     gmax = mat * Vector(tuple(max(p[i] for p in groundob.bound_box) for i in range(3)))
     
     # get a sample generator implementation
-    #gen = best_candidate_gen(groundob.meadow.patch_radius, gmin[0], gmax[0], gmin[1], gmax[1])
-    gen = hierarchical_dart_throw_gen(groundob.meadow.patch_radius, groundob.meadow.sampling_levels, gmin[0], gmax[0], gmin[1], gmax[1])
+    #gen = best_candidate_gen(groundob.meadow.sample_distance, gmin[0], gmax[0], gmin[1], gmax[1])
+    gen = hierarchical_dart_throw_gen(groundob.meadow.sample_distance, groundob.meadow.sampling_levels, gmin[0], gmax[0], gmin[1], gmax[1])
     
-    loc2D = [p[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_patches)]
+    loc2D = [p[0:2] for p in gen(groundob.meadow.seed, groundob.meadow.max_samples)]
     
     return loc2D
 
@@ -58,7 +58,7 @@ def make_blobs(context, gridob, groundob):
         prof.enable()
     
     samples2D = make_samples(context, gridob, groundob)
-    blob.make_blobs(context, gridob, groundob, samples2D, groundob.meadow.patch_radius)
+    blob.make_blobs(context, gridob, groundob, samples2D, groundob.meadow.sample_distance)
 
     if use_profiling:
         prof.disable()
@@ -85,7 +85,10 @@ def make_patches(context, gridob, groundob):
     
     template_objects = [ob for ob in scene.objects if ob.meadow.type == 'TEMPLATE']
     patch.make_patches(context, groundob, gridob, template_objects)
-    blob.setup_blob_duplis(context, groundob, 0.333 * groundob.meadow.patch_radius)
+    # XXX use a tiny radius here to hide duplicator faces in the viewport as much as possible
+    # this is not ideal, but we can't easily separate duplicator visibility and dupli visibility:
+    # hiding the duplicator would also hide the duplis!
+    blob.setup_blob_duplis(context, groundob, 0.0001)
 
     if use_profiling:
         prof.disable()
