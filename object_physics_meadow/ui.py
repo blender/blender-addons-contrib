@@ -99,7 +99,10 @@ class OBJECT_PT_Meadow(Panel):
         
         col = layout.column()
         col.enabled = has_samples
-        col.operator("meadow.make_patches", icon='PARTICLE_PATH', text="Update Patches")
+
+        box = col.box()
+        box.prop(meadow, "slope_rotation")
+        box.operator("meadow.make_patches", icon='PARTICLE_PATH', text="Update Patches")
         
         row = col.row()
         row.operator("meadow.bake_physics", icon='MOD_PHYSICS')

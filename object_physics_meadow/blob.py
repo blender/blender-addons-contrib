@@ -333,7 +333,7 @@ def assign_sample_patches(groundob, blob, patches):
     return vgroup_samples
 
 def setup_blob_duplis(context, groundob, display_radius):
-    slope_factor = 0.0
+    slope_rotation = groundob.meadow.slope_rotation
 
     blobs = blobs_from_customprops(groundob.meadow)
 
@@ -365,7 +365,7 @@ def setup_blob_duplis(context, groundob, display_radius):
             def mesh_samples():
                 up = Vector((0,0,1))
                 for loc, nor in samples:
-                    mat = (slope_factor * up.rotation_difference(nor)).to_matrix()
+                    mat = (slope_rotation * up.rotation_difference(nor)).to_matrix()
                     mat.resize_4x4()
                     yield loc, mat
 
