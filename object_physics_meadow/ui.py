@@ -105,14 +105,15 @@ class OBJECT_PT_Meadow(Panel):
         row.operator("meadow.bake_physics", icon='MOD_PHYSICS')
         row.operator("meadow.free_physics", icon='X')
 
-        row = layout.row()
-        row.prop(groundob.meadow, "use_layers")
-        sub = row.row()
-        if groundob.meadow.use_layers:
-            sub.template_layers(groundob.meadow, "layers", groundob.meadow, "used_layers", -1)
-        else:
-            sub.enabled = False
-            sub.template_layers(groundob, "layers", groundob.meadow, "used_layers", -1)
+        if groundob:
+            row = layout.row()
+            row.prop(groundob.meadow, "use_layers")
+            sub = row.row()
+            if groundob.meadow.use_layers:
+                sub.template_layers(groundob.meadow, "layers", groundob.meadow, "used_layers", -1)
+            else:
+                sub.enabled = False
+                sub.template_layers(groundob, "layers", groundob.meadow, "used_layers", -1)
 
 
 class MeadowOperatorBase():
