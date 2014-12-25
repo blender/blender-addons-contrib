@@ -19,8 +19,8 @@
 bl_info = {
     "name": "UV Align/Distribute",
     "author": "Rebellion (Luca Carella)",
-    "version": (1, 1),
-    "blender": (2, 7, 1),
+    "version": (1, 2),
+    "blender": (2, 7, 3),
     "location": "UV/Image editor > Tool Panel, UV/Image editor UVs > menu",
     "description": "Set of tools to help UV alignment\distribution",
     "warning": "",
@@ -57,6 +57,7 @@ def InitBMesh():
     global bm
     global uvlayer
     bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
+    bm.faces.ensure_lookup_table()
     uvlayer = bm.loops.layers.uv.active
 
 
@@ -927,9 +928,9 @@ class MatchIsland(OperatorTemplate):
     bl_label = "Match Island"
     bl_options = {'REGISTER', 'UNDO'}
 
-    thresold = FloatProperty(
-        name="Thresold",
-        description="Thresold for island matching",
+    threshold = FloatProperty(
+        name="Threshold",
+        description="Threshold for island matching",
         default=0.1,
         min=0,
         max=1,
@@ -950,7 +951,7 @@ class MatchIsland(OperatorTemplate):
         selectedIslands.remove(activeIsland)
 
         for island in selectedIslands:
-            matchIsland(activeIsland, self.thresold, island)
+            matchIsland(activeIsland, self.threshold, island)
 
         update()
         return{'FINISHED'}
@@ -1063,5 +1064,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
 
