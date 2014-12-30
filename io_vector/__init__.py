@@ -22,13 +22,12 @@ bl_info = {
   "name": "Adobe Illustrator / PDF / SVG",
   "author": "Howard Trickey",
   "version": (1, 0),
-  "blender": (2, 69, 9),
+  "blender": (2, 73, 0),
   "location": "File > Import-Export > Vector files (.ai, .pdf, .svg)",
   "description": "Import Adobe Illustrator, PDF, and SVG",
   "warning": "",
   "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
       "Scripts/Import-Export/AI_PDF_SVG",
-  "tracker_url": "https://developer.blender.org/T27246",
   "category": "Import-Export"}
 
 if "bpy" in locals():
