@@ -27,7 +27,9 @@ from mathutils import geometry
 from mathutils import Vector
 
 
-def generate_3PT_mode_1(pts=[]):
+def generate_3PT_mode_1(pts, obj):
+    origin = obj.location
+    transform_matrix = obj.matrix_local
     V = Vector
 
     # construction
@@ -46,8 +48,10 @@ def generate_3PT_mode_1(pts=[]):
     r = geometry.intersect_line_line(v1_, v2_, v3_, v4_)
     if r:
         p1, _ = r
-        bpy.context.scene.cursor_location = p1
-
+        # cp = transform_matrix * (p1 + origin)
+        cp = transform_matrix * p1
+        bpy.context.scene.cursor_location = cp
+        # generate_gp3d_stroke(cp, axis, obj, radius=(p1-v1).length)
     else:
         print('not on a circle')
 
@@ -77,5 +81,5 @@ class CircleCenter(bpy.types.Operator):
     def execute(self, context):
         obj = bpy.context.object
         pts = get_three_verts_from_selection(obj)
-        generate_3PT_mode_1(pts)
+        generate_3PT_mode_1(pts, obj)
         return {'FINISHED'}
