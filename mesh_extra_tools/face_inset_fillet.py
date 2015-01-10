@@ -107,10 +107,9 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
             #the angle between them
             if round(degrees(ang_)) == 180 or round(degrees(ang_)) == 0.0:
                 #again... if it's really a line...
-                bme.verts.new(q)
-                bme.verts.index_update()
-                new_inner_face.append(bme.verts[-1])
-                dict_0[j].append(bme.verts[-1])
+                v = bme.verts.new(q)
+                new_inner_face.append(v)
+                dict_0[j].append(v)
             else:
                 #s.a.
                 
@@ -149,29 +148,23 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
                     #this calculates the actual new vertices
                     
                     q5 = angle_rotation(rp_,q4,axis_,rot_ang * o / number_of_sides)
-                    bme.verts.new(q5)
+                    v = bme.verts.new(q5)
                     
                     #creates new bmesh vertices from it
-                    bme.verts.ensure_lookup_table()                    
                     bme.verts.index_update()
 
-                    dict_0[j].append(bme.verts[-1])
-                    cornerverts.append(bme.verts[-1])
+                    dict_0[j].append(v)
+                    cornerverts.append(v)
                     
                 cornerverts.reverse()
                 new_inner_face.extend(cornerverts)
 
         if out == False:
-            bme.faces.new(new_inner_face)
- 
-            bme.faces.index_update()
-            bme.faces.ensure_lookup_table() 
-            bme.faces[-1].select_set(1)
+            f = bme.faces.new(new_inner_face)
+            f.select_set(True)
         elif out == True and kp == True:
-            bme.faces.new(new_inner_face)
-            bme.faces.index_update()
-            bme.faces.ensure_lookup_table()
-            bme.faces[-1].select_set(1)
+            f = bme.faces.new(new_inner_face)
+            f.select_set(True)
 
         n2_ = len(dict_0)
         #these are the new side faces, those that don't depend on cornertype
