@@ -170,6 +170,7 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
         elif out == True and kp == True:
             bme.faces.new(new_inner_face)
             bme.faces.index_update()
+            bme.faces.ensure_lookup_table()
             bme.faces[-1].select_set(1)
 
         n2_ = len(dict_0)
