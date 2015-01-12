@@ -21,7 +21,7 @@ bl_info = {
     "name": "Enhanced 3D Cursor",
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
-    "version": (2, 9, 6),
+    "version": (2, 9, 7),
     "blender": (2, 7, 0),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
@@ -5419,11 +5419,11 @@ def update_keymap(activate):
     cur_idname = 'view3d.cursor3d'
 
     wm = bpy.context.window_manager
-    #userprefs = bpy.context.user_preferences
-    #addon_prefs = userprefs.addons[__name__].preferences
+    userprefs = bpy.context.user_preferences
+    addon_prefs = userprefs.addons[__name__].preferences
     settings = find_settings()
 
-    if not settings.auto_register_keymaps:
+    if not (settings.auto_register_keymaps and addon_prefs.auto_register_keymaps):
         return
 
     try:
@@ -5513,15 +5513,16 @@ class ThisAddonPreferences(bpy.types.AddonPreferences):
     # this must match the addon name, use '__package__'
     # when defining this in a submodule of a python package.
     bl_idname = __name__
-
-    #auto_register_keymaps = bpy.props.BoolProperty(
-    #    name="Auto Register Keymaps",
-    #    default=True)
+    
+    auto_register_keymaps = bpy.props.BoolProperty(
+        name="Auto Register Keymaps",
+        default=True)
 
     def draw(self, context):
         layout = self.layout
         settings = find_settings()
         row = layout.row()
+        row.prop(self, "auto_register_keymaps", text="")
         row.prop(settings, "auto_register_keymaps")
         row.prop(settings, "free_coord_precision")
 
@@ -5547,7 +5548,8 @@ def register():
     # View properties panel is already long. Appending something
     # to it would make it too inconvenient
     #bpy.types.VIEW3D_PT_view3d_properties.append(draw_cursor_tools)
-
+    
+    # THIS IS WHAT CAUSES TOOLTIPS TO NOT SHOW!
     update_keymap(True)
 
 
