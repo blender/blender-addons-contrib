@@ -19,7 +19,7 @@
 bl_info = {
     "name": "UV Align/Distribute",
     "author": "Rebellion (Luca Carella)",
-    "version": (1, 2),
+    "version": (1, 3),
     "blender": (2, 7, 3),
     "location": "UV/Image editor > Tool Panel, UV/Image editor UVs > menu",
     "description": "Set of tools to help UV alignment\distribution",
@@ -600,7 +600,17 @@ class EqualizeScale(OperatorTemplate):
     bl_idname = "uv.equalize_scale"
     bl_label = "Equalize Scale"
     bl_options = {'REGISTER', 'UNDO'}
-
+    
+    keepProportions = BoolProperty(
+    name="Keep Proportions",
+    description="Mantain proportions during scaling",
+    default=False)
+    
+    useYaxis = BoolProperty(
+    name="Use Y axis",
+    description="Use y axis as scale reference, default is x",
+    default=False)
+    
     def execute(self, context):
         makeIslands = MakeIslands()
         islands = makeIslands.getIslands()
@@ -618,10 +628,23 @@ class EqualizeScale(OperatorTemplate):
             size = islandSize(island)
             scaleX = activeSize[0] / size[0]
             scaleY = activeSize[1] / size[1]
+            
+            if self.keepProportions:
+                if self.useYaxis:
+                    scaleX = scaleY
+                else:
+                    scaleY = scaleX
+                                 
             scaleIsland(island, scaleX, scaleY)
 
         update()
         return {"FINISHED"}
+    
+    def draw(self,context):
+        layout = self.layout      
+        layout.prop(self, "keepProportions")        
+        if self.keepProportions:
+            layout.prop(self,"useYaxis")
 
 
 ############################
@@ -944,7 +967,11 @@ class MatchIsland(OperatorTemplate):
         islands = makeIslands.getIslands()
         selectedIslands = makeIslands.selectedIslands()
         activeIsland = makeIslands.activeIsland()
-
+        
+        if not activeIsland:
+            self.report({"ERROR"}, "No active face")
+            return {"CANCELLED"}
+        
         if len(selectedIslands) < 2:
             return {'CANCELLED'}
 
@@ -984,17 +1011,17 @@ class IMAGE_PT_align_distribute(bpy.types.Panel):
 
         box = layout.box()
         row = box.row(True)
-        row.operator("uv.align_left_margin", "Align Left")
-        row.operator("uv.align_vertical_axis", "Align VAxis")
-        row.operator("uv.align_right_margin", "Align Right")
+        row.operator("uv.align_left_margin", "Left")
+        row.operator("uv.align_vertical_axis", "VAxis")
+        row.operator("uv.align_right_margin", "Right")
         row = box.row(True)
-        row.operator("uv.align_top_margin", "Align Top")
-        row.operator("uv.align_horizontal_axis", "Align HAxis")
-        row.operator("uv.align_low_margin", "Align Low")
+        row.operator("uv.align_top_margin", "Top")
+        row.operator("uv.align_horizontal_axis", "HAxis")
+        row.operator("uv.align_low_margin", "Low")
 
         row = layout.row()
-        row.operator("uv.align_rotation", "Align rotation")
-        row.operator("uv.equalize_scale", "Equalize scale")
+        row.operator("uv.align_rotation", "Rotation")
+        row.operator("uv.equalize_scale", "Eq. Scale")
 
         layout.separator()
         # Another Panel??
@@ -1003,22 +1030,22 @@ class IMAGE_PT_align_distribute(bpy.types.Panel):
         box = layout.box()
 
         row = box.row(True)
-        row.operator("uv.distribute_ledges_horizontally", "Distribute LEdges")
+        row.operator("uv.distribute_ledges_horizontally", "LEdges")
 
         row.operator("uv.distribute_center_horizontally",
-                     "Distribute HCenters")
+                     "HCenters")
 
         row.operator("uv.distribute_redges_horizontally",
-                     "Distribute RCenters")
+                     "RCenters")
 
         row = box.row(True)
-        row.operator("uv.distribute_tedges_vertically", "Distribute TEdges")
-        row.operator("uv.distribute_center_vertically", "Distribute VCenters")
-        row.operator("uv.distribute_bedges_vertically", "Distribute BEdges")
+        row.operator("uv.distribute_tedges_vertically", "TEdges")
+        row.operator("uv.distribute_center_vertically", "VCenters")
+        row.operator("uv.distribute_bedges_vertically", "BEdges")
 
         row = layout.row(True)
-        row.operator("uv.equalize_horizontal_gap", "Equalize HGap")
-        row.operator("uv.equalize_vertical_gap", "Equalize VGap")
+        row.operator("uv.equalize_horizontal_gap", "Eq. HGap")
+        row.operator("uv.equalize_vertical_gap", "Eq. VGap")
 
         layout.separator()
         layout.label("Others:")
