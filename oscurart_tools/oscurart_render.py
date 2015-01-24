@@ -39,10 +39,12 @@ def defRenderAll (frametype, scenes):
             
         for group, material in proptolist:
             for object in bpy.data.groups[group].objects:
+                lenslots = len(object.material_slots)
                 if object.type in types:
                     if len(object.data.materials):
                         object.data.materials.clear()
-                        object.data.materials.append(bpy.data.materials[material])            
+                        for newslot in range(lenslots):
+                            object.data.materials.append(bpy.data.materials[material])            
         filename = os.path.basename(bpy.data.filepath.rpartition(".")[0])  
         uselayers = {layer : layer.use for layer in scene.render.layers} 
         for layer, usado in uselayers.items():

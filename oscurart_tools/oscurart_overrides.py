@@ -25,10 +25,12 @@ def DefOscApplyOverrides(self):
     proptolist = list(eval(scene.overrides))   
     for group, material in proptolist:
         for object in bpy.data.groups[group].objects:
+            lenslots = len(object.material_slots)
             if object.type in types:
                 if len(object.data.materials):
                     object.data.materials.clear()
-                    object.data.materials.append(bpy.data.materials[material])                 
+                    for newslot in range(lenslots):                    
+                        object.data.materials.append(bpy.data.materials[material])                 
  
 def DefOscRestoreOverrides(self):
     types = {'MESH','META','CURVE'}
