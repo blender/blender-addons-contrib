@@ -4,7 +4,7 @@ Press Ctrl-C when hovering the cursor over an input field to copy it and Ctrl-V 
 Press F5 over a sidebar or a header to flip it to the other side of the window.
 Pressing G twice in Mesh Edit Mode activates the Slide command.
 Ctrl-LMB on a panel’s header will open it, while closing all the other panels.
-Pin panels by clicking on their headers with RMB and choosing Pin, to keep them visible in all tabs.
+Pin panels by clicking on their headers with RMB and choosing Pin,\n to keep them visible in all tabs.
 Press E with the mouse cursor over an Object Selection Field to activate an Object Picker.
 Only allow an object to transform in a certain direction by using Transform Locks.
 You can make objects appear and disappear by animating their Layer Relation.
@@ -15,10 +15,10 @@ See vertices behind other faces by turning off Limit Selection to Visible.
 If you see weird shading on your mesh, try Recalculate Normals and Remove Doubles.
 You can add new geometry with Ctrl-LMB in Edit Mode.
 Press Ctrl-Up Arrow to maximize a window. Repeat to minimize.
-Click the little arrows in the outliner to prevent view-port selection, Ctrl-LMB click them to do it to all their children too.
-When adding plane, cube, or cylinder in edit mode, auto align to active edge, and set radius to active edge length
+Click the little arrows in the outliner to prevent view-port selection,\n Ctrl-LMB click them to do it to all their children too.
+When adding plane, cube, or cylinder in edit mode, auto align to active edge,\n and set radius to active edge length.
 Shift+Click any folder icon to open that folder within your Operating System
-Shift+Click-And-Drag a window’s corner drag area to separate that window into it’s own Blender instance - Great for multiple monitors!
+Shift+Click-And-Drag a window’s corner drag area to separate that window\n into it’s own Blender instance - Great for multiple monitors!
 Ctrl+Click-And-Drag a window’s corner drag area into another window to swap them.
 Spacebar opens the tool search popup.
 Ctrl-C over tools & menu-items to copy the Python command.
