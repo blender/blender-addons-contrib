@@ -53,16 +53,7 @@ def find_random_line(f):
                 break
 
         f_handle.seek(i, os.SEEK_SET)
-        data_chunks = []
-        i_newline = -1
-        while i_newline == -1:
-            d = f_handle.read(chunk_size)
-            i_newline = d.find(b'\n')
-            if i_newline != -1:
-                d = d[:i_newline]
-            data_chunks.append(d)
-        return b''.join(data_chunks)
-
+        data = f_handle.readline()
     return data
 
 
@@ -71,7 +62,7 @@ def find_random_tip():
 
     text = find_random_line(
             os.path.join(os.path.dirname(__file__), "tips.txt"),
-            )
+            ).rstrip()
 
     url_index = text.rfind(b' ~')
     if url_index != -1:
