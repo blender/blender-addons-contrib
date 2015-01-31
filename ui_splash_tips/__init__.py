@@ -28,7 +28,7 @@ bl_info = {
 }
 
 
-def find_random_line(f):
+def read_random_line(f):
     import os
 
     chunk_size = 16
@@ -36,31 +36,28 @@ def find_random_line(f):
         import random
         f_handle.seek(0, os.SEEK_END)
         size = f_handle.tell()
-        i = random.randint(1, size)
-
-        # find the line
-        while i != 0:
+        i = random.randint(0, size)
+        while True:
             i -= chunk_size
             if i < 0:
+                chunk_size += i
                 i = 0
             f_handle.seek(i, os.SEEK_SET)
             d = f_handle.read(chunk_size)
             i_newline = d.rfind(b'\n')
-            if i_newline == -1:
-                pass
-            else:
+            if i_newline != -1:
                 i += i_newline + 1
                 break
-
+            if i == 0:
+                break
         f_handle.seek(i, os.SEEK_SET)
-        data = f_handle.readline()
-    return data
+        return f_handle.readline()
 
 
 def find_random_tip():
     import os
 
-    text = find_random_line(
+    text = read_random_line(
             os.path.join(os.path.dirname(__file__), "tips.txt"),
             ).rstrip()
 
@@ -69,8 +66,6 @@ def find_random_tip():
         text, url = text[:url_index], text[url_index + 2:]
     else:
         url = b''
-    print(text)
-    print(url)
     return text.decode("utf-8"), url.decode("utf-8")
 
 
