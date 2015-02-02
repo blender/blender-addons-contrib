@@ -17,10 +17,10 @@ You can add new geometry with Ctrl-LMB in Edit Mode.
 Press Ctrl-Up Arrow to maximize a window. Repeat to minimize.
 Click the little arrows in the outliner to prevent view-port selection,\n Ctrl-LMB click them to do it to all their children too.
 When adding plane, cube, or cylinder in edit mode, auto align to active edge,\n and set radius to active edge length.
-Shift+Click any folder icon to open that folder within your Operating System
-Shift+Click-And-Drag a window’s corner drag area to separate that window\n into it’s own Blender instance - Great for multiple monitors!
-Ctrl+Click-And-Drag a window’s corner drag area into another window to swap them.
-Spacebar opens the tool search popup.
+Shift-Click any folder icon to open that folder within your Operating System
+Shift-Click, Drag a windows corner drag area to separate that window\n into it’s own Blender instance - Great for multiple monitors!
+Ctrl-Click, Drag a windows corner drag area into another window to swap them.
+Spacebar opens the tool search popup. \n Giving fast access to tools by name.
 Ctrl-C over tools & menu-items to copy the Python command.
 Backspace over input fields to clear their value.
 Shift-Click-And-Drag the manipulator axis to transform on that plane.
