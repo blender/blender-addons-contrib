@@ -76,12 +76,13 @@ def menu_func(self, context):
     tip, url = find_random_tip()
     tip = tip.split("\\n")
     row = layout.row()
-    row.label(tip[0])
+    row.label("Tip: " + tip[0])
     if url:
-        row.operator("wm.url_open", text="", icon='INFO').url = url_prefix + url
+        row.operator("wm.url_open", text="", icon='URL').url = url_prefix + url
     for tip_line in tip[1:]:
         row = layout.row()
         row.label(tip_line.strip())
+    layout.separator()
     layout.separator()
 
 
