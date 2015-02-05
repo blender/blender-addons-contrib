@@ -34,9 +34,18 @@ def meshcache_export(context, objects):
                 if mo.type == 'SUBSURF':
                     mo.show_viewport = False
 
-        context.scene.objects.active = ob
-
-        bpy.ops.export_shape.mdd(filepath=filename,
+        override = {
+            'blend_data' : context.blend_data,
+            'window' : context.window,
+            'screen' : context.screen,
+            'area' : context.area,
+            'region' : context.region,
+            'scene' : scene,
+            'active_object' : ob,
+            'object' : ob,
+            }
+        bpy.ops.export_shape.mdd(override,
+                                 filepath=filename,
                                  frame_start=scene.meshcache_frame_start,
                                  frame_end=scene.meshcache_frame_end,
                                  fps=scene.meshcache_frame_rate)
