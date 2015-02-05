@@ -23,172 +23,138 @@ from bpy.types import Operator
 from bpy.props import *
 
 
-def meshcache_export(context):
-
+def meshcache_export(context, objects):
     scene = context.scene
-    objects = []
-    howmany_exported = 0
-    howmany_excluded = 0
-
-    if scene.use_meshcache_exclude_names:
-        excluded = []
-
-        if scene.meshcache_exclude_names:
-            for ex in scene.meshcache_exclude_names:
-                if ex.name != '':
-                    excluded.append(ex.name)
-
-    print("\n== Meshcache Export Start ==")
-
-    if scene.meshcache_apply_to == 'GROUP':
-        objects = bpy.data.groups[scene.meshcache_group].objects
-    else:
-        objects = bpy.context.selected_objects
 
     for ob in objects:
-        if ob and ob.type == 'MESH':
+        filename = scene.meshcache_folder + "/" + scene.meshcache_group + "_" + ob.name + ".cache.mdd"
 
-            is_excluded = False
+        if ob.modifiers:
+            for mo in ob.modifiers:
+                if mo.type == 'SUBSURF':
+                    mo.show_viewport = False
 
-            if scene.use_meshcache_exclude_names:
-                for e in excluded:
-                    if e in ob.name:
-                        is_excluded = True
+        context.scene.objects.active = ob
 
-            if is_excluded:
-                howmany_excluded += 1
-                print("** {0} - Excluded".format(ob.name))
-            else:
-                filename = scene.meshcache_folder + "/" + scene.meshcache_group + "_" + ob.name + ".cache.mdd"
-
-                if ob.modifiers:
-                    for mo in ob.modifiers:
-                        if mo.type == 'SUBSURF':
-                            mo.show_viewport = False
-
-                context.scene.objects.active = ob
-
-                bpy.ops.export_shape.mdd(filepath=filename,
-                                         frame_start=scene.meshcache_frame_start,
-                                         frame_end=scene.meshcache_frame_end,
-                                         fps=scene.meshcache_frame_rate)
-                print("{0} - Exported".format(ob.name))
-                howmany_exported += 1
-
-    MESH_OP_MeshcacheExport.howmany_exported = howmany_exported
-    MESH_OP_MeshcacheExport.howmany_excluded = howmany_excluded
-
-    print("\n== Meshcache Export Finished ==")
-    print("== {0} Exported, {1} Excluded ==".format(
-           howmany_exported, howmany_excluded))
+        bpy.ops.export_shape.mdd(filepath=filename,
+                                 frame_start=scene.meshcache_frame_start,
+                                 frame_end=scene.meshcache_frame_end,
+                                 fps=scene.meshcache_frame_rate)
 
 
-def meshcache_import(context):
-
+def meshcache_import(context, objects):
     scene = context.scene
     mc_mod_name = "MeshCacheAM"
-    objects = []
-    howmany_imported = 0
-    howmany_excluded = 0
 
     import os.path
 
-    if scene.use_meshcache_exclude_names:
-        excluded = []
-
-        if scene.meshcache_exclude_names:
-            for ex in scene.meshcache_exclude_names:
-                if ex.name != '':
-                    excluded.append(ex.name)
-
-    print("\n== Meshcache Import Start ==")
-
-    if scene.meshcache_apply_to == 'GROUP':
-        objects = bpy.data.groups[scene.meshcache_group].objects
-    else:
-        objects = bpy.context.selected_objects
-
     for ob in objects:
-        if ob and ob.type == 'MESH':
+        filename = scene.meshcache_folder + "/" + scene.meshcache_group + "_" + ob.name + ".cache.mdd"
 
-            is_excluded = False
+        if os.path.isfile(filename):
+            has_meshcache = False
 
-            if scene.use_meshcache_exclude_names:
-                for e in excluded:
-                    if e in ob.name:
-                        is_excluded = True
+            if ob.modifiers:
+                for mo in ob.modifiers:
+                    if mo.type == 'MESH_CACHE':
+                        has_meshcache = True
+                        mo.name = mc_mod_name
 
-            if is_excluded:
-                howmany_excluded += 1
-                print("** {0} - Excluded".format(ob.name))
-            else:
-                filename = scene.meshcache_folder + "/" + scene.meshcache_group + "_" + ob.name + ".cache.mdd"
+            if not has_meshcache:
+                ob.modifiers.new(mc_mod_name, "MESH_CACHE")
 
-                if os.path.isfile(filename):
-                    has_meshcache = False
+            ob.modifiers[mc_mod_name].filepath = filename
+            ob.modifiers[mc_mod_name].frame_start = scene.meshcache_frame_start
+        else:
+            print("! No Meshcache found for {0}".format(ob.name))
 
-                    if ob.modifiers:
-                        for mo in ob.modifiers:
-                            if mo.type == 'MESH_CACHE':
-                                has_meshcache = True
-                                mo.name = mc_mod_name
 
-                    if not has_meshcache:
-                        ob.modifiers.new(mc_mod_name, "MESH_CACHE")
+class MeshcacheOperator():
+    @classmethod
+    def poll(cls, context):
+        if context.scene.meshcache_apply_to == 'GROUP':
+            # XXX doesn't seem correct
+            return bpy.data.groups
+        else:
+            return context.active_object is not None
 
-                    ob.modifiers[mc_mod_name].filepath = filename
-                    ob.modifiers[mc_mod_name].frame_start = scene.meshcache_frame_start
+    def meshcache_objects(self, context):
+        """Filtered list of Blender Objects used by the cache export/import"""
+        scene = context.scene
 
-                    print("{0} - Imported".format(ob.name))
-                    howmany_imported += 1
+        if scene.meshcache_apply_to == 'GROUP':
+            objects = bpy.data.groups[scene.meshcache_group].objects
+        else:
+            objects = context.selected_objects
+
+        if scene.use_meshcache_exclude_names:
+            excluded = { ex.name for ex in scene.meshcache_exclude_names if ex.name }
+        else:
+            excluded = []
+
+        for ob in objects:
+            if ob.type == 'MESH':
+                if ob.name not in excluded:
+                    yield ob
+                    self.report_used(ob)
                 else:
-                    print("! No Meshcache found for {0}".format(ob.name))
+                    self.report_excluded(ob)
 
 
-    MESH_OP_MeshcacheImport.howmany_imported = howmany_imported
-    MESH_OP_MeshcacheImport.howmany_excluded = howmany_excluded
-
-    print("\n== Meshcache Import Finished ==")
-    print("== {0} Imported, {1} Excluded ==".format(
-           howmany_imported, howmany_excluded))
-
-
-class MESH_OP_MeshcacheExport(Operator):
+class MESH_OP_MeshcacheExport(MeshcacheOperator, Operator):
     """Export Meshcache"""
     bl_idname = "object.meshcache_export"
     bl_label = "Export Mesh Cache"
     howmany_exported = 0
     howmany_excluded = 0
 
-    @classmethod
-    def poll(cls, context):
-        if context.scene.meshcache_apply_to == 'GROUP':
-            return len(bpy.data.groups) != 0
-        else:
-            return context.active_object is not None
+    def report_used(self, ob):
+        MESH_OP_MeshcacheExport.howmany_exported += 1
+        print("{0} - Exported".format(ob.name))
+
+    def report_excluded(self, ob):
+        MESH_OP_MeshcacheExport.howmany_excluded += 1
+        print("** {0} - Excluded".format(ob.name))
 
     def execute(self, context):
-        meshcache_export(context)
+        print("\n== Meshcache Export Start ==")
+        MESH_OP_MeshcacheExport.howmany_exported = 0
+        MESH_OP_MeshcacheExport.howmany_excluded = 0
+        meshcache_export(context, self.meshcache_objects(context))
+        print("\n== Meshcache Export Finished ==")
+        print("== {0} Exported, {1} Excluded ==".format(
+              MESH_OP_MeshcacheExport.howmany_exported,
+              MESH_OP_MeshcacheExport.howmany_excluded))
+
         self.report({'INFO'}, "Meshcache Exported")
         return {'FINISHED'}
 
 
-class MESH_OP_MeshcacheImport(Operator):
+class MESH_OP_MeshcacheImport(MeshcacheOperator, Operator):
     """Import Meshcache (creates Meshcache modifiers when necessary)"""
     bl_idname = "object.meshcache_import"
     bl_label = "Import Mesh Cache"
     howmany_imported = 0
     howmany_excluded = 0
 
-    @classmethod
-    def poll(cls, context):
-        if context.scene.meshcache_apply_to == 'GROUP':
-            return len(bpy.data.groups) != 0
-        else:
-            return context.active_object is not None
+    def report_used(self, ob):
+        MESH_OP_MeshcacheImport.howmany_imported += 1
+        print("{0} - Imported".format(ob.name))
+
+    def report_excluded(self, ob):
+        MESH_OP_MeshcacheImport.howmany_excluded += 1
+        print("** {0} - Excluded".format(ob.name))
 
     def execute(self, context):
-        meshcache_import(context)
+        print("\n== Meshcache Import Start ==")
+        MESH_OP_MeshcacheImport.howmany_imported = 0
+        MESH_OP_MeshcacheImport.howmany_excluded = 0
+        meshcache_import(context, self.meshcache_objects(context))
+        print("\n== Meshcache Import Finished ==")
+        print("== {0} Imported, {1} Excluded ==".format(
+              MESH_OP_MeshcacheImport.howmany_imported,
+              MESH_OP_MeshcacheImport.howmany_excluded))
+
         self.report({'INFO'}, "Meshcache Imported")
         return {'FINISHED'}
 
