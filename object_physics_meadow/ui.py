@@ -181,7 +181,7 @@ class MakeBlobsOperator(MeadowOperatorBase, Operator):
             self.report({'ERROR'}, "Could not find meadow Blob Grid object")
             return {'CANCELLED'}
         
-        with ObjectSelection():
+        with OperatorCallContext():
             progress_default()
             meadow.make_blobs(context, blobgridob, groundob)
         
@@ -200,7 +200,7 @@ class DeleteBlobsOperator(MeadowOperatorBase, Operator):
         
         groundob = find_meadow_object(context, 'GROUND')
         
-        with ObjectSelection():
+        with OperatorCallContext():
             progress_default()
             meadow.delete_blobs(context, groundob)
         
@@ -231,7 +231,7 @@ class MakePatchesOperator(MeadowOperatorBase, Operator):
             self.report({'ERROR'}, "Could not find meadow Blob Grid object")
             return {'CANCELLED'}
         
-        with ObjectSelection():
+        with OperatorCallContext():
             progress_default()
             meadow.make_patches(context, blobgridob, groundob)
         
@@ -263,7 +263,7 @@ class MEADOW_OT_BakePhysics(MeadowOperatorBase, Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        with ObjectSelection():
+        with OperatorCallContext():
             progress_default()
             physics.scene_bake_all(context)
         return {'FINISHED'}
@@ -276,7 +276,7 @@ class MEADOW_OT_FreePhysics(MeadowOperatorBase, Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        with ObjectSelection():
+        with OperatorCallContext():
             progress_default()
             physics.scene_free_all(context)
         return {'FINISHED'}

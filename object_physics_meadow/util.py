@@ -34,21 +34,32 @@ def round_sigfigs(num, sig_figs):
     else:
         return 0  # Can't take the log of 0
 
-class ObjectSelection():
+class OperatorCallContext():
     def __enter__(self):
         scene = bpy.context.scene
+        prefs = bpy.context.user_preferences
+
         # store active/selected state to restore it after operator execution
         self.curact = scene.objects.active
         self.cursel = { ob : ob.select for ob in scene.objects }
         
+        # undo can store files a lot when running operators internally,
+        # disable since we only need one undo step after main operators anyway
+        self.use_global_undo = prefs.edit.use_global_undo
+        prefs.edit.use_global_undo = False
+
         return (self.curact, self.cursel)
     
     def __exit__(self, exc_type, exc_value, traceback):
         scene = bpy.context.scene
+        prefs = bpy.context.user_preferences
+
         # restore active/selected state
         scene.objects.active = self.curact
         for ob in scene.objects:
             ob.select = self.cursel.get(ob, False)
+
+        prefs.edit.use_global_undo = self.use_global_undo
 
 def select_single_object(ob):
     scene = bpy.context.scene
