@@ -79,9 +79,9 @@ class OBJECT_PT_SimulationOverrides(Panel):
 '''
 
 
-class SCENE_OP_AddOverride(Operator):
-    """Add Override"""
-    bl_idname = "scene.add_override"
+class SCENE_OT_Override_Add(Operator):
+    """Add Datablock Override"""
+    bl_idname = "scene.override_add"
     bl_label = "Add Override"
     bl_property = "id_block"
 
@@ -102,6 +102,38 @@ class SCENE_OP_AddOverride(Operator):
         
         return {'FINISHED'}
 
+
+class SCENE_OT_Override_AddCustomProperty(Operator):
+    """Add Custom Property Override"""
+    bl_idname = "scene.override_add_custom_property"
+    bl_label = "Add Custom Property Override"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    propname = StringProperty(name="Property", description="Path to the custom property to override")
+
+    @classmethod
+    def poll(cls, context):
+        if not context.scene:
+            return False
+        if not hasattr(context, "id_data_override"):
+            return False
+        return True
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_popup(self, event)
+
+    def execute(self, context):
+        print("AAAAAA")
+        scene = context.scene
+        override = context.id_data_override
+
+        if not self.propname:
+            print("no propname?")
+            return {'CANCELLED'}
+
+        print("adding %s" % self.propname)
+        override.add_custom_property(self.propname)
+        return {'FINISHED'}
 
 def template_overrides(layout, context, scene):
     for override in scene.overrides:
@@ -124,7 +156,7 @@ class SCENE_PT_Overrides(Panel):
         layout = self.layout
         scene = context.scene
 
-        layout.operator("scene.add_override")
+        layout.operator("scene.override_add")
 
         box = layout.box()
         template_overrides(box, context, scene)
@@ -135,7 +167,8 @@ class SCENE_PT_Overrides(Panel):
 
 classes = (
 #    OBJECT_PT_SimulationOverrides,
-    SCENE_OP_AddOverride,
+    SCENE_OT_Override_Add,
+    SCENE_OT_Override_AddCustomProperty,
     SCENE_PT_Overrides,
     )
 

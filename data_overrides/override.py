@@ -21,10 +21,38 @@
 import bpy, os
 from bpy.types import Operator, PropertyGroup
 from bpy.props import *
+from bpy.utils import escape_identifier
 
 from data_overrides.util import *
 
 # ======================================================================================
+
+class OverrideCustomProperty(PropertyGroup):
+    def _value_get(self):
+        return self['value']
+    def _value_set(self, v):
+        self['value'] = v
+    def _value_del(self):
+        del self['value']
+    value = property(_value_get, _value_set, _value_del)
+
+    def reset(self, target):
+        try:
+            val = eval("target.{}".format(self.name))
+        except:
+            # TODO define exceptions that should be handled gracefully
+            raise
+            return
+        self['value'] = val
+
+    def apply(self, target):
+        val = self['value']
+        try:
+            eval("target.{} = val".format(self.name))
+        except:
+            # TODO define exceptions that should be handled gracefully
+            raise
+            return
 
 class Override(PropertyGroup):
     id_name = StringProperty(name="ID Name", description="Name of the overridden ID datablock")
@@ -32,16 +60,36 @@ class Override(PropertyGroup):
 
     show_expanded = BoolProperty(name="Show Expanded", description="Expand override details in the interface", default=True)
 
-    def find_id_data(self, blend_data):
+    def add_custom_property(self, name):
+        prop = self.custom_properties.get(name, None)
+        if not prop:
+            target = self.find_target(bpy.data)
+            if target:
+                prop = self.custom_properties.add()
+                prop.name = name
+                prop.reset(target) # initialize with target value
+
+    def find_target(self, blend_data):
         return find_id_data(blend_data, self.id_name, self.id_library)
 
     @property
     def label(self):
         return "{}".format(self.id_name)
 
+    def draw_custom_props(self, context, layout):
+        for prop in self.custom_properties:
+            row = layout.row(align=True)
+            row.label(prop.name, icon='DOT')
+            row.prop(prop, '["{}"]'.format(escape_identifier("value")), text="")
+        
+        row = layout.row()
+        row.operator_context = 'INVOKE_SCREEN'
+        row.context_pointer_set("id_data_override", self)
+        row.operator("scene.override_add_custom_property", text="", icon='ZOOMIN')
+
     def draw(self, context, layout):
-        id_data = self.find_id_data(context.blend_data)
-        if not id_data:
+        target = self.find_target(context.blend_data)
+        if not target:
             return
 
         split = layout.split(0.05)
@@ -50,8 +98,11 @@ class Override(PropertyGroup):
         col.prop(self, "show_expanded", emboss=False, icon_only=True, icon='TRIA_DOWN' if self.show_expanded else 'TRIA_RIGHT')
 
         col = split.column()
-        icon = bpy.types.UILayout.icon(id_data)
+        icon = bpy.types.UILayout.icon(target)
         col.label(text=self.label, icon_value=icon)
+
+        self.draw_custom_props(context, layout)
+
 
 def target_library(target):
     id_data = target.id_data
@@ -90,6 +141,9 @@ def remove_override(scene, target):
 # ======================================================================================
 
 def register_property_groups():
+    bpy.utils.register_class(OverrideCustomProperty)
+
+    Override.custom_properties = CollectionProperty(type=OverrideCustomProperty)
     bpy.utils.register_class(Override)
 
     bpy.types.Scene.overrides = CollectionProperty(type=Override)
