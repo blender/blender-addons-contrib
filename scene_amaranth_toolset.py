@@ -477,7 +477,8 @@ def button_directory_current_blend(self, context):
 # FEATURE: Libraries panel on file browser
 class AMTH_FILE_PT_libraries(Panel):
     bl_space_type = 'FILE_BROWSER'
-    bl_region_type = 'CHANNELS'
+    bl_region_type = 'TOOLS'
+    bl_category = "Bookmarks"
     bl_label = "Libraries"
 
     def draw(self, context):
