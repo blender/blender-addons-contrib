@@ -573,6 +573,7 @@ class AMTH_SCENE_OT_list_users_for_x(bpy.types.Operator):
 
     name = bpy.props.StringProperty()
     users = {}
+    libraries = []
 
     def execute(self, context):
 
@@ -735,6 +736,9 @@ class AMTH_SCENE_OT_list_users_for_x(bpy.types.Operator):
                         if ma not in self.__class__.users['OBJECT_DATA']:
                             self.__class__.users['OBJECT_DATA'].append(ob)
 
+                        if ob.library:
+                            self.__class__.libraries.append(ob.library.filepath)
+
         # VERTEX COLOR TYPE
         elif dtype == 'GROUP_VCOL':
             # Check VCOL in Meshes
@@ -769,6 +773,12 @@ class AMTH_SCENE_OT_list_users_for_x(bpy.types.Operator):
                                     if name not in self.__class__.users['MATERIAL']:
                                         self.__class__.users['MATERIAL'].append(name)
 
+
+        print(self.__class__.libraries)
+        self.__class__.libraries = sorted(list(set(self.__class__.libraries)))
+
+        count_lib = 0
+
         # Print on console
         empty = True
 
@@ -782,6 +792,18 @@ class AMTH_SCENE_OT_list_users_for_x(bpy.types.Operator):
                         x))
                 for p in self.__class__.users[t]:
                     print(' {0}'.format(p))
+
+        if self.__class__.libraries:
+            print("\n* Check %s:\n" %
+                 ("this library" if len(self.__class__.libraries) == 1
+                  else "these libraries"))
+
+            for libs in self.__class__.libraries:
+                print('%02d. %s' % (
+                    count_lib + 1, self.__class__.libraries[count_lib]))
+                count_lib += 1
+            print("\n")
+
         if empty:
             print('\n== No users for {0} ==\n'.format(x))
 
@@ -1076,6 +1098,7 @@ class AMTH_SCENE_PT_scene_debug(bpy.types.Panel):
 
         # List Users for Datablock
         list_users = AMTH_SCENE_OT_list_users_for_x.users
+        list_users_libs = AMTH_SCENE_OT_list_users_for_x.libraries
 
         box = layout.box()
         row = box.row(align=True)
@@ -1132,6 +1155,27 @@ class AMTH_SCENE_PT_scene_debug(bpy.types.Panel):
                     row.label(text="No users for '{0}'".format(
                               scene.amth_list_users_for_x_name),
                               icon='INFO')
+
+                if list_users_libs:
+                    count_lib = 0
+
+                    col.separator()
+                    col.label("Check %s:" % (
+                        "this library" if
+                        len(list_users_libs) == 1
+                        else "these libraries"))
+
+                    for libs in list_users_libs:
+                        count_lib += 1
+                        row = col.row(align=True)
+                        row.alignment = "LEFT"
+                        row.operator(
+                            AMTH_SCENE_OT_blender_instance_open.bl_idname,
+                            text=list_users_libs[
+                                count_lib - 1],
+                            icon="LINK_BLEND",
+                            emboss=False).filepath = list_users_libs[
+                            count_lib - 1]
 
 class AMTH_LightersCorner(bpy.types.Panel):
 
