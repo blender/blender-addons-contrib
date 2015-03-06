@@ -51,10 +51,10 @@ import bgl
 import math
 from mathutils import Vector, Matrix
 from mathutils import geometry
-from misc_utils import *
-from constants_utils import *
-from cursor_utils import *
-from ui_utils import *
+from .misc_utils import *
+from .constants_utils import *
+from .cursor_utils import *
+from .ui_utils import *
 
 
 
