@@ -40,6 +40,8 @@ class LoftedSplineSurface:
         currIndexO = self.vert0Index + 1
         
         bmVerts = self.bMesh.verts
+        bmVerts.ensure_lookup_table()
+
         for i in range(1, self.resolution):
             nextIndexA = self.vert0Index + 2 * i
             nextIndexO = nextIndexA + 1
@@ -185,6 +187,7 @@ class SweptSplineSurface:
         
     def AddFaces(self):
         bmVerts = self.bMesh.verts
+        bmVerts.ensure_lookup_table()
         
         for iO in range(self.resolutionO - 1):
             for iA in range(self.resolutionA - 1):
@@ -349,6 +352,7 @@ class BirailedSplineSurface:
         
     def AddFaces(self):
         bmVerts = self.bMesh.verts
+        bmVerts.ensure_lookup_table()
         
         for iRail in range(self.resolutionRails - 1):
             for iProfile in range(self.resolutionProfile - 1):
