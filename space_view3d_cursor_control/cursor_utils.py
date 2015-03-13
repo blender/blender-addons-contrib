@@ -34,17 +34,18 @@ class CursorAccess:
 
     @classmethod
     def findSpace(cls):
-        area = None
         for area in bpy.data.window_managers[0].windows[0].screen.areas:
             if area.type == 'VIEW_3D':
                 break
-        if area.type != 'VIEW_3D':
+        else:
             return None
+
         for space in area.spaces:
             if space.type == 'VIEW_3D':
                 break
-        if space.type != 'VIEW_3D':
+        else:
             return None
+
         return space
 
     @classmethod
