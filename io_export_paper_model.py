@@ -23,7 +23,7 @@ bl_info = {
     "blender": (2, 70, 0),
     "location": "File > Export > Paper Model",
     "warning": "",
-    "description": "Export printable net of the active mesh (as an SVG file)",
+    "description": "Export printable net of the active mesh",
     "category": "Import-Export",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/Paper_Model",
@@ -82,6 +82,14 @@ def first_letters(text):
     for match in first_letters.pattern.finditer(text):
         yield text[match.start()]
 first_letters.pattern = re_compile("(?<!\w)[\w]")
+
+
+def is_upsidedown_wrong(name):
+    """Tell if the string would get a different meaning if written upside down"""
+    chars = set(name)
+    mistakable = set("69NZMWpbqd")
+    rotatable = set("80oOxXIl").union(mistakable)
+    return chars.issubset(rotatable) and not chars.isdisjoint(mistakable)
 
 
 def pairs(sequence):
@@ -199,7 +207,8 @@ class Unfolder:
         text_height = properties.sticker_width if (properties.do_create_numbers and len(self.mesh.islands) > 1) else 0
         aspect_ratio = printable_size.x / printable_size.y
         # finalizing islands will scale everything so that the page height is 1
-        self.mesh.finalize_islands(title_height=text_height)
+        # title height must be somewhat larger that text size, glyphs go below the baseline
+        self.mesh.finalize_islands(title_height=text_height * 1.2)
         self.mesh.fit_islands(cage_size=printable_size)
 
         if properties.output_type != 'NONE':
@@ -368,7 +377,7 @@ class Mesh:
             uvedge.island.add_marker(uvedge.sticker)
 
         for edge in self.edges.values():
-            if edge.is_main_cut and len(edge.uvedges) >= 2:
+            if edge.is_main_cut and len(edge.uvedges) >= 2 and edge.vect.length_squared > 0:
                 uvedge_a, uvedge_b = edge.uvedges[:2]
                 if uvedge_priority(uvedge_a) < uvedge_priority(uvedge_b):
                     uvedge_a, uvedge_b = uvedge_b, uvedge_a
@@ -382,8 +391,7 @@ class Mesh:
                             # So, create an arrow and put the index on all stickers
                             target_island.sticker_numbering += 1
                             index = str(target_island.sticker_numbering)
-                            # if the index would have a different meaning upside down, append a dot
-                            if {'6', '9'} < set(index) < {'6', '8', '9', '0'}:
+                            if is_upsidedown_wrong(index):
                                 index += "."
                             target_island.add_marker(Arrow(uvedge_a, default_width, index))
                             break
@@ -406,8 +414,7 @@ class Mesh:
             if edge.is_main_cut and len(edge.uvedges) >= 2:
                 global_numbering += 1
                 index = str(global_numbering)
-                if ('6' in index or '9' in index) and set(index) <= {'6', '8', '9', '0'}:
-                    # if index consists of the digits 6, 8, 9, 0 only and contains 6 or 9, make it distinguishable
+                if is_upsidedown_wrong(index):
                     index += "."
                 for uvedge in edge.uvedges:
                     uvedge.island.add_marker(NumberAlone(uvedge, index, size))
@@ -623,7 +630,7 @@ class Edge:
     """Wrapper for BPy Edge"""
     __slots__ = ('va', 'vb', 'faces', 'main_faces', 'uvedges',
         'vect', 'length', 'angle',
-        'is_main_cut', 'force_cut', 'priority')
+        'is_main_cut', 'force_cut', 'priority', 'freestyle')
 
     def __init__(self, edge, mesh, matrix=1):
         self.va = mesh.verts[edge.vertices[0]]
@@ -635,13 +642,14 @@ class Edge:
         # this constraint is assured at the time of finishing mesh.generate_cuts
         self.uvedges = list()
 
-        self.force_cut = bool(edge.use_seam)  # such edges will always be cut
+        self.force_cut = edge.use_seam  # such edges will always be cut
         self.main_faces = None  # two faces that may be connected in the island
         # is_main_cut defines whether the two main faces are connected
         # all the others will be assumed to be cut
         self.is_main_cut = True
         self.priority = None
         self.angle = None
+        self.freestyle = edge.use_freestyle_mark # freestyle edges will be highlighted
         self.va.edges.append(self)  #FIXME: editing foreign attribute
         self.vb.edges.append(self)  #FIXME: editing foreign attribute
 
@@ -993,6 +1001,8 @@ class Island:
         incidence = {vertex.tup for vertex in phantoms.values()}.intersection(vertex.tup for vertex in self.verts)
         incidence = {position: list() for position in incidence}  # from now on, 'incidence' is a dict
         for uvedge in chain(boundary_other, self.boundary):
+            if uvedge.va.co == uvedge.vb.co:
+                continue
             for vertex in (uvedge.va, uvedge.vb):
                 site = incidence.get(vertex.tup)
                 if site is not None:
@@ -1085,7 +1095,7 @@ class Island:
         """Assign a name to this island automatically"""
         abbr = abbreviation or self.abbreviation or str(self.number)
         # TODO: dots should be added in the last instant when outputting any text
-        if not set('69NZMWpbqd').isdisjoint(abbr) and set('6890oOxXNZMWIlpbqd').issuperset(abbr):
+        if is_upsidedown_wrong(abbr):
             abbr += "."
         self.label = label or self.label or "Island {}".format(self.number)
         self.abbreviation = abbr
@@ -1327,7 +1337,7 @@ class SVG:
             return "#{:02x}{:02x}{:02x}".format(round(vec[0] * 255), round(vec[1] * 255), round(vec[2] * 255))
 
         def format_matrix(matrix):
-            return " ".join(str(cell) for column in matrix for cell in column)
+            return " ".join("{:.6f}".format(cell) for column in matrix for cell in column)
 
         def path_convert(string, relto=os_path.dirname(filename)):
             assert(os_path)  # check the module was imported
@@ -1337,17 +1347,18 @@ class SVG:
             return string
 
         styleargs = {name: format_color(getattr(self.style, name)) for name in
-            ("outer_color", "outbg_color", "convex_color", "concave_color",
+            ("outer_color", "outbg_color", "convex_color", "concave_color", "freestyle_color",
             "inbg_color", "sticker_fill", "text_color")}
         styleargs.update({name: format_style[getattr(self.style, name)] for name in
-            ("outer_style", "convex_style", "concave_style")})
+            ("outer_style", "convex_style", "concave_style", "freestyle_style")})
         styleargs.update({name: getattr(self.style, attr)[3] for name, attr in
             (("outer_alpha", "outer_color"), ("outbg_alpha", "outbg_color"),
             ("convex_alpha", "convex_color"), ("concave_alpha", "concave_color"),
+            ("freestyle_alpha", "freestyle_color"),
             ("inbg_alpha", "inbg_color"), ("sticker_alpha", "sticker_fill"),
             ("text_alpha", "text_color"))})
         styleargs.update({name: getattr(self.style, name) for name in
-            ("outer_width", "convex_width", "concave_width")})
+            ("outer_width", "convex_width", "concave_width", "freestyle_width")})
         styleargs.update({"outbg_width": self.style.outer_width * self.style.outbg_width,
             "convexbg_width": self.style.convex_width * self.style.inbg_width,
             "concavebg_width": self.style.concave_width * self.style.inbg_width})
@@ -1388,10 +1399,10 @@ class SVG:
                         print(self.text_tag.format(
                             size=self.ppm * self.text_size,
                             x=self.ppm * (island.bounding_box.x*0.5 + island.pos.x + self.margin),
-                            y=self.ppm * (self.page_size.y - island.pos.y - self.margin),
+                            y=self.ppm * (self.page_size.y - island.pos.y - self.margin - 0.2 * self.text_size),
                             label=island.title), file=f)
 
-                    data_markers, data_stickerfill, data_outer, data_convex, data_concave = (list() for i in range(5))
+                    data_markers, data_stickerfill, data_outer, data_convex, data_concave, data_freestyle = (list() for i in range(6))
                     for marker in island.markers:
                         if isinstance(marker, Sticker):
                             data_stickerfill.append("M {} Z".format(
@@ -1400,7 +1411,8 @@ class SVG:
                                 data_markers.append(self.text_transformed_tag.format(
                                     label=marker.text,
                                     pos=self.format_vertex(marker.center, island.pos),
-                                    mat=format_matrix(marker.width * self.ppm * marker.rot)))
+                                    mat=format_matrix(marker.rot),
+                                    size=marker.width * self.ppm))
                         elif isinstance(marker, Arrow):
                             size = marker.size * self.ppm
                             position = marker.center + marker.rot*marker.size*M.Vector((0, -0.9))
@@ -1411,11 +1423,11 @@ class SVG:
                                 pos=self.format_vertex(position, island.pos - marker.size*M.Vector((0, 0.4))),
                                 mat=format_matrix(size * marker.rot)))
                         elif isinstance(marker, NumberAlone):
-                            size = marker.size * self.ppm
                             data_markers.append(self.text_transformed_tag.format(
                                 label=marker.text,
                                 pos=self.format_vertex(marker.center, island.pos),
-                                mat=format_matrix(size * marker.rot)))
+                                mat=format_matrix(marker.rot)),
+                                size=marker.size * self.ppm)
                     if data_stickerfill and self.style.sticker_fill[3] > 0:
                         print("<path class='sticker' d='", rows(data_stickerfill), "'/>", file=f)
 
@@ -1442,6 +1454,8 @@ class SVG:
                             continue
                         data_uvedge = "M {}".format(
                             line_through(self.format_vertex(vertex.co, island.pos) for vertex in (uvedge.va, uvedge.vb)))
+                        if edge.freestyle:
+                            data_freestyle.append(data_uvedge)
                         # each uvedge is in two opposite-oriented variants; we want to add each only once
                         if uvedge.sticker or uvedge.uvface.flipped != (uvedge.va.vertex.index > uvedge.vb.vertex.index):
                             if edge.angle > 0.01:
@@ -1451,6 +1465,8 @@ class SVG:
                     if island.is_inside_out:
                         data_convex, data_concave = data_concave, data_convex
 
+                    if data_freestyle:
+                        print("<path class='freestyle' d='", rows(data_freestyle), "'/>", file=f)
                     if data_convex:
                         if not self.pure_net and self.style.use_inbg:
                             print("<path class='convex_background' d='", rows(data_convex), "'/>", file=f)
@@ -1473,10 +1489,10 @@ class SVG:
 
     image_linked_tag = "<image transform='translate({pos})' width='{width}' height='{height}' xlink:href='{path}'/>"
     image_embedded_tag = "<image transform='translate({pos})' width='{width}' height='{height}' xlink:href='data:image/png;base64,"
-    text_tag = "<text transform='translate({x} {y}) scale({size})'><tspan>{label}</tspan></text>"
-    text_transformed_tag = "<text transform='matrix({mat} {pos})'><tspan>{label}</tspan></text>"
+    text_tag = "<text transform='translate({x} {y})' style='font-size:{size:.2f}px'><tspan>{label}</tspan></text>"
+    text_transformed_tag = "<text transform='matrix({mat} {pos})' style='font-size:{size:.2f}px'><tspan>{label}</tspan></text>"
     arrow_marker_tag = "<g><path transform='matrix({mat} {arrow_pos})' class='arrow' d='M 0 0 L 1 1 L 0 0.25 L -1 1 Z'/>" \
-        "<text class='scaled' transform='matrix({scale} 0 0 {scale} {pos})'><tspan>{index}</tspan></text></g>"
+        "<text transform='translate({pos})' style='font-size:{scale:.2f}px'><tspan>{index}</tspan></text></g>"
 
     svg_base = """<?xml version='1.0' encoding='UTF-8' standalone='no'?>
     <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1'
@@ -1511,6 +1527,13 @@ class SVG:
         stroke-width: {concave_width:.2}px;
         stroke-opacity: {concave_alpha:.2}
     }}
+    path.freestyle {{
+        stroke: {freestyle_color};
+        stroke-dasharray: {freestyle_style};
+        stroke-dashoffset: 0;
+        stroke-width: {freestyle_width:.2}px;
+        stroke-opacity: {freestyle_alpha:.2}
+    }}
     path.outer_background {{
         stroke: {outbg_color};
         stroke-opacity: {outbg_alpha};
@@ -1535,13 +1558,12 @@ class SVG:
         fill: #000;
     }}
     text {{
-        font-size: 1px;
         font-style: normal;
         fill: {text_color};
         fill-opacity: {text_alpha:.2};
         stroke: none;
     }}
-    tspan {{
+    text, tspan {{
         text-anchor:middle;
     }}
     </style>"""
@@ -1706,6 +1728,15 @@ class PaperModelStyle(bpy.types.PropertyGroup):
         default='DASHDOT', items=line_styles)
     concave_width = bpy.props.FloatProperty(name="Concave Lines Thickness",
         description="Thickness of concave lines, in pixels",
+        default=1, min=0, soft_max=10, precision=1)
+    freestyle_color = bpy.props.FloatVectorProperty(name="Freestyle Edges",
+        description="Color of lines marked as Freestyle Edge",
+        default=(0.0, 0.0, 0.0, 1.0), min=0, max=1, subtype='COLOR', size=4)
+    freestyle_style = bpy.props.EnumProperty(name="Freestyle Edges Drawing Style",
+        description="Drawing style of Freestyle Edges",
+        default='SOLID', items=line_styles)
+    freestyle_width = bpy.props.FloatProperty(name="Freestyle Edges Thickness",
+        description="Thickness of Freestyle Edges, in pixels",
         default=1, min=0, soft_max=10, precision=1)
     use_inbg = bpy.props.BoolProperty(name="Highlight Inner Lines",
         description="Add another line below every line to improve contrast",
@@ -1918,6 +1949,10 @@ class ExportPaperModel(bpy.types.Operator):
             col.prop(self.style, "concave_color")
             col.prop(self.style, "concave_width", text="Width (pixels)")
             col.prop(self.style, "concave_style", text="Style")
+            col = box.column()
+            col.prop(self.style, "freestyle_color")
+            col.prop(self.style, "freestyle_width", text="Width (pixels)")
+            col.prop(self.style, "freestyle_style", text="Style")
             col = box.column()
             col.active = self.output_type != 'NONE'
             col.prop(self.style, "use_inbg", text="Inner Lines Highlight:")
