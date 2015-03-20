@@ -98,7 +98,8 @@ class CMUMocapDownloadImport(bpy.types.Operator):
         bpy.types.SpaceView3D.draw_handler_remove(self.handle, 'WINDOW')
         cml = context.user_preferences.addons['cmu_mocap_browser'].preferences
         if os.path.exists(self.local_file):
-            self.import_or_open(cml)
+            return self.import_or_open(cml)
+        return {'CANCELLED'}
 
     def execute(self, context):
         cml = context.user_preferences.addons['cmu_mocap_browser'].preferences
@@ -141,12 +142,13 @@ class CMUMocapDownloadImport(bpy.types.Operator):
                 except AttributeError:
                     self.report({'ERROR'}, "To use this feature "
                         "please enable the Acclaim ASF/AMC Importer addon.")
+                    return {'CANCELLED'}
             elif self.local_file.endswith("amc"):
                 ob = bpy.context.active_object
                 if not ob or ob.type != 'ARMATURE' or \
                     'source_file_path' not in ob:
                     self.report({'ERROR'}, "Please select a CMU Armature.")
-                    return
+                    return {'CANCELLED'}
                 try:
                     bpy.ops.import_anim.amc(
                         filepath=self.local_file,
@@ -154,6 +156,7 @@ class CMUMocapDownloadImport(bpy.types.Operator):
                 except AttributeError:
                     self.report({'ERROR'}, "To use this feature please "
                         "enable the Acclaim ASF/AMC Importer addon.")
+                    return {'CANCELLED'}
             elif self.local_file.endswith("c3d"):
                 try:
                     bpy.ops.import_anim.c3d(
@@ -166,4 +169,6 @@ class CMUMocapDownloadImport(bpy.types.Operator):
                 except AttributeError:
                     self.report({'ERROR'}, "To use this feature "
                         "please enable the C3D Importer addon.")
+                    return {'CANCELLED'}
 
+        return {'FINISHED'}

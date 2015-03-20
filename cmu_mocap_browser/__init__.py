@@ -25,7 +25,7 @@
 bl_info = {
     "name": "Carnegie Mellon University Mocap Library Browser",
     "author": "Daniel Monteiro Basso <daniel@basso.inf.br>",
-    "version": (2013, 5, 9),
+    "version": (2015, 3, 20),
     "blender": (2, 66, 6),
     "location": "View3D > Tools",
     "description": "Assistant for using CMU Motion Capture data",
