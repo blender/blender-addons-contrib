@@ -28,15 +28,24 @@ bl_info = {
 }
 
 
+def u_randint(s, e):
+    import os
+    import struct
+    data_type = 'Q'
+    size = struct.calcsize(data_type)
+    data = struct.unpack(data_type, os.urandom(size))[0]
+    return s + (data % (e - s))
+
+
 def read_random_line(f):
     import os
 
     chunk_size = 16
     with open(f, 'rb') as f_handle:
-        import random
         f_handle.seek(0, os.SEEK_END)
         size = f_handle.tell()
-        i = random.randint(0, size)
+        # i = random.randint(0, size)
+        i = u_randint(0, size)
         while True:
             i -= chunk_size
             if i < 0:
