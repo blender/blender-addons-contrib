@@ -774,7 +774,6 @@ class AMTH_SCENE_OT_list_users_for_x(bpy.types.Operator):
                                         self.__class__.users['MATERIAL'].append(name)
 
 
-        print(self.__class__.libraries)
         self.__class__.libraries = sorted(list(set(self.__class__.libraries)))
 
         count_lib = 0
