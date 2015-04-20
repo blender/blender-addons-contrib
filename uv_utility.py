@@ -97,7 +97,9 @@ class UV_IC_Base(UV_IC_Panel, Panel):
         row = layout.row(align=True)
         row = layout.row(align=True)
         col = layout.column()
-        col.operator("uvutil.select_name", text="Select UV Name")
+        col.operator("uvutil.select_name", text="SelectUVName")
+        col.operator("uvutil.rename_active", text="RenameActiveName")
+        col.operator("uvutil.remove_uv_by_name", text="RemoveUVByName")
         col.prop(scene, "UVTexGetName", text="")
         row = layout.row(align=True)
         col = layout.column()
@@ -150,6 +152,42 @@ class UV_IC_SelectIndex(Operator):
 
                     if scene.UVTexRenderActive:
                         meshData.uv_textures[indexNew].active_render = True
+
+        return{'FINISHED'}
+
+
+class UV_IC_RenameActiveUV(Operator):
+    bl_idname = "uvutil.rename_active"
+    bl_label = "Rename Active UV"
+
+    def execute(self, context):
+        scene = context.scene
+
+        for theObj in context.selected_objects:
+            meshData = theObj.data
+
+            if theObj.type == 'MESH':
+                if meshData.uv_textures:
+                    activeIndex = meshData.uv_textures.active_index
+                    meshData.uv_textures[activeIndex].name = scene.UVTexGetName
+
+        return{'FINISHED'}
+
+
+class UV_IC_RemoveUVByName(Operator):
+    bl_idname = "uvutil.remove_uv_by_name"
+    bl_label = "Remove UV By Name"
+
+    def execute(self, context):
+        scene = context.scene
+
+        for theObj in context.selected_objects:
+            meshData = theObj.data
+
+            if theObj.type == 'MESH':
+                if meshData.uv_textures and scene.UVTexGetName in meshData.uv_textures:
+                    tmpuvmap = meshData.uv_textures[scene.UVTexGetName]
+                    meshData.uv_textures.remove(tmpuvmap)
 
         return{'FINISHED'}
 
