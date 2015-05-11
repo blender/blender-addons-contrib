@@ -24,7 +24,7 @@ bl_info = {
     "blender": (2, 73, 0),
     "location": "Splash Screen",
     "warning": "",
-    "category": "UI",
+    "category": "User Interface",
 }
 
 
