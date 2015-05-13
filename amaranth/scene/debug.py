@@ -879,11 +879,11 @@ class AMTH_SCENE_PT_scene_debug(bpy.types.Panel):
         col = split.column()
 
         if images:
-            import os.path
 
             for im in images:
                 if im.type not in ("UV_TEST", "RENDER_RESULT", "COMPOSITING"):
-                    if not os.path.exists(bpy.path.abspath(im.filepath, library=im.library)):
+                    if not im.packed_file and \
+                       not os.path.exists(bpy.path.abspath(im.filepath, library=im.library)):
                         images_missing.append(["%s%s [%s]%s" % (
                             "[L] " if im.library else "",
                             im.name, im.users,
