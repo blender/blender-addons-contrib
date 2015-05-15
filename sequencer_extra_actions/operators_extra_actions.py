@@ -976,8 +976,8 @@ class Sequencer_Extra_CopyProperties(bpy.types.Operator):
         strip = functions.act_strip(context)
         selectedstrips = context.selected_editable_sequences
 
-        for i in seq.sequences:
-            if (i.select == True and not i.mute):
+        for i in selectedstrips:
+            if not i.mute:
                 try:
                     if self.prop == 'name':
                         i.name = strip.name
