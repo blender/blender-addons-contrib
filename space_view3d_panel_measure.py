@@ -29,10 +29,10 @@ bl_info = {
               "Alessandro Sala (patch: Units in 3D View), "
               "Daniel Ashby (callback removal code) ",
     "version": (0, 9, 1),
-    "blender": (2, 60, 0),
+    "blender": (2, 74, 0),
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
-    "warning": "Script needs repairs",
+    "warning": "Disable during Render. Broken register",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D_interaction/Panel_Measure",
     "category": "3D View",
