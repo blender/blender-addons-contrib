@@ -76,6 +76,8 @@ def eval_bez(mat, points, t):
 
 
 def curve_ob_enum(self, context):
+    if context is None:
+        return []
     obs = context.scene.objects
     cuobs = [(str(i), ob.name, ob.name) for i, ob in enumerate(obs) if ob.type == 'CURVE']
     curve_ob_enum.temp = cuobs

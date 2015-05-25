@@ -293,6 +293,8 @@ class AddToVertexGroup(bpy.types.Operator):
     bl_description = "Add a specific vertex to a specific vertex group"
 
     def avail_vgroups(self, context):
+        if context is None:
+            return []
         ob = context.active_object
         bm = bmesh.from_edit_mesh(ob.data)
         dvert_lay = bm.verts.layers.deform.active

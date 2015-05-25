@@ -4330,9 +4330,10 @@ class AlignOrientationProperties(bpy.types.PropertyGroup):
         orients.append(('NORMAL', "Normal", ""))
         orients.append(('VIEW', "View", ""))
 
-        for orientation in context.scene.orientations:
-            name = orientation.name
-            orients.append((name, name, ""))
+        if context is not None:
+            for orientation in context.scene.orientations:
+                name = orientation.name
+                orients.append((name, name, ""))
 
         return orients
 
@@ -4378,9 +4379,10 @@ class AlignOrientation(bpy.types.Operator):
         orients.append(('NORMAL', "Normal", ""))
         orients.append(('VIEW', "View", ""))
 
-        for orientation in context.scene.orientations:
-            name = orientation.name
-            orients.append((name, name, ""))
+        if context is not None:
+            for orientation in context.scene.orientations:
+                name = orientation.name
+                orients.append((name, name, ""))
 
         return orients
 
