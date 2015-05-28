@@ -30,8 +30,8 @@
 bl_info = {
     "name": "Online Material Library",
     "author": "Peter Cassetta",
-    "version": (0, 6),
-    "blender": (2, 71, 0),
+    "version": (0, 6, 1),
+    "blender": (2, 74, 5),
     "location": "Properties > Material > Online Material Library",
     "description": "Browse and download materials from online CC0 libraries.",
     "warning": "Beta version",
@@ -258,23 +258,15 @@ mat_lib_host = ""
 mat_lib_location = ""
 mat_lib_cached_files = -1
 
-mat_lib_folder = ""
+matlibpath = ""
 
 def findLibrary():
-    global mat_lib_folder
-    
-    if os.path.exists(os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")):
-        mat_lib_folder = os.path.join(str(bpy.utils.script_path_pref()), "addons", "online_mat_lib", "material-library")
-    elif os.path.exists(os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")):
-        mat_lib_folder = os.path.join(bpy.utils.script_path_user(), "addons", "online_mat_lib", "material-library")
-    elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")):
-        mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons", "online_mat_lib", "material-library")
-    elif os.path.exists(os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")):
-        mat_lib_folder = os.path.join(bpy.utils.script_paths()[0], "addons_contrib", "online_mat_lib", "material-library")
-    else:
-        print("ONLINE MATERIAL LIBRARY -- MAJOR PROBLEM:"\
-        "COULD NOT LOCATE ADD-ON INSTALLATION PATH.")
-        mat_lib_folder = "error"
+    global matlibpath
+    for p in bpy.utils.script_paths():
+        matlibpath = os.path.join(p, "addons_contrib", "online_mat_lib", "material-library")
+        if os.path.exists(matlibpath):
+            break
+    return matlibpath    
 
 findLibrary()
 
@@ -352,10 +344,10 @@ bpy.types.Scene.mat_lib_bcg_read = bpy.props.StringProperty(name = "Text Datablo
 bpy.types.Scene.mat_lib_bcm_name = bpy.props.StringProperty(name = "Material Name", description = "Specify a name for the new material", default="Untitled", options = {'SKIP_SAVE'})
 bpy.types.Scene.mat_lib_bcg_name = bpy.props.StringProperty(name = "Nodegroup Name", description = "Specify a name for the new nodegroup", default="Untitled", options = {'SKIP_SAVE'})
 
-bpy.types.Scene.mat_lib_bcm_save_location = bpy.props.StringProperty(name = "Save location", description = "Directory to save .bcm files in", default=mat_lib_folder + os.sep + "my-materials" + os.sep, options = {'SKIP_SAVE'}, subtype="DIR_PATH")
-bpy.types.Scene.mat_lib_bcg_save_location = bpy.props.StringProperty(name = "Save location", description = "Directory to save .bcg files in", default=mat_lib_folder + os.sep + "my-materials" + os.sep, options = {'SKIP_SAVE'}, subtype="DIR_PATH")
-bpy.types.Scene.mat_lib_bcm_open_location = bpy.props.StringProperty(name = "Open location", description = "Location of .bcm file to open", default=mat_lib_folder + os.sep + "my-materials" + os.sep + "untitled.bcm", options = {'SKIP_SAVE'})
-bpy.types.Scene.mat_lib_bcg_open_location = bpy.props.StringProperty(name = "Open location", description = "Location of .bcg file to open", default=mat_lib_folder + os.sep + "my-materials" + os.sep + "untitled.bcg", options = {'SKIP_SAVE'})
+bpy.types.Scene.mat_lib_bcm_save_location = bpy.props.StringProperty(name = "Save location", description = "Directory to save .bcm files in", default=matlibpath + os.sep + "my-materials" + os.sep, options = {'SKIP_SAVE'}, subtype="DIR_PATH")
+bpy.types.Scene.mat_lib_bcg_save_location = bpy.props.StringProperty(name = "Save location", description = "Directory to save .bcg files in", default=matlibpath + os.sep + "my-materials" + os.sep, options = {'SKIP_SAVE'}, subtype="DIR_PATH")
+bpy.types.Scene.mat_lib_bcm_open_location = bpy.props.StringProperty(name = "Open location", description = "Location of .bcm file to open", default=matlibpath + os.sep + "my-materials" + os.sep + "untitled.bcm", options = {'SKIP_SAVE'})
+bpy.types.Scene.mat_lib_bcg_open_location = bpy.props.StringProperty(name = "Open location", description = "Location of .bcg file to open", default=matlibpath + os.sep + "my-materials" + os.sep + "untitled.bcg", options = {'SKIP_SAVE'})
 
 #subcategory_enum_items = [("None0", "None", "No Subcategory Selected")]
 #bpy.types.Scene.mat_lib_material_subcategory = bpy.props.EnumProperty(name = "", items = subcategory_enum_items, description = "Choose a subcategory", options = {'SKIP_SAVE'})
@@ -386,7 +378,7 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
             
             if category_type is not "info" and category_type is not "settings" and category_type is not "tools":
                 if mat_lib_contents == "" or mat_lib_contents == "Please refresh.":
-                    if mat_lib_folder == "error":
+                    if matlibpath == "error":
                         row.label(text="ERROR: Could not find installation path!", icon='ERROR')
                     else:
                         #Material Library Contents variable is empty -- show welcome message
@@ -818,7 +810,7 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                         
                         #Display material "Save" button
                         mat_button = functions.operator("material.librarysave", text="Save as...", icon='DISK_DRIVE')
-                        mat_button.filepath = os.path.join(mat_lib_folder, "my-materials", material_filenames[current_material_number] + ".bcm")
+                        mat_button.filepath = os.path.join(matlibpath, "my-materials", material_filenames[current_material_number] + ".bcm")
                         mat_button.filename = material_filenames[current_material_number]
                         save_filename = material_filenames[current_material_number]
                         
@@ -835,7 +827,7 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                         
                         #Display nodegroup "Save" button
                         mat_button = functions.operator("material.librarysavegroup", text="Save as...", icon='DISK_DRIVE')
-                        mat_button.filepath = os.path.join(mat_lib_folder, "my-materials", material_filenames[current_material_number] + ".bcg")
+                        mat_button.filepath = os.path.join(matlibpath, "my-materials", material_filenames[current_material_number] + ".bcg")
                         mat_button.filename = material_filenames[current_material_number]
                         save_filename = material_filenames[current_material_number]
                         
@@ -850,7 +842,7 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                         
                         #Display image "Save" button
                         mat_button = functions.operator("material.librarysaveimage", text="Save as...", icon='DISK_DRIVE')
-                        mat_button.filepath = os.path.join(mat_lib_folder, "my-materials", material_filenames[current_material_number])
+                        mat_button.filepath = os.path.join(matlibpath, "my-materials", material_filenames[current_material_number])
                         mat_button.filename = material_filenames[current_material_number]
                         mat_button.filename_ext = "." + material_filenames[current_material_number].split(".")[-1]
                         mat_button.filter_glob = "*." + material_filenames[current_material_number].split(".")[-1]
@@ -867,7 +859,7 @@ class OnlineMaterialLibraryPanel(bpy.types.Panel):
                         
                         #Display script "Save" button
                         mat_button = functions.operator("material.librarysavescript", text="Save as...", icon='DISK_DRIVE')
-                        mat_button.filepath = os.path.join(mat_lib_folder, "my-materials", material_filenames[current_material_number])
+                        mat_button.filepath = os.path.join(matlibpath, "my-materials", material_filenames[current_material_number])
                         mat_button.filename = material_filenames[current_material_number]
                         mat_button.filename_ext = "." + material_filenames[current_material_number].split(".")[-1]
                         mat_button.filter_glob = "*." + material_filenames[current_material_number].split(".")[-1]
@@ -953,18 +945,18 @@ def handleCategory(category, index):
                 return
     
     if library is not "bundled":
-        if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category.attributes['folder'].value)):
+        if not os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", category.attributes['folder'].value)):
             print("Folder \"/" + category.attributes['folder'].value + "/\" does not exist; creating now.")
             if library == "composite":
-                os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category.attributes['folder'].value))
+                os.mkdir(os.path.join(matlibpath, mat_lib_host, "cycles", category.attributes['folder'].value))
             else:
-                os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category.attributes['folder'].value))
+                os.mkdir(os.path.join(matlibpath, mat_lib_host, library, "cycles", category.attributes['folder'].value))
         
         if 'remove' in category.attributes:
             if library == "composite":
-                if os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category.attributes['folder'].value)):
-                    for the_file in os.listdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category.attributes['folder'].value)):
-                        file_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles", category.attributes['folder'].value, the_file)
+                if os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", category.attributes['folder'].value)):
+                    for the_file in os.listdir(os.path.join(matlibpath, mat_lib_host, "cycles", category.attributes['folder'].value)):
+                        file_path = os.path.join(matlibpath, mat_lib_host, "cycles", category.attributes['folder'].value, the_file)
                         if os.path.isfile(file_path):
                             os.remove(file_path)
                         elif os.path.isdir(file_path):
@@ -972,11 +964,11 @@ def handleCategory(category, index):
                                 if os.path.isfile(file_path + sub_file):
                                     os.remove(file_path + sub_file)
                             os.rmdir(file_path)
-                    os.rmdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category.attributes['folder'].value))
+                    os.rmdir(os.path.join(matlibpath, mat_lib_host, "cycles", category.attributes['folder'].value))
             else:
-                if os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category.attributes['folder'].value)):
-                    for the_file in os.listdir(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category.attributes['folder'].value)):
-                        file_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category.attributes['folder'].value, the_file)
+                if os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", category.attributes['folder'].value)):
+                    for the_file in os.listdir(os.path.join(matlibpath, mat_lib_host, library, "cycles", category.attributes['folder'].value)):
+                        file_path = os.path.join(matlibpath, mat_lib_host, library, "cycles", category.attributes['folder'].value, the_file)
                         if os.path.isfile(file_path):
                             os.remove(file_path)
                         elif os.path.isdir(file_path):
@@ -984,7 +976,7 @@ def handleCategory(category, index):
                                 if os.path.isfile(file_path + sub_file):
                                     os.remove(file_path + sub_file)
                             os.rmdir(file_path)
-                    os.rmdir(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category.attributes['folder'].value))
+                    os.rmdir(os.path.join(matlibpath, mat_lib_host, library, "cycles", category.attributes['folder'].value))
                 return
     
     print ('\n\n-Category "' + category.attributes['title'].value + '"; located in folder "/' + category.attributes['folder'].value + '/".')
@@ -1173,8 +1165,8 @@ class LibraryConnect(bpy.types.Operator):
             mat_lib_host = context.scene.mat_lib_library[:context.scene.mat_lib_library.index("/")]
         
         #Pre-create preview image
-        if not os.path.exists(os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg")):
-            f = open(os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg"), 'w+b')
+        if not os.path.exists(os.path.join(matlibpath, "mat_lib_preview_image.jpg")):
+            f = open(os.path.join(matlibpath, "mat_lib_preview_image.jpg"), 'w+b')
             f.close()
         
         if self.mode == "online":
@@ -1186,56 +1178,56 @@ class LibraryConnect(bpy.types.Operator):
                 response = connection.getresponse().read()
                 
                 #Cache the index.xml file for offline use
-                library_file = open(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "index.xml"), mode="w+b")
+                library_file = open(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "index.xml"), mode="w+b")
                 library_file.write(response)
                 library_file.close()
                 
                 #Create /groups/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "groups")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "groups"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "groups")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "groups"))
                 
                 #Create /textures/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "textures")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "textures"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "textures")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "textures"))
                 
                 #Create /scripts/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "scripts")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "scripts"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "scripts")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "scripts"))
                 library = "release"
             elif "testing" in context.scene.mat_lib_library:
                 response = connection.getresponse().read()
                 
                 #Create /groups/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "testing", "cycles", "groups")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "testing", "cycles", "groups"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "testing", "cycles", "groups")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "testing", "cycles", "groups"))
                 
                 #Create /textures/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "testing", "cycles", "textures")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "testing", "cycles", "textures"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "testing", "cycles", "textures")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "testing", "cycles", "textures"))
                 
                 #Create /scripts/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "testing", "cycles", "scripts")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "testing", "cycles", "scripts"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "testing", "cycles", "scripts")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "testing", "cycles", "scripts"))
                 library = "testing"
             else:
                 response = connection.getresponse().read()
                 
                 #Cache the index.xml file for offline use
-                library_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "index.xml"), mode="w+b")
+                library_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "index.xml"), mode="w+b")
                 library_file.write(response)
                 library_file.close()
                 
                 #Create /groups/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "groups")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "cycles", "groups"))
                 
                 #Create /textures/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "textures")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "cycles", "textures"))
                 
                 #Create /scripts/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts"))
                 library = "composite"
                 
             #Convert the response to a string
@@ -1256,8 +1248,8 @@ class LibraryConnect(bpy.types.Operator):
         else:
             if "release" in context.scene.mat_lib_library:
                 #Check for cached index.xml file
-                if os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "index.xml")):
-                    library_file = open(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "index.xml"), mode="r", encoding="UTF-8")
+                if os.path.exists(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "index.xml")):
+                    library_file = open(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "index.xml"), mode="r", encoding="UTF-8")
                     mat_lib_contents = library_file.read()
                     library_file.close()
                 else:
@@ -1265,21 +1257,21 @@ class LibraryConnect(bpy.types.Operator):
                     return {'CANCELLED'}
                 
                 #Create /groups/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "groups")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "groups"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "groups")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "groups"))
                 
                 #Create /textures/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "textures")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "textures"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "textures")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "textures"))
                 
                 #Create /scripts/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "scripts")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "release", "cycles", "scripts"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "scripts")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "release", "cycles", "scripts"))
                 library = "release"
             elif context.scene.mat_lib_library == "bundled":
                 #Check for index.xml file
-                if os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "index.xml")):
-                    library_file = open(os.path.join(mat_lib_folder, "bundled", "cycles", "index.xml"), mode="r", encoding="UTF-8")
+                if os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "index.xml")):
+                    library_file = open(os.path.join(matlibpath, "bundled", "cycles", "index.xml"), mode="r", encoding="UTF-8")
                     mat_lib_contents = library_file.read()
                     library_file.close()
                 else:
@@ -1288,8 +1280,8 @@ class LibraryConnect(bpy.types.Operator):
                 library = "bundled"
             else:
                 #Check for cached index.xml file
-                if os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "index.xml")):
-                    library_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "index.xml"), mode="r", encoding="UTF-8")
+                if os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "index.xml")):
+                    library_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "index.xml"), mode="r", encoding="UTF-8")
                     mat_lib_contents = library_file.read()
                     library_file.close()
                 else:
@@ -1297,16 +1289,16 @@ class LibraryConnect(bpy.types.Operator):
                     return {'CANCELLED'}
                 
                 #Create /groups/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "groups")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "cycles", "groups"))
                 
                 #Create /textures/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "textures")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "cycles", "textures"))
                 
                 #Create /scripts/ folder
-                if not os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts")):
-                    os.mkdir(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts"))
+                if not os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts")):
+                    os.mkdir(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts"))
                 library = "composite"
             
             if '<?xml version="1.0" encoding="UTF-8"?>' not in mat_lib_contents:
@@ -1330,11 +1322,11 @@ class LibraryConnect(bpy.types.Operator):
         
         if self.mode == "online":
             if library == "composite":
-                rev_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "revision_data.ini"), mode="r", encoding="UTF-8")
+                rev_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "revision_data.ini"), mode="r", encoding="UTF-8")
                 rev_data = rev_file.read()
                 rev_file.close()
             else:
-                rev_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "revision_data.ini"), mode="r", encoding="UTF-8")
+                rev_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "revision_data.ini"), mode="r", encoding="UTF-8")
                 rev_data = rev_file.read()
                 rev_file.close()
             
@@ -1348,9 +1340,9 @@ class LibraryConnect(bpy.types.Operator):
                 bpy.ops.material.libraryclearcache()
             
             if library == "composite":
-                rev_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "revision_data.ini"), mode="w", encoding="UTF-8")
+                rev_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "revision_data.ini"), mode="w", encoding="UTF-8")
             else:
-                rev_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "revision_data.ini"), mode="w", encoding="UTF-8")
+                rev_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "revision_data.ini"), mode="w", encoding="UTF-8")
             rev_file.write("revision=" + dom.getElementsByTagName("library")[0].attributes['rev'].value)
             rev_file.close()
             
@@ -1434,9 +1426,9 @@ class LibrarySettings(bpy.types.Operator):
             mat_lib_cached_files = -2
             return {'FINISHED'}
         elif library == "composite":
-            cached_data_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles" + os.sep)
+            cached_data_path = os.path.join(matlibpath, mat_lib_host, "cycles" + os.sep)
         else:
-            cached_data_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles" + os.sep)
+            cached_data_path = os.path.join(matlibpath, mat_lib_host, library, "cycles" + os.sep)
         mat_lib_cached_files = 0
         for root, dirs, files in os.walk(cached_data_path):
             for name in files:
@@ -1700,10 +1692,10 @@ class ViewMaterial(bpy.types.Operator):
             return {'FINISHED'}
         
         if library == "composite":
-            if os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, material_filenames[self.material] + ".bcm")):
+            if os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, material_filenames[self.material] + ".bcm")):
                 current_material_cached = True
         elif library != "bundled":
-            if os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, material_filenames[self.material] + ".bcm")):
+            if os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, material_filenames[self.material] + ".bcm")):
                 current_material_cached = True
         
         if context.scene.mat_lib_auto_preview == True:
@@ -1715,7 +1707,7 @@ class ViewMaterial(bpy.types.Operator):
             if len(preview_message) == 2:
                 self.report({preview_message[0]}, preview_message[1])
         elif library == "composite":
-            if os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, material_filenames[self.material] + ".jpg")):
+            if os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, material_filenames[self.material] + ".jpg")):
                 bpy.ops.material.librarypreview(name=material_names[self.material], filename=material_filenames[self.material])
                 self.report({preview_message[0]}, preview_message[1])
             else:
@@ -1728,7 +1720,7 @@ class ViewMaterial(bpy.types.Operator):
                 bpy.data.scenes[bpy.context.scene.name].update()
                 bpy.data.scenes[bpy.context.scene.name].frame_set(bpy.data.scenes[bpy.context.scene.name].frame_current)
         else:
-            if os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, material_filenames[self.material] + ".jpg")):
+            if os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, material_filenames[self.material] + ".jpg")):
                 bpy.ops.material.librarypreview(name=material_names[self.material], filename=material_filenames[self.material])
                 self.report({preview_message[0]}, preview_message[1])
             else:
@@ -1755,9 +1747,9 @@ class LibraryClearCache(bpy.types.Operator):
             self.report({'ERROR'}, "The bundled library is local only and contains no cached online data.")
             return {'CANCELLED'}
         elif library == "composite":
-            cached_data_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles" + os.sep)
+            cached_data_path = os.path.join(matlibpath, mat_lib_host, "cycles" + os.sep)
         elif library == "testing" or library == "release":
-            cached_data_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles" + os.sep)
+            cached_data_path = os.path.join(matlibpath, mat_lib_host, library, "cycles" + os.sep)
         elif library == "":
             self.report({'ERROR'}, "No library selected!")
             return {'CANCELLED'}
@@ -1814,18 +1806,18 @@ class LibraryPreview(bpy.types.Operator):
             
             #Check for a cached preview
             if library == "bundled":
-                image_path = os.path.join(mat_lib_folder, "bundled", "cycles", category_filename, self.filename + ".jpg")
+                image_path = os.path.join(matlibpath, "bundled", "cycles", category_filename, self.filename + ".jpg")
             elif library == "composite":
-                image_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename + ".jpg")
+                image_path = os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename + ".jpg")
             else:
-                image_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename + ".jpg")
+                image_path = os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename + ".jpg")
             
             if os.path.exists(image_path):
                 #Cached preview exists
                 cached_image = open(image_path, 'r+b')
                 response = cached_image.read()
                 cached_image.close()
-                f = open(os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg"), 'w+b')
+                f = open(os.path.join(matlibpath, "mat_lib_preview_image.jpg"), 'w+b')
                 f.write(response)
                 f.close()
                 previewed = 'status_applied'
@@ -1835,7 +1827,7 @@ class LibraryPreview(bpy.types.Operator):
                 connection = http.client.HTTPConnection(mat_lib_host)
                 connection.request("GET", mat_lib_location + "cycles/" + category_filename + "/" + self.filename + ".jpg")
                 response = connection.getresponse().read()
-                f = open(os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg"), 'w+b')
+                f = open(os.path.join(matlibpath, "mat_lib_preview_image.jpg"), 'w+b')
                 f.write(response)
                 f.close()
                 
@@ -1850,7 +1842,7 @@ class LibraryPreview(bpy.types.Operator):
             
             #Check if has texture
             if bpy.data.images.find("mat_lib_preview_image.jpg") == -1:
-                bpy.ops.image.open(filepath=os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg"))
+                bpy.ops.image.open(filepath=os.path.join(matlibpath, "mat_lib_preview_image.jpg"))
             
             if "mat_lib_preview_texture" not in bpy.data.textures:
                  bpy.data.textures.new("mat_lib_preview_texture", "IMAGE")
@@ -1865,8 +1857,8 @@ class LibraryPreview(bpy.types.Operator):
             if bpy.data.textures["mat_lib_preview_texture"].image != bpy.data.images["mat_lib_preview_image.jpg"]:
                 bpy.data.textures["mat_lib_preview_texture"].image = bpy.data.images["mat_lib_preview_image.jpg"]
             
-            if bpy.data.images["mat_lib_preview_image.jpg"].filepath != os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg"):
-                bpy.data.images["mat_lib_preview_image.jpg"].filepath = os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg")
+            if bpy.data.images["mat_lib_preview_image.jpg"].filepath != os.path.join(matlibpath, "mat_lib_preview_image.jpg"):
+                bpy.data.images["mat_lib_preview_image.jpg"].filepath = os.path.join(matlibpath, "mat_lib_preview_image.jpg")
                 
             #Do everything possible to get Blender to update the preview.
             bpy.data.images["mat_lib_preview_image.jpg"].reload()
@@ -1890,18 +1882,18 @@ class LibraryPreview(bpy.types.Operator):
             
             #Check for a cached preview
             if library == "bundled":
-                image_path = os.path.join(mat_lib_folder, "bundled", "cycles", category_filename, self.filename + ".jpg")
+                image_path = os.path.join(matlibpath, "bundled", "cycles", category_filename, self.filename + ".jpg")
             elif library == "composite":
-                image_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename + ".jpg")
+                image_path = os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename + ".jpg")
             else:
-                image_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename + ".jpg")
+                image_path = os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename + ".jpg")
             
             if os.path.exists(image_path):
                 #Cached preview exists
                 cached_image = open(image_path, 'r+b')
                 response = cached_image.read()
                 cached_image.close()
-                f = open(os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg"), 'w+b')
+                f = open(os.path.join(matlibpath, "mat_lib_preview_image.jpg"), 'w+b')
                 f.write(response)
                 f.close()
                 previewed = 'status_applied'
@@ -1911,7 +1903,7 @@ class LibraryPreview(bpy.types.Operator):
                 connection = http.client.HTTPConnection(mat_lib_host)
                 connection.request("GET", mat_lib_location + "cycles/" + category_filename + "/" + self.filename + ".jpg")
                 response = connection.getresponse().read()
-                f = open(os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg"), 'w+b')
+                f = open(os.path.join(matlibpath, "mat_lib_preview_image.jpg"), 'w+b')
                 f.write(response)
                 f.close()
                 
@@ -1925,7 +1917,7 @@ class LibraryPreview(bpy.types.Operator):
                 previewed = 'status_cannot_download'
             
             if bpy.data.images.find("mat_lib_preview_image.jpg") == -1:
-                bpy.ops.image.open(filepath=os.path.join(mat_lib_folder, "mat_lib_preview_image.jpg"))
+                bpy.ops.image.open(filepath=os.path.join(matlibpath, "mat_lib_preview_image.jpg"))
             
             if bpy.data.materials.find("mat_lib_preview_material") == -1:
                 preview_material = bpy.data.materials.new("mat_lib_preview_material")
@@ -2020,16 +2012,16 @@ class AddLibraryMaterial(bpy.types.Operator):
         findLibrary()
         
         if self.open_location == "" and self.text_block == "":
-            if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename + ".bcm")):
-                bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
+            if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename + ".bcm")):
+                bcm_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
-            elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm")):
-                bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
+            elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm")):
+                bcm_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
-            elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", category_filename, self.filename + ".bcm")):
-                bcm_file = open(os.path.join(mat_lib_folder, "bundled", "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
+            elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", category_filename, self.filename + ".bcm")):
+                bcm_file = open(os.path.join(matlibpath, "bundled", "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
             elif working_mode == "online":
@@ -2045,11 +2037,11 @@ class AddLibraryMaterial(bpy.types.Operator):
                 
                 #Cache material
                 if library == "composite":
-                    bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
+                    bcm_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
                     bcm_file.write(response)
                     bcm_file.close()
                 else:
-                    bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
+                    bcm_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
                     bcm_file.write(response)
                     bcm_file.close()
                 
@@ -2240,16 +2232,16 @@ class ApplyLibraryMaterial(bpy.types.Operator):
             return {'CANCELLED'}
         
         if self.open_location == "" and self.text_block == "":
-            if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename + ".bcm")):
-                bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
+            if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename + ".bcm")):
+                bcm_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
-            elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm")):
-                bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
+            elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm")):
+                bcm_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
-            elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", category_filename, self.filename + ".bcm")):
-                bcm_file = open(os.path.join(mat_lib_folder, "bundled", "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
+            elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", category_filename, self.filename + ".bcm")):
+                bcm_file = open(os.path.join(matlibpath, "bundled", "cycles", category_filename, self.filename + ".bcm"), mode="r", encoding="UTF-8")
                 material_file_contents = bcm_file.read()
                 bcm_file.close()
             elif working_mode == "online":
@@ -2266,11 +2258,11 @@ class ApplyLibraryMaterial(bpy.types.Operator):
                 
                 #Cache material
                 if library == "composite":
-                    bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
+                    bcm_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
                     bcm_file.write(response)
                     bcm_file.close()
                 else:
-                    bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
+                    bcm_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
                     bcm_file.write(response)
                     bcm_file.close()
                 
@@ -2478,12 +2470,12 @@ class CacheLibraryMaterial(bpy.types.Operator):
                             node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
                             break
                             
-                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
-                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
-                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)
+                        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)
                         elif working_mode == "online":
                             connection = http.client.HTTPConnection(mat_lib_host)
                             connection.request("GET", mat_lib_location + "cycles/textures/" + image_name + ext)
@@ -2491,12 +2483,12 @@ class CacheLibraryMaterial(bpy.types.Operator):
                             
                             #Cache image texture
                             if library == "composite":
-                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                                image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
                                 image_file = open(image_filepath, mode="w+b")
                                 image_file.write(response)
                                 image_file.close()
                             else:
-                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                                image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
                                 image_file = open(image_filepath, mode="w+b")
                                 image_file.write(response)
                                 image_file.close()
@@ -2517,12 +2509,12 @@ class CacheLibraryMaterial(bpy.types.Operator):
                             node_message = ['ERROR', "The OSL script file referenced by this script node is not .osl or .oso; not downloading."]
                             break
                             
-                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
-                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
-                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)
+                        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, "bundled", "cycles", "scripts", script_name + ext)
                         elif working_mode == "online":
                             connection = http.client.HTTPConnection(mat_lib_host)
                             connection.request("GET", mat_lib_location + "cycles/scripts/" + script_name + ext)
@@ -2530,12 +2522,12 @@ class CacheLibraryMaterial(bpy.types.Operator):
                             
                             #Cache image texture
                             if library == "composite":
-                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
+                                script_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)
                                 script_file = open(script_filepath, mode="w+b")
                                 script_file.write(response)
                                 script_file.close()
                             else:
-                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                                script_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)
                                 script_file = open(script_filepath, mode="w+b")
                                 script_file.write(response)
                                 script_file.close()
@@ -2555,12 +2547,12 @@ class CacheLibraryMaterial(bpy.types.Operator):
                             node_message = ['ERROR', "The nodegroup file referenced by this group node is not .bcg; not downloading."]
                             break
                             
-                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", group_name + ".bcg")):
-                            group_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", group_name + ".bcg")
-                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")):
-                            group_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
-                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "groups", group_name + ".bcg")):
-                            group_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "groups", group_name + ".bcg")
+                        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", group_name + ".bcg")):
+                            group_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "groups", group_name + ".bcg")
+                        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")):
+                            group_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
+                        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "groups", group_name + ".bcg")):
+                            group_filepath = os.path.join(matlibpath, "bundled", "cycles", "groups", group_name + ".bcg")
                         elif working_mode == "online":
                             connection = http.client.HTTPConnection(mat_lib_host)
                             connection.request("GET", mat_lib_location + "cycles/groups/" + group_name + ".bcg")
@@ -2568,12 +2560,12 @@ class CacheLibraryMaterial(bpy.types.Operator):
                             
                             #Cache image texture
                             if library == "composite":
-                                group_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", group_name + ".bcg")
+                                group_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "groups", group_name + ".bcg")
                                 group_file = open(group_filepath, mode="w+b")
                                 group_file.write(response)
                                 group_file.close()
                             else:
-                                group_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
+                                group_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
                                 group_file = open(group_filepath, mode="w+b")
                                 group_file.write(response)
                                 group_file.close()
@@ -2583,11 +2575,11 @@ class CacheLibraryMaterial(bpy.types.Operator):
                     
         
         if library == "composite":
-            bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
+            bcm_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
             bcm_file.write(response)
             bcm_file.close()
         elif library != "bundled":
-            bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
+            bcm_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcm"), mode="w+b")
             bcm_file.write(response)
             bcm_file.close()
         else:
@@ -2620,16 +2612,16 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
         
         findLibrary()
         
-        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename)):
-            bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename), mode="r+b")
+        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename)):
+            bcm_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename), mode="r+b")
             response = bcm_file.read()
             bcm_file.close()
-        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename)):
-            bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename), mode="r+b")
+        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename)):
+            bcm_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename), mode="r+b")
             response = bcm_file.read()
             bcm_file.close()
-        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", category_filename, self.filename)):
-            bcm_file = open(os.path.join(mat_lib_folder, "bundled", "cycles", category_filename, self.filename), mode="r+b")
+        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", category_filename, self.filename)):
+            bcm_file = open(os.path.join(matlibpath, "bundled", "cycles", category_filename, self.filename), mode="r+b")
             response = bcm_file.read()
             bcm_file.close()
         elif working_mode == "online":
@@ -2639,11 +2631,11 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
             
             #Cache material
             if library == "composite":
-                bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename), mode="w+b")
+                bcm_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename), mode="w+b")
                 bcm_file.write(response)
                 bcm_file.close()
             else:
-                bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename), mode="w+b")
+                bcm_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename), mode="w+b")
                 bcm_file.write(response)
                 bcm_file.close()
         else:
@@ -2702,12 +2694,12 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
                             node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
                             break
                             
-                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
-                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
-                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)
+                        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)
                         elif working_mode == "online":
                             connection = http.client.HTTPConnection(mat_lib_host)
                             connection.request("GET", mat_lib_location + "cycles/textures/" + image_name + ext)
@@ -2715,12 +2707,12 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
                             
                             #Cache image texture
                             if library == "composite":
-                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                                image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
                                 image_file = open(image_filepath, mode="w+b")
                                 image_file.write(response)
                                 image_file.close()
                             else:
-                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                                image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
                                 image_file = open(image_filepath, mode="w+b")
                                 image_file.write(response)
                                 image_file.close()
@@ -2766,12 +2758,12 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
                             node_message = ['ERROR', "The OSL script file referenced by this script node is not .osl or .oso; not downloading."]
                             break
                             
-                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
-                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
-                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)
+                        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, "bundled", "cycles", "scripts", script_name + ext)
                         elif working_mode == "online":
                             connection = http.client.HTTPConnection(mat_lib_host)
                             connection.request("GET", mat_lib_location + "cycles/scripts/" + script_name + ext)
@@ -2779,12 +2771,12 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
                             
                             #Cache OSL script
                             if library == "composite":
-                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
+                                script_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)
                                 script_file = open(script_filepath, mode="w+b")
                                 script_file.write(response)
                                 script_file.close()
                             else:
-                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                                script_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)
                                 script_file = open(script_filepath, mode="w+b")
                                 script_file.write(response)
                                 script_file.close()
@@ -2828,12 +2820,12 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
                             node_message = ['ERROR', "The nodegroup file referenced by this group node is not .bcg; not downloading."]
                             break
                             
-                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", group_name + ".bcg")):
-                            group_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", group_name + ".bcg")
-                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")):
-                            group_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
-                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "groups", group_name + ".bcg")):
-                            group_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "groups", group_name + ".bcg")
+                        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", group_name + ".bcg")):
+                            group_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "groups", group_name + ".bcg")
+                        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")):
+                            group_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
+                        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "groups", group_name + ".bcg")):
+                            group_filepath = os.path.join(matlibpath, "bundled", "cycles", "groups", group_name + ".bcg")
                         elif working_mode == "online":
                             connection = http.client.HTTPConnection(mat_lib_host)
                             connection.request("GET", mat_lib_location + "cycles/groups/" + group_name + ".bcg")
@@ -2841,12 +2833,12 @@ class SaveLibraryMaterial(bpy.types.Operator, ExportHelper):
                             
                             #Cache nodegroup
                             if library == "composite":
-                                group_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", group_name + ".bcg")
+                                group_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "groups", group_name + ".bcg")
                                 group_file = open(group_filepath, mode="w+b")
                                 group_file.write(response)
                                 group_file.close()
                             else:
-                                group_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
+                                group_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
                                 group_file = open(group_filepath, mode="w+b")
                                 group_file.write(response)
                                 group_file.close()
@@ -2893,18 +2885,18 @@ class AddLibraryGroup(bpy.types.Operator):
         findLibrary()
         
         if self.open_location == "" and self.text_block == "":
-            if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", self.filename + ".bcg")):
-                bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
+            if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", self.filename + ".bcg")):
+                bcg_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
                 group_file_contents = ""
                 group_file_contents = bcg_file.read()
                 bcg_file.close()
-            elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg")):
-                bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
+            elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg")):
+                bcg_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
                 group_file_contents = ""
                 group_file_contents = bcg_file.read()
                 bcg_file.close()
-            elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "groups", self.filename + ".bcg")):
-                bcg_file = open(os.path.join(mat_lib_folder, "bundled", "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
+            elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "groups", self.filename + ".bcg")):
+                bcg_file = open(os.path.join(matlibpath, "bundled", "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
                 group_file_contents = bcg_file.read()
                 bcg_file.close()
             elif working_mode == "online":
@@ -2920,11 +2912,11 @@ class AddLibraryGroup(bpy.types.Operator):
                 
                 #Cache nodegroup
                 if library == "composite":
-                    bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", self.filename + ".bcg"), mode="w+b")
+                    bcg_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", self.filename + ".bcg"), mode="w+b")
                     bcg_file.write(response)
                     bcg_file.close()
                 else:
-                    bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg"), mode="w+b")
+                    bcg_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg"), mode="w+b")
                     bcg_file.write(response)
                     bcg_file.close()
                 
@@ -3060,18 +3052,18 @@ class InsertLibraryGroup(bpy.types.Operator):
             return {'CANCELLED'}
         
         if self.open_location == "" and self.text_block == "":
-            if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", self.filename + ".bcg")):
-                bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
+            if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", self.filename + ".bcg")):
+                bcg_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
                 group_file_contents = ""
                 group_file_contents = bcg_file.read()
                 bcg_file.close()
-            elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg")):
-                bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
+            elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg")):
+                bcg_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
                 group_file_contents = ""
                 group_file_contents = bcg_file.read()
                 bcg_file.close()
-            elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "groups", self.filename + ".bcg")):
-                bcg_file = open(os.path.join(mat_lib_folder, "bundled", "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
+            elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "groups", self.filename + ".bcg")):
+                bcg_file = open(os.path.join(matlibpath, "bundled", "cycles", "groups", self.filename + ".bcg"), mode="r", encoding="UTF-8")
                 group_file_contents = bcg_file.read()
                 bcg_file.close()
             elif working_mode == "online":
@@ -3087,11 +3079,11 @@ class InsertLibraryGroup(bpy.types.Operator):
                 
                 #Cache nodegroup
                 if library == "composite":
-                    bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", self.filename + ".bcg"), mode="w+b")
+                    bcg_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", self.filename + ".bcg"), mode="w+b")
                     bcg_file.write(response)
                     bcg_file.close()
                 else:
-                    bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg"), mode="w+b")
+                    bcg_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", self.filename + ".bcg"), mode="w+b")
                     bcg_file.write(response)
                     bcg_file.close()
                 
@@ -3237,12 +3229,12 @@ class CacheLibraryGroup(bpy.types.Operator):
                             node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
                             break
                             
-                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
-                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
-                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)
+                        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)
                         elif working_mode == "online":
                             connection = http.client.HTTPConnection(mat_lib_host)
                             connection.request("GET", mat_lib_location + "cycles/textures/" + image_name + ext)
@@ -3250,12 +3242,12 @@ class CacheLibraryGroup(bpy.types.Operator):
                             
                             #Cache image texture
                             if library == "composite":
-                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                                image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
                                 image_file = open(image_filepath, mode="w+b")
                                 image_file.write(response)
                                 image_file.close()
                             else:
-                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                                image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
                                 image_file = open(image_filepath, mode="w+b")
                                 image_file.write(response)
                                 image_file.close()
@@ -3273,12 +3265,12 @@ class CacheLibraryGroup(bpy.types.Operator):
                             node_message = ['ERROR', "The OSL script file referenced by this script node is not .osl or .oso; not downloading."]
                             break
                             
-                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
-                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
-                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)
+                        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, "bundled", "cycles", "scripts", script_name + ext)
                         elif working_mode == "online":
                             connection = http.client.HTTPConnection(mat_lib_host)
                             connection.request("GET", mat_lib_location + "cycles/scripts/" + script_name + ext)
@@ -3286,22 +3278,22 @@ class CacheLibraryGroup(bpy.types.Operator):
                             
                             #Cache image texture
                             if library == "composite":
-                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
+                                script_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)
                                 script_file = open(script_filepath, mode="w+b")
                                 script_file.write(response)
                                 script_file.close()
                             else:
-                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                                script_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)
                                 script_file = open(script_filepath, mode="w+b")
                                 script_file.write(response)
                                 script_file.close()
         
         if library == "composite":
-            bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", category_filename, self.filename + ".bcg"), mode="w+b")
+            bcg_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", category_filename, self.filename + ".bcg"), mode="w+b")
             bcg_file.write(response)
             bcg_file.close()
         elif library != "bundled":
-            bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcg"), mode="w+b")
+            bcg_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", category_filename, self.filename + ".bcg"), mode="w+b")
             bcg_file.write(response)
             bcg_file.close()
         else:
@@ -3334,16 +3326,16 @@ class SaveLibraryGroup(bpy.types.Operator, ExportHelper):
         
         findLibrary()
         
-        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", self.filename)):
-            bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", self.filename), mode="r+b")
+        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", self.filename)):
+            bcg_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", self.filename), mode="r+b")
             response = bcg_file.read()
             bcg_file.close()
-        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", self.filename)):
-            bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", self.filename), mode="r+b")
+        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", self.filename)):
+            bcg_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", self.filename), mode="r+b")
             response = bcg_file.read()
             bcg_file.close()
-        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "groups", self.filename)):
-            bcg_file = open(os.path.join(mat_lib_folder, "bundled", "cycles", "groups", self.filename), mode="r+b")
+        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "groups", self.filename)):
+            bcg_file = open(os.path.join(matlibpath, "bundled", "cycles", "groups", self.filename), mode="r+b")
             response = bcg_file.read()
             bcg_file.close()
         elif working_mode == "online":
@@ -3353,11 +3345,11 @@ class SaveLibraryGroup(bpy.types.Operator, ExportHelper):
             
             #Cache nodegroup
             if library == "composite":
-                bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", self.filename), mode="w+b")
+                bcg_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", self.filename), mode="w+b")
                 bcg_file.write(response)
                 bcg_file.close()
             else:
-                bcg_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", self.filename), mode="w+b")
+                bcg_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", self.filename), mode="w+b")
                 bcg_file.write(response)
                 bcg_file.close()
         else:
@@ -3416,12 +3408,12 @@ class SaveLibraryGroup(bpy.types.Operator, ExportHelper):
                             node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
                             break
                             
-                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
-                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
-                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)):
-                            image_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)
+                        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)):
+                            image_filepath = os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)
                         elif working_mode == "online":
                             connection = http.client.HTTPConnection(mat_lib_host)
                             connection.request("GET", mat_lib_location + "cycles/textures/" + image_name + ext)
@@ -3429,12 +3421,12 @@ class SaveLibraryGroup(bpy.types.Operator, ExportHelper):
                             
                             #Cache image texture
                             if library == "composite":
-                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                                image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
                                 image_file = open(image_filepath, mode="w+b")
                                 image_file.write(response)
                                 image_file.close()
                             else:
-                                image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                                image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
                                 image_file = open(image_filepath, mode="w+b")
                                 image_file.write(response)
                                 image_file.close()
@@ -3480,12 +3472,12 @@ class SaveLibraryGroup(bpy.types.Operator, ExportHelper):
                             node_message = ['ERROR', "The OSL script file referenced by this script node is not .osl or .oso; not downloading."]
                             break
                             
-                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
-                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
-                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)):
-                            script_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)
+                        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "scripts", script_name + ext)):
+                            script_filepath = os.path.join(matlibpath, "bundled", "cycles", "scripts", script_name + ext)
                         elif working_mode == "online":
                             connection = http.client.HTTPConnection(mat_lib_host)
                             connection.request("GET", mat_lib_location + "cycles/scripts/" + script_name + ext)
@@ -3493,12 +3485,12 @@ class SaveLibraryGroup(bpy.types.Operator, ExportHelper):
                             
                             #Cache OSL script
                             if library == "composite":
-                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
+                                script_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)
                                 script_file = open(script_filepath, mode="w+b")
                                 script_file.write(response)
                                 script_file.close()
                             else:
-                                script_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                                script_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)
                                 script_file = open(script_filepath, mode="w+b")
                                 script_file.write(response)
                                 script_file.close()
@@ -3543,12 +3535,12 @@ class AddLibraryImage(bpy.types.Operator):
             self.report({'ERROR'}, "The requested image file is not .jpg or .png; not downloading.")
             return {'CANCELLED'}
         
-        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename)):
-            image_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename)
-        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename)):
-            image_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename)
-        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", self.filename)):
-            image_path = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", self.filename)
+        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename)):
+            image_path = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename)
+        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename)):
+            image_path = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename)
+        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "textures", self.filename)):
+            image_path = os.path.join(matlibpath, "bundled", "cycles", "textures", self.filename)
         elif working_mode == "online":
             connection = http.client.HTTPConnection(mat_lib_host)
             connection.request("GET", mat_lib_location + "cycles/textures/" + self.filename)
@@ -3556,15 +3548,15 @@ class AddLibraryImage(bpy.types.Operator):
             
             #Cache image
             if library == "composite":
-                img_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename), mode="w+b")
+                img_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename), mode="w+b")
                 img_file.write(response)
                 img_file.close()
-                image_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename)
+                image_path = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename)
             else:
-                img_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename), mode="w+b")
+                img_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename), mode="w+b")
                 img_file.write(response)
                 img_file.close()
-                image_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename)
+                image_path = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename)
         else:
             self.report({'ERROR'}, "Image is not cached; cannot download in offline mode!")
             return {'CANCELLED'}
@@ -3604,12 +3596,12 @@ class InsertLibraryImage(bpy.types.Operator):
             self.report({'ERROR'}, "The requested image file is not .jpg or .png; not downloading.")
             return {'CANCELLED'}
         
-        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename)):
-            image_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename)
-        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename)):
-            image_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename)
-        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", self.filename)):
-            image_path = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", self.filename)
+        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename)):
+            image_path = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename)
+        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename)):
+            image_path = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename)
+        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "textures", self.filename)):
+            image_path = os.path.join(matlibpath, "bundled", "cycles", "textures", self.filename)
         elif working_mode == "online":
             connection = http.client.HTTPConnection(mat_lib_host)
             connection.request("GET", mat_lib_location + "cycles/textures/" + self.filename)
@@ -3617,15 +3609,15 @@ class InsertLibraryImage(bpy.types.Operator):
             
             #Cache image
             if library == "composite":
-                img_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename), mode="w+b")
+                img_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename), mode="w+b")
                 img_file.write(response)
                 img_file.close()
-                image_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename)
+                image_path = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename)
             else:
-                img_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename), mode="w+b")
+                img_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename), mode="w+b")
                 img_file.write(response)
                 img_file.close()
-                image_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename)
+                image_path = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename)
         else:
             self.report({'ERROR'}, "Image is not cached; cannot download in offline mode!")
             return {'CANCELLED'}
@@ -3666,11 +3658,11 @@ class CacheLibraryImage(bpy.types.Operator):
             return {'CANCELLED'}
         
         if library == "composite":
-            bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename), mode="w+b")
+            bcm_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename), mode="w+b")
             bcm_file.write(response)
             bcm_file.close()
         elif library != "bundled":
-            bcm_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename), mode="w+b")
+            bcm_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename), mode="w+b")
             bcm_file.write(response)
             bcm_file.close()
         else:
@@ -3706,16 +3698,16 @@ class SaveLibraryImage(bpy.types.Operator, ExportHelper):
             self.report({'ERROR'}, "The requested image file is not .jpg or .png; not downloading.")
             return {'CANCELLED'}
         
-        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename)):
-            img_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename), mode="r+b")
+        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename)):
+            img_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename), mode="r+b")
             response = img_file.read()
             img_file.close()
-        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename)):
-            img_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename), mode="r+b")
+        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename)):
+            img_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename), mode="r+b")
             response = img_file.read()
             img_file.close()
-        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", self.filename)):
-            img_file = open(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", self.filename), mode="r+b")
+        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "textures", self.filename)):
+            img_file = open(os.path.join(matlibpath, "bundled", "cycles", "textures", self.filename), mode="r+b")
             response = img_file.read()
             img_file.close()
         elif working_mode == "online":
@@ -3725,11 +3717,11 @@ class SaveLibraryImage(bpy.types.Operator, ExportHelper):
             
             #Cache image
             if library == "composite":
-                img_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", self.filename), mode="w+b")
+                img_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", self.filename), mode="w+b")
                 img_file.write(response)
                 img_file.close()
             else:
-                img_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", self.filename), mode="w+b")
+                img_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", self.filename), mode="w+b")
                 img_file.write(response)
                 img_file.close()
         else:
@@ -3761,12 +3753,12 @@ class AddLibraryScript(bpy.types.Operator):
             self.report({'ERROR'}, "The requested OSL script file is not .osl or .oso; not downloading.")
             return {'CANCELLED'}
         
-        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename)):
-            script_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename)
-        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename)):
-            script_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename)
-        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", self.filename)):
-            script_path = os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", self.filename)
+        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename)):
+            script_path = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename)
+        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename)):
+            script_path = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename)
+        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "scripts", self.filename)):
+            script_path = os.path.join(matlibpath, "bundled", "cycles", "scripts", self.filename)
         elif working_mode == "online":
             connection = http.client.HTTPConnection(mat_lib_host)
             connection.request("GET", mat_lib_location + "cycles/scripts/" + self.filename)
@@ -3774,15 +3766,15 @@ class AddLibraryScript(bpy.types.Operator):
             
             #Cache image
             if library == "composite":
-                osl_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename), mode="w+b")
+                osl_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename), mode="w+b")
                 osl_file.write(response)
                 osl_file.close()
-                script_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename)
+                script_path = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename)
             else:
-                osl_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename), mode="w+b")
+                osl_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename), mode="w+b")
                 osl_file.write(response)
                 osl_file.close()
-                script_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename)
+                script_path = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename)
         else:
             self.report({'ERROR'}, "OSL script is not cached; cannot download in offline mode!")
             return {'CANCELLED'}
@@ -3826,12 +3818,12 @@ class InsertLibraryScript(bpy.types.Operator):
             self.report({'ERROR'}, "The requested OSL script file is not .osl or .oso; not downloading.")
             return {'CANCELLED'}
         
-        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename)):
-            script_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename)
-        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename)):
-            script_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename)
-        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", self.filename)):
-            script_path = os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", self.filename)
+        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename)):
+            script_path = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename)
+        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename)):
+            script_path = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename)
+        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "scripts", self.filename)):
+            script_path = os.path.join(matlibpath, "bundled", "cycles", "scripts", self.filename)
         elif working_mode == "online":
             connection = http.client.HTTPConnection(mat_lib_host)
             connection.request("GET", mat_lib_location + "cycles/scripts/" + self.filename)
@@ -3839,15 +3831,15 @@ class InsertLibraryScript(bpy.types.Operator):
             
             #Cache image
             if library == "composite":
-                osl_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename), mode="w+b")
+                osl_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename), mode="w+b")
                 osl_file.write(response)
                 osl_file.close()
-                script_path = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename)
+                script_path = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename)
             else:
-                osl_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename), mode="w+b")
+                osl_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename), mode="w+b")
                 osl_file.write(response)
                 osl_file.close()
-                script_path = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename)
+                script_path = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename)
         else:
             self.report({'ERROR'}, "Image is not cached; cannot download in offline mode!")
             return {'CANCELLED'}
@@ -3884,11 +3876,11 @@ class CacheLibraryScript(bpy.types.Operator):
             return {'CANCELLED'}
         
         if library == "composite":
-            osl_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename), mode="w+b")
+            osl_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename), mode="w+b")
             osl_file.write(response)
             osl_file.close()
         elif library != "bundled":
-            osl_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename), mode="w+b")
+            osl_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename), mode="w+b")
             osl_file.write(response)
             osl_file.close()
         else:
@@ -3924,16 +3916,16 @@ class SaveLibraryScript(bpy.types.Operator, ExportHelper):
             self.report({'ERROR'}, "The requested OSL script is not .osl or .oso; not downloading.")
             return {'CANCELLED'}
         
-        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename)):
-            osl_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename), mode="r+b")
+        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename)):
+            osl_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename), mode="r+b")
             response = osl_file.read()
             osl_file.close()
-        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename)):
-            osl_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename), mode="r+b")
+        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename)):
+            osl_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename), mode="r+b")
             response = osl_file.read()
             osl_file.close()
-        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", self.filename)):
-            osl_file = open(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", self.filename), mode="r+b")
+        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "scripts", self.filename)):
+            osl_file = open(os.path.join(matlibpath, "bundled", "cycles", "scripts", self.filename), mode="r+b")
             response = osl_file.read()
             osl_file.close()
         elif working_mode == "online":
@@ -3943,11 +3935,11 @@ class SaveLibraryScript(bpy.types.Operator, ExportHelper):
             
             #Cache script
             if library == "composite":
-                osl_file = open(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", self.filename), mode="w+b")
+                osl_file = open(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", self.filename), mode="w+b")
                 osl_file.write(response)
                 osl_file.close()
             else:
-                osl_file = open(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", self.filename), mode="w+b")
+                osl_file = open(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", self.filename), mode="w+b")
                 osl_file.write(response)
                 osl_file.close()
         else:
@@ -4326,7 +4318,7 @@ You may need a newer version of Blender for this material to work properly.""" %
                     connection.request("GET", image_location)
                     response = connection.getresponse().read()
                     #Save image texture
-                    image_filepath = os.path.join(mat_lib_folder, "my-materials", image_name + ext)
+                    image_filepath = os.path.join(matlibpath, "my-materials", image_name + ext)
                     image_file = open(image_filepath, mode="w+b")
                     image_file.write(response)
                     image_file.close()
@@ -4348,12 +4340,12 @@ You may need a newer version of Blender for this material to work properly.""" %
                         node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
                         return
                         
-                    if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)):
-                        image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
-                    elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)):
-                        image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
-                    elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)):
-                        image_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)
+                    if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
+                    elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                    elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)
                     elif working_mode == "online":
                         connection = http.client.HTTPConnection(mat_lib_host)
                         connection.request("GET", mat_lib_location + "cycles/textures/" + image_name + ext)
@@ -4361,12 +4353,12 @@ You may need a newer version of Blender for this material to work properly.""" %
                         
                         #Cache image texture
                         if library == "composite":
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
                             image_file = open(image_filepath, mode="w+b")
                             image_file.write(response)
                             image_file.close()
                         else:
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
                             image_file = open(image_filepath, mode="w+b")
                             image_file.write(response)
                             image_file.close()
@@ -4424,7 +4416,7 @@ You may need a newer version of Blender for this material to work properly.""" %
                     connection.request("GET", image_location)
                     response = connection.getresponse().read()
                     #Save image texture
-                    image_filepath = os.path.join(mat_lib_folder, "my-materials", image_name + ext)
+                    image_filepath = os.path.join(matlibpath, "my-materials", image_name + ext)
                     image_file = open(image_filepath, mode="w+b")
                     image_file.write(response)
                     image_file.close()
@@ -4446,12 +4438,12 @@ You may need a newer version of Blender for this material to work properly.""" %
                         node_message = ['ERROR', "The image file referenced by this image texture node is not .jpg or .png; not downloading."]
                         return
                         
-                    if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)):
-                        image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
-                    elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)):
-                        image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
-                    elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)):
-                        image_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "textures", image_name + ext)
+                    if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
+                    elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                    elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)):
+                        image_filepath = os.path.join(matlibpath, "bundled", "cycles", "textures", image_name + ext)
                     elif working_mode == "online":
                         connection = http.client.HTTPConnection(mat_lib_host)
                         connection.request("GET", mat_lib_location + "cycles/textures/" + image_name + ext)
@@ -4459,12 +4451,12 @@ You may need a newer version of Blender for this material to work properly.""" %
                         
                         #Cache image texture
                         if library == "composite":
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "textures", image_name + ext)
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "textures", image_name + ext)
                             image_file = open(image_filepath, mode="w+b")
                             image_file.write(response)
                             image_file.close()
                         else:
-                            image_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "textures", image_name + ext)
+                            image_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "textures", image_name + ext)
                             image_file = open(image_filepath, mode="w+b")
                             image_file.write(response)
                             image_file.close()
@@ -4847,7 +4839,7 @@ You may need a newer version of Blender for this material to work properly."""]
                         connection.request("GET", script_location + script_name + ext)
                         response = connection.getresponse().read()
                         #Save OSL script
-                        osl_filepath = os.path.join(mat_lib_folder, "my-materials", script_name + ext)
+                        osl_filepath = os.path.join(matlibpath, "my-materials", script_name + ext)
                         osl_file = open(osl_filepath, mode="w+b")
                         osl_file.write(response)
                         osl_file.close()
@@ -4861,12 +4853,12 @@ You may need a newer version of Blender for this material to work properly."""]
                             node_message = ['ERROR', "The OSL script file referenced by this script node is not .osl or .oso; not downloading."]
                             return
                         
-                        if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)):
-                            osl_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
-                        elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
-                            osl_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
-                        elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)):
-                            osl_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "scripts", script_name + ext)
+                        if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)):
+                            osl_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)
+                        elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)):
+                            osl_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                        elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "scripts", script_name + ext)):
+                            osl_filepath = os.path.join(matlibpath, "bundled", "cycles", "scripts", script_name + ext)
                         elif working_mode == "online":
                             connection = http.client.HTTPConnection(mat_lib_host)
                             connection.request("GET", mat_lib_location + "cycles/scripts/" + script_name + ext)
@@ -4874,12 +4866,12 @@ You may need a newer version of Blender for this material to work properly."""]
                             
                             #Cache OSL script
                             if library == "composite":
-                                osl_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "scripts", script_name + ext)
+                                osl_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "scripts", script_name + ext)
                                 osl_file = open(osl_filepath, mode="w+b")
                                 osl_file.write(response)
                                 osl_file.close()
                             else:
-                                osl_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "scripts", script_name + ext)
+                                osl_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "scripts", script_name + ext)
                                 osl_file = open(osl_filepath, mode="w+b")
                                 osl_file.write(response)
                                 osl_file.close()
@@ -4939,7 +4931,7 @@ You may need a newer version of Blender for this material to work properly."""]
                     connection.request("GET", group_location + group_name + ".bcg")
                     response = connection.getresponse().read()
                     #Save node group
-                    group_filepath = os.path.join(mat_lib_folder, "my-materials", group_name + ".bcg")
+                    group_filepath = os.path.join(matlibpath, "my-materials", group_name + ".bcg")
                     group_file = open(group_filepath, mode="w+b")
                     group_file.write(response)
                     group_file.close()
@@ -4951,12 +4943,12 @@ You may need a newer version of Blender for this material to work properly."""]
                         node_message = ['ERROR', "The node group file referenced by this group node is not .bcg; not downloading."]
                         return
                     
-                    if library == "composite" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", group_name + ".bcg")):
-                        group_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", group_name + ".bcg")
-                    elif library != "bundled" and os.path.exists(os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")):
-                        group_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
-                    elif library == "bundled" and os.path.exists(os.path.join(mat_lib_folder, "bundled", "cycles", "groups", group_name + ".bcg")):
-                        group_filepath = os.path.join(mat_lib_folder, "bundled", "cycles", "groups", group_name + ".bcg")
+                    if library == "composite" and os.path.exists(os.path.join(matlibpath, mat_lib_host, "cycles", "groups", group_name + ".bcg")):
+                        group_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "groups", group_name + ".bcg")
+                    elif library != "bundled" and os.path.exists(os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")):
+                        group_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
+                    elif library == "bundled" and os.path.exists(os.path.join(matlibpath, "bundled", "cycles", "groups", group_name + ".bcg")):
+                        group_filepath = os.path.join(matlibpath, "bundled", "cycles", "groups", group_name + ".bcg")
                     elif working_mode == "online":
                         connection = http.client.HTTPConnection(mat_lib_host)
                         connection.request("GET", mat_lib_location + "cycles/groups/" + group_name + ".bcg")
@@ -4964,9 +4956,9 @@ You may need a newer version of Blender for this material to work properly."""]
                         
                         #Cache node group
                         if library == "composite":
-                            group_filepath = os.path.join(mat_lib_folder, mat_lib_host, "cycles", "groups", group_name + ".bcg")
+                            group_filepath = os.path.join(matlibpath, mat_lib_host, "cycles", "groups", group_name + ".bcg")
                         else:
-                            group_filepath = os.path.join(mat_lib_folder, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
+                            group_filepath = os.path.join(matlibpath, mat_lib_host, library, "cycles", "groups", group_name + ".bcg")
                         group_file = open(group_filepath, mode="w+b")
                         group_file.write(response)
                         group_file.close()
