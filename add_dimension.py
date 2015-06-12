@@ -19,7 +19,7 @@
 bl_info = {
     'name': 'Dimension',
     'author': 'Spivak Vladimir (http://cwolf3d.korostyshev.net)',
-    'version': (3, 9, 3),
+    'version': (3, 9, 4),
     'blender': (2, 7, 4),
     'location': 'View3D > Add > Curve',
     'description': 'Adds Dimension',
@@ -76,15 +76,19 @@ def Linear1(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow
        center1 = 0
        center2 = w * depth
 
-    if arrow == 'Arrow1':
+    if arrow == 'Arrow1' or arrow == 'Arrow2':
         newpoints.append([-center1, 0, 0]) #1
         newpoints.append([-center1, length, 0]) #2
         newpoints.append([-center1, length + l * dsize, 0]) #3
         newpoints.append([center2, length + l * dsize, 0]) #4
         newpoints.append([center2, length + l * dsize / 2 + l * depth / 100, 0]) #5
         newpoints.append([center2 + w * arrowlength, length + l * dsize / 2 + l * arrowdepth + l * depth / 2, 0]) #6
-        newpoints.append([center2 + w * arrowlength, length + l * dsize / 2 + l * depth / 2, 0]) #7
-        newpoints.append([width-center2-w * arrowlength, length + l * dsize / 2 + l * depth / 2, 0]) #8
+        if arrow == 'Arrow1':
+            newpoints.append([center2 + w * arrowlength, length + l * dsize / 2 + l * depth / 2, 0]) #7
+            newpoints.append([width-center2-w * arrowlength, length + l * dsize / 2 + l * depth / 2, 0]) #8
+        else:
+            newpoints.append([center2 + w * arrowlength * 3 / 4, length + l * dsize / 2 + l * depth / 2, 0]) #7
+            newpoints.append([width-center2-w * arrowlength * 3 / 4, length + l * dsize / 2 + l * depth / 2, 0]) #8
         newpoints.append([width-center2-w * arrowlength, length + l * dsize / 2 + l * arrowdepth + l * depth / 2, 0]) #9
         newpoints.append([width-center2, length + l * dsize / 2 + l * depth / 100, 0]) #10
         newpoints.append([width-center2, length + l * dsize, 0]) #11
@@ -95,40 +99,18 @@ def Linear1(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow
         newpoints.append([width-center2, length, 0]) #16
         newpoints.append([width-center2, length + l * dsize / 2-l * depth / 100, 0]) #17
         newpoints.append([width-center2-w * arrowlength, length + l * dsize / 2-l * arrowdepth-l * depth / 2, 0]) #18
-        newpoints.append([width-center2-w * arrowlength, length + l * dsize / 2-l * depth / 2, 0]) #19
-        newpoints.append([center2 + w * arrowlength, length + l * dsize / 2-l * depth / 2, 0]) #20
+        if arrow == 'Arrow1':
+            newpoints.append([width-center2-w * arrowlength, length + l * dsize / 2-l * depth / 2, 0]) #19
+            newpoints.append([center2 + w * arrowlength, length + l * dsize / 2-l * depth / 2, 0]) #20
+        else:
+            newpoints.append([width-center2-w * arrowlength * 3 / 4, length + l * dsize / 2-l * depth / 2, 0]) #19
+            newpoints.append([center2 + w * arrowlength * 3 / 4, length + l * dsize / 2-l * depth / 2, 0]) #20
         newpoints.append([center2 + w * arrowlength, length + l * dsize / 2-l * arrowdepth-l * depth / 2, 0]) #21
         newpoints.append([center2, length + l * dsize / 2-l * depth / 100, 0]) #22
         newpoints.append([center2, length, 0]) #23
         newpoints.append([center2, 0, 0]) #24
 
-    elif arrow == 'Arrow2':
-        newpoints.append([-center1, 0, 0]) #1
-        newpoints.append([-center1, length, 0]) #2
-        newpoints.append([-center1, length + l * dsize, 0]) #3
-        newpoints.append([center2, length + l * dsize, 0]) #4
-        newpoints.append([center2, length + l * dsize / 2 + l * depth / 100, 0]) #5
-        newpoints.append([center2 + w * arrowlength, length + l * dsize / 2 + l * arrowdepth + l * depth / 2, 0]) #6
-        newpoints.append([center2 + w * arrowlength * 3 / 4, length + l * dsize / 2 + l * depth / 2, 0]) #7
-        newpoints.append([width-center2-w * arrowlength * 3 / 4, length + l * dsize / 2 + l * depth / 2, 0]) #8
-        newpoints.append([width-center2-w * arrowlength, length + l * dsize / 2 + l * arrowdepth + l * depth / 2, 0]) #9
-        newpoints.append([width-center2, length + l * dsize / 2 + l * depth / 100, 0]) #10
-        newpoints.append([width-center2, length + l * dsize, 0]) #11
-        newpoints.append([width + center1, length + l * dsize, 0]) #12
-        newpoints.append([width + center1, length, 0]) #13
-        newpoints.append([width + center1, 0, 0]) #14
-        newpoints.append([width-center2, 0, 0]) #15
-        newpoints.append([width-center2, length, 0]) #16
-        newpoints.append([width-center2, length + l * dsize / 2-l * depth / 100, 0]) #17
-        newpoints.append([width-center2-w * arrowlength, length + l * dsize / 2-l * arrowdepth-l * depth / 2, 0]) #18
-        newpoints.append([width-center2-w * arrowlength * 3 / 4, length + l * dsize / 2-l * depth / 2, 0]) #19
-        newpoints.append([center2 + w * arrowlength * 3 / 4, length + l * dsize / 2-l * depth / 2, 0]) #20
-        newpoints.append([center2 + w * arrowlength, length + l * dsize / 2-l * arrowdepth-l * depth / 2, 0]) #21
-        newpoints.append([center2, length + l * dsize / 2-l * depth / 100, 0]) #22
-        newpoints.append([center2, length, 0]) #23
-        newpoints.append([center2, 0, 0]) #24
-
-    elif arrow == 'Serifs1':
+    if arrow == 'Serifs1' or arrow == 'Serifs2':
         b = sqrt(depth * depth / 2)
         x = sin(radians(45)) * arrowlength * w
         y = cos(radians(45)) * arrowlength * l
@@ -137,6 +119,10 @@ def Linear1(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow
         newpoints.append([-center1, length + l * dsize / 2-l * depth / 2-l * b, 0]) #3
         newpoints.append([-center1-x, length + l * dsize / 2-l * depth / 2-l * b-y, 0]) #4
         newpoints.append([-center1-w * b-x, length + l * dsize / 2-l * depth / 2-y, 0]) #5
+        if arrow == 'Serifs2':
+            newpoints.append([-center1-w * b, length + l * dsize / 2-l * depth / 2, 0]) #6
+            newpoints.append([-center1-w * dsize / 2, length + l * dsize / 2-l * depth / 2, 0]) #7
+            newpoints.append([-center1-w * dsize / 2, length + l * dsize / 2 + l * depth / 2, 0]) #8
         newpoints.append([-center1, length + l * dsize / 2 + l * depth / 2, 0]) #9
         newpoints.append([-center1, length + l * dsize, 0]) #10
         newpoints.append([center2, length + l * dsize, 0]) #11
@@ -150,6 +136,10 @@ def Linear1(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow
         newpoints.append([width + center1, length + l * dsize / 2 + l * depth / 2 + l * b, 0]) #19
         newpoints.append([width + center1 + x, length + l * dsize / 2 + l * depth / 2 + l * b + y, 0]) #20
         newpoints.append([width + center1 + w * b + x, length + l * dsize / 2 + l * depth / 2 + y, 0]) #21
+        if arrow == 'Serifs2':
+            newpoints.append([width + center1 + w * b, length + l * dsize / 2 + l * depth / 2, 0]) #22
+            newpoints.append([width + center1 + w * dsize / 2, length + l * dsize / 2 + l * depth / 2, 0]) #23
+            newpoints.append([width + center1 + w * dsize / 2, length + l * dsize / 2-l * depth / 2, 0]) #24
         newpoints.append([width + center1, length + l * dsize / 2-l * depth / 2, 0]) #25
         newpoints.append([width + center1, length, 0]) #26
         newpoints.append([width + center1, 0, 0]) #27
@@ -163,48 +153,7 @@ def Linear1(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow
         newpoints.append([center2, length, 0]) #35
         newpoints.append([center2, 0, 0]) #36
 
-    elif arrow == 'Serifs2':
-        b = sqrt(depth * depth / 2)
-        x = sin(radians(45)) * arrowlength * w
-        y = cos(radians(45)) * arrowlength * l
-        newpoints.append([-center1, 0, 0]) #1
-        newpoints.append([-center1, length, 0]) #2
-        newpoints.append([-center1, length + l * dsize / 2-l * depth / 2-l * b, 0]) #3
-        newpoints.append([-center1-x, length + l * dsize / 2-l * depth / 2-l * b-y, 0]) #4
-        newpoints.append([-center1-w * b-x, length + l * dsize / 2-l * depth / 2-y, 0]) #5
-        newpoints.append([-center1-w * b, length + l * dsize / 2-l * depth / 2, 0]) #6
-        newpoints.append([-center1-w * dsize / 2, length + l * dsize / 2-l * depth / 2, 0]) #7
-        newpoints.append([-center1-w * dsize / 2, length + l * dsize / 2 + l * depth / 2, 0]) #8
-        newpoints.append([-center1, length + l * dsize / 2 + l * depth / 2, 0]) #9
-        newpoints.append([-center1, length + l * dsize, 0]) #10
-        newpoints.append([center2, length + l * dsize, 0]) #11
-        newpoints.append([center2, length + l * dsize / 2 + l * depth / 2 + l * b, 0]) #12
-        newpoints.append([center2 + x, length + l * dsize / 2 + l * depth / 2 + l * b + y, 0]) #13
-        newpoints.append([center2 + w * b + x, length + l * dsize / 2 + l * depth / 2 + y, 0]) #14
-        newpoints.append([center2 + w * b, length + l * dsize / 2 + l * depth / 2, 0]) #15
-        newpoints.append([width-center2, length + l * dsize / 2 + l * depth / 2, 0]) #16
-        newpoints.append([width-center2, length + l * dsize, 0]) #17
-        newpoints.append([width + center1, length + l * dsize, 0]) #18
-        newpoints.append([width + center1, length + l * dsize / 2 + l * depth / 2 + l * b, 0]) #19
-        newpoints.append([width + center1 + x, length + l * dsize / 2 + l * depth / 2 + l * b + y, 0]) #20
-        newpoints.append([width + center1 + w * b + x, length + l * dsize / 2 + l * depth / 2 + y, 0]) #21
-        newpoints.append([width + center1 + w * b, length + l * dsize / 2 + l * depth / 2, 0]) #22
-        newpoints.append([width + center1 + w * dsize / 2, length + l * dsize / 2 + l * depth / 2, 0]) #23
-        newpoints.append([width + center1 + w * dsize / 2, length + l * dsize / 2-l * depth / 2, 0]) #24
-        newpoints.append([width + center1, length + l * dsize / 2-l * depth / 2, 0]) #25
-        newpoints.append([width + center1, length, 0]) #26
-        newpoints.append([width + center1, 0, 0]) #27
-        newpoints.append([width-center2, 0, 0]) #28
-        newpoints.append([width-center2, length, 0]) #29
-        newpoints.append([width-center2, length + l * dsize / 2-l * depth / 2-l * b, 0]) #30
-        newpoints.append([width-center2-x, length + l * dsize / 2-l * depth / 2-l * b-y, 0]) #31
-        newpoints.append([width-center2-w * b-x, length + l * dsize / 2-l * depth / 2-y, 0]) #32
-        newpoints.append([width-center2-w * b, length + l * dsize / 2-l * depth / 2, 0]) #33
-        newpoints.append([center2, length + l * dsize / 2-l * depth / 2, 0]) #34
-        newpoints.append([center2, length, 0]) #35
-        newpoints.append([center2, 0, 0]) #36
-
-    elif arrow == 'Without':
+    if arrow == 'Without':
         newpoints.append([-center1, 0, 0]) #1
         newpoints.append([-center1, length, 0]) #2
         newpoints.append([-center1, length + l * dsize, 0]) #3
@@ -241,31 +190,27 @@ def Linear2(width = 2, dsize = 1, depth = 0.1, center = False, arrow = 'Arrow1',
        center1 = 0
        center2 = w * depth
 
-    if arrow == 'Arrow1':
+    if arrow == 'Arrow1' or arrow == 'Arrow2':
         newpoints.append([0, 0, 0]) #1
         newpoints.append([w * arrowlength, arrowdepth + depth / 2, 0]) #2
-        newpoints.append([w * arrowlength, depth / 2, 0]) #3
-        newpoints.append([width-w * arrowlength, depth / 2, 0]) #4
+        if arrow == 'Arrow1':
+            newpoints.append([w * arrowlength, depth / 2, 0]) #3
+            newpoints.append([width-w * arrowlength, depth / 2, 0]) #4
+        else:
+            newpoints.append([w * arrowlength * 3 / 4, depth / 2, 0]) #3
+            newpoints.append([width-w * arrowlength * 3 / 4, depth / 2, 0]) #4
         newpoints.append([width-w * arrowlength, arrowdepth + depth / 2, 0]) #5
         newpoints.append([width, 0, 0]) #6
         newpoints.append([width-w * arrowlength, -arrowdepth-depth / 2, 0]) #7
-        newpoints.append([width-w * arrowlength, -depth / 2, 0]) #8
-        newpoints.append([w * arrowlength, -depth / 2, 0]) #9
+        if arrow == 'Arrow1':
+            newpoints.append([width-w * arrowlength, -depth / 2, 0]) #8
+            newpoints.append([w * arrowlength, -depth / 2, 0]) #9
+        else:
+            newpoints.append([width-w * arrowlength * 3 / 4, -depth / 2, 0]) #8
+            newpoints.append([w * arrowlength * 3 / 4, -depth / 2, 0]) #9
         newpoints.append([w * arrowlength, -arrowdepth-depth / 2, 0]) #10
 
-    elif arrow == 'Arrow2':
-        newpoints.append([0, 0, 0]) #1
-        newpoints.append([w * arrowlength, arrowdepth + depth / 2, 0]) #2
-        newpoints.append([w * arrowlength * 3 / 4, depth / 2, 0]) #3
-        newpoints.append([width-w * arrowlength * 3 / 4, depth / 2, 0]) #4
-        newpoints.append([width-w * arrowlength, arrowdepth + depth / 2, 0]) #5
-        newpoints.append([width, 0, 0]) #6
-        newpoints.append([width-w * arrowlength, -arrowdepth-depth / 2, 0]) #7
-        newpoints.append([width-w * arrowlength * 3 / 4, -depth / 2, 0]) #8
-        newpoints.append([w * arrowlength * 3 / 4, -depth / 2, 0]) #9
-        newpoints.append([w * arrowlength, -arrowdepth-depth / 2, 0]) #10
-
-    elif arrow == 'Serifs1':
+    if arrow == 'Serifs1':
         b = sqrt(depth * depth / 2)
         x = sin(radians(45)) * arrowlength * w
         y = cos(radians(45)) * arrowlength
@@ -302,7 +247,7 @@ def Linear2(width = 2, dsize = 1, depth = 0.1, center = False, arrow = 'Arrow1',
         newpoints.append([center2, -depth / 2, 0]) #34
         newpoints.append([center2, -dsize / 2, 0]) #35
 
-    elif arrow == 'Serifs2':
+    if arrow == 'Serifs2':
         b = sqrt(depth * depth / 2)
         x = sin(radians(45)) * arrowlength * w
         y = cos(radians(45)) * arrowlength
@@ -319,7 +264,7 @@ def Linear2(width = 2, dsize = 1, depth = 0.1, center = False, arrow = 'Arrow1',
         newpoints.append([width-center2-w * b-x, -depth / 2-y, 0]) #32
         newpoints.append([width-center2-w * b, -depth / 2, 0]) #33
 
-    elif arrow == 'Without':
+    if arrow == 'Without':
         newpoints.append([0, depth / 2, 0]) #3
         newpoints.append([width, depth / 2, 0]) #4
         newpoints.append([width, -depth / 2, 0]) #8
@@ -347,15 +292,21 @@ def Linear3(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow
        center1 = 0
        center2 = w * depth
 
-    if arrow == 'Arrow1':
+    if arrow == 'Arrow1' or arrow == 'Arrow2':
         newpoints.append([-center1, 0, 0]) #1
         newpoints.append([-center1, length, 0]) #2
         newpoints.append([-center1, length + l * dsize / 2-l * depth / 100, 0]) #3
         newpoints.append([-center1-w * arrowlength, length + l * dsize / 2-l * arrowdepth-l * depth / 2, 0]) #4
-        newpoints.append([-center1-w * arrowlength, length + l * dsize / 2-l * depth / 2, 0]) #5
+        if arrow == 'Arrow1':
+            newpoints.append([-center1-w * arrowlength, length + l * dsize / 2-l * depth / 2, 0]) #5
+        else:
+            newpoints.append([-center1-w * arrowlength * 3 / 4, length + l * dsize / 2-l * depth / 2, 0]) #5
         newpoints.append([-center1-w * arrowlength-w * dsize / 2, length + l * dsize / 2-l * depth / 2, 0]) #6
         newpoints.append([-center1-w * arrowlength-w * dsize / 2, length + l * dsize / 2 + l * depth / 2, 0]) #7
-        newpoints.append([-center1-w * arrowlength, length + l * dsize / 2 + l * depth / 2, 0]) #8
+        if arrow == 'Arrow1':
+            newpoints.append([-center1-w * arrowlength, length + l * dsize / 2 + l * depth / 2, 0]) #8
+        else:
+            newpoints.append([-center1-w * arrowlength * 3 / 4, length + l * dsize / 2 + l * depth / 2, 0]) #8
         newpoints.append([-center1-w * arrowlength, length + l * dsize / 2 + l * arrowdepth + l * depth / 2, 0]) #9
         newpoints.append([-center1, length + l * dsize / 2 + l * depth / 100, 0]) #10
         newpoints.append([-center1, length + l * dsize, 0]) #11
@@ -366,10 +317,16 @@ def Linear3(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow
         newpoints.append([width + center1, length + l * dsize, 0]) #16
         newpoints.append([width + center1, length + l * dsize / 2 + l * depth / 100, 0]) #17
         newpoints.append([width + center1 + w * arrowlength, length + l * dsize / 2 + l * arrowdepth + l * depth / 2, 0]) #18
-        newpoints.append([width + center1 + w * arrowlength, length + l * dsize / 2 + l * depth / 2, 0]) #19
+        if arrow == 'Arrow1':
+            newpoints.append([width + center1 + w * arrowlength, length + l * dsize / 2 + l * depth / 2, 0]) #19
+        else:
+            newpoints.append([width + center1 + w * arrowlength * 3 / 4, length + l * dsize / 2 + l * depth / 2, 0]) #19
         newpoints.append([width + center1 + w * arrowlength + w * dsize / 2, length + l * dsize / 2 + l * depth / 2, 0]) #20
         newpoints.append([width + center1 + w * arrowlength + w * dsize / 2, length + l * dsize / 2-l * depth / 2, 0]) #21
-        newpoints.append([width + center1 + w * arrowlength, length + l * dsize / 2-l * depth / 2, 0]) #22
+        if arrow == 'Arrow1':
+            newpoints.append([width + center1 + w * arrowlength, length + l * dsize / 2-l * depth / 2, 0]) #22
+        else:
+            newpoints.append([width + center1 + w * arrowlength * 3 / 4, length + l * dsize / 2-l * depth / 2, 0]) #22
         newpoints.append([width + center1 + w * arrowlength, length + l * dsize / 2-l * arrowdepth-l * depth / 2, 0]) #23
         newpoints.append([width + center1, length + l * dsize / 2-l * depth / 100, 0]) #24
         newpoints.append([width + center1, length, 0]) #25
@@ -381,41 +338,7 @@ def Linear3(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow
         newpoints.append([center2, length, 0]) #31
         newpoints.append([center2, 0, 0]) #32
 
-    if arrow == 'Arrow2':
-        newpoints.append([-center1, 0, 0]) #1
-        newpoints.append([-center1, length, 0]) #2
-        newpoints.append([-center1, length + l * dsize / 2-l * depth / 100, 0]) #3
-        newpoints.append([-center1-w * arrowlength, length + l * dsize / 2-l * arrowdepth-l * depth / 2, 0]) #4
-        newpoints.append([-center1-w * arrowlength * 3 / 4, length + l * dsize / 2-l * depth / 2, 0]) #5
-        newpoints.append([-center1-w * arrowlength-w * dsize, length + l * dsize / 2-l * depth / 2, 0]) #6
-        newpoints.append([-center1-w * arrowlength-w * dsize, length + l * dsize / 2 + l * depth / 2, 0]) #7
-        newpoints.append([-center1-w * arrowlength * 3 / 4, length + l * dsize / 2 + l * depth / 2, 0]) #8
-        newpoints.append([-center1-w * arrowlength, length + l * dsize / 2 + l * arrowdepth + l * depth / 2, 0]) #9
-        newpoints.append([-center1, length + l * dsize / 2 + l * depth / 100, 0]) #10
-        newpoints.append([-center1, length + l * dsize, 0]) #11
-        newpoints.append([center2, length + l * dsize, 0]) #12
-        newpoints.append([center2, length + l * dsize / 2 + l * depth / 2, 0]) #13
-        newpoints.append([width-center2, length + l * dsize / 2 + l * depth / 2, 0]) #14
-        newpoints.append([width-center2, length + l * dsize, 0]) #15
-        newpoints.append([width + center1, length + l * dsize, 0]) #16
-        newpoints.append([width + center1, length + l * dsize / 2 + l * depth / 100, 0]) #17
-        newpoints.append([width + center1 + w * arrowlength, length + l * dsize / 2 + l * arrowdepth + l * depth / 2, 0]) #18
-        newpoints.append([width + center1 + w * arrowlength * 3 / 4, length + l * dsize / 2 + l * depth / 2, 0]) #19
-        newpoints.append([width + center1 + w * arrowlength + w * dsize, length + l * dsize / 2 + l * depth / 2, 0]) #20
-        newpoints.append([width + center1 + w * arrowlength + w * dsize, length + l * dsize / 2-l * depth / 2, 0]) #21
-        newpoints.append([width + center1 + w * arrowlength * 3 / 4, length + l * dsize / 2-l * depth / 2, 0]) #22
-        newpoints.append([width + center1 + w * arrowlength, length + l * dsize / 2-l * arrowdepth-l * depth / 2, 0]) #23
-        newpoints.append([width + center1, length + l * dsize / 2-l * depth / 100, 0]) #24
-        newpoints.append([width + center1, length, 0]) #25
-        newpoints.append([width + center1, 0, 0]) #26
-        newpoints.append([width-center2, 0, 0]) #27
-        newpoints.append([width-center2, length, 0]) #28
-        newpoints.append([width-center2, length + l * dsize / 2-l * depth / 2, 0]) #29
-        newpoints.append([center2, length + l * dsize / 2-l * depth / 2, 0]) #30
-        newpoints.append([center2, length, 0]) #31
-        newpoints.append([center2, 0, 0]) #32
-
-    elif arrow == 'Serifs1':
+    if arrow == 'Serifs1' or arrow == 'Serifs2':
         b = sqrt(depth * depth / 2)
         x = sin(radians(45)) * arrowlength * w
         y = cos(radians(45)) * arrowlength * l
@@ -425,8 +348,12 @@ def Linear3(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow
         newpoints.append([-center1-x, length + l * dsize / 2-l * depth / 2-l * b-y, 0]) #4
         newpoints.append([-center1-w * b-x, length + l * dsize / 2-l * depth / 2-y, 0]) #5
         newpoints.append([-center1-w * b, length + l * dsize / 2-l * depth / 2, 0]) #6
-        newpoints.append([-center1-w * dsize / 2, length + l * dsize / 2-l * depth / 2, 0]) #7
-        newpoints.append([-center1-w * dsize / 2, length + l * dsize / 2 + l * depth / 2, 0]) #8
+        if arrow == 'Serifs1':
+            newpoints.append([-center1-w * dsize / 2, length + l * dsize / 2-l * depth / 2, 0]) #7
+            newpoints.append([-center1-w * dsize / 2, length + l * dsize / 2 + l * depth / 2, 0]) #8
+        else:
+            newpoints.append([-center1-w * dsize, length + l * dsize / 2-l * depth / 2, 0]) #7
+            newpoints.append([-center1-w * dsize, length + l * dsize / 2 + l * depth / 2, 0]) #8
         newpoints.append([-center1, length + l * dsize / 2 + l * depth / 2, 0]) #9
         newpoints.append([-center1, length + l * dsize, 0]) #10
         newpoints.append([center2, length + l * dsize, 0]) #11
@@ -441,8 +368,12 @@ def Linear3(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow
         newpoints.append([width + center1 + x, length + l * dsize / 2 + l * depth / 2 + l * b + y, 0]) #20
         newpoints.append([width + center1 + w * b + x, length + l * dsize / 2 + l * depth / 2 + y, 0]) #21
         newpoints.append([width + center1 + w * b, length + l * dsize / 2 + l * depth / 2, 0]) #22
-        newpoints.append([width + center1 + w * dsize / 2, length + l * dsize / 2 + l * depth / 2, 0]) #23
-        newpoints.append([width + center1 + w * dsize / 2, length + l * dsize / 2-l * depth / 2, 0]) #24
+        if arrow == 'Serifs1':
+            newpoints.append([width + center1 + w * dsize / 2, length + l * dsize / 2 + l * depth / 2, 0]) #23
+            newpoints.append([width + center1 + w * dsize / 2, length + l * dsize / 2-l * depth / 2, 0]) #24
+        else:
+            newpoints.append([width + center1 + w * dsize, length + l * dsize / 2 + l * depth / 2, 0]) #23
+            newpoints.append([width + center1 + w * dsize, length + l * dsize / 2-l * depth / 2, 0]) #24
         newpoints.append([width + center1, length + l * dsize / 2-l * depth / 2, 0]) #25
         newpoints.append([width + center1, length, 0]) #26
         newpoints.append([width + center1, 0, 0]) #27
@@ -456,48 +387,7 @@ def Linear3(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow
         newpoints.append([center2, length, 0]) #35
         newpoints.append([center2, 0, 0]) #36
 
-    elif arrow == 'Serifs2':
-        b = sqrt(depth * depth / 2)
-        x = sin(radians(45)) * arrowlength * w
-        y = cos(radians(45)) * arrowlength * l
-        newpoints.append([-center1, 0, 0]) #1
-        newpoints.append([-center1, length, 0]) #2
-        newpoints.append([-center1, length + l * dsize / 2-l * depth / 2-l * b, 0]) #3
-        newpoints.append([-center1-x, length + l * dsize / 2-l * depth / 2-l * b-y, 0]) #4
-        newpoints.append([-center1-w * b-x, length + l * dsize / 2-l * depth / 2-y, 0]) #5
-        newpoints.append([-center1-w * b, length + l * dsize / 2-l * depth / 2, 0]) #6
-        newpoints.append([-center1-w * dsize, length + l * dsize / 2-l * depth / 2, 0]) #7
-        newpoints.append([-center1-w * dsize, length + l * dsize / 2 + l * depth / 2, 0]) #8
-        newpoints.append([-center1, length + l * dsize / 2 + l * depth / 2, 0]) #9
-        newpoints.append([-center1, length + l * dsize, 0]) #10
-        newpoints.append([center2, length + l * dsize, 0]) #11
-        newpoints.append([center2, length + l * dsize / 2 + l * depth / 2 + l * b, 0]) #12
-        newpoints.append([center2 + x, length + l * dsize / 2 + l * depth / 2 + l * b + y, 0]) #13
-        newpoints.append([center2 + w * b + x, length + l * dsize / 2 + l * depth / 2 + y, 0]) #14
-        newpoints.append([center2 + w * b, length + l * dsize / 2 + l * depth / 2, 0]) #15
-        newpoints.append([width-center2, length + l * dsize / 2 + l * depth / 2, 0]) #16
-        newpoints.append([width-center2, length + l * dsize, 0]) #17
-        newpoints.append([width + center1, length + l * dsize, 0]) #18
-        newpoints.append([width + center1, length + l * dsize / 2 + l * depth / 2 + l * b, 0]) #19
-        newpoints.append([width + center1 + x, length + l * dsize / 2 + l * depth / 2 + l * b + y, 0]) #20
-        newpoints.append([width + center1 + w * b + x, length + l * dsize / 2 + l * depth / 2 + y, 0]) #21
-        newpoints.append([width + center1 + w * b, length + l * dsize / 2 + l * depth / 2, 0]) #22
-        newpoints.append([width + center1 + w * dsize, length + l * dsize / 2 + l * depth / 2, 0]) #23
-        newpoints.append([width + center1 + w * dsize, length + l * dsize / 2-l * depth / 2, 0]) #24
-        newpoints.append([width + center1, length + l * dsize / 2-l * depth / 2, 0]) #25
-        newpoints.append([width + center1, length, 0]) #26
-        newpoints.append([width + center1, 0, 0]) #27
-        newpoints.append([width-center2, 0, 0]) #28
-        newpoints.append([width-center2, length, 0]) #29
-        newpoints.append([width-center2, length + l * dsize / 2-l * depth / 2-l * b, 0]) #30
-        newpoints.append([width-center2-x, length + l * dsize / 2-l * depth / 2-l * b-y, 0]) #31
-        newpoints.append([width-center2-w * b-x, length + l * dsize / 2-l * depth / 2-y, 0]) #32
-        newpoints.append([width-center2-w * b, length + l * dsize / 2-l * depth / 2, 0]) #33
-        newpoints.append([center2, length + l * dsize / 2-l * depth / 2, 0]) #34
-        newpoints.append([center2, length, 0]) #35
-        newpoints.append([center2, 0, 0]) #36
-
-    elif arrow == 'Without':
+    if arrow == 'Without':
         newpoints.append([-center1, 0, 0]) #1
         newpoints.append([-center1, length, 0]) #2
         newpoints.append([-center1, length + l * dsize / 2-l * depth / 2, 0]) #5
@@ -543,71 +433,54 @@ def Radius(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arrow 
        center1 = 0
        center2 = w * depth
 
-    if arrow == 'Arrow1':
+    if arrow == 'Arrow1' or arrow == 'Arrow2':
         newpoints.append([0, depth / 2, 0]) #1
         newpoints.append([width, depth / 2, 0]) #2
         newpoints.append([width + w * arrowlength, depth / 2 + arrowdepth, 0]) #3
-        newpoints.append([width + w * arrowlength, depth / 2, 0]) #4
+        if arrow == 'Arrow1':
+            newpoints.append([width + w * arrowlength, depth / 2, 0]) #4
+        else:
+            newpoints.append([width + w * arrowlength * 3 / 4, depth / 2, 0]) #4
         newpoints.append([width + w * arrowlength + w * length, depth / 2, 0]) #5
         newpoints.append([width + w * arrowlength + w * length, -depth / 2, 0]) #6
-        newpoints.append([width + w * arrowlength, -depth / 2, 0]) #7
+        if arrow == 'Arrow1':
+            newpoints.append([width + w * arrowlength, -depth / 2, 0]) #7
+        else:
+            newpoints.append([width + w * arrowlength * 3 / 4, -depth / 2, 0]) #7
         newpoints.append([width + w * arrowlength, -depth / 2-arrowdepth, 0]) #8
         newpoints.append([width, -depth / 2, 0]) #9
         newpoints.append([0, -depth / 2, 0]) #10
 
-    if arrow == 'Arrow2':
-        newpoints.append([0, depth / 2, 0]) #1
-        newpoints.append([width, depth / 2, 0]) #2
-        newpoints.append([width + w * arrowlength, depth / 2 + arrowdepth, 0]) #3
-        newpoints.append([width + w * arrowlength * 3 / 4, depth / 2, 0]) #4
-        newpoints.append([width + w * arrowlength + w * length, depth / 2, 0]) #5
-        newpoints.append([width + w * arrowlength + w * length, -depth / 2, 0]) #6
-        newpoints.append([width + w * arrowlength * 3 / 4, -depth / 2, 0]) #7
-        newpoints.append([width + w * arrowlength, -depth / 2-arrowdepth, 0]) #8
-        newpoints.append([width, -depth / 2, 0]) #9
-        newpoints.append([0, -depth / 2, 0]) #10
-
-    if arrow == 'Serifs1':
+    if arrow == 'Serifs1' or arrow == 'Serifs2':
         b = sqrt(depth * depth / 2)
         x = sin(radians(45)) * arrowlength * w
         y = cos(radians(45)) * arrowlength
         newpoints.append([0, depth / 2, 0]) #1
-        newpoints.append([width-center2, depth / 2, 0]) #16
-        newpoints.append([width-center2, dsize / 2, 0]) #17
-        newpoints.append([width + center1, dsize / 2, 0]) #18
-        newpoints.append([width + center1, depth / 2 + b, 0]) #19
+        if arrow == 'Serifs1':
+            newpoints.append([width-center2, depth / 2, 0]) #16
+            newpoints.append([width-center2, dsize / 2, 0]) #17
+            newpoints.append([width + center1, dsize / 2, 0]) #18
+            newpoints.append([width + center1, depth / 2 + b, 0]) #19
+        else:
+            newpoints.append([width + center1-w * b, depth / 2, 0]) #19
         newpoints.append([width + center1 + x, depth / 2 + b + y, 0]) #20
         newpoints.append([width + center1 + w * b + x, depth / 2 + y, 0]) #21
         newpoints.append([width + center1 + w * b, depth / 2, 0]) #22
         newpoints.append([width + center1 + w * length, depth / 2, 0]) #23
         newpoints.append([width + center1 + w * length, -depth / 2, 0]) #24
-        newpoints.append([width + center1, -depth / 2, 0]) #25
-        newpoints.append([width + center1, -dsize / 2, 0]) #26
-        newpoints.append([width-center2, -dsize / 2, 0]) #29
-        newpoints.append([width-center2, -depth / 2-b, 0]) #30
+        if arrow == 'Serifs1':
+            newpoints.append([width + center1, -depth / 2, 0]) #25
+            newpoints.append([width + center1, -dsize / 2, 0]) #26
+            newpoints.append([width-center2, -dsize / 2, 0]) #29
+            newpoints.append([width-center2, -depth / 2-b, 0]) #30
+        else:
+            newpoints.append([width-center2 + w * b, -depth / 2, 0]) #30
         newpoints.append([width-center2-x, -depth / 2-b-y, 0]) #31
         newpoints.append([width-center2-w * b-x, -depth / 2-y, 0]) #32
         newpoints.append([width-center2-w * b, -depth / 2, 0]) #33
         newpoints.append([0, -depth / 2, 0]) #10
 
-    if arrow == 'Serifs2':
-        b = sqrt(depth * depth / 2)
-        x = sin(radians(45)) * arrowlength * w
-        y = cos(radians(45)) * arrowlength
-        newpoints.append([0, depth / 2, 0]) #1
-        newpoints.append([width + center1-w * b, depth / 2, 0]) #19
-        newpoints.append([width + center1 + x, depth / 2 + b + y, 0]) #20
-        newpoints.append([width + center1 + w * b + x, depth / 2 + y, 0]) #21
-        newpoints.append([width + center1 + w * b, depth / 2, 0]) #22
-        newpoints.append([width + center1 + w * length, depth / 2, 0]) #23
-        newpoints.append([width + center1 + w * length, -depth / 2, 0]) #24
-        newpoints.append([width-center2 + w * b, -depth / 2, 0]) #30
-        newpoints.append([width-center2-x, -depth / 2-b-y, 0]) #31
-        newpoints.append([width-center2-w * b-x, -depth / 2-y, 0]) #32
-        newpoints.append([width-center2-w * b, -depth / 2, 0]) #33
-        newpoints.append([0, -depth / 2, 0]) #10
-
-    elif arrow == 'Without':
+    if arrow == 'Without':
         newpoints.append([0, depth / 2, 0]) #1
         newpoints.append([width, depth / 2, 0]) #2
         newpoints.append([width, -depth / 2, 0]) #9
@@ -634,113 +507,90 @@ def Diameter(width = 2, length = 2, dsize = 1, depth = 0.1, center = False, arro
        center1 = 0
        center2 = w * depth
 
-    if arrow == 'Arrow1':
+    if arrow == 'Arrow1' or arrow == 'Arrow2':
         newpoints.append([0, depth / 2, 0]) #1
         newpoints.append([width, depth / 2, 0]) #2
         newpoints.append([width + w * arrowlength, depth / 2 + arrowdepth, 0]) #3
-        newpoints.append([width + w * arrowlength, depth / 2, 0]) #4
+        if arrow == 'Arrow1':
+            newpoints.append([width + w * arrowlength, depth / 2, 0]) #4
+        else:
+            newpoints.append([width + w * arrowlength * 3 / 4, depth / 2, 0]) #4
         newpoints.append([width + w * arrowlength + w * length, depth / 2, 0]) #5
         newpoints.append([width + w * arrowlength + w * length, -depth / 2, 0]) #6
-        newpoints.append([width + w * arrowlength, -depth / 2, 0]) #7
+        if arrow == 'Arrow1':
+            newpoints.append([width + w * arrowlength, -depth / 2, 0]) #7
+        else:
+            newpoints.append([width + w * arrowlength * 3 / 4, -depth / 2, 0]) #7
         newpoints.append([width + w * arrowlength, -depth / 2-arrowdepth, 0]) #8
         newpoints.append([width, -depth / 2, 0]) #9
         newpoints.append([0, -depth / 2, 0]) #10
         newpoints.append([-width, -depth / 2, 0]) #11
         newpoints.append([-width-w * arrowlength, -depth / 2-arrowdepth, 0]) #12
-        newpoints.append([-width-w * arrowlength, -depth / 2, 0]) #13
+        if arrow == 'Arrow1':
+            newpoints.append([-width-w * arrowlength, -depth / 2, 0]) #13
+        else:
+            newpoints.append([-width-w * arrowlength * 3 / 4, -depth / 2, 0]) #13
         newpoints.append([-width-w * arrowlength-w * length, -depth / 2, 0]) #14
         newpoints.append([-width-w * arrowlength-w * length, depth / 2, 0]) #15
-        newpoints.append([-width-w * arrowlength, depth / 2, 0]) #16
+        if arrow == 'Arrow1':
+            newpoints.append([-width-w * arrowlength, depth / 2, 0]) #16
+        else:
+            newpoints.append([-width-w * arrowlength * 3 / 4, depth / 2, 0]) #16
         newpoints.append([-width-w * arrowlength, depth / 2 + arrowdepth, 0]) #17
         newpoints.append([-width, depth / 2, 0]) #18
 
-    if arrow == 'Arrow2':
-        newpoints.append([0, depth / 2, 0]) #1
-        newpoints.append([width, depth / 2, 0]) #2
-        newpoints.append([width + w * arrowlength, depth / 2 + arrowdepth, 0]) #3
-        newpoints.append([width + w * arrowlength * 3 / 4, depth / 2, 0]) #4
-        newpoints.append([width + w * arrowlength + w * length, depth / 2, 0]) #5
-        newpoints.append([width + w * arrowlength + w * length, -depth / 2, 0]) #6
-        newpoints.append([width + w * arrowlength * 3 / 4, -depth / 2, 0]) #7
-        newpoints.append([width + w * arrowlength, -depth / 2-arrowdepth, 0]) #8
-        newpoints.append([width, -depth / 2, 0]) #9
-        newpoints.append([0, -depth / 2, 0]) #10
-        newpoints.append([-width, -depth / 2, 0]) #11
-        newpoints.append([-width-w * arrowlength, -depth / 2-arrowdepth, 0]) #12
-        newpoints.append([-width-w * arrowlength * 3 / 4, -depth / 2, 0]) #13
-        newpoints.append([-width-w * arrowlength-w * length, -depth / 2, 0]) #14
-        newpoints.append([-width-w * arrowlength-w * length, depth / 2, 0]) #15
-        newpoints.append([-width-w * arrowlength * 3 / 4, depth / 2, 0]) #16
-        newpoints.append([-width-w * arrowlength, depth / 2 + arrowdepth, 0]) #17
-        newpoints.append([-width, depth / 2, 0]) #18
-
-    if arrow == 'Serifs1':
+    if arrow == 'Serifs1' or arrow == 'Serifs2':
         b = sqrt(depth * depth / 2)
         x = sin(radians(45)) * arrowlength * w
         y = cos(radians(45)) * arrowlength
         newpoints.append([0, depth / 2, 0]) #1
-        newpoints.append([width-center2, depth / 2, 0]) #16
-        newpoints.append([width-center2, dsize / 2, 0]) #17
-        newpoints.append([width + center1, dsize / 2, 0]) #18
-        newpoints.append([width + center1, depth / 2 + b, 0]) #19
+        if arrow == 'Serifs1':
+            newpoints.append([width-center2, depth / 2, 0]) #16
+            newpoints.append([width-center2, dsize / 2, 0]) #17
+            newpoints.append([width + center1, dsize / 2, 0]) #18
+            newpoints.append([width + center1, depth / 2 + b, 0]) #19
+        else:
+            newpoints.append([width + center1-w * b, depth / 2, 0]) #19
         newpoints.append([width + center1 + x, depth / 2 + b + y, 0]) #20
         newpoints.append([width + center1 + w * b + x, depth / 2 + y, 0]) #21
         newpoints.append([width + center1 + w * b, depth / 2, 0]) #22
         newpoints.append([width + center1 + w * length, depth / 2, 0]) #23
         newpoints.append([width + center1 + w * length, -depth / 2, 0]) #24
-        newpoints.append([width + center1, -depth / 2, 0]) #25
-        newpoints.append([width + center1, -dsize / 2, 0]) #26
-        newpoints.append([width-center2, -dsize / 2, 0]) #29
-        newpoints.append([width-center2, -depth / 2-b, 0]) #30
+        if arrow == 'Serifs1':
+            newpoints.append([width + center1, -depth / 2, 0]) #25
+            newpoints.append([width + center1, -dsize / 2, 0]) #26
+            newpoints.append([width-center2, -dsize / 2, 0]) #29
+            newpoints.append([width-center2, -depth / 2-b, 0]) #30
+        else:
+            newpoints.append([width-center2 + w * b, -depth / 2, 0]) #30
         newpoints.append([width-center2-x, -depth / 2-b-y, 0]) #31
         newpoints.append([width-center2-w * b-x, -depth / 2-y, 0]) #32
         newpoints.append([width-center2-w * b, -depth / 2, 0]) #33
         newpoints.append([0, -depth / 2, 0]) #10
-        newpoints.append([-width + center2, -depth / 2, 0]) #25
-        newpoints.append([-width + center2, -dsize / 2, 0]) #26
-        newpoints.append([-width-center1, -dsize / 2, 0]) #29
-        newpoints.append([-width-center1, -depth / 2-b, 0]) #30
+        if arrow == 'Serifs1':
+            newpoints.append([-width + center2, -depth / 2, 0]) #25
+            newpoints.append([-width + center2, -dsize / 2, 0]) #26
+            newpoints.append([-width-center1, -dsize / 2, 0]) #29
+            newpoints.append([-width-center1, -depth / 2-b, 0]) #30
+        else:
+            newpoints.append([-width-center1 + w * b, -depth / 2, 0]) #30
         newpoints.append([-width-center1-x, -depth / 2-b-y, 0]) #31
         newpoints.append([-width-center1-w * b-x, -depth / 2-y, 0]) #32
         newpoints.append([-width-center1-w * b, -depth / 2, 0]) #33
         newpoints.append([-width + center2-w * length, -depth / 2, 0]) #24
         newpoints.append([-width + center2-w * length, depth / 2, 0]) #23
-        newpoints.append([-width-center1, depth / 2, 0]) #16
-        newpoints.append([-width-center1, dsize / 2, 0]) #17
-        newpoints.append([-width + center2, dsize / 2, 0]) #18
-        newpoints.append([-width + center2, depth / 2 + b, 0]) #19
+        if arrow == 'Serifs1':
+            newpoints.append([-width-center1, depth / 2, 0]) #16
+            newpoints.append([-width-center1, dsize / 2, 0]) #17
+            newpoints.append([-width + center2, dsize / 2, 0]) #18
+            newpoints.append([-width + center2, depth / 2 + b, 0]) #19
+        else:
+            newpoints.append([-width + center2-w * b, depth / 2, 0]) #19
         newpoints.append([-width + center2 + x, depth / 2 + b + y, 0]) #20
         newpoints.append([-width + center2 + w * b + x, depth / 2 + y, 0]) #21
         newpoints.append([-width + center2 + w * b, depth / 2, 0]) #22
 
-    if arrow == 'Serifs2':
-        b = sqrt(depth * depth / 2)
-        x = sin(radians(45)) * arrowlength * w
-        y = cos(radians(45)) * arrowlength
-        newpoints.append([0, depth / 2, 0]) #1
-        newpoints.append([width + center1-w * b, depth / 2, 0]) #19
-        newpoints.append([width + center1 + x, depth / 2 + b + y, 0]) #20
-        newpoints.append([width + center1 + w * b + x, depth / 2 + y, 0]) #21
-        newpoints.append([width + center1 + w * b, depth / 2, 0]) #22
-        newpoints.append([width + center1 + w * length, depth / 2, 0]) #23
-        newpoints.append([width + center1 + w * length, -depth / 2, 0]) #24
-        newpoints.append([width-center2 + w * b, -depth / 2, 0]) #30
-        newpoints.append([width-center2-x, -depth / 2-b-y, 0]) #31
-        newpoints.append([width-center2-w * b-x, -depth / 2-y, 0]) #32
-        newpoints.append([width-center2-w * b, -depth / 2, 0]) #33
-        newpoints.append([0, -depth / 2, 0]) #10
-        newpoints.append([-width-center1 + w * b, -depth / 2, 0]) #30
-        newpoints.append([-width-center1-x, -depth / 2-b-y, 0]) #31
-        newpoints.append([-width-center1-w * b-x, -depth / 2-y, 0]) #32
-        newpoints.append([-width-center1-w * b, -depth / 2, 0]) #33
-        newpoints.append([-width + center2-w * length, -depth / 2, 0]) #24
-        newpoints.append([-width + center2-w * length, depth / 2, 0]) #23
-        newpoints.append([-width + center2-w * b, depth / 2, 0]) #19
-        newpoints.append([-width + center2 + x, depth / 2 + b + y, 0]) #20
-        newpoints.append([-width + center2 + w * b + x, depth / 2 + y, 0]) #21
-        newpoints.append([-width + center2 + w * b, depth / 2, 0]) #22
-
-    elif arrow == 'Without':
+    if arrow == 'Without':
         newpoints.append([0, depth / 2, 0]) #1
         newpoints.append([width, depth / 2, 0]) #2
         newpoints.append([width, -depth / 2, 0]) #9
@@ -1620,6 +1470,7 @@ def setBezierHandles(obj, mode = 'VECTOR'):
     bpy.ops.curve.select_all(action = 'SELECT')
     bpy.ops.curve.handle_type_set(type = mode)
     bpy.ops.object.mode_set(mode = 'OBJECT', toggle = True)
+    bpy.context.scene.update()
 
 ##------------------------------------------------------------
 #### Add units
@@ -1678,9 +1529,7 @@ def createCurve(vertArray, self, align_matrix):
     # create object with newCurve
     DimensionCurve = bpy.data.objects.new(name, newCurve) # object
     scene.objects.link(DimensionCurve) # place in active scene
-    DimensionCurve.select = True # set as selected
     DimensionCurve.Dimension = True
-    scene.objects.active = DimensionCurve  # set as active
     DimensionCurve.matrix_world = align_matrix # apply matrix
     self.Dimension_Name = DimensionCurve.name
 
@@ -1889,10 +1738,10 @@ def createCurve(vertArray, self, align_matrix):
     setBezierHandles(DimensionCurve, 'VECTOR')
     setBezierHandles(DimensionText, 'VECTOR')
 
-    DimensionText.parent = DimensionCurve
-
     group_name = 'Dimensions'
 
+    bpy.ops.object.mode_set(mode = 'OBJECT')
+        
     if group_name in bpy.data.groups:
         group = bpy.data.groups[group_name]
     else:
@@ -1904,8 +1753,19 @@ def createCurve(vertArray, self, align_matrix):
     if not DimensionText.name in group.objects:
         group.objects.link(DimensionText)
 
+    DimensionText.parent = DimensionCurve
+
+    if self.Dimension_appoint_parent and not self.Dimension_parent == '':
+        const =  DimensionCurve.constraints.new(type='CHILD_OF')
+        const.target =  bpy.data.objects[self.Dimension_parent]
+        const.inverse_matrix = bpy.data.objects[self.Dimension_parent].matrix_world.inverted() 
+        bpy.context.scene.update()
+
+    bpy.ops.object.select_all(action='DESELECT')
     DimensionCurve.select = True
     DimensionText.select = True
+    bpy.context.scene.objects.active = DimensionCurve
+    bpy.context.scene.update()
 
     DimensionCurve.Dimension_Name = self.Dimension_Name
     DimensionCurve.Dimension_Type = self.Dimension_Type
@@ -1947,6 +1807,10 @@ def createCurve(vertArray, self, align_matrix):
     #### Note properties
     DimensionCurve.Dimension_note = self.Dimension_note
     DimensionCurve.Dimension_align_to_camera = self.Dimension_align_to_camera
+
+    #### Parent
+    DimensionCurve.Dimension_parent = self.Dimension_parent
+    DimensionCurve.Dimension_appoint_parent = self.Dimension_appoint_parent
 
     return
 
@@ -2186,11 +2050,12 @@ def main(self, align_matrix):
 #### Delete dimension group
 def DimensionDelete(self, context):
 
-    if bpy.ops.object.mode_set.poll():
-        bpy.ops.object.mode_set(mode = 'OBJECT')
+    bpy.context.scene.update()
+    bpy.ops.object.mode_set(mode = 'OBJECT')
 
     bpy.ops.object.select_grouped(extend=True, type='CHILDREN_RECURSIVE')
     bpy.ops.object.delete()
+    bpy.context.scene.update()
 
     return
 
@@ -2296,43 +2161,43 @@ class Dimension(bpy.types.Operator):
                 items = Arrows,
                 description = "Arrow")
     Dimension_arrowdepth = FloatProperty(name = "Depth",
-                    default = 0.1,
-                    min = 0, soft_min = 0,
-                    description = "Arrow depth")
+                default = 0.1,
+                min = 0, soft_min = 0,
+                description = "Arrow depth")
     Dimension_arrowlength = FloatProperty(name = "Length",
-                    default = 0.25,
-                    min = 0, soft_min = 0,
-                    description = "Arrow length")
+                default = 0.25,
+                min = 0, soft_min = 0,
+                description = "Arrow length")
 
     #### Dimension properties
     Dimension_resolution = IntProperty(name = "Resolution",
-                    default = 10,
-                    min = 1, soft_min = 1,
-                    description = "Resolution")
+                default = 10,
+                min = 1, soft_min = 1,
+                description = "Resolution")
     Dimension_width = FloatProperty(name = "Width",
-                    default = 2,
-                    unit = 'LENGTH',
-                    description = "Width")
+                default = 2,
+                unit = 'LENGTH',
+                description = "Width")
     Dimension_length = FloatProperty(name = "Length",
-                    default = 2,
-                    description = "Length")
+                default = 2,
+                description = "Length")
     Dimension_dsize = FloatProperty(name = "Size",
-                    default = 1,
-                    min = 0, soft_min = 0,
-                    description = "Size")
+                default = 1,
+                min = 0, soft_min = 0,
+                description = "Size")
     Dimension_depth = FloatProperty(name = "Depth",
-                    default = 0.1,
-                    min = 0, soft_min = 0,
-                    description = "Depth")
+                default = 0.1,
+                min = 0, soft_min = 0,
+                description = "Depth")
     Dimension_depth_from_center = BoolProperty(name = "Depth from center",
                 default = False,
                 description = "Depth from center")
     Dimension_angle = FloatProperty(name = "Angle",
-                    default = 45,
-                    description = "Angle")
+                default = 45,
+                description = "Angle")
     Dimension_rotation = FloatProperty(name = "Rotation",
-                    default = 0,
-                    description = "Rotation")
+                default = 0,
+                description = "Rotation")
 
     #### Dimension units properties
     Units = [
@@ -2353,29 +2218,29 @@ class Dimension(bpy.types.Operator):
 
     #### Dimension text properties
     Dimension_textsize = FloatProperty(name = "Size",
-                    default = 1,
-                    description = "Size")
+                default = 1,
+                description = "Size")
     Dimension_textdepth = FloatProperty(name = "Depth",
-                    default = 0.2,
-                    description = "Depth")
+                default = 0.2,
+                description = "Depth")
     Dimension_textround = IntProperty(name = "Rounding",
-                    default = 2,
-                    min = 0, soft_min = 0,
-                    description = "Rounding")
+                default = 2,
+                min = 0, soft_min = 0,
+                description = "Rounding")
     Dimension_font = StringProperty(name = "Font",
-                    default = '',
-                    subtype = 'FILE_PATH',
-                    description = "Font")
+                default = '',
+                subtype = 'FILE_PATH',
+                description = "Font")
 
     #### Materials properties
     Dimension_matname = StringProperty(name = "Name",
-                    default = 'Dimension_Red',
-                    description = "Material name")
+                default = 'Dimension_Red',
+                description = "Material name")
 
     #### Note properties
     Dimension_note = StringProperty(name = "Note",
-                    default = 'Note',
-                    description = "Note text")
+                default = 'Note',
+                description = "Note text")
     Dimension_align_to_camera = BoolProperty(name = "Align to camera",
                 default = False,
                 description = "Align to camera")
@@ -2392,6 +2257,13 @@ class Dimension(bpy.types.Operator):
                 description = "Start location",
                 default = (4.0, 4.0, 4.0),
                 subtype = 'XYZ')
+    #### Parent
+    Dimension_parent = StringProperty(name = "Parent",
+                default = '',
+                description = "Parent")
+    Dimension_appoint_parent = BoolProperty(name = "Appoint parent",
+                default = False,
+                description = "Appoint parent")
 
     ##### DRAW #####
     def draw(self, context):
@@ -2538,6 +2410,8 @@ class Dimension(bpy.types.Operator):
                 props.Dimension_arrow = self.Dimension_arrow
                 props.Dimension_arrowdepth = self.Dimension_arrowdepth
                 props.Dimension_arrowlength = self.Dimension_arrowlength
+                props.Dimension_parent = self.Dimension_parent
+                props.Dimension_appoint_parent = self.Dimension_appoint_parent
             box = layout.box()
             box.label("Options")
             box.prop(self, 'Dimension_width')
@@ -2593,6 +2467,8 @@ class Dimension(bpy.types.Operator):
                 props.Dimension_arrow = self.Dimension_arrow
                 props.Dimension_arrowdepth = self.Dimension_arrowdepth
                 props.Dimension_arrowlength = self.Dimension_arrowlength
+                props.Dimension_parent = self.Dimension_parent
+                props.Dimension_appoint_parent = self.Dimension_appoint_parent
             box = layout.box()
             box.label("Options")
             box.prop(self, 'Dimension_width')
@@ -2646,6 +2522,8 @@ class Dimension(bpy.types.Operator):
                 props.Dimension_arrow = self.Dimension_arrow
                 props.Dimension_arrowdepth = self.Dimension_arrowdepth
                 props.Dimension_arrowlength = self.Dimension_arrowlength
+                props.Dimension_parent = self.Dimension_parent
+                props.Dimension_appoint_parent = self.Dimension_appoint_parent
             box = layout.box()
             box.label("Options")
             box.prop(self, 'Dimension_width')
@@ -2705,6 +2583,10 @@ class Dimension(bpy.types.Operator):
         box = layout.box()
         box.prop(self, 'Dimension_units')
 
+        if not self.Dimension_parent == '':
+            box = layout.box()
+            box.prop(self, 'Dimension_appoint_parent')
+
         box = layout.box()
         box.label("Text Options")
         box.prop(self, 'Dimension_textsize')
@@ -2736,6 +2618,7 @@ class Dimension(bpy.types.Operator):
         #go to object mode
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode = 'OBJECT')
+            bpy.context.scene.update()
 
         # turn off undo
         undo = bpy.context.user_preferences.edit.use_global_undo
@@ -2752,7 +2635,7 @@ class Dimension(bpy.types.Operator):
 
     ##### INVOKE #####
     def invoke(self, context, event):
-        # store creation_matrix
+        bpy.context.scene.update()
         if self.Dimension_Change:
             bpy.context.scene.cursor_location = self.Dimension_startlocation
         else:
@@ -2833,6 +2716,7 @@ class DimensionAdd(bpy.types.Panel):
             props1.Dimension_startlocation = startvertex
             props1.Dimension_liberty = '2D'
             props1.Dimension_rotation = 0
+            props1.Dimension_parent = obj.name
 
             props2 = row.operator("curve.dimension", text = 'Add 3D note')
             props2.Dimension_Change = False
@@ -2841,6 +2725,7 @@ class DimensionAdd(bpy.types.Panel):
             props2.Dimension_startlocation = startvertex
             props2.Dimension_liberty = '3D'
             props2.Dimension_rotation = 0
+            props2.Dimension_parent = obj.name
 
             col = layout.column()
             col.label("Distance to 3D cursor:")
@@ -2853,6 +2738,7 @@ class DimensionAdd(bpy.types.Panel):
             props3.Dimension_endlocation = startvertex
             props3.Dimension_liberty = '2D'
             props3.Dimension_rotation = 0
+            props3.Dimension_parent = obj.name
 
             props4 = row.operator("curve.dimension", text = 'Add 3D dimension')
             props4.Dimension_Change = False
@@ -2862,6 +2748,7 @@ class DimensionAdd(bpy.types.Panel):
             props4.Dimension_endlocation = startvertex
             props4.Dimension_liberty = '3D'
             props4.Dimension_rotation = 0
+            props4.Dimension_parent = obj.name
 
             col = layout.column()
             col.label("Radius to 3D cursor:")
@@ -2874,6 +2761,7 @@ class DimensionAdd(bpy.types.Panel):
             props7.Dimension_endlocation = startvertex
             props7.Dimension_liberty = '2D'
             props7.Dimension_rotation = 0
+            props7.Dimension_parent = obj.name
 
             props8 = row.operator("curve.dimension", text = 'Add 3D radius')
             props8.Dimension_Change = False
@@ -2883,6 +2771,7 @@ class DimensionAdd(bpy.types.Panel):
             props8.Dimension_endlocation = startvertex
             props8.Dimension_liberty = '3D'
             props8.Dimension_rotation = 0
+            props8.Dimension_parent = obj.name
 
             col = layout.column()
             col.label("Diameter to 3D cursor:")
@@ -2895,6 +2784,7 @@ class DimensionAdd(bpy.types.Panel):
             props9.Dimension_endlocation = startvertex
             props9.Dimension_liberty = '2D'
             props9.Dimension_rotation = 0
+            props9.Dimension_parent = obj.name
 
             props10 = row.operator("curve.dimension", text = 'Add 3D diameter')
             props10.Dimension_Change = False
@@ -2904,6 +2794,7 @@ class DimensionAdd(bpy.types.Panel):
             props10.Dimension_endlocation = startvertex
             props10.Dimension_liberty = '3D'
             props10.Dimension_rotation = 0
+            props10.Dimension_parent = obj.name
 
         if len(vertex) == 2:
             startvertex = vertex[0]
@@ -2924,6 +2815,7 @@ class DimensionAdd(bpy.types.Panel):
             props1.Dimension_endlocation = endvertex
             props1.Dimension_liberty = '2D'
             props1.Dimension_rotation = 0
+            props1.Dimension_parent = obj.name
 
             props2 = row.operator("curve.dimension", text = 'Add 3D dimension')
             props2.Dimension_Change = False
@@ -2933,6 +2825,7 @@ class DimensionAdd(bpy.types.Panel):
             props2.Dimension_endlocation = endvertex
             props2.Dimension_liberty = '3D'
             props2.Dimension_rotation = 0
+            props2.Dimension_parent = obj.name
 
             col = layout.column()
             col.label("Radius:")
@@ -2945,6 +2838,7 @@ class DimensionAdd(bpy.types.Panel):
             props3.Dimension_endlocation = endvertex
             props3.Dimension_liberty = '2D'
             props3.Dimension_rotation = 0
+            props3.Dimension_parent = obj.name
 
             props4 = row.operator("curve.dimension", text = 'Add 3D radius')
             props4.Dimension_Change = False
@@ -2954,6 +2848,7 @@ class DimensionAdd(bpy.types.Panel):
             props4.Dimension_endlocation = endvertex
             props4.Dimension_liberty = '3D'
             props4.Dimension_rotation = 0
+            props4.Dimension_parent = obj.name
 
             col = layout.column()
             col.label("Diameter:")
@@ -2966,6 +2861,7 @@ class DimensionAdd(bpy.types.Panel):
             props5.Dimension_endlocation = endvertex
             props5.Dimension_liberty = '2D'
             props5.Dimension_rotation = 0
+            props5.Dimension_parent = obj.name
 
             props6 = row.operator("curve.dimension", text = 'Add 3D diameter')
             props6.Dimension_Change = False
@@ -2975,6 +2871,7 @@ class DimensionAdd(bpy.types.Panel):
             props6.Dimension_endlocation = endvertex
             props6.Dimension_liberty = '3D'
             props6.Dimension_rotation = 0
+            props6.Dimension_parent = obj.name
 
         if len(vertex) == 3:
             startvertex = vertex[0]
@@ -2997,6 +2894,7 @@ class DimensionAdd(bpy.types.Panel):
             props1.Dimension_endanglelocation = endanglevertex
             props1.Dimension_liberty = '2D'
             props1.Dimension_rotation = 0
+            props1.Dimension_parent = obj.name
 
             props2 = row.operator("curve.dimension", text = 'Add 3D angle dimension')
             props2.Dimension_Change = False
@@ -3007,6 +2905,7 @@ class DimensionAdd(bpy.types.Panel):
             props2.Dimension_endanglelocation = endanglevertex
             props2.Dimension_liberty = '3D'
             props2.Dimension_rotation = 0
+            props2.Dimension_parent = obj.name
 
 # Properties class
 class DimensionPanel(bpy.types.Panel):
@@ -3055,12 +2954,15 @@ class DimensionPanel(bpy.types.Panel):
             props.Dimension_textsize = obj.Dimension_textsize
             props.Dimension_textdepth = obj.Dimension_textdepth
             props.Dimension_textround = obj.Dimension_textround
+            props.Dimension_font = obj.Dimension_font
             props.Dimension_matname = obj.Dimension_matname
             props.Dimension_note = obj.Dimension_note
             props.Dimension_align_to_camera = obj.Dimension_align_to_camera
             props.Dimension_arrow = obj.Dimension_arrow
             props.Dimension_arrowdepth = obj.Dimension_arrowdepth
             props.Dimension_arrowlength = obj.Dimension_arrowlength
+            props.Dimension_parent = obj.Dimension_parent
+            props.Dimension_appoint_parent = obj.Dimension_appoint_parent
 
 #location update
 def StartLocationUpdate(self, context):
@@ -3122,16 +3024,13 @@ def DimensionVariables():
                 items = YZTypes)
     bpy.types.Object.Dimension_startlocation = bpy.props.FloatVectorProperty(name = "Start location",
                 description = "",
-                default = (0.0, 0.0, 0.0),
                 subtype = 'XYZ',
                 update = StartLocationUpdate)
     bpy.types.Object.Dimension_endlocation = bpy.props.FloatVectorProperty(name = "End location",
                 description = "",
-                default = (2.0, 2.0, 2.0),
                 subtype = 'XYZ')
     bpy.types.Object.Dimension_endanglelocation = bpy.props.FloatVectorProperty(name = "End angle location",
                 description = "End angle location",
-                default = (4.0, 4.0, 4.0),
                 subtype = 'XYZ')
     width_or_location_items = [
                 ('width', 'width', 'width'),
@@ -3157,42 +3056,32 @@ def DimensionVariables():
                 items = Arrows,
                 description = "Arrow")
     bpy.types.Object.Dimension_arrowdepth = bpy.props.FloatProperty(name = "Depth",
-                    default = 0.1,
                     min = 0, soft_min = 0,
                     description = "Arrow depth")
     bpy.types.Object.Dimension_arrowlength = bpy.props.FloatProperty(name = "Length",
-                    default = 0.25,
                     min = 0, soft_min = 0,
                     description = "Arrow length")
 
     #### Dimension properties
     bpy.types.Object.Dimension_resolution = bpy.props.IntProperty(name = "Resolution",
-                    default = 10,
                     min = 1, soft_min = 1,
                     description = "Resolution")
     bpy.types.Object.Dimension_width = bpy.props.FloatProperty(name = "Width",
-                    default = 2,
                     unit = 'LENGTH',
                     description = "Width")
     bpy.types.Object.Dimension_length = bpy.props.FloatProperty(name = "Length",
-                    default = 2,
                     description = "Length")
     bpy.types.Object.Dimension_dsize = bpy.props.FloatProperty(name = "Size",
-                    default = 1,
                     min = 0, soft_min = 0,
                     description = "Size")
     bpy.types.Object.Dimension_depth = bpy.props.FloatProperty(name = "Depth",
-                    default = 0.1,
                     min = 0, soft_min = 0,
                     description = "Depth")
     bpy.types.Object.Dimension_depth_from_center = bpy.props.BoolProperty(name = "Depth from center",
-                    default = False,
                     description = "Depth from center")
     bpy.types.Object.Dimension_angle = bpy.props.FloatProperty(name = "Angle",
-                    default = 45,
                     description = "Angle")
     bpy.types.Object.Dimension_rotation = bpy.props.FloatProperty(name = "Rotation",
-                    default = 0,
                     description = "Rotation")
 
     #### Dimension units properties
@@ -3214,17 +3103,13 @@ def DimensionVariables():
 
     #### Dimension text properties
     bpy.types.Object.Dimension_textsize = bpy.props.FloatProperty(name = "Size",
-                    default = 1,
                     description = "Size")
     bpy.types.Object.Dimension_textdepth = bpy.props.FloatProperty(name = "Depth",
-                    default = 0.2,
                     description = "Depth")
     bpy.types.Object.Dimension_textround = bpy.props.IntProperty(name = "Rounding",
-                    default = 2,
                     min = 0, soft_min = 0,
                     description = "Rounding")
     bpy.types.Object.Dimension_font = bpy.props.StringProperty(name = "Font",
-                    default = '',
                     subtype = 'FILE_PATH',
                     description = "Font")
 
@@ -3238,8 +3123,14 @@ def DimensionVariables():
                     default = 'Note',
                     description = "Note text")
     bpy.types.Object.Dimension_align_to_camera = bpy.props.BoolProperty(name = "Align to camera",
-                default = False,
                 description = "Align to camera")
+
+    #### Parent
+    bpy.types.Object.Dimension_parent = bpy.props.StringProperty(name = "Parent",
+                    default = '',
+                    description = "Parent")
+    bpy.types.Object.Dimension_appoint_parent = bpy.props.BoolProperty(name = "Appoint parent",
+                description = "Appoint parent")
 
 ################################################################################
 ##### REGISTER #####
