@@ -687,14 +687,17 @@ class AMTH_SCENE_OT_list_users_for_x(bpy.types.Operator):
             for scr in d.screens:
                 for ar in scr.areas:
                     if ar.type == 'VIEW_3D':
-                        for bg in ar.spaces.active.background_images:
-                            image = bg.image
+                        if ar.spaces and \
+                           ar.spaces.active and \
+                           ar.spaces.active.background_images:
+                            for bg in ar.spaces.active.background_images:
+                                image = bg.image
 
-                            if bg and image and image.name == x:
-                                name = 'Background for 3D Viewport in Screen "{0}"'\
-                                        .format(scr.name)
-                                if name not in self.__class__.users['VIEW3D']:
-                                    self.__class__.users['VIEW3D'].append(name)
+                                if bg and image and image.name == x:
+                                    name = 'Background for 3D Viewport in Screen "{0}"'\
+                                            .format(scr.name)
+                                    if name not in self.__class__.users['VIEW3D']:
+                                        self.__class__.users['VIEW3D'].append(name)
 
             # Check the Compositor
             for sce in d.scenes:
