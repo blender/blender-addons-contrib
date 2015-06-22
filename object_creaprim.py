@@ -307,10 +307,10 @@ def do_creaprim(self, mesh, objname, addondir):
 			posn2 += 1
 		strlist.append(")")
 	strlist.append("]\n")
+	strlist.append("		bm.verts.ensure_lookup_table()\n")
 	strlist.append("		for verts in facelist:\n")
 	strlist.append("			vlist = []\n")
 	strlist.append("			for idx in verts:\n")
-	strlist.append("				bm.verts.ensure_lookup_table()\n")
 	strlist.append("				vlist.append(bm.verts[idxlist[idx]])\n")
 	strlist.append("			try:\n")
 	strlist.append("				bm.faces.new(vlist)\n")
