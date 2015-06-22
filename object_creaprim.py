@@ -195,12 +195,12 @@ def panel_func(self, context):
 
 def register():
 	bpy.utils.register_module(__name__)
-	bpy.types.VIEW3D_PT_tools_objectmode.append(panel_func)
+	bpy.types.VIEW3D_PT_tools_object.append(panel_func)
 	bpy.app.handlers.scene_update_post.append(setname)
 
 def unregister():
 	bpy.utils.unregister_module(__name__)
-	bpy.types.VIEW3D_PT_tools_objectmode.remove(panel_func)
+	bpy.types.VIEW3D_PT_tools_object.remove(panel_func)
 	bpy.app.handlers.scene_update_post.remove(setname)
 
 if __name__ == "__main__":
@@ -310,6 +310,7 @@ def do_creaprim(self, mesh, objname, addondir):
 	strlist.append("		for verts in facelist:\n")
 	strlist.append("			vlist = []\n")
 	strlist.append("			for idx in verts:\n")
+	strlist.append("				bm.verts.ensure_lookup_table()\n")
 	strlist.append("				vlist.append(bm.verts[idxlist[idx]])\n")
 	strlist.append("			try:\n")
 	strlist.append("				bm.faces.new(vlist)\n")
@@ -442,14 +443,11 @@ def makeinit(txtlist, namelist, groupname, addondir):
 
 def setname(dummy):
 
-	global oldname
+#	global oldname
 
 	scn = bpy.context.scene
-
+	oldname = scn.Name
 	if bpy.context.active_object.name != oldname:
+
 		scn.Name = bpy.context.active_object.name
-		oldname = scn.Name
-
-
-
 
