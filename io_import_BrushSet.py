@@ -1,25 +1,25 @@
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
-#    This program is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU General Public License
-#    as published by the Free Software Foundation; either version 2
-#    of the License, or (at your option) any later version.
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
 #
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software Foundation,
-#    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
-#    <pep8-80 compliant>
+# <pep8-80 compliant>
 
 #---------------------------------------------#
-#    todo
+# todo
 #---------------------------------------------#
 '''
 - add file selection for single and multiple files
@@ -27,56 +27,28 @@
 '''
 
 #---------------------------------------------#
-#    changelog
-#---------------------------------------------#
-'''
-    "version": (1,2,0)
-        - added missing texture types
-        - new way to filter file types
-        - option for fake user flag
-
-    "version": (1,1,5)
-        - changed addon category to Import-Export
-
-    "version": (1,1,4),
-        filename will be used as texture name (still limited by stringlength)
-
-    "version": (1,1,3),
-        fixed operator and registration
-        added tracker and wiki url\
-
-    version": (1,1,2)
-        replaced image.new() with image.load()
-        changed addon category
-        removed some unused/old code
-
-    version":1.11:
-        added type arg to texture.new() [L48]
-        cleared default filename
-'''
-
-#---------------------------------------------#
 import bpy
 import os
 from bpy.props import *
 
-#addon description
+# addon description
 bl_info = {
     "name": "import BrushSet",
     "author": "Daniel Grauer (kromar)",
-    "version": (1, 2, 0),
-    "blender": (2, 64, 0),
+    "version": (1, 2, 1),
+    "blender": (2, 7, 4),
     "category": "Import-Export",
     "location": "File > Import > BrushSet",
     "description": "imports all image files from a folder",
-    "warning": '', # used for warning icon and text in addons panel
+    "warning": '',    # used for warning icon and text in addons panel
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Import-Export/BrushSet",
-    "tracker_url": "https://developer.blender.org/T25702",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25702&group_id=153&atid=467",
     }
 
 #---------------------------------------------#
 
-#    extension filter (alternative use mimetypes)
+# extension filter (alternative use mimetypes)
+# TODO: rewrite so it tries to load image and if it fails we know its not a format blender can load
 ext_list = ['.bmp',
             '.png',
             '.jpg',
@@ -98,28 +70,28 @@ def LoadBrushSet(filepath, filename):
     for file in os.listdir(filepath):
         path = (filepath + file)
 
-        #get folder name
+        # get folder name
         (f1, f2) = os.path.split(filepath)
         (f3, foldername) = os.path.split(f1)
 
-        #    filter files by extensions (filter images)
+        # filter files by extensions (filter images)
         for i in ext_list:
             if file.endswith(i):
                 print("file: ", file)
-                #    create new texture
+                # create new texture
                 texture = bpy.data.textures.new(file, 'IMAGE')
                 texture.use_fake_user = fakeUser
                 print("texture: ", texture)
 
-                #    now we need to load the image into data
+                # now we need to load the image into data
                 image = bpy.data.images.load(path)
                 image.use_fake_user = fakeUser
-                #    image.source = 'FILE' #default is FILE so can remove this
-                #    image.filepath = path
+                # image.source = 'FILE' #default is FILE so can remove this
+                # image.filepath = path
                 print("image: ", image, " ", path)
                 print("texturename: ", texture.name)
 
-                #    and assign the image to the texture
+                # and assign the image to the texture
                 bpy.data.textures[texture.name].image = image
 
 
@@ -132,8 +104,19 @@ class BrushSetImporter(bpy.types.Operator):
     bl_idname = "import_image.brushset"
     bl_label = "Import BrushSet"
 
-    filename = StringProperty(name="File Name", description="filepath", default="", maxlen=1024, options={'ANIMATABLE'}, subtype='NONE')
-    filepath = StringProperty(name="File Name", description="filepath", default="", maxlen=1024, options={'ANIMATABLE'}, subtype='NONE')
+    filename = StringProperty(name = "File Name", 
+                              description = "filepath", 
+                              default = "", 
+                              maxlen = 1024, 
+                              options = {'ANIMATABLE'}, 
+                              subtype = 'NONE')
+    
+    filepath = StringProperty(name = "File Name", 
+                              description = "filepath", 
+                              default = "", 
+                              maxlen = 1024, 
+                              options = {'ANIMATABLE'}, 
+                              subtype = 'NONE')
 
     def execute(self, context):
         LoadBrushSet(self.properties.filepath, self.properties.filename)
@@ -147,14 +130,14 @@ class BrushSetImporter(bpy.types.Operator):
 #---------------------------------------------#
 
 def menu_func(self, context):
-    #clear the default name for import
+    # clear the default name for import
     import_name = ""
 
     self.layout.operator(BrushSetImporter.bl_idname, text = "Brush Set").filename = import_name
 
 
 #---------------------------------------------#
-#    GUI
+# GUI
 #---------------------------------------------#
 
 '''
