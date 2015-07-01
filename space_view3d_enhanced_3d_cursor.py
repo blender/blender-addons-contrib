@@ -21,7 +21,7 @@ bl_info = {
     "name": "Enhanced 3D Cursor",
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
-    "version": (2, 9, 7),
+    "version": (2, 9, 8),
     "blender": (2, 7, 0),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
@@ -4152,13 +4152,6 @@ class Cursor3DTools(bpy.types.Panel):
         # Attempt to launch the monitor
         if bpy.ops.view3d.cursor3d_monitor.poll():
             bpy.ops.view3d.cursor3d_monitor()
-
-        # If addon is enabled by default, the new scene
-        # created on Blender startup will have disabled
-        # standard Cursor3D behavior. However, if user
-        # creates new scene, somehow Cursor3D is active
-        # as if nothing happened xD
-        update_keymap(True)
         #=============================================#
 
         settings = find_settings()
@@ -5416,7 +5409,6 @@ def IsKeyMapItemEvent(kmi, event):
 
 # ===== REGISTRATION ===== #
 def update_keymap(activate):
-    reg_idname = DelayRegistrationOperator.bl_idname
     enh_idname = EnhancedSetCursor.bl_idname
     cur_idname = 'view3d.cursor3d'
 
@@ -5425,17 +5417,15 @@ def update_keymap(activate):
     addon_prefs = userprefs.addons[__name__].preferences
     settings = find_settings()
 
-    if not (settings.auto_register_keymaps and addon_prefs.auto_register_keymaps):
+    auto_register_keymaps = settings.auto_register_keymaps
+    auto_register_keymaps &= addon_prefs.auto_register_keymaps
+    if not auto_register_keymaps:
         return
 
     try:
         km = wm.keyconfigs.user.keymaps['3D View']
     except:
         # wm.keyconfigs.user is empty on Blender startup!
-        if activate:
-            # activate temporary operator
-            km = wm.keyconfigs.active.keymaps['Window']
-            kmi = km.keymap_items.new(reg_idname, 'MOUSEMOVE', 'ANY')
         return
 
     # We need for the enhanced operator to take precedence over
@@ -5461,55 +5451,10 @@ def update_keymap(activate):
     for kmi in KeyMapItemSearch(cur_idname):
         kmi.active = not activate
 
-class DelayRegistrationOperator(bpy.types.Operator):
-    bl_idname = "wm.enhanced_3d_cursor_registration"
-    bl_label = "[Enhanced 3D Cursor] registration delayer"
-
-    _timer = None
-
-    @staticmethod
-    def timer_add(context):
-        DelayRegistrationOperator._timer = \
-            context.window_manager.event_timer_add(0.1, context.window)
-
-    @staticmethod
-    def timer_remove(context):
-        if DelayRegistrationOperator._timer is not None:
-            context.window_manager.event_timer_remove(DelayRegistrationOperator._timer)
-            DelayRegistrationOperator._timer = None
-
-    def modal(self, context, event):
-        if (not self.keymap_updated) and \
-            ((event.type == 'TIMER') or ("MOVE" in event.type)):
-            # clean up (we don't need this operator to run anymore)
-            for kmi in KeyMapItemSearch(self.bl_idname):
-                km.keymap_items.remove(kmi)
-
-            update_keymap(True)
-
-            self.keymap_updated = True
-
-            # No, better don't (at least in current version),
-            # since the monitor has dependencies on View3D context.
-            # Attempt to launch the monitor
-            #if bpy.ops.view3d.cursor3d_monitor.poll():
-            #    bpy.ops.view3d.cursor3d_monitor()
-
-            self.cancel(context)
-            return {'CANCELLED'}
-
-        return {'PASS_THROUGH'}
-
-    def execute(self, context):
-        self.keymap_updated = False
-
-        DelayRegistrationOperator.timer_add(context)
-
-        context.window_manager.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
-
-    def cancel(self, context):
-        DelayRegistrationOperator.timer_remove(context)
+@bpy.app.handlers.persistent
+def scene_update_post_kmreg(scene):
+    bpy.app.handlers.scene_update_post.remove(scene_update_post_kmreg)
+    update_keymap(True)
 
 class ThisAddonPreferences(bpy.types.AddonPreferences):
     # this must match the addon name, use '__package__'
@@ -5551,14 +5496,12 @@ def register():
     # to it would make it too inconvenient
     #bpy.types.VIEW3D_PT_view3d_properties.append(draw_cursor_tools)
     
-    # THIS IS WHAT CAUSES TOOLTIPS TO NOT SHOW!
-    update_keymap(True)
+    bpy.app.handlers.scene_update_post.append(scene_update_post_kmreg)
 
 
 def unregister():
     # In case they are enabled/active
     CursorMonitor.handle_remove(bpy.context)
-    DelayRegistrationOperator.timer_remove(bpy.context)
 
     # Manually set this to False on unregister
     CursorMonitor.is_running = False
