@@ -40,13 +40,12 @@ if 'bpy' in locals():
     library = importlib.reload(library)
     download = importlib.reload(download)
     makehuman = importlib.reload(makehuman)
-    initialize_subjects = importlib.reload(initialize_subjects)
-    update_motions = importlib.reload(update_motions)
+    data = importlib.reload(data)
 else:
     from . import library
     from . import download
     from . import makehuman
-    from .data import initialize_subjects, update_motions
+    from . import data
 
 import os
 import bpy
@@ -61,7 +60,7 @@ class CMUMocapSubjectBrowser(bpy.types.Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        initialize_subjects(context)
+        data.initialize_subjects(context)
         layout = self.layout
         cml = context.user_preferences.addons['cmu_mocap_browser'].preferences
         layout.template_list("UI_UL_list", "SB", cml, "subject_list",
