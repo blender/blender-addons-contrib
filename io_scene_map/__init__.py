@@ -20,8 +20,8 @@
 
 bl_info = {
     "name": "Quake/Doom3 MAP format",
-    "author": "Campbell Barton, scorpion81, Bastien Montagne",
-    "version": (2, 0, 0),
+    "author": "Campbell Barton, scorpion81, Bastien Montagne, motorstep",
+    "version": (2, 1, 0),
     "blender": (2, 6, 9),
     "location": "File > Export",
     "description": "Export MAP brushes, nurbs surfaces, "
@@ -69,13 +69,14 @@ class ExportMAP(bpy.types.Operator, ExportHelper):
             name="Scale",
             description="Scale everything by this value",
             min=0.01, max=1000.0,
-            default=100.0,
+            default=1.0,
             )
     grid_snap = BoolProperty(
             name="Grid Snap",
             description="Round to whole numbers",
             default=False,
             )
+
     texture_null = StringProperty(
             name="Tex Null",
             description="Texture used when none is assigned",

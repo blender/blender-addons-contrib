@@ -25,6 +25,10 @@ import os
 import mathutils
 from mathutils import Vector
 
+from contextlib import redirect_stdout
+import io
+stdout = io.StringIO()
+
 # TODO, make options
 PREF_SCALE = 1
 PREF_FACE_THICK = 0.1
@@ -380,6 +384,70 @@ def write_node_map(fw, ob):
     return True
 
 
+def split_objects(context, objects):
+    scene = context.scene
+    final_objects = []
+
+    bpy.ops.object.select_all(action='DESELECT')
+    for ob in objects:
+        ob.select = True
+
+    bpy.ops.object.duplicate()
+    objects = bpy.context.selected_objects
+
+    bpy.ops.object.select_all(action='DESELECT')
+
+    tot_ob = len(objects)
+    for i, ob in enumerate(objects):
+        print("Splitting object: %d/%d" % (i, tot_ob))
+        ob.select = True
+        
+        if ob.type == "MESH":
+            scene.objects.active = ob
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.select_all(action='DESELECT')
+            bpy.ops.mesh.select_mode(type='EDGE')
+            bpy.ops.object.mode_set(mode='OBJECT')
+            for edge in ob.data.edges:
+                if edge.use_seam:
+                    edge.select = True
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.edge_split()
+            bpy.ops.mesh.separate(type='LOOSE')
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+            split_objects = context.selected_objects
+            for split_ob in split_objects:
+                assert(split_ob.type == "MESH")
+
+                scene.objects.active = split_ob
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.mesh.select_mode(type='EDGE')
+                bpy.ops.mesh.select_all(action="SELECT")
+                bpy.ops.mesh.region_to_loop()
+                bpy.ops.mesh.fill_holes(sides=8)
+                slot_idx = 0
+                for slot_idx, m in enumerate(split_ob.material_slots):                       
+                   if m.name == "textures/common/caulk":
+                      break
+                   #if m.name != "textures/common/caulk":
+                   #   mat = bpy.data.materials.new("textures/common/caulk")
+                   #   bpy.context.object.data.materials.append(mat)
+                split_ob.active_material_index = slot_idx  # we need to use either actual material name or custom property instead of index
+                bpy.ops.object.material_slot_assign()
+                with redirect_stdout(stdout):
+                   bpy.ops.mesh.remove_doubles()
+                bpy.ops.mesh.quads_convert_to_tris()
+                bpy.ops.mesh.tris_convert_to_quads()
+                bpy.ops.object.mode_set(mode='OBJECT')
+            final_objects += split_objects
+
+        ob.select = False
+
+    print(final_objects)
+    return final_objects
+
+
 def export_map(context, filepath):
     """
     pup_block = [\
@@ -431,6 +499,8 @@ def export_map(context, filepath):
         elif type == 'EMPTY':
             obs_empty.append(ob)
 
+    obs_mesh = split_objects(context, obs_mesh)
+
     with open(filepath, 'w') as fl:
         fw = fl.write
 
@@ -444,7 +514,11 @@ def export_map(context, filepath):
             fw('"classname" "worldspawn"\n')
 
         print("\twriting cubes from meshes")
-        for ob in obs_mesh:
+
+        tot_ob = len(obs_mesh)
+        for i, ob in enumerate(obs_mesh):
+            print("Exporting object: %d/%d" % (i, tot_ob))
+
             dummy_mesh = ob.to_mesh(scene, True, 'PREVIEW')
 
             #print len(mesh_split2connected(dummy_mesh))
@@ -581,6 +655,10 @@ def export_map(context, filepath):
             else:
                 print("\t\tignoring %s" % ob.name)
 
+    for ob in obs_mesh:
+        scene.objects.unlink(ob)
+        bpy.data.objects.remove(ob)
+
     print("Exported Map in %.4fsec" % (time.time() - t))
     print("Brushes: %d  Nodes: %d  Lamps %d\n" % (TOTBRUSH, TOTNODE, TOTLAMP))
 
@@ -588,7 +666,7 @@ def export_map(context, filepath):
 def save(operator,
          context,
          filepath=None,
-         global_scale=100.0,
+         global_scale=1.0,
          face_thickness=0.1,
          texture_null="NULL",
          texture_opts='0 0 0 1 1 0 0 0',
