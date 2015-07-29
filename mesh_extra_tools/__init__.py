@@ -133,9 +133,6 @@ class ExtrudePanel(bpy.types.Panel):
         row = layout.split(0.80)
         row.operator('object.mextrude', text = 'Multi Face Extrude', icon = 'PLUGIN')
         row.operator('help.mextrude', text = '', icon = 'INFO')
-        row = layout.split(0.80)
-        row.operator('object.mesh2bones', text = 'Add Armature', icon = 'PLUGIN')
-        row.operator('help.addarm', text = '', icon = 'INFO')
 
 # Define "Extras" menu
 def menu_func(self, context):
