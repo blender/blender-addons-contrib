@@ -20,13 +20,13 @@
 
 __author__ = "Nutti <nutti.metro@gmail.com>"
 __status__ = "production"
-__version__ = "3.0"
-__date__ = "15 Jun 2015"
+__version__ = "3.2"
+__date__ = "20 Jun 2015"
 
 bl_info = {
     "name": "Copy and Paste UV",
     "author": "Nutti",
-    "version": (3, 0),
+    "version": (3, 2),
     "blender": (2, 73, 0),
     "location": "UV Mapping > Copy and Paste UV",
     "description": "Copy and Paste UV data",
@@ -58,7 +58,6 @@ else:
     from . import cpuv_transfer_uv_operation
 
 import bpy
-from . import debug
 
 
 # registration
@@ -71,7 +70,6 @@ def register():
     bpy.utils.register_module(__name__)
     bpy.types.VIEW3D_MT_uv_map.append(menu_fn)
     bpy.types.Scene.cpuv_props = cpuv_properties.CPUVProperties()
-    debug.start_debug()
 
 
 def unregister():
