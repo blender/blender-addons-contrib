@@ -21,12 +21,12 @@ bl_info = {
     'author': 'Unnikrishnan(kodemax), Florian Meyer(testscreenings)',
     'version': (1, 2),
     "blender": (2, 71, 0),
-    'location': '3D View > Toolshelf > Addons Tab',
+    'location': '3D View > Toolshelf > Tools Tab',
     'description': 'Drop selected objects on active object',
     'warning': '',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/'
         'Scripts/Object/Drop_to_ground',
-    'tracker_url': 'https://developer.blender.org/T25349',
+    'tracker_url': 'https://developer.blender.org/maniphest/task/create/?project=3&type=Bug',
     'category': 'Object'}
 
 
@@ -191,7 +191,7 @@ class Drop_Operator_Panel(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_options = {'DEFAULT_CLOSED'}
     bl_context = "objectmode"
-    bl_category = "Addons"
+    bl_category = "Tools"
 
     def draw(self,context):
         sce = context.scene
