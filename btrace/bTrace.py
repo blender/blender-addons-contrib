@@ -191,7 +191,7 @@ class addTracerObjectPanel(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_context = 'objectmode'
     selected = "tool_objectTrace"
-    bl_category = 'Addons'
+    bl_category = 'Create'
     bl_options = {'DEFAULT_CLOSED'}
 
 
