@@ -22,10 +22,10 @@ bl_info = {
     "author": "Evan J. Rosky (syrux), Chichiri, Jace Priester",
     "version": (0,2),
     "blender": (2, 71, 0),
-    "location": "View3D > Toolshelf > Addons Tab",
+    "location": "View3D > Toolshelf > Tools Tab",
     "warning": 'Beta',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts',
-    'tracker_url': 'https://developer.blender.org/T31390',
+    'tracker_url': 'https://developer.blender.org/maniphest/task/create/?project=3&type=Bug',
     "category": "Mesh"}
  
 import bpy
@@ -587,7 +587,7 @@ class VIEW3D_PT_tools_discombobulate(bpy.types.Panel):
     bl_label = "Discombobulator"
     bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Addons"
+    bl_category = "Create"
 	
     def draw(self, context):
         layout = self.layout
