@@ -24,11 +24,11 @@ bl_info = {
     "author": "Phil Cote",
     "version": (0, 2),
     "blender": (2, 71, 0),
-    "location": "View3D > Toolshelf > Addons Tab",
+    "location": "View3D > Toolshelf > Tools Tab",
     "description": "Set of tools to mangle curves, meshes, and shape keys",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "",
-    "tracker_url": "https://developer.blender.org/T29071",
+    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "Object"}
 
 
@@ -153,10 +153,11 @@ class CurveManglerOp(bpy.types.Operator):
 class MangleToolsPanel(bpy.types.Panel):
     bl_label = "Mangle Tools"
     bl_space_type = "VIEW_3D"
-    bl_region_type="TOOLS"
     bl_context = "objectmode"
+    bl_region_type="TOOLS"
+    bl_category = "Tools"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Addons"
+
 
     def draw(self, context):
         scn = context.scene
