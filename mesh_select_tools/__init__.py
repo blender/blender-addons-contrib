@@ -23,11 +23,11 @@ bl_info = {
     "author": "Multiple Authors",
     "version": (0, 3),
     "blender": (2, 64, 0),
-    "location": "Editmode select menu",
+    "location": "Editmode Select Menu/Toolshelf Tools Tab",
     "description": "Adds More vert/face/edge select modes.",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "https://developer.blender.org/T32877",
+    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "Mesh"}
 
 
