@@ -21,11 +21,11 @@ bl_info = {
     "author": "Noctumsolis, updated from 2.5 PKHG now for 2.71, Meta Androcto, original for 2.49 from Andy Houston",
     "version": (0, 3, 2),
     "blender": (2, 7, 1),
-    "location": "View3D > UI > Geodesic...",
-    "description": "Script, with GUI, to create geodesic dome objects.",
+    "location": "Toolshelf > Create Tab",
+    "description": "Create geodesic dome type objects.",
     "warning": "not yet finished",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/Geodesic_Domes",
-    "tracker_url": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "Mesh"}
 
 if "bpy" in locals():

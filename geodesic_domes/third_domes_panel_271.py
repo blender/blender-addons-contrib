@@ -36,11 +36,12 @@ bpy.types.Scene.gd_help_text_width = IntProperty(name = "Text Width" , descripti
 class Geodesic_Domes_Operator_Panel(bpy.types.Panel):
     """start a GD object here"""
     bl_label = "Geodesic Domes"
-    bl_region_type = "TOOLS" #UI possible too
     bl_space_type = "VIEW_3D"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_region_type = "TOOLS" #UI possible too
     bl_context = "objectmode"
-    bl_category = "Addons"
+    bl_category = "Create"
+    bl_options = {'DEFAULT_CLOSED'}
+
 
     def draw(self,context):
         sce = context.scene
