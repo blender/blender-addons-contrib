@@ -20,11 +20,11 @@ bl_info = {
     "name": "Surround Projection Tools",
     "author": "Cole Ingraham",
     "version": (0, 1, 2),
-    "blender": (2, 60, 0),
+    "blender": (2, 75, 0),
     "location": "View3D > Tool Shelf > Surround Projection panel",
     "description": "Setup cameras and create rendering scenes for n-screen surround projection.",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Surround_Projection_Tools",
-    "tracker_url": "https://developer.blender.org/T29266",
+    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "3D View"}
 
 
@@ -59,7 +59,7 @@ class AddSurroundCamerasPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_label = "Surround Projection"
-    bl_category = 'Addons'
+    bl_category = 'Tools'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
