@@ -20,11 +20,11 @@ bl_info = {
     "author": "teldredge",
     "version": (0, 2, 7),
     "blender": (2, 71, 0),
-    "location": "View3D > Toolshelf > Addons Tab",
+    "location": "View3D > Toolshelf > Create Tab",
     "description": "Lightning mesh generator using laplacian growth algorithm",
     "warning": "Beta",
     "wiki_url": "http://www.funkboxing.com/wordpress/?p=301",
-    "tracker_url": "http://www.funkboxing.com/wordpress/?p=301",
+    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "Object"}
         
 ######################################################################
@@ -1178,7 +1178,7 @@ class OBJECT_PT_fslg(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_context = "objectmode"
-    bl_category = "Addons"
+    bl_category = "Create"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
