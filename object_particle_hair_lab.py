@@ -20,12 +20,12 @@ bl_info = {
     "name": "Grass Lab",
     "author": "Ondrej Raha(lokhorn), meta-androcto",
     "version": (0, 5),
-    "blender": (2, 71, 0),
-    "location": "View3D > ToolShelf > Addons Tab",
+    "blender": (2, 75, 0),
+    "location": "View3D > ToolShelf > Create Tab",
     "description": "Creates particle grass with material",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/Hair_Lab",
-    "tracker_url": "https://developer.blender.org/T30238",
+    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "Object"}
 
 
@@ -65,7 +65,7 @@ class grassLabPanel(bpy.types.Panel):
     bl_label = "Grass Lab"
     bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Addons"
+    bl_category = "Create"
 
     def draw(self, context):
         active_obj = bpy.context.active_object
@@ -526,7 +526,7 @@ class HairLabPanel(bpy.types.Panel):
     bl_label = "Hair Lab"
     bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Addons"
+    bl_category = "Create"
 
     def draw(self, context):
         active_obj = bpy.context.active_object
@@ -979,7 +979,7 @@ class FurLabPanel(bpy.types.Panel):
     bl_label = "Fur Lab"
     bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Addons"
+    bl_category = "Create"
 
     def draw(self, context):
         active_obj = bpy.context.active_object
