@@ -23,7 +23,7 @@ bl_info = {
     "name": "Simple Align",
     "author": "Gabriel Beaudin (gabhead)",
     "version": (0,1),
-    "blender": (2, 71, 0),
+    "blender": (2, 75, 0),
     "location": "View3D > Tool Shelf > Addons",
     "description": "Align Selected Objects to Active Object",
     "warning": "",
@@ -42,7 +42,7 @@ class AlignUi(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_label = "Simple Align"
     bl_context = "objectmode"
-    bl_category = 'Addons'
+    bl_category = 'Tools'
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
