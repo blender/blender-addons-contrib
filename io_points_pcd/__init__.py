@@ -19,13 +19,13 @@
 bl_info = {
     "name": "PCD",
     "author": "Aurel Wildfellner",
-    "version": (0, 1),
+    "version": (0, 2),
     "blender": (2, 57, 0),
     "location": "File > Import-Export > Point Cloud Data",
     "description": "Imports and Exports PCD (Point Cloud Data) files. PCD files are the default format used by  pcl (Point Cloud Library).",
     "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
+    "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/Scripts/Import-Export/Point_Cloud_Data_IO",
+    "tracker_url": "https://developer.blender.org/T27711",
 #    "support": 'OFFICAL',
     "category": "Import-Export"}
 
@@ -74,13 +74,30 @@ class ImportPCD(bpy.types.Operator, ImportHelper):
 
 
 
+class ExportPCD(bpy.types.Operator, ExportHelper):
+    """Save PCD (Point Cloud Data) files"""
+    bl_idname = "export_points.pcd"
+    bl_label = "Export PCD"
+
+    filename_ext = ".pcd"
+
+    filter_glob = StringProperty(default="*.pcd", options={'HIDDEN'})
+
+
+    def execute(self, context):
+        pcd_utils.export_pcd(self.filepath)
+
+        return {'FINISHED'}
+
+
+
+
 def menu_func_import(self, context):
     self.layout.operator(ImportPCD.bl_idname, text="Point Cloud Data (.pcd)").filepath = "*.pcd"
 
 
 def menu_func_export(self, context):
-    #self.layout.operator(ExportPLY.bl_idname, text="Point Cloud Data (.pcd)")
-    pass
+    self.layout.operator(ExportPCD.bl_idname, text="Point Cloud Data (.pcd)")
 
 
 def register():

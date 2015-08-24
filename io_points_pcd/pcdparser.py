@@ -39,12 +39,11 @@ class Point:
 
 class PointXYZ(Point):
 
-    x = 0
-    y = 0
-    z = 0
-
     def __init__(self):
         super().__init__()
+        self.x = 0
+        self.y = 0
+        self.z = 0
 
 
     def setField(self, fieldname, values):
@@ -322,6 +321,44 @@ class PCDParser_v0_7(PCDParser):
                 point.setField(fieldname, values)
 
             self.points.append(point)
+
+
+
+
+class PCDWriter:
+
+    def __init__(self, points):
+        self.points = points
+
+
+    def _header(self):
+        header =  "# .PCD v0.7 - Point Cloud Data file format\n"
+        header += "VERSION 0.7\n"
+        header += "FIELDS x y z\n"
+        header += "SIZE 4 4 4\n"
+        header += "TYPE F F F\n"
+        header += "COUNT 1 1 1\n"
+        header += "WIDTH " + str(len(self.points)) + "\n"
+        header += "HEIGHT 1\n"
+        header += "VIEWPOINT 0 0 0 1 0 0 0\n"
+        header += "POINTS " + str(len(self.points)) + "\n"
+        header += "DATA ascii\n"
+
+        return header
+
+
+    def write(self, filepath):
+
+        with open(filepath, "w") as f:
+            f.write(self._header())
+            for point in self.points:
+                f.write(str(point.x))
+                f.write(" ")
+                f.write(str(point.y))
+                f.write(" ")
+                f.write(str(point.z))
+                f.write("\n")
+
 
 
 
