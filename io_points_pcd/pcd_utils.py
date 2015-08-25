@@ -45,7 +45,6 @@ def import_pcd(filepath, name="new_pointcloud"):
     parser = pcdparser.PCDParser.factory(filepath, pcdparser.PointXYZ)
     parser.parseFile()
     points = parser.getPoints()
-    print("Number of points: " + str(len(points)))
 
     blender_points = []
     for point in points:
@@ -56,13 +55,18 @@ def import_pcd(filepath, name="new_pointcloud"):
 
 def export_pcd(filepath):
     obj = bpy.context.active_object
+
+    # apply object transformation and modifiers
+    mesh = obj.to_mesh(bpy.context.scene, True, "PREVIEW")
+    objmat = obj.matrix_world
     
     points = []
-    for vert in obj.data.vertices:
+    for vert in mesh.vertices:
+        co = objmat * vert.co
         point = pcdparser.PointXYZ()
-        point.x = vert.co.x
-        point.y = vert.co.y
-        point.z = vert.co.z
+        point.x = co.x
+        point.y = co.y
+        point.z = co.z
         points.append(point)
 
     writer = pcdparser.PCDWriter(points)
