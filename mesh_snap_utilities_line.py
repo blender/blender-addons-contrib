@@ -30,8 +30,7 @@ bl_info = {
     "category": "Mesh"}
     
 import bpy, bgl, bmesh, mathutils, math
-#from space_view3d_panel_measure import getUnitsInfo, convertDistance
-from mathutils import Vector#, Matrix
+from mathutils import Vector
 from mathutils.geometry import (
     intersect_point_line,
     intersect_line_line,
@@ -844,12 +843,12 @@ class PanelSnapUtilities(bpy.types.Panel) :
     #bl_context = "mesh_edit"
     bl_category = "Snap Utilities"
     bl_label = "Snap Utilities"
-    '''
+
     @classmethod
     def poll(cls, context):
-        return (context.object is not None and
+        return (not context.object or
                 context.object.type == 'MESH')
-    '''
+
     def draw(self, context):
         layout = self.layout
         TheCol = layout.column(align = True)
