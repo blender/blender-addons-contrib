@@ -129,26 +129,26 @@ def out_Location(rv3d, region, orig, vector):
     v1 = Vector((int(view_matrix[0][0]*1.5),int(view_matrix[0][1]*1.5),int(view_matrix[0][2]*1.5)))
     v2 = Vector((int(view_matrix[1][0]*1.5),int(view_matrix[1][1]*1.5),int(view_matrix[1][2]*1.5)))
 
-    hit = mathutils.geometry.intersect_ray_tri(Vector((1,0,0)), Vector((0,1,0)), Vector((0,0,0)), (vector), (orig), False)
+    hit = intersect_ray_tri(Vector((1,0,0)), Vector((0,1,0)), Vector((0,0,0)), (vector), (orig), False)
     if hit == None:
-        hit = mathutils.geometry.intersect_ray_tri(v1, v2, Vector((0,0,0)), (vector), (orig), False)        
+        hit = intersect_ray_tri(v1, v2, Vector((0,0,0)), (vector), (orig), False)        
     if hit == None:
-        hit = mathutils.geometry.intersect_ray_tri(v1, v2, Vector((0,0,0)), (-vector), (orig), False)
+        hit = intersect_ray_tri(v1, v2, Vector((0,0,0)), (-vector), (orig), False)
     if hit == None:
         hit = Vector((0,0,0))
     return hit
 
 def snap_utilities(self,
-                   context,
-                   obj_matrix_world,
-                   bm_geom,
-                   bool_update,
-                   mcursor,
-                   outer_verts = False,
-                   constrain = None,
-                   previous_vert = None,
-                   ignore_obj = None,
-                   increment = 0.0):
+    context,
+    obj_matrix_world,
+    bm_geom,
+    bool_update,
+    mcursor,
+    outer_verts = False,
+    constrain = None,
+    previous_vert = None,
+    ignore_obj = None,
+    increment = 0.0):
 
     rv3d = context.region_data
     region = context.region
@@ -629,7 +629,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
             if self.keyf8 and self.list_verts_co:
                 lloc = self.list_verts_co[-1]
                 orig, view_vec = region_2d_to_orig_and_view_vector(self.region, self.rv3d, (x, y))
-                location = mathutils.geometry.intersect_point_line(lloc, orig, (orig+view_vec))
+                location = intersect_point_line(lloc, orig, (orig+view_vec))
                 vec = (location[0] - lloc)
                 ax, ay, az = abs(vec.x),abs(vec.y),abs(vec.z)
                 vec.x = ax > ay > az or ax > az > ay
@@ -846,7 +846,7 @@ class PanelSnapUtilities(bpy.types.Panel) :
 
     @classmethod
     def poll(cls, context):
-        return (not context.object or
+        return (context.object is not None and
                 context.object.type == 'MESH')
 
     def draw(self, context):
