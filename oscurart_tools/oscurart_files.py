@@ -57,3 +57,16 @@ class replaceFilePath(bpy.types.Operator):
             image.filepath = image.filepath.replace(TEXTSEARCH,TEXTREPLACE)
 
         return {'FINISHED'}
+    
+    
+##---------------------- SYNC MISSING GROUPS --------------------------
+
+class reFreshMissingGroups(bpy.types.Operator):
+    bl_idname = "file.sync_missing_groups"
+    bl_label = "Sync Missing Groups"
+    bl_options = {"REGISTER", "UNDO"}
+    def execute(self, context):
+        for lib in bpy.data.libraries:
+            with bpy.data.libraries.load(lib.filepath, link=True) as (linked,local):
+                local.groups = linked.groups    
+        return {'FINISHED'}        
