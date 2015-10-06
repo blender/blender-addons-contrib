@@ -413,3 +413,26 @@ class oscDuplicateSymmetricalOp (bpy.types.Operator):
         duplicateSymmetrical(self, self.desconecta)
 
         return {'FINISHED'}
+
+
+
+
+
+##------------------------ OBJECTS TO GROUPS ------------------------
+
+def DefObjectToGroups():
+    scgr = bpy.data.groups.new("%s_MSH" % (os.path.basename(bpy.data.filepath).replace(".blend","")))
+    for ob in bpy.data.objects:
+        if ob.type == "MESH":
+            gr = bpy.data.groups.new(ob.name)
+            gr.objects.link(ob)
+            scgr.objects.link(ob)
+    
+class ObjectsToGroups (bpy.types.Operator):
+    bl_idname = "object.objects_to_groups"
+    bl_label = "Objects to Groups"
+    bl_options = {"REGISTER", "UNDO"}
+    def execute (self, context):
+        DefObjectToGroups()
+        return {'FINISHED'}
+            

@@ -159,6 +159,8 @@ class OscPanelObject(OscPollObject, bpy.types.Panel):
         colrow.operator("object.copy_objects_groups_layers", icon="LINKED")        
         colrow.operator("object.set_layers_to_other_scenes", icon="LINKED")
         colrow = col.row(align=1)
+        colrow.operator("object.objects_to_groups", icon="GROUP")
+        colrow = col.row(align=1)
         colrow.prop(bpy.context.scene, "SearchAndSelectOt", text="")
         colrow.operator("object.search_and_select_osc", icon="ZOOM_SELECTED")
         colrow = col.row(align=1)
