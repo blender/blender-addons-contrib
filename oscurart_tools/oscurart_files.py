@@ -66,7 +66,8 @@ class reFreshMissingGroups(bpy.types.Operator):
     bl_label = "Sync Missing Groups"
     bl_options = {"REGISTER", "UNDO"}
     def execute(self, context):
-        for lib in bpy.data.libraries:
-            with bpy.data.libraries.load(lib.filepath, link=True) as (linked,local):
-                local.groups = linked.groups    
+        for group in bpy.data.groups:
+            if group.library != None:
+                with bpy.data.libraries.load(group.library.filepath, link=True) as (linked,local):
+                    local.groups = linked.groups    
         return {'FINISHED'}        
