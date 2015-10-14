@@ -1,4 +1,4 @@
-﻿### BEGIN GPL LICENSE BLOCK #####
+### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -426,25 +426,36 @@ class CharMap:
     ascii = {
         ".", ",", "-", "+", "1", "2", "3",
         "4", "5", "6", "7", "8", "9", "0",
+        "c", "m", "d", "k", "h", "a",
         " ", "/", "*", "'", "\""
         #"="
         }
     type = {
-        'BACK_SPACE', 'DEL'
+        'BACK_SPACE', 'DEL',
+        'LEFT_ARROW', 'RIGHT_ARROW'
         }
 
-    def __init__(self, length_entered = ""):
-        self.length_entered = length_entered
-
+    @staticmethod
     def modal(self, context, event):
         c = event.ascii
-        if c == ",":
-            c = "."
-        self.length_entered += c
-        if event.type in self.type and len(self.length_entered) >= 1:
-            self.length_entered = self.length_entered[:-1]
+        if c:
+            if c == ",":
+                c = "."
+            self.length_entered = self.length_entered[:self.line_pos] + c + self.length_entered[self.line_pos:]
+            self.line_pos += 1
+        if self.length_entered:
+            if event.type == 'BACK_SPACE':
+                self.length_entered = self.length_entered[:self.line_pos-1] + self.length_entered[self.line_pos:]
+                self.line_pos -= 1
 
-        return self.length_entered
+            elif event.type == 'DEL':
+                self.length_entered = self.length_entered[:self.line_pos] + self.length_entered[self.line_pos+1:]
+
+            elif event.type == 'LEFT_ARROW':
+                self.line_pos = (self.line_pos - 1) % (len(self.length_entered)+1)
+
+            elif event.type == 'RIGHT_ARROW':
+                self.line_pos = (self.line_pos + 1) % (len(self.length_entered)+1)
 
 class SnapUtilitiesLine(bpy.types.Operator):
     """ Draw edges. Connect them to split faces."""
@@ -657,20 +668,19 @@ class SnapUtilitiesLine(bpy.types.Operator):
                     if event.shift:
                         if isinstance(self.geom, bmesh.types.BMEdge):
                             if self.list_verts:
-                                loc = self.obj_matrix * self.list_verts[-1].co
-                                self.vector_constrain = (loc, loc + self.obj_matrix * self.geom.verts[1].co - self.obj_matrix * self.geom.verts[0].co, event.type)
+                                loc = self.list_verts_co[-1]
+                                self.vector_constrain = (loc, loc + self.list_verts_co[-1] - self.list_verts_co[0], event.type)
                             else:
                                 self.vector_constrain = [self.obj_matrix * v.co for v in self.geom.verts]+[event.type]
                     else:
                         if self.list_verts:
-                            loc = self.obj_matrix * self.list_verts[-1].co
+                            loc = self.list_verts_co[-1]
                         else:
                             loc = self.location
                         self.vector_constrain = [loc, loc + self.constrain_keys[event.type]]+[event.type]
 
-            if event.ascii in CharMap.ascii or event.type in CharMap.type:
-                CharMap2 = CharMap(self.length_entered)
-                self.length_entered = CharMap2.modal(context, event)
+            if self.list_verts_co and (event.ascii in CharMap.ascii or event.type in CharMap.type):
+                CharMap.modal(self, context, event)
                 #print(self.length_entered)
                 
             elif event.type == 'LEFTMOUSE':
@@ -703,7 +713,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
 
         elif event.value == 'RELEASE':
             if event.type in {'RET', 'NUMPAD_ENTER'}:
-                if self.length_entered != "" and self.list_verts_co != []:
+                if self.length_entered != "" and self.list_verts_co:
                     try:
                         text_value = bpy.utils.units.to_value(self.unit_system, 'LENGTH', self.length_entered)
                         vector = (self.location-self.list_verts_co[-1]).normalized()
@@ -730,15 +740,16 @@ class SnapUtilitiesLine(bpy.types.Operator):
                     self.list_verts = []
                     self.list_verts_co = []
                     self.list_faces = []
-
+                    
         a = ""        
         if self.list_verts_co:
-            if self.length_entered == "":
+            if self.length_entered:
+                pos = self.line_pos
+                a = 'length: '+ self.length_entered[:pos] + '|' + self.length_entered[pos:]
+            else:
                 length = self.len
                 length = convert_distance(length, self.uinfo)
                 a = 'length: '+ length
-            else:
-                a = 'length: '+ self.length_entered
         context.area.header_text_set("hit: %.3f %.3f %.3f %s" % (self.location[0], self.location[1], self.location[2], a))
 
         self.modal_navigation(context, event)
@@ -797,6 +808,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
             self.type = 'OUT'
             self.len = 0
             self.length_entered = ""
+            self.line_pos = 0
             
             self.out_color = preferences.out_color
             self.face_color = preferences.face_color
