@@ -18,7 +18,7 @@ import struct
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
-
+from bpy.app.handlers import persistent
 
 class ModifiersSettings(bpy.types.PropertyGroup):
     array = bpy.props.BoolProperty(default=True)
@@ -41,14 +41,62 @@ class ModifiersSettings(bpy.types.PropertyGroup):
     
 
 bpy.utils.register_class(ModifiersSettings) #registro PropertyGroup
-
 bpy.types.Scene.mesh_cache_tools_settings = bpy.props.PointerProperty(type=ModifiersSettings)
+
+
+# ----------------- AUTO LOAD PROXY
+
+##bpy.context.scene.pc_auto_load_proxy.remove(0)
+class CreaPropiedades(bpy.types.Operator):
+    bl_idname = "scene.pc_auto_load_proxy_create"
+    bl_label = "Create Auto Load PC Proxy List"
+
+    def execute(self, context):
+        for gr in bpy.data.groups:    
+            i = bpy.context.scene.pc_auto_load_proxy.add()   
+            i.name = gr.name  
+            i.use_auto_load = False
+        return {'FINISHED'}
+
+class RemuevePropiedades(bpy.types.Operator):
+    bl_idname = "scene.pc_auto_load_proxy_remove"
+    bl_label = "Remove Auto Load PC Proxy List"
+
+    def execute(self, context):
+        for i in bpy.context.scene.pc_auto_load_proxy: 
+            bpy.context.scene.pc_auto_load_proxy.remove(0)
+        return {'FINISHED'}    
+
+class SceneAutoLoad(bpy.types.PropertyGroup):
+    name = bpy.props.StringProperty(name="GroupName", default="")
+    use_auto_load = bpy.props.BoolProperty(name="Bool", default=False)
+    
+bpy.utils.register_class(SceneAutoLoad)
+bpy.types.Scene.pc_auto_load_proxy = \
+    bpy.props.CollectionProperty(type=SceneAutoLoad)   
+     
+@persistent    
+def CargaAutoLoadPC(dummy):
+    for gr in bpy.context.scene.pc_auto_load_proxy:
+        if gr.use_auto_load:
+            for ob in bpy.data.groups[gr.name].objects:
+                MOD = ob.modifiers.new("TempPC","MESH_CACHE")
+                MOD.filepath = "%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, ob.name)
+                MOD.cache_format = "PC2"
+                MOD.forward_axis = "POS_Y"
+                MOD.up_axis = "POS_Z"
+                MOD.flip_axis = set(())
+                MOD.frame_start = bpy.context.scene.pc_pc2_start                
+                    
+bpy.app.handlers.load_post.append(CargaAutoLoadPC)  
+
+
+# ----------------- PANELES 
 
 
 class View3DMCPanel():
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'   
-  
+    bl_region_type = 'TOOLS'     
 
 class OscEPc2ExporterPanel(View3DMCPanel, bpy.types.Panel):    
     """
@@ -65,7 +113,7 @@ class OscEPc2ExporterPanel(View3DMCPanel, bpy.types.Panel):
 
         obj = context.object
         row = layout.column(align=1)
-        row.prop(bpy.context.scene, "muu_pc2_folder", text="Folder")
+        row.prop(bpy.context.scene, "pc_pc2_folder", text="Folder")
         row.operator("buttons.set_meshcache_folder", icon='FILESEL', text="Select Folder Path")
         row = layout.box().column(align=1)
         row.label("EXPORTER:")
@@ -88,20 +136,30 @@ class OscEPc2ExporterPanel(View3DMCPanel, bpy.types.Panel):
         row.prop(bpy.context.scene.mesh_cache_tools_settings, "triangulate", text="Triangulate")
         row.prop(bpy.context.scene.mesh_cache_tools_settings, "wireframe", text="Wireframe")           
         #row = layout.column(align=1)
-        row.prop(bpy.context.scene, "muu_pc2_start", text="Frame Start")
-        row.prop(bpy.context.scene, "muu_pc2_end", text="Frame End")
-        row.prop_search(bpy.context.scene, "muu_pc2_group", bpy.data, "groups", text="")
+        row.prop(bpy.context.scene, "pc_pc2_start", text="Frame Start")
+        row.prop(bpy.context.scene, "pc_pc2_end", text="Frame End")
+        row.prop_search(bpy.context.scene, "pc_pc2_group", bpy.data, "groups", text="")
         row.operator("export_shape.pc2_selection", text="Export!", icon="POSE_DATA")
-        row.prop(bpy.context.scene, "muu_pc2_world_space", text="World Space")
+        row.prop(bpy.context.scene, "pc_pc2_world_space", text="World Space")
         row = layout.box().column(align=1)
         row.label("IMPORTER:")
         row.operator("import_shape.pc2_selection", text="Import", icon="POSE_DATA")
         row.operator("object.modifier_mesh_cache_up", text="MC Top", icon="TRIA_UP")
+        row = layout.box().column(align=1)
+        row.label("PROXY AUTO LOAD:")
+        row.operator("scene.pc_auto_load_proxy_create", text="Create List" , icon="GROUP")
+        row.operator("scene.pc_auto_load_proxy_remove", text="Remove List" , icon="X")
+        for i in bpy.context.scene.pc_auto_load_proxy:
+            if bpy.data.groups[i.name].library != None:
+                row = layout.row()
+                row.prop(bpy.data.groups[i.name],"name",text="")
+                row.prop(i,"use_auto_load",text="") 
+             
 
 def OscSetFolder(context, filepath):
     fp =  filepath if os.path.isdir(filepath) else  os.path.dirname(filepath)
     for sc in bpy.data.scenes:
-        sc.muu_pc2_folder = fp
+        sc.pc_pc2_folder = fp
     return {'FINISHED'}
 
 
@@ -116,12 +174,12 @@ class OscMeshCacheButtonSet(Operator, ImportHelper):
 
 
 def OscFuncExportPc2(self):
-    start = bpy.context.scene.muu_pc2_start
-    end = bpy.context.scene.muu_pc2_end
-    folderpath = bpy.context.scene.muu_pc2_folder
+    start = bpy.context.scene.pc_pc2_start
+    end = bpy.context.scene.pc_pc2_end
+    folderpath = bpy.context.scene.pc_pc2_folder
     framerange = end-start
 
-    for ob in bpy.data.groups[bpy.context.scene.muu_pc2_group].objects[:]:
+    for ob in bpy.data.groups[bpy.context.scene.pc_pc2_group].objects[:]:
         bpy.context.window_manager.progress_begin(0, 100) #progressbar
         if ob.type == "MESH":
             with open("%s/%s.pc2" % (os.path.normpath(folderpath), ob.name), mode="wb") as file:
@@ -144,7 +202,7 @@ def OscFuncExportPc2(self):
                         calc_tessface=True,
                         calc_undeformed=False)
                     #rotate
-                    if bpy.context.scene.muu_pc2_world_space:
+                    if bpy.context.scene.pc_pc2_world_space:
                         me.transform(obmat)
                         me.calc_normals()
                     #creo archivo
@@ -167,7 +225,7 @@ class OscPc2ExporterBatch(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return(bpy.context.scene.muu_pc2_group != "" and bpy.context.scene.muu_pc2_folder != 'Set me Please!')
+        return(bpy.context.scene.pc_pc2_group != "" and bpy.context.scene.pc_pc2_folder != 'Set me Please!')
 
     def execute(self, context):
         OscFuncExportPc2(self)
@@ -181,11 +239,11 @@ class OscRemoveSubsurf(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return(bpy.context.scene.muu_pc2_group != "")
+        return(bpy.context.scene.pc_pc2_group != "")
 
     def execute(self, context):
         GENERATE = ['MULTIRES', 'ARRAY', 'BEVEL', 'BOOLEAN', 'BUILD', 'DECIMATE', 'MASK', 'MIRROR', 'REMESH', 'SCREW', 'SKIN', 'SOLIDIFY', 'SUBSURF', 'TRIANGULATE']
-        for OBJ in bpy.data.groups[bpy.context.scene.muu_pc2_group].objects[:]:
+        for OBJ in bpy.data.groups[bpy.context.scene.pc_pc2_group].objects[:]:
             for MOD in OBJ.modifiers[:]:
                 if MOD.type in GENERATE:
                     if eval("bpy.context.scene.mesh_cache_tools_settings.%s" % (MOD.type.lower())):
@@ -202,17 +260,17 @@ class OscPc2iMporterBatch(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return(bpy.context.scene.muu_pc2_folder != 'Set me Please!')
+        return(bpy.context.scene.pc_pc2_folder != 'Set me Please!')
 
     def execute(self, context):
         for OBJ in bpy.context.selected_objects[:]:
             MOD = OBJ.modifiers.new("MeshCache", 'MESH_CACHE')
-            MOD.filepath = "%s%s%s.pc2" % (bpy.context.scene.muu_pc2_folder, os.sep, OBJ.name)
+            MOD.filepath = "%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, OBJ.name)
             MOD.cache_format = "PC2"
             MOD.forward_axis = "POS_Y"
             MOD.up_axis = "POS_Z"
             MOD.flip_axis = set(())
-            MOD.frame_start = bpy.context.scene.muu_pc2_start
+            MOD.frame_start = bpy.context.scene.pc_pc2_start
 
         return {'FINISHED'}
 
@@ -245,7 +303,7 @@ class OscGroupLinkedToLocal(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return(bpy.context.scene.muu_pc2_group != "")
+        return(bpy.context.scene.pc_pc2_group != "")
 
     def execute(self, context):
         OscLinkedGroupToLocal()
@@ -285,14 +343,14 @@ def register():
                            StringProperty,
                            )
 
-    Scene.muu_pc2_rotx = BoolProperty(default=True, name="Rotx = 90")
-    Scene.muu_pc2_world_space = BoolProperty(default=True, name="World Space")
-    Scene.muu_pc2_modifiers = BoolProperty(default=True, name="Apply Modifiers")
-    Scene.muu_pc2_subsurf = BoolProperty(default=True, name="Turn Off SubSurf")
-    Scene.muu_pc2_start = IntProperty(default=0, name="Frame Start")
-    Scene.muu_pc2_end = IntProperty(default=100, name="Frame End")
-    Scene.muu_pc2_group = StringProperty()
-    Scene.muu_pc2_folder = StringProperty(default="Set me Please!")
+    Scene.pc_pc2_rotx = BoolProperty(default=True, name="Rotx = 90")
+    Scene.pc_pc2_world_space = BoolProperty(default=True, name="World Space")
+    Scene.pc_pc2_modifiers = BoolProperty(default=True, name="Apply Modifiers")
+    Scene.pc_pc2_subsurf = BoolProperty(default=True, name="Turn Off SubSurf")
+    Scene.pc_pc2_start = IntProperty(default=0, name="Frame Start")
+    Scene.pc_pc2_end = IntProperty(default=100, name="Frame End")
+    Scene.pc_pc2_group = StringProperty()
+    Scene.pc_pc2_folder = StringProperty(default="Set me Please!")
 
     bpy.utils.register_module(__name__)
 
@@ -300,14 +358,14 @@ def register():
 def unregister():
     from bpy.types import Scene
 
-    del Scene.muu_pc2_rotx
-    del Scene.muu_pc2_world_space
-    del Scene.muu_pc2_modifiers
-    del Scene.muu_pc2_subsurf
-    del Scene.muu_pc2_start
-    del Scene.muu_pc2_end
-    del Scene.muu_pc2_group
-    del Scene.muu_pc2_folder
+    del Scene.pc_pc2_rotx
+    del Scene.pc_pc2_world_space
+    del Scene.pc_pc2_modifiers
+    del Scene.pc_pc2_subsurf
+    del Scene.pc_pc2_start
+    del Scene.pc_pc2_end
+    del Scene.pc_pc2_group
+    del Scene.pc_pc2_folder
 
     bpy.utils.unregister_module(__name__)
 
