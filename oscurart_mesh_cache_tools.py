@@ -81,13 +81,15 @@ def CargaAutoLoadPC(dummy):
     for gr in bpy.context.scene.pc_auto_load_proxy:
         if gr.use_auto_load:
             for ob in bpy.data.groups[gr.name].objects:
-                MOD = ob.modifiers.new("TempPC","MESH_CACHE")
-                MOD.filepath = "%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, ob.name)
-                MOD.cache_format = "PC2"
-                MOD.forward_axis = "POS_Y"
-                MOD.up_axis = "POS_Z"
-                MOD.flip_axis = set(())
-                MOD.frame_start = bpy.context.scene.pc_pc2_start                
+                for MOD in ob.modifiers:
+                    if MOD.type == "MESH_CACHE":                    
+                        #MOD = ob.modifiers.new("TempPC","MESH_CACHE")
+                        MOD.filepath = "%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, ob.name)
+                        MOD.cache_format = "PC2"
+                        MOD.forward_axis = "POS_Y"
+                        MOD.up_axis = "POS_Z"
+                        MOD.flip_axis = set(())
+                        MOD.frame_start = bpy.context.scene.pc_pc2_start                
                     
 bpy.app.handlers.load_post.append(CargaAutoLoadPC)  
 
