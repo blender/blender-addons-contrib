@@ -52,10 +52,11 @@ class CreaPropiedades(bpy.types.Operator):
     bl_label = "Create Auto Load PC Proxy List"
 
     def execute(self, context):
-        for gr in bpy.data.groups:    
-            i = bpy.context.scene.pc_auto_load_proxy.add()   
-            i.name = gr.name  
-            i.use_auto_load = False
+        for gr in bpy.data.groups:  
+            if gr.library != None:  
+                i = bpy.context.scene.pc_auto_load_proxy.add()   
+                i.name = gr.name  
+                i.use_auto_load = False
         return {'FINISHED'}
 
 class RemuevePropiedades(bpy.types.Operator):
