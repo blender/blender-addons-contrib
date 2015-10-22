@@ -118,22 +118,6 @@ class ExtrasPanel(bpy.types.Panel):
         row.operator('mesh.flip_normals', text = 'Normals Flip')
         row.operator('mesh.remove_doubles', text = 'Remove Doubles')
 
-
-# Multi Extrude Panel
-
-class ExtrudePanel(bpy.types.Panel):
-    bl_label = 'Multi Extrude Plus'
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
-    bl_category = 'Tools'
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        row = layout.split(0.80)
-        row.operator('object.mextrude', text = 'Multi Face Extrude', icon = 'PLUGIN')
-        row.operator('help.mextrude', text = '', icon = 'INFO')
-
 # Define "Extras" menu
 def menu_func(self, context):
     self.layout.menu('VIEW3D_MT_edit_mesh_extras', icon='PLUGIN')
