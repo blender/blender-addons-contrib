@@ -22,7 +22,7 @@
 bl_info = {
     "name": "Snap_Utilities_Line",
     "author": "Germano Cavalcante",
-    "version": (5, 0),
+    "version": (5, 2),
     "blender": (2, 75, 0),
     "location": "View3D > TOOLS > Snap Utilities > snap utilities",
     "description": "Extends Blender Snap controls",
@@ -208,7 +208,10 @@ def snap_utilities(self,
                 orig, view_vector = region_2d_to_orig_and_view_vector(region, rv3d, mcursor)
                 end = orig + view_vector
                 location = intersect_line_line(constrain[0], constrain[1], orig, end)
-            self.location = location[0]
+            if location:
+                self.location = location[0]
+            else:
+                self.location = constrain[0]
         
         elif hasattr(self, 'Pperp') and abs(self.Pperp[0]-mcursor[0]) < 10 and abs(self.Pperp[1]-mcursor[1]) < 10:
             self.type = 'PERPENDICULAR'
@@ -658,8 +661,11 @@ class SnapUtilitiesLine(bpy.types.Operator):
                         type = 'X' if vec.x else 'Y' if vec.y else 'Z' if vec.z else 'shift'
                         self.vector_constrain = [lloc, vc, type]
 
-        elif event.value == 'PRESS':
-            if event.type in self.constrain_keys:
+        if event.value == 'PRESS':
+            if self.list_verts_co and (event.ascii in CharMap.ascii or event.type in CharMap.type):
+                CharMap.modal(self, context, event)
+
+            elif event.type in self.constrain_keys:
                 self.bool_update = True
                 if self.vector_constrain and self.vector_constrain[2] == event.type:
                     self.vector_constrain = ()
@@ -669,7 +675,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
                         if isinstance(self.geom, bmesh.types.BMEdge):
                             if self.list_verts:
                                 loc = self.list_verts_co[-1]
-                                self.vector_constrain = (loc, loc + self.list_verts_co[-1] - self.list_verts_co[0], event.type)
+                                self.vector_constrain = (loc, loc + self.geom.verts[1].co - self.geom.verts[0].co, event.type)
                             else:
                                 self.vector_constrain = [self.obj_matrix * v.co for v in self.geom.verts]+[event.type]
                     else:
@@ -679,10 +685,6 @@ class SnapUtilitiesLine(bpy.types.Operator):
                             loc = self.location
                         self.vector_constrain = [loc, loc + self.constrain_keys[event.type]]+[event.type]
 
-            if self.list_verts_co and (event.ascii in CharMap.ascii or event.type in CharMap.type):
-                CharMap.modal(self, context, event)
-                #print(self.length_entered)
-                
             elif event.type == 'LEFTMOUSE':
                 # SNAP 2D
                 snap_3d = self.location
