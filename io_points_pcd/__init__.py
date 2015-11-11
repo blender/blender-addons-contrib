@@ -53,7 +53,7 @@ class ImportPCD(bpy.types.Operator, ImportHelper):
     filename_ext = ".pcd"
 
     filter_glob = StringProperty(default="*.pcd", options={'HIDDEN'})
-    object_name = StringProperty(default="pointcloud", options={'HIDDEN'})
+    object_name = StringProperty(default="", options={'HIDDEN'})
 
     files = CollectionProperty(name="File Path",
                           description="File path used for importing "
@@ -68,7 +68,17 @@ class ImportPCD(bpy.types.Operator, ImportHelper):
             paths.append(self.filepath)
 
         for path in paths:
-            pcd_utils.import_pcd(path, self.object_name)
+
+            objname = ""
+
+            if self.object_name == "":
+                # name the object with the filename exluding .pcd
+                objname = os.path.basename(path)[:-4]
+            else:
+                # use name set by calling the operator with the arg
+                objname = self.object_name
+
+            pcd_utils.import_pcd(path, objname)
 
         return {'FINISHED'}
 
