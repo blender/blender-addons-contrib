@@ -622,6 +622,7 @@ class ParEdge(bpy.types.Operator):
 		self.mesh = selobj.data
 		self.bm = bmesh.from_edit_mesh(self.mesh)
 		self.bmundo = self.bm.copy()
+		self.bmundo.verts.ensure_lookup_table()
 		started = True
 
 		self.selset = set([])

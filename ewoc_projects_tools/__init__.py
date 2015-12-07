@@ -21,12 +21,12 @@
 bl_info = {
 	"name": "EWOCprojects tools",
 	"author": "Gert De Roost - paleajed",
-	"version": (1, 4, 0),
+	"version": (1, 4, 1),
 	"blender": (2, 65, 0),
 	"location": "View3D > Toolbar and View3D > Specials (W-key)",
 	"description": "Edit mode tools - contrib version",
 	"warning": "",
-	"wiki_url": "",
+	"wiki_url": "http://www.ewocprojects.be/scripts.html",
 	"tracker_url": "",
 	"category": "Mesh"}
 
@@ -38,13 +38,15 @@ if "bpy" in locals():
 	imp.reload(mesh_paredge)
 	imp.reload(mesh_edgegrow)
 	imp.reload(mesh_fanconnect)
-	imp.reload(object_fastorigin)
 	imp.reload(mesh_laprelax)
+	imp.reload(mesh_polyredux)
+	imp.reload(mesh_filletplus)
 	imp.reload(mesh_innerweld)
 	imp.reload(mesh_straightenplus)
 	imp.reload(mesh_floodsel)
 	imp.reload(mesh_deathguppie)
 	imp.reload(mesh_selproject)
+	imp.reload(object_creaprim)
 	imp.reload(object_decouple)
 	imp.reload(object_keeptrans)
 
@@ -54,13 +56,15 @@ else:
 	from . import mesh_paredge
 	from . import mesh_edgegrow
 	from . import mesh_fanconnect
-	from . import object_fastorigin
 	from . import mesh_laprelax
+	from . import mesh_polyredux
+	from . import mesh_filletplus
 	from . import mesh_innerweld
 	from . import mesh_straightenplus
 	from . import mesh_floodsel
 	from . import mesh_deathguppie
 	from . import mesh_selproject
+	from . import object_creaprim
 	from . import object_decouple
 	from . import object_keeptrans
 
@@ -87,10 +91,12 @@ class VIEW3D_MT_edit_mesh_paleajed(bpy.types.Menu):
 			text="EdgeGrow")
 		layout.operator("mesh.fanconnect",
 			text="FanConnect")
-		layout.operator("object.fastorigin",
-			text="FastOrigin")
 		layout.operator("mesh.laprelax",
 			text="LapRelax")
+		layout.operator("mesh.polyredux",
+			text="PolyRedux")
+		layout.operator("mesh.filletplus",
+			text="FilletPlus")
 		layout.operator("mesh.innerweld",
 			text="InnerWeld")
 		layout.operator("mesh.straightenplus",
@@ -101,14 +107,6 @@ class VIEW3D_MT_edit_mesh_paleajed(bpy.types.Menu):
 			text="DeathGuppie")
 		layout.operator("mesh.selproject",
 			text="SelProject")
-		if not(object_decouple.unparented):
-			layout.operator("object.decouple",
-				text="DeCouple")
-		else:
-			layout.operator("object.recouple",
-				text="ReCouple")
-		layout.operator("object.keeptrans",
-			text="KeepTrans")
 
 
 class PaleajedPanel(bpy.types.Panel):
@@ -132,8 +130,9 @@ class PaleajedPanel(bpy.types.Panel):
 
 		layout.operator("mesh.edgegrow")
 		layout.operator("mesh.fanconnect")
-		layout.operator("object.fastorigin")
 		layout.operator("mesh.laprelax")
+		layout.operator("mesh.polyredux")
+		layout.operator("mesh.filletplus")
 		layout.operator("mesh.innerweld")
 
 		if not(mesh_straightenplus.started):
@@ -173,6 +172,10 @@ class PaleajedPanel(bpy.types.Panel):
 		else:
 			self.layout.label(text="ENTER to confirm")
 
+		self.layout.operator("object.creaprim")
+		self.layout.prop(scn, "Name")
+		self.layout.prop(scn, "Apply")
+		
 		if not(object_decouple.unparented):
 			layout.operator("object.decouple",
 				text="DeCouple")

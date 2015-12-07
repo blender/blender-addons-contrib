@@ -7,7 +7,7 @@
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
@@ -45,7 +45,7 @@ This script is an implementation of the concept of sliding vertices around
    visualized in red.
    The respective selected vertices will change position on the slide-edge to
    the new position you choose by moving over it with the left mouse-button
-   pressed.  Vertices can be made to move past the end of the edge by
+   pressed.	 Vertices can be made to move past the end of the edge by
    keeping leftmouse pressed, and moving along the supporting edge and
    further in that same direction.
 
@@ -61,8 +61,8 @@ This script is an implementation of the concept of sliding vertices around
 bl_info = {
 	"name": "EdgeTune",
 	"author": "Gert De Roost",
-	"version": (3, 5, 1),
-	"blender": (2, 65, 0),
+	"version": (3, 6, 1),
+	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Tuning edgeloops by redrawing them manually, sliding verts.",
 	"warning": "",
@@ -115,20 +115,34 @@ class EdgeTune(bpy.types.Operator):
 	def modal(self, context, event):
 
 		self.viewchange = False
-		if event.type == 'LEFTMOUSE':
+		if event.type == 'LEFTMOUSE' and (event.alt != True):
 			if event.value == 'PRESS':
 				self.mbns = True
 			if event.value == 'RELEASE':
 				self.mbns = False
 				self.contedge = None
 				self.movedoff = True
-		if event.type == 'RIGHTMOUSE':
+		if (event.type == 'RIGHTMOUSE'	and (event.alt != True)) or event.type == 'ESC':
 			# cancel operation, reset to bmumdo mesh
+			if self.copyobj in list(self.scn.objects):
+				self.scn.objects.unlink(self.copyobj)
+				self.scn.update()
+				bpy.data.objects.remove(self.copyobj)
 			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+			self.bm.free()
 			bpy.ops.object.editmode_toggle()
 			self.bmundo.to_mesh(self.mesh)
 			bpy.ops.object.editmode_toggle()
+			if context.region:
+				if context.region.type == 'WINDOW':
+					context.region.tag_redraw()
 			return {'CANCELLED'}
+		elif event.type == 'RIGHTMOUSE' and event.alt:
+			self.viewchange = True
+			return {'PASS_THROUGH'}
+		elif event.type == 'LEFTMOUSE' and event.alt:
+			self.viewchange = True
+			return {'PASS_THROUGH'}
 		elif event.type == 'MIDDLEMOUSE':
 			# recalculate view parameters
 			self.viewchange = True
@@ -154,9 +168,16 @@ class EdgeTune(bpy.types.Operator):
 		elif event.type == 'RET':
 			# Consolidate changes.
 			# Free the bmesh.
+			if self.copyobj in list(self.scn.objects):
+				self.scn.objects.unlink(self.copyobj)
+				self.scn.update()
+				bpy.data.objects.remove(self.copyobj)
+			self.bm.free()
 			self.bmundo.free()
 			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-			self.region.tag_redraw()
+			if context.region:
+				if context.region.type == 'WINDOW':
+					context.region.tag_redraw()
 			return {'FINISHED'}
 
 		elif event.type == 'MOUSEMOVE':
@@ -360,6 +381,12 @@ class EdgeTune(bpy.types.Operator):
 		vec = vec * self.selobj.matrix_world + self.selobj.matrix_world.to_translation()
 		return vec
 
+	def findlocalco(self, vec):
+
+		vec = vec.copy()
+		vec = (vec - self.selobj.location) * self.matrix.inverted()
+		return vec
+
 	def getscreencoords(self, vec, reg):
 
 		# calculate screencoords of given Vector
@@ -367,14 +394,69 @@ class EdgeTune(bpy.types.Operator):
 		prj = self.perspm[reg] * vec.to_4d()
 		return (self.halfwidth[reg] + self.halfwidth[reg] * (prj.x / prj.w), self.halfheight[reg] + self.halfheight[reg] * (prj.y / prj.w), prj.z)
 
+	def getmatrix(self, selobj):
+
+		# Rotating / panning / zooming 3D view is handled here.
+		# Creates a matrix.
+		if selobj.rotation_mode == 'AXIS_ANGLE':
+			# object rotation_quaternionmode axisangle
+			ang, x, y, z =	selobj.rotation_axis_angle
+			matrix = Matrix.Rotation(-ang, 4, Vector((x, y, z)))
+		elif selobj.rotation_mode == 'QUATERNION':
+			# object rotation_quaternionmode euler
+			w, x, y, z = selobj.rotation_quaternion
+			x = -x
+			y = -y
+			z = -z
+			self.quat = Quaternion([w, x, y, z])
+			matrix = self.quat.to_matrix()
+			matrix.resize_4x4()
+		else:
+			# object rotation_quaternionmode euler
+			ax, ay, az = selobj.rotation_euler
+			mat_rotX = Matrix.Rotation(-ax, 4, 'X')
+			mat_rotY = Matrix.Rotation(-ay, 4, 'Y')
+			mat_rotZ = Matrix.Rotation(-az, 4, 'Z')
+		if selobj.rotation_mode == 'XYZ':
+			matrix = mat_rotX * mat_rotY * mat_rotZ
+		elif selobj.rotation_mode == 'XZY':
+			matrix = mat_rotX * mat_rotZ * mat_rotY
+		elif selobj.rotation_mode == 'YXZ':
+			matrix = mat_rotY * mat_rotX * mat_rotZ
+		elif selobj.rotation_mode == 'YZX':
+			matrix = mat_rotY * mat_rotZ * mat_rotX
+		elif selobj.rotation_mode == 'ZXY':
+			matrix = mat_rotZ * mat_rotX * mat_rotY
+		elif selobj.rotation_mode == 'ZYX':
+			matrix = mat_rotZ * mat_rotY * mat_rotX
+
+		# handle object scaling
+		sx, sy, sz = selobj.scale
+		mat_scX = Matrix.Scale(sx, 4, Vector([1, 0, 0]))
+		mat_scY = Matrix.Scale(sy, 4, Vector([0, 1, 0]))
+		mat_scZ = Matrix.Scale(sz, 4, Vector([0, 0, 1]))
+		matrix = mat_scX * mat_scY * mat_scZ * matrix
+
+		return matrix
+
+
 
 
 
 	def init_edgetune(self):
 
 		self.mesh = self.selobj.data
+		self.copyobj = bpy.data.objects.new(name=self.selobj.name + "_EdgeTune", object_data=self.mesh)
+		self.scn.objects.link(self.copyobj)
+		self.scn.update()
+		self.copyobj.hide = 1
+			
+		bpy.ops.object.editmode_toggle()
+		bpy.ops.object.editmode_toggle()
 		self.bm = bmesh.from_edit_mesh(self.mesh)
 		self.bmundo = self.bm.copy()
+		self.bmundo.verts.ensure_lookup_table()
+		self.bmundo.edges.ensure_lookup_table()
 
 		self.viewwidth = self.area.width
 		self.viewheight = self.area.height
@@ -399,6 +481,7 @@ class EdgeTune(bpy.types.Operator):
 		self.undocolist = []
 		self.contedge = None
 
+		self.matrix = self.getmatrix(self.selobj)
 		self.adapt()
 		for r in self.regions:
 			r.tag_redraw()
@@ -410,6 +493,8 @@ class EdgeTune(bpy.types.Operator):
 		# seledges: selected edges list
 		# selverts: selected verts list per edge
 		# selcoords: selected verts coordinate list per edge
+		self.copyobj.hide = 0
+	
 		self.sverts[reg] = []
 		self.seledges[reg] = []
 		self.selverts[reg] = []
@@ -418,25 +503,30 @@ class EdgeTune(bpy.types.Operator):
 		if self.spaces[self.regions.index(reg)].use_occlude_geometry:
 			rv3d = self.spaces[self.regions.index(reg)].region_3d
 			eyevec = Vector(rv3d.view_matrix[2][:3])
-			eyevec.length = 100000
+			totlen = 0
+			for e in self.keepedges:
+				totlen += e.calc_length()
+			medlen = totlen / len(self.keepedges)
+			eyevec.length = 10000
 			eyeloc = Vector(rv3d.view_matrix.inverted().col[3][:3])
+			eyeloc = (eyeloc - self.selobj.location) * self.matrix.inverted()
 			for vert in self.keepverts:
 				vno = vert.normal
-				vno.length = 0.0001
-				vco = self.findworldco(vert.co + vno)
+				vno.length = medlen / 1000
 				if rv3d.is_perspective:
-					hit = self.scn.ray_cast(vco, eyeloc)
-					if hit[0]:
+					hit = self.copyobj.ray_cast(vert.co + vno, eyeloc)
+					if not(hit[2] == -1):
 						vno = -vno
-						vco = self.findworldco(vert.co + vno)
-						hit = self.scn.ray_cast(vco, eyevec)
+						hit = self.copyobj.ray_cast(vert.co + vno, eyeloc)
 				else:
-					hit = self.scn.ray_cast(vco, vco + eyevec)
-					if hit[0]:
+					vco = self.findworldco(vert.co + vno)
+					end = self.findlocalco(vco + eyevec)
+					hit = self.copyobj.ray_cast(vert.co + vno, end)
+					if not(hit[2] == -1):
 						vno = -vno
-						vco = self.findworldco(vert.co + vno)
-						hit = self.scn.ray_cast(vco, vco + eyevec)
-				if not(hit[0]):
+						end = self.findlocalco(vco + eyevec)
+						hit = self.copyobj.ray_cast(vert.co + vno, end)
+				if hit[2] == -1:
 					visible[vert] = True
 					self.sverts[reg].append(self.bmundo.verts[vert.index])
 				else:
@@ -487,6 +577,9 @@ class EdgeTune(bpy.types.Operator):
 				self.singles.append(vert)
 				self.boxes[reg].append(self.getscreencoords(vert.co, reg)[:2])
 
+		self.copyobj.hide = 1
+		
+		
 
 	def redraw(self):
 

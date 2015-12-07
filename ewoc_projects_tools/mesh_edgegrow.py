@@ -43,8 +43,8 @@ Save as Default (Optional).
 bl_info = {
 	"name": "EdgeGrow",
 	"author": "Gert De Roost",
-	"version": (0, 4, 1),
-	"blender": (2, 65, 0),
+	"version": (0, 4, 2),
+	"blender": (2, 70, 0),
 	"location": "View3D > Tools",
 	"description": "Growing edgeloops with arrowkeys",
 	"warning": "",
@@ -58,7 +58,7 @@ import bpy
 import bpy_extras
 import bmesh
 from bgl import glColor3f, glBegin, GL_LINES, glVertex2f, glEnd
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, Quaternion
 import time
 
 
@@ -92,7 +92,7 @@ class EdgeGrow(bpy.types.Operator):
 			# User transforms view
 			return {'PASS_THROUGH'}
 
-		elif event.type in {'RET', 'NUMPAD_ENTER'}:
+		elif event.type in {'RET', 'NUMPAD_ENTER'} or self.stop:
 			# Consolidate changes if ENTER pressed.
 			# Free the bmesh.
 			self.bm.free()
@@ -258,6 +258,10 @@ class EdgeGrow(bpy.types.Operator):
 			if edge.select:
 				self.selset.add(edge)
 				self.esellist.append(edge)
+		self.stop = False
+		if len(self.esellist) == 0:
+			self.stop = True
+			return
 		for vert in self.bm.verts:
 			if vert.select:
 				self.vsellist.append(vert)

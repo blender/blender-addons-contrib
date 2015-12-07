@@ -40,7 +40,7 @@ Press ENTER to finalize the selection projection operation.
 bl_info = {
 	"name": "SelProject",
 	"author": "Gert De Roost",
-	"version": (0, 3, 0),
+	"version": (0, 3, 1),
 	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Use object projection as selection tool.",
@@ -55,7 +55,7 @@ import bpy
 import bpy_extras
 import bmesh
 from bgl import glColor3f, glBegin, GL_QUADS, glVertex2f, glEnd
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, Quaternion
 import math
 from bpy.app.handlers import persistent
 

@@ -40,7 +40,7 @@ Save as Default (Optional).
 bl_info = {
 	"name": "StraightenPlus",
 	"author": "Gert De Roost",
-	"version": (0, 3, 0),
+	"version": (0, 3, 1),
 	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Straighten connected edges",
@@ -146,11 +146,11 @@ class StraightenPlus(bpy.types.Operator):
 				if not(a.type == 'VIEW_3D'):
 					continue
 				for r in a.regions:
-					if not(r.type == 'WINDOW'):
-						continue
 					if mxa > r.x and mya > r.y and mxa < r.x + r.width and mya < r.y + r.height:
+						if not(r.type == 'WINDOW'):
+							self.region = None
+							break
 						self.region = r
-						break
 			if not(self.region) and not(self.tweaking):
 				return {'PASS_THROUGH'}
 

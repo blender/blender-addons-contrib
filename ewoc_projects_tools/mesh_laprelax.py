@@ -95,7 +95,7 @@ class LapRelax(bpy.types.Operator):
 		bmprev = bm.copy()
 
 		for v in bmprev.verts:
-			if v.select:
+			if v.select and len(v.link_edges) != 0:
 				tot = Vector((0, 0, 0))
 				cnt = 0
 				for e in v.link_edges:

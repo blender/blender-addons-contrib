@@ -42,7 +42,7 @@ Save as Default (Optional).
 bl_info = {
 	"name": "FloodSel",
 	"author": "Gert De Roost",
-	"version": (1, 1, 2),
+	"version": (1, 1, 3),
 	"blender": (2, 65, 0),
 	"location": "View3D > Tools",
 	"description": "Flood-(de)select areas.",
@@ -143,6 +143,7 @@ class FloodSel(bpy.types.Operator):
 					elem.select = not(self.state)
 			if not(self.Multiple):
 				started = False
+				self.area.header_text_set()
 				self.bm.free()
 				bpy.ops.object.editmode_toggle()
 				bpy.ops.object.editmode_toggle()
@@ -206,6 +207,7 @@ class FloodSel(bpy.types.Operator):
 			hit = self.selobj.ray_cast(start, end)
 			bpy.ops.object.editmode_toggle()
 			self.bm = bmesh.from_edit_mesh(self.mesh)
+			self.bm.faces.ensure_lookup_table()
 			if hit[2] == -1:
 				self.doneset = set([])
 				return {'RUNNING_MODAL'}

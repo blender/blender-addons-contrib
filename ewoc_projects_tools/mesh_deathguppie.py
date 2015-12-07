@@ -44,7 +44,7 @@ Save as Default (Optional).
 bl_info = {
 	"name": "DeathGuppie",
 	"author": "Gert De Roost",
-	"version": (0, 3, 0),
+	"version": (0, 3, 1),
 	"blender": (2, 63, 0),
 	"location": "View3D > Tools",
 	"description": "Deathguppie subdivision operation",
@@ -107,6 +107,8 @@ class DeathGuppie(bpy.types.Operator):
 		mesh = selobj.data
 		bm = bmesh.from_edit_mesh(mesh)
 		bmkeep = bm.copy()
+		bmkeep.verts.ensure_lookup_table()
+		bmkeep.faces.ensure_lookup_table()
 
 		facelist = []
 		for f1 in bm.faces:
