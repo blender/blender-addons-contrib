@@ -21,12 +21,12 @@
 bl_info = {
 	"name": "EWOCprojects tools",
 	"author": "Gert De Roost - paleajed",
-	"version": (1, 4, 1),
+	"version": (1, 4, 2),
 	"blender": (2, 65, 0),
 	"location": "View3D > Toolbar and View3D > Specials (W-key)",
 	"description": "Edit mode tools - contrib version",
 	"warning": "",
-	"wiki_url": "http://www.ewocprojects.be/scripts.html",
+	"wiki_url": "",
 	"tracker_url": "",
 	"category": "Mesh"}
 
@@ -38,6 +38,7 @@ if "bpy" in locals():
 	imp.reload(mesh_paredge)
 	imp.reload(mesh_edgegrow)
 	imp.reload(mesh_fanconnect)
+	imp.reload(object_fastorigin)
 	imp.reload(mesh_laprelax)
 	imp.reload(mesh_polyredux)
 	imp.reload(mesh_filletplus)
@@ -56,6 +57,7 @@ else:
 	from . import mesh_paredge
 	from . import mesh_edgegrow
 	from . import mesh_fanconnect
+	from . import object_fastorigin
 	from . import mesh_laprelax
 	from . import mesh_polyredux
 	from . import mesh_filletplus
@@ -91,6 +93,8 @@ class VIEW3D_MT_edit_mesh_paleajed(bpy.types.Menu):
 			text="EdgeGrow")
 		layout.operator("mesh.fanconnect",
 			text="FanConnect")
+		layout.operator("object.fastorigin",
+			text="FastOrigin")
 		layout.operator("mesh.laprelax",
 			text="LapRelax")
 		layout.operator("mesh.polyredux",
@@ -130,6 +134,7 @@ class PaleajedPanel(bpy.types.Panel):
 
 		layout.operator("mesh.edgegrow")
 		layout.operator("mesh.fanconnect")
+		layout.operator("object.fastorigin")
 		layout.operator("mesh.laprelax")
 		layout.operator("mesh.polyredux")
 		layout.operator("mesh.filletplus")
