@@ -22,14 +22,14 @@
 bl_info = {
     "name": "Snap_Utilities_Line",
     "author": "Germano Cavalcante",
-    "version": (5, 6),
+    "version": (5, 7),
     "blender": (2, 75, 0),
     "location": "View3D > TOOLS > Snap Utilities > snap utilities",
     "description": "Extends Blender Snap controls",
     "wiki_url" : "http://blenderartists.org/forum/showthread.php?363859-Addon-CAD-Snap-Utilities",
     "category": "Mesh"}
     
-import bpy, bgl, bmesh, mathutils, math
+import bpy, bgl, bmesh
 from mathutils import Vector
 from mathutils.geometry import (
     intersect_point_line,
@@ -51,7 +51,7 @@ def get_units_info(scale, unit_system, separate_units):
 
     return (scale, scale_steps, separate_units)
 
-def convert_distance(val, units_info, PRECISION = 5):
+def convert_distance(val, units_info, precision = 5):
     scale, scale_steps, separate_units = units_info
     sval = val * scale
     idx = 0
@@ -62,10 +62,10 @@ def convert_distance(val, units_info, PRECISION = 5):
     factor, suffix = scale_steps[idx]
     sval /= factor
     if not separate_units or idx == len(scale_steps) - 1:
-            dval = str(round(sval, PRECISION)) + suffix
+            dval = str(round(sval, precision)) + suffix
     else:
             ival = int(sval)
-            dval = str(round(ival, PRECISION)) + suffix
+            dval = str(round(ival, precision)) + suffix
             fval = sval - ival
             idx += 1
             while idx < len(scale_steps):
@@ -297,11 +297,9 @@ def snap_utilities(self,
             self.len = vec.length
 
 def get_isolated_edges(bmvert):
-    linked = [c for c in bmvert.link_edges[:] if c.link_faces[:] == []]
-    for a in linked:
-        edges = [b for c in a.verts[:] if c.link_faces[:] == [] for b in c.link_edges[:] if b not in linked]
-        for e in edges:
-            linked.append(e)
+    linked = [e for e in bmvert.link_edges if not e.link_faces]
+    for e in linked:
+        linked += [le for v in e.verts if not v.link_faces for le in v.link_edges if le not in linked]
     return linked
 
 def draw_line(self, obj, Bmesh, bm_geom, location):
@@ -361,36 +359,30 @@ def draw_line(self, obj, Bmesh, bm_geom, location):
                 edge = Bmesh.edges.new([V1, V2])
                 self.list_edges.append(edge)
             else:
-                face = [x for x in V2.link_faces[:] if x in V1.link_faces[:]]
-                if face != []:# and self.list_faces == []:
-                    self.list_faces = face
+                link_two_faces = V1.link_faces and V2.link_faces
+                if link_two_faces:
+                    self.list_faces = [f for f in V2.link_faces if f in V1.link_faces]
                     
-                elif V1.link_faces[:] == [] or V2.link_faces[:] == []:
-                    if self.list_faces == []:
-                        if V1.link_faces[:] != []:
-                            Vfaces = V1.link_faces
-                            Vtest = V2.co
-                        elif V2.link_faces[:] != []:
-                            Vfaces = V2.link_faces
-                            Vtest = V1.co
-                        else:
-                            Vfaces = []
-                        for face in Vfaces:
-                            testface = bmesh.geometry.intersect_face_point(face, Vtest)
-                            if testface:
+                elif not self.list_faces:
+                    faces, co2 = (V1.link_faces, V2.co.copy()) if V1.link_faces else (V2.link_faces, V1.co.copy())
+                    for face in faces:
+                        if bmesh.geometry.intersect_face_point(face, co2):
+                            co = co2 - face.calc_center_median()
+                            if co.dot(face.normal) < 0.001:
                                 self.list_faces.append(face)
 
-                if self.list_faces != []:
+                if self.list_faces:
                     edge = Bmesh.edges.new([V1, V2])
                     self.list_edges.append(edge)
                     ed_list = get_isolated_edges(V2)
-                    for face in list(set(self.list_faces)):
+                    for face in set(self.list_faces):
                         facesp = bmesh.utils.face_split_edgenet(face, list(set(ed_list)))
                         self.list_faces = []
                 else:
                     if self.intersect:
-                        facesp = bmesh.ops.connect_vert_pair(Bmesh, verts = [V1, V2])
-                    if not self.intersect or facesp['edges'] == []:
+                        facesp = bmesh.ops.connect_vert_pair(Bmesh, verts = [V1, V2], verts_exclude=Bmesh.verts)
+                        print(facesp)
+                    if not self.intersect or not facesp['edges']:
                         edge = Bmesh.edges.new([V1, V2])
                         self.list_edges.append(edge)
                     else:   
@@ -466,9 +458,11 @@ class SnapUtilitiesLine(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        preferences = context.user_preferences.addons[__name__].preferences
         return (context.mode in {'EDIT_MESH', 'OBJECT'} and
-                context.object is not None and
-                context.object.type == 'MESH')
+                preferences.create_new_obj or 
+                (context.object is not None and
+                context.object.type == 'MESH'))
 
     def modal_navigation(self, context, event):
         #TO DO:
@@ -841,9 +835,11 @@ class PanelSnapUtilities(bpy.types.Panel) :
 
     @classmethod
     def poll(cls, context):
+        preferences = context.user_preferences.addons[__name__].preferences
         return (context.mode in {'EDIT_MESH', 'OBJECT'} and
-                context.object is not None and
-                context.object.type == 'MESH')
+                preferences.create_new_obj or 
+                (context.object is not None and
+                context.object.type == 'MESH'))
 
     def draw(self, context):
         layout = self.layout
