@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.    See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
@@ -27,10 +27,108 @@ from mathutils import geometry
 from mathutils import Vector
 
 
-def generate_3PT_mode_1(pts, obj):
+def get_layer():
+    '''
+    this always returns a new empty layer ready for drawing to
+    '''
+
+    # get grease pencil data
+    grease_pencil_name = 'tc_circle_000'   # data
+    layer_name = "TinyCad Layer"           # layer
+
+    grease_data = bpy.data.grease_pencil
+    if grease_pencil_name not in grease_data:
+        gp = grease_data.new(grease_pencil_name)
+    else:
+        gp = grease_data[grease_pencil_name]
+
+    # get grease pencil layer
+    if not (layer_name in gp.layers):
+        layer = gp.layers.new(layer_name)
+        layer.frames.new(1)
+        layer.line_width = 1
+    else:
+        layer = gp.layers[layer_name]
+        layer.frames[0].clear()
+
+    return layer
+
+
+def generate_gp3d_stroke(layer, p1, v1, axis, mw, origin, num_verts):
+
+    '''
+        p1:     center of circle (local coordinates)
+        v1:     first vertex of circle in (local coordinates)
+        axis:   orientation matrix
+        mw:     obj.matrix_world
+        origin: obj.location
+    '''
+
+    layer.show_points = True  # is this still broken? GP bug, reported!
+
+    layer.color = bpy.context.scene.tc_gp_color
+    s = layer.frames[0].strokes.new()
+    s.draw_mode = '3DSPACE'
+
+    chain = []
+    gamma = 2 * math.pi / num_verts
+    for i in range(num_verts + 1):
+        theta = gamma * i
+        mat_rot = mathutils.Matrix.Rotation(theta, 4, axis)
+        local_point = mw * (mat_rot * (v1 - p1))  # + origin
+        world_point = local_point - (origin - (mw * p1))
+        chain.append(world_point)
+
+    s.points.add(len(chain))
+    for idx, p in enumerate(chain):
+        s.points[idx].co = p
+
+
+def generate_bmesh_repr(p1, v1, axis, num_verts):
+
+    '''
+        p1:     center of circle (local coordinates)
+        v1:     first vertex of circle in (local coordinates)
+        axis:   orientation matrix
+        origin: obj.location
+    '''
+
+    # generate geometr up front
+    chain = []
+    gamma = 2 * math.pi / num_verts
+    for i in range(num_verts + 1):
+        theta = gamma * i
+        mat_rot = mathutils.Matrix.Rotation(theta, 4, axis)
+        local_point = (mat_rot * (v1 - p1))
+        chain.append(local_point + p1)
+
+    obj = bpy.context.edit_object
+    me = obj.data
+    bm = bmesh.from_edit_mesh(me)
+
+    # add verts
+    v_refs = []
+    for p in chain:
+        v = bm.verts.new(p)
+        v.select = False  # this might be a default.. redundant?
+        v_refs.append(v)
+
+    # join verts, daisy chain
+    num_verts = len(v_refs)
+    for i in range(num_verts):
+        idx1 = i
+        idx2 = (i + 1) % num_verts
+        bm.edges.new([v_refs[idx1], v_refs[idx2]])
+
+    bmesh.update_edit_mesh(me, True)
+
+
+def generate_3PT(pts, obj, nv, mode=0):
     origin = obj.location
-    transform_matrix = obj.matrix_local
+    mw = obj.matrix_world
     V = Vector
+
+    nv = max(3, nv)
 
     # construction
     v1, v2, v3, v4 = V(pts[0]), V(pts[1]), V(pts[1]), V(pts[2])
@@ -48,12 +146,24 @@ def generate_3PT_mode_1(pts, obj):
     r = geometry.intersect_line_line(v1_, v2_, v3_, v4_)
     if r:
         p1, _ = r
-        # cp = transform_matrix * (p1 + origin)
-        cp = transform_matrix * p1
+        cp = mw * p1
         bpy.context.scene.cursor_location = cp
-        # generate_gp3d_stroke(cp, axis, obj, radius=(p1-v1).length)
+
+        if mode == 0:
+            layer = get_layer()
+            generate_gp3d_stroke(layer, p1, v1, axis, mw, origin, nv)
+
+            scn = bpy.context.scene
+            scn.grease_pencil = bpy.data.grease_pencil['tc_circle_000']
+
+        elif mode == 1:
+            generate_bmesh_repr(p1, v1, axis, nv)
+
     else:
         print('not on a circle')
+
+
+''' Shared Utils '''
 
 
 def get_three_verts_from_selection(obj):
@@ -67,19 +177,53 @@ def get_three_verts_from_selection(obj):
     return [v.co[:] for v in bm.verts if v.select]
 
 
+def dispatch(context, mode=0):
+    obj = context.edit_object
+    pts = get_three_verts_from_selection(obj)
+    nv = context.scene.tc_num_verts
+    generate_3PT(pts, obj, nv, mode)
+
+
+''' Operators '''
+
+
 class CircleCenter(bpy.types.Operator):
 
     bl_idname = 'mesh.circlecenter'
     bl_label = 'circle center from selected'
     bl_options = {'REGISTER', 'UNDO'}
 
+    def draw(self, context):
+        scn = context.scene
+        l = self.layout
+        col = l.column()
+
+        col.prop(scn, 'tc_gp_color', text='layer color')
+        col.prop(scn, 'tc_num_verts', text='num verts')
+        col.operator('mesh.circlemake', text='Make Mesh')
+
     @classmethod
     def poll(self, context):
-        obj = context.active_object
-        return obj is not None and obj.type == 'MESH' and obj.mode == 'EDIT'
+        obj = context.edit_object
+        return obj is not None and obj.type == 'MESH'
 
     def execute(self, context):
-        obj = bpy.context.object
-        pts = get_three_verts_from_selection(obj)
-        generate_3PT_mode_1(pts, obj)
+        dispatch(context, mode=0)  # make gp
+        return {'FINISHED'}
+
+
+class CircleMake(bpy.types.Operator):
+
+    bl_idname = 'mesh.circlemake'
+    bl_label = 'circle mesh from selected'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def draw(self, context):
+        scn = context.scene
+        l = self.layout
+        col = l.column()
+        col.prop(scn, 'tc_num_verts', text='num verts')
+
+    def execute(self, context):
+        dispatch(context, mode=1)  # bake mesh
         return {'FINISHED'}

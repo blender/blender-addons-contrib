@@ -113,7 +113,7 @@ def doVTX(self):
 
 
 class AutoVTX(bpy.types.Operator):
-    bl_idname = 'view3d.autovtx'
+    bl_idname = 'mesh.autovtx'
     bl_label = 'autoVTX'
     # bl_options = {'REGISTER', 'UNDO'}
 
@@ -121,28 +121,23 @@ class AutoVTX(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        '''
-        - only activate if two selected edges
-        - and both are not hidden
-        '''
+        obj = context.active_object
+        return obj is not None and obj.type == 'MESH'
+
+    def execute(self, context):
         obj = context.active_object
         self.me = obj.data
         self.bm = bmesh.from_edit_mesh(self.me)
+        self.bm.verts.ensure_lookup_table()
+        self.bm.edges.ensure_lookup_table()
 
-        # self.me.update()
-        if hasattr(self.bm.verts, "ensure_lookup_table"):
-            self.bm.verts.ensure_lookup_table()
-            self.bm.edges.ensure_lookup_table()
-
-        if obj is not None and obj.type == 'MESH':
-            edges = self.bm.edges
-            ok = lambda v: v.select and not v.hide
-            idxs = [v.index for v in edges if ok(v)]
-            if len(idxs) is 2:
-                self.selected_edges = idxs
-                return True
-
-    def execute(self, context):
+        edges = self.bm.edges
+        ok = lambda v: v.select and not v.hide
+        idxs = [v.index for v in edges if ok(v)]
+        if len(idxs) is 2:
+            self.selected_edges = idxs
+        else:
+            print('select two edges!')
 
         self.me.update()
         if checkVTX(self, context):
