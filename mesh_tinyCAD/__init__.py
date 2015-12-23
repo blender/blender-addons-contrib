@@ -30,18 +30,19 @@ bl_info = {
 }
 
 
-if 'VTX' in globals():
-    import importlib
-    print('tinyCAD: detected reload event.')
-    try:
-        modules = "VTX V2X XALL BIX CCEN".split()
-        for m in modules:
-            exec('importlib.reload({0})'.format(m))
-        print("tinyCAD: reloaded modules, all systems operational")
+if "bpy" in locals():
+    if 'VTX' in locals():
+        import imp
+        print('tinyCAD: detected reload event.')
+        try:
+            modules = "VTX V2X XALL BIX CCEN".split()
+            for m in modules:
+                exec('imp.reload({0})'.format(m))
+            print("tinyCAD: reloaded modules, all systems operational")
 
-    except Exception as E:
-        print('reload failed with error:')
-        print(E)
+        except Exception as E:
+            print('reload failed with error:')
+            print(E)
 
 
 import os
