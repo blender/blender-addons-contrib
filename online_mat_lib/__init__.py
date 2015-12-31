@@ -369,42 +369,6 @@ category_enum_items = [("None0", "None", "No category selected")]
 #subcategory_enum_items = [("None0", "None", "No Subcategory Selected")]
 #bpy.types.Scene.mat_lib_material_subcategory = bpy.props.EnumProperty(name = "", items = subcategory_enum_items, description = "Choose a subcategory", options = {'SKIP_SAVE'})
 
-def filenameClean(string):
-    string = string.replace("(", "")
-    string = string.replace(")", "")
-    string = string.replace("!", "")
-    string = string.replace("@", "")
-    string = string.replace("#", "")
-    string = string.replace("$", "")
-    string = string.replace("%", "")
-    string = string.replace("&", "")
-    string = string.replace("*", "")
-    string = string.replace("/", "")
-    string = string.replace("|", "")
-    string = string.replace("\\", "")
-    string = string.replace("'", "")
-    string = string.replace("\"", "")
-    string = string.replace("?", "")
-    string = string.replace(";", "")
-    string = string.replace(":", "")
-    string = string.replace("[", "")
-    string = string.replace("]", "")
-    string = string.replace("{", "")
-    string = string.replace("}", "")
-    string = string.replace("`", "")
-    string = string.replace("~", "")
-    string = string.replace("+", "")
-    string = string.replace("=", "")
-    string = string.replace(".", "")
-    string = string.replace(",", "")
-    string = string.replace("<", "")
-    string = string.replace(">", "")
-    string = string.replace(" ", "_")
-    string = string.replace("-", "_")
-    return string
-
-def filenameCleanLower(string):
-    return filenameClean(string).lower()
 
 class OnlineMaterialLibraryPanel(bpy.types.Panel):
     """Creates a Panel in the Object properties window"""
@@ -5219,9 +5183,9 @@ class MaterialConvert(bpy.types.Operator):
         while j < loop_length:
             if self.save_location is not "":
                 if self.all_materials:
-                    filename = filenameCleanLower(bpy.data.materials[mat].name)
+                    filename = bpy.path.clean_name(bpy.data.materials[mat].name).lower()
                 else:
-                    filename = filenameCleanLower(mat)
+                    filename = bpy.path.clean_name(mat).lower()
                 material_file_contents = ""
                 write(xml_header_string)
 
@@ -5259,7 +5223,7 @@ class MaterialConvert(bpy.types.Operator):
                         write(" mute=\"True\"")
 
                     if self.save_location is not "" and context.scene.mat_lib_external_groups:
-                        group_filename = filenameCleanLower(node.node_tree.name)
+                        group_filename = bpy.path.clean_name(node.node_tree.name).lower()
                         group_filename = self.save_location + group_filename + ".bcg"
                         write(" group=\"file://%s\"" % group_filename)
                         group_file = open(group_filename, mode="w", encoding="UTF-8")
@@ -5432,9 +5396,9 @@ class GroupConvert(bpy.types.Operator):
         while j < loop_length:
             if self.save_location != "":
                 if self.all_groups:
-                    filename = filenameCleanLower(bpy.data.node_groups[group].name)
+                    filename = bpy.path.clean_name(bpy.data.node_groups[group].name).lower()
                 else:
-                    filename = filenameCleanLower(group)
+                    filename = bpy.path.clean_name(group).lower()
 
                 group_location = self.save_location + filename + ".bcg"
                 group_file = open(group_location, mode="w", encoding="UTF-8")
