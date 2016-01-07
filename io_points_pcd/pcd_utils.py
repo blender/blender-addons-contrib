@@ -18,6 +18,10 @@
 
 import bpy
 
+import os
+import subprocess
+import tempfile
+
 from . import pcdparser
 
 
@@ -42,6 +46,24 @@ def create_and_link_mesh(name, points):
 
 
 def import_pcd(filepath, name="new_pointcloud"):
+    # check if the file is binary compressed
+    parser = pcdparser.PCDParser.factory(filepath, pcdparser.PointXYZ)
+    parser.onlyParseHeader()
+    is_binary_compressed = parser.datatype == 'BINARY_COMPRESSED'
+
+    # create a temp uncompressed pcd file
+    if (is_binary_compressed):
+        tmpdir = tempfile.TemporaryDirectory()
+        tmpfilepath = tmpdir.name + "blender_pcd_io_tmp.pcd"
+        try:
+            subprocess.call(["pcl_convert_pcd_ascii_binary", filepath, tmpfilepath, "1"])
+        except FileNotFoundError:
+            print("[ERROR] Can't read BINARY COMPRESSED PCD. No pcl_convert_pcd_ascii_binary found! Have you installed libPCL?")
+            return
+        filepath = tmpfilepath
+
+
+    # do actual parsing
     parser = pcdparser.PCDParser.factory(filepath, pcdparser.PointXYZ)
     parser.parseFile()
     points = parser.getPoints()

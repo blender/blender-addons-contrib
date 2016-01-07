@@ -18,6 +18,20 @@
 
 
 import struct
+import io
+
+try:
+    import lzf
+    GOT_LZF_MODULE=True
+except:
+    GOT_LZF_MODULE=False
+
+
+
+def dumpHexData(data):
+    for byte in data:
+        print(hex(byte) + " ", end="")
+    print()
 
 
 def encodeASCIILine(line):
@@ -107,6 +121,10 @@ class PCDParser:
         with open(self.filepath, 'rb') as self.file:
             self.parseHeader()
             self.parsePoints()
+
+    def onlyParseHeader(self):
+        with open(self.filepath, 'rb') as self.file:
+            self.parseHeader()
 
 
     def parseHeader(self):
@@ -226,6 +244,8 @@ class PCDParser_v0_7(PCDParser):
             self.datatype = 'ASCII'
         elif split[0] == "binary":
             self.datatype = 'BINARY'
+        elif split[0] == "binary_compressed":
+            self.datatype = 'BINARY_COMPRESSED'
         self.headerEnd = True
 
 
@@ -239,6 +259,12 @@ class PCDParser_v0_7(PCDParser):
             self.parseASCII()
         elif self.datatype == 'BINARY':
             self.parseBINARY()
+        elif self.datatype == 'BINARY_COMPRESSED':
+            if not GOT_LZF_MODULE:
+                print("[ERROR] No support for BINARY COMPRESSED data format.")
+                return
+            else:
+                self.parseBINARY_COMPRESSED()
 
 
     def parseASCII(self):
@@ -279,7 +305,27 @@ class PCDParser_v0_7(PCDParser):
             self.points.append(point)
 
 
-    def parseBINARY(self):
+    def parseBINARY_COMPRESSED(self):
+        """ BROKEN!!! - There seem to be uncompatiblities 
+            with pcl LZF and liblzf"""
+        max_size = 1024**3 # 1GB 
+        fs = '<i'
+        compressed_len = struct.unpack('<i', self.file.read(4))[0]
+        decompressed_len = struct.unpack('<i', self.file.read(4))[0]
+
+        compressed_body = self.file.read(compressed_len)
+        decompressed_body = lzf.decompress(compressed_body, max_size)
+
+        fobj = io.BytesIO(decompressed_body)
+        self.parseBINARY(fobj)
+
+
+
+    def parseBINARY(self, infile=""):
+        
+        if infile == "":
+            infile = self.file
+
         for pointi in range(self.numPoints):
             point = self.PointClass()
 
@@ -313,7 +359,7 @@ class PCDParser_v0_7(PCDParser):
                         elif fieldsize == 4: #signed int
                             fs =  '<i'
 
-                    raw = self.file.read(fieldsize)
+                    raw = infile.read(fieldsize)
                     if (fs):
                         data = struct.unpack(fs, raw)
                         values.append(data[0])
@@ -358,8 +404,6 @@ class PCDWriter:
                 f.write(" ")
                 f.write(str(point.z))
                 f.write("\n")
-
-
 
 
 
