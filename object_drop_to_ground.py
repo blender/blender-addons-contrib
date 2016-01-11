@@ -104,9 +104,8 @@ def drop_objects(self, context):
         if not lowest_world_co:
             print(ob.type, 'is not supported. Failed to drop', ob.name)
             continue
-        hit_location, hit_normal, hit_index = tmp_ground.ray_cast(lowest_world_co,
-                                                                  lowest_world_co + down)
-        if hit_index == -1:
+        is_hit, hit_location, hit_normal, hit_index = tmp_ground.ray_cast(lowest_world_co, down)
+        if not is_hit:
             print(ob.name, 'didn\'t hit the ground')
             continue
 
