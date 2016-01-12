@@ -829,7 +829,7 @@ class AddBProjectionPlane(Operator):
 
 
             bpy.ops.gpencil.data_add()
-            ob.grease_pencil.draw_mode = 'VIEW'
+            bpy.context.tool_settings.gpencil_stroke_placement_view3d = 'VIEW'
             bpy.ops.gpencil.layer_add()
             ob.grease_pencil.layers.active.color = [1.0,0,0]
 
