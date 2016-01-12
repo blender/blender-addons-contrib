@@ -129,26 +129,26 @@ def out_Location(rv3d, region, orig, vector):
     v1 = Vector((int(view_matrix[0][0]*1.5),int(view_matrix[0][1]*1.5),int(view_matrix[0][2]*1.5)))
     v2 = Vector((int(view_matrix[1][0]*1.5),int(view_matrix[1][1]*1.5),int(view_matrix[1][2]*1.5)))
 
-    hit = intersect_ray_tri(Vector((1,0,0)), Vector((0,1,0)), Vector((0,0,0)), (vector), (orig), False)
+    hit = intersect_ray_tri(Vector((1,0,0)), Vector((0,1,0)), Vector(), (vector), (orig), False)
     if hit == None:
-        hit = intersect_ray_tri(v1, v2, Vector((0,0,0)), (vector), (orig), False)        
+        hit = intersect_ray_tri(v1, v2, Vector(), (vector), (orig), False)
     if hit == None:
-        hit = intersect_ray_tri(v1, v2, Vector((0,0,0)), (-vector), (orig), False)
+        hit = intersect_ray_tri(v1, v2, Vector(), (-vector), (orig), False)
     if hit == None:
-        hit = Vector((0,0,0))
+        hit = Vector()
     return hit
 
 def snap_utilities(self,
-    context,
-    obj_matrix_world,
-    bm_geom,
-    bool_update,
-    mcursor,
-    outer_verts = False,
-    constrain = None,
-    previous_vert = None,
-    ignore_obj = None,
-    increment = 0.0):
+                context,
+                obj_matrix_world,
+                bm_geom,
+                bool_update,
+                mcursor,
+                outer_verts = False,
+                constrain = None,
+                previous_vert = None,
+                ignore_obj = None,
+                increment = 0.0):
 
     rv3d = context.region_data
     region = context.region
@@ -253,17 +253,15 @@ def snap_utilities(self,
 
         orig, view_vector = region_2d_to_orig_and_view_vector(region, rv3d, mcursor)
 
-        if outer_verts:
-            result, self.location, normal, face_index, self.out_obj, self.out_mat = context.scene.ray_cast(orig, view_vector)
-            self.out_mat_inv = self.out_mat.inverted()
-
-        if self.out_obj and self.out_obj != ignore_obj:
+        result, self.location, normal, face_index, self.out_obj, self.out_mat = context.scene.ray_cast(orig, view_vector, 3.3e+38)
+        if result and self.out_obj != ignore_obj:
             self.type = 'FACE'
             if outer_verts:
                 if face_index != -1:
                     try:
                         verts = self.out_obj.data.polygons[face_index].vertices
                         v_dist = 100
+
                         for i in verts:
                             v_co = self.out_mat*self.out_obj.data.vertices[i].co
                             v_2d = location_3d_to_region_2d(region, rv3d, v_co)
@@ -281,7 +279,11 @@ def snap_utilities(self,
                 self.location = intersect_point_line(self.preloc, constrain[0], constrain[1])[0]
         else:
             if constrain:
-                self.location = intersect_line_line(constrain[0], constrain[1], orig, orig+view_vector)[0]
+                location = intersect_line_line(constrain[0], constrain[1], orig, orig+view_vector)
+                if location:
+                    self.location = location[0]
+                else:
+                    self.location = constrain[0]
             else:
                 self.location = out_Location(rv3d, region, orig, view_vector)
 
