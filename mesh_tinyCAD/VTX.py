@@ -5,7 +5,7 @@ from mathutils import Vector
 from mathutils.geometry import intersect_line_line as LineIntersect
 from mathutils.geometry import intersect_point_line as PtLineIntersect
 
-from mesh_tinyCAD import cad_module as cm
+from . import cad_module as cm
 
 
 def getVTX(self):
@@ -112,10 +112,9 @@ def doVTX(self):
     bmesh.update_edit_mesh(self.me, True)
 
 
-class AutoVTX(bpy.types.Operator):
-    bl_idname = 'mesh.autovtx'
-    bl_label = 'autoVTX'
-    # bl_options = {'REGISTER', 'UNDO'}
+class TCAutoVTX(bpy.types.Operator):
+    bl_idname = 'tinycad.autovtx'
+    bl_label = 'VTX autoVTX'
 
     VTX_PRECISION = 1.0e-5  # or 1.0e-6 ..if you need
 
@@ -144,3 +143,11 @@ class AutoVTX(bpy.types.Operator):
             doVTX(self)
 
         return {'FINISHED'}
+
+
+def register():
+    bpy.utils.register_module(__name__)
+
+
+def unregister():
+    bpy.utils.unregister_module(__name__)

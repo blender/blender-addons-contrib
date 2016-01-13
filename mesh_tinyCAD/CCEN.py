@@ -66,7 +66,10 @@ def generate_gp3d_stroke(layer, p1, v1, axis, mw, origin, num_verts):
 
     layer.show_points = True  # is this still broken? GP bug, reported!
 
-    layer.color = bpy.context.scene.tc_gp_color
+    props = bpy.context.scene.tinycad_props
+    layer.color = props.gp_color
+    rescale = props.rescale
+
     s = layer.frames[0].strokes.new()
     s.draw_mode = '3DSPACE'
 
@@ -75,7 +78,7 @@ def generate_gp3d_stroke(layer, p1, v1, axis, mw, origin, num_verts):
     for i in range(num_verts + 1):
         theta = gamma * i
         mat_rot = mathutils.Matrix.Rotation(theta, 4, axis)
-        local_point = mw * (mat_rot * (v1 - p1))  # + origin
+        local_point = mw * (mat_rot * ((v1 - p1) * rescale))  # + origin
         world_point = local_point - (origin - (mw * p1))
         chain.append(world_point)
 
@@ -92,14 +95,16 @@ def generate_bmesh_repr(p1, v1, axis, num_verts):
         axis:   orientation matrix
         origin: obj.location
     '''
+    props = bpy.context.scene.tinycad_props
+    rescale = props.rescale
 
-    # generate geometr up front
+    # generate geometry up front
     chain = []
     gamma = 2 * math.pi / num_verts
     for i in range(num_verts + 1):
         theta = gamma * i
         mat_rot = mathutils.Matrix.Rotation(theta, 4, axis)
-        local_point = (mat_rot * (v1 - p1))
+        local_point = (mat_rot * ((v1 - p1) * rescale))
         chain.append(local_point + p1)
 
     obj = bpy.context.edit_object
@@ -180,17 +185,17 @@ def get_three_verts_from_selection(obj):
 def dispatch(context, mode=0):
     obj = context.edit_object
     pts = get_three_verts_from_selection(obj)
-    nv = context.scene.tc_num_verts
-    generate_3PT(pts, obj, nv, mode)
+    props = context.scene.tinycad_props
+    generate_3PT(pts, obj, props.num_verts, mode)
 
 
 ''' Operators '''
 
 
-class CircleCenter(bpy.types.Operator):
+class TCCircleCenter(bpy.types.Operator):
 
-    bl_idname = 'mesh.circlecenter'
-    bl_label = 'circle center from selected'
+    bl_idname = 'tinycad.circlecenter'
+    bl_label = 'CCEN circle center from selected'
     bl_options = {'REGISTER', 'UNDO'}
 
     def draw(self, context):
@@ -198,9 +203,10 @@ class CircleCenter(bpy.types.Operator):
         l = self.layout
         col = l.column()
 
-        col.prop(scn, 'tc_gp_color', text='layer color')
-        col.prop(scn, 'tc_num_verts', text='num verts')
-        col.operator('mesh.circlemake', text='Make Mesh')
+        col.prop(scn.tinycad_props, 'gp_color', text='layer color')
+        col.prop(scn.tinycad_props, 'num_verts', text='num verts')
+        col.prop(scn.tinycad_props, 'rescale', text='rescale')
+        col.operator('tinycad.circlemake', text='Make Mesh')
 
     @classmethod
     def poll(self, context):
@@ -212,9 +218,9 @@ class CircleCenter(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CircleMake(bpy.types.Operator):
-
-    bl_idname = 'mesh.circlemake'
+class TCCircleMake(bpy.types.Operator):
+    """this is a private op, used by the TCCircleCenter Op only"""
+    bl_idname = 'tinycad.circlemake'
     bl_label = 'circle mesh from selected'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -222,8 +228,16 @@ class CircleMake(bpy.types.Operator):
         scn = context.scene
         l = self.layout
         col = l.column()
-        col.prop(scn, 'tc_num_verts', text='num verts')
+        col.prop(scn.tinycad_props, 'num_verts', text='num verts')
 
     def execute(self, context):
         dispatch(context, mode=1)  # bake mesh
         return {'FINISHED'}
+
+
+def register():
+    bpy.utils.register_module(__name__)
+
+
+def unregister():
+    bpy.utils.unregister_module(__name__)

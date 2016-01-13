@@ -47,10 +47,10 @@ def add_vertex_to_intersection():
         bmesh.update_edit_mesh(me)
 
 
-class Vert2Intersection(bpy.types.Operator):
+class TCVert2Intersection(bpy.types.Operator):
 
-    bl_idname = 'mesh.vertintersect'
-    bl_label = 'v2x vertex to intersection'
+    bl_idname = 'tinycad.vertintersect'
+    bl_label = 'V2X vertex to intersection'
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -61,3 +61,11 @@ class Vert2Intersection(bpy.types.Operator):
     def execute(self, context):
         add_vertex_to_intersection()
         return {'FINISHED'}
+
+
+def register():
+    bpy.utils.register_module(__name__)
+
+
+def unregister():
+    bpy.utils.unregister_module(__name__)
