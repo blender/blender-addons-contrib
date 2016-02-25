@@ -55,9 +55,9 @@ def amaranth_text_startup(context):
 
         if not amth_text_exists:
             bpy.ops.text.new()
-            amth_text = bpy.data.texts[-1]
+            amth_text = bpy.data.texts[((len(bpy.data.texts) * -1) + 1)]
             amth_text.name = amth_text_name
-            amth_text.write("# Amaranth Startup Script\nimport bpy\n\n")
+            amth_text.write("# Amaranth Startup Script\nimport bpy\n")
             amth_text.use_module = True
 
         return amth_text_exists
