@@ -2662,18 +2662,9 @@ class Snap3DUtility(SnapUtilityBase):
                 # returns points in flipped order
                 lb, la = sec
 
-            # Note: in 2.77 the ray_cast API has changed.
-            # was: location, normal, index
-            # now: result, location, normal, index
-            def ray_cast(obj, la, lb):
-                res = obj.ray_cast(la, lb)
-                if bpy.app.version < (2, 77, 0):
-                    return ((res[-1] >= 0), res[0], res[1], res[2])
-                return res
-
             # Does ray actually intersect something?
             try:
-                success, lp, ln, face_id = ray_cast(obj, la, lb)
+                success, lp, ln, face_id = obj.ray_cast(obj, la, lb)
             except Exception as e:
                 # Somewhy this seems to happen when snapping cursor
                 # in Local View mode at least since r55223:
@@ -2684,7 +2675,7 @@ class Snap3DUtility(SnapUtilityBase):
                     # Work-around: in Local View at least the object
                     # in focus permits raycasting (modifiers are
                     # applied in 'PREVIEW' mode)
-                    success, lp, ln, face_id = ray_cast(orig_obj, la, lb)
+                    success, lp, ln, face_id = orig_obj.ray_cast(la, lb)
                 except Exception as e:
                     # However, in Edit mode in Local View we have
                     # no luck -- during the edit mode, mesh is
