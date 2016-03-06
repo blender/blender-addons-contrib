@@ -4005,13 +4005,6 @@ class Cursor3DToolsSettings(bpy.types.PropertyGroup):
         type=TransformExtraOptionsProp,
         options={'HIDDEN'})
 
-    cursor_visible = bpy.props.BoolProperty(
-        name="Cursor visibility",
-        description="Show/hide cursor. When hidden, "\
-"Blender continuously redraws itself (eats CPU like crazy, "\
-"and becomes the less responsive the more complex scene you have)!",
-        default=True)
-
     draw_guides = bpy.props.BoolProperty(
         name="Guides",
         description="Display guides",
@@ -4170,19 +4163,7 @@ class Cursor3DTools(bpy.types.Panel):
 
         row = layout.row()
         row.label(text="Draw")
-        '''
-        row.prop(settings, "cursor_visible", text="", toggle=True,
-                 icon=('RESTRICT_VIEW_OFF' if settings.cursor_visible
-                       else 'RESTRICT_VIEW_ON'))
-        #'''
-        #'''
-        subrow = row.row()
-        #subrow.enabled = False
-        subrow.alert = True
-        subrow.prop(settings, "cursor_visible", text="", toggle=True,
-                 icon=('RESTRICT_VIEW_OFF' if settings.cursor_visible
-                       else 'RESTRICT_VIEW_ON'))
-        #'''
+
         row = row.split(1 / 3, align=True)
         row.prop(settings, "draw_N",
             text="N", toggle=True, index=0)
@@ -5195,36 +5176,6 @@ def draw_callback_view(self, context):
             color_prev[3])
 
     cursor_save_location = Vector(context.space_data.cursor_location)
-    if not settings.cursor_visible:
-        # This is causing problems! See <https://developer.blender.org/T33197>
-        #bpy.context.space_data.cursor_location = Vector([float('nan')] * 3)
-
-        region = context.region
-        v3d = context.space_data
-        rv3d = context.region_data
-
-        pixelsize = 1
-        dpi = context.user_preferences.system.dpi
-        widget_unit = (pixelsize * dpi * 20.0 + 36.0) / 72.0
-
-        cursor_w = widget_unit*2
-        cursor_h = widget_unit*2
-
-        viewinv = rv3d.view_matrix.inverted()
-        persinv = rv3d.perspective_matrix.inverted()
-
-        origin_start = viewinv.translation
-        view_direction = viewinv.col[2].xyz#.normalized()
-        depth_location = origin_start - view_direction
-
-        coord = (-cursor_w, -cursor_h)
-        dx = (2.0 * coord[0] / region.width) - 1.0
-        dy = (2.0 * coord[1] / region.height) - 1.0
-        p = ((persinv.col[0].xyz * dx) +
-             (persinv.col[1].xyz * dy) +
-             depth_location)
-
-        context.space_data.cursor_location = p
 
 def draw_callback_header_px(self, context):
     r = context.region
@@ -5248,9 +5199,6 @@ def draw_callback_px(self, context):
     if settings is None:
         return
     library = settings.libraries.get_item()
-
-    if not settings.cursor_visible:
-        context.space_data.cursor_location = cursor_save_location
 
     tfm_operator = CursorDynamicSettings.active_transform_operator
 
