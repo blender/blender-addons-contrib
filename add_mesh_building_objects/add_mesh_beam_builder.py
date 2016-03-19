@@ -78,7 +78,7 @@ def create_mesh (self, context, name, verts, faces, debug):
     if debug:
         print("create_mesh function called and finished")
 
-    return object_utils.object_data_add(context, mesh, operator=self)
+    return object_utils.object_data_add(context, mesh, operator=None)
 
 
 def recalc_normals(debug):
@@ -1135,8 +1135,9 @@ class Add_C_Beam(bpy.types.Operator):
         # and apply rotation to reset those values
         # if self.type is true, do nothing as beam is alreay u-type.
         # rotation value is in radians
-            bpy.ops.transform.rotate(value=[1.570796], constraint_axis=[False, True, False])
+            bpy.ops.transform.rotate(value=1.5708, axis=(0, 1, 0))
             bpy.ops.object.transform_apply(location=False, rotation =True, scale=False)
+
 
         return {'FINISHED'}
 
