@@ -80,12 +80,12 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
                     val=((f.normal).normalized() * inset_amount)
                 else:
                     val=-((f.normal).normalized() * inset_amount)
-                p6 = angle_rotation(p,p + val,vec1,radians(90))                
+                p6 = angle_rotation(p,p + val,vec1,radians(90))
             else:
                 #if the corner is an actual corner
                 val=((f.normal).normalized() * h)
                 if out==True:
-                    #this shit -(p - (vec2.normalized() * adj))) is just the freaking axis afaik...
+                    # -(p - (vec2.normalized() * adj))) is the axis
                     p6 = angle_rotation(p,p + val, -(p - (vec2.normalized() * adj)),-radians(90))
                 else:
                     p6 = angle_rotation(p,p - val,((p - (vec1.normalized() * adj)) - (p - (vec2.normalized() * adj))),
@@ -121,23 +121,19 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
                     d = distance / tan(ang_ * 0.5)
                 #max(d) is vec1_.magnitude*0.5
                 #or vec2_.magnitude*0.5 respectively
-                
-                #only functional difference v
-                
+
                 if d >vec1_.magnitude*0.5:
                     d=vec1_.magnitude*0.5
                 if d >vec2_.magnitude*0.5:
                     d=vec2_.magnitude*0.5
-                    
-                #only functional difference ^ 
-                    
+
                 q3 = q - (vec1_.normalized() * d)
                 q4 = q - (vec2_.normalized() * d)
                 #these are new verts somewhat offset from the coners
                 rp_ = q - ((q - ((q3 + q4) * 0.5)).normalized() * h_)
                 #reference point inside the curvature
                 axis_ = vec1_.cross(vec2_)
-                #this should really be just the face normal
+                #face normal
                 vec3_ = rp_ - q3
                 vec4_ = rp_ - q4
                 rot_ang = vec3_.angle(vec4_)
@@ -145,7 +141,7 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
                 
                 for o in range(number_of_sides + 1):
                     
-                    #this calculates the actual new vertices
+                    #calculates the actual new vertices
                     
                     q5 = angle_rotation(rp_,q4,axis_,rot_ang * o / number_of_sides)
                     v = bme.verts.new(q5)
@@ -231,7 +227,7 @@ class faceinfillet_op0(bpy.types.Operator):
         row2.prop(self, 'distance')
 
     def execute(self, context):
-        #this really just prepares everything for the main function
+        #prepares everything for the main function
         inset_amount = self.inset_amount
         number_of_sides = self.number_of_sides
         distance = self.distance
