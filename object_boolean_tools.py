@@ -107,7 +107,7 @@ def isFTransf():
 # EXPERIMENTAL FEATURES
 def isMakeVertexGroup():
     user_preferences = bpy.context.user_preferences
-    addon_prefs = user_preferences.addons[bl_info["name"]].preferences
+    addon_prefs = user_preferences.addons[__name__].preferences
     if addon_prefs.make_vertex_groups:
         return True
     else:
@@ -115,7 +115,7 @@ def isMakeVertexGroup():
 
 def isMakeBoundary():
     user_preferences = bpy.context.user_preferences
-    addon_prefs = user_preferences.addons[bl_info["name"]].preferences
+    addon_prefs = user_preferences.addons[__name__].preferences
     if addon_prefs.make_boundary:
         return True
     else:
@@ -133,7 +133,7 @@ def ConvertToMesh(obj):
 # Do the Union, Difference and Intersection Operations with a Brush
 def Operation(context, _operation):
 
-    useWire = bpy.context.user_preferences.addons['object_boolean_tools'].preferences.use_wire
+    useWire = bpy.context.user_preferences.addons[__name__].preferences.use_wire
 
     for selObj in bpy.context.selected_objects:
         if selObj != context.active_object and (selObj.type == "MESH" or selObj.type == "CURVE"):
@@ -182,7 +182,7 @@ def Operation(context, _operation):
 def Operation_Direct(context, _operation):
     actObj = context.active_object
 
-    useWire = bpy.context.user_preferences.addons['object_boolean_tools'].preferences.use_wire
+    useWire = bpy.context.user_preferences.addons[__name__].preferences.use_wire
     for selObj in bpy.context.selected_objects:
         if selObj != context.active_object and (selObj.type == "MESH" or selObj.type == "CURVE"):
             if selObj.type == "CURVE":
