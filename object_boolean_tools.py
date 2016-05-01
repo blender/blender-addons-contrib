@@ -18,7 +18,7 @@
 # Contributed to by TynkaTopi, meta-androcto
 
 bl_info = {
-    "name": "BoolTool",
+    "name": "Bool Tool",
     "author": "Vitor Balbio, Mikhail Rachinskiy",
     "version": (0, 3, 0),
     "blender": (2, 77, 0),
@@ -66,7 +66,7 @@ def isBrush(_obj):
         return False
 
 
-# Object is a Poly Brush Tool Bool
+# Object is a Poly Brush Tool Bool collection
 def isPolyBrush(_obj):
     try:
         if _obj["BoolToolPolyBrush"]:
@@ -92,8 +92,9 @@ def FindCanvas(obj):
 
 
 def isFTransf():
+    addons = bpy.context.user_preferences.addons
     user_preferences = bpy.context.user_preferences
-    addon_prefs = user_preferences.addons[bl_info["name"]].preferences
+    addon_prefs = addons[__name__].preferences
     if addon_prefs.fast_transform:
         return True
     else:
@@ -130,7 +131,7 @@ def ConvertToMesh(obj):
 # Do the Union, Difference and Intersection Operations with a Brush
 def Operation(context, _operation):
 
-    useWire = bpy.context.user_preferences.addons['BoolTool'].preferences.use_wire
+    useWire = bpy.context.user_preferences.addons['object_boolean_tools'].preferences.use_wire
 
     for selObj in bpy.context.selected_objects:
         if selObj != context.active_object and (selObj.type == "MESH" or selObj.type == "CURVE"):
@@ -179,7 +180,7 @@ def Operation(context, _operation):
 def Operation_Direct(context, _operation):
     actObj = context.active_object
 
-    useWire = bpy.context.user_preferences.addons['name'].preferences.use_wire
+    useWire = bpy.context.user_preferences.addons['object_boolean_tools'].preferences.use_wire
     for selObj in bpy.context.selected_objects:
         if selObj != context.active_object and (selObj.type == "MESH" or selObj.type == "CURVE"):
             if selObj.type == "CURVE":
@@ -502,7 +503,7 @@ class BTool_FastTransform(bpy.types.Operator):
     def modal(self, context, event):
         self.count += 1
         actObj = bpy.context.active_object
-        useWire = bpy.context.user_preferences.addons['object_bool_tool'].preferences.use_wire
+        useWire = bpy.context.user_preferences.addons[__name__].preferences.use_wire
         if self.count == 1:
 
             if isBrush(actObj) and actObj["BoolTool_FTransform"] == "True":
