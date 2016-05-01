@@ -21,7 +21,7 @@ bl_info = {
     "name": "Bool Tool",
     "author": "Vitor Balbio, Mikhail Rachinskiy",
     "version": (0, 3, 1),
-    "blender": (2, 77),
+    "blender": (2, 77, 0),
     "location": "View3D > Toolshelf > BoolTool",
     "description": "Bool Tools Hotkey: Ctrl Shift B",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/BoolTool",
@@ -899,34 +899,34 @@ class BoolTool_Menu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.label(text="Auto Boolean:")
-        self.layout.operator(Direct_Difference.bl_idname, icon="ROTACTIVE")
-        self.layout.operator(Direct_Union.bl_idname, icon="ROTATECOLLECTION")
-        self.layout.operator(Direct_Intersect.bl_idname, icon="ROTATECENTER")
-        self.layout.operator(Direct_Slice.bl_idname, icon="ROTATECENTER")
-        self.layout.operator(Direct_Subtract.bl_idname, icon="ROTACTIVE")
-        self.layout.separator()
+        layout.label("Auto Boolean:")
+        layout.operator(Direct_Difference.bl_idname, icon="ROTACTIVE")
+        layout.operator(Direct_Union.bl_idname, icon="ROTATECOLLECTION")
+        layout.operator(Direct_Intersect.bl_idname, icon="ROTATECENTER")
+        layout.operator(Direct_Slice.bl_idname, icon="ROTATECENTER")
+        layout.operator(Direct_Subtract.bl_idname, icon="ROTACTIVE")
+        layout.separator()
 
-        layout.label(text="Brush Boolean:")
-        self.layout.operator(BTool_Diff.bl_idname, icon="ROTACTIVE")
-        self.layout.operator(BTool_Union.bl_idname, icon="ROTATECOLLECTION")
-        self.layout.operator(BTool_Inters.bl_idname, icon="ROTATECENTER")
-        self.layout.operator(BTool_Slice.bl_idname, icon="ROTATECENTER")
-        self.layout.separator()
+        layout.label("Brush Boolean:")
+        layout.operator(BTool_Diff.bl_idname, icon="ROTACTIVE")
+        layout.operator(BTool_Union.bl_idname, icon="ROTATECOLLECTION")
+        layout.operator(BTool_Inters.bl_idname, icon="ROTATECENTER")
+        layout.operator(BTool_Slice.bl_idname, icon="ROTATECENTER")
+        layout.separator()
 
-        self.layout.operator(BTool_DrawPolyBrush.bl_idname, icon="LINE_DATA")
+        layout.operator(BTool_DrawPolyBrush.bl_idname, icon="LINE_DATA")
 
         if (isCanvas(context.active_object)):
-            self.layout.separator()
-            self.layout.operator(BTool_AllBrushToMesh.bl_idname, icon="MOD_LATTICE", text="Apply All")
-            Rem = self.layout.operator(BTool_Remove.bl_idname, icon="CANCEL", text="Remove All")
+            layout.separator()
+            layout.operator(BTool_AllBrushToMesh.bl_idname, icon="MOD_LATTICE", text="Apply All")
+            Rem = layout.operator(BTool_Remove.bl_idname, icon="CANCEL", text="Remove All")
             Rem.thisObj = ""
             Rem.Prop = "CANVAS"
 
         if (isBrush(context.active_object)):
-            self.layout.separator()
-            self.layout.operator(BTool_BrushToMesh.bl_idname, icon="MOD_LATTICE", text="Apply Brush")
-            Rem = self.layout.operator(BTool_Remove.bl_idname, icon="CANCEL", text="Remove Brush")
+            layout.separator()
+            layout.operator(BTool_BrushToMesh.bl_idname, icon="MOD_LATTICE", text="Apply Brush")
+            Rem = layout.operator(BTool_Remove.bl_idname, icon="CANCEL", text="Remove Brush")
             Rem.thisObj = ""
             Rem.Prop = "BRUSH"
 
@@ -937,15 +937,17 @@ def VIEW3D_BoolTool_Menu(self, context):
 
 # ---------------- Bool Tools ---------------------
 class BoolTool_Tools(Panel):
-    bl_label = "Bool Tool Operators"
+    bl_label = "Tools"
     bl_idname = "BoolTool_Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = "BoolTool"
+    bl_category = "Bool Tool"
     bl_context = "objectmode"
 
     def draw(self, context):
-        row = self.layout.row(True)
+        layout = self.layout
+
+        row = layout.row(True)
         col = row.column(True)
         col.label("Auto Boolean:", icon="MODIFIER")
         col.separator()
@@ -956,8 +958,8 @@ class BoolTool_Tools(Panel):
         col.operator(Direct_Slice.bl_idname, icon="ROTATECENTER")
         col.operator(Direct_Subtract.bl_idname, icon="ROTACTIVE")
 
-        self.layout.separator()
-        row = self.layout.row(True)
+        layout.separator()
+        row = layout.row(True)
         col = row.column(True)
         col.label("Brush Boolean:", icon="MODIFIER")
         col.separator()
@@ -966,8 +968,8 @@ class BoolTool_Tools(Panel):
         col.operator(BTool_Inters.bl_idname, text="Intersect", icon="ROTATECENTER")
         col.operator(BTool_Slice.bl_idname, text="Slice", icon="ROTATECENTER")
 
-        self.layout.separator()
-        row = self.layout.row(True)
+        layout.separator()
+        row = layout.row(True)
         col = row.column(True)
         col.label("Draw:", icon="MESH_CUBE")
         col.separator()
@@ -981,7 +983,7 @@ class BoolTool_Config(Panel):
     bl_idname = "BoolTool_BConfig"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = "BoolTool"
+    bl_category = "Bool Tool"
     bl_context = "objectmode"
 
     @classmethod
@@ -997,23 +999,24 @@ class BoolTool_Config(Panel):
         actObj = bpy.context.active_object
         icon = ""
 
-        row = self.layout.row(True)
+        layout = self.layout
+        row = layout.row(True)
 
         # CANVAS ---------------------------------------------------
         if isCanvas(actObj):
             row.label("CANVAS", icon="MESH_GRID")
-            row = self.layout.row()
-            row.prop(context.scene,'BoolHide', text ="Hide Bool objects")
-            row = self.layout.row(True)
+            row = layout.row()
+            row.prop(context.scene, 'BoolHide', text="Hide Bool objects")
+            row = layout.row(True)
             row.operator(BTool_AllBrushToMesh.bl_idname, icon="MOD_LATTICE", text="Apply All")
 
-            row = self.layout.row(True)
+            row = layout.row(True)
             Rem = row.operator(BTool_Remove.bl_idname, icon="CANCEL", text="Remove All")
             Rem.thisObj = ""
             Rem.Prop = "CANVAS"
 
             if isBrush(actObj):
-                self.layout.separator()
+                layout.separator()
 
         # BRUSH ------------------------------------------------------
         if isBrush(actObj):
@@ -1028,9 +1031,9 @@ class BoolTool_Config(Panel):
                 icon = "ROTATECENTER"
 
 
-            row = self.layout.row(True)
+            row = layout.row(True)
             row.label("BRUSH", icon=icon)
-            # self.layout.separator()
+            # layout.separator()
 
             icon = ""
             if actObj["BoolTool_FTransform"] == "True":
@@ -1041,31 +1044,31 @@ class BoolTool_Config(Panel):
                 pass
 
             if isFTransf():
-                row = self.layout.row(True)
+                row = layout.row(True)
                 row.operator(BTool_EnableFTransform.bl_idname, text="Fast Vis", icon=icon)
                 Enable = row.operator(BTool_EnableThisBrush.bl_idname, text="Enable", icon="VISIBLE_IPO_ON")
-                row = self.layout.row(True)
+                row = layout.row(True)
             else:
                 Enable = row.operator(BTool_EnableThisBrush.bl_idname, icon="VISIBLE_IPO_ON")
-                row = self.layout.row(True)
+                row = layout.row(True)
 
         if isPolyBrush(actObj):
-            row = self.layout.row(False)
+            row = layout.row(False)
             row.label("POLY BRUSH", icon="LINE_DATA")
             mod = actObj.modifiers["BTool_PolyBrush"]
-            row = self.layout.row(False)
+            row = layout.row(False)
             row.prop(mod, "thickness", text="Size")
-            self.layout.separator()
+            layout.separator()
 
         if isBrush(actObj):
-            row = self.layout.row(True)
+            row = layout.row(True)
             row.operator(BTool_BrushToMesh.bl_idname, icon="MOD_LATTICE", text="Apply Brush")
-            row = self.layout.row(True)
+            row = layout.row(True)
             Rem = row.operator(BTool_Remove.bl_idname, icon="CANCEL", text="Remove Brush")
             Rem.thisObj = ""
             Rem.Prop = "BRUSH"
 
-        self.layout.separator()
+        layout.separator()
 
 
 # ---------- Tree Viewer-------------------------------------------------------
@@ -1074,7 +1077,7 @@ class BoolTool_BViwer(Panel):
     bl_idname = "BoolTool_BViwer"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = "BoolTool"
+    bl_category = "Bool Tool"
     bl_context = "objectmode"
 
     @classmethod
@@ -1153,20 +1156,34 @@ def UpdateBoolTool_Pref(self, context):
 class BoolTool_Pref(bpy.types.AddonPreferences):
     bl_idname = __name__
 
-    fast_transform = bpy.props.BoolProperty(name="Fast Transformations", default=False, update=UpdateBoolTool_Pref,
-                                            description="Replace the Transform HotKeys (G,R,S) for a custom version that can optimize the visualization of Brushes")
+    fast_transform = bpy.props.BoolProperty(
+        name="Fast Transformations",
+        default=False,
+        update=UpdateBoolTool_Pref,
+        description="Replace the Transform HotKeys (G,R,S) for a custom version that can optimize the visualization of Brushes"
+    )
 
-    make_vertex_groups = bpy.props.BoolProperty(name="Make Vertex Groups", default=False,
-                                                description="When Apply a Brush to de Object it will create a new vertex group of the new faces")
-    make_boundary = bpy.props.BoolProperty(name="Make Boundary", default=False,
-                                           description="When Apply a Brush to de Object it will create a new vertex group of the bondary boolean area")
-    use_wire = bpy.props.BoolProperty(name="Use Bmesh", default=False, description="Use The Wireframe Instead Of Boolean")
+    make_vertex_groups = bpy.props.BoolProperty(
+        name="Make Vertex Groups",
+        default=False,
+        description="When Apply a Brush to de Object it will create a new vertex group of the new faces"
+    )
+    make_boundary = bpy.props.BoolProperty(
+        name="Make Boundary",
+        default=False,
+        description="When Apply a Brush to de Object it will create a new vertex group of the bondary boolean area"
+    )
+    use_wire = bpy.props.BoolProperty(
+        name="Use Bmesh",
+        default=False,
+        description="Use The Wireframe Instead Of Boolean"
+    )
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text="Experimental Features:")
+        layout.label("Experimental Features:")
         layout.prop(self, "fast_transform")
-        layout.prop(self, "use_wire", text = "Use Wire Instead Of Bbox ")
+        layout.prop(self, "use_wire", text="Use Wire Instead Of Bbox")
         """
         # EXPERIMENTAL
         layout.prop(self, "make_vertex_groups")
@@ -1241,7 +1258,7 @@ def register():
 
     wm = bpy.context.window_manager
         # Scene variables
-    bpy.types.Scene.BoolHide = bpy.props.BoolProperty(default = False, description ='Hide boolean objects', update = update_BoolHide)
+    bpy.types.Scene.BoolHide = bpy.props.BoolProperty(default=False, description='Hide boolean objects', update=update_BoolHide)
     # Handlers
     bpy.app.handlers.scene_update_post.append(HandleScene)
 
