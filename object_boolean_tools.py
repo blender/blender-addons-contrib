@@ -41,14 +41,12 @@ from bpy.types import Operator
 
 # Hide boolean objects
 def update_BoolHide(self, context):
-	ao = context.scene.objects.active
-	objs = [i.object for i in ao.modifiers if i.type == 'BOOLEAN']
-	bool = False
-	if context.scene.BoolHide:
-		bool = True
+    ao = context.scene.objects.active
+    objs = [i.object for i in ao.modifiers if i.type == 'BOOLEAN']
+    hide_state = context.scene.BoolHide
 
-	for o in objs:
-		o.hide = bool
+    for o in objs:
+        o.hide = hide_state
 
 # Object is a Canvas
 def isCanvas(_obj):
@@ -609,126 +607,126 @@ class BTool_Slice(bpy.types.Operator):
 # Booltron Direct FUNCTIONS ---------------------------------------------------
 
 def mesh_selection(ob, select_action):
-	context = bpy.context
-	scene = context.scene
-	obj = context.active_object
-	ops_me = bpy.ops.mesh
-	ops_ob = bpy.ops.object
+    context = bpy.context
+    scene = context.scene
+    obj = context.active_object
+    ops_me = bpy.ops.mesh
+    ops_ob = bpy.ops.object
 
-	scene.objects.active = ob
-	ops_ob.mode_set(mode="EDIT")
-	ops_me.select_all(action=select_action)
-	ops_ob.mode_set(mode="OBJECT")
-	scene.objects.active = obj
+    scene.objects.active = ob
+    ops_ob.mode_set(mode="EDIT")
+    ops_me.select_all(action=select_action)
+    ops_ob.mode_set(mode="OBJECT")
+    scene.objects.active = obj
 
 
 
 def modifier_boolean(obj, ob, mode):
-	md = obj.modifiers.new('Bool_up', 'BOOLEAN')
-	md.show_viewport = False
-	md.show_render = False
-	md.operation = mode
-	md.object = ob
+    md = obj.modifiers.new('Bool_up', 'BOOLEAN')
+    md.show_viewport = False
+    md.show_render = False
+    md.operation = mode
+    md.object = ob
 
-	bpy.ops.object.modifier_apply(modifier="Bool_up")
-	bpy.context.scene.objects.unlink(ob)
-	bpy.data.objects.remove(ob)
+    bpy.ops.object.modifier_apply(modifier="Bool_up")
+    bpy.context.scene.objects.unlink(ob)
+    bpy.data.objects.remove(ob)
 
 
 
 def boolean_each(mode):
-	context = bpy.context
-	obj = context.active_object
+    context = bpy.context
+    obj = context.active_object
 
-	obj.select = False
-	obs = context.selected_objects
+    obj.select = False
+    obs = context.selected_objects
 
-	mesh_selection(obj, 'DESELECT')
-	for ob in obs:
-		mesh_selection(ob, 'SELECT')
-		modifier_boolean(obj, ob, mode)
-	obj.select = True
+    mesh_selection(obj, 'DESELECT')
+    for ob in obs:
+        mesh_selection(ob, 'SELECT')
+        modifier_boolean(obj, ob, mode)
+    obj.select = True
 
 
 
 def separate():
-	context = bpy.context
-	scene = context.scene
-	obj = context.active_object
+    context = bpy.context
+    scene = context.scene
+    obj = context.active_object
 
 
-	def object_duplicate(ob):
-		ops_ob = bpy.ops.object
-		ops_ob.select_all(action="DESELECT")
-		ops_ob.select_pattern(pattern=ob.name)
-		ops_ob.duplicate()
-		return context.selected_objects[0]
+    def object_duplicate(ob):
+        ops_ob = bpy.ops.object
+        ops_ob.select_all(action="DESELECT")
+        ops_ob.select_pattern(pattern=ob.name)
+        ops_ob.duplicate()
+        return context.selected_objects[0]
 
 
-	obj.select = False
-	ob = context.selected_objects[0]
+    obj.select = False
+    ob = context.selected_objects[0]
 
-	obj_copy = object_duplicate(obj)
-	ob_copy = object_duplicate(ob)
+    obj_copy = object_duplicate(obj)
+    ob_copy = object_duplicate(ob)
 
-	mode = 'INTERSECT'
-	mesh_selection(obj_copy, 'SELECT')
-	mesh_selection(ob, 'DESELECT')
-	scene.objects.active = ob
-	modifier_boolean(ob, obj_copy, mode)
+    mode = 'INTERSECT'
+    mesh_selection(obj_copy, 'SELECT')
+    mesh_selection(ob, 'DESELECT')
+    scene.objects.active = ob
+    modifier_boolean(ob, obj_copy, mode)
 
-	mode = 'DIFFERENCE'
-	mesh_selection(ob_copy, 'SELECT')
-	mesh_selection(obj, 'DESELECT')
-	scene.objects.active = obj
-	modifier_boolean(obj, ob_copy, mode)
-	obj.select = True
+    mode = 'DIFFERENCE'
+    mesh_selection(ob_copy, 'SELECT')
+    mesh_selection(obj, 'DESELECT')
+    scene.objects.active = obj
+    modifier_boolean(obj, ob_copy, mode)
+    obj.select = True
 
 # Booltron Direct Operators ---------------------------------------------------
 
 class UNION(Operator):
-	'''Combine objects in an additive way'''
-	bl_idname = "bool_up.union"
-	bl_label = "Union"
-	bl_options = {'REGISTER', 'UNDO'}
+    '''Combine objects in an additive way'''
+    bl_idname = "bool_up.union"
+    bl_label = "Union"
+    bl_options = {'REGISTER', 'UNDO'}
 
-	def execute(self, context):
-		boolean_each('UNION')
-		return {'FINISHED'}
+    def execute(self, context):
+        boolean_each('UNION')
+        return {'FINISHED'}
 
 class DIFFERENCE(Operator):
-	'''Combine objects in a subtractive way'''
-	bl_idname = "bool_up.difference"
-	bl_label = "Difference"
-	bl_options = {'REGISTER', 'UNDO'}
+    '''Combine objects in a subtractive way'''
+    bl_idname = "bool_up.difference"
+    bl_label = "Difference"
+    bl_options = {'REGISTER', 'UNDO'}
 
-	def execute(self, context):
-		boolean_each('DIFFERENCE')
-		return {'FINISHED'}
+    def execute(self, context):
+        boolean_each('DIFFERENCE')
+        return {'FINISHED'}
 
 class INTERSECT(Operator):
-	'''Keep geometry that intersects with each other'''
-	bl_idname = "bool_up.intersect"
-	bl_label = "Intersect"
-	bl_options = {'REGISTER', 'UNDO'}
+    '''Keep geometry that intersects with each other'''
+    bl_idname = "bool_up.intersect"
+    bl_label = "Intersect"
+    bl_options = {'REGISTER', 'UNDO'}
 
-	def execute(self, context):
-		boolean_each('INTERSECT')
-		return {'FINISHED'}
+    def execute(self, context):
+        boolean_each('INTERSECT')
+        return {'FINISHED'}
 
 class SEPARATE(Operator):
-	'''Separate active object along the intersection of the selected object (can handle only two objects at the time)'''
-	bl_idname = "bool_up.separate"
-	bl_label = "Separate"
-	bl_options = {'REGISTER', 'UNDO'}
+    '''Separate active object along the intersection of the selected object (can handle only two objects at the time)'''
+    bl_idname = "bool_up.separate"
+    bl_label = "Separate"
+    bl_options = {'REGISTER', 'UNDO'}
 
-	@classmethod
-	def poll(cls, context):
-		return len(context.selected_objects) == 2
+    @classmethod
+    def poll(cls, context):
+        return len(context.selected_objects) == 2
 
-	def execute(self, context):
-		separate()
-		return {'FINISHED'}
+    def execute(self, context):
+        separate()
+        return {'FINISHED'}
 
 # Utils Class ---------------------------------------------------------------
 
@@ -1165,10 +1163,10 @@ class BoolTool_Pref(bpy.types.AddonPreferences):
 # ------------------- Class List ------------------------------------------------
 classes = (
 #Booltron
-	UNION,
-	DIFFERENCE,
-	INTERSECT,
-	SEPARATE,
+    UNION,
+    DIFFERENCE,
+    INTERSECT,
+    SEPARATE,
 #Bool Tools
     BTool_Union,
     BTool_Diff,
@@ -1228,7 +1226,7 @@ def register():
         bpy.utils.register_class(cls)
 
     wm = bpy.context.window_manager
-		# Scene variables
+        # Scene variables
     bpy.types.Scene.BoolHide = bpy.props.BoolProperty(default = False, description ='Hide boolean objects', update = update_BoolHide)
     # Handlers
     bpy.app.handlers.scene_update_post.append(HandleScene)
