@@ -59,7 +59,7 @@ class INFO_MT_mesh_objects_add(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.menu("INFO_MT_mesh_beambuilder_add",
+        layout.operator("mesh.add_beam",
             text="Beam Builder")
         layout.operator("mesh.add_say3d_balcony",
             text="Balcony")
