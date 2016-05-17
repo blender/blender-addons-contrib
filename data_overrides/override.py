@@ -150,7 +150,8 @@ def register_property_groups():
 
 def unregister_property_groups():
     del bpy.types.Scene.overrides
-    bpy.utils.register_class(Override)
+    bpy.utils.unregister_class(OverrideCustomProperty)
+    bpy.utils.unregister_class(Override)
 
 # ======================================================================================
 
