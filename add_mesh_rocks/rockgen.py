@@ -1536,8 +1536,13 @@ class rocks(bpy.types.Operator):
             box.prop(self, 'user_seed')
         box.prop(self, 'preset_values')
 
+    @classmethod
+    def poll(cls, context):
+        return (context.object is not None and
+                  context.object.mode == 'OBJECT')
 
     def execute(self, context):
+
         # The following "if" block loads preset values:
         if self.lastPreset != int(self.preset_values):
             self.scale_X = utils.toFloats(self.presetsList[int(self.preset_values)][1])
