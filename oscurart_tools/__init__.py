@@ -316,6 +316,55 @@ class OscPanelAnimation(OscPollAnimation, bpy.types.Panel):
         row.prop(bpy.context.scene, "quick_animation_in", text="")
         row.prop(bpy.context.scene, "quick_animation_out", text="")
 
+## Addons Preferences Update Panel
+def update_panel(self, context):
+    try:
+        bpy.utils.unregister_class(OscPanelControl)
+        bpy.utils.unregister_class(OscPanelObject)
+        bpy.utils.unregister_class(OscPanelMesh)
+        bpy.utils.unregister_class(OscPanelShapes)
+        bpy.utils.unregister_class(OscPanelRender)
+        bpy.utils.unregister_class(OscPanelFiles)
+        bpy.utils.unregister_class(OscPanelOverrides)
+        bpy.utils.unregister_class(OscPanelAnimation)
+
+    except:
+        pass
+    OscPanelControl.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(OscPanelControl)
+    OscPanelObject.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(OscPanelObject)
+    OscPanelMesh.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(OscPanelMesh)
+    OscPanelShapes.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(OscPanelShapes)
+    OscPanelRender.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(OscPanelRender)
+    OscPanelFiles.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(OscPanelFiles)
+    OscPanelOverrides.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(OscPanelOverrides)
+    OscPanelAnimation.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(OscPanelAnimation)
+
+class OscurartToolsAddonPreferences(bpy.types.AddonPreferences):
+    # this must match the addon name, use '__package__'
+    # when defining this in a submodule of a python package.
+    bl_idname = __name__
+
+    category = bpy.props.StringProperty(
+            name="Category",
+            description="Choose a name for the category of the panel",
+            default="Oscurart Tools",
+            update=update_panel)
+
+    def draw(self, context):
+
+        layout = self.layout
+        row = layout.row()
+        col = row.column()
+        col.label(text="Category:")
+        col.prop(self, "category", text="")
 ##======================================================================================FIN DE SCRIPTS
 
 
