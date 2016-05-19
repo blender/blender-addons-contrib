@@ -941,7 +941,7 @@ class BoolTool_Tools(Panel):
     bl_idname = "BoolTool_Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = "Bool Tool"
+    bl_category = "Bool Tools"
     bl_context = "objectmode"
 
     def draw(self, context):
@@ -1147,6 +1147,13 @@ class BoolTool_BViwer(Panel):
 # ------------------ BOOL TOOL ADD-ON PREFERENCES ----------------------------
 
 def UpdateBoolTool_Pref(self, context):
+    try:
+        bpy.utils.unregister_class(BoolTool_Tools)
+    except:
+        pass
+    BoolTool_Tools.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(BoolTool_Tools)
+
     if self.fast_transform:
         RegisterFastT()
     else:
@@ -1155,6 +1162,12 @@ def UpdateBoolTool_Pref(self, context):
 
 class BoolTool_Pref(bpy.types.AddonPreferences):
     bl_idname = __name__
+
+    category = bpy.props.StringProperty(
+            name="Category",
+            description="Choose a name for the category of the panel",
+            default="Bool Tools",
+            update=UpdateBoolTool_Pref)
 
     fast_transform = bpy.props.BoolProperty(
         name="Fast Transformations",
@@ -1181,6 +1194,10 @@ class BoolTool_Pref(bpy.types.AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
+        row = layout.row()
+        col = row.column()
+        col.label(text="Category:")
+        col.prop(self, "category", text="")
         layout.label("Experimental Features:")
         layout.prop(self, "fast_transform")
         layout.prop(self, "use_wire", text="Use Wire Instead Of Bbox")
