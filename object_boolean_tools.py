@@ -983,7 +983,7 @@ class BoolTool_Config(Panel):
     bl_idname = "BoolTool_BConfig"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = "Bool Tool"
+    bl_category = "Bool Tools"
     bl_context = "objectmode"
 
     @classmethod
@@ -1077,7 +1077,7 @@ class BoolTool_BViwer(Panel):
     bl_idname = "BoolTool_BViwer"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = "Bool Tool"
+    bl_category = "Bool Tools"
     bl_context = "objectmode"
 
     @classmethod
@@ -1149,10 +1149,16 @@ class BoolTool_BViwer(Panel):
 def UpdateBoolTool_Pref(self, context):
     try:
         bpy.utils.unregister_class(BoolTool_Tools)
+        bpy.utils.unregister_class(BoolTool_Config)
+        bpy.utils.unregister_class(BoolTool_BViwer)
     except:
         pass
     BoolTool_Tools.bl_category = context.user_preferences.addons[__name__].preferences.category
     bpy.utils.register_class(BoolTool_Tools)
+    BoolTool_Config.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(BoolTool_Config)
+    BoolTool_BViwer.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(BoolTool_BViwer)
 
     if self.fast_transform:
         RegisterFastT()
