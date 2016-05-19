@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Align Tools",
     "author": "gabhead, Lell, Anfeo",
-    "version": (0, 3, 0),
+    "version": (0, 3, 1),
     "blender": (2, 77, 0),
     "location": "View3D > Tool Shelf > Tools",
     "description": "Align Selected Objects to Active Object",
@@ -943,6 +943,34 @@ class AlignUi(bpy.types.Panel):
                     layout = self.layout
                     self.layout.operator("object.align_tools", text="Advanced")
 
+## Addons Preferences Update Panel
+def update_panel(self, context):
+    try:
+        bpy.utils.unregister_class(AlignUi)
+    except:
+        pass
+    AlignUi.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(AlignUi)   
+
+class AlignAddonPreferences(bpy.types.AddonPreferences):
+    # this must match the addon name, use '__package__'
+    # when defining this in a submodule of a python package.
+    bl_idname = __name__
+
+    category = bpy.props.StringProperty(
+            name="Category",
+            description="Choose a name for the category of the panel",
+            default="Tools",
+            update=update_panel)
+
+    def draw(self, context):
+
+        layout = self.layout
+        row = layout.row()
+        col = row.column()
+        col.label(text="Category:")
+        col.prop(self, "category", text="")
+
 # Class List
 classes = [
     AlignUi,
@@ -959,7 +987,8 @@ classes = [
     AlignScaleXOperator,
     AlignScaleYOperator,
     AlignScaleZOperator,
-    OBJECT_OT_align_tools
+    OBJECT_OT_align_tools,
+    AlignAddonPreferences
     ]
 
 # Register all operators and panels
