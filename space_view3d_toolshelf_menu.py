@@ -21,13 +21,14 @@
 bl_info = {
     "name": "Dynamic Toolshelf Menu",
     "author": "meta-androcto",
-    "version": (3, 0, 0),
-    "blender": (2, 7, 1),
+    "version": (3, 0, 1),
+    "blender": (2, 7, 7),
     "location": "View3D > Spacebar Key, Dynamic Tab",
     "description": "Context Sensitive Toolshelf Menu",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D_interaction/Dynamic_Spacebar_Menu",
+    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "3D View",
 }
 
