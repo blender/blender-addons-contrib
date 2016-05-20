@@ -202,7 +202,6 @@ class VIEW3D_PT_MeshcacheToolsPanel(Panel):
         row.label(text="{0} Imported".format(str(howmany_imported)))
         row.label(text="{0} Excluded".format(str(howmany_imported_excluded)))
 
-
 classes = (
     VIEW3D_PT_MeshcacheToolsPanel,
     MESH_OP_MeshcacheRefresh,
@@ -212,6 +211,7 @@ classes = (
     MeshcacheExcludeNames,
     MeshcacheFolderSetButton,
     CACHARANTH_GroupSelect,
+    Cacharanth_Pref
     )
 
 def register():
@@ -245,9 +245,5 @@ def register():
     Scene.meshcache_exclude_names_active_index = IntProperty()
 
 def unregister():
-    bpy.utils.unregister_class(CACHARANTH_GroupSelect)
-    bpy.utils.unregister_class(MeshcacheFolderSetButton)
-    bpy.utils.unregister_class(MESH_UL_MeshcacheExcludeName)
-    bpy.utils.unregister_class(MESH_OT_MeshcacheExcludeNameAdd)
-    bpy.utils.unregister_class(MESH_OT_MeshcacheExcludeNameRemove)
-    bpy.utils.unregister_class(VIEW3D_PT_MeshcacheToolsPanel)
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
