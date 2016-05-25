@@ -1292,6 +1292,20 @@ def register():
     kmi = km.keymap_items.new('wm.call_menu', 'B', 'PRESS', ctrl=True, shift=True)
     kmi.properties.name = 'OBJECT_MT_BoolTool_Menu'
 
+    # Brush Operators
+    kmi = km.keymap_items.new(BTool_Union.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new(BTool_Diff.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new(BTool_Inters.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new(BTool_Slice.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl=True)
+
+    # Direct Operators
+    kmi = km.keymap_items.new(Direct_Union.bl_idname, 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new(Direct_Difference.bl_idname, 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new(Direct_Intersect.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new(Direct_Slice.bl_idname, 'NUMPAD_SLASH', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new(BTool_BrushToMesh.bl_idname, 'NUMPAD_ENTER', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new(BTool_AllBrushToMesh.bl_idname, 'NUMPAD_ENTER', 'PRESS', ctrl=True, shift=True)
+
     addon_keymaps.append(km)
 
 
