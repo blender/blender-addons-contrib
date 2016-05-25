@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Bool Tool",
     "author": "Vitor Balbio, Mikhail Rachinskiy",
-    "version": (0, 3, 1),
+    "version": (0, 3, 2),
     "blender": (2, 77, 0),
     "location": "View3D > Toolshelf > BoolTool",
     "description": "Bool Tools Hotkey: Ctrl Shift B",
@@ -934,14 +934,13 @@ class BoolTool_Menu(bpy.types.Menu):
 def VIEW3D_BoolTool_Menu(self, context):
     self.layout.menu(BoolTool_Menu.bl_idname)
 
-
 # ---------------- Bool Tools ---------------------
 class BoolTool_Tools(Panel):
     bl_label = "Tools"
     bl_idname = "BoolTool_Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = "Bool Tools"
+    bl_category = "Bool Tool"
     bl_context = "objectmode"
 
     def draw(self, context):
@@ -983,7 +982,7 @@ class BoolTool_Config(Panel):
     bl_idname = "BoolTool_BConfig"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = "Bool Tools"
+    bl_category = "Bool Tool"
     bl_context = "objectmode"
 
     @classmethod
@@ -1077,7 +1076,7 @@ class BoolTool_BViwer(Panel):
     bl_idname = "BoolTool_BViwer"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = "Bool Tools"
+    bl_category = "Bool Tool"
     bl_context = "objectmode"
 
     @classmethod
@@ -1147,19 +1146,6 @@ class BoolTool_BViwer(Panel):
 # ------------------ BOOL TOOL ADD-ON PREFERENCES ----------------------------
 
 def UpdateBoolTool_Pref(self, context):
-    try:
-        bpy.utils.unregister_class(BoolTool_Tools)
-        bpy.utils.unregister_class(BoolTool_Config)
-        bpy.utils.unregister_class(BoolTool_BViwer)
-    except:
-        pass
-    BoolTool_Tools.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(BoolTool_Tools)
-    BoolTool_Config.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(BoolTool_Config)
-    BoolTool_BViwer.bl_category = context.user_preferences.addons[__name__].preferences.category
-    bpy.utils.register_class(BoolTool_BViwer)
-
     if self.fast_transform:
         RegisterFastT()
     else:
@@ -1168,12 +1154,6 @@ def UpdateBoolTool_Pref(self, context):
 
 class BoolTool_Pref(bpy.types.AddonPreferences):
     bl_idname = __name__
-
-    category = bpy.props.StringProperty(
-            name="Category",
-            description="Choose a name for the category of the panel",
-            default="Bool Tools",
-            update=UpdateBoolTool_Pref)
 
     fast_transform = bpy.props.BoolProperty(
         name="Fast Transformations",
@@ -1200,10 +1180,6 @@ class BoolTool_Pref(bpy.types.AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
-        col = row.column()
-        col.label(text="Category:")
-        col.prop(self, "category", text="")
         layout.label("Experimental Features:")
         layout.prop(self, "fast_transform")
         layout.prop(self, "use_wire", text="Use Wire Instead Of Bbox")
@@ -1212,6 +1188,23 @@ class BoolTool_Pref(bpy.types.AddonPreferences):
         layout.prop(self, "make_vertex_groups")
         layout.prop(self, "make_boundary")
         """
+        layout = self.layout
+        layout.separator()
+        layout.label("Hotkey List:")
+        layout.separator()
+        layout.label("Menu: 'B', 'PRESS', ctrl=True, shift=True")
+        layout.label("Brush Operators:")
+        layout.label("Union: 'NUMPAD_PLUS', 'PRESS', ctrl=True")
+        layout.label("Diff: 'NUMPAD_MINUS', 'PRESS', ctrl=True")
+        layout.label("Intersect: 'NUMPAD_ASTERIX', 'PRESS', ctrl=True")
+        layout.label("Slice: 'NUMPAD_SLASH', 'PRESS', ctrl=True")
+        layout.label("Direct Operators:")
+        layout.label("Direct_Union: 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True")
+        layout.label("Direct_Difference: 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True")
+        layout.label("Direct_Intersect: 'NUMPAD_ASTERIX', 'PRESS', ctrl=True, shift=True")
+        layout.label("Direct_Slice: 'NUMPAD_SLASH', 'PRESS', ctrl=True, shift=True")
+        layout.label("BTool_BrushToMesh: 'NUMPAD_ENTER', 'PRESS', ctrl=True")
+        layout.label("BTool_AllBrushToMesh: 'NUMPAD_ENTER', 'PRESS', ctrl=True, shift=True")
 
 # ------------------- Class List ------------------------------------------------
 classes = (
@@ -1241,6 +1234,7 @@ classes = (
     BoolTool_BViwer,
     BTool_FastTransform,
     BoolTool_Pref,
+
 )
 # ------------------- REGISTER ------------------------------------------------
 addon_keymaps = []
@@ -1308,15 +1302,7 @@ def register():
 
     addon_keymaps.append(km)
 
-
 def unregister():
-    for cls in classes:
-        bpy.utils.unregister_class(cls)
-
-    bpy.types.VIEW3D_MT_object.remove(VIEW3D_BoolTool_Menu)
-
-    # Add Handlers
-    bpy.app.handlers.scene_update_post.remove(HandleScene)
 
     # Keymapping
     # remove keymaps when add-on is deactivated
@@ -1324,7 +1310,13 @@ def unregister():
     for km in addon_keymaps:
         wm.keyconfigs.addon.keymaps.remove(km)
     del addon_keymaps[:]
+    
+    bpy.types.VIEW3D_MT_object.remove(VIEW3D_BoolTool_Menu)
+
     del bpy.types.Scene.BoolHide
+
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
 
 if __name__ == "__main__":
     register()
