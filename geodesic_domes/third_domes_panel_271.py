@@ -1,21 +1,14 @@
 import bpy
 import os
-from geodesic_domes import vefm_271 
-from geodesic_domes import forms_271
-from geodesic_domes import geodesic_classes_271
-from geodesic_domes import add_shape_geodesic
+from . import vefm_271
+from . import forms_271
+from . import geodesic_classes_271
+from . import add_shape_geodesic
 
 from bpy.props import EnumProperty, IntProperty, FloatProperty, StringProperty, BoolProperty
-#PKHG>NEEDED??? import math
 from math import pi
 from mathutils import Vector #needed to check vertex.vector values
-"""
-not in Blender 2.7*???
-try:
-    breakpoint = bpy.types.bp.bp
-except:
-    print("add breakpoint addon!")
-"""        
+
 
 ########global######
 last_generated_object = None
@@ -26,7 +19,7 @@ imported_hubmesh_to_use = None
 
 ########EIND FOR SHAPEKEYS######
 ### error messages?!
-bpy.types.Scene.error_message = StringProperty(name="actual error", default = "")    
+bpy.types.Scene.error_message = StringProperty(name="actual error", default = "")
 
 
 bpy.types.Scene.geodesic_not_yet_called = BoolProperty(name="geodesic_not_called",default = True)
@@ -49,7 +42,7 @@ class Geodesic_Domes_Operator_Panel(bpy.types.Panel):
         col = layout.column()
         col.label("Geodesic Domes: ")
         col.operator(GenerateGeodesicDome.bl_idname, "create one!")
-            
+
 class GenerateGeodesicDome(bpy.types.Operator):
     bl_label = "Modify Geodesic Objects"
     bl_idname = "mesh.generate_geodesic_dome"
@@ -64,7 +57,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
 
     gd_help_text_width = IntProperty(name = "Text Width" , description = "The width above which the text wraps" , default = 60 , max = 180 , min = 20)
 
-    
+
     mainpages = EnumProperty(
     name="Menu",
     description="Create Faces, Struts & Hubs",
@@ -82,7 +75,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
     description="choose a facetype",
     items=[("0", "strip", "strip"),
            ("1", "open vertical", "vertical"),
-           ("2", "opwn slanted", "slanted"),
+           ("2", "open slanted", "slanted"),
            ("3", "closed point", "closed point"),
            ("4", "pillow", "pillow"),
            ("5", "closed vertical", "closed vertical"),
@@ -95,7 +88,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
     default='0')
 
     facetoggle = BoolProperty(name="Activate: Face Object", description = "Activate Faces for Geodesic object", default = False )
-#    faceimporttoggle = BoolProperty(name="faceimporttoggle", default = False )
+
     face_use_imported_object = BoolProperty(name="Use: Imported Object",\
                 description = "Activate faces on your Imported object",	default = False)
     facewidth = FloatProperty(name="facewidth", min = -1, soft_min = 0.001,  max = 4, default = .50)
@@ -107,7 +100,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
 
 
     geodesic_types = EnumProperty(
-        name="Objects", 
+        name="Objects",
         description="Choose Geodesic, Grid, Cylinder, Parabola,\
                      Torus, Sphere, Import your mesh or Superparameters",
     items=[("Geodesic", "Geodesic", "Generate Geodesic"),
@@ -121,7 +114,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
     default = 'Geodesic')
 
     import_mesh_name = StringProperty(name = "mesh to import",\
-            description = "the name has to be the name of a meshobject", default = "None") 
+            description = "the name has to be the name of a meshobject", default = "None")
 
     base_type = EnumProperty(
     name="Hedron",
@@ -177,7 +170,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
     cyxsz= FloatProperty(name="Scale x/y", min = 0.01, max = 10,\
 	          description = "scale in x/y direction", default = 1 )
     cyysz= FloatProperty(name="Scale z", min = 0.01, max = 10,\
-              description = "scale in z direction", default = 1 )    
+              description = "scale in z direction", default = 1 )
     cyxell= FloatProperty(name="Stretch x",  min = 0.001, max = 4,\
               description = "stretch in x direction", default = 1 )
     cygap= FloatProperty(name="Gap",  min = -2, max = 2,\
@@ -199,7 +192,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
            description = "shrink in % around radius",	default = 1 )
     pagphase= FloatProperty(name="Phase", min = -4, max = 4,\
            description = "rotate around pivot x/y",	default = 0 )
-#Torus            
+#Torus
     ures= IntProperty(name="Resolution x/y",min = 3, max = 32,\
            description = "number of faces around x/y", default = 8 )
     vres= IntProperty(name="Resolution z", min = 3, max = 32,\
@@ -237,7 +230,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
     vtwist= FloatProperty(name="Twist z", min = -4, max = 4,\
             description = "use with superformular v",	default = 0 )
 
-#Sphere 
+#Sphere
     bures= IntProperty(name="Resolution x/y", min = 3, max = 32,\
             description = "number of faces around x/y",	default = 8 )
     bvres= IntProperty(name="Resolution z", min = 3, max = 32,\
@@ -256,7 +249,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
             description = "stretch in the x direction",	default = 1 )
     bvellipse= FloatProperty(name="Stretch z", min = 0.001, max = 4,\
             description = "stretch in the z direction",	default = 1 )
-#Grid    
+#Grid
     grxres = IntProperty(name="Resolution x", min = 2, soft_max = 10, max = 20,\
                          description = "number of faces in x direction", default = 5 )
     gryres = IntProperty(name="Resolution z",min = 2, soft_min = 2, soft_max=10, max = 20,\
@@ -293,39 +286,39 @@ class GenerateGeodesicDome(bpy.types.Operator):
                         description = "activate superformula u parameters", default = False)
     vact = BoolProperty(name = 'superformula v (z)',\
                         description = "activate superformula v parameters", default = False)
-    um = FloatProperty(name = 'um', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  3)
-    un1 = FloatProperty(name = 'un1', min = 0, soft_min=0.1, soft_max=5,max = 20,\
-                 description = "to do",	default =  1)
-    un2 = FloatProperty(name = 'un2', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  1)
-    un3 = FloatProperty(name = 'un3', min = 0,   soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  1)
-    ua = FloatProperty(name = 'ua', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  1.0)
-    ub = FloatProperty(name = 'ub', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  4.0)
-    vm = FloatProperty(name = 'vm', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  1)
-    vn1 = FloatProperty(name = 'vn1', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  1)
-    vn2 = FloatProperty(name = 'vn2', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  1)
-    vn3 = FloatProperty(name = 'vn3', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  1)
-    va = FloatProperty(name = 'va', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  1)
-    vb = FloatProperty(name = 'vb', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  1)
+    um = FloatProperty(name = 'Pinch x/y', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "Pinch the mesh on x/y",	default =  3)
+    un1 = FloatProperty(name = 'Squash x/y', min = 0, soft_min=0.1, soft_max=5,max = 20,\
+                 description = "Squash the mesh x/y",	default =  1)
+    un2 = FloatProperty(name = 'Inflate x/y', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "Inflate the mesh x/y",	default =  1)
+    un3 = FloatProperty(name = 'Roundify x/y', min = 0,   soft_min=0.1, soft_max=5,max = 10,\
+                 description = "Roundify x/y",	default =  1)
+    ua = FloatProperty(name = 'Shrink', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "Shrink",	default =  1.0)
+    ub = FloatProperty(name = 'Shrink x/y', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "Shrink y/x",	default =  4.0)
+    vm = FloatProperty(name = 'Scale Z Base', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "Scale Z Base",	default =  1)
+    vn1 = FloatProperty(name = 'Scale lock Top Z', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "Scale lock Top Z",	default =  1)
+    vn2 = FloatProperty(name = 'Inflate Base', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "Inflate Base",	default =  1)
+    vn3 = FloatProperty(name = 'Inflate', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "Inflate",	default =  1)
+    va = FloatProperty(name = 'Scale 1', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "Scale 1",	default =  1)
+    vb = FloatProperty(name = 'Scale 2', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "Scale 2",	default =  1)
 
-    uturn = FloatProperty(name = 'uturn', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  0)
-    vturn = FloatProperty(name = 'vturn', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  0)
-    utwist = FloatProperty(name = 'utwist', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  0)
-    vtwist = FloatProperty(name = 'vtwist', min = 0, soft_min=0.1, soft_max=5,max = 10,\
-                 description = "to do",	default =  0)
+    uturn = FloatProperty(name = 'x/y Vert cycle', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "x/y Vert cycle",	default =  0)
+    vturn = FloatProperty(name = 'z Vert cycle', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "z Vert cycle",	default =  0)
+    utwist = FloatProperty(name = 'x/y Twist cycle', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "x/y Twist cycle",	default =  0)
+    vtwist = FloatProperty(name = 'z Twist cycle', min = 0, soft_min=0.1, soft_max=5,max = 10,\
+                 description = "z Twist cycle",	default =  0)
 
 #Strut
     struttype= IntProperty(name="struttype", default= 0)
@@ -392,7 +385,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
 'stretch','lift','smeshname','hubtype',
 'hubtoggle','hubimporttoggle','hubimpmesh','hubwidth',
 'hwtog','hubheight','hhtog','hublength',
-'hstog','hmeshname']    
+'hstog','hmeshname']
 
     def write_params(self,filename):
         file = open(filename, "w", encoding="utf8", newline="\n")
@@ -413,14 +406,14 @@ class GenerateGeodesicDome(bpy.types.Operator):
             result.append(eval(tmp[1]))
             line = file.readline()
         return result
-    
+
 
     def draw(self,context):
         sce = context.scene
         layout = self.layout
         row = layout.row()
-        row.prop(self, "save_parameters")
-        row.prop(self, "load_parameters")
+#        row.prop(self, "save_parameters")
+#        row.prop(self, "load_parameters")
         col = layout.column()
         col.label(" ")
         col.prop(self, "mainpages")
@@ -431,7 +424,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
             tmp = self.geodesic_types
             if tmp == "Geodesic":
                 col.label(text="Geodesic Object Types:")
-                col.prop(self, "geodesic_class")                
+                col.prop(self, "geodesic_class")
                 col.prop(self, "base_type")
                 col.prop(self, "orientation")
                 col.prop(self, "tri_hex_star")
@@ -477,17 +470,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
                 row.prop(self, "ugap")
                 row.prop(self, "vgap")
                 row = layout.row()
-                row.prop(self, "uphase")
-                row.prop(self, "vphase")
-                row = layout.row()
-                row.prop(self, "uexp")
-                row.prop(self, "vexp")
-                row = layout.row()
-                row.prop(self, "usuper")
-                row.prop(self, "vsuper")
-                row = layout.row()
-                row.prop(self, "vgap")
-                row = layout.row()
+
             elif tmp == 'Sphere':
                 col.label("Sphere Parameters")
                 row = layout.row()
@@ -496,7 +479,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
                 row.prop(self, "bvres")
                 row = layout.row()
                 row.prop(self, "burad")
-                row = layout.row()                
+                row = layout.row()
                 row.prop(self, "bupart")
                 row = layout.row()
                 row.prop(self, "buphase")
@@ -550,7 +533,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
             row = layout.row()
             row.prop(self, "uact")
             row = layout.row()
-            row.prop(self, "vact")                
+            row.prop(self, "vact")
             row = layout.row()
             if not(tmp == 'Import your mesh'):
                 if (self.uact == False) and (self.vact == False):
@@ -590,14 +573,14 @@ class GenerateGeodesicDome(bpy.types.Operator):
                     row = layout.row()
                     row.prop(self, "vturn")
                     row = layout.row()
-                    row.prop(self, "vtwist")                
+                    row.prop(self, "vtwist")
 ########einde superform
         elif  which_mainpages == "Hubs":
             row = layout.row()
             row.prop(self, "hubtoggle")
-#PKHG_NOT_USDED_YET_24-11            row.prop(self, "hubtype")
-            row = layout.row()            
-#25-11 not needed            row.prop(self, "hubimporttoggle")
+
+            row = layout.row()
+
             row = layout.row()
             if self.hubimpmesh == "None":
                 row = layout.row()
@@ -619,14 +602,13 @@ class GenerateGeodesicDome(bpy.types.Operator):
             if self.hhtog:
                 row.prop(self, "hubheight")
             row = layout.row()
-            row.prop(self, "hublength")                
+            row.prop(self, "hublength")
         elif which_mainpages == "Struts":
             row = layout.row()
             row.prop(self, "struttype")
             row.prop(self, "struttoggle")
-#            row = layout.row()            
-#            row.prop(self, "strutimporttoggle")
-            row = layout.row()            
+
+            row = layout.row()
             row.prop(self, "strutimpmesh")
             row = layout.row()
             row.prop(self, "swtog")
@@ -640,11 +622,11 @@ class GenerateGeodesicDome(bpy.types.Operator):
             row.prop(self, "sstog")
             if self.sstog:
                row.prop(self, "strutshrink")
-            row = layout.row()               
+            row = layout.row()
             row.prop(self, "stretch")
-            row = layout.row()            
+            row = layout.row()
             row.prop(self, "lift")
-            row = layout.row()            
+            row = layout.row()
             row.prop(self, "smeshname")
         elif which_mainpages == "Faces":
             row = layout.row()
@@ -666,26 +648,26 @@ class GenerateGeodesicDome(bpy.types.Operator):
             row = layout.row()
             row.prop(self, "fmeshname")
             row = layout.row()
-        
+
         #help menu GUI
         elif which_mainpages == "Help":
             import textwrap
 
             # a function that allows for multiple labels with text that wraps
-            # you can allow the user to set where the text wraps with the 
+            # you can allow the user to set where the text wraps with the
             # text_width parameter
             # other parameters are ui : here you usually pass layout
             # text: is a list with each index representing a line of text
-            
+
             def multi_label(text, ui,text_width=120):
                 for x in range(0,len(text)):
                     el = textwrap.wrap(text[x], width = text_width )
-            
+
                     for y in range(0,len(el)):
                         ui.label(text=el[y])
 
-            box = layout.box() 
-            help_text = ["NEW!", 
+            box = layout.box()
+            help_text = ["NEW!",
                 "New facility: save or load (nearly all) parameters",
                  "A file GD_0.GD will be used, living in:",
                  "geodesic_domes/tmp",
@@ -698,14 +680,14 @@ class GenerateGeodesicDome(bpy.types.Operator):
             multi_label(help_text,box, text_width)
 
     def execute(self, context):
-        global last_generated_object, last_imported_mesh, basegeodesic, imported_hubmesh_to_use 
+        global last_generated_object, last_imported_mesh, basegeodesic, imported_hubmesh_to_use
         #default superformparam = [3, 10, 10, 10, 1, 1, 4, 10, 10, 10, 1, 1, 0, 0, 0.0, 0.0, 0, 0]]
         superformparam = [self.um, self.un1, self.un2, self.un3, self.ua,\
                           self.ub, self.vm, self.vn1, self.vn2, self.vn3,\
                           self.va, self.vb, self.uact, self.vact,\
                           self.uturn*pi, self.vturn*pi, \
                           self.utwist, self.vtwist]
-        context.scene.error_message = "" 
+        context.scene.error_message = ""
         if self.mainpages == 'Main':
             if self.geodesic_types == "Geodesic":
                 tmp_fs = self.tri_hex_star
@@ -718,20 +700,20 @@ class GenerateGeodesicDome(bpy.types.Operator):
                 klass = 0
                 if tmp_cl == "Class 2":
                     klass = 1
-                shape = 0 
+                shape = 0
                 parameters = [self.frequency, self.eccentricity, self.squish,\
                           self.radius, self.squareness, self.squarez, 0,\
                           shape, self.baselevel, faceshape, self.dual,\
-                          self.rotxy, self.rotz, klass, superformparam]               
+                          self.rotxy, self.rotz, klass, superformparam]
                 basegeodesic =  creategeo(self.base_type,self.orientation,parameters)
                 basegeodesic.makegeodesic()
                 basegeodesic.connectivity()
-                mesh = vefm_271.mesh()                
-                vefm_271.finalfill(basegeodesic,mesh) #always! for hexifiy etc. necessarry!!!                     
+                mesh = vefm_271.mesh()
+                vefm_271.finalfill(basegeodesic,mesh) #always! for hexifiy etc. necessarry!!!
                 vefm_271.vefm_add_object(mesh)
                 last_generated_object = context.active_object
                 last_generated_object.location  = (0,0,0)
-                context.scene.objects.active = last_generated_object            
+                context.scene.objects.active = last_generated_object
             elif self.geodesic_types == 'Grid':
                 basegeodesic = forms_271.grid(self.grxres,self.gryres,\
                        self.grxsz,self.grysz,1.0,1.0,0,0,0,\
@@ -744,14 +726,14 @@ class GenerateGeodesicDome(bpy.types.Operator):
                                    1.0, self.cygphase, 0, 0, 0, self.cyxell,\
                                    1.0, superformparam)
                 vefm_271.vefm_add_object(basegeodesic)
-                bpy.data.objects[-1].location = (0,0,0)                
-                
+                bpy.data.objects[-1].location = (0,0,0)
+
             elif self.geodesic_types == "Parabola":
                 basegeodesic=forms_271.parabola(self.paxres, self.payres,\
                     self.paxsz, self.paysz, self.pagap,1.0, self.pagphase,\
                     0,0,0, self.paxell,1.0,superformparam)
                 vefm_271.vefm_add_object(basegeodesic)
-                bpy.data.objects[-1].location = (0,0,0)                
+                bpy.data.objects[-1].location = (0,0,0)
             elif self.geodesic_types == "Torus":
                 basegeodesic = forms_271.torus(self.ures, self.vres,\
                        self.vrad, self.urad, self.upart, self.vpart,\
@@ -763,10 +745,11 @@ class GenerateGeodesicDome(bpy.types.Operator):
                 basegeodesic=forms_271.sphere(self.bures, self.bvres,\
                         self.burad,1.0, self.bupart, self.bvpart,\
                         self.buphase, self.bvphase,0,0, self.buellipse,\
-                        self.bvellipse,superformparam)	
+                        self.bvellipse,superformparam)
 
                 vefm_271.vefm_add_object(basegeodesic)
-                bpy.data.objects[-1].location = (0,0,0)                
+                bpy.data.objects[-1].location = (0,0,0)
+
             elif self.geodesic_types == "Import your mesh":
                 obj_name = self.import_mesh_name
                 if obj_name == "None":
@@ -779,7 +762,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
                     names = [el.name for el in context.scene.objects]
                     if obj_name in names and context.scene.objects[obj_name].type == "MESH":
                         obj = context.scene.objects[obj_name]
-#                        if obj.type == "MESH":                        
+#                        if obj.type == "MESH":
                         your_obj = vefm_271.importmesh(obj.name,False)
                         last_imported_mesh = your_obj
                         vefm_271.vefm_add_object(your_obj)
@@ -788,7 +771,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
                         bpy.context.active_object.location = (0,0,0)
                     else:
                         message = obj_name +" does not exist \nor is not a MESH"
-                        context.scene.error_message = message                
+                        context.scene.error_message = message
                         bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
                         self.report({'ERROR'}, message)
                         print("***ERROR***" + obj_name +" does not exist or is not a MESH")
@@ -804,25 +787,25 @@ class GenerateGeodesicDome(bpy.types.Operator):
             hublength = self.hublength
             hstog =  self.hstog
             hmeshname=  self.hmeshname
-#PKHG_TODO_27-11 better info!??
-            if not (hmeshname == "None") and not (hubimpmesh == "None") and  hubtoggle:                
-                try:                    
-                    print("\nDBG third_domes L799 hmeshname= ", hmeshname)
+
+            if not (hmeshname == "None") and not (hubimpmesh == "None") and  hubtoggle:
+                try:
+
                     hub_obj = vefm_271.importmesh(hmeshname,0)
-                    print("\nDBG third_domes L801 hub_obj = ", hub_obj.faces[:])
+
                     hub = vefm_271.hub(hub_obj, True,\
                             hubwidth, hubheight, hublength,\
                               hwtog, hhtog, hstog, hubimpmesh)
-                    print("\nDBG third_domes L805 de hub: ", hub)
+
                     mesh = vefm_271.mesh("test")
                     vefm_271.finalfill(hub,mesh)
                     vefm_271.vefm_add_object(mesh)
                     bpy.data.objects[-1].location = (0,0,0)
                 except:
-                    message = "***ERROR third_domes_panel L811 *** \neither no mesh for hub\nor " + hmeshname +  " available"                    
+                    message = "***ERROR third_domes_panel L811 *** \neither no mesh for hub\nor " + hmeshname +  " available"
                     context.scene.error_message = message
                     bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
-                    print(message)                
+                    print(message)
             else:
                 message = "***INFO***\nuse the hub toggle!"
                 context.scene.error_message = message
@@ -870,7 +853,7 @@ class GenerateGeodesicDome(bpy.types.Operator):
                             [self.face_detach,2,[[0.0,0.5]]], #5 closed vertical
                             [self.face_detach,2,[[0.0,0.25],[0.25,0.25],[0.25,0.5]]], #6 stepped
                             [self.face_detach,1,[[0.2,0.1],[0.4,0.2],[0.0,1.0]]], #7 spikes
-                            [self.face_detach,3,[[0.25,0.0],[0.25,0.5],[0.0,0.5]]], #8 boxed 
+                            [self.face_detach,3,[[0.25,0.0],[0.25,0.5],[0.0,0.5]]], #8 boxed
                             [self.face_detach,3,[[0.25,0.5],[0.5,0.0],[0.25,-0.5]]], #9 diamond
                             [self.face_detach,4,[[0.5,0.0],[0.5,0.5],[0.0,0.5]]],] #10 bar
                 facedata = faceparams[int(self.facetype_menu)]
@@ -878,11 +861,11 @@ class GenerateGeodesicDome(bpy.types.Operator):
                     faceobject = vefm_271.facetype(basegeodesic, facedata, self.facewidth,\
                                                    self.faceheight,self.fwtog)
                 else:
-                    if last_imported_mesh: 
+                    if last_imported_mesh:
                         faceobject = vefm_271.facetype(last_imported_mesh, facedata,\
                                                        self.facewidth, self.faceheight, self.fwtog)
                     else:
-                        message = "***ERROR***\nno imported message available\n" + "last geodesic used" 
+                        message = "***ERROR***\nno imported message available\n" + "last geodesic used"
                         context.scene.error_message = message
                         bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
                         print("\n***ERROR*** no imported mesh available")
@@ -895,17 +878,17 @@ class GenerateGeodesicDome(bpy.types.Operator):
                 obj = bpy.data.objects[-1]
                 obj.name = self.fmeshname
                 obj.location = (0,0,0)
-#PKHG save or load (nearly) all parameters                
+#PKHG save or load (nearly) all parameters
         if self.save_parameters:
             self.save_parameters = False
             try:
                 scriptpath = bpy.utils.script_paths()[0]
                 sep = os.path.sep
-                tmpdir = os.path.join(scriptpath, "addons", "geodesic_domes" , "tmp")
-#scriptpath + sep + "addons" + sep + "geodesic_domes" + sep + "tmp"                              
+                tmpdir = os.path.join(scriptpath, "addons", "add_mesh_extra_objects" , "tmp")
+#scriptpath + sep + "addons" + sep + "geodesic_domes" + sep + "tmp"
                 if not os.path.isdir(tmpdir):
-                    message = "***ERROR***\n" + tmpdir + "\nnot (yet) available"  
-                    
+                    message = "***ERROR***\n" + tmpdir + "\nnot (yet) available"
+
                 filename = tmpdir + sep + "GD_0.GD"
 #        self.read_file(filename)
                 try:
@@ -915,10 +898,10 @@ class GenerateGeodesicDome(bpy.types.Operator):
                 except:
                     message = "***ERRROR***\n" + "writing " + filename + "\nnot possible"
                 #bpy.context.scene.instant_filenames = filenames
-                
+
             except:
                 message = "***ERROR***\n Contakt PKHG, something wrong happened"
-                
+
             context.scene.error_message = message
             bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
 
@@ -927,11 +910,11 @@ class GenerateGeodesicDome(bpy.types.Operator):
             try:
                 scriptpath = bpy.utils.script_paths()[0]
                 sep = os.path.sep
-                tmpdir = os.path.join(scriptpath, "addons", "geodesic_domes" , "tmp")
+                tmpdir = os.path.join(scriptpath, "addons", "add_mesh_extra_objects", "tmp")
                 #PKHG>NEXT comment????
-                #scriptpath + sep + "addons" + sep + "geodesic_domes" + sep + "tmp"                              
+                #scriptpath + sep + "addons" + sep + "geodesic_domes" + sep + "tmp"
                 if not os.path.isdir(tmpdir):
-                    message = "***ERROR***\n" + tmpdir + "\nnot available"  
+                    message = "***ERROR***\n" + tmpdir + "\nnot available"
                     print(message)
                 filename = tmpdir + sep + "GD_0.GD"
 #        self.read_file(filename)
@@ -949,12 +932,12 @@ class GenerateGeodesicDome(bpy.types.Operator):
             context.scene.error_message = message
             bpy.ops.object.dialog_operator('INVOKE_DEFAULT')
         return {'FINISHED'}
-    
+
     def invoke(self, context, event):
         global basegeodesic
         bpy.ops.view3d.snap_cursor_to_center()
         tmp = context.scene.geodesic_not_yet_called
-        if tmp:            
+        if tmp:
             context.scene.geodesic_not_yet_called = False
         self.execute(context)
         return {'FINISHED'}
@@ -968,7 +951,7 @@ def creategeo(polytype,orientation,parameters):
             geo=geodesic_classes_271.tetraedge(parameters)
         elif orientation == "FaceUp":
             geo=geodesic_classes_271.tetraface(parameters)
-    elif polytype == "Octahedron": 
+    elif polytype == "Octahedron":
         if orientation == "PointUp":
             geo=geodesic_classes_271.octahedron(parameters)
         elif orientation == "EdgeUp":
@@ -983,7 +966,7 @@ def creategeo(polytype,orientation,parameters):
         elif orientation == "FaceUp":
             geo=geodesic_classes_271.icoface(parameters)
     return geo
-    
+
 basegeodesic,fmeshname,smeshname,hmeshname,outputmeshname,strutimpmesh,hubimpmesh = [None]*7
 
 def finalfill(source,target):
@@ -992,7 +975,7 @@ def finalfill(source,target):
         newvert = vefm_271.vertex(point.vector)
         target.verts.append(newvert)
         point.index = count
-        count  += 1 
+        count  += 1
     for facey in source.faces:
         row=len(facey.vertices)
         if row >= 5:
@@ -1016,8 +999,8 @@ def finalfill(source,target):
                 a = facey.vertices[j]
                 f.append(target.verts[a.index])
             target.faces.append(f)
-        
-###for error messages         
+
+###for error messages
 class DialogOperator(bpy.types.Operator):
     bl_idname = "object.dialog_operator"
     bl_label = "INFO"
@@ -1029,14 +1012,14 @@ class DialogOperator(bpy.types.Operator):
         tmp = message.split("\n")
         for el in tmp:
             col.label(el)
-        
+
     def execute(self, context):
         return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
-            
+
 
 ######### register all
 def register():

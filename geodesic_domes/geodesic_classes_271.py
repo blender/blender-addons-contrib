@@ -1,5 +1,5 @@
-#werkt from geodesic_domes.vefm_270 import *
-from geodesic_domes.vefm_271 import mesh, vertex, edge, face
+
+from .vefm_271 import mesh, vertex, edge, face
 
 import math
 from math import pi,acos,sin,cos,atan,tan,fabs, sqrt
@@ -18,13 +18,14 @@ def check_contains(cl,name , print_value = False):
     print("\ncheck_contains finished\n\n")
 
 class geodesic(mesh):
+
     def __init__(self):
         mesh.__init__(self)
         self.PKHG_parameters = None
-#        print("\n------ geodesic L11 PKHG_parameters",PKHG_parameters)
+
         self.panels = []
         self.vertsdone = []
-        self.skeleton = []                ## List of verts in the full skeleton edges.
+        self.skeleton = []     # List of verts in the full skeleton edges.
         self.vertskeleton = [] # config needs this member
         self.edgeskeleton = [] # config needs this member
         self.sphericalverts = []
@@ -33,8 +34,8 @@ class geodesic(mesh):
         self.a180 = pi
         self.a270 = pi * 1.5
         self.a360 = pi * 2
-        #define members here
-        #setparams  needs:
+        # define members here
+        # setparams  needs:
         self.frequency = None
         self.eccentricity = None
         self.squish = None
@@ -59,41 +60,35 @@ class geodesic(mesh):
         self.edgelength = None
         self.vertsdone = None
         self.panels = []
-    
-#PKHG because of unittest approach for a while the following three lines commentd
-#PKHG do not understand the problems with the next three lines
-#no does not work        self.setparameters()
-#        self.makegeodesic()
-#        self.connectivity()
 
     def setparameters(self,params):
         parameters = self.PKHG_parameters = params
-        self.frequency = parameters[0]    ## How many subdivisions - up to 20.
-        self.eccentricity = parameters[1]    ## Elliptical if >1.0.
+        self.frequency = parameters[0]     ## How many subdivisions - up to 20.
+        self.eccentricity = parameters[1]  ## Elliptical if >1.0.
         self.squish = parameters[2]        ## Flattened if < 1.0.
         self.radius = parameters[3]        ## Exactly what it says.
         self.square = parameters[4]        ## Controls amount of superellipse in X/Y plane.
-        self.squarez = parameters[5]        ## Controls amount of superellipse in Z dimension.
-        self.cart = parameters[6]            ## Cuts out sphericalisation step.
-        self.shape = parameters[7]        ## Full sphere, dome, flatbase.
-        self.baselevel = parameters[8]        ## Where the base is cut on a flatbase dome.
-        self.faceshape = parameters[9]    ## Triangular, hexagonal, tri-hex.
+        self.squarez = parameters[5]       ## Controls amount of superellipse in Z dimension.
+        self.cart = parameters[6]          ## Cuts out sphericalisation step.
+        self.shape = parameters[7]         ## Full sphere, dome, flatbase.
+        self.baselevel = parameters[8]     ## Where the base is cut on a flatbase dome.
+        self.faceshape = parameters[9]     ## Triangular, hexagonal, tri-hex.
         self.dualflag = parameters[10]
         self.rotxy = parameters[11]
         self.rotz = parameters[12]
         self.klass = parameters[13]
         self.sform = parameters[14]
-        self.super = 0                    ## Toggles superellipse.
+        self.super = 0                     ## Toggles superellipse.
         if self.square != 2.0 or self.squarez != 2.0:
             self.super = 1
-        self.odd = 0                    ## Is the frequency odd. It matters for dome building.
+        self.odd = 0                       ## Is the frequency odd. It matters for dome building.
         if self.frequency % 2 != 0:
             self.odd = 1
 
     def makegeodesic(self):
         self.vertedgefacedata() #PKHG only a pass 13okt11
         self.config()                    ## Generate all the configuration information.
-        if self.klass:            
+        if self.klass:
             self.class2()
         if self.faceshape == 1:
             self.hexify()                ## Hexagonal faces
@@ -112,13 +107,10 @@ class geodesic(mesh):
     def vertedgefacedata(self):
         pass
 
-#PKHG 23.1    def config(self, frequency = 1): #???PKHG frequency problem  20 oct.
-    def config(self): #???PKHG frequency problem  20 oct.
-#PKHG_OK        print("\n20-11 >>>>>>>>>DBG geodesic_classes_270 config L117 called")
+    def config(self):
         for i in range(len(self.vertskeleton)):
             self.vertskeleton[i].index = i
         for edges in self.edgeskeleton:
-#???PKHG TODO            s = skeletonrow(self.frequency, edges, 0, self) #self a geodesic
             s = skeletonrow(self.frequency, edges, 0, self) #self a geodesic
             self.skeleton.append(s)
         for i in range(len( self.verts)):
@@ -136,18 +128,14 @@ class geodesic(mesh):
             reverseflag = 0
             for flag in self.reversepanel:
                 if flag == i:
-                    reverseflag = 1                     
+                    reverseflag = 1
             p = panel(panpoints, panedges, reverseflag, self)
-#PKHG_panels not used?!            self.panels.append(p)
-        
+
     def sphericalize(self):
         if self.shape == 2:
             self.cutbasecomp()
         for vert in(self.verts):
-#PKHG test 20111030        
-#            x = vert.x
-#            y = vert.y
-#            z = vert.z
+
             x = vert.vector.x
             y = vert.vector.y
             z = vert.vector.z
@@ -157,13 +145,9 @@ class geodesic(mesh):
             self.sphericalverts.append([u,v])
 
     def sphere2cartesian(self):
-#PKHG_TODOnot_now        check_contains(self,"sphereto self",True)
         for i in range(len(self.verts)):
             if self.cart:
-#PKHG test 20111030                        
-#                x = self.verts[i].x * self.radius * self.eccentricity
-#                y = self.verts[i].y * self.radius
-#                z = self.verts[i].z * self.radius * self.squish
+
                 x = self.verts[i].vector.x * self.radius * self.eccentricity
                 y = self.verts[i].vector.y * self.radius
                 z = self.verts[i].vector.z * self.radius * self.squish
@@ -180,9 +164,8 @@ class geodesic(mesh):
                 else:
                     r1 = 1.0
                     r2 = 1.0
-                
-            #    print "sform",self.sform,"  u",u,"  v",v
-                if self.sform[12]:                    
+
+                if self.sform[12]:
                     r1 = r1 * self.superform(self.sform[0],self.sform[1],\
                                              self.sform[2],self.sform[3],\
                                              self.sform[14] + u,self.sform[4],\
@@ -193,12 +176,9 @@ class geodesic(mesh):
                                              self.sform[15] + v,self.sform[10],\
                                              self.sform[11],self.sform[17] * v)
                 x,y,z = self.cartesian(u,v,r1,r2)
-#PKHG test 20111030                        
-#            self.verts[i].x = x
-#            self.verts[i].y = y
-#            self.verts[i].z = z
+
             self.verts[i] = vertex((x,y,z))
-        
+
     def usphericalise(self,x,y,z):
         if y == 0.0:
             if x>0:
@@ -210,7 +190,7 @@ class geodesic(mesh):
                 theta = self.a90
             else:
                 theta = self.a270
-                
+
         else:
             theta = atan(y / x)
         if x < 0.0 and y < 0.0:
@@ -219,7 +199,7 @@ class geodesic(mesh):
             theta = theta + self.a180
         u = theta
         return u
-    
+
     def vsphericalise(self,x,y,z) :
         if z == 0.0:
             phi = self.a90
@@ -228,6 +208,7 @@ class geodesic(mesh):
             phi = acos(z / rho)
         v = phi
         return v
+
     def ellipsecomp(self,efactor,theta):
         if theta == self.a90:
             result = self.a90
@@ -245,12 +226,13 @@ class geodesic(mesh):
             else:
                 x = self.a180 + result
                 y = result
-            
+
                 if fabs(x - theta) <= fabs(y - theta):
                     result = x
                 else:
                     result = y
         return result
+
     def cutbasecomp(self):
         pass
 
@@ -259,11 +241,7 @@ class geodesic(mesh):
         y = r1 * sin(u) * r2 * sin(v) * self.radius
         z = r2 * cos(v) * self.radius * self.squish
         return x,y,z
-#     def connectivity(self):
-# 
-#         self.dovertedge()
-#         self.dovertface()
-#         self.dofaceedge()
+
 
 class edgerow:
     def __init__(self, count, anchor, leftindex, rightindex, stepvector, endflag, parentgeo):
@@ -302,27 +280,24 @@ class skeletonrow:
                 if parentgeo.vertsdone[vert1.index][0]:
                     self.points.append(parentgeo.vertsdone[vert1.index][1])
                 else:
-#PKHG test 20111030
-#                    newpoint = vertex((vert1.x, vert1.y, vert1.z))
                     newpoint = vertex(vert1.vector)
                     vertcount = len(parentgeo.verts)
                     self.points.append(vertcount)
                     newpoint.index = vertcount
                     parentgeo.vertsdone[vert1.index] = [1,vertcount]
-                    parentgeo.verts.append(newpoint)                    
-                    
+                    parentgeo.verts.append(newpoint)
+
             elif i == count:
                 if parentgeo.vertsdone[vert2.index][0]:
                     self.points.append(parentgeo.vertsdone[vert2.index][1])
                 else:
-#PKHG test 20111030                    
-#                    newpoint = vertex((vert2.x, vert2.y, vert2.z))
+
                     newpoint = vertex(vert2.vector)
                     vertcount = len(parentgeo.verts)
                     self.points.append(vertcount)
                     newpoint.index = vertcount
                     parentgeo.vertsdone[vert2.index] = [1,vertcount]
-                    parentgeo.verts.append(newpoint)                    
+                    parentgeo.verts.append(newpoint)
             else:
                 newpoint = vertex(vert1.vector + (self.step * i)) #must be a vertex!
                 vertcount = len(parentgeo.verts)
@@ -375,13 +350,13 @@ class panel:
         if self.leftedge.points[0] != self.cardinal.index:
             self.leftedge.points.reverse()
             self.leftedge.vect.negative()
-        
+
         if self.rightedge.points[0] != self.cardinal.index:
             self.rightedge.points.reverse()
             self.rightedge.vect.negative()
-        
+
         if self.baseedge.points[0] != self.leftv.index:
-        
+
             self.baseedge.points.reverse()
             self.baseedge.vect.negative()
 
@@ -392,19 +367,18 @@ class panel:
             else:
                 newrow = edgerow(i, parentgeo.verts[self.leftedge.points[i]], self.leftedge.points[i], self.rightedge.points[i], self.baseedge.step, 0, parentgeo )
             self.rows.append(newrow)
+
     def createfaces(self, parentgeo,reverseflag):
         for i in range(len(self.leftedge.points) - 1):
             facefill(self.rows[i], self.rows[i + 1], reverseflag, parentgeo, len(self.rows[i].points))
-#############################
-#############################
 
-#for point on top?  YES!          
+#for point on top?  YES!
 class tetrahedron(geodesic,mesh):
     def __init__(self,parameter):
         geodesic.__init__(mesh)
         geodesic.setparameters(self,parameter)
         self.set_vert_edge_skeleons()
-        
+
     def set_vert_edge_skeleons(self):
         self.vertskeleton=[        vertex(( 0.0 , 0.0 , 1.73205080757 )),
                             vertex(( 0.0 , -1.63299316185 , -0.577350269185 )),
@@ -416,8 +390,7 @@ class tetrahedron(geodesic,mesh):
                             edge(self.vertskeleton[1],self.vertskeleton[2]),
                             edge(self.vertskeleton[2],self.vertskeleton[3]),
                             edge(self.vertskeleton[1],self.vertskeleton[3])    ]
-        
-### probably to be removed, other gui! : "#??? delete PKHG"
+
         self.panelpoints=[[0,1,2],[0,2,3],[0,1,3],[1,2,3]]
         self.paneledges=[[0,1,3],[1,2,4],[0,2,5],[3,5,4]]
         self.reversepanel=[2,3]
@@ -430,6 +403,7 @@ class tetraedge(geodesic):
         geodesic.__init__(mesh)
         geodesic.setparameters(self,parameter)
         self.set_vert_edge_skeleons()
+
     def set_vert_edge_skeleons(self):
         self.vertskeleton=[        vertex(( 0.0 , -1.41421356237 , 1.0 )),
                             vertex(( 0.0 , 1.41421356237 , 1.0 )),
@@ -455,6 +429,7 @@ class tetraface(geodesic):
         geodesic.__init__(mesh)
         geodesic.setparameters(self,parameter)
         self.set_vert_edge_skeleons()
+
     def set_vert_edge_skeleons(self):
         self.vertskeleton=[        vertex(( -1.41421356237 , -0.816496580927 , 0.57735026919 )),
                             vertex(( 1.41421356237 , -0.816496580927 , 0.57735026919 )),
@@ -477,6 +452,7 @@ class octahedron(geodesic):
         geodesic.__init__(mesh)
         geodesic.setparameters(self,parameter)
         self.set_vert_edge_skeleons()
+
     def set_vert_edge_skeleons(self):
         self.vertskeleton=[        vertex((0.0,0.0,1.0)),
                             vertex((0.0,1.0,0.0)),
@@ -503,11 +479,13 @@ class octahedron(geodesic):
         self.reversepanel=[4,5,6,7]
         self.edgelength=[]
         self.vertsdone=[[0,0]] * len(self.vertskeleton)
+
 class octaedge(geodesic):
     def __init__(self,parameter):
         geodesic.__init__(mesh)
         geodesic.setparameters(self,parameter)
         self.set_vert_edge_skeleons()
+
     def set_vert_edge_skeleons(self):
         self.vertskeleton=[        vertex(( 0.0 , -0.707106781187 , 0.707106781187 )),
                             vertex(( 0.0 , 0.707106781187 , 0.707106781187 )),
@@ -532,11 +510,13 @@ class octaedge(geodesic):
         self.reversepanel=[0,2,4,7]
         self.edgelength=[]
         self.vertsdone=[[0,0]] * len(self.vertskeleton)
+
 class octaface(geodesic):
     def __init__(self,parameter):
         geodesic.__init__(mesh)
         geodesic.setparameters(self,parameter)
         self.set_vert_edge_skeleons()
+
     def set_vert_edge_skeleons(self):
         self.vertskeleton=[        vertex(( 0.408248458663 , -0.707106781187 , 0.577350150255 )),
                             vertex(( 0.408248458663 , 0.707106781187 , 0.577350150255 )),
@@ -561,11 +541,13 @@ class octaface(geodesic):
         self.reversepanel=[2,5,6,7]
         self.edgelength=[]
         self.vertsdone=[[0,0]] * len(self.vertskeleton)
+
 class icosahedron(geodesic):
     def __init__(self,parameter):
         geodesic.__init__(mesh)
         geodesic.setparameters(self,parameter)
         self.set_vert_edge_skeleons()
+
     def set_vert_edge_skeleons(self):
         self.vertskeleton=[        vertex(( 0.0 , 0.0 , 0.587785252292 )),
                             vertex(( 0.0 , -0.525731096637 , 0.262865587024 )),
@@ -614,11 +596,13 @@ class icosahedron(geodesic):
         self.reversepanel=[5,7,9,11,13,15,16,17,18,19]
         self.edgelength=[]
         self.vertsdone=[[0,0]] * len(self.vertskeleton)
+
 class icoedge(geodesic):
     def __init__(self,parameter):
         geodesic.__init__(mesh)
         geodesic.setparameters(self,parameter)
         self.set_vert_edge_skeleons()
+
     def set_vert_edge_skeleons(self):
         self.vertskeleton=[        vertex(( 0 , 0.309016994375 , 0.5 )),
                             vertex(( 0 , -0.309016994375 , 0.5 )),
@@ -669,11 +653,13 @@ class icoedge(geodesic):
         self.reversepanel=[0,2,5,9,11,12,14,15,17,19]
         self.edgelength=[]
         self.vertsdone=[[0,0]] * len(self.vertskeleton)
+
 class icoface(geodesic):
     def __init__(self,parameter):
         geodesic.__init__(mesh)
         geodesic.setparameters(self,parameter)
         self.set_vert_edge_skeleons()
+
     def set_vert_edge_skeleons(self):
         self.vertskeleton=[        vertex(( -0.17841104489 , 0.309016994375 , 0.46708617948 )),
                             vertex(( -0.17841104489 , -0.309016994375 , 0.46708617948 )),
@@ -726,15 +712,12 @@ class icoface(geodesic):
 
 ##???PKHG TODO this does not work yet ...
 def creategeo(geo,polytype,orientation,parameters):
-    
+
     if polytype == 'Tetrahedron':
         if orientation == 'PointUp':
-            #return
-            #geo(parameters)
-#            geo.setparameters()
             my_tetrahedron = tetrahedron(geodesic)
             my_tetrahedron.set_vert_edge_skeleons()
-            my_tetrahedron.config()            
+            my_tetrahedron.config()
             check_contains(my_tetrahedron,"my_tetra",True)
             vefm_add_object(geo)
         elif orientation == 'EdgeUp':

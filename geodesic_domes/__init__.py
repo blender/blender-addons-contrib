@@ -17,13 +17,13 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Geodesic Domes",
-    "author": "Noctumsolis, updated from 2.5 PKHG now for 2.71, Meta Androcto, original for 2.49 from Andy Houston",
+    "name": "Geodesic Domes2",
+    "author": "Noctumsolis, PKHG, Meta Androcto, Andy Houston",
     "version": (0, 3, 2),
     "blender": (2, 7, 1),
     "location": "Toolshelf > Create Tab",
     "description": "Create geodesic dome type objects.",
-    "warning": "not yet finished",
+    "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/Geodesic_Domes",
     "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "Mesh"}
@@ -31,10 +31,10 @@ bl_info = {
 if "bpy" in locals():
     import imp
     imp.reload(third_domes_panel_271)
-    
+
 else:
-    from geodesic_domes import third_domes_panel_271
-   
+    from . import third_domes_panel_271
+
 import bpy
 from bpy.props import *
 
@@ -46,6 +46,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
-
 

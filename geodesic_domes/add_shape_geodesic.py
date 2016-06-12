@@ -3,7 +3,7 @@ import mathutils
 
 def reset_transform(ob):
     m = mathutils.Matrix()
-    ob.matrix_local = m     
+    ob.matrix_local = m
 
 def func_add_corrective_pose_shape_fast(source, target):
     result = ""
@@ -51,7 +51,7 @@ def func_add_corrective_pose_shape_fast(source, target):
             armature = n.object
             unposeMesh( shape_key_verts, target, armature)
             break
-    
+
     # set the new shape key value to 1.0, so we see the result instantly
     target.data.shape_keys.key_blocks[ target.active_shape_key_index].value = 1.0
     try:
@@ -63,18 +63,18 @@ def func_add_corrective_pose_shape_fast(source, target):
     target.show_only_shape_key = False
     target.data.update()
     return result
-    
-class add_corrective_pose_shape_fast(bpy.types.Operator):   
+
+class add_corrective_pose_shape_fast(bpy.types.Operator):
     '''Adds 1st object as shape to 2nd object as pose shape (only 1 armature)'''
     bl_idname = "object.add_corrective_pose_shape_fast"
     bl_label = "Add object as corrective shape faster"
-    
+
     @classmethod
     def poll(cls, context):
         return context.active_object != None
 
     def execute(self, context):
-    
+
         if len(context.selected_objects) > 2:
             print("Select source and target objects please")
             return {'FINISHED'}
