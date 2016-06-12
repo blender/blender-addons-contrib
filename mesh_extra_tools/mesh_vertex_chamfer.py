@@ -89,7 +89,7 @@ class VertexChamfer(bpy.types.Operator):
             val = min(val, 0.5)
             # Loop over the verts of the edge to split
             for v in e.verts:
-                #if val == 0.5 and e.other_vert(v).tag:
+                # if val == 0.5 and e.other_vert(v).tag:
                 #    continue
                 en, vn = bmesh.utils.edge_split(e, v, val)
                 en.tag = vn.tag = True
@@ -124,23 +124,25 @@ class VertexChamfer(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
 class chamfer_help(bpy.types.Operator):
-	bl_idname = 'help.vertexchamfer'
-	bl_label = ''
+    bl_idname = 'help.vertexchamfer'
+    bl_label = ''
 
-	def draw(self, context):
-		layout = self.layout
-		layout.label('To use:')
-		layout.label('Make a selection or selection of verts ')
-		layout.label('Result is triangle chamfer, works on single vert.')
-		layout.label('To Help:')
-		layout.label('In some cases may need to press F to fill result.')
-	
-	def execute(self, context):
-		return {'FINISHED'}
+    def draw(self, context):
+        layout = self.layout
+        layout.label('To use:')
+        layout.label('Make a selection or selection of verts ')
+        layout.label('Result is triangle chamfer, works on single vert.')
+        layout.label('To Help:')
+        layout.label('In some cases may need to press F to fill result.')
 
-	def invoke(self, context, event):
-		return context.window_manager.invoke_popup(self, width = 300)
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=300)
+
 
 def register():
     bpy.utils.register_module(__name__)

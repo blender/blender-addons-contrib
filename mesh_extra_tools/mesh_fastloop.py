@@ -20,20 +20,20 @@ bl_info = {
     "name": "Fast Loop",
     "description": "Adds loops fast!",
     "author": "Andy Davies (metalliandy)",
-    "version": (0,16),
+    "version": (0, 16),
     "blender": (2, 5, 6),
     "api": 34958,
     "location": "Tool Shelf",
-    "warning": '', # used for warning icon and text in addons panel
+    "warning": '',  # used for warning icon and text in addons panel
     "wiki_url": "",
     "tracker_url": "",
     "category": "Mesh"}
-    
+
 """About this script:-
 This script enables the fast creation of multiple loops on a mesh.
 
 Usage:-
-1)Click the FastLoop button on the Tool Shelf to activate the tool. 
+1)Click the FastLoop button on the Tool Shelf to activate the tool.
 2)Hover over the mesh in the general area where you would like a loop to be added (shown by a highlight on the mesh).
 3)Click once to confirm the loop placement
 4)place the loop and then slide to fine tune its position.
@@ -56,53 +56,58 @@ v0.13 - Initial revision."""
 
 import bpy
 
+
 class OBJECT_OT_FastLoop(bpy.types.Operator):
     bl_idname = "object_ot.fastloop"
     bl_label = "FastLoop"
     bl_description = 'Press TAB x 2 to exit'
 
     active = bpy.props.BoolProperty(name="active", default=False)
-    
+
     @classmethod
     def poll(cls, context):
         return bpy.ops.mesh.loopcut_slide.poll()
-    
+
     def modal(self, context, event):
         if event.type == 'ESC':
             context.area.header_text_set()
             return {'CANCELLED'}
         elif event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
             self.active = False
-        
+
         if not self.active:
             self.active = True
             bpy.ops.mesh.loopcut_slide('INVOKE_DEFAULT')
             context.area.header_text_set("Press ESC twice to stop FastLoop")
-        
+
         return {'RUNNING_MODAL'}
-    
+
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
+
 class fastloop_help(bpy.types.Operator):
-	""" Press TAB x2 to exit """
-	bl_idname = 'help.fastloop'
-	bl_label = ''
+    """ Press TAB x2 to exit """
+    bl_idname = 'help.fastloop'
+    bl_label = ''
 
-	def draw(self, context):
-		layout = self.layout
-		layout.label('To use:')
-		layout.label('Make an edge or loop selection')
-		layout.label('Create Multiple Edge Loops')
-		layout.label('Press ESC x2 to exit')
+    def draw(self, context):
+        layout = self.layout
+        layout.label('To use:')
+        layout.label('Make an edge or loop selection')
+        layout.label('Create Multiple Edge Loops')
+        layout.label('Press ESC x2 to exit')
 
-	def invoke(self, context, event):
-		return context.window_manager.invoke_popup(self, width = 300) 
-## registring
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=300)
+# registring
+
+
 def register():
     bpy.utils.register_module(__name__)
     pass
+
 
 def unregister():
     bpy.utils.unregister_module(__name__)

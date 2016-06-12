@@ -89,7 +89,7 @@ def f_(self, list_0):
         k = bm.faces.new(list_1)
         k.select = False
         for i in range(n):
-            j = (i+1) % n
+            j = (i + 1) % n
             vseq = list_1[i], list_2[i], list_2[j], list_1[j]
             k = bm.faces.new(vseq)
             k.select = False
@@ -113,6 +113,7 @@ class sp_sol_p0(bpy.types.Panel):
         layout.operator('sp_sol.op0_id', text='Split solidify')
 '''
 
+
 class sp_sol_op0(bpy.types.Operator):
 
     bl_idname = 'sp_sol.op0_id'
@@ -132,8 +133,8 @@ class sp_sol_op0(bpy.types.Operator):
 
     en0 = EnumProperty(items=(('opt0', 'Face', ''),
                               ('opt1', 'Vertex', '')),
-                       name = 'Normal',
-                       default = 'opt0')
+                       name='Normal',
+                       default='opt0')
 
     def draw(self, context):
 
@@ -175,19 +176,20 @@ class sp_sol_op0(bpy.types.Operator):
                 pass
             return {'FINISHED'}
 
+
 class solidify_help(bpy.types.Operator):
-	bl_idname = 'help.solidify'
-	bl_label = ''
+    bl_idname = 'help.solidify'
+    bl_label = ''
 
-	def draw(self, context):
-		layout = self.layout
-		layout.label('To use:')
-		layout.label('Make a selection or selection of Faces.')
-		layout.label('Split Faces & Extrude results')
-		layout.label('Similar to a shatter/explode effect')
+    def draw(self, context):
+        layout = self.layout
+        layout.label('To use:')
+        layout.label('Make a selection or selection of Faces.')
+        layout.label('Split Faces & Extrude results')
+        layout.label('Similar to a shatter/explode effect')
 
-	def invoke(self, context, event):
-		return context.window_manager.invoke_popup(self, width = 300)
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width=300)
 # ------ ------
 class_list = [sp_sol_op0]
 
