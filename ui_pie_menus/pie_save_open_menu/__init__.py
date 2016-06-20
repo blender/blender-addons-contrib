@@ -17,6 +17,7 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 from mathutils import *
 import math
+import os
 
 # Pie Save/Open
 class PieSaveOpen(Menu):
@@ -83,21 +84,25 @@ class FileIncrementalSave(bpy.types.Operator):
     def execute(self, context):
         f_path = bpy.data.filepath
         if f_path.find("_") != -1:
-            str_nb = f_path.rpartition("_")[-1].rpartition(".blend")[0]
-            int_nb = int(str_nb)
-            new_nb = str_nb.replace(str(int_nb), str(int_nb + 1))
-            output = f_path.replace(str_nb, new_nb)
-
-            i = 1
-            while os.path.isfile(output):
+            # fix for cases when there is an underscore in the name like my_file.blend
+            try:
                 str_nb = f_path.rpartition("_")[-1].rpartition(".blend")[0]
-                i += 1
-                new_nb = str_nb.replace(str(int_nb), str(int_nb + i))
+                int_nb = int(str(str_nb))
+                new_nb = str_nb.replace(str(int_nb), str(int_nb + 1))
                 output = f_path.replace(str_nb, new_nb)
+
+                i = 1
+                while os.path.isfile(output):
+                    str_nb = f_path.rpartition("_")[-1].rpartition(".blend")[0]
+                    i += 1
+                    new_nb = str_nb.replace(str(int_nb), str(int_nb + i))
+                    output = f_path.replace(str_nb, new_nb)
+            except ValueError:
+                output = f_path.rpartition(".blend")[0] + "_001" + ".blend"
         else:
             output = f_path.rpartition(".blend")[0] + "_001" + ".blend"
-
         bpy.ops.wm.save_as_mainfile(filepath=output)
+
         self.report({'INFO'}, "File: {0} - Created at: {1}".format(output[len(bpy.path.abspath("//")):], output[:len(bpy.path.abspath("//"))]))
         return {'FINISHED'}
 
