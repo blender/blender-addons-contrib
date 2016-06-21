@@ -62,6 +62,10 @@ class InsertAutoKeyframe(bpy.types.Operator):
             if bpy.context.scene.tool_settings.use_keyframe_insert_auto == False:
                bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
 
+        for area in bpy.context.screen.areas:
+            if area.type in ('TIMELINE'):
+                area.tag_redraw()
+
         return {'FINISHED'}
 
 classes = [
