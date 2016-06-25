@@ -17,6 +17,20 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
 # Pie Selection Object Mode - A
+class PieSelectionsMore(Menu):
+    bl_idname = "pie.selectionsmore"
+    bl_label = "Pie Selections Object Mode"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        box = pie.split().column()
+        row = box.row(align=True)
+        box.operator("object.select_by_type", text="Select By Type", icon='SNAP_VOLUME')
+        box.operator("object.select_grouped", text="Select Grouped", icon='ROTATE')
+        box.operator("object.select_linked", text="Select Linked", icon='CONSTRAINT_BONE')
+        
+# Pie Selection Object Mode - A
 class PieSelectionsOM(Menu):
     bl_idname = "pie.selectionsom"
     bl_label = "Pie Selections Object Mode"
@@ -39,11 +53,7 @@ class PieSelectionsOM(Menu):
         # 1 - BOTTOM - LEFT
         pie.operator("object.select_by_layer", text="Select By Layer", icon='GROUP_VERTEX')
         # 3 - BOTTOM - RIGHT
-        box = pie.split().column()
-        row = box.row(align=True)
-        box.operator("object.select_by_type", text="Select By Type", icon='SNAP_VOLUME')
-        box.operator("object.select_grouped", text="Select Grouped", icon='ROTATE')
-        box.operator("object.select_linked", text="Select Linked", icon='CONSTRAINT_BONE')
+        pie.menu("pie.selectionsmore", text="Select More", icon='GROUP_VERTEX')
 
 # Pie Selection Edit Mode
 class PieSelectionsEM(Menu):
@@ -91,6 +101,7 @@ classes = [
     PieSelectionsOM,
     PieSelectionsEM,
     SelectAllBySelection,
+    PieSelectionsMore,
     ]
 
 addon_keymaps = []

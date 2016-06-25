@@ -1,11 +1,11 @@
 
 bl_info = {
-    "name": "Pivot Point: Key: 'Ctrl Shift Tab' ",
+    "name": "Pivot Point: Key: ' . key' ",
     "description": "Pivot Point Menu",
     "author": "pitiwazou, meta-androcto",
     "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "Ctrl Shift Tab",
+    "location": " . key",
     "warning": "",
     "wiki_url": "",
     "category": "3D View"
@@ -44,7 +44,7 @@ def register():
     if wm.keyconfigs.addon:
         # Pivot Point
         km = wm.keyconfigs.addon.keymaps.new(name='3D View Generic', space_type='VIEW_3D')
-        kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True)
+        kmi = km.keymap_items.new('wm.call_menu_pie', 'PERIOD', 'PRESS')
         kmi.properties.name = "pie.pivot"
 #        kmi.active = True
         addon_keymaps.append((km, kmi))

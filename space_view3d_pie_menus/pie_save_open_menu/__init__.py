@@ -32,13 +32,7 @@ class PieSaveOpen(Menu):
         # 6 - RIGHT
         pie.operator("file.save_incremental", text="Incremental Save", icon='SAVE_COPY')
         # 2 - BOTTOM
-        box = pie.split().column()
-        row = box.row(align=True)
-        box.operator("import_scene.obj", text="Import OBJ", icon='IMPORT')
-        box.operator("export_scene.obj", text="Export OBJ", icon='EXPORT')
-        box.separator()
-        box.operator("import_scene.fbx", text="Import FBX", icon='IMPORT')
-        box.operator("export_scene.fbx", text="Export FBX", icon='EXPORT')
+        pie.menu("pie.fileio", text="Import/Export", icon='IMPORT')
         # 8 - TOP
         pie.operator("wm.save_mainfile", text="Save", icon='FILE_TICK')
         # 7 - TOP - LEFT
@@ -46,17 +40,50 @@ class PieSaveOpen(Menu):
         # 9 - TOP - RIGHT
         pie.operator("wm.save_as_mainfile", text="Save As...", icon='SAVE_AS')
         # 1 - BOTTOM - LEFT
-        box = pie.split().column()
-        row = box.row(align=True)
-        box.operator("wm.recover_auto_save", text="Recover Auto Save...", icon='RECOVER_AUTO')
-        box.operator("wm.recover_last_session", text="Recover Last Session", icon='RECOVER_LAST')
-        box.operator("wm.revert_mainfile", text="Revert", icon='FILE_REFRESH')
+        pie.menu("pie.recover", text="Recovery", icon='RECOVER_LAST')
         # 3 - BOTTOM - RIGHT
+        pie.menu("pie.link", text="Link", icon='LINK_BLEND')
+
+class pie_link(bpy.types.Menu):
+    bl_idname = "pie.link"
+    bl_label = "Link"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
         box = pie.split().column()
         row = box.row(align=True)
         box.operator("wm.link", text="Link", icon='LINK_BLEND')
         box.operator("wm.append", text="Append", icon='APPEND_BLEND')
         box.menu("external.data", text="External Data", icon='EXTERNAL_DATA')
+
+class pie_recover(bpy.types.Menu):
+    bl_idname = "pie.recover"
+    bl_label = "Recovery"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        box = pie.split().column()
+        row = box.row(align=True)
+        box.operator("wm.recover_auto_save", text="Recover Auto Save...", icon='RECOVER_AUTO')
+        box.operator("wm.recover_last_session", text="Recover Last Session", icon='RECOVER_LAST')
+        box.operator("wm.revert_mainfile", text="Revert", icon='FILE_REFRESH')
+
+class pie_fileio(bpy.types.Menu):
+    bl_idname = "pie.fileio"
+    bl_label = "Import/Export"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        box = pie.split().column()
+        row = box.row(align=True)
+        box.operator("import_scene.obj", text="Import OBJ", icon='IMPORT')
+        box.operator("export_scene.obj", text="Export OBJ", icon='EXPORT')
+        box.separator()
+        box.operator("import_scene.fbx", text="Import FBX", icon='IMPORT')
+        box.operator("export_scene.fbx", text="Export FBX", icon='EXPORT')
 
 class ExternalData(bpy.types.Menu):
     bl_idname = "external.data"
@@ -111,6 +138,9 @@ classes = [
     PieSaveOpen,
     ExternalData,
     FileIncrementalSave,
+    pie_fileio,
+    pie_recover,
+    pie_link,
     ]
 
 addon_keymaps = []

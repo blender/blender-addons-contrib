@@ -26,24 +26,17 @@ class PieShadingView(Menu):
 
     def draw(self, context):
         layout = self.layout
-        pie = layout.menu_pie()
-        # 4 - LEFT
-        pie.operator("object.shadingvariable", text="Material", icon='MATERIAL').variable = 'MATERIAL'
-        # 6 - RIGHT
-        pie.operator("object.shadingvariable", text="Wireframe", icon='WIRE').variable = 'WIREFRAME'
-        # 2 - BOTTOM
-        pie.menu("object.material_list_menu", icon='MATERIAL_DATA')
 
-        # 8 - TOP
-        pie.operator("object.shadingvariable", text="Solid", icon='SOLID').variable = 'SOLID'
-        # 7 - TOP - LEFT
-        pie.operator("object.shadingvariable", text="Texture", icon='TEXTURE_SHADED').variable = 'TEXTURED'
-        # 9 - TOP - RIGHT
-        pie.operator("object.shadingvariable", text="Render", icon='SMOOTH').variable = 'RENDERED'
-        # 1 - BOTTOM - LEFT
-        pie.operator("shading.smooth", text="Shade Smooth", icon='SOLID')
-        # 3 - BOTTOM - RIGHT
-        pie.operator("shading.flat", text="Shade Flat", icon='MESH_ICOSPHERE')
+        pie = layout.menu_pie()
+        pie.prop(context.space_data, "viewport_shade", expand=True)
+
+        if context.active_object:
+            if(context.mode == 'EDIT_MESH'):
+                pie.operator("MESH_OT_faces_shade_smooth")
+                pie.operator("MESH_OT_faces_shade_flat")
+            else:
+                pie.operator("OBJECT_OT_shade_smooth")
+                pie.operator("OBJECT_OT_shade_flat")
 
 # Pie Object Shading- Shift + Z
 class PieObjectShading(Menu):
@@ -119,6 +112,8 @@ class PieObjectShading(Menu):
 
         # 3 - BOTTOM - RIGHT
         box = pie.split().column()
+        row = box.row(align=True)
+        row.menu("object.material_list_menu", icon='MATERIAL_DATA')
         row = box.row(align=True)
         row.prop(view, "use_matcap", text="Matcaps")
         if view.use_matcap:

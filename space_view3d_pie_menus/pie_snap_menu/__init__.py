@@ -1,11 +1,11 @@
 
 bl_info = {
-    "name": "Snap Key: 'Shift Tab' ",
+    "name": "Snap Key: 'Ctrl Shift Tab' ",
     "description": "Snap Menu",
     "author": "pitiwazou, meta-androcto",
     "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "Shift Tab",
+    "location": "Ctrl Shift Tab",
     "warning": "",
     "wiki_url": "",
     "category": "3D View"
@@ -213,7 +213,7 @@ def register():
     if wm.keyconfigs.addon:
         # Snapping
         km = wm.keyconfigs.addon.keymaps.new(name='3D View Generic', space_type='VIEW_3D')
-        kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS', shift=True)
+        kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True)
         kmi.properties.name = "pie.snapping"
 #        kmi.active = True
         addon_keymaps.append((km, kmi))

@@ -354,6 +354,16 @@ class PieProportionalEdt(Menu):
         # 1 - BOTTOM - LEFT
         pie.operator("proportional_edt.constant", text="Constant", icon='NOCURVE')
         # 3 - BOTTOM - RIGHT
+        pie.menu("pie.proportional_more", text="More", icon='LINCURVE')
+
+# Pie ProportionalEditEdt - O
+class PieProportionalMore(Menu):
+    bl_idname = "pie.proportional_more"
+    bl_label = "Pie Proportional More"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
         box = pie.split().column()
         row = box.row(align=True)
         box.operator("proportional_edt.linear", text="Linear", icon='LINCURVE')
@@ -381,6 +391,7 @@ classes = [
     ProportionalRandomEdt,
     PieProportionalObj,
     PieProportionalEdt,
+    PieProportionalMore,
     ]
 
 addon_keymaps = []

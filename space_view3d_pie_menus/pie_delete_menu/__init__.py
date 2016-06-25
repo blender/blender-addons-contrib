@@ -47,6 +47,7 @@ class PieDelete(Menu):
         row = box.row(align=True)
         box.operator("mesh.delete", text="Only Edge & Faces", icon='SPACE2').type = 'EDGE_FACE'
         box.operator("mesh.delete", text="Only Faces", icon='UV_FACESEL').type = 'ONLY_FACE'
+        box.operator("mesh.remove_doubles" , text="Remove Doubles", icon='ORTHO')
 
 # Limited Dissolve
 class DeleteLimitedDissolve(bpy.types.Operator):

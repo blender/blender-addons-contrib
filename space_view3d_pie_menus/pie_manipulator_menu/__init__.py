@@ -169,7 +169,7 @@ class PieManipulator(Menu):
         # 1 - BOTTOM - LEFT
         pie.operator("rotate.scale", text="Rotate/Scale")
         # 3 - BOTTOM - RIGHT
-        pie.operator("manip.scale", text="scale", icon='MAN_SCALE')
+        pie.operator("manip.scale", text="Scale", icon='MAN_SCALE')
 
 # Pie Snapping - Shift + Tab
 

@@ -78,8 +78,9 @@ class PieViewallSelGlobEtc(Menu):
         # 7 - TOP - LEFT
         pie.operator("screen.region_quadview", text="Toggle Quad View", icon='SPLITSCREEN')
         # 1 - BOTTOM - LEFT
-        pie.operator("screen.screen_full_area", text="Full Screen", icon='FULLSCREEN_ENTER')
+        pie.operator("wm.call_menu_pie", text="Previous Menu", icon='BACK').name = "pie.viewnumpad"
         # 9 - TOP - RIGHT
+        pie.operator("screen.screen_full_area", text="Full Screen", icon='FULLSCREEN_ENTER')
         # 3 - BOTTOM - RIGHT
 
 # Pie views numpad - Q

@@ -60,51 +60,32 @@ class PivotBottom(bpy.types.Operator):
 # Pie Origin/Pivot - Shift + S
 class PieOriginPivot(Menu):
     bl_idname = "pie.originpivot"
-    bl_label = "Pie Origin/Cursor"
+    bl_label = "Origin Menu"
 
     def draw(self, context):
         layout = self.layout
         obj = context.object
         pie = layout.menu_pie()
         if obj and obj.type == 'MESH':
-            # 4 - LEFT
+
+            pie.operator("object.origin_set", text="Origin to Center of Mass", icon='BBOX').type = 'ORIGIN_CENTER_OF_MASS'
+            pie.operator("object.origin_set", text="Origin To 3D Cursor", icon='CURSOR').type = 'ORIGIN_CURSOR'
+            pie.operator("object.pivot2selection", text="Origin To Selection", icon='SNAP_INCREMENT')
+            pie.operator("object.origin_set", text="Origin To Geometry", icon='ROTATE').type = 'ORIGIN_GEOMETRY'
+            pie.operator("object.origin_set", text="Geometry To Origin", icon='BBOX').type = 'GEOMETRY_ORIGIN'
             pie.operator("object.pivotobottom", text="Origin to Bottom", icon='TRIA_DOWN')
-            # 6 - RIGHT
-            pie.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='ROTACTIVE')
-            # 2 - BOTTOM
-            pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor", icon='CLIPUV_HLT').use_offset = False
-            # 8 - TOP
-            pie.operator("object.origin_set", text="Origin To 3D Cursor", icon='CURSOR').type = 'ORIGIN_CURSOR'
-            # 7 - TOP - LEFT
-            pie.operator("object.pivot2selection", text="Origin To Selection", icon='SNAP_INCREMENT')
-            # 9 - TOP - RIGHT
-            pie.operator("object.origin_set", text="Origin To Geometry", icon='ROTATE').type = 'ORIGIN_GEOMETRY'
-            # 1 - BOTTOM - LEFT
-            pie.operator("object.origin_set", text="Geometry To Origin", icon='BBOX').type = 'GEOMETRY_ORIGIN'
-            # 3 - BOTTOM - RIGHT
-            pie.operator("wm.call_menu_pie", text="Others", icon='CURSOR').name = "origin.pivotmenu"
         else:
-            # 4 - LEFT
-#            pie.operator("object.pivotobottom", text="Origin to Bottom", icon='TRIA_DOWN')
-            # 6 - RIGHT
-            pie.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='ROTACTIVE')
-            # 2 - BOTTOM
-            pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor", icon='CLIPUV_HLT').use_offset = False
-            # 8 - TOP
+            pie.operator("object.origin_set", text="Origin to Center of Mass", icon='BBOX').type = 'ORIGIN_CENTER_OF_MASS'
             pie.operator("object.origin_set", text="Origin To 3D Cursor", icon='CURSOR').type = 'ORIGIN_CURSOR'
-            # 7 - TOP - LEFT
             pie.operator("object.pivot2selection", text="Origin To Selection", icon='SNAP_INCREMENT')
-            # 9 - TOP - RIGHT
             pie.operator("object.origin_set", text="Origin To Geometry", icon='ROTATE').type = 'ORIGIN_GEOMETRY'
-            # 1 - BOTTOM - LEFT
             pie.operator("object.origin_set", text="Geometry To Origin", icon='BBOX').type = 'GEOMETRY_ORIGIN'
-            # 3 - BOTTOM - RIGHT
-            pie.operator("wm.call_menu_pie", text="Others", icon='CURSOR').name = "origin.pivotmenu"
+
 
 # Origin/Pivot menu1  - Shift + S
 class OriginPivotMenu(Menu):
     bl_idname = "origin.pivotmenu"
-    bl_label = "Origin Pivot Menu"
+    bl_label = "Cursor Menu"
 
     def draw(self, context):
         layout = self.layout
@@ -114,7 +95,7 @@ class OriginPivotMenu(Menu):
         # 6 - RIGHT
         pie.operator("view3d.snap_selected_to_grid", text="Selection to Grid", icon='GRID')
         # 2 - BOTTOM
-        pie.operator("object.origin_set", text="Origin to Center of Mass", icon='BBOX').type = 'ORIGIN_CENTER_OF_MASS'
+        pie.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='ROTACTIVE')
         # 8 - TOP
         pie.operator("view3d.snap_cursor_to_center", text="Cursor to Center", icon='CLIPUV_DEHLT')
         # 7 - TOP - LEFT
@@ -122,7 +103,9 @@ class OriginPivotMenu(Menu):
         # 9 - TOP - RIGHT
         pie.operator("view3d.snap_cursor_to_active", text="Cursor to Active", icon='BBOX')
         # 1 - BOTTOM - LEFT
+        pie.operator("wm.call_menu_pie", text="Origin", icon='ROTATECOLLECTION').name = "pie.originpivot"
         # 3 - BOTTOM - RIGHT
+        pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor", icon='CLIPUV_HLT').use_offset = False
 
 classes = [
     OriginPivotMenu,
@@ -142,7 +125,7 @@ def register():
         # Origin/Pivot
         km = wm.keyconfigs.addon.keymaps.new(name='3D View Generic', space_type='VIEW_3D')
         kmi = km.keymap_items.new('wm.call_menu_pie', 'S', 'PRESS', shift=True)
-        kmi.properties.name = "pie.originpivot"
+        kmi.properties.name = "origin.pivotmenu"
 #        kmi.active = True
         addon_keymaps.append((km, kmi))
 
@@ -157,7 +140,7 @@ def unregister():
         km = kc.keymaps['3D View Generic']
         for kmi in km.keymap_items:
             if kmi.idname == 'wm.call_menu_pie':
-                if kmi.properties.name == "pie.originpivot":
+                if kmi.properties.name == "origin.pivotmenu":
                     km.keymap_items.remove(kmi)
 
 

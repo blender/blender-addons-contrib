@@ -38,7 +38,6 @@ from . import pie_align_menu
 from . import pie_delete_menu
 from . import pie_apply_transform_menu
 from . import pie_select_menu
-from . import pie_text_editor_menu
 from . import pie_animation_menu
 from . import pie_save_open_menu
 
@@ -46,13 +45,13 @@ from . import pie_save_open_menu
 bl_info = {
     'name': 'UI Pie Menu',
     'author': 'meta-androcto, pitiwazou',
-    'version': (1, 1, 1),
+    'version': (1, 1, 2),
     'blender': (2, 7, 7),
     'location': '',
     'description': 'Pie Menu Activate',
     'warning': '',
     'wiki_url': '',
-    'category': 'User Interface'
+    'category': '3D View'
 }
 
 
@@ -71,7 +70,6 @@ sub_modules = [
     pie_delete_menu,
     pie_apply_transform_menu,
     pie_select_menu,
-    pie_text_editor_menu,
     pie_animation_menu,
     pie_save_open_menu,
     ]
