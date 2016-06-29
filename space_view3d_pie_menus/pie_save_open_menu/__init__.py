@@ -79,11 +79,9 @@ class pie_fileio(bpy.types.Menu):
         pie = layout.menu_pie()
         box = pie.split().column()
         row = box.row(align=True)
-        box.operator("import_scene.obj", text="Import OBJ", icon='IMPORT')
-        box.operator("export_scene.obj", text="Export OBJ", icon='EXPORT')
+        box.menu("INFO_MT_file_import", icon='IMPORT')
         box.separator()
-        box.operator("import_scene.fbx", text="Import FBX", icon='IMPORT')
-        box.operator("export_scene.fbx", text="Export FBX", icon='EXPORT')
+        box.menu("INFO_MT_file_export", icon='EXPORT')
 
 class ExternalData(bpy.types.Menu):
     bl_idname = "external.data"

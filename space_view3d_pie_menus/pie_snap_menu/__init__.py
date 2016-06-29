@@ -1,6 +1,6 @@
 
 bl_info = {
-    "name": "Snap Key: 'Ctrl Shift Tab' ",
+    "name": "Snap Menu: Key: 'Ctrl Shift Tab' ",
     "description": "Snap Menu",
     "author": "pitiwazou, meta-androcto",
     "version": (0, 1, 0),
