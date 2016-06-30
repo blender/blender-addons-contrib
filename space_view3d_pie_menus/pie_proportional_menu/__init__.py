@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Proportional Edit: Key: 'O'",
-    "description": "Sculpt Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'O'",
+    "description": "Proportional Object/Edit Tools",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "O key",
+    "location": "3D View Object & Edit modes",
     "warning": "",
     "wiki_url": "",
-    "category": "3D View"
+    "category": "Proportional Edit Pie"
 }
 
 import bpy
@@ -309,7 +309,7 @@ class ProportionalRandomEdt(bpy.types.Operator):
 # Pie ProportionalEditObj - O
 class PieProportionalObj(Menu):
     bl_idname = "pie.proportional_obj"
-    bl_label = "Pie Proportional Edit Obj"
+    bl_label = "Pie Proportional Obj"
 
     def draw(self, context):
         layout = self.layout

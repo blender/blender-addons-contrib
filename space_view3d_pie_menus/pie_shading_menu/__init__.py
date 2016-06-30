@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Shading Menu: Key: 'Z' & 'Shift Z'",
-    "description": "Shading Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'Z' & 'Shift Z'",
+    "description": "Viewport Shading Menus",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "'Z' & 'Shift Z'",
+    "location": "3D View",
     "warning": "",
     "wiki_url": "",
-    "category": "3D View"
+    "category": "Shading Pie"
 }
 
 import bpy
@@ -18,8 +18,6 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
 # Pie Shading - Z
-
-
 class PieShadingView(Menu):
     bl_idname = "pie.shadingview"
     bl_label = "Pie Shading"
@@ -39,6 +37,52 @@ class PieShadingView(Menu):
                 pie.operator("OBJECT_OT_shade_flat")
 
 # Pie Object Shading- Shift + Z
+class PieShadeShow(bpy.types.Menu):
+    bl_idname = "pie.shadeshow"
+    bl_label = "Shade Show"
+
+    def draw(self, context):
+        layout = self.layout
+        view = context.space_data
+        obj = context.object
+        mesh = context.active_object.data
+        pie = layout.menu_pie()
+        box = pie.split().column()
+        row = box.row(align=True)
+        box.prop(mesh, "show_double_sided", text="Double sided")
+        box.prop(obj, "show_x_ray", text="X-Ray")
+        box.prop(view, "show_backface_culling", text="Backface Culling")
+
+class PieShadeEdit(bpy.types.Menu):
+    bl_idname = "pie.shadeedit"
+    bl_label = "Shade Edit"
+
+    def draw(self, context):
+        layout = self.layout
+        mesh = context.active_object.data
+        view = context.space_data
+        pie = layout.menu_pie()
+        box = pie.split().column()
+        row = box.row(align=True)
+        box.prop(view, "show_occlude_wire", text="Hidden Wire")
+        box.menu("meshdisplay.overlays", text="Mesh display", icon='OBJECT_DATAMODE')
+
+class PieShadeNormals(bpy.types.Menu):
+    bl_idname = "pie.shadenormals"
+    bl_label = "Shade Normals"
+
+    def draw(self, context):
+        layout = self.layout
+        mesh = context.active_object.data
+        pie = layout.menu_pie()
+        box = pie.split().column()
+        row = box.row(align=True)
+        box.prop(mesh, "show_normal_face", text="Show Normals Faces", icon='FACESEL')
+        box.prop(mesh, "use_auto_smooth")
+        if mesh.use_auto_smooth:
+            row = box.row(align=True)
+            box.prop(mesh, "auto_smooth_angle", text="Angle")
+
 class PieObjectShading(Menu):
     bl_idname = "pie.objectshading"
     bl_label = "Pie Shading Object"
@@ -56,7 +100,7 @@ class PieObjectShading(Menu):
         # 4 - LEFT
         pie.operator("scene.togglegridaxis", text="Show/Hide Grid", icon="MESH_GRID")
         # 6 - RIGHT
-        pie.operator("wire.selectedall", text="Wire", icon='WIRE')
+        pie.menu("pie.shadeedit", text="Shade Edit", icon='MESH_UVSPHERE')
         # 2 - BOTTOM
         box = pie.split().column()
         row = box.row(align=True)
@@ -79,28 +123,11 @@ class PieObjectShading(Menu):
                 row = box.row(align=True)
                 row.prop(ssao_settings, "color")
         # 8 - TOP
-        box = pie.split().column()
-        row = box.row(align=True)
-        row.prop(obj, "show_x_ray", text="X-Ray")
-        row = box.row(align=True)
-        row.prop(view, "show_occlude_wire", text="Hidden Wire")
-        row = box.row(align=True)
-        row.prop(view, "show_backface_culling", text="Backface Culling")
+        pie.operator("wire.selectedall", text="Wire", icon='WIRE')
         # 7 - TOP - LEFT
-        box = pie.split().column()
-        row = box.row(align=True)
-        row.prop(mesh, "show_normal_face", text="Show Normals Faces", icon='FACESEL')
-        row = box.row()
-        row.menu("meshdisplay.overlays", text="Mesh display", icon='OBJECT_DATAMODE')
+        pie.menu("pie.shadenormals", text="Shade Normals", icon='MOD_NORMALEDIT')
         # 9 - TOP - RIGHT
-        box = pie.split().column()
-        row = box.row(align=True)
-        row.prop(mesh, "show_double_sided", text="Double sided")
-        row = box.row(align=True)
-        row.prop(mesh, "use_auto_smooth")
-        if mesh.use_auto_smooth:
-            row = box.row(align=True)
-            row.prop(mesh, "auto_smooth_angle", text="Angle")
+        pie.menu("pie.shadeshow", text="Shade Show", icon='TEXTURE_SHADED')
         # 1 - BOTTOM - LEFT
         box = pie.split().column()
         row = box.row(align=True)
@@ -322,6 +349,9 @@ class ApplyMaterial(bpy.types.Operator):
 
 classes = [
     PieShadingView,
+    PieShadeShow,
+    PieShadeEdit,
+    PieShadeNormals,
     PieObjectShading,
     MeshDisplayMatcaps,
     MeshDisplayOverlays,

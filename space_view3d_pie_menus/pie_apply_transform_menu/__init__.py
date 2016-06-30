@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Apply Transform: Key: 'Ctrl A'",
+    "name": "Hotkey: 'Ctrl A'",
     "description": "Apply Transform Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "Ctrl A key",
+    "location": "3D View",
     "warning": "",
     "wiki_url": "",
-    "category": "Object"
+    "category": "Apply Transform Pie"
 }
 
 import bpy

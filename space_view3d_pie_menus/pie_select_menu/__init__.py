@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Select Menu: Key: 'A'",
-    "description": "Select Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'A'",
+    "description": "Object/Edit mode Selection Menu",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "A key",
+    "location": "3D View",
     "warning": "",
     "wiki_url": "",
-    "category": "3D View"
+    "category": "Select Pie"
 }
 
 import bpy

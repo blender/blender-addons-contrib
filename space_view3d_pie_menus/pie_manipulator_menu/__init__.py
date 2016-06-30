@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Manipulator: Key: 'Ctrl Space' ",
-    "description": "Manipulator Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'Ctrl Space'",
+    "description": "Extended Manipulator Menu",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "Ctrl Space",
+    "location": "3D View",
     "warning": "",
     "wiki_url": "",
-    "category": "3D View"
+    "category": "Manipulator Pie"
 }
 
 import bpy

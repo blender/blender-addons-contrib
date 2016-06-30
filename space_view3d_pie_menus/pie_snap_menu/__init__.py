@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Snap Menu: Key: 'Ctrl Shift Tab' ",
-    "description": "Snap Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'Ctrl Shift Tab'",
+    "description": "Snap Element Menu",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "Ctrl Shift Tab",
+    "location": "3d View",
     "warning": "",
     "wiki_url": "",
-    "category": "3D View"
+    "category": "Snap Element Pie"
 }
 
 import bpy

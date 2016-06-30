@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Sculpt Mode: Key: 'W' &  'Alt W'",
-    "description": "Sculpt Mode Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'W' &  'Alt W'",
+    "description": "Sculpt Mode & Brush Menu",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "W key & Alt W key",
     "warning": "",
     "wiki_url": "",
-    "category": "Sculpt Mode"
+    "category": "Sculpt Pie"
 }
 
 import bpy

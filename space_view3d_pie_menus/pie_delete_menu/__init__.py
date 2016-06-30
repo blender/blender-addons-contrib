@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Delete Menu: Key: 'X'",
-    "description": "Delete Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'X'",
+    "description": "Edit mode V/E/F Delete Modes",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "X key",
+    "location": "Mesh Edit Mode",
     "warning": "",
     "wiki_url": "",
-    "category": "Edit Mode"
+    "category": "Edit Delete Pie"
 }
 
 import bpy

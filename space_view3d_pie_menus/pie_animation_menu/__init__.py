@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Animation Menu: Key: 'Alt A'",
-    "description": "Animation Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'Alt A'",
+    "description": "Pie menu for Timeline controls",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "Alt A key",
+    "location": "3D View",
     "warning": "",
     "wiki_url": "",
-    "category": "3D View"
+    "category": "Animation Pie"
 }
 
 import bpy
@@ -32,7 +32,6 @@ class PieAnimation(Menu):
         else:
             pie.operator("screen.animation_play", text="Stop", icon='PAUSE')
         # 2 - BOTTOM
-        #pie.operator(toolsettings, "use_keyframe_insert_keyingset", toggle=True, text="Auto Keyframe ", icon='REC')
         pie.operator("insert.autokeyframe", text="Auto Keyframe ", icon='REC')
         # 8 - TOP
         pie.menu("VIEW3D_MT_object_animation", icon="CLIP")
@@ -46,8 +45,6 @@ class PieAnimation(Menu):
         pie.operator("screen.keyframe_jump", text="Next FR", icon='NEXT_KEYFRAME').next = True
 
 # Insert Auto Keyframe
-
-
 class InsertAutoKeyframe(bpy.types.Operator):
     bl_idname = "insert.autokeyframe"
     bl_label = "Insert Auto Keyframe"

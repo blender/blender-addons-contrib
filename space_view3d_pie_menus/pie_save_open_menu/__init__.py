@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Save Open: Key: 'Ctrl S'",
-    "description": "Align Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'Ctrl S'",
+    "description": "Save/Open & File Menus",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "Alt X key",
+    "location": "All Editors",
     "warning": "",
     "wiki_url": "",
-    "category": "Pie"
+    "category": "Save Open Pie"
 }
 
 import bpy, bmesh

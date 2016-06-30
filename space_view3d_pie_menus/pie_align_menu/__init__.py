@@ -1,14 +1,14 @@
  
 bl_info = {
-    "name": "Align Menu: Key: 'Alt X'",
-    "description": " V/E/F Align",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'Alt X'",
+    "description": "V/E/F Align tools",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "Alt X key",
+    "location": "Mesh Edit Mode",
     "warning": "",
     "wiki_url": "",
-    "category": "Edit Mode"
+    "category": "Edit Align Pie"
 }
 
 import bpy, bmesh

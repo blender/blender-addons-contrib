@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Pivot Point: Key: ' . key' ",
-    "description": "Pivot Point Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: ' . key' ",
+    "description": "Set Pivot Point Menu",
+#    "author": "seb_k, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": " . key",
+    "location": "3D View",
     "warning": "",
     "wiki_url": "",
-    "category": "3D View"
+    "category": "Pivot Point Pie"
 }
 
 import bpy
@@ -27,7 +27,6 @@ class VIEW3D_PIE_pivot(Menu):
         pie.prop(context.space_data, "pivot_point", expand=True)
         if context.active_object.mode == 'OBJECT':
             pie.prop(context.space_data, "use_pivot_point_align", text="Center Points")
-
 
 
 classes = [

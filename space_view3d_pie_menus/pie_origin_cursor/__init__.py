@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Origin/Cursor: Key: 'Shift S' ",
-    "description": "Origin/Pivot Menu",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'Shift S'",
+    "description": "Cursor & Origin Snap/Place Menu",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "Shift S",
+    "location": "3D View",
     "warning": "",
     "wiki_url": "",
-    "category": "Object"
+    "category": "Cursor/Origin Pie"
 }
 
 import bpy

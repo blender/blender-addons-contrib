@@ -1,14 +1,14 @@
 
 bl_info = {
-    "name": "Mode Switch: Key: 'Tab' ",
-    "description": "Switch between 3dview modes",
-    "author": "pitiwazou, meta-androcto",
-    "version": (0, 1, 0),
+    "name": "Hotkey: 'Tab'",
+    "description": "Switch between 3d view object/edit modes",
+#    "author": "pitiwazou, meta-androcto",
+#    "version": (0, 1, 0),
     "blender": (2, 77, 0),
-    "location": "Tab key",
+    "location": "3D View",
     "warning": "",
     "wiki_url": "",
-    "category": "3D View"
+    "category": "Mode Switch Pie"
 }
 
 import bpy

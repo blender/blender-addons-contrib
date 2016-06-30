@@ -40,10 +40,10 @@ from . import pie_apply_transform_menu
 from . import pie_select_menu
 from . import pie_animation_menu
 from . import pie_save_open_menu
-
+from . import pie_editor_switch_menu
 
 bl_info = {
-    'name': 'UI Pie Menu',
+    'name': '3D Viewport Pie Menu',
     'author': 'meta-androcto, pitiwazou',
     'version': (1, 1, 2),
     'blender': (2, 7, 7),
@@ -51,7 +51,7 @@ bl_info = {
     'description': 'Pie Menu Activate',
     'warning': '',
     'wiki_url': '',
-    'category': '3D View'
+    'category': 'User Interface'
 }
 
 
@@ -72,6 +72,7 @@ sub_modules = [
     pie_select_menu,
     pie_animation_menu,
     pie_save_open_menu,
+    pie_editor_switch_menu,
     ]
 
 
@@ -142,7 +143,7 @@ class UIToolsPreferences(bpy.types.AddonPreferences):
     align_box_draw = bpy.props.BoolProperty(
         name='Box Draw',
         description='If applied patch: patch/ui_layout_box.patch',
-        default=True)
+        default=False)
 
     def draw(self, context):
         layout = self.layout

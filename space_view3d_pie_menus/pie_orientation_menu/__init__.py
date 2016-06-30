@@ -1,13 +1,13 @@
 """Replace default list-style menu for transform orientations with a pie."""
 
 bl_info = {
-    "name": "Orientation Menu: Key: 'Alt + Spacebar' ",
-    "author": "Italic_",
-    "version": (1, 1, 0),
+    "name": "Hotkey: 'Alt + Spacebar'",
+#    "author": "Italic_",
+#    "version": (1, 1, 0),
     "blender": (2, 77, 0),
-    "description": "Orientation Menu",
-    "location": "Alt + Spacebar",
-    "category": "3D View"}
+    "description": "Set Transform Orientations",
+    "location": "3D View",
+    "category": "Orientation Pie"}
 
 
 import bpy
