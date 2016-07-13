@@ -27,66 +27,6 @@ from mathutils import geometry
 from mathutils import Vector
 
 
-def get_layer():
-    '''
-    this always returns a new empty layer ready for drawing to
-    '''
-
-    # get grease pencil data
-    grease_pencil_name = 'tc_circle_000'   # data
-    layer_name = "TinyCad Layer"           # layer
-
-    grease_data = bpy.data.grease_pencil
-    if grease_pencil_name not in grease_data:
-        gp = grease_data.new(grease_pencil_name)
-    else:
-        gp = grease_data[grease_pencil_name]
-
-    # get grease pencil layer
-    if not (layer_name in gp.layers):
-        layer = gp.layers.new(layer_name)
-        layer.frames.new(1)
-        layer.line_width = 1
-    else:
-        layer = gp.layers[layer_name]
-        layer.frames[0].clear()
-
-    return layer
-
-
-def generate_gp3d_stroke(layer, p1, v1, axis, mw, origin, num_verts):
-
-    '''
-        p1:     center of circle (local coordinates)
-        v1:     first vertex of circle in (local coordinates)
-        axis:   orientation matrix
-        mw:     obj.matrix_world
-        origin: obj.location
-    '''
-
-    layer.show_points = True  # is this still broken? GP bug, reported!
-
-    props = bpy.context.scene.tinycad_props
-    layer.color = props.gp_color
-    rescale = props.rescale
-
-    s = layer.frames[0].strokes.new()
-    s.draw_mode = '3DSPACE'
-
-    chain = []
-    gamma = 2 * math.pi / num_verts
-    for i in range(num_verts + 1):
-        theta = gamma * i
-        mat_rot = mathutils.Matrix.Rotation(theta, 4, axis)
-        local_point = mw * (mat_rot * ((v1 - p1) * rescale))  # + origin
-        world_point = local_point - (origin - (mw * p1))
-        chain.append(world_point)
-
-    s.points.add(len(chain))
-    for idx, p in enumerate(chain):
-        s.points[idx].co = p
-
-
 def generate_bmesh_repr(p1, v1, axis, num_verts):
 
     '''
@@ -128,7 +68,7 @@ def generate_bmesh_repr(p1, v1, axis, num_verts):
     bmesh.update_edit_mesh(me, True)
 
 
-def generate_3PT(pts, obj, nv, mode=0):
+def generate_3PT(pts, obj, nv, mode=1):
     origin = obj.location
     mw = obj.matrix_world
     V = Vector
@@ -155,11 +95,7 @@ def generate_3PT(pts, obj, nv, mode=0):
         bpy.context.scene.cursor_location = cp
 
         if mode == 0:
-            layer = get_layer()
-            generate_gp3d_stroke(layer, p1, v1, axis, mw, origin, nv)
-
-            scn = bpy.context.scene
-            scn.grease_pencil = bpy.data.grease_pencil['tc_circle_000']
+            pass
 
         elif mode == 1:
             generate_bmesh_repr(p1, v1, axis, nv)
@@ -175,22 +111,31 @@ def get_three_verts_from_selection(obj):
     me = obj.data
     bm = bmesh.from_edit_mesh(me)
 
-    if hasattr(bm.verts, "ensure_lookup_table"):
-        bm.verts.ensure_lookup_table()
-        bm.edges.ensure_lookup_table()
+    bm.verts.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
 
     return [v.co[:] for v in bm.verts if v.select]
 
 
 def dispatch(context, mode=0):
-    obj = context.edit_object
-    pts = get_three_verts_from_selection(obj)
-    props = context.scene.tinycad_props
-    generate_3PT(pts, obj, props.num_verts, mode)
-
+    try:
+        obj = context.edit_object
+        pts = get_three_verts_from_selection(obj)
+        props = context.scene.tinycad_props
+        generate_3PT(pts, obj, props.num_verts, mode)
+    except:
+        print('oops, dispatch failed', mode)
 
 ''' Operators '''
 
+class TCCallBackCCEN(bpy.types.Operator):
+    bl_idname = 'tinycad.reset_circlescale'
+    bl_label = 'CCEN circle reset'
+    bl_options = {'REGISTER'}
+
+    def execute(self, context):
+        context.scene.tinycad_props.rescale = 1
+        return {'FINISHED'}
 
 class TCCircleCenter(bpy.types.Operator):
 
@@ -203,41 +148,24 @@ class TCCircleCenter(bpy.types.Operator):
         l = self.layout
         col = l.column()
 
-        col.prop(scn.tinycad_props, 'gp_color', text='layer color')
         col.prop(scn.tinycad_props, 'num_verts', text='num verts')
-        col.prop(scn.tinycad_props, 'rescale', text='rescale')
-        col.operator('tinycad.circlemake', text='Make Mesh')
+        row = col.row(align=True)
+        row.prop(scn.tinycad_props, 'rescale', text='rescale')
+        row.operator('tinycad.reset_circlescale', text="", icon="LINK")
+
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         obj = context.edit_object
         return obj is not None and obj.type == 'MESH'
 
     def execute(self, context):
-        dispatch(context, mode=0)  # make gp
-        return {'FINISHED'}
-
-
-class TCCircleMake(bpy.types.Operator):
-    """this is a private op, used by the TCCircleCenter Op only"""
-    bl_idname = 'tinycad.circlemake'
-    bl_label = 'circle mesh from selected'
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def draw(self, context):
-        scn = context.scene
-        l = self.layout
-        col = l.column()
-        col.prop(scn.tinycad_props, 'num_verts', text='num verts')
-
-    def execute(self, context):
-        dispatch(context, mode=1)  # bake mesh
+        dispatch(context, mode=1)
         return {'FINISHED'}
 
 
 def register():
     bpy.utils.register_module(__name__)
-
 
 def unregister():
     bpy.utils.unregister_module(__name__)

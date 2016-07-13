@@ -1,147 +1,142 @@
 import bpy
-import sys
 import bmesh
-from mathutils import Vector
-from mathutils.geometry import intersect_line_line as LineIntersect
-from mathutils.geometry import intersect_point_line as PtLineIntersect
+import sys
 
 from . import cad_module as cm
 
+messages = {
+    'SHARED_VERTEX': 'Shared Vertex, no intersection possible',
+    'PARALLEL_EDGES': 'Edges Parallel, no intersection possible',
+    'NON_PLANAR_EDGES': 'Non Planar Edges, no clean intersection point'
+}
 
-def getVTX(self):
-    self.idx1, self.idx2 = self.selected_edges
-    self.edge1 = cm.coords_tuple_from_edge_idx(self.bm, self.idx1)
-    self.edge2 = cm.coords_tuple_from_edge_idx(self.bm, self.idx2)
-    self.point = cm.get_intersection(self.edge1, self.edge2)
-    self.edges = cm.find_intersecting_edges(
-        self.bm, self.point, self.idx1, self.idx2)
-
-
-def add_edges(self, idxs):
-
-    # precaution?
-    if hasattr(self.bm.verts, "ensure_lookup_table"):
-        self.bm.verts.ensure_lookup_table()
-        self.bm.edges.ensure_lookup_table()
-
-    for e in idxs:
-        v1 = self.bm.verts[-1]
-        v2 = self.bm.verts[e]
-        self.bm.edges.new((v1, v2))
-
-
-def remove_earmarked_edges(self, earmarked):
-    edges_select = [e for e in self.bm.edges if e.index in earmarked]
-    bmesh.ops.delete(self.bm, geom=edges_select, context=2)
-
-
-def checkVTX(self, context):
-    '''
-    - decides VTX automatically.
-    - remembers edges attached to current selection, for later.
+def add_edges(bm, pt, idxs, fdp):
+    ''' 
+    this function is a disaster -- 
+    index updates and ensure_lookup_table() are called before this function
+    and after, and i've tried doing this less verbose but results tend to be
+    less predictable. I'm obviously a terrible coder, but can only spend so
+    much time figuring out this stuff.
     '''
 
-    # precaution?
-    if hasattr(self.bm.verts, "ensure_lookup_table"):
-        self.bm.verts.ensure_lookup_table()
-        self.bm.edges.ensure_lookup_table()
+    v1 = bm.verts.new(pt)
 
-    # if either of these edges share a vertex, return early.
-    indices = cm.vertex_indices_from_edges_tuple(self.bm, self.selected_edges)
-    if cm.duplicates(indices):
-        msg = "edges share a vertex, degenerate case, returning early"
-        self.report({"WARNING"}, msg)
-        return False
+    bm.verts.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()    
+    bm.verts.index_update()
 
-    # find which edges intersect
-    getVTX(self)
+    try:
+        for e in idxs:
+            bm.edges.index_update()
+            v2 = bm.verts[e]
+            bm.edges.new((v1, v2))
 
-    # check coplanar, or parallel.
-    if [] == self.edges:
-        coplanar = cm.test_coplanar(self.edge1, self.edge2)
-        if not coplanar:
-            msg = "parallel or not coplanar! returning early"
-            self.report({"WARNING"}, msg)
-            return False
+        bm.edges.index_update()
+        bm.verts.ensure_lookup_table()
+        bm.edges.ensure_lookup_table() 
 
-    return True
+    except Exception as err:
+        print('some failure: details')
+        for l in fdp:
+            print(l)
 
+        sys.stderr.write('ERROR: %s\n' % str(err))
+        print(sys.exc_info()[-1].tb_frame.f_code)
+        print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno))
 
-def doVTX(self):
-    '''
-    At this point we know that there is an intersection, and if it
-    is V, T or X.
-    - If both are None, then both edges are projected towards point. (V)
-    - If only one is None, then it's a projection onto a real edge (T)
-    - Else, then the intersection lies on both edges (X)
-    '''
-    print('point:', self.point)
-    print('edges selected:', self.idx1, self.idx2)
-    print('edges to use:', self.edges)
+def remove_earmarked_edges(bm, earmarked):
+    edges_select = [e for e in bm.edges if e.index in earmarked]
+    bmesh.ops.delete(bm, geom=edges_select, context=2)
 
-    self.bm.verts.new((self.point))
+def perform_vtx(bm, pt, edges, pts, vertex_indices):
+    idx1, idx2 = edges[0].index, edges[1].index
+    fdp = pt, edges, pts, vertex_indices
 
-    earmarked = self.edges
-    pt = self.point
+    # this list will hold those edges that pt lies on, 
+    edges_indices = cm.find_intersecting_edges(bm, pt, idx1, idx2)
+    mode = 'VTX'[len(edges_indices)]
 
-    # V (projection of both edges)
-    if [] == earmarked:
-        cl_vert1 = cm.closest_idx(pt, self.bm.edges[self.idx1])
-        cl_vert2 = cm.closest_idx(pt, self.bm.edges[self.idx2])
-        add_edges(self, [cl_vert1, cl_vert2])
+    if mode == 'V':
+        cl_vert1 = cm.closest_idx(pt, edges[0])
+        cl_vert2 = cm.closest_idx(pt, edges[1])
+        add_edges(bm, pt, [cl_vert1, cl_vert2], fdp)
 
-    # X (weld intersection)
-    elif len(earmarked) == 2:
-        vector_indices = cm.vertex_indices_from_edges_tuple(self.bm, earmarked)
-        add_edges(self, vector_indices)
+    elif mode == 'T':
+        to_edge_idx = edges_indices[0]
+        from_edge_idx = idx1 if to_edge_idx == idx2 else idx2
 
-    # T (extend towards)
-    else:
-        to_edge_idx = self.edges[0]
-        from_edge_idx = self.idx1 if to_edge_idx == self.idx2 else self.idx2
+        cl_vert = cm.closest_idx(pt, bm.edges[from_edge_idx])
+        to_vert1, to_vert2 = cm.vert_idxs_from_edge_idx(bm, to_edge_idx)
+        add_edges(bm, pt, [cl_vert, to_vert1, to_vert2], fdp)
 
-        # make 3 new edges: 2 on the towards, 1 as extender
-        cl_vert = cm.closest_idx(pt, self.bm.edges[from_edge_idx])
-        to_vert1, to_vert2 = cm.vert_idxs_from_edge_idx(self.bm, to_edge_idx)
-        roto_indices = [cl_vert, to_vert1, to_vert2]
-        add_edges(self, roto_indices)
+    elif mode == 'X':
+        add_edges(bm, pt, vertex_indices, fdp)
 
     # final refresh before returning to user.
-    if earmarked:
-        remove_earmarked_edges(self, earmarked)
-    bmesh.update_edit_mesh(self.me, True)
+    if edges_indices:
+        remove_earmarked_edges(bm, edges_indices)
+
+    bm.edges.index_update()
+    return bm
+
+
+def do_vtx_if_appropriate(bm, edges):
+    vertex_indices = cm.get_vert_indices_from_bmedges(edges)
+    
+    # test 1 , are there shared vers? if so return non-viable
+    if not len(set(vertex_indices)) == 4:
+        return {'SHARED_VERTEX'}
+
+    # test 2 , is parallel? 
+    p1, p2, p3, p4 = [bm.verts[i].co for i in vertex_indices]
+    point = cm.get_intersection([p1, p2], [p3, p4])
+    if not point:
+        return {'PARALLEL_EDGES'}
+
+    # test 3 , coplanar edges?
+    coplanar = cm.test_coplanar([p1, p2], [p3, p4])
+    if not coplanar:
+        return {'NON_PLANAR_EDGES'}
+
+    # point must lie on an edge or the virtual extention of an edge
+    bm = perform_vtx(bm, point, edges, (p1, p2, p3, p4), vertex_indices)
+    return bm
 
 
 class TCAutoVTX(bpy.types.Operator):
     bl_idname = 'tinycad.autovtx'
     bl_label = 'VTX autoVTX'
 
-    VTX_PRECISION = 1.0e-5  # or 1.0e-6 ..if you need
-
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         obj = context.active_object
-        return obj is not None and obj.type == 'MESH'
+        return bool(obj) and obj.type == 'MESH'
+
+    def cancel_message(self, msg):
+        print(msg)
+        self.report({"WARNING"}, msg)
+        return {'CANCELLED'}
 
     def execute(self, context):
         obj = context.active_object
-        self.me = obj.data
-        self.bm = bmesh.from_edit_mesh(self.me)
-        self.bm.verts.ensure_lookup_table()
-        self.bm.edges.ensure_lookup_table()
+        me = obj.data
+        bm = bmesh.from_edit_mesh(me)
+        bm.verts.ensure_lookup_table()
+        bm.edges.ensure_lookup_table()
 
-        edges = self.bm.edges
-        ok = lambda v: v.select and not v.hide
-        idxs = [v.index for v in edges if ok(v)]
-        if len(idxs) is 2:
-            self.selected_edges = idxs
+        edges = [e for e in bm.edges if e.select and not e.hide]
+
+        if len(edges) == 2:
+            bm = do_vtx_if_appropriate(bm, edges)
+            if isinstance(bm, set):
+                msg = messages.get(bm.pop())
+                return self.cancel_message(msg)
         else:
-            print('select two edges!')
+            return self.cancel_message('select two edges!')
 
-        self.me.update()
-        if checkVTX(self, context):
-            doVTX(self)
-
+        bm.verts.index_update()
+        bm.edges.index_update()
+        bmesh.update_edit_mesh(me, True)
         return {'FINISHED'}
 
 

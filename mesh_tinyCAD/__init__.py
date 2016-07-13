@@ -21,8 +21,8 @@ END GPL LICENCE BLOCK
 bl_info = {
     "name": "tinyCAD Mesh tools",
     "author": "zeffii (aka Dealga McArdle)",
-    "version": (1, 2, 3),
-    "blender": (2, 7, 6),
+    "version": (1, 2, 9),
+    "blender": (2, 7, 7),
     "category": "Mesh",
     "location": "View3D > EditMode > (w) Specials",
     "wiki_url": "",
@@ -52,13 +52,8 @@ import bpy
 
 from .CFG import TinyCADProperties
 from .CFG import VIEW3D_MT_edit_mesh_tinycad
-from .VTX import TCAutoVTX
-from .V2X import TCVert2Intersection
-from .XALL import TCIntersectAllEdges
-from .BIX import TCLineOnBisection
-from .CCEN import TCCircleCenter
-from .CCEN import TCCircleMake
-from .E2F import TCEdgeToFace
+from .CFG import register_icons, unregister_icons
+from . import VTX, V2X, XALL, BIX, CCEN, E2F
 
 
 def menu_func(self, context):
@@ -66,7 +61,9 @@ def menu_func(self, context):
     self.layout.separator()
 
 
+
 def register():
+    register_icons()
     bpy.utils.register_module(__name__)
     bpy.types.Scene.tinycad_props = bpy.props.PointerProperty(name="TinyCAD props", type=TinyCADProperties)
     bpy.types.VIEW3D_MT_edit_mesh_specials.prepend(menu_func)
@@ -76,3 +73,4 @@ def unregister():
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func)
     bpy.utils.unregister_module(__name__)
     del bpy.types.Scene.tinycad_props
+    unregister_icons()
