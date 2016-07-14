@@ -22,10 +22,9 @@
 # ------ ------
 bl_info = {
     'name': 'Split Solidify',
-    'author': 'zmj, updated by zeffii to bmesh ',
+    'author': 'zmj100, updated by zeffii to bmesh ',
     'version': (0, 1, 2),
-    'blender': (2, 7, 0),
-    'api': 61340,
+    'blender': (2, 7, 7),
     'location': 'View3D > Tool Shelf',
     'description': '',
     'warning': '',
@@ -39,7 +38,7 @@ import random
 from math import cos
 import bmesh
 
-
+# define the functions
 def f_(self, list_0):
 
     b_rnd = self.b_rnd
@@ -62,7 +61,7 @@ def f_(self, list_0):
         elif not b_rnd:
             d = opp
 
-        # add new verts.
+# add new verts.
         for vi in f.verts:
             bm.verts.ensure_lookup_table()
             v = bm.verts[vi.index]
@@ -83,7 +82,7 @@ def f_(self, list_0):
             list_1.append(v1)
             list_2.append(v2)
 
-        # add new faces, allows faces with more than 4 verts.
+# add new faces, allows faces with more than 4 verts.
         n = len(list_1)
 
         k = bm.faces.new(list_1)
@@ -97,21 +96,9 @@ def f_(self, list_0):
         list_2.reverse()
         k = bm.faces.new(list_2)
         k.select = False
+    bpy.ops.mesh.normals_make_consistent(inside=False)
 
     bmesh.update_edit_mesh(self.me, True)
-
-'''
-class sp_sol_p0(bpy.types.Panel):
-
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
-    bl_label = 'Split Solidify'
-    bl_context = 'mesh_edit'
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator('sp_sol.op0_id', text='Split solidify')
-'''
 
 
 class sp_sol_op0(bpy.types.Operator):
@@ -160,7 +147,7 @@ class sp_sol_op0(bpy.types.Operator):
         self.me = obj.data
         self.bm = bmesh.from_edit_mesh(self.me)
         self.me.update()
-#        self.bm.ensure_lookup_table()
+
         list_0 = [f.index for f in self.bm.faces if f.select]
 
         if len(list_0) == 0:
@@ -194,19 +181,14 @@ class solidify_help(bpy.types.Operator):
 class_list = [sp_sol_op0]
 
 # ------ register ------
-
-
 def register():
     for c in class_list:
         bpy.utils.register_class(c)
 
 # ------ unregister ------
-
-
 def unregister():
     for c in class_list:
         bpy.utils.unregister_class(c)
 
-# ------ ------
 if __name__ == "__main__":
     register()
