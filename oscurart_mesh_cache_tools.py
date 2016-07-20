@@ -43,7 +43,6 @@ class ModifiersSettings(bpy.types.PropertyGroup):
 bpy.utils.register_class(ModifiersSettings) #registro PropertyGroup
 bpy.types.Scene.mesh_cache_tools_settings = bpy.props.PointerProperty(type=ModifiersSettings)
 
-
 # ----------------- AUTO LOAD PROXY
 
 ##bpy.context.scene.pc_auto_load_proxy.remove(0)
@@ -141,6 +140,7 @@ class OscEPc2ExporterPanel(View3DMCPanel, bpy.types.Panel):
         #row = layout.column(align=1)
         row.prop(bpy.context.scene, "pc_pc2_start", text="Frame Start")
         row.prop(bpy.context.scene, "pc_pc2_end", text="Frame End")
+        row.prop(bpy.context.scene, "pc_pc2_exclude", text="Exclude Token:")           
         row.prop_search(bpy.context.scene, "pc_pc2_group", bpy.data, "groups", text="")
         row.operator("export_shape.pc2_selection", text="Export!", icon="POSE_DATA")
         row.prop(bpy.context.scene, "pc_pc2_world_space", text="World Space")
@@ -183,41 +183,42 @@ def OscFuncExportPc2(self):
     framerange = end-start
 
     for ob in bpy.data.groups[bpy.context.scene.pc_pc2_group].objects[:]:
-        bpy.context.window_manager.progress_begin(0, 100) #progressbar
-        if ob.type == "MESH":
-            with open("%s/%s.pc2" % (os.path.normpath(folderpath), ob.name), mode="wb") as file:
-                #encabezado
-                headerFormat = '<12siiffi'
-                headerStr = struct.pack(headerFormat,
-                         b'POINTCACHE2\0', 1, len(ob.data.vertices[:]), 0, 1.0, (end + 1) - start)
-                file.write(headerStr)
-                #bakeado
-                obmat = ob.matrix_world
-                for i,frame in enumerate(range(start,end+1)):
-                    print("Percentage of %s bake: %s " % (ob.name, i * 100 / framerange))
-                    bpy.context.window_manager.progress_update(i * 100 / framerange) #progressbarUpdate
-                    bpy.context.scene.frame_set(frame)
-                    me = bpy.data.meshes.new_from_object(
-                        scene=bpy.context.scene,
-                        object=ob,
-                        apply_modifiers=True,
-                        settings="RENDER",
-                        calc_tessface=True,
-                        calc_undeformed=False)
-                    #rotate
-                    if bpy.context.scene.pc_pc2_world_space:
-                        me.transform(obmat)
-                        me.calc_normals()
-                    #creo archivo
-                    for vert in me.vertices[:]:
-                        file.write(struct.pack("<3f", *vert.co)) 
-                    #dreno mesh
-                    bpy.data.meshes.remove(me)
+        if any(token not in ob.name for token in bpy.context.scene.pc_pc2_exclude.split(",")):
+            bpy.context.window_manager.progress_begin(0, 100) #progressbar
+            if ob.type == "MESH":
+                with open("%s/%s.pc2" % (os.path.normpath(folderpath), ob.name), mode="wb") as file:
+                    #encabezado
+                    headerFormat = '<12siiffi'
+                    headerStr = struct.pack(headerFormat,
+                             b'POINTCACHE2\0', 1, len(ob.data.vertices[:]), 0, 1.0, (end + 1) - start)
+                    file.write(headerStr)
+                    #bakeado
+                    obmat = ob.matrix_world
+                    for i,frame in enumerate(range(start,end+1)):
+                        print("Percentage of %s bake: %s " % (ob.name, i * 100 / framerange))
+                        bpy.context.window_manager.progress_update(i * 100 / framerange) #progressbarUpdate
+                        bpy.context.scene.frame_set(frame)
+                        me = bpy.data.meshes.new_from_object(
+                            scene=bpy.context.scene,
+                            object=ob,
+                            apply_modifiers=True,
+                            settings="RENDER",
+                            calc_tessface=True,
+                            calc_undeformed=False)
+                        #rotate
+                        if bpy.context.scene.pc_pc2_world_space:
+                            me.transform(obmat)
+                            me.calc_normals()
+                        #creo archivo
+                        for vert in me.vertices[:]:
+                            file.write(struct.pack("<3f", *vert.co)) 
+                        #dreno mesh
+                        bpy.data.meshes.remove(me)
 
 
-                print("%s Bake finished!" % (ob.name))
-                
-        bpy.context.window_manager.progress_end()#progressBarClose
+                    print("%s Bake finished!" % (ob.name))
+                    
+            bpy.context.window_manager.progress_end()#progressBarClose
     print("Bake Totally Finished!")
 
 class OscPc2ExporterBatch(bpy.types.Operator):
@@ -354,7 +355,8 @@ def register():
     Scene.pc_pc2_end = IntProperty(default=100, name="Frame End")
     Scene.pc_pc2_group = StringProperty()
     Scene.pc_pc2_folder = StringProperty(default="Set me Please!")
-
+    Scene.pc_pc2_exclude = StringProperty(default="*")
+    
     bpy.utils.register_module(__name__)
 
 
@@ -369,6 +371,7 @@ def unregister():
     del Scene.pc_pc2_end
     del Scene.pc_pc2_group
     del Scene.pc_pc2_folder
+    del Scene.pc_pc2_exclude
 
     bpy.utils.unregister_module(__name__)
 
