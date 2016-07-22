@@ -25,7 +25,7 @@ bl_info = {
     "description": "Imports and Exports PCD (Point Cloud Data) files. PCD files are the default format used by  pcl (Point Cloud Library).",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/Scripts/Import-Export/Point_Cloud_Data_IO",
-    "tracker_url": "https://developer.blender.org/T27711",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
 #    "support": 'OFFICAL',
     "category": "Import-Export"}
 

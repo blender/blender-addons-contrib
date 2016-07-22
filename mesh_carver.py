@@ -24,6 +24,7 @@ bl_info = {
 	"author": "Pixivore, Cédric LEPILLER",
 	"version": (1,1,5),
 	"blender": (2, 77, 0),
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
 	"description": "Multiple tools to carve or to create objects.",
 }
 #########################################################################################################

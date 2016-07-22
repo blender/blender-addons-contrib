@@ -24,6 +24,7 @@ bl_info = {
     "blender": (2, 73, 0),
     "location": "Splash Screen",
     "warning": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "User Interface",
 }
 

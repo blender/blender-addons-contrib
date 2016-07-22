@@ -25,8 +25,8 @@ bl_info = {
     "location": "Properties > Material",
     "description": "Material Library VX",
     "warning": "",
-    "wiki_url": "https://sites.google.com/site/aleonserra/home/scripts/matlib-vx",
-    "tracker_url": "",
+    "wiki_url": "https://sites.google.com/site/aleonserra/home/scripts/matlib-vx-5-6",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Material"}
 
 import zipfile, urllib.request, os, sys, re

@@ -33,7 +33,7 @@ bl_info = {
     "warning": "may not work in recent svn",
     "wiki_url": 'http://wiki.blender.org/index.php/Extensions:2.6/Py/'
         'Scripts/System/keymaps_to_svg',
-    "tracker_url": "https://developer.blender.org/T21490",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "System"}
 
 import bpy

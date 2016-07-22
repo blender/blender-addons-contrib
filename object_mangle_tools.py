@@ -28,7 +28,7 @@ bl_info = {
     "description": "Set of tools to mangle curves, meshes, and shape keys",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "",
-    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Object"}
 
 

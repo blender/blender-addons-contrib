@@ -27,7 +27,7 @@ bl_info = {
     "category": "Import-Export",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/Paper_Model",
-    "tracker_url": "https://developer.blender.org/T38441"
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
 }
 
 #### TODO:

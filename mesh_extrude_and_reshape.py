@@ -27,6 +27,7 @@ bl_info = {
     "location": "View3D > TOOLS > Tools > Mesh Tools > Add: > Extrude Menu (Alt + E)",
     "description": "Extrude face and merge edge intersections between the mesh and the new edges",
     "wiki_url" : "http://blenderartists.org/forum/showthread.php?376618-Addon-Push-Pull-Face",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Mesh"}
 
 import bpy, bmesh

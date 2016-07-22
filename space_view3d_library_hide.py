@@ -28,7 +28,7 @@ bl_info = {
     "blender": (2, 63, 0),
     'location': 'Search: RayCast View Operator',
     "wiki_url": "",
-    "tracker_url":"",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "3D View",
 }
 

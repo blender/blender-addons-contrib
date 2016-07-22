@@ -29,7 +29,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/Quake_MAP",
-    "tracker_url": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Import-Export"}
 
 # To support reload properly, try to access a package var, if it's there, reload everything

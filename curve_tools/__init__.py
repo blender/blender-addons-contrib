@@ -8,7 +8,7 @@ bl_info = {
     "warning": "WIP",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Curve/Curve_Tools",
-    "tracker_url": "https://developer.blender.org/T27720",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Add Curve"}
     
     

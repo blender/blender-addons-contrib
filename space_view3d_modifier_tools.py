@@ -27,7 +27,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6"
     "/Py/Scripts",
-    "tracker_url": "https://developer.blender.org/maniphest/project/3/type/Bug/",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "3D View"}
 
 import bpy

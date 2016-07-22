@@ -26,7 +26,7 @@ bl_info = {
     "description": "Adds intellense to the Text Editor",
     "warning": "Only works with 2.57 intellisense",
     "wiki_url": "",
-    "tracker_url": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Development"}
 
 import bpy

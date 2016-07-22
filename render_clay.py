@@ -28,7 +28,7 @@ bl_info = {
         " of the scene.",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Clay_Render",
-    "tracker_url": "https://developer.blender.org/T22971",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Render"}
 
 import bpy

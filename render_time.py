@@ -27,7 +27,7 @@ bl_info = {
     "description": "Estimates the time to complete rendering on animations",
     "warning": "Does not work on OpenGL renders.",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Render/Render_Time_Estimation",
-    "tracker_url": "https://developer.blender.org/T30452",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Render"}
 
 

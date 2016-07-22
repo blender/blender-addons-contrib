@@ -25,7 +25,7 @@ bl_info = {
     "description": "Create a Vertex Color map with Worn Edges",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Paint"}
 
 import bpy

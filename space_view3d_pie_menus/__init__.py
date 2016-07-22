@@ -51,6 +51,7 @@ bl_info = {
     'description': 'Pie Menu Activate',
     'warning': '',
     'wiki_url': '',
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     'category': 'User Interface'
 }
 

@@ -30,7 +30,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Modeling/Show_Vertex_Group_Weights",
-    "tracker_url": "https://developer.blender.org/T30609",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Mesh"}
 
 #TODO - Add button for selecting vertices with no groups

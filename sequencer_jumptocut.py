@@ -27,7 +27,8 @@ bl_info = {
     "description": "Tool collection to help speed up editting and grade videos with blender",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Sequencer/Jump_to_cut",
-    "tracker_url": "https://developer.blender.org/T24279"}
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
+    }
 
 
 import bpy

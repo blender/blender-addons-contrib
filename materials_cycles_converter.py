@@ -30,6 +30,7 @@ bl_info = {
     "location": "Properties > Material > Convert to Cycles",
     "description": "Convert non-nodes materials to Cycles",
     "warning": "beta",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Material/Blender_Cycles_Materials_Converter",
     "category": "Material"}
 

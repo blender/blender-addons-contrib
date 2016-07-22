@@ -26,7 +26,7 @@ bl_info = {
     "warning": "May consume a lot of memory",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/NASA_IMG_Importer",
-    "tracker_url": "https://developer.blender.org/T25462",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Import-Export"}
 
 

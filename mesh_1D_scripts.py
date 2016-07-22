@@ -24,6 +24,7 @@ bl_info = {
     "version": (0, 8, 8),
     "blender": (2, 7, 5),
     "location": "View3D > Toolbar",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Mesh"
 }  
 

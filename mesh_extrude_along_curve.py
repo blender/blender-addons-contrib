@@ -28,7 +28,7 @@ bl_info = {
     "description": "Extrude a face along a Bezier Curve",
     "warning": "",
     'wiki_url': "",
-    'tracker_url': 'https://developer.blender.org/T32585',
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Mesh"}
 
 

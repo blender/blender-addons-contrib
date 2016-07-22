@@ -25,6 +25,7 @@ bl_info = {
     "description": "Rules for assigning object color (used for wireframe colors).",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Object/Color_Rules",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Object",
     }
 

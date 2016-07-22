@@ -26,7 +26,7 @@ bl_info = {
     "description": "Collection of extra operators to manipulate VSE strips",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Sequencer/Extra_Sequencer_Actions",
-    "tracker_url": "https://developer.blender.org/T32532",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     # old tracker_url: https://developer.blender.org/T30474
     "support": "COMMUNITY"}
 

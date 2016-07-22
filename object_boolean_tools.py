@@ -25,7 +25,7 @@ bl_info = {
     "location": "View3D > Toolshelf > BoolTool",
     "description": "Bool Tools Hotkey: Ctrl Shift B",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/BoolTool",
-    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Object"}
 
 import bpy

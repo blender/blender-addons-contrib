@@ -26,7 +26,7 @@ bl_info = {
     "location": "Properties Panel",
     "warning": "",  # used for warning icon and text in addons panel
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/PowerLib",
-    "tracker_url": "https://developer.blender.org/T31475",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "3D View"}
 
 

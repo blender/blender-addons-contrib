@@ -25,7 +25,7 @@ bl_info = {
     "description": "Tools for converting/animating objects/particles into curves",
     "warning": "Still under development, bug reports appreciated",
     "wiki_url": "",
-    "tracker_url": "https://developer.blender.org/maniphest/project/3/type/Bug/",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Add Curve"}
 
 

@@ -35,6 +35,7 @@ bl_info = {
     "blender": (2, 6, 8),
     "description": "Generate rooms, doors, windows, kitchen cabinets, "
                    "shelves, roofs, stairs and other architecture stuff.",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Add Mesh"}
 
 import sys

@@ -30,7 +30,7 @@ bl_info = {
     "description": "Adds a tree created with the space colonization algorithm starting at the 3D cursor",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/Add_Space_Tree",
-    "tracker_url": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Add Mesh"}
 
 from time import time

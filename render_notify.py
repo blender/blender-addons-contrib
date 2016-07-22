@@ -28,6 +28,7 @@ bl_info = {
     "warning": "Currently only Linux/Unix supported (using 'notify-send')",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6"
                 "/Py/Scripts/Render/Render_Notify",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Render"}
 
 # TODO. add Win/OSX support if possible.

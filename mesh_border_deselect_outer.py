@@ -12,8 +12,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php" \
         "?title=Extensions:2.6/Py/Scripts/Modeling/Border_Deselect_Outer",
-    "tracker_url": "http://blenderartists.org/forum/showthread.php" \
-        "?290617-Mesh-Border-Deselect-Outer-(selection-intersection-by-using-a-border-select)",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Mesh"}
 
 

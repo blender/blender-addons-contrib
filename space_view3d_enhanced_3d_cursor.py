@@ -27,7 +27,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/3D_interaction/Enhanced_3D_Cursor",
-    "tracker_url": "https://developer.blender.org/T28451",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "3D View"}
 
 """

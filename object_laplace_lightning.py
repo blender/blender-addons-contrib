@@ -24,7 +24,7 @@ bl_info = {
     "description": "Lightning mesh generator using laplacian growth algorithm",
     "warning": "Beta",
     "wiki_url": "http://www.funkboxing.com/wordpress/?p=301",
-    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Object"}
         
 ######################################################################

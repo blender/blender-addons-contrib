@@ -34,6 +34,7 @@ bl_info = {
     "version": (1, 6, 6),
     "blender": (2, 7, 4),
     "description": "Tools for measuring objects.",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "3D View"}
 
 import sys

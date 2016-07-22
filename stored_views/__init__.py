@@ -25,7 +25,7 @@ bl_info = {
     "location": "View3D > Properties > Stored Views",
     "warning": 'beta release, single view only',
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D_interaction/stored_views",
-    "tracker_url": "https://developer.blender.org/T27476",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "3D View"}
 
 # ACKNOWLEDGMENT

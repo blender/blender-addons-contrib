@@ -27,6 +27,7 @@ bl_info = {
     "description": "Override settings and caching for linked objects",
     "warning": "",
     "wiki_url": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Object",
     }
 

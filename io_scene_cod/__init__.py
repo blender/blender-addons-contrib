@@ -41,7 +41,7 @@ bl_info = {
     "warning": "Alpha version, please report any bugs!",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/Call_of_Duty_IO",
-    "tracker_url": "https://developer.blender.org/T30482",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "support": "TESTING",
     "category": "Import-Export"
 }

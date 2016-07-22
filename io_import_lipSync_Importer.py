@@ -27,7 +27,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/"
         "Scripts/Import-Export/Lipsync Importer",
-    "tracker_url": "https://developer.blender.org/T24080",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Import-Export"}
 
 

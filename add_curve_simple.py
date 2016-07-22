@@ -25,7 +25,7 @@ bl_info = {
     'description': 'Adds Simple Curve',
     'warning': '',  # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Curve/Simple_curves',
-    'tracker_url': 'https://developer.blender.org/T37664',
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     'category': 'Add Curve'}
 
 

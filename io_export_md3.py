@@ -25,7 +25,7 @@ bl_info = {
     "description": "Save a Quake Model 3 File)",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "",
-    "tracker_url": "https://developer.blender.org/T23160",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Import-Export"}
 
 

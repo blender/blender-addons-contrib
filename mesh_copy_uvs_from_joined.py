@@ -26,7 +26,7 @@ bl_info = {
     "blender": (2, 63, 0),
     "location": "Object mode 'Make Links' menu",
     "wiki_url": "",
-    "tracker_url": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Object"}
 
 

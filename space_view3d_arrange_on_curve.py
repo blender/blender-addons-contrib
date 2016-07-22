@@ -7,6 +7,7 @@ bl_info = {
     "description": "Arrange objects along a curve",
     "warning": "Select curve",
     "wiki_url" : "http://blenderartists.org/forum/showthread.php?361029-Specify-an-object-from-a-list-with-all-selectable-objects",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "3D View"}
 
 import bpy, mathutils

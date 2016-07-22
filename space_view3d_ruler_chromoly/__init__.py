@@ -24,6 +24,7 @@ bl_info = {
 	'version': (2, 3, 0),
 	'blender': (2, 63, 0),
 	'location': 'View3D > Properties > Ruler',
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
 	'category': '3D View'}
 
 '''

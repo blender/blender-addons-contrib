@@ -26,7 +26,7 @@ bl_info = {
     "location": "File > Import",
     "description": "Load Open Street Map File",
     "wiki_url": "",
-    "tracker_url": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Import-Export"}
 
 # originally written for blender 2.4x by (manthrax _at_ hotmail.com),

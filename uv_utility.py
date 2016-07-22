@@ -25,7 +25,7 @@ bl_info = {
     "location": "View3D > ToolBar",
     "description": "Change Index Of UVMap.",
     "wiki_url": "",
-    "tracker_url": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "UV"}
 
 

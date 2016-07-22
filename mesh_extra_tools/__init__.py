@@ -29,7 +29,7 @@ bl_info = {
     "description": "Add extra mesh edit tools",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Mesh"}
 
 # Import From Folder

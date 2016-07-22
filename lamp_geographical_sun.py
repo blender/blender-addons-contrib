@@ -47,7 +47,7 @@ bl_info = {
     "location": "Lamp data > Geographical Sun",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "description": "Set SUN Lamp rotation according to geographical time and location."
 }
 GeoSunAddon = Addon(bl_info)

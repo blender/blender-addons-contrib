@@ -25,7 +25,7 @@ bl_info = {
     "description": "Render Settings BI & Cycles",
     "warning": "",
     "wiki_url": "https://github.com/meta-androcto/blenderpython/wiki/AF_Render_Settings",
-    "tracker_url": "https://developer.blender.org/maniphest/project/3/type/Bug/",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Render"
 }
 

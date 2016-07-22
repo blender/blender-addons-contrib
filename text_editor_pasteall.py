@@ -25,7 +25,7 @@ bl_info = {
     "description": "Send your selection or text to www.pasteall.org",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Text_Editor/PasteAll",
-    "tracker_url": "https://developer.blender.org/T23493",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Text Editor"}
 
 # ########################################################
