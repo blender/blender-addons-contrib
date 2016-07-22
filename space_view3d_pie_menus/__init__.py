@@ -45,14 +45,13 @@ from . import pie_editor_switch_menu
 bl_info = {
     'name': '3D Viewport Pie Menu',
     'author': 'meta-androcto, pitiwazou',
-    'version': (1, 1, 2),
+    'version': (1, 1, 3),
     'blender': (2, 7, 7),
     'location': '',
     'description': 'Pie Menu Activate',
     'warning': '',
     'wiki_url': '',
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
-    'category': 'User Interface'
+    'category': 'User interface'
 }
 
 

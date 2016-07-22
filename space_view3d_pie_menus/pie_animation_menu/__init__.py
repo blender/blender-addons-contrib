@@ -25,24 +25,25 @@ class PieAnimation(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("screen.animation_play", text="Reverse", icon='PLAY_REVERSE').reverse = True
+        pie.operator("screen.frame_jump", text="Jump REW", icon='REW').end = False
         # 6 - RIGHT
+        pie.operator("screen.frame_jump", text="Jump FF", icon='FF').end = True
+        # 2 - BOTTOM
+        pie.operator("screen.animation_play", text="Reverse", icon='PLAY_REVERSE').reverse = True
+        # 8 - TOP
         if not context.screen.is_animation_playing:  # Play / Pause
             pie.operator("screen.animation_play", text="Play", icon='PLAY')
         else:
             pie.operator("screen.animation_play", text="Stop", icon='PAUSE')
-        # 2 - BOTTOM
-        pie.operator("insert.autokeyframe", text="Auto Keyframe ", icon='REC')
-        # 8 - TOP
-        pie.menu("VIEW3D_MT_object_animation", icon="CLIP")
         # 7 - TOP - LEFT
-        pie.operator("screen.frame_jump", text="Jump REW", icon='REW').end = False
-        # 9 - TOP - RIGHT
-        pie.operator("screen.frame_jump", text="Jump FF", icon='FF').end = True
-        # 1 - BOTTOM - LEFT
         pie.operator("screen.keyframe_jump", text="Previous FR", icon='PREV_KEYFRAME').next = False
-        # 3 - BOTTOM - RIGHT
+        # 9 - TOP - RIGHT
         pie.operator("screen.keyframe_jump", text="Next FR", icon='NEXT_KEYFRAME').next = True
+        # 1 - BOTTOM - LEFT
+        pie.operator("insert.autokeyframe", text="Auto Keyframe ", icon='REC')
+        # 3 - BOTTOM - RIGHT
+        pie.menu("VIEW3D_MT_object_animation", icon="CLIP")
+
 
 # Insert Auto Keyframe
 class InsertAutoKeyframe(bpy.types.Operator):

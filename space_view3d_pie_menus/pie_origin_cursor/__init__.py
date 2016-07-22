@@ -16,6 +16,23 @@ from ..utils import AddonPreferences, SpaceProperty
 from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
+# Code thanks to Isaac Weaver (wisaac) D1963
+class SnapCursSelToCenter1(bpy.types.Operator):
+    """Snap 3D cursor and selected objects to the center \n"""\
+    """Works only in Object Mode"""
+    bl_idname = "view3d.snap_cursor_selected_to_center1"
+    bl_label = "Snap Cursor & Selection to Center"
+
+    @classmethod
+    def poll(cls, context):
+        return (context.mode == "OBJECT")
+
+    def execute(self, context):
+        context.space_data.cursor_location = (0, 0, 0)
+        for obj in context.selected_objects:
+            obj.location = (0, 0, 0)
+        return {'FINISHED'}
+
 # Pivot to selection
 class PivotToSelection(bpy.types.Operator):
     bl_idname = "object.pivot2selection"
@@ -90,28 +107,40 @@ class OriginPivotMenu(Menu):
     def draw(self, context):
         layout = self.layout
         pie = layout.menu_pie()
-        # 4 - LEFT
-        pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Offset)", icon='CURSOR').use_offset = True
+        # 4 - LEFT 
+        pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor", icon='CLIPUV_HLT').use_offset = False
         # 6 - RIGHT
-        pie.operator("view3d.snap_selected_to_grid", text="Selection to Grid", icon='GRID')
+        pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Offset)", icon='CURSOR').use_offset = True
         # 2 - BOTTOM
-        pie.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='ROTACTIVE')
+        pie.operator("wm.call_menu_pie", text="Origin Pie", icon='ROTATECOLLECTION').name = "pie.originpivot"
         # 8 - TOP
         pie.operator("view3d.snap_cursor_to_center", text="Cursor to Center", icon='CLIPUV_DEHLT')
         # 7 - TOP - LEFT
-        pie.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid", icon='GRID')
+        pie.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='ROTACTIVE')
         # 9 - TOP - RIGHT
         pie.operator("view3d.snap_cursor_to_active", text="Cursor to Active", icon='BBOX')
         # 1 - BOTTOM - LEFT
-        pie.operator("wm.call_menu_pie", text="Origin", icon='ROTATECOLLECTION').name = "pie.originpivot"
+        pie.operator("view3d.snap_cursor_selected_to_center1", text="Selected & Cursor to Center", icon='ALIGN')
         # 3 - BOTTOM - RIGHT
-        pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor", icon='CLIPUV_HLT').use_offset = False
+        pie.menu("snapgrid.menu", text="Snap Grid", icon='GRID')
+
+# More Menu
+class Snap_CursorGrid(bpy.types.Menu):
+    bl_idname = "snapgrid.menu"
+    bl_label = "More Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("view3d.snap_selected_to_grid", text="Selection to Grid", icon='GRID')
+        layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid", icon='GRID')
 
 classes = [
     OriginPivotMenu,
     PieOriginPivot,
     PivotToSelection,
     PivotBottom,
+    SnapCursSelToCenter1,
+    Snap_CursorGrid,
     ]
 
 addon_keymaps = []

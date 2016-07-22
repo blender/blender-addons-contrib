@@ -25,22 +25,19 @@ class PieApplyTransforms(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("apply.transformlocation", text="Location", icon='MAN_TRANS')
+        pie.operator("apply.transformall", text="Apply All", icon='FREEZE')
         # 6 - RIGHT
-        pie.operator("apply.transformscale", text="Scale", icon='MAN_SCALE')
-        # 2 - BOTTOM
-        pie.operator("apply.transformrotation", text="Rotation", icon='MAN_ROT')
-        # 8 - TOP
-        pie.operator("apply.transformall", text="Transforms", icon='FREEZE')
-        # 7 - TOP - LEFT
-        pie.operator("apply.transformrotationscale", text="Rotation/Scale")
-        # 9 - TOP - RIGHT
         pie.operator("clear.all", text="Clear All", icon='MANIPUL')
+        # 2 - BOTTOM
+        pie.menu("applymore.menu", text="More")
+        # 8 - TOP
+        pie.operator("apply.transformrotation", text="Rotation", icon='MAN_ROT')
+        # 7 - TOP - LEFT
+        pie.operator("apply.transformlocation", text="Location", icon='MAN_TRANS')
+        # 9 - TOP - RIGHT
+        pie.operator("apply.transformscale", text="Scale", icon='MAN_SCALE')
         # 1 - BOTTOM - LEFT
-        box = pie.split().column()
-        row = box.row(align=True)
-        box.operator("object.visual_transform_apply", text="Visual Transforms")
-        box.operator("object.duplicates_make_real", text="Make Duplicates Real")
+        pie.operator("apply.transformrotationscale", text="Rotation/Scale")
         # 3 - BOTTOM - RIGHT
         pie.menu("clear.menu", text="Clear Transforms")
 
@@ -75,8 +72,6 @@ class ApplyTransformScale(bpy.types.Operator):
         return {'FINISHED'}
 
 # Apply Transforms
-
-
 class ApplyTransformRotationScale(bpy.types.Operator):
     bl_idname = "apply.transformrotationscale"
     bl_label = "Apply Transform Rotation Scale"
@@ -96,6 +91,15 @@ class ApplyTransformAll(bpy.types.Operator):
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         return {'FINISHED'}
 
+# More Menu
+class TransformApplyMore(bpy.types.Menu):
+    bl_idname = "applymore.menu"
+    bl_label = "More Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("object.visual_transform_apply", text="Visual Transforms")
+        layout.operator("object.duplicates_make_real", text="Make Duplicates Real")
 
 # Clear Menu
 class ClearMenu(bpy.types.Menu):
@@ -132,6 +136,7 @@ classes = [
     ApplyTransformAll,
     ClearMenu,
     ClearAll,
+    TransformApplyMore,
     ]
 
 addon_keymaps = []
