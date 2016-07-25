@@ -235,19 +235,19 @@ class PieObjectEditotherModes(Menu):
         # 4 - LEFT
         pie.operator("verts.faces", text="Vertex/Faces", icon='LOOPSEL')
         # 6 - RIGHT
-        pie.operator("verts.edges", text="Vertex/Edges", icon='VERTEXSEL')
+        pie.operator("edges.faces", text="Edges/Faces", icon='FACESEL')
         # 2 - BOTTOM
-        pie.operator("verts.edgesfaces", text="Vertex/Edges/Faces", icon='OBJECT_DATAMODE')
+        pie.operator("wm.context_toggle", text="Limit to Visible", icon="ORTHO").data_path = "space_data.use_occlude_geometry"
         # 8 - TOP
-        pie.operator("class.vertex", text="Vertex", icon='VERTEXSEL')
-        # 7 - TOP - LEFT
         pie.operator("class.edge", text="Edge", icon='EDGESEL')
+        # 7 - TOP - LEFT
+        pie.operator("class.vertex", text="Vertex", icon='VERTEXSEL')
         # 9 - TOP - RIGHT
         pie.operator("class.face", text="Face", icon='FACESEL')
         # 1 - BOTTOM - LEFT
-        pie.operator("edges.faces", text="Edges/Faces", icon='FACESEL')
+        pie.operator("verts.edges", text="Vertex/Edges", icon='VERTEXSEL')
         # 3 - BOTTOM - RIGHT
-        pie.operator("wm.context_toggle", text="Limit to Visible", icon="ORTHO").data_path = "space_data.use_occlude_geometry"
+        pie.operator("verts.edgesfaces", text="Vertex/Edges/Faces", icon='OBJECT_DATAMODE')
 
 # Pie Modes Switch- Tab key
 class PieObjectEditMode(Menu):
@@ -262,17 +262,17 @@ class PieObjectEditMode(Menu):
         if ob and ob.type == 'MESH' and ob.mode in {'OBJECT', 'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT', 'PARTICLE'}:
             pie = layout.menu_pie()
             # 4 - LEFT
-            pie.operator("class.pieweightpaint", text="Weight Paint", icon='WPAINT_HLT')
+            pie.operator("class.pievertexpaint", text="Vertex Paint", icon='VPAINT_HLT')
             # 6 - RIGHT
             pie.operator("class.pietexturepaint", text="Texture Paint", icon='TPAINT_HLT')
             # 2 - BOTTOM
-            pie.operator("sculpt.sculptmode_toggle", text="Sculpt", icon='SCULPTMODE_HLT')
+            pie.operator("class.pieweightpaint", text="Weight Paint", icon='WPAINT_HLT')
             # 8 - TOP
-            pie.operator("class.object", text="Edit/Object", icon='OBJECT_DATAMODE')
+            pie.operator("class.object", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
             # 7 - TOP - LEFT
-            pie.operator("class.pievertexpaint", text="Vertex Paint", icon='VPAINT_HLT')
+            pie.operator("sculpt.sculptmode_toggle", text="Sculpt", icon='SCULPTMODE_HLT')
             # 9 - TOP - RIGHT
-            pie.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
+            pie.operator("wm.call_menu_pie", text="Edit Modes", icon='EDITMODE_HLT').name = "pie.objecteditmodeothermodes"
             # 1 - BOTTOM - LEFT
             if bpy.context.object.particle_systems:
                 pie.operator("class.pieparticleedit", text="Particle Edit", icon='PARTICLEMODE')
@@ -281,15 +281,15 @@ class PieObjectEditMode(Menu):
         if ob and ob.type == 'MESH' and ob.mode in {'EDIT'}:
             pie = layout.menu_pie()
             # 4 - LEFT
-            pie.operator("class.pieweightpaint", text="Weight Paint", icon='WPAINT_HLT')
+            pie.operator("class.pievertexpaint", text="Vertex Paint", icon='VPAINT_HLT')
             # 6 - RIGHT
             pie.operator("class.pietexturepaint", text="Texture Paint", icon='TPAINT_HLT')
             # 2 - BOTTOM
-            pie.operator("sculpt.sculptmode_toggle", text="Sculpt", icon='SCULPTMODE_HLT')
+            pie.operator("class.pieweightpaint", text="Weight Paint", icon='WPAINT_HLT')
             # 8 - TOP
-            pie.operator("class.object", text="Edit/Object", icon='OBJECT_DATAMODE')
+            pie.operator("class.object", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
             # 7 - TOP - LEFT
-            pie.operator("class.pievertexpaint", text="Vertex Paint", icon='VPAINT_HLT')
+            pie.operator("sculpt.sculptmode_toggle", text="Sculpt", icon='SCULPTMODE_HLT')
             # 9 - TOP - RIGHT
             pie.operator("wm.call_menu_pie", text="Edit Modes", icon='TPAINT_HLT').name = "pie.objecteditmodeothermodes"
             # 1 - BOTTOM - LEFT
@@ -309,19 +309,19 @@ class PieObjectEditMode(Menu):
 
         if ob and ob.type == 'FONT':
             pie = layout.menu_pie()
-            pie.operator("object.editmode_toggle", text="Edit/Object", icon='OBJECT_DATAMODE')
+            pie.operator("object.editmode_toggle", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
 
         if ob and ob.type == 'SURFACE':
             pie = layout.menu_pie()
-            pie.operator("object.editmode_toggle", text="Edit/Object", icon='OBJECT_DATAMODE')
+            pie.operator("object.editmode_toggle", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
 
         if ob and ob.type == 'META':
             pie = layout.menu_pie()
-            pie.operator("object.editmode_toggle", text="Edit/Object", icon='OBJECT_DATAMODE')
+            pie.operator("object.editmode_toggle", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
 
         if ob and ob.type == 'LATTICE':
             pie = layout.menu_pie()
-            pie.operator("object.editmode_toggle", text="Edit/Object", icon='OBJECT_DATAMODE')
+            pie.operator("object.editmode_toggle", text="Edit/Object Toggle", icon='OBJECT_DATAMODE')
 
 classes = [
     PieObjectEditMode,

@@ -49,6 +49,7 @@ class PieAnimation(Menu):
 class InsertAutoKeyframe(bpy.types.Operator):
     bl_idname = "insert.autokeyframe"
     bl_label = "Insert Auto Keyframe"
+    bl_description = "Toggle Insert Auto Keyframe"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):

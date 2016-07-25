@@ -46,7 +46,7 @@ class AreaPieEditor(Menu):
         # 6 - RIGHT
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="Outliner", icon="OOPS").type = "OUTLINER"
         # 2 - BOTTOM
-        self.layout.menu_pie().operator(SetAreaType.bl_idname, text="Property", icon="BUTS").type = "PROPERTIES"
+        self.layout.menu_pie().operator("wm.call_menu_pie", text="More Types", icon="QUESTION").name = AreaTypePieOther.bl_idname
         # 8 - TOP
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="3D View", icon="MESH_CUBE").type = "VIEW_3D"
         # 7 - TOP - LEFT
@@ -56,7 +56,7 @@ class AreaPieEditor(Menu):
         # 1 - BOTTOM - LEFT
         self.layout.menu_pie().operator("wm.call_menu_pie", text="Animation Pie", icon="ACTION").name = AreaTypePieAnim.bl_idname
         # 3 - BOTTOM - RIGHT
-        self.layout.menu_pie().operator("wm.call_menu_pie", text="More Types", icon="QUESTION").name = AreaTypePieOther.bl_idname
+        self.layout.menu_pie().operator(SetAreaType.bl_idname, text="Property", icon="BUTS").type = "PROPERTIES"
 
 
 class AreaTypePieOther(bpy.types.Menu):
@@ -72,11 +72,11 @@ class AreaTypePieOther(bpy.types.Menu):
         # 2 - BOTTOM
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="Python Console", icon="CONSOLE").type = "CONSOLE"
         # 8 - TOP
-        self.layout.menu_pie().operator(SetAreaType.bl_idname, text="Info", icon="INFO").type = "INFO"
+        self.layout.menu_pie().operator("wm.call_menu_pie", text="Back", icon="BACK").name = AreaPieEditor.bl_idname
         # 7 - TOP - LEFT
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="User Setting", icon="PREFERENCES").type = "USER_PREFERENCES"
         # 9 - TOP - RIGHT
-        self.layout.menu_pie().operator("wm.call_menu_pie", text="Back", icon="BACK").name = AreaPieEditor.bl_idname
+        self.layout.menu_pie().operator(SetAreaType.bl_idname, text="Info", icon="INFO").type = "INFO"
         # 1 - BOTTOM - LEFT
         # 3 - BOTTOM - RIGHT
 

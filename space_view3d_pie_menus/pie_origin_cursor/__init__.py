@@ -16,7 +16,7 @@ from ..utils import AddonPreferences, SpaceProperty
 from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
-# Code thanks to Isaac Weaver (wisaac) D1963
+# SnapCursSelToCenter1 thanks to Isaac Weaver (wisaac) D1963
 class SnapCursSelToCenter1(bpy.types.Operator):
     """Snap 3D cursor and selected objects to the center \n"""\
     """Works only in Object Mode"""
@@ -37,6 +37,7 @@ class SnapCursSelToCenter1(bpy.types.Operator):
 class PivotToSelection(bpy.types.Operator):
     bl_idname = "object.pivot2selection"
     bl_label = "Pivot To Selection"
+    bl_description = "Pivot Point To Selection"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -51,6 +52,7 @@ class PivotToSelection(bpy.types.Operator):
 class PivotBottom(bpy.types.Operator):
     bl_idname = "object.pivotobottom"
     bl_label = "Pivot To Bottom"
+    bl_description = "Set the Pivot Point To Lowest Point"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -84,18 +86,29 @@ class PieOriginPivot(Menu):
         obj = context.object
         pie = layout.menu_pie()
         if obj and obj.type == 'MESH':
-
+            # 4 - LEFT 
             pie.operator("object.origin_set", text="Origin to Center of Mass", icon='BBOX').type = 'ORIGIN_CENTER_OF_MASS'
+            # 6 - RIGHT
             pie.operator("object.origin_set", text="Origin To 3D Cursor", icon='CURSOR').type = 'ORIGIN_CURSOR'
-            pie.operator("object.pivot2selection", text="Origin To Selection", icon='SNAP_INCREMENT')
-            pie.operator("object.origin_set", text="Origin To Geometry", icon='ROTATE').type = 'ORIGIN_GEOMETRY'
-            pie.operator("object.origin_set", text="Geometry To Origin", icon='BBOX').type = 'GEOMETRY_ORIGIN'
+            # 2 - BOTTOM
             pie.operator("object.pivotobottom", text="Origin to Bottom", icon='TRIA_DOWN')
-        else:
-            pie.operator("object.origin_set", text="Origin to Center of Mass", icon='BBOX').type = 'ORIGIN_CENTER_OF_MASS'
-            pie.operator("object.origin_set", text="Origin To 3D Cursor", icon='CURSOR').type = 'ORIGIN_CURSOR'
+            # 8 - TOP
             pie.operator("object.pivot2selection", text="Origin To Selection", icon='SNAP_INCREMENT')
+            # 7 - TOP - LEFT
+            pie.operator("object.origin_set", text="Geometry To Origin", icon='BBOX').type = 'GEOMETRY_ORIGIN'
+            # 9 - TOP - RIGHT
             pie.operator("object.origin_set", text="Origin To Geometry", icon='ROTATE').type = 'ORIGIN_GEOMETRY'
+
+        else:
+            # 4 - LEFT 
+            pie.operator("object.origin_set", text="Origin to Center of Mass", icon='BBOX').type = 'ORIGIN_CENTER_OF_MASS'
+            # 6 - RIGHT
+            pie.operator("object.origin_set", text="Origin To 3D Cursor", icon='CURSOR').type = 'ORIGIN_CURSOR'
+            # 2 - BOTTOM
+            pie.operator("object.pivot2selection", text="Origin To Selection", icon='SNAP_INCREMENT')
+            # 8 - TOP
+            pie.operator("object.origin_set", text="Origin To Geometry", icon='ROTATE').type = 'ORIGIN_GEOMETRY'
+            # 7 - TOP - LEFT
             pie.operator("object.origin_set", text="Geometry To Origin", icon='BBOX').type = 'GEOMETRY_ORIGIN'
 
 

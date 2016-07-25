@@ -45,6 +45,7 @@ class PieApplyTransforms(Menu):
 class ApplyTransformLocation(bpy.types.Operator):
     bl_idname = "apply.transformlocation"
     bl_label = "Apply Transform Location"
+    bl_description = "Apply Transform Location"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -55,6 +56,7 @@ class ApplyTransformLocation(bpy.types.Operator):
 class ApplyTransformRotation(bpy.types.Operator):
     bl_idname = "apply.transformrotation"
     bl_label = "Apply Transform Rotation"
+    bl_description = "Apply Transform Rotation"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -65,6 +67,7 @@ class ApplyTransformRotation(bpy.types.Operator):
 class ApplyTransformScale(bpy.types.Operator):
     bl_idname = "apply.transformscale"
     bl_label = "Apply Transform Scale"
+    bl_description = "Apply Transform Scale"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -75,6 +78,7 @@ class ApplyTransformScale(bpy.types.Operator):
 class ApplyTransformRotationScale(bpy.types.Operator):
     bl_idname = "apply.transformrotationscale"
     bl_label = "Apply Transform Rotation Scale"
+    bl_description = "Apply Transform Rotation Scale"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -84,7 +88,8 @@ class ApplyTransformRotationScale(bpy.types.Operator):
 # Apply Transforms
 class ApplyTransformAll(bpy.types.Operator):
     bl_idname = "apply.transformall"
-    bl_label = "Apply Transform All"
+    bl_label = "Apply All Transforms"
+    bl_description = "Apply Transform All"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -119,6 +124,7 @@ class ClearMenu(bpy.types.Menu):
 class ClearAll(bpy.types.Operator):
     bl_idname = "clear.all"
     bl_label = "Clear All"
+    bl_description = "Clear All Transforms"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):

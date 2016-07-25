@@ -51,7 +51,7 @@ class PieSculptPie(Menu):
         # 6 - RIGHT
         pie.operator("paint.brush_select", text="Clay", icon='BRUSH_CLAY').sculpt_tool = 'CLAY'
         # 2 - BOTTOM
-        pie.operator("paint.brush_select", text='Flatten', icon='BRUSH_FLATTEN').sculpt_tool = 'FLATTEN'
+        pie.operator("wm.call_menu_pie", text="More Brushes", icon='LINE_DATA').name = "pie.sculpttwo"
         # 8 - TOP
         pie.operator("paint.brush_select", text='Brush', icon='BRUSH_SCULPT_DRAW').sculpt_tool = 'DRAW'
         # 7 - TOP - LEFT
@@ -61,7 +61,7 @@ class PieSculptPie(Menu):
         # 1 - BOTTOM - LEFT
         pie.operator("paint.brush_select", text='Simplify', icon='BRUSH_DATA').sculpt_tool = 'SIMPLIFY'
         # 3 - BOTTOM - RIGHT
-        pie.operator("wm.call_menu_pie", text="Others Brushes", icon='LINE_DATA').name = "pie.sculpttwo"
+        pie.operator("paint.brush_select", text='Flatten', icon='BRUSH_FLATTEN').sculpt_tool = 'FLATTEN'
 
 # Pie Sculp Pie Menus 2 - W
 class PieSculpttwo(Menu):

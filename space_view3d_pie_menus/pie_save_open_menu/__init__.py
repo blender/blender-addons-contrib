@@ -30,19 +30,19 @@ class PieSaveOpen(Menu):
         # 4 - LEFT
         pie.operator("wm.read_homefile", text="New", icon='NEW')
         # 6 - RIGHT
-        pie.operator("file.save_incremental", text="Incremental Save", icon='SAVE_COPY')
+        pie.menu("pie.link", text="Link", icon='LINK_BLEND')
         # 2 - BOTTOM
         pie.menu("pie.fileio", text="Import/Export", icon='IMPORT')
         # 8 - TOP
-        pie.operator("wm.save_mainfile", text="Save", icon='FILE_TICK')
+        pie.operator("file.save_incremental", text="Incremental Save", icon='SAVE_COPY')
         # 7 - TOP - LEFT
-        pie.operator("wm.open_mainfile", text="Open file", icon='FILE_FOLDER')
+        pie.operator("wm.save_mainfile", text="Save", icon='FILE_TICK')
         # 9 - TOP - RIGHT
         pie.operator("wm.save_as_mainfile", text="Save As...", icon='SAVE_AS')
         # 1 - BOTTOM - LEFT
-        pie.menu("pie.recover", text="Recovery", icon='RECOVER_LAST')
+        pie.operator("wm.open_mainfile", text="Open file", icon='FILE_FOLDER')
         # 3 - BOTTOM - RIGHT
-        pie.menu("pie.link", text="Link", icon='LINK_BLEND')
+        pie.menu("pie.recover", text="Recovery", icon='RECOVER_LAST')
 
 class pie_link(bpy.types.Menu):
     bl_idname = "pie.link"
@@ -104,6 +104,7 @@ class ExternalData(bpy.types.Menu):
 class FileIncrementalSave(bpy.types.Operator):
     bl_idname = "file.save_incremental"
     bl_label = "Save Incremental"
+    bl_description = "Save Files with _001, _002 extension"
     bl_options = {"REGISTER"}
 
     def execute(self, context):

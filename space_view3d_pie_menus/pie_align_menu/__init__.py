@@ -17,6 +17,7 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 from mathutils import *
 import math
+
 # Pie Align - Alt + X
 class PieAlign(Menu):
     bl_idname = "pie.align"
@@ -64,6 +65,7 @@ class PieAlign(Menu):
 class AlignX(bpy.types.Operator):
     bl_idname = "align.x"
     bl_label = "Align  X"
+    bl_description = "Align Selected Along X"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -76,6 +78,7 @@ class AlignX(bpy.types.Operator):
 class AlignY(bpy.types.Operator):
     bl_idname = "align.y"
     bl_label = "Align  Y"
+    bl_description = "Align Selected Along Y"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -88,6 +91,7 @@ class AlignY(bpy.types.Operator):
 class AlignZ(bpy.types.Operator):
     bl_idname = "align.z"
     bl_label = "Align  Z"
+    bl_description = "Align Selected Along Z"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -103,7 +107,8 @@ class AlignZ(bpy.types.Operator):
 # Align to X - 0
 class AlignToX0(bpy.types.Operator):
     bl_idname = "align.2x0"
-    bl_label = "Align To X-0"
+    bl_label = "Align To X = 0"
+    bl_description = "Align Selected To Location X = 0"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -118,7 +123,8 @@ class AlignToX0(bpy.types.Operator):
 # Align to Z - 0
 class AlignToY0(bpy.types.Operator):
     bl_idname = "align.2y0"
-    bl_label = "Align To Y-0"
+    bl_label = "Align To Y = 0"
+    bl_description = "Align Selected To Location Y = 0"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -133,7 +139,8 @@ class AlignToY0(bpy.types.Operator):
 # Align to Z - 0
 class AlignToZ0(bpy.types.Operator):
     bl_idname = "align.2z0"
-    bl_label = "Align To Z-0"
+    bl_label = "Align To Z = 0"
+    bl_description = "Align Selected To Location Z = 0"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):

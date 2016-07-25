@@ -155,19 +155,19 @@ class PieManipulator(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("translate.scale", text="Translate/Scale")
+        pie.operator("rotate.scale", text="Rotate/Scale")
         # 6 - RIGHT
         pie.operator("manip.rotate", text="Rotate", icon='MAN_ROT')
         # 2 - BOTTOM
         pie.operator("translate.rotatescale", text="Translate/Rotate/Scale")
         # 8 - TOP
-        pie.operator("w.manupulators", text="Manipulator", icon='MANIPUL')
+        pie.operator("w.manupulators", text="Show/Hide Toggle", icon='MANIPUL')
         # 7 - TOP - LEFT
         pie.operator("translate.rotate", text="Translate/Rotate")
         # 9 - TOP - RIGHT
         pie.operator("manip.translate", text="Translate", icon='MAN_TRANS')
         # 1 - BOTTOM - LEFT
-        pie.operator("rotate.scale", text="Rotate/Scale")
+        pie.operator("translate.scale", text="Translate/Scale")
         # 3 - BOTTOM - RIGHT
         pie.operator("manip.scale", text="Scale", icon='MAN_SCALE')
 
