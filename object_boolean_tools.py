@@ -14,28 +14,30 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ##### END GPL LICENSE BLOCK ##### actObj.grease_pencil.clear()" by "bpy.context.scene.grease_pencil.clear()
-# Contributed to by TynkaTopi, meta-androcto
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
 
 bl_info = {
     "name": "Bool Tool",
-    "author": "Vitor Balbio, Mikhail Rachinskiy",
+    "author": "Vitor Balbio, Mikhail Rachinskiy, TynkaTopi, Meta-Androcto",
     "version": (0, 3, 2),
     "blender": (2, 77, 0),
     "location": "View3D > Toolshelf > BoolTool",
     "description": "Bool Tools Hotkey: Ctrl Shift B",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/BoolTool",
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
-    "category": "Object"}
+    "category": "Object",
+    }
 
 import bpy
 import bmesh
 import time
 from bpy.app.handlers import persistent
 from bpy.types import (
-    Operator,
-    Panel,
-)
+        Operator,
+        Panel,
+        )
 
 
 # -------------------  Bool Tool FUNCTIONS------------------------------
