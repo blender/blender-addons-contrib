@@ -265,7 +265,7 @@ class oscBatchMaker (bpy.types.Operator):
 
     type = bpy.props.EnumProperty(
         name="Render Mode",
-        description="Select Render Mode.",
+        description="Select Render Mode",
         items=(('osRlat', "All Scenes", "Render All Layers At Time"),
                ('osRSlat', "Selected Scenes", "Render Only The Selected Scenes")),
         default='osRlat',
@@ -387,7 +387,7 @@ class oscPythonBatchMaker (bpy.types.Operator):
 
     type = bpy.props.EnumProperty(
         name="Render Mode",
-        description="Select Render Mode.",
+        description="Select Render Mode",
         items=(('osRlat', "All Scenes", "Render All Layers At Time"),
                ('osRSlat', "Selected Scenes", "Render Only The Selected Scenes")),
         default='osRlat',

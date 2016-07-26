@@ -323,7 +323,7 @@ class OscResymMesh (bpy.types.Operator):
 
     side = bpy.props.EnumProperty(
         name="Side:",
-        description="Select Side.",
+        description="Select Side",
         items=(('+-', "+X to -X", "+X to -X"),
                ('-+', "-X to +X", "-X to +X")),
         default='+-',
