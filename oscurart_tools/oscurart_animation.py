@@ -1,3 +1,23 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+
 import bpy
 from mathutils import Matrix
 
@@ -10,9 +30,7 @@ bpy.types.Scene.quick_animation_out = bpy.props.IntProperty(default=250)
 def DefQuickParent(inf, out):
     if bpy.context.object.type == "ARMATURE":
         ob = bpy.context.object
-        target = [
-            object for object in bpy.context.selected_objects if object != ob][
-                0]
+        target = [object for object in bpy.context.selected_objects if object != ob][0]
         ob = bpy.context.active_pose_bone if bpy.context.object.type == 'ARMATURE' else bpy.context.object
         target.select = False
         bpy.context.scene.frame_set(frame=bpy.context.scene.quick_animation_in)
@@ -25,9 +43,7 @@ def DefQuickParent(inf, out):
             bpy.ops.anim.keyframe_insert(type="LocRotScale")
     else:
         ob = bpy.context.object
-        target = [
-            object for object in bpy.context.selected_objects if object != ob][
-                0]
+        target = [object for object in bpy.context.selected_objects if object != ob][0]
         ob = bpy.context.active_pose_bone if bpy.context.object.type == 'ARMATURE' else bpy.context.object
         target.select = False
         bpy.context.scene.frame_set(frame=bpy.context.scene.quick_animation_in)

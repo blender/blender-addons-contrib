@@ -1,3 +1,23 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+
 import bpy
 import math
 import os
@@ -195,12 +215,14 @@ def defoscBatchMaker(TYPE, BIN):
                     "** Oscurart Batch maker can not modify the permissions.")
         if not BIN:
             FILE.writelines("%s%s%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" %
-                            (QUOTES, BINDIR, QUOTES, bpy.data.filepath, bpy.context.scene.render.filepath, bpy.data.filepath.rpartition(SYSBAR)[0] +
-                             SYSBAR, TYPE, str(bpy.context.scene.frame_start), str(bpy.context.scene.frame_end)))
+                            (QUOTES, BINDIR, QUOTES, bpy.data.filepath, bpy.context.scene.render.filepath,
+                             bpy.data.filepath.rpartition(SYSBAR)[0] + SYSBAR, TYPE,
+                             str(bpy.context.scene.frame_start), str(bpy.context.scene.frame_end)))
         else:
             FILE.writelines("%s -b %s -x 1 -o %s -P %s%s.py  -s %s -e %s -a" %
-                            ("blender", bpy.data.filepath, bpy.context.scene.render.filepath, bpy.data.filepath.rpartition(SYSBAR)[0] +
-                             SYSBAR, TYPE, str(bpy.context.scene.frame_start), str(bpy.context.scene.frame_end)))
+                            ("blender", bpy.data.filepath, bpy.context.scene.render.filepath,
+                             bpy.data.filepath.rpartition(SYSBAR)[0] + SYSBAR, TYPE,
+                             str(bpy.context.scene.frame_start), str(bpy.context.scene.frame_end)))
 
     RLATFILE = "%s%sosRlat.py" % (
         bpy.data.filepath.rpartition(SYSBAR)[0],
@@ -243,10 +265,10 @@ class oscBatchMaker (bpy.types.Operator):
 
     type = bpy.props.EnumProperty(
         name="Render Mode",
-            description="Select Render Mode.",
-            items=(('osRlat', "All Scenes", "Render All Layers At Time"),
-                   ('osRSlat', "Selected Scenes", "Render Only The Selected Scenes")),
-            default='osRlat',
+        description="Select Render Mode.",
+        items=(('osRlat', "All Scenes", "Render All Layers At Time"),
+               ('osRSlat', "Selected Scenes", "Render Only The Selected Scenes")),
+        default='osRlat',
     )
 
     bin = bpy.props.BoolProperty(
@@ -279,12 +301,12 @@ def defoscPythonBatchMaker(BATCHTYPE, SIZE):
     SHFILE = "%s%s%s_PythonSecureBatch.py" % (
         bpy.data.filepath.rpartition(SYSBAR)[0],
         SYSBAR,
-     FILENAME)
+        FILENAME)
     BATCHLOCATION = "%s%s%s%s" % (
         bpy.data.filepath.rpartition(SYSBAR)[0],
         SYSBAR,
-     FILENAME,
-     EXTSYS)
+        FILENAME,
+        EXTSYS)
 
     with open(SHFILE, "w") as FILEBATCH:
 
@@ -303,8 +325,34 @@ def defoscPythonBatchMaker(BATCHTYPE, SIZE):
         # CREO BATCH
         bpy.ops.file.create_batch_maker_osc(type=BATCHTYPE)
 
-        SCRIPT = "import os \nREPITE= True \nBAT= '%s'\nSCENENAME ='%s' \nDIR='%s%s' \ndef RENDER():\n    os.system(BAT) \ndef CLEAN():\n    global REPITE\n    FILES  = [root+'/'+FILE for root, dirs, files in os.walk(os.getcwd()) if len(files) > 0 for FILE in files if FILE.count('~') == False]\n    RESPUESTA=False\n    for FILE in FILES:\n        if os.path.getsize(FILE) < %s:\n            os.remove(FILE)\n            RESPUESTA= True\n    if RESPUESTA:\n        REPITE=True\n    else:\n        REPITE=False\nREPITE=True\nwhile REPITE:\n    REPITE=False\n    RENDER()\n    os.chdir(DIR)\n    CLEAN()" % (
-            BATCHLOCATION, FILENAME, FRO, FILENAME, SIZE)
+        SCRIPT = (
+            "import os \n"
+            "REPITE= True \n"
+            "BAT= '%s'\n"
+            "SCENENAME ='%s' \n"
+            "DIR='%s%s' \n"
+            "def RENDER():\n"
+            "os.system(BAT) \n"
+            "def CLEAN():\n"
+            "global REPITE\n"
+            "FILES = [root + '/' + FILE for root, dirs, files in os.walk(os.getcwd())\n"
+            "         if len(files) > 0 for FILE in files if FILE.count('~') == False]\n"
+            "RESPUESTA=False\n"
+            "for FILE in FILES:\n"
+            "if os.path.getsize(FILE) < %s:\n"
+            "os.remove(FILE)\n"
+            "RESPUESTA= True\n"
+            "if RESPUESTA:\n"
+            "REPITE=True\n"
+            "else:\n"
+            "REPITE=False\n"
+            "REPITE=True\n"
+            "while REPITE:\n"
+            "REPITE=False\n"
+            "RENDER()\n"
+            "os.chdir(DIR)\n"
+            "CLEAN()\n" %
+            (BATCHLOCATION, FILENAME, FRO, FILENAME, SIZE))
 
         # DEFINO ARCHIVO DE BATCH
         FILEBATCH.writelines(SCRIPT)
@@ -314,8 +362,8 @@ def defoscPythonBatchMaker(BATCHTYPE, SIZE):
     CALLFILE = "%s%s%s_CallPythonSecureBatch%s" % (
         bpy.data.filepath.rpartition(SYSBAR)[0],
         SYSBAR,
-     CALLFILENAME,
-     EXTSYS)
+        CALLFILENAME,
+        EXTSYS)
 
     with open(CALLFILE, "w") as CALLFILEBATCH:
 
@@ -339,10 +387,10 @@ class oscPythonBatchMaker (bpy.types.Operator):
 
     type = bpy.props.EnumProperty(
         name="Render Mode",
-            description="Select Render Mode.",
-            items=(('osRlat', "All Scenes", "Render All Layers At Time"),
-                   ('osRSlat', "Selected Scenes", "Render Only The Selected Scenes")),
-            default='osRlat',
+        description="Select Render Mode.",
+        items=(('osRlat', "All Scenes", "Render All Layers At Time"),
+               ('osRSlat', "Selected Scenes", "Render Only The Selected Scenes")),
+        default='osRlat',
     )
 
     def execute(self, context):
@@ -444,72 +492,72 @@ def defCopyRenderSettings(mode):
     excludes = {
         'name',
         'objects',
-     'object_bases',
-     'has_multiple_engines',
-     'display_settings',
-     'broken_files',
-     'rna_type',
-     'frame_subframe',
-     'view_settings',
-     'tool_settings',
-     'render',
-     'user_clear',
-     'animation_data_create',
-     'collada_export',
-     'keying_sets',
-     'icon_props',
-     'image_settings',
-     'library',
-     'bake',
-     'active_layer',
-     'frame_current_final',
-     'sequence_editor_clear',
-     'rigidbody_world',
-     'unit_settings',
-     'orientations',
-     '__slots__',
-     'ray_cast',
-     'sequencer_colorspace_settings',
-     'ffmpeg',
-     'is_movie_format',
-     'frame_path',
-     'frame_set',
-     'network_render',
-     'animation_data_clear',
-     'is_nla_tweakmode',
-     'keying_sets_all',
-     'sequence_editor',
-     '__doc__',
-     'ovlist',
-     'file_extension',
-     'users',
-     'node_tree',
-     'is_updated_data',
-     'bl_rna',
-     'is_library_indirect',
-     'cycles_curves',
-     'timeline_markers',
-     'statistics',
-     'use_shading_nodes',
-     'use_game_engine',
-     'sequence_editor_create',
-     'is_updated',
-     '__module__',
-     'update_tag',
-     'update',
-     'animation_data',
-     'cycles',
-     'copy',
-     'game_settings',
-     'layers',
-     '__weakref__',
-     'string',
-     'double',
-     'overrides',
-     'use_render_scene',
-     'engine',
-     'use_nodes',
-     'world'}
+        'object_bases',
+        'has_multiple_engines',
+        'display_settings',
+        'broken_files',
+        'rna_type',
+        'frame_subframe',
+        'view_settings',
+        'tool_settings',
+        'render',
+        'user_clear',
+        'animation_data_create',
+        'collada_export',
+        'keying_sets',
+        'icon_props',
+        'image_settings',
+        'library',
+        'bake',
+        'active_layer',
+        'frame_current_final',
+        'sequence_editor_clear',
+        'rigidbody_world',
+        'unit_settings',
+        'orientations',
+        '__slots__',
+        'ray_cast',
+        'sequencer_colorspace_settings',
+        'ffmpeg',
+        'is_movie_format',
+        'frame_path',
+        'frame_set',
+        'network_render',
+        'animation_data_clear',
+        'is_nla_tweakmode',
+        'keying_sets_all',
+        'sequence_editor',
+        '__doc__',
+        'ovlist',
+        'file_extension',
+        'users',
+        'node_tree',
+        'is_updated_data',
+        'bl_rna',
+        'is_library_indirect',
+        'cycles_curves',
+        'timeline_markers',
+        'statistics',
+        'use_shading_nodes',
+        'use_game_engine',
+        'sequence_editor_create',
+        'is_updated',
+        '__module__',
+        'update_tag',
+        'update',
+        'animation_data',
+        'cycles',
+        'copy',
+        'game_settings',
+        'layers',
+        '__weakref__',
+        'string',
+        'double',
+        'overrides',
+        'use_render_scene',
+        'engine',
+        'use_nodes',
+        'world'}
 
     if mode == "render":
         scenerenderdict = {}
@@ -540,9 +588,10 @@ def defCopyRenderSettings(mode):
                     print("%s does not exist." % (prop))
 
         """
-        scenerenderdict = {prop : getattr(bpy.context.scene.render,prop) for prop in dir(bpy.context.scene.render)}
-        scenedict = {prop : getattr(bpy.context.scene,prop) for prop in dir(bpy.context.scene) if prop not in excludes}
-        sceneimagesettingdict = {prop : getattr(bpy.context.scene.render.image_settings,prop) for prop in dir(bpy.context.scene.render.image_settings)}
+        scenerenderdict = {prop: getattr(bpy.context.scene.render, prop) for prop in dir(bpy.context.scene.render)}
+        scenedict = {prop: getattr(bpy.context.scene, prop) for prop in dir(bpy.context.scene) if prop not in excludes}
+        sceneimagesettingdict = {prop: getattr(bpy.context.scene.render.image_settings, prop)
+                                 for prop in dir(bpy.context.scene.render.image_settings)}
         """
 
         # render
@@ -582,7 +631,7 @@ def defCopyRenderSettings(mode):
                     print("%s does not exist." % (prop))
 
         """
-        scenecyclesdict = {prop : getattr(bpy.context.scene.cycles,prop) for prop in dir(bpy.context.scene.cycles)}
+        scenecyclesdict = {prop: getattr(bpy.context.scene.cycles, prop) for prop in dir(bpy.context.scene.cycles)}
         """
         # cycles
         for escena in sceneslist:

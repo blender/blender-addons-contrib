@@ -1,4 +1,4 @@
-# BEGIN GPL LICENSE BLOCK #####
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -14,7 +14,9 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# END GPL LICENSE BLOCK #####
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
 
 bl_info = {
     "name": "Oscurart Tools",
@@ -27,7 +29,8 @@ bl_info = {
     "wiki_url":
         "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Oscurart_Tools",
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
-    "category": "Object"}
+    "category": "Object",
+    }
 
 import bpy
 import math
@@ -77,43 +80,16 @@ class OscPanelControl(View3DOscPanel, bpy.types.Panel):
     def draw(self, context):
         active_obj = context.active_object
         layout = self.layout
+        scene = context.scene
 
         col = layout.column(align=1)
-        col.prop(
-            bpy.context.scene,
-            "osc_object_tools",
-            text="Object",
-            icon="OBJECT_DATAMODE")
-        col.prop(
-            bpy.context.scene,
-            "osc_mesh_tools",
-            text="Mesh",
-            icon="EDITMODE_HLT")
-        col.prop(
-            bpy.context.scene,
-            "osc_shapes_tools",
-            text="Shapes",
-            icon="SHAPEKEY_DATA")
-        col.prop(
-            bpy.context.scene,
-            "osc_animation_tools",
-            text="Animation",
-            icon="POSE_DATA")
-        col.prop(
-            bpy.context.scene,
-            "osc_render_tools",
-            text="Render",
-            icon="SCENE")
-        col.prop(
-            bpy.context.scene,
-            "osc_files_tools",
-            text="Files",
-            icon="IMASEL")
-        col.prop(
-            bpy.context.scene,
-            "osc_overrides_tools",
-            text="Overrides",
-            icon="GREASEPENCIL")
+        col.prop(scene, "osc_object_tools", text="Object", icon="OBJECT_DATAMODE")
+        col.prop(scene, "osc_mesh_tools", text="Mesh", icon="EDITMODE_HLT")
+        col.prop(scene, "osc_shapes_tools", text="Shapes", icon="SHAPEKEY_DATA")
+        col.prop(scene, "osc_animation_tools", text="Animation", icon="POSE_DATA")
+        col.prop(scene, "osc_render_tools", text="Render", icon="SCENE")
+        col.prop(scene, "osc_files_tools", text="Files", icon="IMASEL")
+        col.prop(scene, "osc_overrides_tools", text="Overrides", icon="GREASEPENCIL")
 # POLLS
 
 
@@ -465,10 +441,11 @@ class OscurartToolsAddonPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
     category = bpy.props.StringProperty(
-        name="Category",
+            name="Category",
             description="Choose a name for the category of the panel",
             default="Oscurart Tools",
-            update=update_panel)
+            update=update_panel,
+            )
 
     def draw(self, context):
 

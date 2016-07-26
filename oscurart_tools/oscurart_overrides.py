@@ -1,3 +1,23 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+
 import bpy
 import sys
 import os
@@ -21,7 +41,8 @@ def DefOscApplyOverrides(self):
                 ob.data.materials.append(None)
     slotlist = {ob: [sl.material for sl in ob.material_slots]
                 for ob in bpy.data.objects if ob.type in types if len(ob.material_slots)}
-    with open("%s_override.txt" % (os.path.join(os.path.dirname(bpy.data.filepath), bpy.context.scene.name)), mode="w") as file:
+    with open("%s_override.txt" % (os.path.join(os.path.dirname(bpy.data.filepath),
+                                                bpy.context.scene.name)), mode="w") as file:
         file.write(str(slotlist))
     scene = bpy.context.scene
     proptolist = list(eval(scene.overrides))
@@ -38,7 +59,8 @@ def DefOscApplyOverrides(self):
 
 def DefOscRestoreOverrides(self):
     types = {'MESH', 'META', 'CURVE'}
-    with open("%s_override.txt" % (os.path.join(os.path.dirname(bpy.data.filepath), bpy.context.scene.name)), mode="r") as file:
+    with open("%s_override.txt" % (os.path.join(os.path.dirname(bpy.data.filepath),
+                                                bpy.context.scene.name)), mode="r") as file:
         slotlist = eval(file.read())
         for ob, slots in slotlist.items():
             ob.data.materials.clear()
@@ -262,7 +284,8 @@ class OscTransferOverrides (bpy.types.Operator):
     def execute(self, context):
         # CREO LISTA
         OSCOV = [[OVERRIDE.grooverride, OVERRIDE.matoverride]
-                 for OVERRIDE in bpy.context.scene.ovlist[:] if OVERRIDE.matoverride != "" if OVERRIDE.grooverride != ""]
+                 for OVERRIDE in bpy.context.scene.ovlist[:]
+                 if OVERRIDE.matoverride != "" and OVERRIDE.grooverride != ""]
 
         bpy.context.scene.overrides = str(OSCOV)
         return {'FINISHED'}

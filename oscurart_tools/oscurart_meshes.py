@@ -1,3 +1,23 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+
 import bpy
 import math
 import sys
@@ -38,8 +58,8 @@ def defReconst(self, OFFSET):
     bpy.ops.uv.unwrap(
         method='ANGLE_BASED',
         fill_holes=True,
-     correct_aspect=False,
-     use_subsurf_data=0)
+        correct_aspect=False,
+        use_subsurf_data=0)
     bpy.ops.object.mode_set(mode="OBJECT", toggle=False)
     bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Mirror")
     bpy.ops.object.mode_set(mode="EDIT", toggle=False)
@@ -50,8 +70,8 @@ def defReconst(self, OFFSET):
     bpy.ops.uv.unwrap(
         method='ANGLE_BASED',
         fill_holes=True,
-     correct_aspect=False,
-     use_subsurf_data=0)
+        correct_aspect=False,
+        use_subsurf_data=0)
 
 
 class reConst (bpy.types.Operator):
@@ -61,8 +81,8 @@ class reConst (bpy.types.Operator):
     OFFSET = bpy.props.FloatProperty(
         name="Offset",
         default=0.001,
-     min=-0,
-     max=0.1)
+        min=-0,
+        max=0.1)
 
     @classmethod
     def poll(cls, context):
@@ -129,7 +149,8 @@ class resymVertexGroups (bpy.types.Operator):
 
     def execute(self, context):
 
-        with open("%s_%s_SYM_TEMPLATE.xml" % (os.path.join(os.path.dirname(bpy.data.filepath), bpy.context.scene.name), bpy.context.object.name)) as file:
+        with open("%s_%s_SYM_TEMPLATE.xml" % (os.path.join(os.path.dirname(bpy.data.filepath),
+                                              bpy.context.scene.name), bpy.context.object.name)) as file:
             ob = bpy.context.object
             actgr = ob.vertex_groups.active
             actind = ob.vertex_groups.active_index
@@ -302,10 +323,10 @@ class OscResymMesh (bpy.types.Operator):
 
     side = bpy.props.EnumProperty(
         name="Side:",
-            description="Select Side.",
-            items=(('+-', "+X to -X", "+X to -X"),
-                   ('-+', "-X to +X", "-X to +X")),
-            default='+-',
+        description="Select Side.",
+        items=(('+-', "+X to -X", "+X to -X"),
+               ('-+', "-X to +X", "-X to +X")),
+        default='+-',
     )
 
     def execute(self, context):
@@ -320,8 +341,8 @@ def DefOscObjectToMesh():
     MESH = ACTOBJ.to_mesh(
         scene=bpy.context.scene,
         apply_modifiers=True,
-     settings="RENDER",
-     calc_tessface=True)
+        settings="RENDER",
+        calc_tessface=True)
     OBJECT = bpy.data.objects.new(("%s_Freeze") % (ACTOBJ.name), MESH)
     bpy.context.scene.objects.link(OBJECT)
 
@@ -409,8 +430,8 @@ class OscOverlapUv(bpy.types.Operator):
     presicion = bpy.props.IntProperty(
         default=4,
         min=1,
-     max=10,
-     name="precision")
+        max=10,
+        name="precision")
 
     def execute(self, context):
         DefOscOverlapUv(self.presicion)
