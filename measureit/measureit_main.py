@@ -1,23 +1,22 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
 # File: measureit_main.py
@@ -404,7 +403,7 @@ class MeasureitEditPanel(bpy.types.Panel):
                     for idx in range(0, mp.measureit_num):
                         ms = mp.measureit_segments[idx]
                         if (ms.gltype == 1 or ms.gltype == 12
-                           or ms.gltype == 13 or ms.gltype == 14) and ms.gltot != '99' \
+                            or ms.gltype == 13 or ms.gltype == 14) and ms.gltot != '99' \
                                 and ms.glfree is False:  # only segments
                             if ms.glpointa <= len(obverts) and ms.glpointb <= len(obverts):
                                 p1 = get_point(obverts[ms.glpointa].co, myobj)
@@ -532,11 +531,11 @@ def add_item(box, idx, segment):
                 row.prop(segment, 'glocwarning', text="Warning")
                 # ortogonal (only segments)
                 if segment.gltype == 1:
-                        if segment.glorto != "99":
-                            row = box.row(True)
-                            row.prop(segment, 'glorto_x', text="X", toggle=True)
-                            row.prop(segment, 'glorto_y', text="Y", toggle=True)
-                            row.prop(segment, 'glorto_z', text="Z", toggle=True)
+                    if segment.glorto != "99":
+                        row = box.row(True)
+                        row.prop(segment, 'glorto_x', text="X", toggle=True)
+                        row.prop(segment, 'glorto_y', text="Y", toggle=True)
+                        row.prop(segment, 'glorto_z', text="Z", toggle=True)
 
         # Arc special
         if segment.gltype == 11:

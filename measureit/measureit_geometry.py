@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: measureit_geometry.py
 # support routines for OpenGL
 # Author: Antonio Vazquez (antonioya)
 #
@@ -375,7 +373,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                                 if ms.glocz is True:
                                     txt += "Z"
                                 txt += "]"
-                                draw_text(myobj, txtpoint2d[0], txtpoint2d[1], txt, rgb, fsize-1)
+                                draw_text(myobj, txtpoint2d[0], txtpoint2d[1], txt, rgb, fsize - 1)
 
                         except:
                             pass
@@ -519,8 +517,8 @@ def draw_segments(context, myobj, op, region, rv3d):
                                 draw_arrow(screen_point_ap1, screen_point_bp1, a_size, a_type, b_type)
                             else:
                                 vne = mathutils.Vector((b_p1[0] - a_p1[0],
-                                                       b_p1[1] - a_p1[1],
-                                                       b_p1[2] - a_p1[2]))
+                                                        b_p1[1] - a_p1[1],
+                                                        b_p1[2] - a_p1[2]))
                                 vne.normalize()
                                 vie = vne * ms.glspace
                                 pe = (b_p1[0] + vie[0], b_p1[1] + vie[1], b_p1[2] + vie[2])
@@ -786,7 +784,7 @@ def get_group_sum(myobj, tag):
         else:
             return " "
     except:
-            return " "
+        return " "
 
 
 # -------------------------------------------------------------
@@ -875,10 +873,10 @@ def draw_triangle(v1, v2, v3):
 
 # -------------------------------------------------------------
 # Draw an Arrow
-# 
+#
 # -------------------------------------------------------------
 def draw_arrow(v1, v2, size=20, a_typ="1", b_typ="1"):
-    
+
     rad45 = math.radians(45)
     rad315 = math.radians(315)
     rad90 = math.radians(90)
