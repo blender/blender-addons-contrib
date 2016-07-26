@@ -31,7 +31,10 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 # Pie Snap - Shift + Tab
 
@@ -61,120 +64,125 @@ class PieSnaping(Menu):
         pie.operator("wm.call_menu_pie", text="Snap Target", icon='SNAP_SURFACE').name = "snap.targetmenu"
 
 
-class SnapActive(bpy.types.Operator):
+class SnapActive(Operator):
     bl_idname = "snap.active"
     bl_label = "Snap Active"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        layout = self.layout
+        ts = context.tool_settings
 
-        if bpy.context.scene.tool_settings.use_snap == (True):
-            bpy.context.scene.tool_settings.use_snap = False
+        if ts.use_snap == True:
+            ts.use_snap = False
 
-        elif bpy.context.scene.tool_settings.use_snap == (False):
-            bpy.context.scene.tool_settings.use_snap = True
+        elif ts.use_snap == False:
+            ts.use_snap = True
 
         return {'FINISHED'}
 
 
-class SnapVolume(bpy.types.Operator):
+class SnapVolume(Operator):
     bl_idname = "snap.volume"
     bl_label = "Snap Volume"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.scene.tool_settings.use_snap == (False):
-            bpy.context.scene.tool_settings.use_snap = True
-            bpy.context.scene.tool_settings.snap_element = 'VOLUME'
+        ts = context.tool_settings
+        if ts.use_snap == False:
+            ts.use_snap = True
+            ts.snap_element = 'VOLUME'
 
-        if bpy.context.scene.tool_settings.snap_element != 'VOLUME':
-            bpy.context.scene.tool_settings.snap_element = 'VOLUME'
+        if ts.snap_element != 'VOLUME':
+            ts.snap_element = 'VOLUME'
         return {'FINISHED'}
 
 
-class SnapFace(bpy.types.Operator):
+class SnapFace(Operator):
     bl_idname = "snap.face"
     bl_label = "Snap Face"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.scene.tool_settings.use_snap == (False):
-            bpy.context.scene.tool_settings.use_snap = True
-            bpy.context.scene.tool_settings.snap_element = 'FACE'
+        ts = context.tool_settings
 
-        if bpy.context.scene.tool_settings.snap_element != 'FACE':
-            bpy.context.scene.tool_settings.snap_element = 'FACE'
+        if ts.use_snap == False:
+            ts.use_snap = True
+            ts.snap_element = 'FACE'
+
+        if ts.snap_element != 'FACE':
+            ts.snap_element = 'FACE'
         return {'FINISHED'}
 
 
-class SnapEdge(bpy.types.Operator):
+class SnapEdge(Operator):
     bl_idname = "snap.edge"
     bl_label = "Snap Edge"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.scene.tool_settings.use_snap == (False):
-            bpy.context.scene.tool_settings.use_snap = True
-            bpy.context.scene.tool_settings.snap_element = 'EDGE'
+        ts = context.tool_settings
 
-        if bpy.context.scene.tool_settings.snap_element != 'EDGE':
-            bpy.context.scene.tool_settings.snap_element = 'EDGE'
+        if ts.use_snap == False:
+            ts.use_snap = True
+            ts.snap_element = 'EDGE'
+
+        if ts.snap_element != 'EDGE':
+            ts.snap_element = 'EDGE'
         return {'FINISHED'}
 
 
-class SnapVertex(bpy.types.Operator):
+class SnapVertex(Operator):
     bl_idname = "snap.vertex"
     bl_label = "Snap Vertex"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.scene.tool_settings.use_snap == (False):
-            bpy.context.scene.tool_settings.use_snap = True
-            bpy.context.scene.tool_settings.snap_element = 'VERTEX'
+        ts = context.tool_settings
 
-        if bpy.context.scene.tool_settings.snap_element != 'VERTEX':
-            bpy.context.scene.tool_settings.snap_element = 'VERTEX'
+        if ts.use_snap == False:
+            ts.use_snap = True
+            ts.snap_element = 'VERTEX'
+
+        if ts.snap_element != 'VERTEX':
+            ts.snap_element = 'VERTEX'
         return {'FINISHED'}
 
 
-class SnapIncrement(bpy.types.Operator):
+class SnapIncrement(Operator):
     bl_idname = "snap.increment"
     bl_label = "Snap Increment"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.scene.tool_settings.use_snap == (False):
-            bpy.context.scene.tool_settings.use_snap = True
-            bpy.context.scene.tool_settings.snap_element = 'INCREMENT'
+        ts = context.tool_settings
 
-        if bpy.context.scene.tool_settings.snap_element != 'INCREMENT':
-            bpy.context.scene.tool_settings.snap_element = 'INCREMENT'
+        if ts.use_snap == False:
+            ts.use_snap = True
+            ts.snap_element = 'INCREMENT'
+
+        if ts.snap_element != 'INCREMENT':
+            ts.snap_element = 'INCREMENT'
         return {'FINISHED'}
 
 
-class SnapAlignRotation(bpy.types.Operator):
+class SnapAlignRotation(Operator):
     bl_idname = "snap.alignrotation"
     bl_label = "Snap Align rotation"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.scene.tool_settings.use_snap_align_rotation == (True):
-            bpy.context.scene.tool_settings.use_snap_align_rotation = False
+        ts = context.tool_settings
 
-        elif bpy.context.scene.tool_settings.use_snap_align_rotation == (False):
-            bpy.context.scene.tool_settings.use_snap_align_rotation = True
+        if ts.use_snap_align_rotation == True:
+            ts.use_snap_align_rotation = False
+
+        elif ts.use_snap_align_rotation == False:
+            ts.use_snap_align_rotation = True
 
         return {'FINISHED'}
 
 
-class SnapTargetVariable(bpy.types.Operator):
+class SnapTargetVariable(Operator):
     bl_idname = "object.snaptargetvariable"
     bl_label = "Snap Target Variable"
     bl_options = {'REGISTER', 'UNDO'}
@@ -185,7 +193,9 @@ class SnapTargetVariable(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        bpy.context.scene.tool_settings.snap_target = self.variable
+        ts = context.tool_settings
+
+        ts.snap_target = self.variable
         return {'FINISHED'}
 
 # Menu Snap Target - Shift + Tab

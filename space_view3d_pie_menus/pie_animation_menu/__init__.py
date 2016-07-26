@@ -31,7 +31,10 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 # Pie Animation
 
@@ -65,22 +68,18 @@ class PieAnimation(Menu):
 
 
 # Insert Auto Keyframe
-class InsertAutoKeyframe(bpy.types.Operator):
+class InsertAutoKeyframe(Operator):
     bl_idname = "insert.autokeyframe"
     bl_label = "Insert Auto Keyframe"
     bl_description = "Toggle Insert Auto Keyframe"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
+        ts = context.tool_settings
 
-        if bpy.context.scene.tool_settings.use_keyframe_insert_auto == True:
-            bpy.context.scene.tool_settings.use_keyframe_insert_auto = False
+        ts.use_keyframe_insert_auto ^= 1
 
-        else:
-            if bpy.context.scene.tool_settings.use_keyframe_insert_auto == False:
-                bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
-
-        for area in bpy.context.screen.areas:
+        for area in context.screen.areas:
             if area.type in ('TIMELINE'):
                 area.tag_redraw()
 

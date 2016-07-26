@@ -31,7 +31,10 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 # Pie Apply Transforms - Ctrl + A
 
@@ -63,7 +66,7 @@ class PieApplyTransforms(Menu):
 # Apply Transforms
 
 
-class ApplyTransformLocation(bpy.types.Operator):
+class ApplyTransformLocation(Operator):
     bl_idname = "apply.transformlocation"
     bl_label = "Apply Transform Location"
     bl_description = "Apply Transform Location"
@@ -76,7 +79,7 @@ class ApplyTransformLocation(bpy.types.Operator):
 # Apply Transforms
 
 
-class ApplyTransformRotation(bpy.types.Operator):
+class ApplyTransformRotation(Operator):
     bl_idname = "apply.transformrotation"
     bl_label = "Apply Transform Rotation"
     bl_description = "Apply Transform Rotation"
@@ -89,7 +92,7 @@ class ApplyTransformRotation(bpy.types.Operator):
 # Apply Transforms
 
 
-class ApplyTransformScale(bpy.types.Operator):
+class ApplyTransformScale(Operator):
     bl_idname = "apply.transformscale"
     bl_label = "Apply Transform Scale"
     bl_description = "Apply Transform Scale"
@@ -102,7 +105,7 @@ class ApplyTransformScale(bpy.types.Operator):
 # Apply Transforms
 
 
-class ApplyTransformRotationScale(bpy.types.Operator):
+class ApplyTransformRotationScale(Operator):
     bl_idname = "apply.transformrotationscale"
     bl_label = "Apply Transform Rotation Scale"
     bl_description = "Apply Transform Rotation Scale"
@@ -115,7 +118,7 @@ class ApplyTransformRotationScale(bpy.types.Operator):
 # Apply Transforms
 
 
-class ApplyTransformAll(bpy.types.Operator):
+class ApplyTransformAll(Operator):
     bl_idname = "apply.transformall"
     bl_label = "Apply All Transforms"
     bl_description = "Apply Transform All"
@@ -128,7 +131,7 @@ class ApplyTransformAll(bpy.types.Operator):
 # More Menu
 
 
-class TransformApplyMore(bpy.types.Menu):
+class TransformApplyMore(Menu):
     bl_idname = "applymore.menu"
     bl_label = "More Menu"
 
@@ -140,7 +143,7 @@ class TransformApplyMore(bpy.types.Menu):
 # Clear Menu
 
 
-class ClearMenu(bpy.types.Menu):
+class ClearMenu(Menu):
     bl_idname = "clear.menu"
     bl_label = "Clear Menu"
 
@@ -154,7 +157,7 @@ class ClearMenu(bpy.types.Menu):
 # Clear all
 
 
-class ClearAll(bpy.types.Operator):
+class ClearAll(Operator):
     bl_idname = "clear.all"
     bl_label = "Clear All"
     bl_description = "Clear All Transforms"

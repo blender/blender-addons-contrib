@@ -31,7 +31,10 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 # Pie Selection Object Mode - A
 
@@ -111,13 +114,12 @@ class PieSelectionsEM(Menu):
 # Select All By Selection
 
 
-class SelectAllBySelection(bpy.types.Operator):
+class SelectAllBySelection(Operator):
     bl_idname = "object.selectallbyselection"
     bl_label = "Verts Edges Faces"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        layout = self.layout
 
         bpy.ops.mesh.select_all(action='TOGGLE')
         bpy.ops.mesh.select_all(action='TOGGLE')

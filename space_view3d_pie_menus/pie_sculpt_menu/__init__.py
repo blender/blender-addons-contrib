@@ -31,32 +31,33 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 # Sculpt Polish
 
 
-class SculptPolish(bpy.types.Operator):
+class SculptPolish(Operator):
     bl_idname = "sculpt.polish"
     bl_label = "Sculpt Polish"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        layout = self.layout
-        bpy.context.tool_settings.sculpt.brush = bpy.data.brushes['Polish']
+        context.tool_settings.sculpt.brush = bpy.data.brushes['Polish']
         return {'FINISHED'}
 
 # Sculpt Polish
 
 
-class SculptSculptDraw(bpy.types.Operator):
+class SculptSculptDraw(Operator):
     bl_idname = "sculpt.sculptraw"
     bl_label = "Sculpt SculptDraw"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        layout = self.layout
-        bpy.context.tool_settings.sculpt.brush = bpy.data.brushes['SculptDraw']
+        context.tool_settings.sculpt.brush = bpy.data.brushes['SculptDraw']
         return {'FINISHED'}
 
 # Pie Sculp Pie Menus - W

@@ -222,6 +222,9 @@ class SpaceProperty:
 
     def register(self):
         import inspect
+        from bpy.types import WindowManager
+        wm = bpy.context.window_manager
+
         for space_type, attr, prop in self.props:
             if inspect.isclass(prop) and \
                     issubclass(prop, bpy.types.PropertyGroup):
@@ -233,13 +236,13 @@ class SpaceProperty:
 
             collection_prop = bpy.props.CollectionProperty(type=cls)
             wm_prop_name = self._property_name(space_type, attr)
-            setattr(bpy.types.WindowManager, wm_prop_name, collection_prop)
+            setattr(WindowManager, wm_prop_name, collection_prop)
 
             self.registered.append((cls, wm_prop_name))
 
             def gen():
                 def get(self):
-                    seq = getattr(bpy.context.window_manager, wm_prop_name)
+                    seq = getattr(wm, wm_prop_name)
                     key = str(self.as_pointer())
                     if key not in seq:
                         item = seq.add()
@@ -250,7 +253,7 @@ class SpaceProperty:
                         return getattr(seq[key], attr)
 
                 def set(self, value):
-                    seq = getattr(bpy.context.window_manager, wm_prop_name)
+                    seq = getattr(wm, wm_prop_name)
                     key = str(self.as_pointer())
                     if key not in seq:
                         item = seq.add()
@@ -267,15 +270,18 @@ class SpaceProperty:
         bpy.app.handlers.load_post.append(self.gen_load_post())
 
     def unregister(self):
+        from bpy.types import WindowManager
+        wm = bpy.context.window_manager
+
         bpy.app.handlers.save_pre.remove(self.save_pre)
         bpy.app.handlers.save_post.remove(self.save_post)
         bpy.app.handlers.load_post.remove(self.load_post)
 
         for (space_type, attr, prop), (cls, wm_prop_name) in zip(
                 self.props, self.registered):
-            delattr(bpy.types.WindowManager, wm_prop_name)
-            if wm_prop_name in bpy.context.window_manager:
-                del bpy.context.window_manager[wm_prop_name]
+            delattr(WindowManager, wm_prop_name)
+            if wm_prop_name in wm:
+                del wm[wm_prop_name]
             delattr(space_type, attr)
 
             if prop != cls:

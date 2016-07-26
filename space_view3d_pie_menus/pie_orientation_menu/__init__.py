@@ -42,10 +42,10 @@ class OrientPoll(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bpy.context.space_data.type == "VIEW_3D"
+        return context.space_data.type == "VIEW_3D"
 
     def execute(self, context):
-        bpy.context.space_data.transform_orientation = self.space
+        context.space_data.transform_orientation = self.space
         return {'FINISHED'}
 
 

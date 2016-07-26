@@ -31,7 +31,10 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 # Pie Delete - X
 
@@ -71,7 +74,7 @@ class PieDelete(Menu):
 # Limited Dissolve
 
 
-class DeleteLimitedDissolve(bpy.types.Operator):
+class DeleteLimitedDissolve(Operator):
     bl_idname = "delete.limiteddissolve"
     bl_label = "Delete Limited Dissolve"
     bl_options = {'REGISTER', 'UNDO'}

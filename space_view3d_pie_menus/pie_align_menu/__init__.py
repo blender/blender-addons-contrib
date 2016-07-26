@@ -31,7 +31,10 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 
 # Pie Align - Alt + X
@@ -82,7 +85,7 @@ class PieAlign(Menu):
 # Align X
 
 
-class AlignX(bpy.types.Operator):
+class AlignX(Operator):
     bl_idname = "align.x"
     bl_label = "Align  X"
     bl_description = "Align Selected Along X"
@@ -98,7 +101,7 @@ class AlignX(bpy.types.Operator):
 # Align Y
 
 
-class AlignY(bpy.types.Operator):
+class AlignY(Operator):
     bl_idname = "align.y"
     bl_label = "Align  Y"
     bl_description = "Align Selected Along Y"
@@ -114,7 +117,7 @@ class AlignY(bpy.types.Operator):
 # Align Z
 
 
-class AlignZ(bpy.types.Operator):
+class AlignZ(Operator):
     bl_idname = "align.z"
     bl_label = "Align  Z"
     bl_description = "Align Selected Along Z"
@@ -134,7 +137,7 @@ class AlignZ(bpy.types.Operator):
 # Align to X - 0
 
 
-class AlignToX0(bpy.types.Operator):
+class AlignToX0(Operator):
     bl_idname = "align.2x0"
     bl_label = "Align To X = 0"
     bl_description = "Align Selected To Location X = 0"
@@ -152,7 +155,7 @@ class AlignToX0(bpy.types.Operator):
 # Align to Z - 0
 
 
-class AlignToY0(bpy.types.Operator):
+class AlignToY0(Operator):
     bl_idname = "align.2y0"
     bl_label = "Align To Y = 0"
     bl_description = "Align Selected To Location Y = 0"
@@ -170,7 +173,7 @@ class AlignToY0(bpy.types.Operator):
 # Align to Z - 0
 
 
-class AlignToZ0(bpy.types.Operator):
+class AlignToZ0(Operator):
     bl_idname = "align.2z0"
     bl_label = "Align To Z = 0"
     bl_description = "Align Selected To Location Z = 0"
@@ -188,7 +191,7 @@ class AlignToZ0(bpy.types.Operator):
 # Align X Left
 
 
-class AlignXLeft(bpy.types.Operator):
+class AlignXLeft(Operator):
     bl_idname = "alignx.left"
     bl_label = "Align X Left"
     bl_options = {'REGISTER', 'UNDO'}
@@ -219,7 +222,7 @@ class AlignXLeft(bpy.types.Operator):
 # Align X Right
 
 
-class AlignXRight(bpy.types.Operator):
+class AlignXRight(Operator):
     bl_idname = "alignx.right"
     bl_label = "Align X Right"
 
@@ -249,7 +252,7 @@ class AlignXRight(bpy.types.Operator):
 # Align Y Back
 
 
-class AlignYBack(bpy.types.Operator):
+class AlignYBack(Operator):
     bl_idname = "aligny.back"
     bl_label = "Align Y back"
     bl_options = {'REGISTER', 'UNDO'}
@@ -280,7 +283,7 @@ class AlignYBack(bpy.types.Operator):
 # Align Y Front
 
 
-class AlignYFront(bpy.types.Operator):
+class AlignYFront(Operator):
     bl_idname = "aligny.front"
     bl_label = "Align Y Front"
     bl_options = {'REGISTER', 'UNDO'}
@@ -311,7 +314,7 @@ class AlignYFront(bpy.types.Operator):
 # Align Z Top
 
 
-class AlignZTop(bpy.types.Operator):
+class AlignZTop(Operator):
     bl_idname = "alignz.top"
     bl_label = "Align Z Top"
     bl_options = {'REGISTER', 'UNDO'}
@@ -342,7 +345,7 @@ class AlignZTop(bpy.types.Operator):
 # Align Z Bottom
 
 
-class AlignZBottom(bpy.types.Operator):
+class AlignZBottom(Operator):
     bl_idname = "alignz.bottom"
     bl_label = "Align Z Bottom"
     bl_options = {'REGISTER', 'UNDO'}

@@ -31,12 +31,15 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 # SnapCursSelToCenter1 thanks to Isaac Weaver (wisaac) D1963
 
 
-class SnapCursSelToCenter1(bpy.types.Operator):
+class SnapCursSelToCenter1(Operator):
     """Snap 3D cursor and selected objects to the center \n"""\
         """Works only in Object Mode"""
     bl_idname = "view3d.snap_cursor_selected_to_center1"
@@ -55,24 +58,24 @@ class SnapCursSelToCenter1(bpy.types.Operator):
 # Pivot to selection
 
 
-class PivotToSelection(bpy.types.Operator):
+class PivotToSelection(Operator):
     bl_idname = "object.pivot2selection"
     bl_label = "Pivot To Selection"
     bl_description = "Pivot Point To Selection"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        saved_location = bpy.context.scene.cursor_location.copy()
+        saved_location = context.scene.cursor_location.copy()
         bpy.ops.view3d.snap_cursor_to_selected()
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-        bpy.context.scene.cursor_location = saved_location
+        context.scene.cursor_location = saved_location
         return {'FINISHED'}
 
 # Pivot to Bottom
 
 
-class PivotBottom(bpy.types.Operator):
+class PivotBottom(Operator):
     bl_idname = "object.pivotobottom"
     bl_label = "Pivot To Bottom"
     bl_description = "Set the Pivot Point To Lowest Point"
@@ -83,7 +86,7 @@ class PivotBottom(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
-        o = bpy.context.active_object
+        o = context.active_object
         init = 0
         for x in o.data.vertices:
             if init == 0:
@@ -169,7 +172,7 @@ class OriginPivotMenu(Menu):
 # More Menu
 
 
-class Snap_CursorGrid(bpy.types.Menu):
+class Snap_CursorGrid(Menu):
     bl_idname = "snapgrid.menu"
     bl_label = "More Menu"
 

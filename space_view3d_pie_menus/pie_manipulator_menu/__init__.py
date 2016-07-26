@@ -31,135 +31,130 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 
-class ManipTranslate(bpy.types.Operator):
+class ManipTranslate(Operator):
     bl_idname = "manip.translate"
     bl_label = "Manip Translate"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = " Show Translate"
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.space_data.show_manipulator == (False):
-            bpy.context.space_data.show_manipulator = True
-            bpy.context.space_data.transform_manipulators = {'TRANSLATE'}
-        if bpy.context.space_data.transform_manipulators != {'TRANSLATE'}:
-            bpy.context.space_data.transform_manipulators = {'TRANSLATE'}
+        if context.space_data.show_manipulator == False:
+            context.space_data.show_manipulator = True
+            context.space_data.transform_manipulators = {'TRANSLATE'}
+        if context.space_data.transform_manipulators != {'TRANSLATE'}:
+            context.space_data.transform_manipulators = {'TRANSLATE'}
         return {'FINISHED'}
 
 
-class ManipRotate(bpy.types.Operator):
+class ManipRotate(Operator):
     bl_idname = "manip.rotate"
     bl_label = "Manip Rotate"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = " Show Rotate"
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.space_data.show_manipulator == (False):
-            bpy.context.space_data.show_manipulator = True
-            bpy.context.space_data.transform_manipulators = {'ROTATE'}
-        if bpy.context.space_data.transform_manipulators != {'ROTATE'}:
-            bpy.context.space_data.transform_manipulators = {'ROTATE'}
+        if context.space_data.show_manipulator == False:
+            context.space_data.show_manipulator = True
+            context.space_data.transform_manipulators = {'ROTATE'}
+        if context.space_data.transform_manipulators != {'ROTATE'}:
+            context.space_data.transform_manipulators = {'ROTATE'}
         return {'FINISHED'}
 
 
-class ManipScale(bpy.types.Operator):
+class ManipScale(Operator):
     bl_idname = "manip.scale"
     bl_label = "Manip Scale"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = " Show Scale"
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.space_data.show_manipulator == (False):
-            bpy.context.space_data.show_manipulator = True
-            bpy.context.space_data.transform_manipulators = {'SCALE'}
-        if bpy.context.space_data.transform_manipulators != {'SCALE'}:
-            bpy.context.space_data.transform_manipulators = {'SCALE'}
+        if context.space_data.show_manipulator == False:
+            context.space_data.show_manipulator = True
+            context.space_data.transform_manipulators = {'SCALE'}
+        if context.space_data.transform_manipulators != {'SCALE'}:
+            context.space_data.transform_manipulators = {'SCALE'}
         return {'FINISHED'}
 
 
-class TranslateRotate(bpy.types.Operator):
+class TranslateRotate(Operator):
     bl_idname = "translate.rotate"
     bl_label = "Translate Rotate"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = " Show Translate/Rotate"
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.space_data.show_manipulator == (False):
-            bpy.context.space_data.show_manipulator = True
-            bpy.context.space_data.transform_manipulators = {'TRANSLATE', 'ROTATE'}
-        if bpy.context.space_data.transform_manipulators != {'TRANSLATE', 'ROTATE'}:
-            bpy.context.space_data.transform_manipulators = {'TRANSLATE', 'ROTATE'}
+        if context.space_data.show_manipulator == False:
+            context.space_data.show_manipulator = True
+            context.space_data.transform_manipulators = {'TRANSLATE', 'ROTATE'}
+        if context.space_data.transform_manipulators != {'TRANSLATE', 'ROTATE'}:
+            context.space_data.transform_manipulators = {'TRANSLATE', 'ROTATE'}
         return {'FINISHED'}
 
 
-class TranslateScale(bpy.types.Operator):
+class TranslateScale(Operator):
     bl_idname = "translate.scale"
     bl_label = "Translate Scale"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = " Show Translate/Scale"
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.space_data.show_manipulator == (False):
-            bpy.context.space_data.show_manipulator = True
-            bpy.context.space_data.transform_manipulators = {'TRANSLATE', 'SCALE'}
-        if bpy.context.space_data.transform_manipulators != {'TRANSLATE', 'SCALE'}:
-            bpy.context.space_data.transform_manipulators = {'TRANSLATE', 'SCALE'}
+        if context.space_data.show_manipulator == False:
+            context.space_data.show_manipulator = True
+            context.space_data.transform_manipulators = {'TRANSLATE', 'SCALE'}
+        if context.space_data.transform_manipulators != {'TRANSLATE', 'SCALE'}:
+            context.space_data.transform_manipulators = {'TRANSLATE', 'SCALE'}
         return {'FINISHED'}
 
 
-class RotateScale(bpy.types.Operator):
+class RotateScale(Operator):
     bl_idname = "rotate.scale"
     bl_label = "Rotate Scale"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = " Show Rotate/Scale"
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.space_data.show_manipulator == (False):
-            bpy.context.space_data.show_manipulator = True
-            bpy.context.space_data.transform_manipulators = {'ROTATE', 'SCALE'}
-        if bpy.context.space_data.transform_manipulators != {'ROTATE', 'SCALE'}:
-            bpy.context.space_data.transform_manipulators = {'ROTATE', 'SCALE'}
+        if context.space_data.show_manipulator == False:
+            context.space_data.show_manipulator = True
+            context.space_data.transform_manipulators = {'ROTATE', 'SCALE'}
+        if context.space_data.transform_manipulators != {'ROTATE', 'SCALE'}:
+            context.space_data.transform_manipulators = {'ROTATE', 'SCALE'}
         return {'FINISHED'}
 
 
-class TranslateRotateScale(bpy.types.Operator):
+class TranslateRotateScale(Operator):
     bl_idname = "translate.rotatescale"
     bl_label = "Translate Rotate Scale"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Show All"
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.space_data.show_manipulator == (False):
-            bpy.context.space_data.show_manipulator = True
-            bpy.context.space_data.transform_manipulators = {'TRANSLATE', 'ROTATE', 'SCALE'}
-        if bpy.context.space_data.transform_manipulators != {'TRANSLATE', 'ROTATE', 'SCALE'}:
-            bpy.context.space_data.transform_manipulators = {'TRANSLATE', 'ROTATE', 'SCALE'}
+        if context.space_data.show_manipulator == False:
+            context.space_data.show_manipulator = True
+            context.space_data.transform_manipulators = {'TRANSLATE', 'ROTATE', 'SCALE'}
+        if context.space_data.transform_manipulators != {'TRANSLATE', 'ROTATE', 'SCALE'}:
+            context.space_data.transform_manipulators = {'TRANSLATE', 'ROTATE', 'SCALE'}
         return {'FINISHED'}
 
 
-class WManupulators(bpy.types.Operator):
+class WManupulators(Operator):
     bl_idname = "w.manupulators"
     bl_label = "W Manupulators"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = " Show/Hide Manipulator"
 
     def execute(self, context):
-        layout = self.layout
 
-        if bpy.context.space_data.show_manipulator == (True):
-            bpy.context.space_data.show_manipulator = False
+        if context.space_data.show_manipulator == True:
+            context.space_data.show_manipulator = False
 
-        elif bpy.context.space_data.show_manipulator == (False):
-            bpy.context.space_data.show_manipulator = True
+        elif context.space_data.show_manipulator == False:
+            context.space_data.show_manipulator = True
 
         return {'FINISHED'}
 

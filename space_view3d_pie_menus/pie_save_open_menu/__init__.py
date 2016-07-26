@@ -31,13 +31,10 @@ bl_info = {
     }
 
 import bpy
-import bmesh
 from ..utils import AddonPreferences, SpaceProperty
-from bpy.types import Menu, Header
-from bpy.props import (
-        BoolProperty,
-        FloatProperty,
-        IntProperty,
+from bpy.types import (
+        Menu,
+        Operator,
         )
 import os
 
@@ -69,7 +66,7 @@ class PieSaveOpen(Menu):
         pie.menu("pie.recover", text="Recovery", icon='RECOVER_LAST')
 
 
-class pie_link(bpy.types.Menu):
+class pie_link(Menu):
     bl_idname = "pie.link"
     bl_label = "Link"
 
@@ -83,7 +80,7 @@ class pie_link(bpy.types.Menu):
         box.menu("external.data", text="External Data", icon='EXTERNAL_DATA')
 
 
-class pie_recover(bpy.types.Menu):
+class pie_recover(Menu):
     bl_idname = "pie.recover"
     bl_label = "Recovery"
 
@@ -97,7 +94,7 @@ class pie_recover(bpy.types.Menu):
         box.operator("wm.revert_mainfile", text="Revert", icon='FILE_REFRESH')
 
 
-class pie_fileio(bpy.types.Menu):
+class pie_fileio(Menu):
     bl_idname = "pie.fileio"
     bl_label = "Import/Export"
 
@@ -111,7 +108,7 @@ class pie_fileio(bpy.types.Menu):
         box.menu("INFO_MT_file_export", icon='EXPORT')
 
 
-class ExternalData(bpy.types.Menu):
+class ExternalData(Menu):
     bl_idname = "external.data"
     bl_label = "External Data"
 
@@ -131,7 +128,7 @@ class ExternalData(bpy.types.Menu):
 # Save Incremental
 
 
-class FileIncrementalSave(bpy.types.Operator):
+class FileIncrementalSave(Operator):
     bl_idname = "file.save_incremental"
     bl_label = "Save Incremental"
     bl_description = "Save Files with _001, _002 extension"

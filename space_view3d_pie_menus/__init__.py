@@ -82,9 +82,9 @@ def get_addon_preferences(name=''):
     addons = bpy.context.user_preferences.addons
     if __name__ not in addons:  # wm.read_factory_settings()
         return None
-    prefs = addons[__name__].preferences
+    addon_prefs = addons[__name__].preferences
     if name:
-        if not hasattr(prefs, name):
+        if not hasattr(addon_prefs, name):
             for mod in sub_modules:
                 if mod.__name__.split('.')[-1] == name:
                     cls = _get_pref_class(mod)
@@ -93,9 +93,9 @@ def get_addon_preferences(name=''):
                         setattr(UIToolsPreferences, name, prop)
                         bpy.utils.unregister_class(UIToolsPreferences)
                         bpy.utils.register_class(UIToolsPreferences)
-        return getattr(prefs, name, None)
+        return getattr(addon_prefs, name, None)
     else:
-        return prefs
+        return addon_prefs
 
 
 def register_submodule(mod):

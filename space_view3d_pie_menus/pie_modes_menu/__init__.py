@@ -31,21 +31,23 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 # Define Class Object Mode
 
 
-class ClassObject(bpy.types.Operator):
+class ClassObject(Operator):
     bl_idname = "class.object"
     bl_label = "Class Object"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Edit/Object Mode Switch"
 
     def execute(self, context):
-        layout = self.layout
 
-        if bpy.context.object.mode == "OBJECT":
+        if context.object.mode == "OBJECT":
             bpy.ops.object.mode_set(mode="EDIT")
         else:
             bpy.ops.object.mode_set(mode="OBJECT")
@@ -54,16 +56,15 @@ class ClassObject(bpy.types.Operator):
 # Define Class Vertex
 
 
-class ClassVertex(bpy.types.Operator):
+class ClassVertex(Operator):
     bl_idname = "class.vertex"
     bl_label = "Class Vertex"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Vert Select"
 
     def execute(self, context):
-        layout = self.layout
 
-        if bpy.context.object.mode != "EDIT":
+        if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
         if bpy.ops.mesh.select_mode != "EDGE, FACE":
@@ -73,16 +74,15 @@ class ClassVertex(bpy.types.Operator):
 # Define Class Edge
 
 
-class ClassEdge(bpy.types.Operator):
+class ClassEdge(Operator):
     bl_idname = "class.edge"
     bl_label = "Class Edge"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Edge Select"
 
     def execute(self, context):
-        layout = self.layout
 
-        if bpy.context.object.mode != "EDIT":
+        if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
         if bpy.ops.mesh.select_mode != "VERT, FACE":
@@ -92,16 +92,15 @@ class ClassEdge(bpy.types.Operator):
 # Define Class Face
 
 
-class ClassFace(bpy.types.Operator):
+class ClassFace(Operator):
     bl_idname = "class.face"
     bl_label = "Class Face"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Face Select"
 
     def execute(self, context):
-        layout = self.layout
 
-        if bpy.context.object.mode != "EDIT":
+        if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
         if bpy.ops.mesh.select_mode != "VERT, EDGE":
@@ -110,16 +109,15 @@ class ClassFace(bpy.types.Operator):
 # Define Class Texture Paint
 
 
-class ClassTexturePaint(bpy.types.Operator):
+class ClassTexturePaint(Operator):
     bl_idname = "class.pietexturepaint"
     bl_label = "Class Texture Paint"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Texture Paint"
 
     def execute(self, context):
-        layout = self.layout
 
-        if bpy.context.object.mode == "EDIT":
+        if context.object.mode == "EDIT":
             bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.paint.texture_paint_toggle()
         else:
@@ -129,16 +127,15 @@ class ClassTexturePaint(bpy.types.Operator):
 # Define Class Weight Paint
 
 
-class ClassWeightPaint(bpy.types.Operator):
+class ClassWeightPaint(Operator):
     bl_idname = "class.pieweightpaint"
     bl_label = "Class Weight Paint"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Weight Paint"
 
     def execute(self, context):
-        layout = self.layout
 
-        if bpy.context.object.mode == "EDIT":
+        if context.object.mode == "EDIT":
             bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.paint.weight_paint_toggle()
         else:
@@ -148,16 +145,15 @@ class ClassWeightPaint(bpy.types.Operator):
 # Define Class Vertex Paint
 
 
-class ClassVertexPaint(bpy.types.Operator):
+class ClassVertexPaint(Operator):
     bl_idname = "class.pievertexpaint"
     bl_label = "Class Vertex Paint"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Vertex Paint"
 
     def execute(self, context):
-        layout = self.layout
 
-        if bpy.context.object.mode == "EDIT":
+        if context.object.mode == "EDIT":
             bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.paint.vertex_paint_toggle()
         else:
@@ -167,16 +163,15 @@ class ClassVertexPaint(bpy.types.Operator):
 # Define Class Particle Edit
 
 
-class ClassParticleEdit(bpy.types.Operator):
+class ClassParticleEdit(Operator):
     bl_idname = "class.pieparticleedit"
     bl_label = "Class Particle Edit"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Particle Edit (must have active particle system)"
 
     def execute(self, context):
-        layout = self.layout
 
-        if bpy.context.object.mode == "EDIT":
+        if context.object.mode == "EDIT":
             bpy.ops.object.mode_set(mode="OBJECT")
             bpy.ops.particle.particle_edit_toggle()
         else:
@@ -187,67 +182,63 @@ class ClassParticleEdit(bpy.types.Operator):
 # Components Selection Mode
 
 
-class VertsEdges(bpy.types.Operator):
+class VertsEdges(Operator):
     bl_idname = "verts.edges"
     bl_label = "Verts Edges"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Vert/Edge Select"
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.object.mode != "EDIT":
+        if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
-            bpy.context.tool_settings.mesh_select_mode = (True, True, False)
-        if bpy.context.object.mode == "EDIT":
-            bpy.context.tool_settings.mesh_select_mode = (True, True, False)
+            context.tool_settings.mesh_select_mode = (True, True, False)
+        if context.object.mode == "EDIT":
+            context.tool_settings.mesh_select_mode = (True, True, False)
             return {'FINISHED'}
 
 
-class EdgesFaces(bpy.types.Operator):
+class EdgesFaces(Operator):
     bl_idname = "edges.faces"
     bl_label = "EdgesFaces"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Edge/Face Select"
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.object.mode != "EDIT":
+        if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
-            bpy.context.tool_settings.mesh_select_mode = (False, True, True)
-        if bpy.context.object.mode == "EDIT":
-            bpy.context.tool_settings.mesh_select_mode = (False, True, True)
+            context.tool_settings.mesh_select_mode = (False, True, True)
+        if context.object.mode == "EDIT":
+            context.tool_settings.mesh_select_mode = (False, True, True)
             return {'FINISHED'}
 
 
-class VertsFaces(bpy.types.Operator):
+class VertsFaces(Operator):
     bl_idname = "verts.faces"
     bl_label = "Verts Faces"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Vert/Face Select"
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.object.mode != "EDIT":
+        if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
-            bpy.context.tool_settings.mesh_select_mode = (True, False, True)
-        if bpy.context.object.mode == "EDIT":
-            bpy.context.tool_settings.mesh_select_mode = (True, False, True)
+            context.tool_settings.mesh_select_mode = (True, False, True)
+        if context.object.mode == "EDIT":
+            context.tool_settings.mesh_select_mode = (True, False, True)
             return {'FINISHED'}
 
 
-class VertsEdgesFaces(bpy.types.Operator):
+class VertsEdgesFaces(Operator):
     bl_idname = "verts.edgesfaces"
     bl_label = "Verts Edges Faces"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Vert/Edge/Face Select"
 
     def execute(self, context):
-        layout = self.layout
-        if bpy.context.object.mode != "EDIT":
+        if context.object.mode != "EDIT":
             bpy.ops.object.mode_set(mode="EDIT")
-            bpy.context.tool_settings.mesh_select_mode = (True, True, True)
-        if bpy.context.object.mode == "EDIT":
-            bpy.context.tool_settings.mesh_select_mode = (True, True, True)
+            context.tool_settings.mesh_select_mode = (True, True, True)
+        if context.object.mode == "EDIT":
+            context.tool_settings.mesh_select_mode = (True, True, True)
             return {'FINISHED'}
 
 # Pie Edit/Object Others modes - Tab
@@ -259,7 +250,6 @@ class PieObjectEditotherModes(Menu):
 
     def draw(self, context):
         layout = self.layout
-        toolsettings = context.tool_settings
         pie = layout.menu_pie()
         # 4 - LEFT
         pie.operator("verts.faces", text="Vertex/Faces", icon='LOOPSEL')
@@ -288,7 +278,6 @@ class PieObjectEditMode(Menu):
 
     def draw(self, context):
         layout = self.layout
-        toolsettings = context.tool_settings
         ob = context.object
 
         if ob and ob.type == 'MESH' and ob.mode in {'OBJECT', 'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT', 'PARTICLE'}:
@@ -307,7 +296,7 @@ class PieObjectEditMode(Menu):
             pie.operator("wm.call_menu_pie", text="Edit Modes",
                          icon='EDITMODE_HLT').name = "pie.objecteditmodeothermodes"
             # 1 - BOTTOM - LEFT
-            if bpy.context.object.particle_systems:
+            if context.object.particle_systems:
                 pie.operator("class.pieparticleedit", text="Particle Edit", icon='PARTICLEMODE')
             # 3 - BOTTOM - RIGHT
 
@@ -327,7 +316,7 @@ class PieObjectEditMode(Menu):
             pie.operator("wm.call_menu_pie", text="Edit Modes",
                          icon='TPAINT_HLT').name = "pie.objecteditmodeothermodes"
             # 1 - BOTTOM - LEFT
-            if bpy.context.object.particle_systems:
+            if context.object.particle_systems:
                 pie.operator("class.pieparticleedit", text="Particle Edit", icon='PARTICLEMODE')
             # 3 - BOTTOM - RIGHT
 

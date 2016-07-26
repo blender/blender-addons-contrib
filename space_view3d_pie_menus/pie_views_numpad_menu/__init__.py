@@ -31,12 +31,15 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 # Persp/Ortho
 
 
-class PerspOrthoView(bpy.types.Operator):
+class PerspOrthoView(Operator):
     bl_idname = "persp.orthoview"
     bl_label = "Persp/Ortho"
     bl_options = {'REGISTER', 'UNDO'}
@@ -48,33 +51,34 @@ class PerspOrthoView(bpy.types.Operator):
 # Lock Camera Transforms
 
 
-class LockCameraTransforms(bpy.types.Operator):
+class LockCameraTransforms(Operator):
     bl_idname = "object.lockcameratransforms"
     bl_label = "Lock Camera Transforms"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        if bpy.context.object.lock_rotation[0] == False:
-            bpy.context.object.lock_rotation[0] = True
-            bpy.context.object.lock_rotation[1] = True
-            bpy.context.object.lock_rotation[2] = True
-            bpy.context.object.lock_location[0] = True
-            bpy.context.object.lock_location[1] = True
-            bpy.context.object.lock_location[2] = True
-            bpy.context.object.lock_scale[0] = True
-            bpy.context.object.lock_scale[1] = True
-            bpy.context.object.lock_scale[2] = True
+        obj = context.object
+        if obj.lock_rotation[0] == False:
+            obj.lock_rotation[0] = True
+            obj.lock_rotation[1] = True
+            obj.lock_rotation[2] = True
+            obj.lock_location[0] = True
+            obj.lock_location[1] = True
+            obj.lock_location[2] = True
+            obj.lock_scale[0] = True
+            obj.lock_scale[1] = True
+            obj.lock_scale[2] = True
 
-        elif bpy.context.object.lock_rotation[0] == True:
-            bpy.context.object.lock_rotation[0] = False
-            bpy.context.object.lock_rotation[1] = False
-            bpy.context.object.lock_rotation[2] = False
-            bpy.context.object.lock_location[0] = False
-            bpy.context.object.lock_location[1] = False
-            bpy.context.object.lock_location[2] = False
-            bpy.context.object.lock_scale[0] = False
-            bpy.context.object.lock_scale[1] = False
-            bpy.context.object.lock_scale[2] = False
+        elif context.object.lock_rotation[0] == True:
+            obj.lock_rotation[0] = False
+            obj.lock_rotation[1] = False
+            obj.lock_rotation[2] = False
+            obj.lock_location[0] = False
+            obj.lock_location[1] = False
+            obj.lock_location[2] = False
+            obj.lock_scale[0] = False
+            obj.lock_scale[1] = False
+            obj.lock_scale[2] = False
         return {'FINISHED'}
 
 # Active Camera
@@ -115,8 +119,7 @@ class PieViewNumpad(Menu):
 
     def draw(self, context):
         layout = self.layout
-        ob = bpy.context.object
-        obj = context.object
+        ob = context.object
         pie = layout.menu_pie()
         scene = context.scene
         rd = scene.render

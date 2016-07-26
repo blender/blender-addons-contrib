@@ -31,13 +31,16 @@ bl_info = {
     }
 
 import bpy
-from bpy.types import Menu
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 from bpy.props import (
         StringProperty,
         )
 
 
-class AreaPieMenu(bpy.types.Menu):
+class AreaPieMenu(Menu):
     bl_idname = "INFO_MT_window_pie"
     bl_label = "Pie Menu"
     bl_description = "Window Pie Menus"
@@ -46,7 +49,7 @@ class AreaPieMenu(bpy.types.Menu):
         self.layout.operator(AreaTypePieOperator.bl_idname, icon="PLUGIN")
 
 
-class AreaTypePieOperator(bpy.types.Operator):
+class AreaTypePieOperator(Operator):
     bl_idname = "wm.area_type_pie_operator"
     bl_label = "Editor Type"
     bl_description = "This is pie menu of editor type change"
@@ -80,7 +83,7 @@ class AreaPieEditor(Menu):
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="Property", icon="BUTS").type = "PROPERTIES"
 
 
-class AreaTypePieOther(bpy.types.Menu):
+class AreaTypePieOther(Menu):
     bl_idname = "INFO_MT_window_pie_area_type_other"
     bl_label = "Editor Type (other)"
     bl_description = "Is pie menu change editor type (other)"
@@ -102,7 +105,7 @@ class AreaTypePieOther(bpy.types.Menu):
         # 3 - BOTTOM - RIGHT
 
 
-class SetAreaType(bpy.types.Operator):
+class SetAreaType(Operator):
     bl_idname = "wm.set_area_type"
     bl_label = "Change Editor Type"
     bl_description = "Change Editor Type"
@@ -115,7 +118,7 @@ class SetAreaType(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class AreaTypePieAnim(bpy.types.Menu):
+class AreaTypePieAnim(Menu):
     bl_idname = "INFO_MT_window_pie_area_type_anim"
     bl_label = "Editor Type (Animation)"
     bl_description = "Is pie menu change editor type (animation related)"
