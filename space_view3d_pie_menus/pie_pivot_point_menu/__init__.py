@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: ' . key' ",
     "description": "Set Pivot Point Menu",
-#    "author": "seb_k, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "seb_k, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
@@ -20,6 +20,7 @@ from bpy.props import IntProperty, FloatProperty, BoolProperty
 class VIEW3D_PIE_pivot(Menu):
     bl_label = "Pivot"
     bl_idname = "pie.pivot"
+
     def draw(self, context):
         layout = self.layout
 
@@ -34,6 +35,7 @@ classes = [
     ]
 
 addon_keymaps = []
+
 
 def register():
     for cls in classes:

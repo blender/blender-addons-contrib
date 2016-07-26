@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'Ctrl Space'",
     "description": "Extended Manipulator Menu",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
@@ -15,6 +15,7 @@ import bpy
 from ..utils import AddonPreferences, SpaceProperty
 from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
+
 
 class ManipTranslate(bpy.types.Operator):
     bl_idname = "manip.translate"
@@ -134,7 +135,6 @@ class WManupulators(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = " Show/Hide Manipulator"
 
-
     def execute(self, context):
         layout = self.layout
 
@@ -147,6 +147,8 @@ class WManupulators(bpy.types.Operator):
         return {'FINISHED'}
 
 # Pie Manipulators - Ctrl + Space
+
+
 class PieManipulator(Menu):
     bl_idname = "pie.manipulator"
     bl_label = "Pie Manipulator"
@@ -186,6 +188,7 @@ classes = [
     ]
 
 addon_keymaps = []
+
 
 def register():
     for cls in classes:

@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'Q'",
     "description": "Viewport Numpad Menus",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "Q key",
     "warning": "",
@@ -17,6 +17,8 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
 # Persp/Ortho
+
+
 class PerspOrthoView(bpy.types.Operator):
     bl_idname = "persp.orthoview"
     bl_label = "Persp/Ortho"
@@ -27,6 +29,8 @@ class PerspOrthoView(bpy.types.Operator):
         return {'FINISHED'}
 
 # Lock Camera Transforms
+
+
 class LockCameraTransforms(bpy.types.Operator):
     bl_idname = "object.lockcameratransforms"
     bl_label = "Lock Camera Transforms"
@@ -60,6 +64,8 @@ class LockCameraTransforms(bpy.types.Operator):
 bpy.types.Scene.cameratoto = bpy.props.StringProperty(default="")
 
 # Pie View All Sel Glob Etc - Q
+
+
 class PieViewallSelGlobEtc(Menu):
     bl_idname = "pie.vieallselglobetc"
     bl_label = "Pie View All Sel Glob..."
@@ -84,6 +90,8 @@ class PieViewallSelGlobEtc(Menu):
         # 3 - BOTTOM - RIGHT
 
 # Pie views numpad - Q
+
+
 class PieViewNumpad(Menu):
     bl_idname = "pie.viewnumpad"
     bl_label = "Pie Views Ortho"
@@ -112,9 +120,11 @@ class PieViewNumpad(Menu):
         box = pie.split().column()
         row = box.row(align=True)
         if context.space_data.lock_camera == False:
-            row.operator("wm.context_toggle", text="Lock Cam to View", icon='UNLOCKED').data_path = "space_data.lock_camera"
+            row.operator("wm.context_toggle", text="Lock Cam to View",
+                         icon='UNLOCKED').data_path = "space_data.lock_camera"
         elif context.space_data.lock_camera == True:
-            row.operator("wm.context_toggle", text="Lock Cam to View", icon='LOCKED').data_path = "space_data.lock_camera"
+            row.operator("wm.context_toggle", text="Lock Cam to View",
+                         icon='LOCKED').data_path = "space_data.lock_camera"
 
         row = box.row(align=True)
         row.operator("view3d.viewnumpad", text="View Cam", icon='VISIBLE_IPO_ON').type = 'CAMERA'
@@ -140,6 +150,7 @@ classes = [
     ]
 
 addon_keymaps = []
+
 
 def register():
     for cls in classes:

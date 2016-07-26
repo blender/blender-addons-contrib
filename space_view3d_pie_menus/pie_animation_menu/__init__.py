@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'Alt A'",
     "description": "Pie menu for Timeline controls",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
@@ -16,7 +16,9 @@ from ..utils import AddonPreferences, SpaceProperty
 from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
-# Pie Animation 
+# Pie Animation
+
+
 class PieAnimation(Menu):
     bl_idname = "pie.animation"
     bl_label = "Pie Animation"
@@ -59,7 +61,7 @@ class InsertAutoKeyframe(bpy.types.Operator):
 
         else:
             if bpy.context.scene.tool_settings.use_keyframe_insert_auto == False:
-               bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
+                bpy.context.scene.tool_settings.use_keyframe_insert_auto = True
 
         for area in bpy.context.screen.areas:
             if area.type in ('TIMELINE'):
@@ -74,6 +76,7 @@ classes = [
 
 addon_keymaps = []
 
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -86,6 +89,7 @@ def register():
         kmi.properties.name = "pie.animation"
  #       kmi.active = True
         addon_keymaps.append((km, kmi))
+
 
 def unregister():
     for cls in classes:

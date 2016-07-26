@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'Ctrl A'",
     "description": "Apply Transform Menu",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
@@ -17,6 +17,8 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
 # Pie Apply Transforms - Ctrl + A
+
+
 class PieApplyTransforms(Menu):
     bl_idname = "pie.applytranforms"
     bl_label = "Pie Apply Transforms"
@@ -42,6 +44,8 @@ class PieApplyTransforms(Menu):
         pie.menu("clear.menu", text="Clear Transforms")
 
 # Apply Transforms
+
+
 class ApplyTransformLocation(bpy.types.Operator):
     bl_idname = "apply.transformlocation"
     bl_label = "Apply Transform Location"
@@ -53,6 +57,8 @@ class ApplyTransformLocation(bpy.types.Operator):
         return {'FINISHED'}
 
 # Apply Transforms
+
+
 class ApplyTransformRotation(bpy.types.Operator):
     bl_idname = "apply.transformrotation"
     bl_label = "Apply Transform Rotation"
@@ -64,6 +70,8 @@ class ApplyTransformRotation(bpy.types.Operator):
         return {'FINISHED'}
 
 # Apply Transforms
+
+
 class ApplyTransformScale(bpy.types.Operator):
     bl_idname = "apply.transformscale"
     bl_label = "Apply Transform Scale"
@@ -75,6 +83,8 @@ class ApplyTransformScale(bpy.types.Operator):
         return {'FINISHED'}
 
 # Apply Transforms
+
+
 class ApplyTransformRotationScale(bpy.types.Operator):
     bl_idname = "apply.transformrotationscale"
     bl_label = "Apply Transform Rotation Scale"
@@ -86,6 +96,8 @@ class ApplyTransformRotationScale(bpy.types.Operator):
         return {'FINISHED'}
 
 # Apply Transforms
+
+
 class ApplyTransformAll(bpy.types.Operator):
     bl_idname = "apply.transformall"
     bl_label = "Apply All Transforms"
@@ -97,6 +109,8 @@ class ApplyTransformAll(bpy.types.Operator):
         return {'FINISHED'}
 
 # More Menu
+
+
 class TransformApplyMore(bpy.types.Menu):
     bl_idname = "applymore.menu"
     bl_label = "More Menu"
@@ -107,6 +121,8 @@ class TransformApplyMore(bpy.types.Menu):
         layout.operator("object.duplicates_make_real", text="Make Duplicates Real")
 
 # Clear Menu
+
+
 class ClearMenu(bpy.types.Menu):
     bl_idname = "clear.menu"
     bl_label = "Clear Menu"
@@ -147,6 +163,7 @@ classes = [
 
 addon_keymaps = []
 
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -159,6 +176,7 @@ def register():
         kmi.properties.name = "pie.applytranforms"
 #        kmi.active = True
         addon_keymaps.append((km, kmi))
+
 
 def unregister():
     for cls in classes:

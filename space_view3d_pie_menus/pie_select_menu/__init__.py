@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'A'",
     "description": "Object/Edit mode Selection Menu",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
@@ -17,6 +17,8 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
 # Pie Selection Object Mode - A
+
+
 class PieSelectionsMore(Menu):
     bl_idname = "pie.selectionsmore"
     bl_label = "Pie Selections Object Mode"
@@ -32,6 +34,8 @@ class PieSelectionsMore(Menu):
         box.menu("VIEW3D_MT_select_object_more_less", text="More/Less")
 
 # Pie Selection Object Mode - A
+
+
 class PieSelectionsOM(Menu):
     bl_idname = "pie.selectionsom"
     bl_label = "Pie Selections Object Mode"
@@ -57,6 +61,8 @@ class PieSelectionsOM(Menu):
         pie.menu("pie.selectionsmore", text="Select More", icon='GROUP_VERTEX')
 
 # Pie Selection Edit Mode
+
+
 class PieSelectionsEM(Menu):
     bl_idname = "pie.selectionsem"
     bl_label = "Pie Selections Edit Mode"
@@ -86,6 +92,8 @@ class PieSelectionsEM(Menu):
         pie.operator("mesh.loop_multi_select", text="Select Loop", icon='ZOOM_PREVIOUS').ring = False
 
 # Select All By Selection
+
+
 class SelectAllBySelection(bpy.types.Operator):
     bl_idname = "object.selectallbyselection"
     bl_label = "Verts Edges Faces"
@@ -107,6 +115,7 @@ classes = [
 
 addon_keymaps = []
 
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -126,6 +135,7 @@ def register():
         kmi.properties.name = "pie.selectionsem"
 #        kmi.active = True
         addon_keymaps.append((km, kmi))
+
 
 def unregister():
     for cls in classes:

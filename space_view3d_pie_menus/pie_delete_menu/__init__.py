@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'X'",
     "description": "Edit mode V/E/F Delete Modes",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "Mesh Edit Mode",
     "warning": "",
@@ -17,6 +17,8 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
 # Pie Delete - X
+
+
 class PieDelete(Menu):
     bl_idname = "pie.delete"
     bl_label = "Pie Delete"
@@ -47,9 +49,11 @@ class PieDelete(Menu):
         row = box.row(align=True)
         box.operator("mesh.delete", text="Only Edge & Faces", icon='SPACE2').type = 'EDGE_FACE'
         box.operator("mesh.delete", text="Only Faces", icon='UV_FACESEL').type = 'ONLY_FACE'
-        box.operator("mesh.remove_doubles" , text="Remove Doubles", icon='ORTHO')
+        box.operator("mesh.remove_doubles", text="Remove Doubles", icon='ORTHO')
 
 # Limited Dissolve
+
+
 class DeleteLimitedDissolve(bpy.types.Operator):
     bl_idname = "delete.limiteddissolve"
     bl_label = "Delete Limited Dissolve"
@@ -66,6 +70,7 @@ classes = [
 
 addon_keymaps = []
 
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -78,6 +83,7 @@ def register():
         kmi.properties.name = "pie.delete"
 #        kmi.active = True
         addon_keymaps.append((km, kmi))
+
 
 def unregister():
     for cls in classes:

@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'Shift S'",
     "description": "Cursor & Origin Snap/Place Menu",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
@@ -17,9 +17,11 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
 # SnapCursSelToCenter1 thanks to Isaac Weaver (wisaac) D1963
+
+
 class SnapCursSelToCenter1(bpy.types.Operator):
     """Snap 3D cursor and selected objects to the center \n"""\
-    """Works only in Object Mode"""
+        """Works only in Object Mode"""
     bl_idname = "view3d.snap_cursor_selected_to_center1"
     bl_label = "Snap Cursor & Selection to Center"
 
@@ -34,6 +36,8 @@ class SnapCursSelToCenter1(bpy.types.Operator):
         return {'FINISHED'}
 
 # Pivot to selection
+
+
 class PivotToSelection(bpy.types.Operator):
     bl_idname = "object.pivot2selection"
     bl_label = "Pivot To Selection"
@@ -49,6 +53,8 @@ class PivotToSelection(bpy.types.Operator):
         return {'FINISHED'}
 
 # Pivot to Bottom
+
+
 class PivotBottom(bpy.types.Operator):
     bl_idname = "object.pivotobottom"
     bl_label = "Pivot To Bottom"
@@ -77,6 +83,8 @@ class PivotBottom(bpy.types.Operator):
         return {'FINISHED'}
 
 # Pie Origin/Pivot - Shift + S
+
+
 class PieOriginPivot(Menu):
     bl_idname = "pie.originpivot"
     bl_label = "Origin Menu"
@@ -86,8 +94,9 @@ class PieOriginPivot(Menu):
         obj = context.object
         pie = layout.menu_pie()
         if obj and obj.type == 'MESH':
-            # 4 - LEFT 
-            pie.operator("object.origin_set", text="Origin to Center of Mass", icon='BBOX').type = 'ORIGIN_CENTER_OF_MASS'
+            # 4 - LEFT
+            pie.operator("object.origin_set", text="Origin to Center of Mass",
+                         icon='BBOX').type = 'ORIGIN_CENTER_OF_MASS'
             # 6 - RIGHT
             pie.operator("object.origin_set", text="Origin To 3D Cursor", icon='CURSOR').type = 'ORIGIN_CURSOR'
             # 2 - BOTTOM
@@ -100,8 +109,9 @@ class PieOriginPivot(Menu):
             pie.operator("object.origin_set", text="Origin To Geometry", icon='ROTATE').type = 'ORIGIN_GEOMETRY'
 
         else:
-            # 4 - LEFT 
-            pie.operator("object.origin_set", text="Origin to Center of Mass", icon='BBOX').type = 'ORIGIN_CENTER_OF_MASS'
+            # 4 - LEFT
+            pie.operator("object.origin_set", text="Origin to Center of Mass",
+                         icon='BBOX').type = 'ORIGIN_CENTER_OF_MASS'
             # 6 - RIGHT
             pie.operator("object.origin_set", text="Origin To 3D Cursor", icon='CURSOR').type = 'ORIGIN_CURSOR'
             # 2 - BOTTOM
@@ -120,10 +130,12 @@ class OriginPivotMenu(Menu):
     def draw(self, context):
         layout = self.layout
         pie = layout.menu_pie()
-        # 4 - LEFT 
-        pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor", icon='CLIPUV_HLT').use_offset = False
+        # 4 - LEFT
+        pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor",
+                     icon='CLIPUV_HLT').use_offset = False
         # 6 - RIGHT
-        pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Offset)", icon='CURSOR').use_offset = True
+        pie.operator("view3d.snap_selected_to_cursor",
+                     text="Selection to Cursor (Offset)", icon='CURSOR').use_offset = True
         # 2 - BOTTOM
         pie.operator("wm.call_menu_pie", text="Origin Pie", icon='ROTATECOLLECTION').name = "pie.originpivot"
         # 8 - TOP
@@ -138,6 +150,8 @@ class OriginPivotMenu(Menu):
         pie.menu("snapgrid.menu", text="Snap Grid", icon='GRID')
 
 # More Menu
+
+
 class Snap_CursorGrid(bpy.types.Menu):
     bl_idname = "snapgrid.menu"
     bl_label = "More Menu"
@@ -157,6 +171,7 @@ classes = [
     ]
 
 addon_keymaps = []
+
 
 def register():
     for cls in classes:

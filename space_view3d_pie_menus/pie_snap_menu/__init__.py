@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'Ctrl Shift Tab'",
     "description": "Snap Element Menu",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "3d View",
     "warning": "",
@@ -17,6 +17,8 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
 # Pie Snap - Shift + Tab
+
+
 class PieSnaping(Menu):
     bl_idname = "pie.snapping"
     bl_label = "Pie Snapping"
@@ -40,6 +42,7 @@ class PieSnaping(Menu):
         pie.operator("snap.alignrotation", text="Align rotation", icon='SNAP_NORMAL')
         # 3 - BOTTOM - RIGHT
         pie.operator("wm.call_menu_pie", text="Snap Target", icon='SNAP_SURFACE').name = "snap.targetmenu"
+
 
 class SnapActive(bpy.types.Operator):
     bl_idname = "snap.active"
@@ -169,6 +172,8 @@ class SnapTargetVariable(bpy.types.Operator):
         return {'FINISHED'}
 
 # Menu Snap Target - Shift + Tab
+
+
 class SnapTargetMenu(Menu):
     bl_idname = "snap.targetmenu"
     bl_label = "Snap Target Menu"
@@ -204,6 +209,7 @@ classes = [
     ]
 
 addon_keymaps = []
+
 
 def register():
     for cls in classes:

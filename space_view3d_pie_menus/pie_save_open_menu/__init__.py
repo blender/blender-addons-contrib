@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'Ctrl S'",
     "description": "Save/Open & File Menus",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "All Editors",
     "warning": "",
@@ -11,7 +11,8 @@ bl_info = {
     "category": "Save Open Pie"
 }
 
-import bpy, bmesh
+import bpy
+import bmesh
 from ..utils import AddonPreferences, SpaceProperty
 from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
@@ -20,6 +21,8 @@ import math
 import os
 
 # Pie Save/Open
+
+
 class PieSaveOpen(Menu):
     bl_idname = "pie.saveopen"
     bl_label = "Pie Save/Open"
@@ -44,6 +47,7 @@ class PieSaveOpen(Menu):
         # 3 - BOTTOM - RIGHT
         pie.menu("pie.recover", text="Recovery", icon='RECOVER_LAST')
 
+
 class pie_link(bpy.types.Menu):
     bl_idname = "pie.link"
     bl_label = "Link"
@@ -56,6 +60,7 @@ class pie_link(bpy.types.Menu):
         box.operator("wm.link", text="Link", icon='LINK_BLEND')
         box.operator("wm.append", text="Append", icon='APPEND_BLEND')
         box.menu("external.data", text="External Data", icon='EXTERNAL_DATA')
+
 
 class pie_recover(bpy.types.Menu):
     bl_idname = "pie.recover"
@@ -70,6 +75,7 @@ class pie_recover(bpy.types.Menu):
         box.operator("wm.recover_last_session", text="Recover Last Session", icon='RECOVER_LAST')
         box.operator("wm.revert_mainfile", text="Revert", icon='FILE_REFRESH')
 
+
 class pie_fileio(bpy.types.Menu):
     bl_idname = "pie.fileio"
     bl_label = "Import/Export"
@@ -82,6 +88,7 @@ class pie_fileio(bpy.types.Menu):
         box.menu("INFO_MT_file_import", icon='IMPORT')
         box.separator()
         box.menu("INFO_MT_file_export", icon='EXPORT')
+
 
 class ExternalData(bpy.types.Menu):
     bl_idname = "external.data"
@@ -101,6 +108,8 @@ class ExternalData(bpy.types.Menu):
         layout.operator("file.find_missing_files", text="Find Missing Files")
 
 # Save Incremental
+
+
 class FileIncrementalSave(bpy.types.Operator):
     bl_idname = "file.save_incremental"
     bl_label = "Save Incremental"
@@ -129,7 +138,8 @@ class FileIncrementalSave(bpy.types.Operator):
             output = f_path.rpartition(".blend")[0] + "_001" + ".blend"
         bpy.ops.wm.save_as_mainfile(filepath=output)
 
-        self.report({'INFO'}, "File: {0} - Created at: {1}".format(output[len(bpy.path.abspath("//")):], output[:len(bpy.path.abspath("//"))]))
+        self.report(
+            {'INFO'}, "File: {0} - Created at: {1}".format(output[len(bpy.path.abspath("//")):], output[:len(bpy.path.abspath("//"))]))
         return {'FINISHED'}
 
 
@@ -144,6 +154,7 @@ classes = [
 
 addon_keymaps = []
 
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -156,6 +167,7 @@ def register():
         kmi.properties.name = "pie.saveopen"
 #        kmi.active = True
         addon_keymaps.append((km, kmi))
+
 
 def unregister():
     for cls in classes:

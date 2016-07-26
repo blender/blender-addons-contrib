@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'W' &  'Alt W'",
     "description": "Sculpt Mode & Brush Menu",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "W key & Alt W key",
     "warning": "",
@@ -17,6 +17,8 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
 # Sculpt Polish
+
+
 class SculptPolish(bpy.types.Operator):
     bl_idname = "sculpt.polish"
     bl_label = "Sculpt Polish"
@@ -28,6 +30,8 @@ class SculptPolish(bpy.types.Operator):
         return {'FINISHED'}
 
 # Sculpt Polish
+
+
 class SculptSculptDraw(bpy.types.Operator):
     bl_idname = "sculpt.sculptraw"
     bl_label = "Sculpt SculptDraw"
@@ -39,6 +43,8 @@ class SculptSculptDraw(bpy.types.Operator):
         return {'FINISHED'}
 
 # Pie Sculp Pie Menus - W
+
+
 class PieSculptPie(Menu):
     bl_idname = "pie.sculpt"
     bl_label = "Pie Sculpt"
@@ -64,6 +70,8 @@ class PieSculptPie(Menu):
         pie.operator("paint.brush_select", text='Flatten', icon='BRUSH_FLATTEN').sculpt_tool = 'FLATTEN'
 
 # Pie Sculp Pie Menus 2 - W
+
+
 class PieSculpttwo(Menu):
     bl_idname = "pie.sculpttwo"
     bl_label = "Pie Sculpt 2"
@@ -107,6 +115,7 @@ classes = [
 
 addon_keymaps = []
 
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -126,6 +135,7 @@ def register():
         kmi.properties.name = "pie.sculpttwo"
 #        kmi.active = True
         addon_keymaps.append((km, kmi))
+
 
 def unregister():
     for cls in classes:

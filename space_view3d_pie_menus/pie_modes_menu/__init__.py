@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'Tab'",
     "description": "Switch between 3d view object/edit modes",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
@@ -17,6 +17,8 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
 # Define Class Object Mode
+
+
 class ClassObject(bpy.types.Operator):
     bl_idname = "class.object"
     bl_label = "Class Object"
@@ -33,6 +35,8 @@ class ClassObject(bpy.types.Operator):
         return {'FINISHED'}
 
 # Define Class Vertex
+
+
 class ClassVertex(bpy.types.Operator):
     bl_idname = "class.vertex"
     bl_label = "Class Vertex"
@@ -50,6 +54,8 @@ class ClassVertex(bpy.types.Operator):
             return {'FINISHED'}
 
 # Define Class Edge
+
+
 class ClassEdge(bpy.types.Operator):
     bl_idname = "class.edge"
     bl_label = "Class Edge"
@@ -67,6 +73,8 @@ class ClassEdge(bpy.types.Operator):
             return {'FINISHED'}
 
 # Define Class Face
+
+
 class ClassFace(bpy.types.Operator):
     bl_idname = "class.face"
     bl_label = "Class Face"
@@ -160,6 +168,8 @@ class ClassParticleEdit(bpy.types.Operator):
         return {'FINISHED'}
 
 # Components Selection Mode
+
+
 class VertsEdges(bpy.types.Operator):
     bl_idname = "verts.edges"
     bl_label = "Verts Edges"
@@ -224,6 +234,8 @@ class VertsEdgesFaces(bpy.types.Operator):
             return {'FINISHED'}
 
 # Pie Edit/Object Others modes - Tab
+
+
 class PieObjectEditotherModes(Menu):
     bl_idname = "pie.objecteditmodeothermodes"
     bl_label = "Edit Selection Modes"
@@ -237,7 +249,8 @@ class PieObjectEditotherModes(Menu):
         # 6 - RIGHT
         pie.operator("edges.faces", text="Edges/Faces", icon='FACESEL')
         # 2 - BOTTOM
-        pie.operator("wm.context_toggle", text="Limit to Visible", icon="ORTHO").data_path = "space_data.use_occlude_geometry"
+        pie.operator("wm.context_toggle", text="Limit to Visible",
+                     icon="ORTHO").data_path = "space_data.use_occlude_geometry"
         # 8 - TOP
         pie.operator("class.edge", text="Edge", icon='EDGESEL')
         # 7 - TOP - LEFT
@@ -250,6 +263,8 @@ class PieObjectEditotherModes(Menu):
         pie.operator("verts.edgesfaces", text="Vertex/Edges/Faces", icon='OBJECT_DATAMODE')
 
 # Pie Modes Switch- Tab key
+
+
 class PieObjectEditMode(Menu):
     bl_idname = "pie.objecteditmode"
     bl_label = "Modes Menu (Tab)"
@@ -272,7 +287,8 @@ class PieObjectEditMode(Menu):
             # 7 - TOP - LEFT
             pie.operator("sculpt.sculptmode_toggle", text="Sculpt", icon='SCULPTMODE_HLT')
             # 9 - TOP - RIGHT
-            pie.operator("wm.call_menu_pie", text="Edit Modes", icon='EDITMODE_HLT').name = "pie.objecteditmodeothermodes"
+            pie.operator("wm.call_menu_pie", text="Edit Modes",
+                         icon='EDITMODE_HLT').name = "pie.objecteditmodeothermodes"
             # 1 - BOTTOM - LEFT
             if bpy.context.object.particle_systems:
                 pie.operator("class.pieparticleedit", text="Particle Edit", icon='PARTICLEMODE')
@@ -291,7 +307,8 @@ class PieObjectEditMode(Menu):
             # 7 - TOP - LEFT
             pie.operator("sculpt.sculptmode_toggle", text="Sculpt", icon='SCULPTMODE_HLT')
             # 9 - TOP - RIGHT
-            pie.operator("wm.call_menu_pie", text="Edit Modes", icon='TPAINT_HLT').name = "pie.objecteditmodeothermodes"
+            pie.operator("wm.call_menu_pie", text="Edit Modes",
+                         icon='TPAINT_HLT').name = "pie.objecteditmodeothermodes"
             # 1 - BOTTOM - LEFT
             if bpy.context.object.particle_systems:
                 pie.operator("class.pieparticleedit", text="Particle Edit", icon='PARTICLEMODE')
@@ -341,6 +358,7 @@ classes = [
     ]
 
 addon_keymaps = []
+
 
 def register():
     for cls in classes:

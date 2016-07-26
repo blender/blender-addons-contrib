@@ -1,9 +1,9 @@
- 
+
 bl_info = {
     "name": "Hotkey: 'Alt X'",
     "description": "V/E/F Align tools",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "Mesh Edit Mode",
     "warning": "",
@@ -11,7 +11,8 @@ bl_info = {
     "category": "Edit Align Pie"
 }
 
-import bpy, bmesh
+import bpy
+import bmesh
 from ..utils import AddonPreferences, SpaceProperty
 from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
@@ -19,6 +20,8 @@ from mathutils import *
 import math
 
 # Pie Align - Alt + X
+
+
 class PieAlign(Menu):
     bl_idname = "pie.align"
     bl_label = "Pie Align"
@@ -62,6 +65,8 @@ class PieAlign(Menu):
 #        box.operator("mesh.vertex_inline", icon='ALIGN', text="Align & Distribute")
 
 # Align X
+
+
 class AlignX(bpy.types.Operator):
     bl_idname = "align.x"
     bl_label = "Align  X"
@@ -71,10 +76,13 @@ class AlignX(bpy.types.Operator):
     def execute(self, context):
 
         for vert in bpy.context.object.data.vertices:
-            bpy.ops.transform.resize(value=(0, 1, 1), constraint_axis=(True, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
+            bpy.ops.transform.resize(value=(0, 1, 1), constraint_axis=(True, False, False), constraint_orientation='GLOBAL',
+                                     mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
         return {'FINISHED'}
 
 # Align Y
+
+
 class AlignY(bpy.types.Operator):
     bl_idname = "align.y"
     bl_label = "Align  Y"
@@ -84,10 +92,13 @@ class AlignY(bpy.types.Operator):
     def execute(self, context):
 
         for vert in bpy.context.object.data.vertices:
-            bpy.ops.transform.resize(value=(1, 0, 1), constraint_axis=(False, True, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
+            bpy.ops.transform.resize(value=(1, 0, 1), constraint_axis=(False, True, False), constraint_orientation='GLOBAL',
+                                     mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
         return {'FINISHED'}
 
 # Align Z
+
+
 class AlignZ(bpy.types.Operator):
     bl_idname = "align.z"
     bl_label = "Align  Z"
@@ -97,7 +108,8 @@ class AlignZ(bpy.types.Operator):
     def execute(self, context):
 
         for vert in bpy.context.object.data.vertices:
-            bpy.ops.transform.resize(value=(1, 1, 0), constraint_axis=(False, False, True), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
+            bpy.ops.transform.resize(value=(1, 1, 0), constraint_axis=(False, False, True), constraint_orientation='GLOBAL',
+                                     mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
         return {'FINISHED'}
 
 #####################
@@ -105,6 +117,8 @@ class AlignZ(bpy.types.Operator):
 #####################
 
 # Align to X - 0
+
+
 class AlignToX0(bpy.types.Operator):
     bl_idname = "align.2x0"
     bl_label = "Align To X = 0"
@@ -121,6 +135,8 @@ class AlignToX0(bpy.types.Operator):
         return {'FINISHED'}
 
 # Align to Z - 0
+
+
 class AlignToY0(bpy.types.Operator):
     bl_idname = "align.2y0"
     bl_label = "Align To Y = 0"
@@ -137,6 +153,8 @@ class AlignToY0(bpy.types.Operator):
         return {'FINISHED'}
 
 # Align to Z - 0
+
+
 class AlignToZ0(bpy.types.Operator):
     bl_idname = "align.2z0"
     bl_label = "Align To Z = 0"
@@ -153,6 +171,8 @@ class AlignToZ0(bpy.types.Operator):
         return {'FINISHED'}
 
 # Align X Left
+
+
 class AlignXLeft(bpy.types.Operator):
     bl_idname = "alignx.left"
     bl_label = "Align X Left"
@@ -182,6 +202,8 @@ class AlignXLeft(bpy.types.Operator):
         return {'FINISHED'}
 
 # Align X Right
+
+
 class AlignXRight(bpy.types.Operator):
     bl_idname = "alignx.right"
     bl_label = "Align X Right"
@@ -210,6 +232,8 @@ class AlignXRight(bpy.types.Operator):
         return {'FINISHED'}
 
 # Align Y Back
+
+
 class AlignYBack(bpy.types.Operator):
     bl_idname = "aligny.back"
     bl_label = "Align Y back"
@@ -239,6 +263,8 @@ class AlignYBack(bpy.types.Operator):
         return {'FINISHED'}
 
 # Align Y Front
+
+
 class AlignYFront(bpy.types.Operator):
     bl_idname = "aligny.front"
     bl_label = "Align Y Front"
@@ -268,6 +294,8 @@ class AlignYFront(bpy.types.Operator):
         return {'FINISHED'}
 
 # Align Z Top
+
+
 class AlignZTop(bpy.types.Operator):
     bl_idname = "alignz.top"
     bl_label = "Align Z Top"
@@ -297,6 +325,8 @@ class AlignZTop(bpy.types.Operator):
         return {'FINISHED'}
 
 # Align Z Bottom
+
+
 class AlignZBottom(bpy.types.Operator):
     bl_idname = "alignz.bottom"
     bl_label = "Align Z Bottom"
@@ -343,6 +373,7 @@ classes = [
 
 addon_keymaps = []
 
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -355,6 +386,7 @@ def register():
         kmi.properties.name = "pie.align"
 #        kmi.active = True
         addon_keymaps.append((km, kmi))
+
 
 def unregister():
     for cls in classes:

@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'Z'",
     "description": "Viewport Shading Menus",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "3D View",
     "warning": "",
@@ -17,6 +17,8 @@ from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
 # Pie Shading - Z
+
+
 class PieShadingView(Menu):
     bl_idname = "pie.shadingview"
     bl_label = "Pie Shading"
@@ -36,12 +38,12 @@ class PieShadingView(Menu):
                 pie.operator("OBJECT_OT_shade_flat")
 
 
-
 classes = [
     PieShadingView,
     ]
 
 addon_keymaps = []
+
 
 def register():
     for cls in classes:

@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'O'",
     "description": "Proportional Object/Edit Tools",
-#    "author": "pitiwazou, meta-androcto",
-#    "version": (0, 1, 0),
+    #    "author": "pitiwazou, meta-androcto",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "3D View Object & Edit modes",
     "warning": "",
@@ -307,6 +307,8 @@ class ProportionalRandomEdt(bpy.types.Operator):
         return {'FINISHED'}
 
 # Pie ProportionalEditObj - O
+
+
 class PieProportionalObj(Menu):
     bl_idname = "pie.proportional_obj"
     bl_label = "Pie Proportional Obj"
@@ -332,6 +334,8 @@ class PieProportionalObj(Menu):
         pie.operator("proportional_obj.random", text="Random", icon='RNDCURVE')
 
 # Pie ProportionalEditEdt - O
+
+
 class PieProportionalEdt(Menu):
     bl_idname = "pie.proportional_edt"
     bl_label = "Pie Proportional Edit"
@@ -357,6 +361,8 @@ class PieProportionalEdt(Menu):
         pie.menu("pie.proportional_more", text="More", icon='LINCURVE')
 
 # Pie ProportionalEditEdt - O
+
+
 class PieProportionalMore(Menu):
     bl_idname = "pie.proportional_more"
     bl_label = "Pie Proportional More"
@@ -396,6 +402,7 @@ classes = [
 
 addon_keymaps = []
 
+
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -415,6 +422,7 @@ def register():
         kmi.properties.name = "pie.proportional_edt"
 #        kmi.active = True
         addon_keymaps.append((km, kmi))
+
 
 def unregister():
     for cls in classes:

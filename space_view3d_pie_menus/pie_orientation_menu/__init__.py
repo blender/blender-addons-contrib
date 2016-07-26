@@ -2,8 +2,8 @@
 
 bl_info = {
     "name": "Hotkey: 'Alt + Spacebar'",
-#    "author": "Italic_",
-#    "version": (1, 1, 0),
+    #    "author": "Italic_",
+    #    "version": (1, 1, 0),
     "blender": (2, 77, 0),
     "description": "Set Transform Orientations",
     "location": "3D View",
@@ -56,7 +56,7 @@ addon_keymaps = []
 classes = [
     OrientPie,
     OrientPoll
-]
+    ]
 
 
 def register():

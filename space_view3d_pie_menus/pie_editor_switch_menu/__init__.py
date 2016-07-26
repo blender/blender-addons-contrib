@@ -2,8 +2,8 @@
 bl_info = {
     "name": "Hotkey: 'Ctrl Alt S ",
     "description": "Switch Editor Type Menu",
-#    "author": "saidenka",
-#    "version": (0, 1, 0),
+    #    "author": "saidenka",
+    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "All Editors",
     "warning": "",
@@ -15,6 +15,7 @@ import bpy
 from ..utils import AddonPreferences, SpaceProperty
 from bpy.types import Menu, Header
 from bpy.props import IntProperty, FloatProperty, BoolProperty, StringProperty
+
 
 class AreaPieMenu(bpy.types.Menu):
     bl_idname = "INFO_MT_window_pie"
@@ -41,7 +42,7 @@ class AreaPieEditor(Menu):
     bl_label = "Editor Switch"
 
     def draw(self, context):
-        # 4 - LEFT 
+        # 4 - LEFT
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="Text Editor", icon="TEXT").type = "TEXT_EDITOR"
         # 6 - RIGHT
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="Outliner", icon="OOPS").type = "OUTLINER"
@@ -65,7 +66,7 @@ class AreaTypePieOther(bpy.types.Menu):
     bl_description = "Is pie menu change editor type (other)"
 
     def draw(self, context):
-        # 4 - LEFT 
+        # 4 - LEFT
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="Logic Editor", icon="LOGIC").type = "LOGIC_EDITOR"
         # 6 - RIGHT
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="File Browser", icon="FILESEL").type = "FILE_BROWSER"
@@ -79,6 +80,7 @@ class AreaTypePieOther(bpy.types.Menu):
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="Info", icon="INFO").type = "INFO"
         # 1 - BOTTOM - LEFT
         # 3 - BOTTOM - RIGHT
+
 
 class SetAreaType(bpy.types.Operator):
     bl_idname = "wm.set_area_type"
@@ -99,7 +101,7 @@ class AreaTypePieAnim(bpy.types.Menu):
     bl_description = "Is pie menu change editor type (animation related)"
 
     def draw(self, context):
-        # 4 - LEFT 
+        # 4 - LEFT
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="NLA Editor", icon="NLA").type = "NLA_EDITOR"
         # 6 - RIGHT
         self.layout.menu_pie().operator(SetAreaType.bl_idname, text="DopeSheet", icon="ACTION").type = "DOPESHEET_EDITOR"
@@ -125,6 +127,7 @@ classes = [
     ]
 
 addon_keymaps = []
+
 
 def register():
     for cls in classes:
