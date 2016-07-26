@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: achm_column_maker.py
 # Automatic generation of columns
 # Author: Antonio Vazquez (antonioya)
 #
@@ -273,7 +271,7 @@ def create_column_mesh(self):
         mycolumn = create_circular_column(self, "Column", radio_top, radio_mid, radio_bottom, height)
         mycolumn.select = True
         bpy.context.scene.objects.active = mycolumn
-        # Subsurf    
+        # Subsurf
         set_smooth(mycolumn)
         set_modifier_subsurf(mycolumn)
     # ------------------------
@@ -348,7 +346,7 @@ def create_column_mesh(self):
         box_top.location.z = height
 
     # ------------------------
-    # Create arc        
+    # Create arc
     # ------------------------
     if self.arc_top:
         myarc = create_arc("Column_arch", self.arc_radio, self.arc_gap, self.arc_width,
@@ -366,7 +364,7 @@ def create_column_mesh(self):
         else:
             myarc.location.z = height
     # ------------------------
-    # Create Array X       
+    # Create Array X
     # ------------------------
     if self.array_num_x > 0:
         if self.arc_top:
@@ -393,7 +391,7 @@ def create_column_mesh(self):
                 if self.array_num_x > 1:
                     set_modifier_array(myarc, "X", 1, self.array_num_x - 1)  # one arc minus
     # ------------------------
-    # Create Array Y       
+    # Create Array Y
     # ------------------------
     if self.array_num_y > 0:
         if self.arc_top:
@@ -419,7 +417,7 @@ def create_column_mesh(self):
                     set_modifier_array(myarc, "Y", 1, self.array_num_y - 1)  # one less
 
     # ------------------------
-    # Create materials        
+    # Create materials
     # ------------------------
     if self.crt_mat:
         # Column material
@@ -477,9 +475,9 @@ def create_circular_column(self, objname, radio_top, radio_mid, radio_bottom, he
         y = math.sin(math.radians(pie)) * radio_top
         mypoint = [(x, y, height)]
         myvertex.extend(mypoint)
-    # ------------------------------------- 
+    # -------------------------------------
     # Faces
-    # ------------------------------------- 
+    # -------------------------------------
     t = 1
     for n in range(0, len(pies) * 2):
         t += 1
@@ -549,9 +547,9 @@ def create_torus(objname, radio_inside, radio_outside, height):
         mypoint = [(x, y, height / 2 * -1)]
         myvertex.extend(mypoint)
 
-    # ------------------------------------- 
+    # -------------------------------------
     # Faces
-    # ------------------------------------- 
+    # -------------------------------------
     t = 1
     for n in range(0, len(pies) * len(segments) + (len(pies) * 2)):
         t += 1

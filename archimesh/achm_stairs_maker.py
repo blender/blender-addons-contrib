@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: achm_stairs_maker.py
 # Automatic generation of stairs
 # Author: Antonio Vazquez (antonioya)
 #
@@ -70,7 +68,8 @@ class AchmStairs(bpy.types.Operator):
 
     height = bpy.props.FloatProperty(name='height', min=0.001, max=10, default=0.14, precision=3,
                                      description='Step height')
-    front_gap = bpy.props.FloatProperty(name='Front', min=0, max=10, default=0.03, precision=3, description='Front gap')
+    front_gap = bpy.props.FloatProperty(name='Front', min=0, max=10, default=0.03,
+                                        precision=3, description='Front gap')
     side_gap = bpy.props.FloatProperty(name='Side', min=0, max=10, default=0, precision=3, description='Side gap')
     crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
                                      description="Create default materials for Cycles render.", default=True)
@@ -160,7 +159,7 @@ def create_stairs_mesh(self):
     set_normals(mystairs)
     set_modifier_mirror(mystairs, "X")
     # ------------------------
-    # Create curve handles        
+    # Create curve handles
     # ------------------------
     if self.curve:
         x = mystairs.location.x
@@ -176,7 +175,7 @@ def create_stairs_mesh(self):
         set_modifier_curve(mystairs, mycurve)
 
     # ------------------------
-    # Create materials        
+    # Create materials
     # ------------------------
     if self.crt_mat:
         # Stairs material
@@ -252,7 +251,7 @@ def create_rect_step(self, origin, myvertex, myfaces, index, step):
     # calculate width (side gap)
     width = width + self.side_gap
 
-    # Horizontal Rectangle 
+    # Horizontal Rectangle
     z = z + self.height
     myvertex.extend([(x, y - self.front_gap, z), (x, max_depth, z), (x + width, max_depth, z),
                      (x + width, y - self.front_gap, z)])
@@ -291,9 +290,9 @@ def create_round_step(self, origin, myvertex, myfaces, index, step):
 
     half = max_width / 2
     # ------------------------------------
-    # Vertical 
+    # Vertical
     # ------------------------------------
-    # calculate width 
+    # calculate width
     width = half - (half * self.radio)
     myradio = half - width
 
@@ -305,7 +304,7 @@ def create_round_step(self, origin, myvertex, myfaces, index, step):
 
         myvertex.extend([(pos_x, pos_y, z), (pos_x, pos_y, z + self.height)])
 
-    # back point    
+    # back point
     myvertex.extend([(x + width, max_depth, z), (x + width, max_depth, z + self.height)])
 
     myfaces.extend([(i, i + 1, i + 3, i + 2), (i + 2, i + 3, i + 5, i + 4), (i + 4, i + 5, i + 7, i + 6),
@@ -314,13 +313,13 @@ def create_round_step(self, origin, myvertex, myfaces, index, step):
 
     i += 16
     # ------------------------------------
-    # Horizontal 
+    # Horizontal
     # ------------------------------------
     # calculate width gap
     width = half + self.front_gap - (half * self.radio)
 
     z = z + self.height
-    # Vertical 
+    # Vertical
     myvertex.extend([(x, y - self.front_gap, z), (x, y - self.front_gap, z + self.thickness)])
     # Round
     for e in li:
@@ -329,7 +328,7 @@ def create_round_step(self, origin, myvertex, myfaces, index, step):
 
         myvertex.extend([(pos_x, pos_y, z), (pos_x, pos_y, z + self.thickness)])
 
-    # back points    
+    # back points
     myvertex.extend([(pos_x, max_depth, z), (pos_x, max_depth, z + self.thickness),
                      (x, max_depth, z), (x, max_depth, z + self.thickness)])
 
@@ -363,7 +362,7 @@ def create_bezier(objname, points, origin):
     bpy.context.scene.objects.link(myobject)
 
     polyline = curvedata.splines.new('BEZIER')
-    polyline.bezier_points.add(len(points)-1)
+    polyline.bezier_points.add(len(points) - 1)
 
     for idx, (knot, h1, h2) in enumerate(points):
         point = polyline.bezier_points[idx]

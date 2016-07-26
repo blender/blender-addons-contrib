@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: achm_main_panel.py
 # Main panel for different Archimesh general actions
 # Author: Antonio Vazquez (antonioya)
 #
@@ -39,11 +37,11 @@ from achm_gltools import *
 def isboolean(myobject, childobject):
     flag = False
     for mod in myobject.modifiers:
-            if mod.type == 'BOOLEAN':
-                if mod.object == childobject:
-                    flag = True
-                    break
-    return flag        
+        if mod.type == 'BOOLEAN':
+            if mod.object == childobject:
+                flag = True
+                break
+    return flag
 
 
 # ------------------------------------------------------
@@ -75,7 +73,7 @@ class AchmHoleAction(bpy.types.Operator):
             except:
                 continue
         # ---------------------------
-        # Get the baseboard object  
+        # Get the baseboard object
         # ---------------------------
         mybaseboard = None
         for child in context.object.children:
@@ -84,7 +82,7 @@ class AchmHoleAction(bpy.types.Operator):
                 if child["archimesh.room_baseboard"]:
                     mybaseboard = child
             except:
-                continue                
+                continue
         # ---------------------------
         # Get the shell object
         # ---------------------------
@@ -131,9 +129,9 @@ class AchmHoleAction(bpy.types.Operator):
                         # apply scale
                         t = parentobj.RoomGenerator[0].wall_width
                         if t > 0:
-                            child.scale.y = (t + 0.45) / (child.dimensions.y/child.scale.y)  # Add some gap
+                            child.scale.y = (t + 0.45) / (child.dimensions.y / child.scale.y)  # Add some gap
                         else:
-                            child.scale.y = 1     
+                            child.scale.y = 1
                         # add boolean modifier
                         if isboolean(context.object, child) is False:
                             set_modifier_boolean(context.object, child)
@@ -190,7 +188,7 @@ class AchmHoleAction(bpy.types.Operator):
 
 
 # ------------------------------------------------------
-# Button: Action to create room from grease pencil 
+# Button: Action to create room from grease pencil
 # ------------------------------------------------------
 class AchmPencilAction(bpy.types.Operator):
     bl_idname = "object.archimesh_pencil_room"
@@ -215,32 +213,32 @@ class AchmPencilAction(bpy.types.Operator):
             print("==  Grease pencil strokes analysis                                  ==")
             print("==                                                                  ==")
             print("======================================================================")
-        
+
         # -----------------------------------
         # Get grease pencil points
         # -----------------------------------
         # noinspection PyBroadException
         try:
-            
+
             # noinspection PyBroadException
             try:
-                pencil = bpy.context.object.grease_pencil.layers.active 
-            except:    
+                pencil = bpy.context.object.grease_pencil.layers.active
+            except:
                 pencil = bpy.context.scene.grease_pencil.layers.active
-                
+
             if pencil.active_frame is not None:
                 for i, stroke in enumerate(pencil.active_frame.strokes):
                     stroke_points = pencil.active_frame.strokes[i].points
                     allpoints = [(point.co.x, point.co.y)
                                  for point in stroke_points]
-                    
+
                     mypoints = []
                     idx = 0
                     x = 0
                     y = 0
                     orientation = None
                     old_orientation = None
-                    
+
                     for point in allpoints:
                         if idx == 0:
                             x = point[0]
@@ -253,23 +251,23 @@ class AchmPencilAction(bpy.types.Operator):
                                 orientation = "V"
                             else:
                                 orientation = "H"
-                                
+
                             if old_orientation == orientation:
                                 x = point[0]
                                 y = point[1]
-                            else:                                     
+                            else:
                                 mypoints.extend([(x, y)])
                                 x = point[0]
                                 y = point[1]
                                 old_orientation = orientation
-            
+
                         idx += 1
                     # Last point
                     mypoints.extend([(x, y)])
-                    
+
                     if debugmode is True:
                         print("\nPoints\n====================")
-                        i = 0 
+                        i = 0
                         for p in mypoints:
                             print(str(i) + ":" + str(p))
                             i += 1
@@ -288,16 +286,16 @@ class AchmPencilAction(bpy.types.Operator):
                             d *= 3.2808399
 
                         distlist.extend([d])
-                        
+
                         if debugmode is True:
-                            print(str(e-1) + ":" + str(d))
+                            print(str(e - 1) + ":" + str(d))
                     # -----------------------------------
                     # Calculate angle of walls
                     # clamped to right angles
                     # -----------------------------------
                     if debugmode is True:
                         print("\nAngle\n====================")
-                        
+
                     i = len(mypoints)
                     anglelist = []
                     for e in range(1, i):
@@ -308,8 +306,8 @@ class AchmPencilAction(bpy.types.Operator):
                         if math.fabs(a) > math.pi / 4:
                             b = math.pi / 2
                         else:
-                            b = 0    
-                        
+                            b = 0
+
                         anglelist.extend([b])
                         # Reverse de distance using angles (inverse angle to axis) for Vertical lines
                         if a < 0.0 and b != 0:
@@ -317,7 +315,7 @@ class AchmPencilAction(bpy.types.Operator):
 
                         # Reverse de distance for horizontal lines
                         if b == 0:
-                            if mypoints[e-1][0] > mypoints[e][0]:
+                            if mypoints[e - 1][0] > mypoints[e][0]:
                                 distlist[e - 1] *= -1  # reverse distance
 
                         if debugmode is True:
@@ -341,19 +339,19 @@ class AchmPencilAction(bpy.types.Operator):
                                 olddist = distlist[e]
                             else:
                                 olddist += distlist[e]
-                        # last 
+                        # last
                         clearangles.extend([oldangle])
                         cleardistan.extend([olddist])
 
             # ----------------------------
-            # Create the room 
+            # Create the room
             # ----------------------------
             if len(mypoints) > 1 and len(clearangles) > 0:
                 # Move cursor
                 bpy.context.scene.cursor_location.x = mypoints[0][0]
                 bpy.context.scene.cursor_location.y = mypoints[0][1]
                 bpy.context.scene.cursor_location.z = 0  # always on grid floor
-                
+
                 # Add room mesh
                 bpy.ops.mesh.archimesh_room()
                 myroom = context.object
@@ -363,9 +361,9 @@ class AchmPencilAction(bpy.types.Operator):
                 mydata.ceiling = scene.archimesh_ceiling
                 mydata.floor = scene.archimesh_floor
                 mydata.merge = scene.archimesh_merge
-                
+
                 i = len(mypoints)
-                for e in range(0, i-1):
+                for e in range(0, i - 1):
                     if clearangles[e] == math.pi / 2:
                         if cleardistan[e] > 0:
                             mydata.walls[e].w = round(math.fabs(cleardistan[e]), 2)
@@ -373,11 +371,11 @@ class AchmPencilAction(bpy.types.Operator):
                         else:
                             mydata.walls[e].w = round(math.fabs(cleardistan[e]), 2)
                             mydata.walls[e].r = (math.fabs(clearangles[e]) * 180 * -1) / math.pi  # from radians
-                                
+
                     else:
                         mydata.walls[e].w = round(cleardistan[e], 2)
                         mydata.walls[e].r = (math.fabs(clearangles[e]) * 180) / math.pi  # from radians
-                            
+
                 # Remove Grease pencil
                 if pencil is not None:
                     for frame in pencil.frames:
@@ -386,7 +384,7 @@ class AchmPencilAction(bpy.types.Operator):
                 self.report({'INFO'}, "Archimesh: Room created from grease pencil strokes")
             else:
                 self.report({'WARNING'}, "Archimesh: Not enough grease pencil strokes for creating room.")
-                
+
             return {'FINISHED'}
         except:
             self.report({'WARNING'}, "Archimesh: No grease pencil strokes. Do strokes in top view before creating room")
@@ -412,7 +410,7 @@ class ArchimeshMainPanel(bpy.types.Panel):
 
         myobj = context.object
         # -------------------------------------------------------------------------
-        # If the selected object didn't be created with the group 'RoomGenerator', 
+        # If the selected object didn't be created with the group 'RoomGenerator',
         # this button is not created.
         # -------------------------------------------------------------------------
         # noinspection PyBroadException
@@ -423,16 +421,16 @@ class ArchimeshMainPanel(bpy.types.Panel):
                 row = box.row(align=False)
                 row.operator("object.archimesh_cut_holes", icon='GRID')
                 row.prop(scene, "archimesh_select_only")
-    
+
                 # Export/Import
                 row = box.row(align=False)
                 row.operator("io_import.roomdata", text="Import", icon='COPYDOWN')
                 row.operator("io_export.roomdata", text="Export", icon='PASTEDOWN')
         except:
             pass
-        
+
         # -------------------------------------------------------------------------
-        # If the selected object isn't a kitchen 
+        # If the selected object isn't a kitchen
         # this button is not created.
         # -------------------------------------------------------------------------
         # noinspection PyBroadException
@@ -445,7 +443,7 @@ class ArchimeshMainPanel(bpy.types.Panel):
                 row.operator("io_export.kitchen_inventory", text="Export inventory", icon='PASTEDOWN')
         except:
             pass
-            
+
         # ------------------------------
         # Elements Buttons
         # ------------------------------
@@ -465,7 +463,7 @@ class ArchimeshMainPanel(bpy.types.Panel):
         row = box.row()
         row.operator("mesh.archimesh_stairs")
         row.operator("mesh.archimesh_roof")
-        
+
         # ------------------------------
         # Prop Buttons
         # ------------------------------
@@ -537,8 +535,8 @@ class AchmRunHintDisplayButton(bpy.types.Operator):
     def handle_add(self, context):
         if AchmRunHintDisplayButton._handle is None:
             AchmRunHintDisplayButton._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (self, context),
-                                                                                  'WINDOW',
-                                                                                  'POST_PIXEL')
+                                                                                      'WINDOW',
+                                                                                      'POST_PIXEL')
             context.window_manager.archimesh_run_opengl = True
 
     # ------------------------------------

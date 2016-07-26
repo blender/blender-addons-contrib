@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: achm_curtain_maker.py
 # Automatic generation of curtains
 # Author: Antonio Vazquez (antonioya)
 #
@@ -64,7 +62,7 @@ class AchmJapan(bpy.types.Operator):
     open05 = bpy.props.FloatProperty(name='Position 05', min=0, max=1, default=0, precision=3,
                                      description='Position of the panel')
 
-    # Materials        
+    # Materials
     crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
                                      description="Create default materials for Cycles render.",
                                      default=True)
@@ -159,7 +157,7 @@ class AchmRoller(bpy.types.Operator):
     height = bpy.props.FloatProperty(name='Height', min=0.01, max=50, default=1.7, precision=3,
                                      description='Total height')
 
-    # Materials        
+    # Materials
     crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
                                      description="Create default materials for Cycles render.", default=True)
 
@@ -228,9 +226,9 @@ def generate_japan(self):
     location = bpy.context.scene.cursor_location
     myloc = copy.copy(location)  # copy location to keep 3D cursor position
 
-    # ------------------ 
+    # ------------------
     # Rail
-    # ------------------ 
+    # ------------------
     myrail = create_japan_rail("Rail",
                                self.width - 0.02, self.num,
                                myloc.x, myloc.y, myloc.z,
@@ -332,7 +330,7 @@ def generate_japan(self):
         mypanel.location.z = posz
         x += 1
     # ------------------------
-    # Strings        
+    # Strings
     # ------------------------
     x = myrail.location.x
     y = myrail.location.y
@@ -587,9 +585,9 @@ def generate_roller(self):
     location = bpy.context.scene.cursor_location
     myloc = copy.copy(location)  # copy location to keep 3D cursor position
 
-    # ------------------ 
+    # ------------------
     # Roller Top
-    # ------------------ 
+    # ------------------
     fabricsolid = None
     if self.crt_mat:
         fabricsolid = create_diffuse_material("Fabric_solid_material", False, 0.653, 0.485, 0.265)
@@ -641,9 +639,9 @@ def generate_roller(self):
     mypanel.location.x = 0
     mypanel.location.y = 0.035
     mypanel.location.z = 0
-    # ------------------ 
+    # ------------------
     # Roller Bottom
-    # ------------------ 
+    # ------------------
     mybottom = create_roller_rail("Roller_bottom",
                                   self.width,
                                   0.001,
@@ -655,7 +653,7 @@ def generate_roller(self):
     set_normals(myroller)
 
     # ------------------------
-    # Strings        
+    # Strings
     # ------------------------
     myp = [((0.0000, -0.0328, -0.0000), (0.0000, -0.0403, -0.3327), (0.0000, -0.0293, 0.1528)),
            ((0.0000, 0.0000, 0.3900), (0.0000, -0.0264, 0.3900), (-0.0000, 0.0226, 0.3900)),
@@ -715,9 +713,9 @@ def create_roller_rail(objname, width, radio, px, py, pz, mat, mymaterial):
         mypoint = [(width, x, y)]
         myvertex.extend(mypoint)
         seg += 360 / pies
-    # ------------------------------------- 
+    # -------------------------------------
     # Faces
-    # ------------------------------------- 
+    # -------------------------------------
     t = 1
     for n in range(0, pies):
         t += 1
@@ -752,7 +750,7 @@ def create_roller_rail(objname, width, radio, px, py, pz, mat, mymaterial):
 
 # ------------------------------------------------------------------------------
 # Create roller sides
-# 
+#
 # myRoller: Roller to add sides
 # side: Side of the cap R/L
 # pX: position X axis

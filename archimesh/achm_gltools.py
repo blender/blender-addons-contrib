@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: achm_gltools.py
 # support routines for OpenGL
 # Author: Antonio Vazquez (antonioya)
 #
@@ -262,97 +260,97 @@ def draw_room_data(myobj, op, region, rv3d, rgb, rgbw, fsize, wfsize, space, mea
 # -------------------------------------------------------------
 def draw_door_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
 
-        # Points
-        a_p1 = get_point(op.glpoint_a, myobj)
-        a_p2 = get_point((op.glpoint_a[0] - space, op.glpoint_a[1], op.glpoint_a[2]), myobj)
-        a_p3 = get_point((op.glpoint_a[0] - space - fsize / 200, op.glpoint_a[1], op.glpoint_a[2]), myobj)
+    # Points
+    a_p1 = get_point(op.glpoint_a, myobj)
+    a_p2 = get_point((op.glpoint_a[0] - space, op.glpoint_a[1], op.glpoint_a[2]), myobj)
+    a_p3 = get_point((op.glpoint_a[0] - space - fsize / 200, op.glpoint_a[1], op.glpoint_a[2]), myobj)
 
-        t_p1 = get_point(op.glpoint_b, myobj)
-        t_p2 = get_point((op.glpoint_b[0] - space, op.glpoint_b[1], op.glpoint_b[2]), myobj)
-        t_p3 = get_point((op.glpoint_b[0] - space - fsize / 200, op.glpoint_b[1], op.glpoint_b[2]), myobj)
+    t_p1 = get_point(op.glpoint_b, myobj)
+    t_p2 = get_point((op.glpoint_b[0] - space, op.glpoint_b[1], op.glpoint_b[2]), myobj)
+    t_p3 = get_point((op.glpoint_b[0] - space - fsize / 200, op.glpoint_b[1], op.glpoint_b[2]), myobj)
 
-        b_p1 = get_point(op.glpoint_b, myobj)
-        b_p2 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space), myobj)
-        b_p3 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space + fsize / 200), myobj)
+    b_p1 = get_point(op.glpoint_b, myobj)
+    b_p2 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space), myobj)
+    b_p3 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space + fsize / 200), myobj)
 
-        c_p1 = get_point(op.glpoint_c, myobj)
-        c_p2 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space), myobj)
-        c_p3 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space + fsize / 200), myobj)
+    c_p1 = get_point(op.glpoint_c, myobj)
+    c_p2 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space), myobj)
+    c_p3 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space + fsize / 200), myobj)
 
-        d_p1 = get_point(op.glpoint_d, myobj)
-        d_p2 = get_point((op.glpoint_d[0], op.glpoint_d[1], op.glpoint_b[2] + space + fsize / 300), myobj)
-        d_p3 = get_point((op.glpoint_d[0], op.glpoint_d[1], op.glpoint_d[2] - fsize / 250), myobj)
+    d_p1 = get_point(op.glpoint_d, myobj)
+    d_p2 = get_point((op.glpoint_d[0], op.glpoint_d[1], op.glpoint_b[2] + space + fsize / 300), myobj)
+    d_p3 = get_point((op.glpoint_d[0], op.glpoint_d[1], op.glpoint_d[2] - fsize / 250), myobj)
 
-        e_p1 = get_point(op.glpoint_e, myobj)
-        e_p2 = get_point((op.glpoint_e[0], op.glpoint_e[1], op.glpoint_b[2] + space + fsize / 300), myobj)
-        e_p3 = get_point((op.glpoint_e[0], op.glpoint_e[1], op.glpoint_e[2] - fsize / 250), myobj)
+    e_p1 = get_point(op.glpoint_e, myobj)
+    e_p2 = get_point((op.glpoint_e[0], op.glpoint_e[1], op.glpoint_b[2] + space + fsize / 300), myobj)
+    e_p3 = get_point((op.glpoint_e[0], op.glpoint_e[1], op.glpoint_e[2] - fsize / 250), myobj)
 
-        # converting to screen coordinates
-        screen_point_ap1 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p1)
-        screen_point_bp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p1)
-        screen_point_cp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p1)
-        screen_point_tp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p1)
+    # converting to screen coordinates
+    screen_point_ap1 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p1)
+    screen_point_bp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p1)
+    screen_point_cp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p1)
+    screen_point_tp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p1)
 
-        screen_point_ap2 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p2)
-        screen_point_bp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p2)
-        screen_point_cp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p2)
-        screen_point_tp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p2)
+    screen_point_ap2 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p2)
+    screen_point_bp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p2)
+    screen_point_cp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p2)
+    screen_point_tp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p2)
 
-        screen_point_ap3 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p3)
-        screen_point_bp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p3)
-        screen_point_cp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p3)
-        screen_point_tp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p3)
+    screen_point_ap3 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p3)
+    screen_point_bp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p3)
+    screen_point_cp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p3)
+    screen_point_tp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p3)
 
-        screen_point_dp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p1)
-        screen_point_dp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p2)
-        screen_point_dp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p3)
+    screen_point_dp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p1)
+    screen_point_dp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p2)
+    screen_point_dp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p3)
 
-        screen_point_ep1 = view3d_utils.location_3d_to_region_2d(region, rv3d, e_p1)
-        screen_point_ep2 = view3d_utils.location_3d_to_region_2d(region, rv3d, e_p2)
-        screen_point_ep3 = view3d_utils.location_3d_to_region_2d(region, rv3d, e_p3)
+    screen_point_ep1 = view3d_utils.location_3d_to_region_2d(region, rv3d, e_p1)
+    screen_point_ep2 = view3d_utils.location_3d_to_region_2d(region, rv3d, e_p2)
+    screen_point_ep3 = view3d_utils.location_3d_to_region_2d(region, rv3d, e_p3)
 
-        # colour + line setup
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glLineWidth(1)
-        bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
+    # colour + line setup
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glLineWidth(1)
+    bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
 
-        # --------------------------------
-        # Measures
-        # --------------------------------
-        if measure is True:
-            # Vertical
-            dist = distance(a_p1, t_p1)
-            txtpoint3d = interpolate3d(a_p1, t_p1, math.fabs(dist / 2))
-            gap3d = (a_p2[0], txtpoint3d[1], txtpoint3d[2])
-            txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
-            draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
+    # --------------------------------
+    # Measures
+    # --------------------------------
+    if measure is True:
+        # Vertical
+        dist = distance(a_p1, t_p1)
+        txtpoint3d = interpolate3d(a_p1, t_p1, math.fabs(dist / 2))
+        gap3d = (a_p2[0], txtpoint3d[1], txtpoint3d[2])
+        txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
+        draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
 
-            draw_line(screen_point_ap2, screen_point_tp2)
-            draw_line(screen_point_ap3, screen_point_ap1)
-            draw_line(screen_point_tp3, screen_point_tp1)
+        draw_line(screen_point_ap2, screen_point_tp2)
+        draw_line(screen_point_ap3, screen_point_ap1)
+        draw_line(screen_point_tp3, screen_point_tp1)
 
-            # Horizontal
-            dist = distance(b_p1, c_p1)
-            txtpoint3d = interpolate3d(b_p1, c_p1, math.fabs(dist / 2))
-            gap3d = (txtpoint3d[0], txtpoint3d[1], b_p2[2] + 0.02)
-            txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
-            draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
+        # Horizontal
+        dist = distance(b_p1, c_p1)
+        txtpoint3d = interpolate3d(b_p1, c_p1, math.fabs(dist / 2))
+        gap3d = (txtpoint3d[0], txtpoint3d[1], b_p2[2] + 0.02)
+        txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
+        draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
 
-            draw_line(screen_point_bp2, screen_point_cp2)
-            draw_line(screen_point_bp3, screen_point_bp1)
-            draw_line(screen_point_cp3, screen_point_cp1)
+        draw_line(screen_point_bp2, screen_point_cp2)
+        draw_line(screen_point_bp3, screen_point_bp1)
+        draw_line(screen_point_cp3, screen_point_cp1)
 
-            # Door size
-            dist = distance(d_p1, e_p1)
-            txtpoint3d = interpolate3d(d_p1, e_p1, math.fabs(dist / 2))
-            gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.02)
-            txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
-            draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
+        # Door size
+        dist = distance(d_p1, e_p1)
+        txtpoint3d = interpolate3d(d_p1, e_p1, math.fabs(dist / 2))
+        gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.02)
+        txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
+        draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
 
-            draw_line(screen_point_dp1, screen_point_ep1)
-            draw_line(screen_point_dp2, screen_point_dp3)
-            draw_line(screen_point_ep2, screen_point_ep3)
-        return
+        draw_line(screen_point_dp1, screen_point_ep1)
+        draw_line(screen_point_dp2, screen_point_dp3)
+        draw_line(screen_point_ep2, screen_point_ep3)
+    return
 
 
 # -------------------------------------------------------------
@@ -363,71 +361,71 @@ def draw_door_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
 # -------------------------------------------------------------
 def draw_window_rail_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
 
-        # Points
-        a_p1 = get_point(op.glpoint_a, myobj)
-        a_p2 = get_point((op.glpoint_a[0] - space, op.glpoint_a[1], op.glpoint_a[2]), myobj)
-        a_p3 = get_point((op.glpoint_a[0] - space - fsize / 200, op.glpoint_a[1], op.glpoint_a[2]), myobj)
+    # Points
+    a_p1 = get_point(op.glpoint_a, myobj)
+    a_p2 = get_point((op.glpoint_a[0] - space, op.glpoint_a[1], op.glpoint_a[2]), myobj)
+    a_p3 = get_point((op.glpoint_a[0] - space - fsize / 200, op.glpoint_a[1], op.glpoint_a[2]), myobj)
 
-        t_p1 = get_point(op.glpoint_b, myobj)
-        t_p2 = get_point((op.glpoint_b[0] - space, op.glpoint_b[1], op.glpoint_b[2]), myobj)
-        t_p3 = get_point((op.glpoint_b[0] - space - fsize / 200, op.glpoint_b[1], op.glpoint_b[2]), myobj)
+    t_p1 = get_point(op.glpoint_b, myobj)
+    t_p2 = get_point((op.glpoint_b[0] - space, op.glpoint_b[1], op.glpoint_b[2]), myobj)
+    t_p3 = get_point((op.glpoint_b[0] - space - fsize / 200, op.glpoint_b[1], op.glpoint_b[2]), myobj)
 
-        b_p1 = get_point(op.glpoint_b, myobj)
-        b_p2 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space), myobj)
-        b_p3 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space + fsize / 200), myobj)
+    b_p1 = get_point(op.glpoint_b, myobj)
+    b_p2 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space), myobj)
+    b_p3 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space + fsize / 200), myobj)
 
-        c_p1 = get_point(op.glpoint_c, myobj)
-        c_p2 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space), myobj)
-        c_p3 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space + fsize / 200), myobj)
+    c_p1 = get_point(op.glpoint_c, myobj)
+    c_p2 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space), myobj)
+    c_p3 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space + fsize / 200), myobj)
 
-        # converting to screen coordinates
-        screen_point_ap1 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p1)
-        screen_point_bp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p1)
-        screen_point_cp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p1)
-        screen_point_tp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p1)
+    # converting to screen coordinates
+    screen_point_ap1 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p1)
+    screen_point_bp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p1)
+    screen_point_cp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p1)
+    screen_point_tp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p1)
 
-        screen_point_ap2 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p2)
-        screen_point_bp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p2)
-        screen_point_cp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p2)
-        screen_point_tp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p2)
+    screen_point_ap2 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p2)
+    screen_point_bp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p2)
+    screen_point_cp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p2)
+    screen_point_tp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p2)
 
-        screen_point_ap3 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p3)
-        screen_point_bp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p3)
-        screen_point_cp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p3)
-        screen_point_tp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p3)
+    screen_point_ap3 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p3)
+    screen_point_bp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p3)
+    screen_point_cp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p3)
+    screen_point_tp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p3)
 
-        # colour + line setup
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glLineWidth(1)
-        bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
+    # colour + line setup
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glLineWidth(1)
+    bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
 
-        # --------------------------------
-        # Measures
-        # --------------------------------
-        if measure is True:
-            # Vertical
-            dist = distance(a_p1, t_p1)
-            txtpoint3d = interpolate3d(a_p1, t_p1, math.fabs(dist / 2))
-            gap3d = (a_p2[0], txtpoint3d[1], txtpoint3d[2])
-            txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
-            draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
+    # --------------------------------
+    # Measures
+    # --------------------------------
+    if measure is True:
+        # Vertical
+        dist = distance(a_p1, t_p1)
+        txtpoint3d = interpolate3d(a_p1, t_p1, math.fabs(dist / 2))
+        gap3d = (a_p2[0], txtpoint3d[1], txtpoint3d[2])
+        txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
+        draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
 
-            draw_line(screen_point_ap2, screen_point_tp2)
-            draw_line(screen_point_ap3, screen_point_ap1)
-            draw_line(screen_point_tp3, screen_point_tp1)
+        draw_line(screen_point_ap2, screen_point_tp2)
+        draw_line(screen_point_ap3, screen_point_ap1)
+        draw_line(screen_point_tp3, screen_point_tp1)
 
-            # Horizontal
-            dist = distance(b_p1, c_p1)
-            txtpoint3d = interpolate3d(b_p1, c_p1, math.fabs(dist / 2))
-            gap3d = (txtpoint3d[0], txtpoint3d[1], b_p2[2] + 0.02)
-            txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
-            draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
+        # Horizontal
+        dist = distance(b_p1, c_p1)
+        txtpoint3d = interpolate3d(b_p1, c_p1, math.fabs(dist / 2))
+        gap3d = (txtpoint3d[0], txtpoint3d[1], b_p2[2] + 0.02)
+        txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
+        draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
 
-            draw_line(screen_point_bp2, screen_point_cp2)
-            draw_line(screen_point_bp3, screen_point_bp1)
-            draw_line(screen_point_cp3, screen_point_cp1)
+        draw_line(screen_point_bp2, screen_point_cp2)
+        draw_line(screen_point_bp3, screen_point_bp1)
+        draw_line(screen_point_cp3, screen_point_cp1)
 
-        return
+    return
 
 
 # -------------------------------------------------------------
@@ -438,161 +436,161 @@ def draw_window_rail_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
 # -------------------------------------------------------------
 def draw_window_panel_data(myobj, op, region, rv3d, rgb, fsize, space, measure):
 
-        # Points
-        a_p1 = get_point(op.glpoint_a, myobj)
-        a_p2 = get_point((op.glpoint_a[0] - space, op.glpoint_a[1], op.glpoint_a[2]), myobj)
-        a_p3 = get_point((op.glpoint_a[0] - space - fsize / 200, op.glpoint_a[1], op.glpoint_a[2]), myobj)
+    # Points
+    a_p1 = get_point(op.glpoint_a, myobj)
+    a_p2 = get_point((op.glpoint_a[0] - space, op.glpoint_a[1], op.glpoint_a[2]), myobj)
+    a_p3 = get_point((op.glpoint_a[0] - space - fsize / 200, op.glpoint_a[1], op.glpoint_a[2]), myobj)
 
-        f_p1 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_a[2]), myobj)
-        f_p2 = get_point((op.glpoint_c[0] + space, op.glpoint_c[1], op.glpoint_a[2]), myobj)
-        f_p3 = get_point((op.glpoint_c[0] + space + fsize / 200, op.glpoint_c[1], op.glpoint_a[2]), myobj)
+    f_p1 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_a[2]), myobj)
+    f_p2 = get_point((op.glpoint_c[0] + space, op.glpoint_c[1], op.glpoint_a[2]), myobj)
+    f_p3 = get_point((op.glpoint_c[0] + space + fsize / 200, op.glpoint_c[1], op.glpoint_a[2]), myobj)
 
-        t_p1 = get_point(op.glpoint_b, myobj)
-        t_p2 = get_point((op.glpoint_b[0] - space, op.glpoint_b[1], op.glpoint_b[2]), myobj)
-        t_p3 = get_point((op.glpoint_b[0] - space - fsize / 200, op.glpoint_b[1], op.glpoint_b[2]), myobj)
+    t_p1 = get_point(op.glpoint_b, myobj)
+    t_p2 = get_point((op.glpoint_b[0] - space, op.glpoint_b[1], op.glpoint_b[2]), myobj)
+    t_p3 = get_point((op.glpoint_b[0] - space - fsize / 200, op.glpoint_b[1], op.glpoint_b[2]), myobj)
 
-        b_p1 = get_point(op.glpoint_b, myobj)
-        b_p2 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space), myobj)
-        b_p3 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space + fsize / 200), myobj)
+    b_p1 = get_point(op.glpoint_b, myobj)
+    b_p2 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space), myobj)
+    b_p3 = get_point((op.glpoint_b[0], op.glpoint_b[1], op.glpoint_b[2] + space + fsize / 200), myobj)
 
-        c_p1 = get_point(op.glpoint_c, myobj)
-        c_p2 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space), myobj)
-        c_p3 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space + fsize / 200), myobj)
+    c_p1 = get_point(op.glpoint_c, myobj)
+    c_p2 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space), myobj)
+    c_p3 = get_point((op.glpoint_c[0], op.glpoint_c[1], op.glpoint_c[2] + space + fsize / 200), myobj)
 
-        d_p1 = get_point(op.glpoint_c, myobj)
-        d_p2 = get_point((op.glpoint_c[0] + space, op.glpoint_c[1], op.glpoint_c[2]), myobj)
-        d_p3 = get_point((op.glpoint_c[0] + space + fsize / 200, op.glpoint_c[1], op.glpoint_c[2]), myobj)
+    d_p1 = get_point(op.glpoint_c, myobj)
+    d_p2 = get_point((op.glpoint_c[0] + space, op.glpoint_c[1], op.glpoint_c[2]), myobj)
+    d_p3 = get_point((op.glpoint_c[0] + space + fsize / 200, op.glpoint_c[1], op.glpoint_c[2]), myobj)
 
-        g_p2 = get_point((op.glpoint_d[0], op.glpoint_d[1], 0), myobj)
-        g_p3 = get_point((op.glpoint_d[0], op.glpoint_d[1], op.glpoint_d[2]), myobj)
-        g_p4 = get_point((op.glpoint_d[0], op.glpoint_d[1], op.glpoint_d[2] + space), myobj)
-        g_p5 = get_point((op.glpoint_d[0], op.glpoint_d[1], op.glpoint_d[2] + space + fsize / 200), myobj)
+    g_p2 = get_point((op.glpoint_d[0], op.glpoint_d[1], 0), myobj)
+    g_p3 = get_point((op.glpoint_d[0], op.glpoint_d[1], op.glpoint_d[2]), myobj)
+    g_p4 = get_point((op.glpoint_d[0], op.glpoint_d[1], op.glpoint_d[2] + space), myobj)
+    g_p5 = get_point((op.glpoint_d[0], op.glpoint_d[1], op.glpoint_d[2] + space + fsize / 200), myobj)
 
-        h_p1 = get_point((op.glpoint_a[0], op.glpoint_a[1], op.glpoint_a[2] - space), myobj)
-        h_p2 = get_point((op.glpoint_a[0], op.glpoint_a[1], op.glpoint_a[2] - space - fsize / 200), myobj)
+    h_p1 = get_point((op.glpoint_a[0], op.glpoint_a[1], op.glpoint_a[2] - space), myobj)
+    h_p2 = get_point((op.glpoint_a[0], op.glpoint_a[1], op.glpoint_a[2] - space - fsize / 200), myobj)
 
-        h_p3 = get_point((op.glpoint_c[0], op.glpoint_a[1], op.glpoint_a[2]), myobj)
-        h_p4 = get_point((op.glpoint_c[0], op.glpoint_a[1], op.glpoint_a[2] - space), myobj)
-        h_p5 = get_point((op.glpoint_c[0], op.glpoint_a[1], op.glpoint_a[2] - space - fsize / 200), myobj)
+    h_p3 = get_point((op.glpoint_c[0], op.glpoint_a[1], op.glpoint_a[2]), myobj)
+    h_p4 = get_point((op.glpoint_c[0], op.glpoint_a[1], op.glpoint_a[2] - space), myobj)
+    h_p5 = get_point((op.glpoint_c[0], op.glpoint_a[1], op.glpoint_a[2] - space - fsize / 200), myobj)
 
-        # converting to screen coordinates
-        screen_point_ap1 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p1)
-        screen_point_bp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p1)
-        screen_point_cp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p1)
-        screen_point_tp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p1)
+    # converting to screen coordinates
+    screen_point_ap1 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p1)
+    screen_point_bp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p1)
+    screen_point_cp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p1)
+    screen_point_tp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p1)
 
-        screen_point_ap2 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p2)
-        screen_point_bp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p2)
-        screen_point_cp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p2)
-        screen_point_tp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p2)
+    screen_point_ap2 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p2)
+    screen_point_bp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p2)
+    screen_point_cp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p2)
+    screen_point_tp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p2)
 
-        screen_point_ap3 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p3)
-        screen_point_bp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p3)
-        screen_point_cp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p3)
-        screen_point_tp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p3)
+    screen_point_ap3 = view3d_utils.location_3d_to_region_2d(region, rv3d, a_p3)
+    screen_point_bp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, b_p3)
+    screen_point_cp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, c_p3)
+    screen_point_tp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, t_p3)
 
-        screen_point_dp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p1)
-        screen_point_dp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p2)
-        screen_point_dp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p3)
+    screen_point_dp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p1)
+    screen_point_dp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p2)
+    screen_point_dp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, d_p3)
 
-        screen_point_fp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, f_p1)
-        screen_point_fp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, f_p2)
-        screen_point_fp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, f_p3)
+    screen_point_fp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, f_p1)
+    screen_point_fp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, f_p2)
+    screen_point_fp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, f_p3)
 
-        screen_point_gp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, g_p2)
-        screen_point_gp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, g_p3)
-        screen_point_gp4 = view3d_utils.location_3d_to_region_2d(region, rv3d, g_p4)
-        screen_point_gp5 = view3d_utils.location_3d_to_region_2d(region, rv3d, g_p5)
-        # colour + line setup
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glLineWidth(1)
-        bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
+    screen_point_gp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, g_p2)
+    screen_point_gp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, g_p3)
+    screen_point_gp4 = view3d_utils.location_3d_to_region_2d(region, rv3d, g_p4)
+    screen_point_gp5 = view3d_utils.location_3d_to_region_2d(region, rv3d, g_p5)
+    # colour + line setup
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glLineWidth(1)
+    bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
 
-        # --------------------------------
-        # Measures
-        # --------------------------------
-        if measure is True:
-            # Vertical (right)
-            dist = distance(a_p1, t_p1)
-            txtpoint3d = interpolate3d(a_p1, t_p1, math.fabs(dist / 2))
-            gap3d = (a_p2[0], txtpoint3d[1], txtpoint3d[2])
-            txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
-            draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
+    # --------------------------------
+    # Measures
+    # --------------------------------
+    if measure is True:
+        # Vertical (right)
+        dist = distance(a_p1, t_p1)
+        txtpoint3d = interpolate3d(a_p1, t_p1, math.fabs(dist / 2))
+        gap3d = (a_p2[0], txtpoint3d[1], txtpoint3d[2])
+        txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
+        draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
 
-            draw_line(screen_point_ap2, screen_point_tp2)
-            draw_line(screen_point_ap3, screen_point_ap1)
-            draw_line(screen_point_tp3, screen_point_tp1)
+        draw_line(screen_point_ap2, screen_point_tp2)
+        draw_line(screen_point_ap3, screen_point_ap1)
+        draw_line(screen_point_tp3, screen_point_tp1)
 
-            # Vertical (Left)
-            dist = distance(f_p1, d_p1)
-            txtpoint3d = interpolate3d(f_p1, d_p1, math.fabs(dist / 2))
-            gap3d = (f_p2[0], txtpoint3d[1], txtpoint3d[2])
+        # Vertical (Left)
+        dist = distance(f_p1, d_p1)
+        txtpoint3d = interpolate3d(f_p1, d_p1, math.fabs(dist / 2))
+        gap3d = (f_p2[0], txtpoint3d[1], txtpoint3d[2])
+        txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
+        draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
+
+        draw_line(screen_point_fp2, screen_point_dp2)
+        draw_line(screen_point_fp1, screen_point_fp3)
+        draw_line(screen_point_dp1, screen_point_dp3)
+
+        # Horizontal (not triangle nor arch)
+        if op.UST != "4" and op.UST != "2":
+            dist = distance(b_p1, c_p1)
+            txtpoint3d = interpolate3d(b_p2, c_p2, math.fabs(dist / 2))
+            gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.05)
             txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
             draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
 
-            draw_line(screen_point_fp2, screen_point_dp2)
-            draw_line(screen_point_fp1, screen_point_fp3)
-            draw_line(screen_point_dp1, screen_point_dp3)
+            draw_line(screen_point_bp2, screen_point_cp2)
+            draw_line(screen_point_bp3, screen_point_bp1)
+            draw_line(screen_point_cp3, screen_point_cp1)
+        else:
+            dist = distance(b_p1, g_p3)
+            txtpoint3d = interpolate3d(b_p2, g_p4, math.fabs(dist / 2))
+            gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.05)
+            txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
+            draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
 
-            # Horizontal (not triangle nor arch)
-            if op.UST != "4" and op.UST != "2":
-                dist = distance(b_p1, c_p1)
-                txtpoint3d = interpolate3d(b_p2, c_p2, math.fabs(dist / 2))
-                gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.05)
-                txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
-                draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
+            dist = distance(g_p3, c_p1)
+            txtpoint3d = interpolate3d(g_p4, c_p2, math.fabs(dist / 2))
+            gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.05)
+            txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
+            draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
 
-                draw_line(screen_point_bp2, screen_point_cp2)
-                draw_line(screen_point_bp3, screen_point_bp1)
-                draw_line(screen_point_cp3, screen_point_cp1)
-            else:
-                dist = distance(b_p1, g_p3)
-                txtpoint3d = interpolate3d(b_p2, g_p4, math.fabs(dist / 2))
-                gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.05)
-                txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
-                draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize, True)
+            draw_line(screen_point_bp2, screen_point_gp4)
+            draw_line(screen_point_gp4, screen_point_cp2)
+            draw_line(screen_point_bp3, screen_point_bp1)
+            draw_line(screen_point_cp3, screen_point_cp1)
+            draw_line(screen_point_gp3, screen_point_gp5)
 
-                dist = distance(g_p3, c_p1)
-                txtpoint3d = interpolate3d(g_p4, c_p2, math.fabs(dist / 2))
-                gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] + 0.05)
-                txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
-                draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
+        # Only for Triangle or arch
+        if op.UST == "2" or op.UST == "4":
+            dist = distance(g_p2, g_p3)
+            txtpoint3d = interpolate3d(g_p2, g_p3, math.fabs(dist / 2))
+            gap3d = (txtpoint3d[0] + 0.05, txtpoint3d[1], txtpoint3d[2])
+            txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
+            draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
 
-                draw_line(screen_point_bp2, screen_point_gp4)
-                draw_line(screen_point_gp4, screen_point_cp2)
-                draw_line(screen_point_bp3, screen_point_bp1)
-                draw_line(screen_point_cp3, screen_point_cp1)
-                draw_line(screen_point_gp3, screen_point_gp5)
+            draw_line(screen_point_gp2, screen_point_gp3)
 
-            # Only for Triangle or arch
-            if op.UST == "2" or op.UST == "4":
-                dist = distance(g_p2, g_p3)
-                txtpoint3d = interpolate3d(g_p2, g_p3, math.fabs(dist / 2))
-                gap3d = (txtpoint3d[0] + 0.05, txtpoint3d[1], txtpoint3d[2])
-                txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
-                draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
+        # Only for Triangle and Inclines or arch
+        if op.UST == "3" or op.UST == "4" or op.UST == "2":
+            screen_point_hp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, h_p1)
+            screen_point_hp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, h_p2)
+            screen_point_hp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, h_p3)
+            screen_point_hp4 = view3d_utils.location_3d_to_region_2d(region, rv3d, h_p4)
+            screen_point_hp5 = view3d_utils.location_3d_to_region_2d(region, rv3d, h_p5)
 
-                draw_line(screen_point_gp2, screen_point_gp3)
+            dist = distance(h_p1, h_p3)
+            txtpoint3d = interpolate3d(h_p1, h_p3, math.fabs(dist / 2))
+            gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] - space - 0.05)
+            txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
+            draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
 
-            # Only for Triangle and Inclines or arch
-            if op.UST == "3" or op.UST == "4" or op.UST == "2":
-                screen_point_hp1 = view3d_utils.location_3d_to_region_2d(region, rv3d, h_p1)
-                screen_point_hp2 = view3d_utils.location_3d_to_region_2d(region, rv3d, h_p2)
-                screen_point_hp3 = view3d_utils.location_3d_to_region_2d(region, rv3d, h_p3)
-                screen_point_hp4 = view3d_utils.location_3d_to_region_2d(region, rv3d, h_p4)
-                screen_point_hp5 = view3d_utils.location_3d_to_region_2d(region, rv3d, h_p5)
+            draw_line(screen_point_ap1, screen_point_hp2)
+            draw_line(screen_point_hp3, screen_point_hp5)
+            draw_line(screen_point_hp1, screen_point_hp4)
 
-                dist = distance(h_p1, h_p3)
-                txtpoint3d = interpolate3d(h_p1, h_p3, math.fabs(dist / 2))
-                gap3d = (txtpoint3d[0], txtpoint3d[1], txtpoint3d[2] - space - 0.05)
-                txtpoint2d = view3d_utils.location_3d_to_region_2d(region, rv3d, gap3d)
-                draw_text(txtpoint2d[0], txtpoint2d[1], "%6.2f" % dist, rgb, fsize)
-
-                draw_line(screen_point_ap1, screen_point_hp2)
-                draw_line(screen_point_hp3, screen_point_hp5)
-                draw_line(screen_point_hp1, screen_point_hp4)
-
-        return
+    return
 
 
 # --------------------------------------------------------------------
@@ -653,7 +651,7 @@ def rotate_x(v1, rot):
     v2 = [0, 0, 0]
 
     radx = rot[0]
-    
+
     # X axis
     v2[0] = v1[0]
     v2[1] = v1[1] * math.cos(radx) - v1[2] * math.sin(radx)

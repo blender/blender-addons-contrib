@@ -1,23 +1,22 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
 # Author: Antonio Vazquez (antonioya)
@@ -186,6 +185,8 @@ def shape_mesh(mainobject, tmp_mesh, update=False):
 #
 # ------------------------------------------------------------------------------
 # noinspection PyUnusedLocal
+
+
 def shape_children(mainobject, update=False):
     mp = mainobject.DoorObjectGenerator[0]
 
@@ -414,9 +415,9 @@ class AchmDoorObjectgeneratorpanel(bpy.types.Panel):
 # Create Doorframe
 # ------------------------------------------------------------------------------
 def create_doorframe(mp, mymesh):
-    tf = mp.frame_thick/3
+    tf = mp.frame_thick / 3
     sf = mp.frame_size
-    wf = (mp.frame_width/2) - sf
+    wf = (mp.frame_width / 2) - sf
     hf = mp.frame_height - sf
     gap = 0.02
     deep = mp.frame_thick * 0.50

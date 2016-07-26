@@ -1,31 +1,29 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: __init__.py
 # Author: Antonio Vazquez (antonioya)
 # ----------------------------------------------------------
- 
+
 # ----------------------------------------------
-# Define Addon info 
+# Define Addon info
 # ----------------------------------------------
 bl_info = {
     "name": "Archimesh",
@@ -112,7 +110,7 @@ class AchmInfoMtMeshDecorationAdd(bpy.types.Menu):
         self.layout.operator("mesh.archimesh_roller", text="Add Roller curtains", icon="PLUGIN")
         self.layout.operator("mesh.archimesh_venetian", text="Add Venetian blind", icon="PLUGIN")
         self.layout.operator("mesh.archimesh_japan", text="Add Japanese curtains", icon="PLUGIN")
-    
+
 # ----------------------------------------------------------
 # Registration
 # ----------------------------------------------------------
@@ -177,7 +175,7 @@ def register():
     bpy.utils.register_class(achm_window_panel.AchmWinPanel)
     bpy.utils.register_class(achm_window_panel.AchmWindowEditPanel)
     bpy.types.INFO_MT_mesh_add.append(AchmMenu_func)
-    
+
     # Define properties
     bpy.types.Scene.archimesh_select_only = bpy.props.BoolProperty(name="Only selected",
                                                                    description="Apply auto holes only to"
@@ -268,7 +266,7 @@ def unregister():
     bpy.utils.unregister_class(achm_window_panel.AchmWinPanel)
     bpy.utils.unregister_class(achm_window_panel.AchmWindowEditPanel)
     bpy.types.INFO_MT_mesh_add.remove(AchmMenu_func)
-    
+
     # Remove properties
     del bpy.types.Scene.archimesh_select_only
     del bpy.types.Scene.archimesh_ceiling

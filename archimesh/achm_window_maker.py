@@ -1,23 +1,22 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
 # Author: Antonio Vazquez (antonioya)
@@ -175,9 +174,9 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     else:
         plus = 0
 
-    mp.glpoint_a = (-mp.width/2, 0, 0)
-    mp.glpoint_b = (-mp.width/2, 0, mp.height + plus)
-    mp.glpoint_c = (mp.width/2, 0, mp.height + plus)
+    mp.glpoint_a = (-mp.width / 2, 0, 0)
+    mp.glpoint_b = (-mp.width / 2, 0, mp.height + plus)
+    mp.glpoint_c = (mp.width / 2, 0, mp.height + plus)
 
     # Lock
     mainobject.lock_location = (True, True, True)
@@ -214,7 +213,7 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
     set_normals(myctrl)
     myctrl.parent = myempty
     myctrl.location.x = 0
-    myctrl.location.y = -mp.depth*3 / 2
+    myctrl.location.y = -mp.depth * 3 / 2
     myctrl.location.z = 0
     myctrl.draw_type = 'BOUNDS'
     myctrl.hide = False
@@ -436,7 +435,7 @@ def generate_rail_window(myframe, mp, mymesh):
     remove_doubles(myframe)
     set_normals(myframe)
 
-    # Window L    
+    # Window L
     width = (mp.width / 2) + 0.01
     mywin_l = create_rail_window_leaf("Window.L", "L",
                                       width, win_size, mp.height - 0.05,
@@ -451,7 +450,7 @@ def generate_rail_window(myframe, mp, mymesh):
     mywin_l.location.x = (-mp.width / 2) + 0.01
     mywin_l.location.y = p1 - 0.001
     mywin_l.location.z = 0.025
-    # Window R    
+    # Window R
     mywin_r = create_rail_window_leaf("Window.R", "R",
                                       width, win_size, mp.height - 0.05,
                                       mp.wf,
@@ -514,7 +513,7 @@ def generate_leaf_window(myframe, mp, mymesh):
     if mp.crt_mat:
         alummat = create_diffuse_material("Window_material", False, 0.8, 0.8, 0.8, 0.6, 0.6, 0.6, 0.15)
 
-    # Frame    
+    # Frame
     win_size = create_leaf_window_frame(myframe, mymesh,
                                         mp.width, mp.depth, mp.height,
                                         mp.frame, mp.frame_L, mp.leafratio,
@@ -527,7 +526,7 @@ def generate_leaf_window(myframe, mp, mymesh):
 
     stepsize = 0.01
     # -----------------------------
-    # Window L   
+    # Window L
     # -----------------------------
     if mp.opentype == "2" or mp.opentype == "4":
         handle = mp.handle
@@ -551,7 +550,7 @@ def generate_leaf_window(myframe, mp, mymesh):
         mywin_l.location.y = -mp.depth
         mywin_l.location.z = mp.frame_L - (stepsize / 2) - 0.003
     # -----------------------------
-    # Window R   
+    # Window R
     # -----------------------------
     if mp.opentype == "2" or mp.opentype == "3":
         if mp.opentype == "2":
@@ -726,7 +725,7 @@ def create_rail_window_frame(mywindow, mymesh, sx, sy, sz, frame, mat, matdata, 
     x = sx - 0.005 - (sideb * 2)  # sideB + small gap
     y = y - m - thick - gap - p - rail - p - thick - p - rail - p
     z = sideb
-    # Bottom 
+    # Bottom
     myvertex.extend([(-x / 2, y - thick, 0.0),
                      (-x / 2, y, 0.0),
                      (x / 2, y, 0.0),
@@ -1102,7 +1101,7 @@ def create_rail_window_leaf(objname, hand, sx, sy, sz, f, px, py, pz, mat, matda
     mywindow.lock_location = (False, True, True)  # only X axis
     mywindow.lock_rotation = (True, True, True)
 
-    # Handle    
+    # Handle
     if handle:
         myhandle = create_rail_handle("Handle", mat)
         myhandle.parent = mywindow

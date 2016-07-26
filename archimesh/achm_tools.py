@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: achm_tools.py
 # support routines and general functions
 # Author: Antonio Vazquez (antonioya)
 #
@@ -32,7 +30,7 @@ import os
 
 # --------------------------------------------------------------------
 # Get length Blender units
-# --------------------------------------------------------------------            
+# --------------------------------------------------------------------
 def get_blendunits(units):
     if bpy.context.scene.unit_settings.system == "IMPERIAL":
         return units * 0.3048
@@ -202,7 +200,7 @@ def set_modifier_boolean(myobject, bolobject):
 
 # --------------------------------------------------------------------
 # Set material to object
-# --------------------------------------------------------------------            
+# --------------------------------------------------------------------
 def set_material(myobject, mymaterial):
     bpy.context.scene.objects.active = myobject
     if bpy.context.scene.objects.active.name == myobject.name:
@@ -226,7 +224,7 @@ def set_material_faces(myobject, idx):
 
 # --------------------------------------------------------------------
 # Select faces
-# --------------------------------------------------------------------            
+# --------------------------------------------------------------------
 def select_faces(myobject, selface, clear):
     myobject.select = True
     bpy.context.scene.objects.active = myobject
@@ -243,7 +241,7 @@ def select_faces(myobject, selface, clear):
 
 # --------------------------------------------------------------------
 # Select vertices
-# --------------------------------------------------------------------            
+# --------------------------------------------------------------------
 def select_vertices(myobject, selvertices, clear=True):
     myobject.select = True
     bpy.context.scene.objects.active = myobject
@@ -253,7 +251,7 @@ def select_vertices(myobject, selvertices, clear=True):
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.select_all(action='DESELECT')
 
-        # Select Vertices 
+        # Select Vertices
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
         sel_mode = bpy.context.tool_settings.mesh_select_mode
 
@@ -270,7 +268,7 @@ def select_vertices(myobject, selvertices, clear=True):
 
 # --------------------------------------------------------------------
 # Mark Seam
-# --------------------------------------------------------------------            
+# --------------------------------------------------------------------
 def mark_seam(myobject):
     # noinspection PyBroadException
     try:
@@ -286,14 +284,14 @@ def mark_seam(myobject):
 
 # --------------------------------------------------------------------
 # Unwrap mesh
-# --------------------------------------------------------------------            
+# --------------------------------------------------------------------
 def unwrap_mesh(myobject, allfaces=True):
     # noinspection PyBroadException
     try:
         myobject.select = True
         bpy.context.scene.objects.active = myobject
         if bpy.context.scene.objects.active.name == myobject.name:
-            # Unwrap 
+            # Unwrap
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
             if allfaces is True:
                 bpy.ops.mesh.select_all(action='DESELECT')
@@ -855,7 +853,7 @@ def create_fabric_material(matname, replace, r, g, b, rv=0.8, gv=0.636, bv=0.315
     node.scale[2] = 1000
 
     # ===========================================================================
-    # Image texture 
+    # Image texture
     # ===========================================================================
     # Load image file.
 
@@ -923,7 +921,7 @@ def copy_binfile(fromfile, tofile):
                 if mybytes:
                     f2.write(mybytes)
                 else:
-                    break    
+                    break
 
 
 # --------------------------------------------------------------------
@@ -1043,4 +1041,3 @@ def check_mesh_errors(myvertices, myfaces):
         f += 1
 
     return myfaces
-

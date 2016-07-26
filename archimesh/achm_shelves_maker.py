@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: achm_shelves_maker.py
 # Automatic generation of shelves
 # Author: Antonio Vazquez (antonioya)
 #
@@ -34,10 +32,11 @@ from achm_tools import *
 # Define property group class for shelves properties
 # ------------------------------------------------------------------
 class ShelvesProperties(bpy.types.PropertyGroup):
-    sX = bpy.props.FloatProperty(name='width', min=0.001, max=10, default=1, precision=3, description='Furniture width')
+    sX = bpy.props.FloatProperty(name='width', min=0.001, max=10, default=1,
+                                 precision=3, description='Furniture width')
     wY = bpy.props.FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Modify y size')
     wZ = bpy.props.FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Modify z size')
-    # Cabinet position shift   
+    # Cabinet position shift
     pX = bpy.props.FloatProperty(name='', min=0, max=10, default=0, precision=3, description='Position x shift')
     pY = bpy.props.FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Position y shift')
     pZ = bpy.props.FloatProperty(name='', min=-10, max=10, default=0, precision=3, description='Position z shift')
@@ -101,7 +100,7 @@ class AchmShelves(bpy.types.Operator):
                                         description='Number total of shelves units')
     shelves = bpy.props.CollectionProperty(type=ShelvesProperties)
 
-    # Materials        
+    # Materials
     crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
                                      description="Create default materials for Cycles render.", default=True)
 
@@ -154,10 +153,10 @@ class AchmShelves(bpy.types.Operator):
     def execute(self, context):
         if bpy.context.mode == "OBJECT":
             # Create all elements
-            for i in range(len(self.shelves)-1, self.shelves_num):
+            for i in range(len(self.shelves) - 1, self.shelves_num):
                 self.shelves.add()
 
-            # Create shelves    
+            # Create shelves
             create_shelves_mesh(self)
             return {'FINISHED'}
         else:
@@ -283,7 +282,7 @@ def generate_shelves(self):
     boxes[0].select = True
     bpy.context.scene.objects.active = boxes[0]
 
-    # Create materials        
+    # Create materials
     if self.crt_mat:
         mat = create_diffuse_material("Shelves_material", False, 0.8, 0.8, 0.8)
         for box in boxes:
@@ -324,7 +323,7 @@ def create_unit(stype, objname, thickness, sthickness, sx, sy, sz, px, py, pz, l
         thickness = 0
 
     # ------------------------------
-    # Left side 
+    # Left side
     # ------------------------------
     if left and stype != "99":
         # Full side
@@ -403,10 +402,10 @@ def create_unit(stype, objname, thickness, sthickness, sx, sy, sz, px, py, pz, l
     posz1 = bottom
 
     for x in range(shelves):
-        # bottom 
+        # bottom
         if x == 0:
             posz1 = bottom
-        # top 
+        # top
         if x == shelves - 1:
             posz1 = sz - top - sthickness
 

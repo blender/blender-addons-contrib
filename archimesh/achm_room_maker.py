@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: achm_room_maker.py
 # Automatic generation of rooms
 # Author: Antonio Vazquez (antonioya) and Eduardo Gutierrez
 #
@@ -67,7 +65,7 @@ class AchmExportRoom(bpy.types.Operator, ExportHelper):
             mydata = myobj.RoomGenerator[0]
 
             # -------------------------------
-            # extract path and filename 
+            # extract path and filename
             # -------------------------------
             (filepath, filename) = os.path.split(self.properties.filepath)
             print('Exporting %s' % filename)
@@ -177,7 +175,7 @@ class AchmImportRoom(bpy.types.Operator, ImportHelper):
 
             myobj = bpy.context.active_object
             mydata = myobj.RoomGenerator[0]
-            # ----------------------------------         
+            # ----------------------------------
             # Loop all records from file
             # ----------------------------------
             idx = 0  # index of each wall
@@ -473,7 +471,7 @@ def shape_walls_and_create_children(myroom, tmp_mesh, update=False):
             for mod in myroom.modifiers:
                 if mod.type == 'SOLIDIFY':
                     mod.thickness = rp.wall_width
-        # Move to Top SOLIDIFY            
+        # Move to Top SOLIDIFY
         movetotopsolidify(myroom)
 
     else:  # clear not used SOLIDIFY
@@ -496,7 +494,7 @@ def shape_walls_and_create_children(myroom, tmp_mesh, update=False):
         set_normals(mybase, rp.inverse)  # inside/outside room
         if rp.base_width > 0.0:
             set_modifier_solidify(mybase, get_blendunits(rp.base_width))
-            # Move to Top SOLIDIFY            
+            # Move to Top SOLIDIFY
             movetotopsolidify(mybase)
         # Mark Seams
         select_vertices(mybase, [0, 1])
@@ -550,7 +548,7 @@ def shape_walls_and_create_children(myroom, tmp_mesh, update=False):
             mat = create_diffuse_material("Ceiling_material", False, 0.95, 0.95, 0.95)
             set_material(myceiling, mat)
 
-        # Floor material    
+        # Floor material
         if rp.floor and myfloor is not None:
             mat = create_brick_material("Floor_material", False, 0.711, 0.668, 0.668, 0.8, 0.636, 0.315)
             set_material(myfloor, mat)
@@ -646,10 +644,10 @@ def make_wall(prv, wall, baseboard, lastface, lastx, lasty, height, myvertex, my
     hide = wall.h
 
     # if angle negative, calculate real
-    # use add because the angle is negative 
+    # use add because the angle is negative
     if angle < 0:
         angle += 360
-    # Verify Units    
+    # Verify Units
     size = get_blendunits(size)
     over = get_blendunits(over)
 
@@ -1461,7 +1459,8 @@ class RoomProperties(bpy.types.PropertyGroup):
     base_height = bpy.props.FloatProperty(name='Height', min=0.05, max=20, default=0.12, precision=3,
                                           description='Baseboard height', update=update_room)
 
-    ceiling = bpy.props.BoolProperty(name="Ceiling", description="Create a ceiling.", default=False, update=update_room)
+    ceiling = bpy.props.BoolProperty(name="Ceiling", description="Create a ceiling.",
+                                     default=False, update=update_room)
     floor = bpy.props.BoolProperty(name="Floor", description="Create a floor automatically.", default=False,
                                    update=update_room)
 

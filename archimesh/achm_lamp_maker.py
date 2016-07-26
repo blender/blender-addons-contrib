@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: lamps_maker.py
 # Automatic generation of lamps
 # Author: Antonio Vazquez (antonioya)
 #
@@ -196,15 +194,15 @@ class AchmLamp(bpy.types.Operator):
     opacity = bpy.props.FloatProperty(name='Translucency', min=0.00, max=1, default=0.3, precision=3,
                                       description='Lampshade translucency factor (1 completely translucent)')
 
-    # Materials        
+    # Materials
     crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
                                      description="Create default materials for Cycles render.", default=True)
     objcol = bpy.props.FloatVectorProperty(name="Color",
-                                        description="Color for material",
-                                        default=(1.0, 1.0, 1.0, 1.0),
-                                        min=0.1, max=1,
-                                        subtype='COLOR',
-                                        size=4)
+                                           description="Color for material",
+                                           default=(1.0, 1.0, 1.0, 1.0),
+                                           min=0.1, max=1,
+                                           subtype='COLOR',
+                                           size=4)
 
     # -----------------------------------------------------
     # Draw (create UI interface)
@@ -680,9 +678,9 @@ def create_cylinder_data(segments, listheight, listradio, bottom, top, pleats, p
         e = len(listheight) - 1
         listheight.insert(e, listheight[e] + 0.001)
         listradio.insert(e, listradio[e])
-    # ------------------------------------- 
+    # -------------------------------------
     # Vertices
-    # ------------------------------------- 
+    # -------------------------------------
     idx = 0
     rp = 0
     for z in listheight:
@@ -700,7 +698,7 @@ def create_cylinder_data(segments, listheight, listradio, bottom, top, pleats, p
                 rp = 0
 
         idx += 1
-    # ------------------------------------- 
+    # -------------------------------------
     # Faces
     # -------------------------------------
     for r in range(0, len(listheight) - 1):

@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: achm_books_maker.py
 # Automatic generation of books
 # Author: Antonio Vazquez (antonioya)
 #
@@ -67,7 +65,7 @@ class AchmBooks(bpy.types.Operator):
     afn = bpy.props.IntProperty(name='Affinity', min=0, max=10, default=5,
                                 description='Number of books with same rotation angle')
 
-    # Materials        
+    # Materials
     crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
                                      description="Create default materials for "
                                                  "Cycles render.", default=True)
@@ -129,7 +127,7 @@ class AchmBooks(bpy.types.Operator):
     # noinspection PyUnusedLocal
     def execute(self, context):
         if bpy.context.mode == "OBJECT":
-            # Create shelves    
+            # Create shelves
             create_book_mesh(self)
             return {'FINISHED'}
         else:
@@ -161,7 +159,7 @@ def generate_books(self):
     location = bpy.context.scene.cursor_location
     myloc = copy.copy(location)  # copy location to keep 3D cursor position
 
-    # Create 
+    # Create
     lastx = myloc.x
     ox = 0
     oy = 0
@@ -241,7 +239,7 @@ def create_book(objname, sx, sy, sz, px, py, pz, mat, frx,
     # gap Randomness
     ri = random.randint(10, 150)
     gap = ri / 100000
-    # Randomness X   
+    # Randomness X
     if ox == 0:
         ri = random.randint(0, int(frx * 1000))
         factor = ri / 1000
@@ -346,7 +344,8 @@ def create_book(objname, sx, sy, sz, px, py, pz, mat, frx,
     if mat:
         rgb = objcol
         # External
-        mat = create_diffuse_material(objname + "_material", True, rgb[0], rgb[1], rgb[2], rgb[0], rgb[1], rgb[2], 0.05)
+        mat = create_diffuse_material(objname + "_material", True,
+                                      rgb[0], rgb[1], rgb[2], rgb[0], rgb[1], rgb[2], 0.05)
         set_material(mybook, mat)
         # UV unwrap external
         select_faces(mybook, 0, True)

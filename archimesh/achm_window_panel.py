@@ -1,26 +1,24 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
-# PEP8 compliant (https://www.python.org/dev/peps/pep-0008)
+# <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: achm_window_panel.py
 # Main panel for windows
 # Author: Antonio Vazquez (antonioya)
 #
@@ -302,7 +300,7 @@ def update_window(self, context):
 
         myparent.select = True
         bpy.ops.object.delete()
-        
+
     # Finally create all that again
     tmp_mesh = bpy.data.meshes.new("temp")
     do_mesh(o, tmp_mesh, True)
@@ -350,10 +348,10 @@ def do_mesh(myobject, tmp_mesh, update=False):
         # saves OpenGL data
         # sum width
         totx = myobject.dimensions.x
-        op.glpoint_a = (-totx/2, 0, 0)
+        op.glpoint_a = (-totx / 2, 0, 0)
         top_a, top_b, top_c = get_high_points(myobject, totx, op.UST)
-        op.glpoint_b = (-totx/2, 0, top_a)
-        op.glpoint_c = (totx/2, 0, top_b)
+        op.glpoint_b = (-totx / 2, 0, top_a)
+        op.glpoint_c = (totx / 2, 0, top_b)
         op.glpoint_d = (0, 0, top_c)
 
         # Lock
@@ -1346,10 +1344,10 @@ def get_high_points(selobject, width, tip):
     # Recover all vertex
     # --------------------------
     for vertex in obverts:
-        if vertex.co[0] == -width/2:
+        if vertex.co[0] == -width / 2:
             if vertex.co[2] >= top_a:
                 top_a = vertex.co[2]
-        if vertex.co[0] == width/2:
+        if vertex.co[0] == width / 2:
             if vertex.co[2] >= top_b:
                 top_b = vertex.co[2]
         # top center
@@ -1367,6 +1365,7 @@ def get_high_points(selobject, width, tip):
 # Defines a point
 # ---------------------------------------------------------
 class Cpoint:
+
     def __init__(self, x, y):
         self.x = float(x)
         self.y = float(y)
@@ -1581,28 +1580,39 @@ class GeneralPanelProperties(bpy.types.PropertyGroup):
     mr4 = bpy.props.IntProperty(name='', min=0, max=50, default=0, description='Extrusion for Jamb',
                                 update=update_window)
 
-    mt1 = bpy.props.EnumProperty(items=(('1', "PVC", ""), ('2', "WOOD", ""), ('3', "Plastic", "")), name="",
-                                 default='1',
-                                 description='Material to use',
-                                 update=update_window)
-    mt2 = bpy.props.EnumProperty(items=(('1', "PVC", ""), ('2', "WOOD", ""), ('3', "Plastic", "")), name="",
-                                 default='3',
-                                 description='Material to use',
-                                 update=update_window)
+    mt1 = bpy.props.EnumProperty(
+            items=(('1', "PVC", ""), ('2', "WOOD", ""), ('3', "Plastic", "")), name="",
+            default='1',
+            description='Material to use',
+            update=update_window,
+            )
+    mt2 = bpy.props.EnumProperty(
+            items=(('1', "PVC", ""), ('2', "WOOD", ""), ('3', "Plastic", "")), name="",
+            default='3',
+            description='Material to use',
+            update=update_window,
+            )
 
-    r = bpy.props.FloatProperty(name='Rotation', min=0, max=360, default=0, precision=1,
-                                description='Panel rotation', update=update_window)
+    r = bpy.props.FloatProperty(
+            name='Rotation', min=0, max=360, default=0, precision=1,
+            description='Panel rotation', update=update_window,
+            )
 
     UST = bpy.props.EnumProperty(
-        items=(('1', "Flat", ""), ('2', "Arch", ""), ('3', "Inclined", ""), ('4', "Triangle", "")),
-        name="Top", default='1',
-        description='Type of window upper section',
-        update=update_window)
-    DT2 = bpy.props.EnumProperty(items=(('1', "Difference", ""), ('2', "Radius", "")), name="", default='1',
-                                 update=update_window)
-    DT3 = bpy.props.EnumProperty(items=(('1', "Difference", ""), ('2', "Incline %", ""), ('3', "Incline Angle", "")),
-                                 name="",
-                                 default='1', update=update_window)
+            items=(('1', "Flat", ""), ('2', "Arch", ""), ('3', "Inclined", ""), ('4', "Triangle", "")),
+            name="Top", default='1',
+            description='Type of window upper section',
+            update=update_window,
+            )
+    DT2 = bpy.props.EnumProperty(
+            items=(('1', "Difference", ""), ('2', "Radius", "")), name="", default='1',
+            update=update_window,
+            )
+    DT3 = bpy.props.EnumProperty(
+            items=(('1', "Difference", ""), ('2', "Incline %", ""), ('3', "Incline Angle", "")),
+            name="",
+            default='1', update=update_window,
+            )
 
     VL1 = bpy.props.IntProperty(name='', min=-10000, max=10000, default=30, update=update_window)  # Fark
     VL2 = bpy.props.IntProperty(name='', min=1, max=10000, default=30, update=update_window)  # Cap
@@ -1684,18 +1694,26 @@ class GeneralPanelProperties(bpy.types.PropertyGroup):
     k46 = bpy.props.BoolProperty(name='', default=False, update=update_window)
     k47 = bpy.props.BoolProperty(name='', default=False, update=update_window)
     # opengl internal data
-    glpoint_a = bpy.props.FloatVectorProperty(name="glpointa",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
-    glpoint_b = bpy.props.FloatVectorProperty(name="glpointb",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
-    glpoint_c = bpy.props.FloatVectorProperty(name="glpointc",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
-    glpoint_d = bpy.props.FloatVectorProperty(name="glpointc",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
+    glpoint_a = bpy.props.FloatVectorProperty(
+            name="glpointa",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
+    glpoint_b = bpy.props.FloatVectorProperty(
+            name="glpointb",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
+    glpoint_c = bpy.props.FloatVectorProperty(
+            name="glpointc",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
+    glpoint_d = bpy.props.FloatVectorProperty(
+            name="glpointc",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
 
 
 bpy.utils.register_class(GeneralPanelProperties)
