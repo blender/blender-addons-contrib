@@ -38,7 +38,7 @@ def point_on_edge(p, edge):
     < returns:  True / False if a point happens to lie on an edge
     '''
     pt, _percent = PtLineIntersect(p, *edge)
-    on_line = (pt-p).length < CAD_prefs.VTX_PRECISION
+    on_line = (pt - p).length < CAD_prefs.VTX_PRECISION
     return on_line and (0.0 <= _percent <= 1.0)
 
 
@@ -70,7 +70,7 @@ def get_intersection_from_idxs(bm, idx1, ixd2):
     p1, p2 = coords_tuple_from_edge_idx(bm, idx1)
     p3, p4 = coords_tuple_from_edge_idx(bm, idx2)
     a, b = LineIntersect(p1, p2, p3, p4)
-    if (a-b).length < CAD_prefs.VTX_PRECISION:
+    if (a - b).length < CAD_prefs.VTX_PRECISION:
         return a
 
 
@@ -83,7 +83,7 @@ def test_coplanar(edge1, edge2):
     '''
     line = line_from_edge_intersect(edge1, edge2)
     if line:
-        return (line[0]-line[1]).length < CAD_prefs.VTX_PRECISION
+        return (line[0] - line[1]).length < CAD_prefs.VTX_PRECISION
 
 
 def closest_idx(pt, e):
@@ -140,6 +140,7 @@ def vertex_indices_from_edges_tuple(bm, edge_tuple):
     k = lambda v, w: bm.edges[edge_tuple[v]].verts[w].index
     return [k(i >> 1, i % 2) for i in range(4)]
 
+
 def get_vert_indices_from_bmedges(edges):
     '''
     > bmedges:      a list of two bm edges
@@ -151,6 +152,7 @@ def get_vert_indices_from_bmedges(edges):
         for v in e.verts:
             temp_edges.append(v.index)
     return temp_edges
+
 
 def num_edges_point_lies_on(pt, edges):
     ''' returns the number of edges that a point lies on. '''

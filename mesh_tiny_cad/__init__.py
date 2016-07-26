@@ -37,7 +37,7 @@ if "bpy" in locals():
         import importlib
 
         try:
-            modules = [CFG, VTX, V2X, XALL, BIX, CCEN, E2F]
+            modules = (CFG, VTX, V2X, XALL, BIX, CCEN, E2F)
             for m in modules:
                 importlib.reload(m)
             print("tinyCAD: reloaded modules, all systems operational")
@@ -61,11 +61,13 @@ def menu_func(self, context):
     self.layout.separator()
 
 
-
 def register():
     register_icons()
     bpy.utils.register_module(__name__)
-    bpy.types.Scene.tinycad_props = bpy.props.PointerProperty(name="TinyCAD props", type=TinyCADProperties)
+    bpy.types.Scene.tinycad_props = bpy.props.PointerProperty(
+            name="TinyCAD props",
+            type=TinyCADProperties,
+            )
     bpy.types.VIEW3D_MT_edit_mesh_specials.prepend(menu_func)
 
 

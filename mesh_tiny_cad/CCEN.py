@@ -28,7 +28,6 @@ from mathutils import Vector
 
 
 def generate_bmesh_repr(p1, v1, axis, num_verts):
-
     '''
         p1:     center of circle (local coordinates)
         v1:     first vertex of circle in (local coordinates)
@@ -128,6 +127,7 @@ def dispatch(context, mode=0):
 
 ''' Operators '''
 
+
 class TCCallBackCCEN(bpy.types.Operator):
     bl_idname = 'tinycad.reset_circlescale'
     bl_label = 'CCEN circle reset'
@@ -136,6 +136,7 @@ class TCCallBackCCEN(bpy.types.Operator):
     def execute(self, context):
         context.scene.tinycad_props.rescale = 1
         return {'FINISHED'}
+
 
 class TCCircleCenter(bpy.types.Operator):
 
@@ -153,7 +154,6 @@ class TCCircleCenter(bpy.types.Operator):
         row.prop(scn.tinycad_props, 'rescale', text='rescale')
         row.operator('tinycad.reset_circlescale', text="", icon="LINK")
 
-
     @classmethod
     def poll(cls, context):
         obj = context.edit_object
@@ -166,6 +166,7 @@ class TCCircleCenter(bpy.types.Operator):
 
 def register():
     bpy.utils.register_module(__name__)
+
 
 def unregister():
     bpy.utils.unregister_module(__name__)

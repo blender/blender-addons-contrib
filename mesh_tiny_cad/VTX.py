@@ -30,6 +30,7 @@ messages = {
     'NON_PLANAR_EDGES': 'Non Planar Edges, no clean intersection point'
 }
 
+
 def add_edges(bm, pt, idxs, fdp):
     '''
     this function is a disaster --
@@ -64,9 +65,11 @@ def add_edges(bm, pt, idxs, fdp):
         print(sys.exc_info()[-1].tb_frame.f_code)
         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno))
 
+
 def remove_earmarked_edges(bm, earmarked):
     edges_select = [e for e in bm.edges if e.index in earmarked]
     bmesh.ops.delete(bm, geom=edges_select, context=2)
+
 
 def perform_vtx(bm, pt, edges, pts, vertex_indices):
     idx1, idx2 = edges[0].index, edges[1].index
