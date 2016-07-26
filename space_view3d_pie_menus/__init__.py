@@ -43,48 +43,29 @@ from bpy.types import (
         AddonPreferences,
         )
 
-from . import pie_modes_menu
-from . import pie_views_numpad_menu
-from . import pie_sculpt_menu
-from . import pie_origin_cursor
-from . import pie_manipulator_menu
-from . import pie_snap_menu
-from . import pie_orientation_menu
-from . import pie_shading_menu
-from . import pie_pivot_point_menu
-from . import pie_proportional_menu
-from . import pie_align_menu
-from . import pie_delete_menu
-from . import pie_apply_transform_menu
-from . import pie_select_menu
-from . import pie_animation_menu
-from . import pie_save_open_menu
-from . import pie_editor_switch_menu
+sub_modules_names = (
+    "pie_modes_menu",
+    "pie_views_numpad_menu",
+    "pie_sculpt_menu",
+    "pie_origin_cursor",
+    "pie_manipulator_menu",
+    "pie_snap_menu",
+    "pie_orientation_menu",
+    "pie_shading_menu",
+    "pie_pivot_point_menu",
+    "pie_proportional_menu",
+    "pie_align_menu",
+    "pie_delete_menu",
+    "pie_apply_transform_menu",
+    "pie_select_menu",
+    "pie_animation_menu",
+    "pie_save_open_menu",
+    "pie_editor_switch_menu",
+    )
 
 
-sub_modules = [
-    pie_modes_menu,
-    pie_views_numpad_menu,
-    pie_sculpt_menu,
-    pie_origin_cursor,
-    pie_manipulator_menu,
-    pie_snap_menu,
-    pie_orientation_menu,
-    pie_shading_menu,
-    pie_pivot_point_menu,
-    pie_proportional_menu,
-    pie_align_menu,
-    pie_delete_menu,
-    pie_apply_transform_menu,
-    pie_select_menu,
-    pie_animation_menu,
-    pie_save_open_menu,
-    pie_editor_switch_menu,
-    ]
-
-
-sub_modules.sort(
-    key=lambda mod: (mod.bl_info['category'], mod.bl_info['name']))
+sub_modules = [__import__(__package__ + "." + submod, {}, {}, submod) for submod in sub_modules_names]
+sub_modules.sort(key=lambda mod: (mod.bl_info['category'], mod.bl_info['name']))
 
 
 def _get_pref_class(mod):
@@ -262,9 +243,9 @@ for mod in sub_modules:
     prop = BoolProperty()
     setattr(UIToolsPreferences, 'show_expanded_' + mod_name, prop)
 
-classes = [
+classes = (
     UIToolsPreferences,
-]
+    )
 
 
 def register():
@@ -285,7 +266,7 @@ def unregister():
         if mod.__addon_enabled__:
             unregister_submodule(mod)
 
-    for cls in classes[::-1]:
+    for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
 if __name__ == "__main__":

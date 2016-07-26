@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
 
 import bpy
 
@@ -94,7 +95,7 @@ class SpaceProperty:
         'TIMELINE': bpy.types.SpaceTimeline,
         'USER_PREFERENCES': bpy.types.SpaceUserPreferences,
         'VIEW_3D': bpy.types.SpaceView3D,
-    }
+        }
     # space_types_r = {v: k for k, v in space_types.items()}
 
     def __init__(self, *props):
