@@ -1,6 +1,4 @@
-﻿# -*- coding: utf-8 -*-
-
-# ##### BEGIN GPL LICENSE BLOCK #####
+﻿# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -17,6 +15,8 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
 
 bl_info = {
     "name": "1D_Scripts",
