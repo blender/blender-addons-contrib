@@ -1,3 +1,23 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+
 import bpy
 import bmesh
 import sys
@@ -11,8 +31,8 @@ messages = {
 }
 
 def add_edges(bm, pt, idxs, fdp):
-    ''' 
-    this function is a disaster -- 
+    '''
+    this function is a disaster --
     index updates and ensure_lookup_table() are called before this function
     and after, and i've tried doing this less verbose but results tend to be
     less predictable. I'm obviously a terrible coder, but can only spend so
@@ -22,7 +42,7 @@ def add_edges(bm, pt, idxs, fdp):
     v1 = bm.verts.new(pt)
 
     bm.verts.ensure_lookup_table()
-    bm.edges.ensure_lookup_table()    
+    bm.edges.ensure_lookup_table()
     bm.verts.index_update()
 
     try:
@@ -33,7 +53,7 @@ def add_edges(bm, pt, idxs, fdp):
 
         bm.edges.index_update()
         bm.verts.ensure_lookup_table()
-        bm.edges.ensure_lookup_table() 
+        bm.edges.ensure_lookup_table()
 
     except Exception as err:
         print('some failure: details')
@@ -52,7 +72,7 @@ def perform_vtx(bm, pt, edges, pts, vertex_indices):
     idx1, idx2 = edges[0].index, edges[1].index
     fdp = pt, edges, pts, vertex_indices
 
-    # this list will hold those edges that pt lies on, 
+    # this list will hold those edges that pt lies on,
     edges_indices = cm.find_intersecting_edges(bm, pt, idx1, idx2)
     mode = 'VTX'[len(edges_indices)]
 
@@ -82,12 +102,12 @@ def perform_vtx(bm, pt, edges, pts, vertex_indices):
 
 def do_vtx_if_appropriate(bm, edges):
     vertex_indices = cm.get_vert_indices_from_bmedges(edges)
-    
+
     # test 1 , are there shared vers? if so return non-viable
     if not len(set(vertex_indices)) == 4:
         return {'SHARED_VERTEX'}
 
-    # test 2 , is parallel? 
+    # test 2 , is parallel?
     p1, p2, p3, p4 = [bm.verts[i].co for i in vertex_indices]
     point = cm.get_intersection([p1, p2], [p3, p4])
     if not point:
