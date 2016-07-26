@@ -406,32 +406,26 @@ def update_panel(self, context):
         bpy.utils.unregister_class(OscPanelFiles)
         bpy.utils.unregister_class(OscPanelOverrides)
         bpy.utils.unregister_class(OscPanelAnimation)
-
     except:
         pass
-    OscPanelControl.bl_category = context.user_preferences.addons[
-        __name__].preferences.category
+
+    addon_prefs = context.user_preferences.addons[__name__].preferences
+
+    OscPanelControl.bl_category = addon_prefs.category
     bpy.utils.register_class(OscPanelControl)
-    OscPanelObject.bl_category = context.user_preferences.addons[
-        __name__].preferences.category
+    OscPanelObject.bl_category = addon_prefs.category
     bpy.utils.register_class(OscPanelObject)
-    OscPanelMesh.bl_category = context.user_preferences.addons[
-        __name__].preferences.category
+    OscPanelMesh.bl_category = addon_prefs.category
     bpy.utils.register_class(OscPanelMesh)
-    OscPanelShapes.bl_category = context.user_preferences.addons[
-        __name__].preferences.category
+    OscPanelShapes.bl_category = addon_prefs.category
     bpy.utils.register_class(OscPanelShapes)
-    OscPanelRender.bl_category = context.user_preferences.addons[
-        __name__].preferences.category
+    OscPanelRender.bl_category = addon_prefs.category
     bpy.utils.register_class(OscPanelRender)
-    OscPanelFiles.bl_category = context.user_preferences.addons[
-        __name__].preferences.category
+    OscPanelFiles.bl_category = addon_prefs.category
     bpy.utils.register_class(OscPanelFiles)
-    OscPanelOverrides.bl_category = context.user_preferences.addons[
-        __name__].preferences.category
+    OscPanelOverrides.bl_category = addon_prefs.category
     bpy.utils.register_class(OscPanelOverrides)
-    OscPanelAnimation.bl_category = context.user_preferences.addons[
-        __name__].preferences.category
+    OscPanelAnimation.bl_category = addon_prefs.category
     bpy.utils.register_class(OscPanelAnimation)
 
 
