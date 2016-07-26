@@ -15,14 +15,33 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Contributed to by: meta-androcto, pitiwazou, chromoly, italic #
+
+# <pep8 compliant>
+
+bl_info = {
+    'name': '3D Viewport Pie Menu',
+    'author': 'meta-androcto, pitiwazou, chromoly, italic',
+    'version': (1, 1, 3),
+    'blender': (2, 7, 7),
+    'location': '',
+    'description': 'Pie Menu Activate',
+    'warning': '',
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    "Scripts/3D_interaction/viewport_pies",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
+    'category': 'User Interface'
+    }
+
 
 import bpy
-from math import *
-from bpy.props import IntProperty, BoolProperty, FloatProperty, EnumProperty, PointerProperty, StringProperty, CollectionProperty
-from bpy.types import PropertyGroup
-
-import inspect
+from bpy.props import (
+        BoolProperty,
+        PointerProperty,
+        )
+from bpy.types import (
+        PropertyGroup,
+        AddonPreferences,
+        )
 
 from . import pie_modes_menu
 from . import pie_views_numpad_menu
@@ -41,20 +60,6 @@ from . import pie_select_menu
 from . import pie_animation_menu
 from . import pie_save_open_menu
 from . import pie_editor_switch_menu
-
-bl_info = {
-    'name': '3D Viewport Pie Menu',
-    'author': 'meta-androcto, pitiwazou',
-    'version': (1, 1, 3),
-    'blender': (2, 7, 7),
-    'location': '',
-    'description': 'Pie Menu Activate',
-    'warning': '',
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-    "Scripts/3D_interaction/viewport_pies",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
-    'category': 'User Interface'
-    }
 
 
 sub_modules = [
@@ -83,8 +88,10 @@ sub_modules.sort(
 
 
 def _get_pref_class(mod):
+    import inspect
+
     for obj in vars(mod).values():
-        if inspect.isclass(obj) and issubclass(obj, bpy.types.PropertyGroup):
+        if inspect.isclass(obj) and issubclass(obj, PropertyGroup):
             if hasattr(obj, 'bl_idname') and obj.bl_idname == mod.__name__:
                 return obj
 
@@ -101,7 +108,7 @@ def get_addon_preferences(name=''):
                 if mod.__name__.split('.')[-1] == name:
                     cls = _get_pref_class(mod)
                     if cls:
-                        prop = bpy.props.PointerProperty(type=cls)
+                        prop = PointerProperty(type=cls)
                         setattr(UIToolsPreferences, name, prop)
                         bpy.utils.unregister_class(UIToolsPreferences)
                         bpy.utils.register_class(UIToolsPreferences)
@@ -139,17 +146,16 @@ def test_platform():
             not in {'darwin', 'windows'})
 
 
-class UIToolsPreferences(bpy.types.AddonPreferences):
+class UIToolsPreferences(AddonPreferences):
     bl_idname = __name__
 
-    align_box_draw = bpy.props.BoolProperty(
+    align_box_draw = BoolProperty(
         name='Box Draw',
         description='If applied patch: patch/ui_layout_box.patch',
         default=False)
 
     def draw(self, context):
         layout = self.layout
-        """:type: bpy.types.UILayout"""
 
         for mod in sub_modules:
             mod_name = mod.__name__.split('.')[-1]
@@ -247,13 +253,13 @@ for mod in sub_modules:
                     unregister_submodule(mod)
         return update
 
-    prop = bpy.props.BoolProperty(
+    prop = BoolProperty(
         name=info['name'],
         description=info.get('description', ''),
         update=gen_update(mod),
     )
     setattr(UIToolsPreferences, 'use_' + mod_name, prop)
-    prop = bpy.props.BoolProperty()
+    prop = BoolProperty()
     setattr(UIToolsPreferences, 'show_expanded_' + mod_name, prop)
 
 classes = [

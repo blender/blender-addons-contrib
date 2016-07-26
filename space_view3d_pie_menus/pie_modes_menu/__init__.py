@@ -9,12 +9,10 @@ bl_info = {
     "warning": "",
     "wiki_url": "",
     "category": "Mode Switch Pie"
-}
+    }
 
 import bpy
-from ..utils import AddonPreferences, SpaceProperty
-from bpy.types import Menu, Header
-from bpy.props import IntProperty, FloatProperty, BoolProperty
+from bpy.types import Menu
 
 # Define Class Object Mode
 

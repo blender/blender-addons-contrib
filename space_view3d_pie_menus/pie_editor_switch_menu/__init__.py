@@ -9,12 +9,13 @@ bl_info = {
     "warning": "",
     "wiki_url": "",
     "category": "Editor Switch Pie"
-}
+    }
 
 import bpy
-from ..utils import AddonPreferences, SpaceProperty
-from bpy.types import Menu, Header
-from bpy.props import IntProperty, FloatProperty, BoolProperty, StringProperty
+from bpy.types import Menu
+from bpy.props import (
+        StringProperty,
+        )
 
 
 class AreaPieMenu(bpy.types.Menu):
@@ -88,7 +89,7 @@ class SetAreaType(bpy.types.Operator):
     bl_description = "Change Editor Type"
     bl_options = {'REGISTER'}
 
-    type = bpy.props.StringProperty(name="Area Type")
+    type = StringProperty(name="Area Type")
 
     def execute(self, context):
         context.area.type = self.type

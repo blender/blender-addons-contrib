@@ -9,12 +9,10 @@ bl_info = {
     "warning": "",
     "wiki_url": "",
     "category": "Sculpt Pie"
-}
+    }
 
 import bpy
-from ..utils import AddonPreferences, SpaceProperty
-from bpy.types import Menu, Header
-from bpy.props import IntProperty, FloatProperty, BoolProperty
+from bpy.types import Menu
 
 # Sculpt Polish
 

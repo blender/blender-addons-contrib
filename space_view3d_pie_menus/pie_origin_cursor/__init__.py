@@ -9,12 +9,10 @@ bl_info = {
     "warning": "",
     "wiki_url": "",
     "category": "Cursor/Origin Pie"
-}
+    }
 
 import bpy
-from ..utils import AddonPreferences, SpaceProperty
-from bpy.types import Menu, Header
-from bpy.props import IntProperty, FloatProperty, BoolProperty
+from bpy.types import Menu
 
 # SnapCursSelToCenter1 thanks to Isaac Weaver (wisaac) D1963
 

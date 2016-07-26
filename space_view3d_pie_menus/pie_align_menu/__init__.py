@@ -9,15 +9,11 @@ bl_info = {
     "warning": "",
     "wiki_url": "",
     "category": "Edit Align Pie"
-}
+    }
 
 import bpy
-import bmesh
-from ..utils import AddonPreferences, SpaceProperty
-from bpy.types import Menu, Header
-from bpy.props import IntProperty, FloatProperty, BoolProperty
-from mathutils import *
-import math
+from bpy.types import Menu
+
 
 # Pie Align - Alt + X
 
