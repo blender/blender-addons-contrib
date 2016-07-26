@@ -63,10 +63,9 @@ steps_smoose = 0
 
 
 def check_lukap(bm):
-    if hasattr(bm.verts, "ensure_lookup_table"):
-        bm.verts.ensure_lookup_table()
-        bm.edges.ensure_lookup_table()
-        bm.faces.ensure_lookup_table()
+    bm.verts.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
 
 
 #----- Module: edge fillet-------
@@ -322,8 +321,7 @@ def is_loop_(list_fl):
 
 
 def e_no_(bme, indx, p, p1):
-    if hasattr(bme.verts, "ensure_lookup_table"):
-        bme.verts.ensure_lookup_table()
+    bme.verts.ensure_lookup_table()
     tmp1 = (bme.verts[indx].co).copy()
     tmp1[0] += 0.1
     tmp1[1] += 0.1
@@ -376,8 +374,7 @@ def f_(bme, dict_0, list_fl, loop):
                     v = (bme.verts[list_3[j]].co).copy()
                     bme.verts.new(intersect_line_plane(v, v + (vec1.normalized() * 0.1), pp, pn))
                     bme.verts.index_update()
-                    if hasattr(bme.verts, "ensure_lookup_table"):
-                        bme.verts.ensure_lookup_table()
+                    bme.verts.ensure_lookup_table()
                     list_3[j] = bme.verts[-1].index
                     dict_1[list_2[j]].append(bme.verts[-1].index)
 
@@ -392,16 +389,14 @@ def f_(bme, dict_0, list_fl, loop):
                     v = (bme.verts[list_3[j]].co).copy()
                     bme.verts.new(intersect_line_plane(v, v + (vec1.normalized() * 0.1), pp_, pn_))
                     bme.verts.index_update()
-                    if hasattr(bme.verts, "ensure_lookup_table"):
-                        bme.verts.ensure_lookup_table()
+                    bme.verts.ensure_lookup_table()
                     dict_1[list_2[j]].append(bme.verts[-1].index)
             else:
                 for j in range(n1):
                     v = (bme.verts[list_3[j]].co).copy()
                     bme.verts.new(intersect_line_plane(v, v + (vec1.normalized() * 0.1), pp, pn))
                     bme.verts.index_update()
-                    if hasattr(bme.verts, "ensure_lookup_table"):
-                        bme.verts.ensure_lookup_table()
+                    bme.verts.ensure_lookup_table()
                     list_3[j] = bme.verts[-1].index
                     dict_1[list_2[j]].append(bme.verts[-1].index)
 
@@ -418,8 +413,7 @@ def f_(bme, dict_0, list_fl, loop):
                      bme.verts[dict_1[list_4[t][0]][(o + 1) % n]],
                      ])
             bme.faces.index_update()
-            if hasattr(bme.faces, "ensure_lookup_table"):
-                bme.faces.ensure_lookup_table()
+            bme.faces.ensure_lookup_table()
 
 # ------ ------
 
