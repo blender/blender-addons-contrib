@@ -134,24 +134,49 @@ class AchmLamp(bpy.types.Operator):
     bl_category = 'Archimesh'
     bl_options = {'REGISTER', 'UNDO'}
     # preset
-    preset = bpy.props.EnumProperty(items=(('0', "None", ""),
-                                           ('1', "Sphere", ""),
-                                           ('2', "Pear", ""),
-                                           ('3', "Vase", ""),
-                                           ('4', "Rectangular", "")),
-                                    name="Predefined", description="Apply predefined design")
+    preset = bpy.props.EnumProperty(
+            items=(
+                ('0', "None", ""),
+                ('1', "Sphere", ""),
+                ('2', "Pear", ""),
+                ('3', "Vase", ""),
+                ('4', "Rectangular", ""),
+                ),
+            name="Predefined",
+            description="Apply predefined design",
+            )
     oldpreset = preset
 
-    base_height = bpy.props.FloatProperty(name='Height', min=0.01, max=10, default=0.20, precision=3,
-                                          description='lamp base height')
-    base_segments = bpy.props.IntProperty(name='Segments', min=3, max=128, default=16,
-                                          description='Number of segments (vertical)')
-    base_rings = bpy.props.IntProperty(name='Rings', min=2, max=12, default=6,
-                                       description='Number of rings (horizontal)')
-    holder = bpy.props.FloatProperty(name='Lampholder', min=0.001, max=10, default=0.02, precision=3,
-                                     description='Lampholder height')
-    smooth = bpy.props.BoolProperty(name="Smooth", description="Use smooth shader", default=True)
-    subdivide = bpy.props.BoolProperty(name="Subdivide", description="Add subdivision modifier", default=True)
+    base_height = bpy.props.FloatProperty(
+            name='Height',
+            min=0.01, max=10, default=0.20, precision=3,
+            description='lamp base height',
+            )
+    base_segments = bpy.props.IntProperty(
+            name='Segments',
+            min=3, max=128, default=16,
+            description='Number of segments (vertical)',
+            )
+    base_rings = bpy.props.IntProperty(
+            name='Rings',
+            min=2, max=12, default=6,
+            description='Number of rings (horizontal)',
+            )
+    holder = bpy.props.FloatProperty(
+            name='Lampholder',
+            min=0.001, max=10, default=0.02, precision=3,
+            description='Lampholder height',
+            )
+    smooth = bpy.props.BoolProperty(
+            name="Smooth",
+            description="Use smooth shader",
+            default=True,
+            )
+    subdivide = bpy.props.BoolProperty(
+            name="Subdivide",
+            description="Add subdivision modifier",
+            default=True,
+            )
 
     bz01 = bpy.props.FloatProperty(name='S1', min=-1, max=1, default=0, precision=3, description='Z shift factor')
     bz02 = bpy.props.FloatProperty(name='S2', min=-1, max=1, default=0, precision=3, description='Z shift factor')
@@ -179,30 +204,57 @@ class AchmLamp(bpy.types.Operator):
     br11 = bpy.props.FloatProperty(name='R11', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
     br12 = bpy.props.FloatProperty(name='R12', min=0.001, max=10, default=0.10, precision=3, description='Ring radio')
 
-    top_height = bpy.props.FloatProperty(name='Height', min=0.01, max=10, default=0.20, precision=3,
-                                         description='lampshade height')
-    top_segments = bpy.props.IntProperty(name='Segments', min=3, max=128, default=32,
-                                         description='Number of segments (vertical)')
-    tr01 = bpy.props.FloatProperty(name='R1', min=0.001, max=10, default=0.16, precision=3,
-                                   description='lampshade bottom radio')
-    tr02 = bpy.props.FloatProperty(name='R2', min=0.001, max=10, default=0.08, precision=3,
+    top_height = bpy.props.FloatProperty(
+            name='Height', min=0.01, max=10,
+            default=0.20, precision=3,
+            description='lampshade height',
+            )
+    top_segments = bpy.props.IntProperty(
+            name='Segments', min=3, max=128,
+            default=32,
+            description='Number of segments (vertical)',
+            )
+    tr01 = bpy.props.FloatProperty(
+            name='R1', min=0.001, max=10,
+            default=0.16, precision=3,
+            description='lampshade bottom radio',
+            )
+    tr02 = bpy.props.FloatProperty(name='R2', min=0.001, max=10,
+            default=0.08, precision=3,
                                    description='lampshade top radio')
-    pleats = bpy.props.BoolProperty(name="Pleats", description="Create pleats in the lampshade", default=False)
-    tr03 = bpy.props.FloatProperty(name='R3', min=0.001, max=1, default=0.01, precision=3, description='Pleats size')
-    energy = bpy.props.FloatProperty(name='Light', min=0.00, max=1000, default=15, precision=3,
-                                     description='Light intensity')
-    opacity = bpy.props.FloatProperty(name='Translucency', min=0.00, max=1, default=0.3, precision=3,
-                                      description='Lampshade translucency factor (1 completely translucent)')
+    pleats = bpy.props.BoolProperty(
+            name="Pleats", description="Create pleats in the lampshade",
+            default=False,
+            )
+    tr03 = bpy.props.FloatProperty(
+            name='R3', min=0.001, max=1,
+            default=0.01, precision=3, description='Pleats size',
+            )
+    energy = bpy.props.FloatProperty(
+            name='Light', min=0.00, max=1000,
+            default=15, precision=3,
+            description='Light intensity',
+            )
+    opacity = bpy.props.FloatProperty(
+            name='Translucency', min=0.00, max=1,
+            default=0.3, precision=3,
+            description='Lampshade translucency factor (1 completely translucent)',
+            )
 
     # Materials
-    crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
-                                     description="Create default materials for Cycles render.", default=True)
-    objcol = bpy.props.FloatVectorProperty(name="Color",
-                                           description="Color for material",
-                                           default=(1.0, 1.0, 1.0, 1.0),
-                                           min=0.1, max=1,
-                                           subtype='COLOR',
-                                           size=4)
+    crt_mat = bpy.props.BoolProperty(
+            name="Create default Cycles materials",
+            description="Create default materials for Cycles render",
+            default=True,
+            )
+    objcol = bpy.props.FloatVectorProperty(
+            name="Color",
+            description="Color for material",
+            default=(1.0, 1.0, 1.0, 1.0),
+            min=0.1, max=1,
+            subtype='COLOR',
+            size=4,
+            )
 
     # -----------------------------------------------------
     # Draw (create UI interface)

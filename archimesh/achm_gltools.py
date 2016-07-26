@@ -42,9 +42,9 @@ from achm_room_maker import get_wall_points
 #
 # -------------------------------------------------------------
 def draw_main(context):
-    region = bpy.context.region
-    rv3d = bpy.context.space_data.region_3d
-    scene = bpy.context.scene
+    region = context.region
+    rv3d = context.space_data.region_3d
+    scene = context.scene
 
     rgb = scene.archimesh_text_color
     rgbw = scene.archimesh_walltext_color
@@ -56,7 +56,7 @@ def draw_main(context):
     # Get visible layers
     layers = []
     for x in range(0, 20):
-        if bpy.context.scene.layers[x] is True:
+        if context.scene.layers[x] is True:
             layers.extend([x])
 
     bgl.glEnable(bgl.GL_BLEND)

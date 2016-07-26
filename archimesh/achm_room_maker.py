@@ -46,12 +46,16 @@ class AchmExportRoom(bpy.types.Operator, ExportHelper):
 
     # From ExportHelper. Filter filenames.
     filename_ext = ".dat"
-    filter_glob = bpy.props.StringProperty(default="*.dat", options={'HIDDEN'})
+    filter_glob = bpy.props.StringProperty(
+            default="*.dat",
+            options={'HIDDEN'},
+            )
 
     filepath = bpy.props.StringProperty(
-        name="File Path",
-        description="File path used for exporting room data file",
-        maxlen=1024, default="")
+            name="File Path",
+            description="File path used for exporting room data file",
+            maxlen=1024, default="",
+            )
 
     # ----------------------------------------------------------
     # Execute
@@ -154,12 +158,16 @@ class AchmImportRoom(bpy.types.Operator, ImportHelper):
 
     # From Helper. Filter filenames.
     filename_ext = ".dat"
-    filter_glob = bpy.props.StringProperty(default="*.dat", options={'HIDDEN'})
+    filter_glob = bpy.props.StringProperty(
+            default="*.dat",
+            options={'HIDDEN'},
+            )
 
     filepath = bpy.props.StringProperty(
-        name="File Path",
-        description="File path used for exporting room data file",
-        maxlen=1024, default="")
+            name="File Path",
+            description="File path used for exporting room data file",
+            maxlen=1024, default="",
+            )
 
     # ----------------------------------------------------------
     # Execute
@@ -305,7 +313,7 @@ class AchmImportRoom(bpy.types.Operator, ImportHelper):
 class AchmRoom(bpy.types.Operator):
     bl_idname = "mesh.archimesh_room"
     bl_label = "Room"
-    bl_description = "Generate room with walls, baseboard, floor and ceiling."
+    bl_description = "Generate room with walls, baseboard, floor and ceiling"
     bl_category = 'Archimesh'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -824,40 +832,91 @@ def create_floor(rp, typ, myroom):
 # Define property group class to create, or modify, room walls.
 # ------------------------------------------------------------------
 class WallProperties(bpy.types.PropertyGroup):
-    w = bpy.props.FloatProperty(name='Length', min=-150, max=150, default=1, precision=3,
-                                description='Length of the wall (negative to reverse direction)', update=update_room)
+    w = bpy.props.FloatProperty(
+            name='Length',
+            min=-150, max=150,
+            default=1, precision=3,
+            description='Length of the wall (negative to reverse direction)',
+            update=update_room,
+            )
 
-    a = bpy.props.BoolProperty(name="Advance", description="Define advance parameters of the wall", default=False,
-                               update=update_room)
+    a = bpy.props.BoolProperty(
+            name="Advance",
+            description="Define advance parameters of the wall",
+            default=False,
+            update=update_room,
+            )
 
-    curved = bpy.props.BoolProperty(name="Curved", description="Enable curved wall parameters", default=False,
-                                    update=update_room)
-    curve_factor = bpy.props.FloatProperty(name='Factor', min=-5, max=5, default=1, precision=1,
-                                           description='Curvature variation.', update=update_room)
-    curve_arc_deg = bpy.props.FloatProperty(name='Degrees', min=1, max=359, default=180, precision=1,
-                                            description='Degrees of the curve arc (must be >= steps)',
-                                            update=update_room)
-    curve_steps = bpy.props.IntProperty(name='Steps', min=2, max=50, default=12, description='Curve steps',
-                                        update=update_room)
+    curved = bpy.props.BoolProperty(
+            name="Curved",
+            description="Enable curved wall parameters",
+            default=False,
+            update=update_room,
+            )
+    curve_factor = bpy.props.FloatProperty(
+            name='Factor',
+            min=-5, max=5,
+            default=1, precision=1,
+            description='Curvature variation',
+            update=update_room,
+            )
+    curve_arc_deg = bpy.props.FloatProperty(
+            name='Degrees', min=1, max=359,
+            default=180, precision=1,
+            description='Degrees of the curve arc (must be >= steps)',
+            update=update_room,
+            )
+    curve_steps = bpy.props.IntProperty(
+            name='Steps',
+            min=2, max=50,
+            default=12,
+            description='Curve steps',
+            update=update_room,
+            )
 
-    m = bpy.props.FloatProperty(name='Peak', min=0, max=50, default=0, precision=3,
-                                description='Middle height variation', update=update_room)
-    f = bpy.props.FloatProperty(name='Factor', min=-1, max=1, default=0, precision=3, description='Middle displacement',
-                                update=update_room)
-    r = bpy.props.FloatProperty(name='Angle', min=-180, max=180, default=0, precision=1,
-                                description='Wall Angle (-180 to +180)', update=update_room)
+    m = bpy.props.FloatProperty(
+            name='Peak', min=0, max=50,
+            default=0, precision=3,
+            description='Middle height variation',
+            update=update_room,
+            )
+    f = bpy.props.FloatProperty(
+            name='Factor', min=-1, max=1,
+            default=0, precision=3,
+            description='Middle displacement',
+            update=update_room,
+            )
+    r = bpy.props.FloatProperty(
+            name='Angle',
+            min=-180, max=180,
+            default=0, precision=1,
+            description='Wall Angle (-180 to +180)',
+            update=update_room,
+            )
 
     h = bpy.props.EnumProperty(
-        items=(('0', "Visible", ""), ('1', "Baseboard", ""), ('2', "Wall", ""), ('3', "Hidden", "")),
-        name="", description="Wall visibility", update=update_room)
+            items=(
+                ('0', "Visible", ""),
+                ('1', "Baseboard", ""),
+                ('2', "Wall", ""),
+                ('3', "Hidden", ""),
+                ),
+            name="",
+            description="Wall visibility",
+            update=update_room,
+            )
 
     # opengl internal data
-    glpoint_a = bpy.props.FloatVectorProperty(name="glpointa",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
-    glpoint_b = bpy.props.FloatVectorProperty(name="glpointb",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
+    glpoint_a = bpy.props.FloatVectorProperty(
+            name="glpointa",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
+    glpoint_b = bpy.props.FloatVectorProperty(
+            name="glpointb",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
 
 bpy.utils.register_class(WallProperties)
 
@@ -1438,47 +1497,94 @@ def is_in_nextface(idx, activefaces, verts, x, y):
 # Define property group class to create or modify a rooms.
 # ------------------------------------------------------------------
 class RoomProperties(bpy.types.PropertyGroup):
-    room_height = bpy.props.FloatProperty(name='Height', min=0.001, max=50, default=2.4, precision=3,
-                                          description='Room height', update=update_room)
-    wall_width = bpy.props.FloatProperty(name='Thickness', min=0.000, max=10, default=0.0, precision=3,
-                                         description='Thickness of the walls', update=update_room)
-    inverse = bpy.props.BoolProperty(name="Inverse", description="Inverse normals to outside.", default=False,
-                                     update=update_room)
-    crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
-                                     description="Create default materials for Cycles render.", default=True,
-                                     update=update_room)
+    room_height = bpy.props.FloatProperty(
+            name='Height', min=0.001, max=50,
+            default=2.4, precision=3,
+            description='Room height', update=update_room,
+            )
+    wall_width = bpy.props.FloatProperty(
+            name='Thickness', min=0.000, max=10,
+            default=0.0, precision=3,
+            description='Thickness of the walls', update=update_room,
+            )
+    inverse = bpy.props.BoolProperty(
+            name="Inverse", description="Inverse normals to outside",
+            default=False,
+            update=update_room,
+            )
+    crt_mat = bpy.props.BoolProperty(
+            name="Create default Cycles materials",
+            description="Create default materials for Cycles render",
+            default=True,
+            update=update_room,
+            )
 
-    wall_num = bpy.props.IntProperty(name='Number of Walls', min=1, max=50, default=1,
-                                     description='Number total of walls in the room', update=add_room_wall)
+    wall_num = bpy.props.IntProperty(
+            name='Number of Walls', min=1, max=50,
+            default=1,
+            description='Number total of walls in the room', update=add_room_wall,
+            )
 
-    baseboard = bpy.props.BoolProperty(name="Baseboard", description="Create a baseboard automatically.", default=True,
-                                       update=update_room)
+    baseboard = bpy.props.BoolProperty(
+            name="Baseboard", description="Create a baseboard automatically",
+            default=True,
+            update=update_room,
+            )
 
-    base_width = bpy.props.FloatProperty(name='Width', min=0.001, max=10, default=0.015, precision=3,
-                                         description='Baseboard width', update=update_room)
-    base_height = bpy.props.FloatProperty(name='Height', min=0.05, max=20, default=0.12, precision=3,
-                                          description='Baseboard height', update=update_room)
+    base_width = bpy.props.FloatProperty(
+            name='Width', min=0.001, max=10,
+            default=0.015, precision=3,
+            description='Baseboard width', update=update_room,
+            )
+    base_height = bpy.props.FloatProperty(
+            name='Height', min=0.05, max=20,
+            default=0.12, precision=3,
+            description='Baseboard height', update=update_room,
+            )
 
-    ceiling = bpy.props.BoolProperty(name="Ceiling", description="Create a ceiling.",
-                                     default=False, update=update_room)
-    floor = bpy.props.BoolProperty(name="Floor", description="Create a floor automatically.", default=False,
-                                   update=update_room)
+    ceiling = bpy.props.BoolProperty(
+            name="Ceiling", description="Create a ceiling",
+            default=False, update=update_room,
+            )
+    floor = bpy.props.BoolProperty(
+            name="Floor", description="Create a floor automatically",
+            default=False,
+            update=update_room,
+            )
 
-    merge = bpy.props.BoolProperty(name="Close walls", description="Close walls to create a full closed room.",
-                                   default=False, update=update_room)
+    merge = bpy.props.BoolProperty(
+            name="Close walls", description="Close walls to create a full closed room",
+            default=False, update=update_room,
+            )
 
-    walls = bpy.props.CollectionProperty(type=WallProperties)
+    walls = bpy.props.CollectionProperty(
+            type=WallProperties,
+            )
 
-    shell = bpy.props.BoolProperty(name="Wall cover", description="Create a cover of boards.",
-                                   default=False, update=update_room)
-    shell_thick = bpy.props.FloatProperty(name='Thickness', min=0.001, max=1, default=0.025, precision=3,
-                                          description='Cover board thickness', update=update_room)
-    shell_height = bpy.props.FloatProperty(name='Height', min=0.05, max=1, default=0.20, precision=3,
-                                           description='Cover board height', update=update_room)
-    shell_factor = bpy.props.FloatProperty(name='Top', min=0.1, max=1, default=1, precision=1,
-                                           description='Percentage for top covering (1 Full)', update=update_room)
-    shell_bfactor = bpy.props.FloatProperty(name='Bottom', min=0.1, max=1, default=1, precision=1,
-                                            description='Percentage for bottom covering (1 Full)', update=update_room)
+    shell = bpy.props.BoolProperty(
+            name="Wall cover", description="Create a cover of boards",
+            default=False, update=update_room,
+            )
+    shell_thick = bpy.props.FloatProperty(
+            name='Thickness', min=0.001, max=1,
+            default=0.025, precision=3,
+            description='Cover board thickness', update=update_room,
+            )
+    shell_height = bpy.props.FloatProperty(
+            name='Height', min=0.05, max=1,
+            default=0.20, precision=3,
+            description='Cover board height', update=update_room,
+            )
+    shell_factor = bpy.props.FloatProperty(
+            name='Top', min=0.1, max=1,
+            default=1, precision=1,
+            description='Percentage for top covering (1 Full)', update=update_room,
+            )
+    shell_bfactor = bpy.props.FloatProperty(
+            name='Bottom', min=0.1, max=1,
+            default=1, precision=1,
+            description='Percentage for bottom covering (1 Full)', update=update_room,
+            )
 
 bpy.utils.register_class(RoomProperties)
 bpy.types.Object.RoomGenerator = bpy.props.CollectionProperty(type=RoomProperties)

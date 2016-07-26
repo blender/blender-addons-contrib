@@ -42,30 +42,59 @@ class AchmJapan(bpy.types.Operator):
     bl_category = 'Archimesh'
     bl_options = {'REGISTER', 'UNDO'}
 
-    width = bpy.props.FloatProperty(name='Width', min=0.30, max=4, default=1, precision=3,
-                                    description='Total width')
-    height = bpy.props.FloatProperty(name='Height', min=0.20, max=50, default=1.8, precision=3,
-                                     description='Total height')
-    num = bpy.props.IntProperty(name='Rails', min=2, max=5, default=2,
-                                description='Number total of rails')
-    palnum = bpy.props.IntProperty(name='Panels', min=1, max=2, default=1,
-                                   description='Panels by rail')
+    width = bpy.props.FloatProperty(
+            name='Width',
+            min=0.30, max=4, default=1, precision=3,
+            description='Total width',
+            )
+    height = bpy.props.FloatProperty(
+            name='Height',
+            min=0.20, max=50, default=1.8, precision=3,
+            description='Total height',
+            )
+    num = bpy.props.IntProperty(
+            name='Rails',
+            min=2, max=5, default=2,
+            description='Number total of rails',
+            )
+    palnum = bpy.props.IntProperty(
+            name='Panels',
+            min=1, max=2, default=1,
+            description='Panels by rail',
+            )
 
-    open01 = bpy.props.FloatProperty(name='Position 01', min=0, max=1, default=0, precision=3,
-                                     description='Position of the panel')
-    open02 = bpy.props.FloatProperty(name='Position 02', min=0, max=1, default=0, precision=3,
-                                     description='Position of the panel')
-    open03 = bpy.props.FloatProperty(name='Position 03', min=0, max=1, default=0, precision=3,
-                                     description='Position of the panel')
-    open04 = bpy.props.FloatProperty(name='Position 04', min=0, max=1, default=0, precision=3,
-                                     description='Position of the panel')
-    open05 = bpy.props.FloatProperty(name='Position 05', min=0, max=1, default=0, precision=3,
-                                     description='Position of the panel')
+    open01 = bpy.props.FloatProperty(
+            name='Position 01',
+            min=0, max=1, default=0, precision=3,
+            description='Position of the panel',
+            )
+    open02 = bpy.props.FloatProperty(
+            name='Position 02',
+            min=0, max=1, default=0, precision=3,
+            description='Position of the panel',
+            )
+    open03 = bpy.props.FloatProperty(
+            name='Position 03',
+            min=0, max=1, default=0, precision=3,
+            description='Position of the panel',
+            )
+    open04 = bpy.props.FloatProperty(
+            name='Position 04',
+            min=0, max=1, default=0, precision=3,
+            description='Position of the panel',
+            )
+    open05 = bpy.props.FloatProperty(
+            name='Position 05',
+            min=0, max=1, default=0, precision=3,
+            description='Position of the panel',
+            )
 
     # Materials
-    crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
-                                     description="Create default materials for Cycles render.",
-                                     default=True)
+    crt_mat = bpy.props.BoolProperty(
+            name="Create default Cycles materials",
+            description="Create default materials for Cycles render",
+            default=True,
+            )
 
     # -----------------------------------------------------
     # Draw (create UI interface)
@@ -152,14 +181,23 @@ class AchmRoller(bpy.types.Operator):
     bl_category = 'Archimesh'
     bl_options = {'REGISTER', 'UNDO'}
 
-    width = bpy.props.FloatProperty(name='Width', min=0.30, max=4, default=1, precision=3,
-                                    description='Total width')
-    height = bpy.props.FloatProperty(name='Height', min=0.01, max=50, default=1.7, precision=3,
-                                     description='Total height')
+    width = bpy.props.FloatProperty(
+            name='Width',
+            min=0.30, max=4, default=1, precision=3,
+            description='Total width',
+            )
+    height = bpy.props.FloatProperty(
+            name='Height',
+            min=0.01, max=50, default=1.7, precision=3,
+            description='Total height',
+            )
 
     # Materials
-    crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
-                                     description="Create default materials for Cycles render.", default=True)
+    crt_mat = bpy.props.BoolProperty(
+            name="Create default Cycles materials",
+            description="Create default materials for Cycles render",
+            default=True,
+            )
 
     # -----------------------------------------------------
     # Draw (create UI interface)

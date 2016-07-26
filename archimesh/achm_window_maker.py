@@ -240,71 +240,177 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
 # Define property group class to create or modify
 # ------------------------------------------------------------------
 class ObjectProperties(bpy.types.PropertyGroup):
-    width = bpy.props.FloatProperty(name='Width', min=0.20, max=50, default=1.20, precision=3,
-                                    description='window width', update=update_object)
-    depth = bpy.props.FloatProperty(name='Depth', min=0.07, max=1, default=0.10, precision=3,
-                                    description='window depth', update=update_object)
-    height = bpy.props.FloatProperty(name='Height', min=0.20, max=50, default=1, precision=3,
-                                     description='window height', update=update_object)
-    r = bpy.props.FloatProperty(name='Rotation', min=0, max=360, default=0, precision=1,
-                                description='Window rotation', update=update_object)
+    width = bpy.props.FloatProperty(
+            name='Width',
+            min=0.20, max=50,
+            default=1.20, precision=3,
+            description='window width',
+            update=update_object,
+            )
+    depth = bpy.props.FloatProperty(
+            name='Depth',
+            min=0.07, max=1,
+            default=0.10, precision=3,
+            description='window depth',
+            update=update_object,
+            )
+    height = bpy.props.FloatProperty(
+            name='Height',
+            min=0.20, max=50,
+            default=1, precision=3,
+            description='window height',
+            update=update_object,
+            )
+    r = bpy.props.FloatProperty(
+            name='Rotation', min=0, max=360, default=0, precision=1,
+            description='Window rotation',
+            update=update_object,
+            )
 
-    external = bpy.props.BoolProperty(name="External frame", description="Create an external front frame",
-                                      default=True, update=update_object)
-    frame = bpy.props.FloatProperty(name='External Frame', min=0.001, max=1, default=0.01, precision=3,
-                                    description='External Frame size', update=update_object)
+    external = bpy.props.BoolProperty(
+            name="External frame",
+            description="Create an external front frame",
+            default=True,
+            update=update_object,
+            )
+    frame = bpy.props.FloatProperty(
+            name='External Frame',
+            min=0.001, max=1,
+            default=0.01, precision=3,
+            description='External Frame size',
+            update=update_object,
+            )
 
-    frame_L = bpy.props.FloatProperty(name='Frame', min=0.02, max=1, default=0.06, precision=3,
-                                      description='Frame size', update=update_object)
-    wf = bpy.props.FloatProperty(name='WinFrame', min=0.001, max=1, default=0.05, precision=3,
-                                 description='Window Frame size', update=update_object)
-    leafratio = bpy.props.FloatProperty(name='Leaf ratio', min=0.001, max=0.999, default=0.50,
-                                        precision=3,
-                                        description='Leaf thickness ratio', update=update_object)
-    opentype = bpy.props.EnumProperty(items=(('1', "Rail window", ""),
-                                             ('2', "Two leaf", ""),
-                                             ('3', "Right leaf", ""),
-                                             ('4', "Left leaf", "")),
-                                      name="Type",
-                                      description="Defines type of window", update=update_object)
-    handle = bpy.props.BoolProperty(name="Create handles", description="Create default handle to the leaf",
-                                    default=True, update=update_object)
+    frame_L = bpy.props.FloatProperty(
+            name='Frame',
+            min=0.02, max=1,
+            default=0.06, precision=3,
+            description='Frame size',
+            update=update_object,
+            )
+    wf = bpy.props.FloatProperty(
+            name='WinFrame',
+            min=0.001, max=1,
+            default=0.05, precision=3,
+            description='Window Frame size',
+            update=update_object,
+            )
+    leafratio = bpy.props.FloatProperty(
+            name='Leaf ratio',
+            min=0.001, max=0.999,
+            default=0.50,
+            precision=3,
+            description='Leaf thickness ratio',
+            update=update_object,
+            )
+    opentype = bpy.props.EnumProperty(
+            items=(
+                ('1', "Rail window", ""),
+                ('2', "Two leaf", ""),
+                ('3', "Right leaf", ""),
+                ('4', "Left leaf", "")),
+            name="Type",
+            description="Defines type of window",
+            update=update_object,
+            )
+    handle = bpy.props.BoolProperty(
+            name="Create handles",
+            description="Create default handle to the leaf",
+            default=True,
+            update=update_object,
+            )
 
-    sill = bpy.props.BoolProperty(name="Sill", description="Add sill to window", default=True, update=update_object)
-    sill_thickness = bpy.props.FloatProperty(name='Thickness', min=0, max=50, default=0.01, precision=3,
-                                             description='Sill thickness', update=update_object)
-    sill_back = bpy.props.FloatProperty(name='Back', min=0, max=10, default=0.0, precision=3,
-                                        description='Extrusion in back side', update=update_object)
-    sill_front = bpy.props.FloatProperty(name='Front', min=0, max=10, default=0.12, precision=3,
-                                         description='Extrusion in front side', update=update_object)
+    sill = bpy.props.BoolProperty(
+            name="Sill",
+            description="Add sill to window",
+            default=True,
+            update=update_object,
+            )
+    sill_thickness = bpy.props.FloatProperty(
+            name='Thickness',
+            min=0, max=50,
+            default=0.01, precision=3,
+            description='Sill thickness',
+            update=update_object,
+            )
+    sill_back = bpy.props.FloatProperty(
+            name='Back',
+            min=0, max=10,
+            default=0.0, precision=3,
+            description='Extrusion in back side',
+            update=update_object,
+            )
+    sill_front = bpy.props.FloatProperty(
+            name='Front',
+            min=0, max=10,
+            default=0.12, precision=3,
+            description='Extrusion in front side',
+            update=update_object,
+            )
 
-    blind = bpy.props.BoolProperty(name="Blind", description="Create an external blind", default=False,
-                                   update=update_object)
-    blind_box = bpy.props.BoolProperty(name="Blind box", description="Create a box over frame for blind",
-                                       default=True, update=update_object)
-    blind_height = bpy.props.FloatProperty(name='Height', min=0.001, max=10, default=0.12, precision=3,
-                                           description='Blind box height', update=update_object)
-    blind_back = bpy.props.FloatProperty(name='Back', min=0.001, max=10, default=0.002, precision=3,
-                                         description='Extrusion in back side', update=update_object)
-    blind_rail = bpy.props.FloatProperty(name='Separation', min=0.001, max=10, default=0.10, precision=3,
-                                         description='Separation from frame', update=update_object)
-    blind_ratio = bpy.props.IntProperty(name='Extend', min=0, max=100, default=20,
-                                        description='% of extension (100 full extend)', update=update_object)
+    blind = bpy.props.BoolProperty(
+            name="Blind",
+            description="Create an external blind",
+            default=False,
+            update=update_object,
+            )
+    blind_box = bpy.props.BoolProperty(
+            name="Blind box", description="Create a box over frame for blind",
+            default=True,
+            update=update_object,
+            )
+    blind_height = bpy.props.FloatProperty(
+            name='Height',
+            min=0.001, max=10,
+            default=0.12, precision=3,
+            description='Blind box height',
+            update=update_object,
+            )
+    blind_back = bpy.props.FloatProperty(
+            name='Back',
+            min=0.001, max=10,
+            default=0.002, precision=3,
+            description='Extrusion in back side',
+            update=update_object,
+            )
+    blind_rail = bpy.props.FloatProperty(
+            name='Separation',
+            min=0.001, max=10,
+            default=0.10, precision=3,
+            description='Separation from frame',
+            update=update_object,
+            )
+    blind_ratio = bpy.props.IntProperty(
+            name='Extend',
+            min=0, max=100,
+            default=20,
+            description='% of extension (100 full extend)',
+            update=update_object,
+            )
 
     # Materials
-    crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
-                                     description="Create default materials for Cycles render.",
-                                     default=True, update=update_object)
+    crt_mat = bpy.props.BoolProperty(
+            name="Create default Cycles materials",
+            description="Create default materials for Cycles render",
+            default=True,
+            update=update_object,
+            )
     # opengl internal data
-    glpoint_a = bpy.props.FloatVectorProperty(name="glpointa",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
-    glpoint_b = bpy.props.FloatVectorProperty(name="glpointb",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
-    glpoint_c = bpy.props.FloatVectorProperty(name="glpointc",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
+    glpoint_a = bpy.props.FloatVectorProperty(
+            name="glpointa",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
+    glpoint_b = bpy.props.FloatVectorProperty(
+            name="glpointb",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
+    glpoint_c = bpy.props.FloatVectorProperty(
+            name="glpointc",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
 
 # Register
 bpy.utils.register_class(ObjectProperties)

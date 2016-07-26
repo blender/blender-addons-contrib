@@ -41,25 +41,46 @@ class AchmRoof(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     # Define properties
-    roof_width = bpy.props.IntProperty(name='Num tiles X', min=1, max=100, default=6, description='Tiles in X axis')
-    roof_height = bpy.props.IntProperty(name='Num tiles Y', min=1, max=100, default=3, description='Tiles in Y axis')
+    roof_width = bpy.props.IntProperty(
+            name='Num tiles X',
+            min=1, max=100, default=6,
+            description='Tiles in X axis',
+            )
+    roof_height = bpy.props.IntProperty(
+            name='Num tiles Y',
+            min=1, max=100, default=3,
+            description='Tiles in Y axis',
+            )
 
-    roof_thick = bpy.props.FloatProperty(name='Tile thickness', min=0.000, max=0.50, default=0.012, precision=3,
-                                         description='Thickness of the roof tile')
-    roof_angle = bpy.props.FloatProperty(name='Roof slope', min=0.0, max=70.0, default=0.0, precision=1,
-                                         description='Roof angle of slope')
-    roof_scale = bpy.props.FloatProperty(name='Tile scale', min=0.001, max=10, default=1, precision=3,
-                                         description='Scale of roof tile')
+    roof_thick = bpy.props.FloatProperty(
+            name='Tile thickness',
+            min=0.000, max=0.50, default=0.012, precision=3,
+            description='Thickness of the roof tile',
+            )
+    roof_angle = bpy.props.FloatProperty(
+            name='Roof slope', min=0.0, max=70.0, default=0.0, precision=1,
+            description='Roof angle of slope',
+            )
+    roof_scale = bpy.props.FloatProperty(
+            name='Tile scale', min=0.001, max=10, default=1, precision=3,
+            description='Scale of roof tile',
+            )
 
-    crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
-                                     description="Create default materials for Cycles render.", default=True)
+    crt_mat = bpy.props.BoolProperty(
+            name="Create default Cycles materials",
+            description="Create default materials for Cycles render",
+            default=True,
+            )
 
-    model = bpy.props.EnumProperty(items=(('1', "Model 01", ""),
-                                          ('2', "Model 02", ""),
-                                          ('3', "Model 03", ""),
-                                          ('4', "Model 04", "")),
-                                   name="Model",
-                                   description="Roof tile model")
+    model = bpy.props.EnumProperty(
+            items=(
+                ('1', "Model 01", ""),
+                ('2', "Model 02", ""),
+                ('3', "Model 03", ""),
+                ('4', "Model 04", "")),
+            name="Model",
+            description="Roof tile model",
+            )
 
     # -----------------------------------------------------
     # Draw (create UI interface)

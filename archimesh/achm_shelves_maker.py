@@ -75,34 +75,65 @@ class AchmShelves(bpy.types.Operator):
     bl_category = 'Archimesh'
     bl_options = {'REGISTER', 'UNDO'}
 
-    thickness = bpy.props.FloatProperty(name='Side Thickness', min=0.001, max=5, default=0.03, precision=3,
-                                        description='Board thickness')
-    sthickness = bpy.props.FloatProperty(name='Shelves Thickness', min=0.001, max=5, default=0.03, precision=3,
-                                         description='Board thickness')
-    depth = bpy.props.FloatProperty(name='Depth', min=0.001, max=50, default=0.28, precision=3,
-                                    description='Default unit depth')
-    height = bpy.props.FloatProperty(name='Height', min=0.001, max=50, default=2, precision=3,
-                                     description='Default unit height')
-    top = bpy.props.FloatProperty(name='Top', min=0, max=50, default=0.03, precision=3,
-                                  description='Default top shelf position')
-    bottom = bpy.props.FloatProperty(name='Bottom', min=0, max=50, default=0.07, precision=3,
-                                     description='Default bottom self position')
-    stype = bpy.props.EnumProperty(items=(('1', "Full side", ""),
-                                          ('4', "4 Legs", ""),
-                                          ('99', "None", "")),
-                                   name="Sides",
-                                   description="Type of side construction")
+    thickness = bpy.props.FloatProperty(
+            name='Side Thickness', min=0.001, max=5,
+            default=0.03, precision=3,
+            description='Board thickness',
+            )
+    sthickness = bpy.props.FloatProperty(
+            name='Shelves Thickness', min=0.001, max=5,
+            default=0.03, precision=3,
+            description='Board thickness',
+            )
+    depth = bpy.props.FloatProperty(
+            name='Depth', min=0.001, max=50,
+            default=0.28, precision=3,
+            description='Default unit depth',
+            )
+    height = bpy.props.FloatProperty(
+            name='Height', min=0.001, max=50,
+            default=2, precision=3,
+            description='Default unit height',
+            )
+    top = bpy.props.FloatProperty(
+            name='Top', min=0, max=50,
+            default=0.03, precision=3,
+            description='Default top shelf position',
+            )
+    bottom = bpy.props.FloatProperty(
+            name='Bottom', min=0, max=50,
+            default=0.07, precision=3,
+            description='Default bottom self position',
+            )
+    stype = bpy.props.EnumProperty(
+            items=(
+                ('1', "Full side", ""),
+                ('4', "4 Legs", ""),
+                ('99', "None", "")),
+            name="Sides",
+            description="Type of side construction",
+            )
 
-    fitZ = bpy.props.BoolProperty(name="Floor origin in Z=0",
-                                  description="Use Z=0 axis as vertical origin floor position", default=True)
+    fitZ = bpy.props.BoolProperty(
+            name="Floor origin in Z=0",
+            description="Use Z=0 axis as vertical origin floor position",
+            default=True,
+            )
 
-    shelves_num = bpy.props.IntProperty(name='Number of Units', min=1, max=10, default=1,
-                                        description='Number total of shelves units')
+    shelves_num = bpy.props.IntProperty(
+            name='Number of Units',
+            min=1, max=10,
+            default=1,
+            description='Number total of shelves units',
+            )
     shelves = bpy.props.CollectionProperty(type=ShelvesProperties)
 
     # Materials
-    crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
-                                     description="Create default materials for Cycles render.", default=True)
+    crt_mat = bpy.props.BoolProperty(
+            name="Create default Cycles materials",
+            description="Create default materials for Cycles render",
+            default=True,
+            )
 
     # -----------------------------------------------------
     # Draw (create UI interface)

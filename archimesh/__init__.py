@@ -177,58 +177,77 @@ def register():
     bpy.types.INFO_MT_mesh_add.append(AchmMenu_func)
 
     # Define properties
-    bpy.types.Scene.archimesh_select_only = bpy.props.BoolProperty(name="Only selected",
-                                                                   description="Apply auto holes only to"
-                                                                               " selected objects",
-                                                                   default=False)
-    bpy.types.Scene.archimesh_ceiling = bpy.props.BoolProperty(name="Ceiling",
-                                                               description="Create a ceiling.",
-                                                               default=False)
-    bpy.types.Scene.archimesh_floor = bpy.props.BoolProperty(name="Floor",
-                                                             description="Create a floor automatically.",
-                                                             default=False)
+    bpy.types.Scene.archimesh_select_only = bpy.props.BoolProperty(
+            name="Only selected",
+            description="Apply auto holes only to selected objects",
+            default=False,
+            )
+    bpy.types.Scene.archimesh_ceiling = bpy.props.BoolProperty(
+            name="Ceiling",
+            description="Create a ceiling",
+            default=False,
+            )
+    bpy.types.Scene.archimesh_floor = bpy.props.BoolProperty(
+            name="Floor",
+            description="Create a floor automatically",
+            default=False,
+            )
 
-    bpy.types.Scene.archimesh_merge = bpy.props.BoolProperty(name="Close walls",
-                                                             description="Close walls to create a full closed room.",
-                                                             default=False)
+    bpy.types.Scene.archimesh_merge = bpy.props.BoolProperty(
+            name="Close walls",
+            description="Close walls to create a full closed room",
+            default=False,
+            )
 
     bpy.types.Scene.archimesh_text_color = bpy.props.FloatVectorProperty(
-        name="Hint color",
-        description="Color for the text and lines",
-        default=(0.173, 0.545, 1.0, 1.0),
-        min=0.1,
-        max=1,
-        subtype='COLOR',
-        size=4)
+            name="Hint color",
+            description="Color for the text and lines",
+            default=(0.173, 0.545, 1.0, 1.0),
+            min=0.1,
+            max=1,
+            subtype='COLOR',
+            size=4,
+            )
     bpy.types.Scene.archimesh_walltext_color = bpy.props.FloatVectorProperty(
-        name="Hint color",
-        description="Color for the wall label",
-        default=(1, 0.8, 0.1, 1.0),
-        min=0.1,
-        max=1,
-        subtype='COLOR',
-        size=4)
+            name="Hint color",
+            description="Color for the wall label",
+            default=(1, 0.8, 0.1, 1.0),
+            min=0.1,
+            max=1,
+            subtype='COLOR',
+            size=4,
+            )
     bpy.types.Scene.archimesh_font_size = bpy.props.IntProperty(
-        name="Text Size",
-        description="Text size for hints",
-        default=14, min=10, max=150)
+            name="Text Size",
+            description="Text size for hints",
+            default=14, min=10, max=150,
+            )
     bpy.types.Scene.archimesh_wfont_size = bpy.props.IntProperty(
-        name="Text Size",
-        description="Text size for wall labels",
-        default=16, min=10, max=150)
-    bpy.types.Scene.archimesh_hint_space = bpy.props.FloatProperty(name='Separation', min=0, max=5, default=0.1,
-                                                                   precision=2,
-                                                                   description='Distance from object to display hint')
-    bpy.types.Scene.archimesh_gl_measure = bpy.props.BoolProperty(name="Measures",
-                                                                  description="Display measures",
-                                                                  default=True)
-    bpy.types.Scene.archimesh_gl_name = bpy.props.BoolProperty(name="Names",
-                                                               description="Display names",
-                                                               default=True)
-    bpy.types.Scene.archimesh_gl_ghost = bpy.props.BoolProperty(name="All",
-                                                                description="Display measures for all objects,"
-                                                                            " not only selected",
-                                                                default=True)
+            name="Text Size",
+            description="Text size for wall labels",
+            default=16, min=10, max=150,
+            )
+    bpy.types.Scene.archimesh_hint_space = bpy.props.FloatProperty(
+            name='Separation', min=0, max=5, default=0.1,
+            precision=2,
+            description='Distance from object to display hint',
+            )
+    bpy.types.Scene.archimesh_gl_measure = bpy.props.BoolProperty(
+            name="Measures",
+            description="Display measures",
+            default=True,
+            )
+    bpy.types.Scene.archimesh_gl_name = bpy.props.BoolProperty(
+            name="Names",
+            description="Display names",
+            default=True,
+            )
+    bpy.types.Scene.archimesh_gl_ghost = bpy.props.BoolProperty(
+            name="All",
+            description="Display measures for all objects,"
+            " not only selected",
+            default=True,
+            )
 
     # OpenGL flag
     wm = bpy.types.WindowManager

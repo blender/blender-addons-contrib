@@ -278,61 +278,112 @@ def shape_children(mainobject, update=False):
 # Define property group class to create or modify
 # ------------------------------------------------------------------
 class ObjectProperties(bpy.types.PropertyGroup):
-    frame_width = bpy.props.FloatProperty(name='Frame width', min=0.25, max=10, default=1, precision=2,
-                                          description='Doorframe width', update=update_object)
-    frame_height = bpy.props.FloatProperty(name='Frame height', min=0.25, max=10, default=2.1, precision=2,
-                                           description='Doorframe height', update=update_object)
-    frame_thick = bpy.props.FloatProperty(name='Frame thickness', min=0.05, max=0.50, default=0.08, precision=2,
-                                          description='Doorframe thickness', update=update_object)
-    frame_size = bpy.props.FloatProperty(name='Frame size', min=0.05, max=0.25, default=0.08, precision=2,
-                                         description='Doorframe size', update=update_object)
-    crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
-                                     description="Create default materials for Cycles render.", default=True,
-                                     update=update_object)
-    factor = bpy.props.FloatProperty(name='', min=0.2, max=1, default=0.5, precision=3, description='Door ratio',
-                                     update=update_object)
-    r = bpy.props.FloatProperty(name='Rotation', min=0, max=360, default=0, precision=1,
-                                description='Door rotation', update=update_object)
+    frame_width = bpy.props.FloatProperty(
+            name='Frame width',
+            min=0.25, max=10,
+            default=1, precision=2,
+            description='Doorframe width', update=update_object,
+            )
+    frame_height = bpy.props.FloatProperty(
+            name='Frame height',
+            min=0.25, max=10,
+            default=2.1, precision=2,
+            description='Doorframe height', update=update_object,
+            )
+    frame_thick = bpy.props.FloatProperty(
+            name='Frame thickness',
+            min=0.05, max=0.50,
+            default=0.08, precision=2,
+            description='Doorframe thickness', update=update_object,
+            )
+    frame_size = bpy.props.FloatProperty(
+            name='Frame size',
+            min=0.05, max=0.25,
+            default=0.08, precision=2,
+            description='Doorframe size', update=update_object,
+            )
+    crt_mat = bpy.props.BoolProperty(
+            name="Create default Cycles materials",
+            description="Create default materials for Cycles render",
+            default=True,
+            update=update_object,
+            )
+    factor = bpy.props.FloatProperty(
+            name='',
+            min=0.2, max=1,
+            default=0.5, precision=3, description='Door ratio',
+            update=update_object,
+            )
+    r = bpy.props.FloatProperty(
+            name='Rotation', min=0, max=360,
+            default=0, precision=1,
+            description='Door rotation', update=update_object,
+            )
 
-    openside = bpy.props.EnumProperty(items=(('1', "Right open", ""),
-                                             ('2', "Left open", ""),
-                                             ('3', "Both sides", "")),
-                                      name="Open side",
-                                      description="Defines the direction for opening the door", update=update_object)
+    openside = bpy.props.EnumProperty(
+            name="Open side",
+            items=(
+                ('1', "Right open", ""),
+                ('2', "Left open", ""),
+                ('3', "Both sides", ""),
+                ),
+            description="Defines the direction for opening the door",
+            update=update_object,
+            )
 
-    model = bpy.props.EnumProperty(items=(('1', "Model 01", ""),
-                                          ('2', "Model 02", ""),
-                                          ('3', "Model 03", ""),
-                                          ('4', "Model 04", ""),
-                                          ('5', "Model 05", "Glass"),
-                                          ('6', "Model 06", "Glass")),
-                                   name="Model",
-                                   description="Door model", update=update_object)
+    model = bpy.props.EnumProperty(
+            name="Model",
+            items=(
+                ('1', "Model 01", ""),
+                ('2', "Model 02", ""),
+                ('3', "Model 03", ""),
+                ('4', "Model 04", ""),
+                ('5', "Model 05", "Glass"),
+                ('6', "Model 06", "Glass"),
+                ),
+            description="Door model",
+            update=update_object,
+            )
 
-    handle = bpy.props.EnumProperty(items=(('1', "Handle 01", ""),
-                                           ('2', "Handle 02", ""),
-                                           ('3', "Handle 03", ""),
-                                           ('4', "Handle 04", ""),
-                                           ('0', "None", "")),
-                                    name="Handle",
-                                    description="Handle model", update=update_object)
+    handle = bpy.props.EnumProperty(
+            name="Handle",
+            items=(
+                ('1', "Handle 01", ""),
+                ('2', "Handle 02", ""),
+                ('3', "Handle 03", ""),
+                ('4', "Handle 04", ""),
+                ('0', "None", ""),
+                ),
+            description="Handle model",
+            update=update_object,
+            )
 
     # opengl internal data
-    glpoint_a = bpy.props.FloatVectorProperty(name="glpointa",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
-    glpoint_b = bpy.props.FloatVectorProperty(name="glpointb",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
-    glpoint_c = bpy.props.FloatVectorProperty(name="glpointc",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
-    glpoint_d = bpy.props.FloatVectorProperty(name="glpointc",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
-    glpoint_e = bpy.props.FloatVectorProperty(name="glpointc",
-                                              description="Hidden property for opengl",
-                                              default=(0, 0, 0))
+    glpoint_a = bpy.props.FloatVectorProperty(
+            name="glpointa",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
+    glpoint_b = bpy.props.FloatVectorProperty(
+            name="glpointb",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
+    glpoint_c = bpy.props.FloatVectorProperty(
+            name="glpointc",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
+    glpoint_d = bpy.props.FloatVectorProperty(
+            name="glpointc",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
+    glpoint_e = bpy.props.FloatVectorProperty(
+            name="glpointc",
+            description="Hidden property for opengl",
+            default=(0, 0, 0),
+            )
 
 # Register
 bpy.utils.register_class(ObjectProperties)

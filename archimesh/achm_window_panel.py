@@ -197,7 +197,7 @@ def set_defaults(s):
 class AchmWinPanel(bpy.types.Operator):
     bl_idname = "mesh.archimesh_winpanel"
     bl_label = "Panel Window"
-    bl_description = "Generate editable flat windows."
+    bl_description = "Generate editable flat windows"
     bl_category = 'Archimesh'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1550,28 +1550,47 @@ def create_ctrl_box(parentobj, objname):
 # Define property group class to create or modify
 # ------------------------------------------------------------------
 class GeneralPanelProperties(bpy.types.PropertyGroup):
-    prs = bpy.props.EnumProperty(items=(('1', "WINDOW 250X200", ""),
-                                        ('2', "WINDOW 200X200", ""),
-                                        ('3', "WINDOW 180X200", ""),
-                                        ('4', "WINDOW 180X160", ""),
-                                        ('5', "WINDOW 160X160", ""),
-                                        ('6', "WINDOW 50X50", ""),
-                                        ('7', "DOOR 80X250", ""),
-                                        ('8', "DOOR 80X230", "")),
-                                 name="",
-                                 description='Predefined types',
-                                 update=update_using_default)
+    prs = bpy.props.EnumProperty(
+            items=(
+                ('1', "WINDOW 250X200", ""),
+                ('2', "WINDOW 200X200", ""),
+                ('3', "WINDOW 180X200", ""),
+                ('4', "WINDOW 180X160", ""),
+                ('5', "WINDOW 160X160", ""),
+                ('6', "WINDOW 50X50", ""),
+                ('7', "DOOR 80X250", ""),
+                ('8', "DOOR 80X230", ""),
+                ),
+            name="",
+            description='Predefined types',
+            update=update_using_default,
+            )
     son = prs
-    gen = bpy.props.IntProperty(name='H Count', min=1, max=8, default=3, description='Horizontal Panes',
-                                update=update_window)
-    yuk = bpy.props.IntProperty(name='V Count', min=1, max=5, default=1, description='Vertical Panes',
-                                update=update_window)
-    kl1 = bpy.props.IntProperty(name='Outer Frame', min=2, max=50, default=5, description='Outside Frame Thickness',
-                                update=update_window)
-    kl2 = bpy.props.IntProperty(name='Risers', min=2, max=50, default=5, description='Risers Width',
-                                update=update_window)
-    fk = bpy.props.IntProperty(name='Inner Frame', min=1, max=20, default=2, description='Inside Frame Thickness',
-                               update=update_window)
+    gen = bpy.props.IntProperty(
+            name='H Count', min=1, max=8, default=3,
+            description='Horizontal Panes',
+            update=update_window,
+            )
+    yuk = bpy.props.IntProperty(
+            name='V Count', min=1, max=5, default=1,
+            description='Vertical Panes',
+            update=update_window,
+            )
+    kl1 = bpy.props.IntProperty(
+            name='Outer Frame', min=2, max=50, default=5,
+            description='Outside Frame Thickness',
+            update=update_window,
+            )
+    kl2 = bpy.props.IntProperty(
+            name='Risers', min=2, max=50, default=5,
+            description='Risers Width',
+            update=update_window,
+            )
+    fk = bpy.props.IntProperty(
+            name='Inner Frame', min=1, max=20, default=2,
+            description='Inside Frame Thickness',
+            update=update_window,
+            )
 
     mr = bpy.props.BoolProperty(name='Sill', default=True, description='Window Sill', update=update_window)
     mr1 = bpy.props.IntProperty(name='', min=1, max=20, default=4, description='Height', update=update_window)
@@ -1581,35 +1600,61 @@ class GeneralPanelProperties(bpy.types.PropertyGroup):
                                 update=update_window)
 
     mt1 = bpy.props.EnumProperty(
-            items=(('1', "PVC", ""), ('2', "WOOD", ""), ('3', "Plastic", "")), name="",
+            items=(
+                ('1', "PVC", ""),
+                ('2', "WOOD", ""),
+                ('3', "Plastic", ""),
+                ),
+            name="",
             default='1',
             description='Material to use',
             update=update_window,
             )
     mt2 = bpy.props.EnumProperty(
-            items=(('1', "PVC", ""), ('2', "WOOD", ""), ('3', "Plastic", "")), name="",
+            items=(
+                ('1', "PVC", ""),
+                ('2', "WOOD", ""),
+                ('3', "Plastic", ""),
+                ),
+            name="",
             default='3',
             description='Material to use',
             update=update_window,
             )
 
     r = bpy.props.FloatProperty(
-            name='Rotation', min=0, max=360, default=0, precision=1,
-            description='Panel rotation', update=update_window,
+            name='Rotation',
+            min=0, max=360, default=0, precision=1,
+            description='Panel rotation',
+            update=update_window,
             )
 
     UST = bpy.props.EnumProperty(
-            items=(('1', "Flat", ""), ('2', "Arch", ""), ('3', "Inclined", ""), ('4', "Triangle", "")),
+            items=(
+                ('1', "Flat", ""),
+                ('2', "Arch", ""),
+                ('3', "Inclined", ""),
+                ('4', "Triangle", ""),
+                ),
             name="Top", default='1',
             description='Type of window upper section',
             update=update_window,
             )
     DT2 = bpy.props.EnumProperty(
-            items=(('1', "Difference", ""), ('2', "Radius", "")), name="", default='1',
+            items=(
+                ('1', "Difference", ""),
+                ('2', "Radius", ""),
+                ),
+            name="",
+            default='1',
             update=update_window,
             )
     DT3 = bpy.props.EnumProperty(
-            items=(('1', "Difference", ""), ('2', "Incline %", ""), ('3', "Incline Angle", "")),
+            items=(
+                ('1', "Difference", ""),
+                ('2', "Incline %", ""),
+                ('3', "Incline Angle", ""),
+                ),
             name="",
             default='1', update=update_window,
             )

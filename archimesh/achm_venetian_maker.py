@@ -327,28 +327,45 @@ def shape_mesh_and_create_children(mainobject, tmp_mesh, update=False):
 # Define property group class to create or modify
 # ------------------------------------------------------------------
 class ObjectProperties(bpy.types.PropertyGroup):
-    width = bpy.props.FloatProperty(name='Width', min=0.30, max=4, default=1, precision=3,
-                                    description='Total width', update=update_object)
-    height = bpy.props.FloatProperty(name='Height', min=0.20, max=10, default=1.7, precision=3,
-                                     description='Total height', update=update_object)
-    depth = bpy.props.FloatProperty(name='Slat depth', min=0.02, max=0.30, default=0.04,
-                                    precision=3,
-                                    description='Slat depth', update=update_object)
-    angle = bpy.props.FloatProperty(name='Angle', min=0, max=85, default=0, precision=1,
-                                    description='Angle of the slats', update=update_object)
-    ratio = bpy.props.IntProperty(name='Extend', min=0, max=100, default=100,
-                                  description='% of extension (100 full extend)', update=update_object)
+    width = bpy.props.FloatProperty(
+            name='Width',
+            min=0.30, max=4, default=1, precision=3,
+            description='Total width', update=update_object,
+            )
+    height = bpy.props.FloatProperty(
+            name='Height',
+            min=0.20, max=10, default=1.7, precision=3,
+            description='Total height',
+            update=update_object,
+            )
+    depth = bpy.props.FloatProperty(
+            name='Slat depth', min=0.02, max=0.30, default=0.04,
+            precision=3,
+            description='Slat depth', update=update_object,
+            )
+    angle = bpy.props.FloatProperty(
+            name='Angle', min=0, max=85, default=0, precision=1,
+            description='Angle of the slats', update=update_object,
+            )
+    ratio = bpy.props.IntProperty(
+            name='Extend', min=0, max=100, default=100,
+            description='% of extension (100 full extend)', update=update_object,
+            )
 
     # Materials
-    crt_mat = bpy.props.BoolProperty(name="Create default Cycles materials",
-                                     description="Create default materials for Cycles render.",
-                                     default=True, update=update_object)
-    objcol = bpy.props.FloatVectorProperty(name="Color",
-                                           description="Color for material",
-                                           default=(0.616, 0.435, 1.0, 1.0),
-                                           min=0.1, max=1,
-                                           subtype='COLOR',
-                                           size=4, update=update_object)
+    crt_mat = bpy.props.BoolProperty(
+            name="Create default Cycles materials",
+            description="Create default materials for Cycles render",
+            default=True, update=update_object,
+            )
+    objcol = bpy.props.FloatVectorProperty(
+            name="Color",
+            description="Color for material",
+            default=(0.616, 0.435, 1.0, 1.0),
+            min=0.1, max=1,
+            subtype='COLOR',
+            size=4, update=update_object,
+            )
 
 # Register
 bpy.utils.register_class(ObjectProperties)
