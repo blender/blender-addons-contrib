@@ -325,34 +325,33 @@ def defoscPythonBatchMaker(BATCHTYPE, SIZE):
         # CREO BATCH
         bpy.ops.file.create_batch_maker_osc(type=BATCHTYPE)
 
-        SCRIPT = (
-            "import os \n"
-            "REPITE= True \n"
-            "BAT= '%s'\n"
-            "SCENENAME ='%s' \n"
-            "DIR='%s%s' \n"
-            "def RENDER():\n"
-            "os.system(BAT) \n"
-            "def CLEAN():\n"
-            "global REPITE\n"
-            "FILES = [root + '/' + FILE for root, dirs, files in os.walk(os.getcwd())\n"
-            "         if len(files) > 0 for FILE in files if FILE.count('~') == False]\n"
-            "RESPUESTA=False\n"
-            "for FILE in FILES:\n"
-            "if os.path.getsize(FILE) < %s:\n"
-            "os.remove(FILE)\n"
-            "RESPUESTA= True\n"
-            "if RESPUESTA:\n"
-            "REPITE=True\n"
-            "else:\n"
-            "REPITE=False\n"
-            "REPITE=True\n"
-            "while REPITE:\n"
-            "REPITE=False\n"
-            "RENDER()\n"
-            "os.chdir(DIR)\n"
-            "CLEAN()\n" %
-            (BATCHLOCATION, FILENAME, FRO, FILENAME, SIZE))
+        SCRIPT = ('''
+import os
+REPITE= True
+BAT= '%s'
+SCENENAME ='%s'
+DIR='%s%s'
+def RENDER():
+    os.system(BAT)
+def CLEAN():
+    global REPITE
+    FILES  = [root+'/'+FILE for root, dirs, files in os.walk(os.getcwd()) if len(files) > 0 for FILE in files if FILE.count('~') == False]
+    RESPUESTA=False
+    for FILE in FILES:
+        if os.path.getsize(FILE) < %s:
+            os.remove(FILE)
+            RESPUESTA= True
+    if RESPUESTA:
+        REPITE=True
+    else:
+        REPITE=False
+REPITE=True
+while REPITE:
+    REPITE=False
+    RENDER()
+    os.chdir(DIR)
+    CLEAN()
+''' % (BATCHLOCATION, FILENAME, FRO, FILENAME, SIZE))
 
         # DEFINO ARCHIVO DE BATCH
         FILEBATCH.writelines(SCRIPT)
