@@ -188,7 +188,7 @@ class renderCrop (bpy.types.Operator):
 
 def defoscBatchMaker(TYPE, BIN):
 
-    if os.sys.platform.startswith("w"):
+    if os.name == "nt":
         print("PLATFORM: WINDOWS")
         SYSBAR = os.sep
         EXTSYS = ".bat"
@@ -285,7 +285,7 @@ class oscBatchMaker (bpy.types.Operator):
 def defoscPythonBatchMaker(BATCHTYPE, SIZE):
 
     # REVISO SISTEMA
-    if os.sys.platform.startswith("w"):
+    if os.name == "nt":
         print("PLATFORM: WINDOWS")
         SYSBAR = "\\"
         EXTSYS = ".bat"

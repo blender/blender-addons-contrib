@@ -311,7 +311,7 @@ class OscRemoveOverridesSlot (bpy.types.Operator):
     bl_label = "Remove Override Slot"
 
     def execute(self, context):
-        bpy.context.scene.ovlist.remove(len(bpy.context.scene.ovlist) - 1)
+        context.scene.ovlist.remove(len(bpy.context.scene.ovlist) - 1)
         return {'FINISHED'}
 
 bpy.utils.register_class(OscTransferOverrides)
