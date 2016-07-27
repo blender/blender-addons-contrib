@@ -68,7 +68,6 @@ def generate_bmesh_repr(p1, v1, axis, num_verts):
 
 
 def generate_3PT(pts, obj, nv, mode=1):
-    origin = obj.location
     mw = obj.matrix_world
     V = Vector
 

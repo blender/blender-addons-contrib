@@ -20,7 +20,6 @@
 
 import bpy
 import bmesh
-import mathutils
 from mathutils.geometry import intersect_line_plane
 
 

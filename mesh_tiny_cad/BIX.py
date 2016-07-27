@@ -20,7 +20,6 @@
 
 import bpy
 import bmesh
-from mathutils import geometry
 from . import cad_module as cm
 
 

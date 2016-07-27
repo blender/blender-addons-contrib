@@ -47,7 +47,6 @@ if "bpy" in locals():
             print(E)
 
 
-import os
 import bpy
 
 from .CFG import TinyCADProperties
