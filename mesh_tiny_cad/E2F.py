@@ -1,29 +1,33 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+'''
+BEGIN GPL LICENSE BLOCK
 
-# <pep8 compliant>
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software Foundation,
+Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+END GPL LICENCE BLOCK
+'''
 
 import bpy
 import bmesh
 from mathutils.geometry import intersect_line_plane
 
 
-def extend_vertex():
+def failure_message(self):
+    self.report({"WARNING"}, 'select 1 face and 1 detached edge')
+
+
+def extend_vertex(self):
 
     obj = bpy.context.edit_object
     me = obj.data
@@ -31,7 +35,12 @@ def extend_vertex():
     verts = bm.verts
     faces = bm.faces
 
-    plane = [f for f in faces if f.select][0]
+    planes = [f for f in faces if f.select]
+    if (len(planes) > 1) or (len(planes) == 0):
+        failure_message(self)
+        return
+
+    plane = planes[0]
     plane_vert_indices = [v for v in plane.verts[:]]
     all_selected_vert_indices = [v for v in verts if v.select]
 
@@ -39,6 +48,11 @@ def extend_vertex():
     N = set(all_selected_vert_indices)
     O = N.difference(M)
     O = list(O)
+
+    if not len(O) == 2:
+        failure_message(self)
+        return
+
     (v1_ref, v1_idx, v1), (v2_ref, v2_idx, v2) = [(i, i.index, i.co) for i in O]
 
     plane_co = plane.calc_center_median()
@@ -57,7 +71,7 @@ def extend_vertex():
 
 
 class TCEdgeToFace(bpy.types.Operator):
-
+    '''Extend selected edge towards projected intersection with a selected face'''
     bl_idname = 'tinycad.edge_to_face'
     bl_label = 'E2F edge to face'
     bl_options = {'REGISTER', 'UNDO'}
@@ -68,7 +82,7 @@ class TCEdgeToFace(bpy.types.Operator):
         return all([bool(ob), ob.type == 'MESH', ob.mode == 'EDIT'])
 
     def execute(self, context):
-        extend_vertex()
+        extend_vertex(self)
         return {'FINISHED'}
 
 
