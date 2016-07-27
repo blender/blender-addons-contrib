@@ -674,10 +674,10 @@ def draw_callback_px(self, context):
     region = context.region
 
     # Width screen
-    overlap = bpy.context.user_preferences.system.use_region_overlap
+    overlap = context.user_preferences.system.use_region_overlap
     t_panel_width = 0
     if overlap:
-        for region in bpy.context.area.regions:
+        for region in context.area.regions:
             if region.type == 'TOOLS':
                 t_panel_width = region.width
 
@@ -999,7 +999,7 @@ def draw_callback_px(self, context):
     bgl.glColor4f(0.512, 0.919, 0.04, 1.0)
     bgl.glLineWidth(2)
 
-#    if bpy.context.space_data.region_3d.is_perspective == False:
+#    if context.space_data.region_3d.is_perspective == False:
     if 1:
         bgl.glEnable(bgl.GL_POINT_SMOOTH)
 
@@ -1140,8 +1140,8 @@ def draw_callback_px(self, context):
 
     if self.ObjectMode or self.ProfileMode:
         if self.ShowCursor:
-            region = bpy.context.region
-            rv3d = bpy.context.space_data.region_3d
+            region = context.region
+            rv3d = context.space_data.region_3d
             view_width = context.region.width
 
             if self.ObjectMode:
@@ -1296,7 +1296,7 @@ def CreateCutSquare(self, context):
     depthLocation = region_2d_to_vector_3d(region, rv3d, coord)
     self.ViewVector = depthLocation
     if self.snapCursor:
-        PlanePoint = bpy.context.scene.cursor_location
+        PlanePoint = context.scene.cursor_location
     else:
         if self.OpsObj is not None:
             PlanePoint = self.OpsObj.location
@@ -1308,7 +1308,7 @@ def CreateCutSquare(self, context):
     d = -PlanePoint.x * PlaneNormalised.x - PlanePoint.y * PlaneNormalised.y - PlanePoint.z * PlaneNormalised.z
 
     # Link object to scene
-    bpy.context.scene.objects.link(ob)
+    context.scene.objects.link(ob)
 
     # New bmesh
     t_bm = bmesh.new()
@@ -1371,7 +1371,7 @@ def CreateCutLine(self, context):
     depthLocation = region_2d_to_vector_3d(region, rv3d, coord)
     self.ViewVector = depthLocation
     if self.snapCursor:
-        PlanePoint = bpy.context.scene.cursor_location
+        PlanePoint = context.scene.cursor_location
     else:
         PlanePoint = mathutils.Vector((0.0, 0.0, 0.0))
 
@@ -1379,7 +1379,7 @@ def CreateCutLine(self, context):
     PlaneNormalised = PlaneNormal.normalized()
     d = -PlanePoint.x * PlaneNormalised.x - PlanePoint.y * PlaneNormalised.y - PlanePoint.z * PlaneNormalised.z
 
-    bpy.context.scene.objects.link(ob)
+    context.scene.objects.link(ob)
 
     t_bm = bmesh.new()
     t_bm.from_mesh(me)
@@ -1477,7 +1477,7 @@ def CreateCutCircle(self, context):
     depthLocation = region_2d_to_vector_3d(region, rv3d, coord)
     self.ViewVector = depthLocation
     if self.snapCursor:
-        PlanePoint = bpy.context.scene.cursor_location
+        PlanePoint = context.scene.cursor_location
     else:
         PlanePoint = mathutils.Vector((0.0, 0.0, 0.0))
 
@@ -1485,7 +1485,7 @@ def CreateCutCircle(self, context):
     PlaneNormalised = PlaneNormal.normalized()
     d = -PlanePoint.x * PlaneNormalised.x - PlanePoint.y * PlaneNormalised.y - PlanePoint.z * PlaneNormalised.z
 
-    bpy.context.scene.objects.link(ob)
+    context.scene.objects.link(ob)
 
     t_bm = bmesh.new()
     t_bm.from_mesh(me)
@@ -1535,16 +1535,15 @@ def objDiagonal(obj):
 
 
 # Bevel Update
-def update_bevel():
-    selection = bpy.context.selected_objects.copy()
-    active = bpy.context.active_object
+def update_bevel(context):
+    selection = context.selected_objects.copy()
+    active = context.active_object
 
-    C = bpy.context
     if len(selection) > 0:
         for obj in selection:
             bpy.ops.object.select_all(action='DESELECT')
             obj.select = True
-            bpy.context.scene.objects.active = obj
+            context.scene.objects.active = obj
 
             # Test object name
             if obj.data.name.startswith("S_") or obj.data.name.startswith("S "):
@@ -1558,7 +1557,7 @@ def update_bevel():
                     if mod.type == 'BEVEL':
                         act_bevel = True
                 if act_bevel:
-                    bpy.context.scene.objects.active = bpy.data.objects[obj.name]
+                    context.scene.objects.active = bpy.data.objects[obj.name]
                     active = obj
 
                     bpy.ops.object.mode_set(mode='EDIT')
@@ -1597,32 +1596,33 @@ def update_bevel():
 
                     if Already == False:
                         bpy.ops.object.modifier_add(type='BEVEL')
-                        bpy.context.object.modifiers["Bevel"].limit_method = 'WEIGHT'
-                        bpy.context.object.modifiers["Bevel"].width = 0.01
-                        bpy.context.object.modifiers["Bevel"].profile = 0.699099
-                        bpy.context.object.modifiers["Bevel"].use_clamp_overlap = False
-                        bpy.context.object.modifiers["Bevel"].segments = 3
-                        bpy.context.object.modifiers["Bevel"].loop_slide = False
+                        mod = context.object.modifiers[-1]
+                        mod.limit_method = 'WEIGHT'
+                        mod.width = 0.01
+                        mod.profile = 0.699099
+                        mod.use_clamp_overlap = False
+                        mod.segments = 3
+                        mod.loop_slide = False
 
                     bpy.ops.object.shade_smooth()
 
-                    bpy.context.object.data.use_auto_smooth = True
-                    bpy.context.object.data.auto_smooth_angle = 1.0472
+                    context.object.data.use_auto_smooth = True
+                    context.object.data.auto_smooth_angle = 1.0472
 
     bpy.ops.object.select_all(action='DESELECT')
 
     for obj in selection:
         obj.select = True
-    bpy.context.scene.objects.active = active
+    context.scene.objects.active = active
 
 # Create bevel
 
 
-def CreateBevel(CurrentObject):
+def CreateBevel(context, CurrentObject):
     # Save active object
-    SavActive = bpy.context.active_object
+    SavActive = context.active_object
     # Active "CurrentObject"
-    bpy.context.scene.objects.active = CurrentObject
+    context.scene.objects.active = CurrentObject
 
     bpy.ops.object.mode_set(mode='EDIT')
 
@@ -1655,20 +1655,21 @@ def CreateBevel(CurrentObject):
 
     if Already == False:
         bpy.ops.object.modifier_add(type='BEVEL')
-        bpy.context.object.modifiers["Bevel"].limit_method = 'WEIGHT'
-        bpy.context.object.modifiers["Bevel"].width = 0.01
-        bpy.context.object.modifiers["Bevel"].profile = 0.699099
-        bpy.context.object.modifiers["Bevel"].use_clamp_overlap = False
-        bpy.context.object.modifiers["Bevel"].segments = 3
-        bpy.context.object.modifiers["Bevel"].loop_slide = False
+        mod = context.object.modifiers[-1]
+        mod.limit_method = 'WEIGHT'
+        mod.width = 0.01
+        mod.profile = 0.699099
+        mod.use_clamp_overlap = False
+        mod.segments = 3
+        mod.loop_slide = False
 
     bpy.ops.object.shade_smooth()
 
-    bpy.context.object.data.use_auto_smooth = True
-    bpy.context.object.data.auto_smooth_angle = 1.0471975
+    context.object.data.use_auto_smooth = True
+    context.object.data.auto_smooth_angle = 1.0471975
 
     # Remet l'objet actif par défaut
-    bpy.context.scene.objects.active = SavActive
+    context.scene.objects.active = SavActive
 
 
 # Picking (template)
@@ -2072,17 +2073,15 @@ def Rebool(context, self):
     SelObj_Name = []
     BoolObj = []
 
-    C = bpy.context
+    LastObj = context.active_object
 
-    LastObj = C.active_object
-
-    Brush = C.selected_objects[0]
+    Brush = context.selected_objects[0]
     Brush.draw_type = "WIRE"
-    obj = C.selected_objects[1]
+    obj = context.selected_objects[1]
 
     bpy.ops.object.select_all(action='TOGGLE')
 
-    bpy.context.scene.objects.active = obj
+    context.scene.objects.active = obj
     obj.draw_type = "SOLID"
     obj.select = True
     bpy.ops.object.duplicate_move(
@@ -2109,7 +2108,7 @@ def Rebool(context, self):
             "release_confirm": False,
         },
     )
-    LastObjectCreated = bpy.context.active_object
+    LastObjectCreated = context.active_object
 
     m = LastObjectCreated.modifiers.new("CT_INTERSECT", "BOOLEAN")
     m.operation = "INTERSECT"
@@ -2144,7 +2143,7 @@ def Rebool(context, self):
         if mb.type == 'BEVEL':
             mb.show_viewport = True
 
-    bpy.context.scene.objects.active = obj
+    context.scene.objects.active = obj
     obj.select = True
     if self.DontApply == False:
         try:
@@ -2280,8 +2279,8 @@ class Carver(bpy.types.Operator):
 
                     if self.alt:
                         # Save selected objects
-                        self.SavSel = bpy.context.selected_objects.copy()
-                        if len(bpy.context.selected_objects) > 0:
+                        self.SavSel = context.selected_objects.copy()
+                        if len(context.selected_objects) > 0:
                             bpy.ops.object.select_all(action='TOGGLE')
 
                         if self.ObjectMode:
@@ -2295,8 +2294,8 @@ class Carver(bpy.types.Operator):
                         # Save selected objects
                         if self.ObjectMode:
                             if len(self.ObjectBrush.children) > 0:
-                                self.SavSel = bpy.context.selected_objects.copy()
-                                if len(bpy.context.selected_objects) > 0:
+                                self.SavSel = context.selected_objects.copy()
+                                if len(context.selected_objects) > 0:
                                     bpy.ops.object.select_all(action='TOGGLE')
 
                                 if self.ObjectMode:
@@ -2324,11 +2323,11 @@ class Carver(bpy.types.Operator):
                                 self.CreateGeometry()
                                 bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
                                 # Cursor Snap
-                                bpy.context.scene.DepthCursor = self.snapCursor
+                                context.scene.DepthCursor = self.snapCursor
                                 # Object Instantiate
-                                bpy.context.scene.OInstanciate = self.Instantiate
+                                context.scene.OInstanciate = self.Instantiate
                                 # Random rotation
-                                bpy.context.scene.ORandom = self.RandomRotation
+                                context.scene.ORandom = self.RandomRotation
 
                                 return {'FINISHED'}
                             else:
@@ -2370,11 +2369,11 @@ class Carver(bpy.types.Operator):
                                 Selection_Save(self)
                                 bpy.ops.object.select_all(action='DESELECT')
                                 bpy.data.objects["CT_Profil"].select = True
-                                bpy.context.scene.objects.active = bpy.data.objects["CT_Profil"]
+                                context.scene.objects.active = bpy.data.objects["CT_Profil"]
                                 bpy.ops.object.delete(use_global=False)
                                 Selection_Restore(self)
 
-                            bpy.context.scene.nProfile = self.nProfil
+                            context.scene.nProfile = self.nProfil
 
                         else:
                             self.ObjectMode = False
@@ -2385,7 +2384,7 @@ class Carver(bpy.types.Operator):
                             Selection_Save(self)
                             bpy.ops.object.select_all(action='DESELECT')
                             bpy.data.objects["CT_Profil"].select = True
-                            bpy.context.scene.objects.active = bpy.data.objects["CT_Profil"]
+                            context.scene.objects.active = bpy.data.objects["CT_Profil"]
                             bpy.ops.object.delete(use_global=False)
                             Selection_Restore(self)
 
@@ -2397,14 +2396,14 @@ class Carver(bpy.types.Operator):
 
                     bpy.ops.object.select_all(action='TOGGLE')
                     self.ProfileBrush.select = True
-                    bpy.context.scene.objects.active = self.ProfileBrush
+                    context.scene.objects.active = self.ProfileBrush
                     # Set xRay
                     self.ProfileBrush.show_x_ray = True
 
                     bpy.ops.object.modifier_add(type='SOLIDIFY')
-                    bpy.context.object.modifiers["Solidify"].name = "CT_SOLIDIFY"
+                    context.object.modifiers["Solidify"].name = "CT_SOLIDIFY"
 
-                    bpy.context.object.modifiers["CT_SOLIDIFY"].thickness = 0.1
+                    context.object.modifiers["CT_SOLIDIFY"].thickness = 0.1
 
                     Selection_Restore(self)
 
@@ -2426,7 +2425,7 @@ class Carver(bpy.types.Operator):
 
                                 bpy.ops.object.select_all(action='TOGGLE')
                                 self.ObjectBrush.select = True
-                                bpy.context.scene.objects.active = self.ObjectBrush
+                                context.scene.objects.active = self.ObjectBrush
 
                                 bpy.ops.object.modifier_remove(modifier="CT_SOLIDIFY")
 
@@ -2439,12 +2438,12 @@ class Carver(bpy.types.Operator):
                                 self.SolidifyPossible = True
                                 bpy.ops.object.select_all(action='TOGGLE')
                                 self.ObjectBrush.select = True
-                                bpy.context.scene.objects.active = self.ObjectBrush
+                                context.scene.objects.active = self.ObjectBrush
                                 # Set xRay
                                 self.ObjectBrush.show_x_ray = True
                                 bpy.ops.object.modifier_add(type='SOLIDIFY')
-                                bpy.context.object.modifiers["Solidify"].name = "CT_SOLIDIFY"
-                                bpy.context.object.modifiers["CT_SOLIDIFY"].thickness = 0.1
+                                context.object.modifiers["Solidify"].name = "CT_SOLIDIFY"
+                                context.object.modifiers["CT_SOLIDIFY"].thickness = 0.1
                                 Selection_Restore(self)
 
             # Help display
@@ -2466,7 +2465,7 @@ class Carver(bpy.types.Operator):
             # Scale object
             if event.type == context.scene.Key_Scale and event.value == 'PRESS':
                 if self.ObjectScale == False:
-                     elf.am = event.mouse_region_x, event.mouse_regiony
+                    elf.am = event.mouse_region_x, event.mouse_regiony
                 self.ObjectScale = True
 
             # Grid : Add column
@@ -2538,19 +2537,19 @@ class Carver(bpy.types.Operator):
                                 bpy.ops.object.select_all(action='TOGGLE')
                                 if self.ObjectMode:
                                     self.ObjectBrush.select = True
-                                    bpy.context.scene.objects.active = self.ObjectBrush
+                                    context.scene.objects.active = self.ObjectBrush
                                     # Active le xray
                                     self.ObjectBrush.show_x_ray = True
                                 else:
                                     self.ProfileBrush.select = True
-                                    bpy.context.scene.objects.active = self.ProfileBrush
+                                    context.scene.objects.active = self.ProfileBrush
                                     # Active le xray
                                     self.ProfileBrush.show_x_ray = True
 
                                 bpy.ops.object.modifier_add(type='SOLIDIFY')
-                                bpy.context.object.modifiers["Solidify"].name = "CT_SOLIDIFY"
+                                context.object.modifiers["Solidify"].name = "CT_SOLIDIFY"
 
-                                bpy.context.object.modifiers["CT_SOLIDIFY"].thickness = 0.1
+                                context.object.modifiers["CT_SOLIDIFY"].thickness = 0.1
 
                                 Selection_Restore(self)
 
@@ -2751,13 +2750,13 @@ class Carver(bpy.types.Operator):
                                 self.CreateGeometry()
                                 bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
                                 # Depth Cursor
-                                bpy.context.scene.DepthCursor = self.snapCursor
+                                context.scene.DepthCursor = self.snapCursor
                                 # Instantiate object
-                                bpy.context.scene.OInstanciate = self.Instantiate
+                                context.scene.OInstanciate = self.Instantiate
                                 # Random rotation
-                                bpy.context.scene.ORandom = self.RandomRotation
+                                context.scene.ORandom = self.RandomRotation
                                 # Apply operation
-                                bpy.context.scene.DontApply = self.DontApply
+                                context.scene.DontApply = self.DontApply
 
                                 # if Object mode, set intiale state
                                 if self.ObjectBrush is not None:
@@ -2774,13 +2773,13 @@ class Carver(bpy.types.Operator):
 
                                     bpy.ops.object.select_all(action='TOGGLE')
                                     self.ObjectBrush.select = True
-                                    bpy.context.scene.objects.active = self.ObjectBrush
+                                    context.scene.objects.active = self.ObjectBrush
 
                                     bpy.ops.object.modifier_remove(modifier="CT_SOLIDIFY")
 
                                     Selection_Restore(self)
 
-                                    bpy.context.scene.nProfile = self.nProfil
+                                    context.scene.nProfile = self.nProfil
 
                                 return {'FINISHED'}
                             else:
@@ -2823,13 +2822,13 @@ class Carver(bpy.types.Operator):
             # Quit
             elif event.type in {'RIGHTMOUSE', 'ESC'}:
                 # Depth Cursor
-                bpy.context.scene.DepthCursor = self.snapCursor
+                context.scene.DepthCursor = self.snapCursor
                 # Instantiate object
-                bpy.context.scene.OInstanciate = self.Instantiate
+                context.scene.OInstanciate = self.Instantiate
                 # Random Rotation
-                bpy.context.scene.ORandom = self.RandomRotation
+                context.scene.ORandom = self.RandomRotation
                 # Apply boolean operation
-                bpy.context.scene.DontApply = self.DontApply
+                context.scene.DontApply = self.DontApply
 
                 # Reset Object
                 if self.ObjectBrush is not None:
@@ -2846,7 +2845,7 @@ class Carver(bpy.types.Operator):
 
                     bpy.ops.object.select_all(action='TOGGLE')
                     self.ObjectBrush.select = True
-                    bpy.context.scene.objects.active = self.ObjectBrush
+                    context.scene.objects.active = self.ObjectBrush
 
                     bpy.ops.object.modifier_remove(modifier="CT_SOLIDIFY")
 
@@ -2858,13 +2857,13 @@ class Carver(bpy.types.Operator):
                     Selection_Save(self)
                     bpy.ops.object.select_all(action='DESELECT')
                     bpy.data.objects["CT_Profil"].select = True
-                    bpy.context.scene.objects.active = bpy.data.objects["CT_Profil"]
+                    context.scene.objects.active = bpy.data.objects["CT_Profil"]
                     bpy.ops.object.delete(use_global=False)
                     Selection_Restore(self)
 
-                bpy.context.scene.objects.active = self.CurrentActive
+                context.scene.objects.active = self.CurrentActive
 
-                bpy.context.scene.nProfile = self.nProfil
+                context.scene.nProfile = self.nProfil
 
                 bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
                 # Remove Copy Object Brush
@@ -2881,8 +2880,8 @@ class Carver(bpy.types.Operator):
 
         except:
             print("Sometimes, something goes wrong...")
-            bpy.context.window.cursor_modal_set("DEFAULT")
-            bpy.context.area.header_text_set()
+            context.window.cursor_modal_set("DEFAULT")
+            context.area.header_text_set()
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             return {'FINISHED'}
 
@@ -2900,7 +2899,7 @@ class Carver(bpy.types.Operator):
             self.Profils = []
             for p in Profils:
                 self.Profils.append((p[0], p[1], p[2], p[3]))
-            self.nProfil = bpy.context.scene.nProfile
+            self.nProfil = context.scene.nProfile
             self.MaxProfil = len(self.Profils)
 
             # Save selection
@@ -2921,7 +2920,7 @@ class Carver(bpy.types.Operator):
 
             self.bDone = False
 
-            self.DontApply = bpy.context.scene.DontApply
+            self.DontApply = context.scene.DontApply
             self.Auto_BevelUpdate = True
 
             # Cut type (Rectangle, Circle, Line)
@@ -2944,7 +2943,7 @@ class Carver(bpy.types.Operator):
             self.Closed = False
 
             # Depth Cursor
-            self.snapCursor = bpy.context.scene.DepthCursor
+            self.snapCursor = context.scene.DepthCursor
 
             # Help
             self.AskHelp = False
@@ -2955,7 +2954,7 @@ class Carver(bpy.types.Operator):
             # Create mode
             self.CreateMode = False
             self.ExclusiveCreateMode = False
-            if len(bpy.context.selected_objects) == 0:
+            if len(context.selected_objects) == 0:
                 self.ExclusiveCreateMode = True
                 self.CreateMode = True
 
@@ -2992,13 +2991,13 @@ class Carver(bpy.types.Operator):
             self.aqR = None
             self.qRot = None
 
-            self.RandomRotation = bpy.context.scene.ORandom
+            self.RandomRotation = context.scene.ORandom
 
             self.ShowCursor = True
 
             self.ObjectMode = False
             self.ProfileMode = False
-            self.Instantiate = bpy.context.scene.OInstanciate
+            self.Instantiate = context.scene.OInstanciate
 
             self.ProfileBrush = None
             self.ObjectBrush = None
@@ -3022,13 +3021,13 @@ class Carver(bpy.types.Operator):
             self.GridScaleX = False
             self.GridScaleY = False
 
-            if len(bpy.context.selected_objects) > 1:
-                self.ObjectBrush = bpy.context.active_object
+            if len(context.selected_objects) > 1:
+                self.ObjectBrush = context.active_object
 
             #---Copy the brush object
-                ob = bpy.data.objects.new("CarverBrushCopy", bpy.context.object.data.copy())
+                ob = bpy.data.objects.new("CarverBrushCopy", context.object.data.copy())
                 ob.location = self.ObjectBrush.location
-                scene = bpy.context.scene
+                scene = context.scene
                 scene.objects.link(ob)
                 scene.update()
 
@@ -3063,7 +3062,7 @@ class Carver(bpy.types.Operator):
 
             # Undo Variables
             self.undo_index = 0
-            self.undo_limit = bpy.context.user_preferences.edit.undo_steps
+            self.undo_limit = context.user_preferences.edit.undo_steps
             self.undo_list = []
 
             # Boolean operations type
@@ -3084,10 +3083,10 @@ class Carver(bpy.types.Operator):
     def CreateGeometry(self):
         context = bpy.context
 
-        region_id = bpy.context.region.id
+        region_id = context.region.id
 
         bLocalView = False
-        for area in bpy.context.screen.areas:
+        for area in context.screen.areas:
             if area.type == 'VIEW_3D':
                 if area.spaces[0].local_view is not None:
                     bLocalView = True
@@ -3124,13 +3123,13 @@ class Carver(bpy.types.Operator):
         bpy.ops.mesh.normals_make_consistent()
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        saved_location_0 = bpy.context.scene.cursor_location.copy()
+        saved_location_0 = context.scene.cursor_location.copy()
         bpy.ops.view3d.snap_cursor_to_active()
-        saved_location = bpy.context.scene.cursor_location.copy()
+        saved_location = context.scene.cursor_location.copy()
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-        bpy.context.scene.cursor_location = saved_location
+        context.scene.cursor_location = saved_location
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-        bpy.context.scene.cursor_location = saved_location_0
+        context.scene.cursor_location = saved_location_0
 
         bpy.data.objects[self.CurrentObj.name].select = True
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
@@ -3154,7 +3153,7 @@ class Carver(bpy.types.Operator):
 
         # Local view ?
         bLocalView = False
-        for area in bpy.context.screen.areas:
+        for area in context.screen.areas:
             if area.type == 'VIEW_3D':
                 if area.spaces[0].local_view is not None:
                     bLocalView = True
@@ -3282,7 +3281,7 @@ class Carver(bpy.types.Operator):
                     if len(rebool_RT.data.vertices) > 0:
                         # Create Bevel for new objects
                         if BevelAO:
-                            CreateBevel(context.selected_objects[0])
+                            CreateBevel(context, context.selected_objects[0])
                         UndoAdd(self, "REBOOL", context.selected_objects[0])
 
                         context.scene.cursor_location = ActiveObj.location
@@ -3293,9 +3292,9 @@ class Carver(bpy.types.Operator):
                 context.scene.cursor_location = CursorLocation
 
                 if self.ObjectMode:
-                    bpy.context.scene.objects.active = self.ObjectBrush
+                    context.scene.objects.active = self.ObjectBrush
                 if self.ProfileMode:
-                    bpy.context.scene.objects.active = self.ProfileBrush
+                    context.scene.objects.active = self.ProfileBrush
 
             if self.DontApply == False:
                 # Apply booleans
@@ -3341,7 +3340,7 @@ class Carver(bpy.types.Operator):
         # Update bevel
         list_act_obj = context.selected_objects.copy()
         if self.Auto_BevelUpdate:
-            update_bevel()
+            update_bevel(context)
 
         # Reselect intiale objects
         bpy.ops.object.select_all(action='TOGGLE')
@@ -3370,7 +3369,10 @@ class Carver(bpy.types.Operator):
         self.ForceRebool = False
 
 
-classes = [Carver]
+classes = (
+    Carver,
+    )
+
 addon_keymaps = []
 
 
