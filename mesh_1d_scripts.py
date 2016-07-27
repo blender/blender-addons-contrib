@@ -833,7 +833,7 @@ def getNormalPlane(vecs, mat):
     A = v.y * w.z - v.z * w.y
     B = -v.x * w.z + v.z * w.x
     C = v.x * w.y - v.y * w.x
-    D = -out_[0].x * A - out_[0].y * B - out_[0].z * C
+    # D = -out_[0].x * A - out_[0].y * B - out_[0].z * C
 
     norm = mathutils.Vector((A, B, C)).normalized()
     return norm
@@ -857,7 +857,7 @@ def getNormalPlane2(vecs, mat):
     A = v.y * w.z - v.z * w.y
     B = -v.x * w.z + v.z * w.x
     C = v.x * w.y - v.y * w.x
-    D = -out_[0].x * A - out_[0].y * B - out_[0].z * C
+    # D = -out_[0].x * A - out_[0].y * B - out_[0].z * C
 
     norm = mathutils.Vector((A, B, C)).normalized()
     return norm
@@ -1863,7 +1863,6 @@ def GetStoreVecAngle():
 
 
 def select_v_on_plane():
-    config = bpy.context.window_manager.paul_manager
     obj = bpy.context.active_object
     if obj.type != 'MESH':
         return
@@ -2108,13 +2107,13 @@ def main_spline(context, mode, influe):
             return False
 
         sort_list = find_all_connected_verts(me, extreme_vs[0], [])
-        all_vts_sort_x = [me.vertices[i].co.x for i in sort_list]
-        all_vts_sort_y = [me.vertices[i].co.y for i in sort_list]
-        all_vts_sort_z = [me.vertices[i].co.z for i in sort_list]
+        # all_vts_sort_x = [me.vertices[i].co.x for i in sort_list]
+        # all_vts_sort_y = [me.vertices[i].co.y for i in sort_list]
+        # all_vts_sort_z = [me.vertices[i].co.z for i in sort_list]
 
-        max_p = [max(all_vts_sort_x), max(all_vts_sort_y), max(all_vts_sort_z)]
-        min_p = [min(all_vts_sort_x), min(all_vts_sort_y), min(all_vts_sort_z)]
-        diap_p = list(map(lambda a, b: a - b, max_p, min_p))
+        # max_p = [max(all_vts_sort_x), max(all_vts_sort_y), max(all_vts_sort_z)]
+        # min_p = [min(all_vts_sort_x), min(all_vts_sort_y), min(all_vts_sort_z)]
+        # diap_p = list(map(lambda a, b: a - b, max_p, min_p))
 
         if len(sort_list) != len(verts):
             print_error('Incoherent loop')
@@ -2158,7 +2157,7 @@ def main_spline(context, mode, influe):
             list_koeff = list(map(lambda n: d * n, list(range(1, l + 1))))
 
         if mode[0]:
-            all_vts_sort = [me.vertices[i].co.x for i in sort_list]
+            # all_vts_sort = [me.vertices[i].co.x for i in sort_list]
             p0 = p0_.x
             p1 = p1_.x - p0
             p2 = p2_.x - p0
@@ -2175,7 +2174,7 @@ def main_spline(context, mode, influe):
                                                          me.vertices[sort_list[idx + 1]].co.x) * influe
 
         if mode[1]:
-            all_vts_sort = [me.vertices[i].co.y for i in sort_list]
+            # all_vts_sort = [me.vertices[i].co.y for i in sort_list]
             p0 = p0_.y
             p1 = p1_.y - p0
             p2 = p2_.y - p0
@@ -2188,7 +2187,7 @@ def main_spline(context, mode, influe):
                                                          me.vertices[sort_list[idx + 1]].co.y) * influe
 
         if mode[2]:
-            all_vts_sort = [me.vertices[i].co.z for i in sort_list]
+            # all_vts_sort = [me.vertices[i].co.z for i in sort_list]
             p0 = p0_.z
             p1 = p1_.z - p0
             p2 = p2_.z - p0
@@ -2227,13 +2226,13 @@ def main_B_spline(context, mode, influe):
             return False
 
         sort_list = find_all_connected_verts(me, extreme_vs[0], [])
-        all_vts_sort_x = [me.vertices[i].co.x for i in sort_list]
-        all_vts_sort_y = [me.vertices[i].co.y for i in sort_list]
-        all_vts_sort_z = [me.vertices[i].co.z for i in sort_list]
+        # all_vts_sort_x = [me.vertices[i].co.x for i in sort_list]
+        # all_vts_sort_y = [me.vertices[i].co.y for i in sort_list]
+        # all_vts_sort_z = [me.vertices[i].co.z for i in sort_list]
 
-        max_p = [max(all_vts_sort_x), max(all_vts_sort_y), max(all_vts_sort_z)]
-        min_p = [min(all_vts_sort_x), min(all_vts_sort_y), min(all_vts_sort_z)]
-        diap_p = list(map(lambda a, b: a - b, max_p, min_p))
+        # max_p = [max(all_vts_sort_x), max(all_vts_sort_y), max(all_vts_sort_z)]
+        # min_p = [min(all_vts_sort_x), min(all_vts_sort_y), min(all_vts_sort_z)]
+        # diap_p = list(map(lambda a, b: a - b, max_p, min_p))
 
         if len(sort_list) != len(verts):
             print_error('Incoherent loop')
@@ -2285,7 +2284,7 @@ def main_B_spline(context, mode, influe):
             list_koeff = list(map(lambda n: d * n, list(range(1, l + 1))))
 
         if mode[0]:
-            all_vts_sort = [me.vertices[i].co.x for i in sort_list]
+            # all_vts_sort = [me.vertices[i].co.x for i in sort_list]
             p0 = p0_.x
             p1 = p1_.x - p0
             p2 = p2_.x - p0
@@ -2322,7 +2321,7 @@ def main_B_spline(context, mode, influe):
                                                          me.vertices[sort_list[idx + 2]].co.x) * influe
 
         if mode[1]:
-            all_vts_sort = [me.vertices[i].co.y for i in sort_list]
+            # all_vts_sort = [me.vertices[i].co.y for i in sort_list]
             p0 = p0_.y
             p1 = p1_.y - p0
             p2 = p2_.y - p0
@@ -2359,7 +2358,7 @@ def main_B_spline(context, mode, influe):
                                                          me.vertices[sort_list[idx + 2]].co.y) * influe
 
         if mode[2]:
-            all_vts_sort = [me.vertices[i].co.z for i in sort_list]
+            # all_vts_sort = [me.vertices[i].co.z for i in sort_list]
             p0 = p0_.z
             p1 = p1_.z - p0
             p2 = p2_.z - p0
@@ -2422,13 +2421,13 @@ def main_B_spline_2(context, mode, influe):
             return False
 
         sort_list = find_all_connected_verts(me, extreme_vs[0], [])
-        all_vts_sort_x = [me.vertices[i].co.x for i in sort_list]
-        all_vts_sort_y = [me.vertices[i].co.y for i in sort_list]
-        all_vts_sort_z = [me.vertices[i].co.z for i in sort_list]
+        # all_vts_sort_x = [me.vertices[i].co.x for i in sort_list]
+        # all_vts_sort_y = [me.vertices[i].co.y for i in sort_list]
+        # all_vts_sort_z = [me.vertices[i].co.z for i in sort_list]
 
-        max_p = [max(all_vts_sort_x), max(all_vts_sort_y), max(all_vts_sort_z)]
-        min_p = [min(all_vts_sort_x), min(all_vts_sort_y), min(all_vts_sort_z)]
-        diap_p = list(map(lambda a, b: a - b, max_p, min_p))
+        # max_p = [max(all_vts_sort_x), max(all_vts_sort_y), max(all_vts_sort_z)]
+        # min_p = [min(all_vts_sort_x), min(all_vts_sort_y), min(all_vts_sort_z)]
+        # diap_p = list(map(lambda a, b: a - b, max_p, min_p))
 
         if len(sort_list) != len(verts):
             print_error('Incoherent loop')
@@ -2703,13 +2702,13 @@ def main_Basier_mid(context, mode, influe):
             return False
 
         sort_list = find_all_connected_verts(me, extreme_vs[0], [])
-        all_vts_sort_x = [me.vertices[i].co.x for i in sort_list]
-        all_vts_sort_y = [me.vertices[i].co.y for i in sort_list]
-        all_vts_sort_z = [me.vertices[i].co.z for i in sort_list]
+        # all_vts_sort_x = [me.vertices[i].co.x for i in sort_list]
+        # all_vts_sort_y = [me.vertices[i].co.y for i in sort_list]
+        # all_vts_sort_z = [me.vertices[i].co.z for i in sort_list]
 
-        max_p = [max(all_vts_sort_x), max(all_vts_sort_y), max(all_vts_sort_z)]
-        min_p = [min(all_vts_sort_x), min(all_vts_sort_y), min(all_vts_sort_z)]
-        diap_p = list(map(lambda a, b: a - b, max_p, min_p))
+        # max_p = [max(all_vts_sort_x), max(all_vts_sort_y), max(all_vts_sort_z)]
+        # min_p = [min(all_vts_sort_x), min(all_vts_sort_y), min(all_vts_sort_z)]
+        # diap_p = list(map(lambda a, b: a - b, max_p, min_p))
 
         if len(sort_list) != len(verts):
             print_error('Incoherent loop')
@@ -3816,8 +3815,8 @@ def Select_chunks(maloe, setting):
     bpy.ops.object.mode_set(mode='EDIT')
     mesh = obj.data
 
-    chunk_obj = list(obj.get('chunk_key', []))
-    chunk_obj_curr = [len(mesh.vertices), len(mesh.edges), len(mesh.polygons)]
+    # chunk_obj = list(obj.get('chunk_key', []))
+    # chunk_obj_curr = [len(mesh.vertices), len(mesh.edges), len(mesh.polygons)]
 
     if setting != 'SF':
         mesh.update()
