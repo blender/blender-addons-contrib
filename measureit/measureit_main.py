@@ -635,10 +635,10 @@ class MeasureitMainPanel(bpy.types.Panel):
         box = layout.box()
         row = box.row(False)
         if scene.measureit_debug is False:
-            row.prop(scene, "measureit_debug", icon="TRIA_RIGHT", icon_only=True,
+            row.prop(scene, "measureit_debug", icon="TRIA_RIGHT",
                      text="Mesh Debug", emboss=False)
         else:
-            row.prop(scene, "measureit_debug", icon="TRIA_DOWN", icon_only=True,
+            row.prop(scene, "measureit_debug", icon="TRIA_DOWN",
                      text="Mesh Debug", emboss=False)
 
             row = box.row()
