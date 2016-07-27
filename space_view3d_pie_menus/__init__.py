@@ -122,11 +122,6 @@ def unregister_submodule(mod):
                     del prefs[name]
 
 
-def test_platform():
-    return (platform.platform().split('-')[0].lower()
-            not in {'darwin', 'windows'})
-
-
 class UIToolsPreferences(AddonPreferences):
     bl_idname = __name__
 
