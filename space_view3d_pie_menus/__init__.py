@@ -125,18 +125,13 @@ def unregister_submodule(mod):
 class UIToolsPreferences(AddonPreferences):
     bl_idname = __name__
 
-    align_box_draw = BoolProperty(
-        name='Box Draw',
-        description='If applied patch: patch/ui_layout_box.patch',
-        default=False)
-
     def draw(self, context):
         layout = self.layout
 
         for mod in sub_modules:
             mod_name = mod.__name__.split('.')[-1]
             info = mod.bl_info
-            column = layout.column(align=self.align_box_draw)
+            column = layout.column()
             box = column.box()
 
             # first stage
@@ -195,12 +190,9 @@ class UIToolsPreferences(AddonPreferences):
                 # Details and settings
                 if getattr(self, 'use_' + mod_name):
                     prefs = get_addon_preferences(mod_name)
-                    if prefs and hasattr(prefs, 'draw'):
-                        if self.align_box_draw:
-                            box = column.box()
-                        else:
-                            box = box.column()
 
+                    if prefs and hasattr(prefs, 'draw'):
+                        box = box.column()
                         prefs.layout = box
                         try:
                             prefs.draw(context)
@@ -210,9 +202,7 @@ class UIToolsPreferences(AddonPreferences):
                         del prefs.layout
 
         row = layout.row()
-        sub = row.row()
-        sub.alignment = 'RIGHT'
-        sub.prop(self, 'align_box_draw')
+        row.label("End of Pie Menu Activations")
 
 
 for mod in sub_modules:

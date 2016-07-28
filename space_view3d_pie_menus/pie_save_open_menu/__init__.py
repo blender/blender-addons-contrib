@@ -21,8 +21,6 @@
 bl_info = {
     "name": "Hotkey: 'Ctrl S'",
     "description": "Save/Open & File Menus",
-    #    "author": "pitiwazou, meta-androcto",
-    #    "version": (0, 1, 0),
     "blender": (2, 77, 0),
     "location": "All Editors",
     "warning": "",
@@ -125,36 +123,49 @@ class ExternalData(Menu):
         layout.operator("file.report_missing_files", text="Report Missing Files")
         layout.operator("file.find_missing_files", text="Find Missing Files")
 
-# Save Incremental
 
+# Save Incremental
 
 class FileIncrementalSave(Operator):
     bl_idname = "file.save_incremental"
     bl_label = "Save Incremental"
-    bl_description = "Save Files with _001, _002 extension"
+    bl_description = "Save First!then Incremental, .blend will get _001 extension"
     bl_options = {"REGISTER"}
+
+    @classmethod
+    def poll(cls, context):
+        return (bpy.data.filepath is not "")
 
     def execute(self, context):
         f_path = bpy.data.filepath
-        if f_path.find("_") != -1:
-            # fix for cases when there is an underscore in the name like my_file.blend
+        b_name = bpy.path.basename(f_path)
+
+        if b_name and b_name.find("_") != -1:
+            # except in cases when there is an underscore in the name like my_file.blend
             try:
-                str_nb = f_path.rpartition("_")[-1].rpartition(".blend")[0]
+                str_nb = b_name.rpartition("_")[-1].rpartition(".blend")[0]
                 int_nb = int(str(str_nb))
                 new_nb = str_nb.replace(str(int_nb), str(int_nb + 1))
                 output = f_path.replace(str_nb, new_nb)
 
                 i = 1
                 while os.path.isfile(output):
-                    str_nb = f_path.rpartition("_")[-1].rpartition(".blend")[0]
+                    str_nb = b_name.rpartition("_")[-1].rpartition(".blend")[0]
                     i += 1
                     new_nb = str_nb.replace(str(int_nb), str(int_nb + i))
                     output = f_path.replace(str_nb, new_nb)
             except ValueError:
                 output = f_path.rpartition(".blend")[0] + "_001" + ".blend"
         else:
+            # no underscore in the name or saving a nameless (.blend) file
             output = f_path.rpartition(".blend")[0] + "_001" + ".blend"
-        bpy.ops.wm.save_as_mainfile(filepath=output)
+
+        # fix for saving in a directory without privileges
+        try:
+            bpy.ops.wm.save_as_mainfile(filepath=output)
+        except:
+            self.report({'WARNING'}, "File could not be saved. Check the System Console for errors")
+            return {'CANCELLED'}
 
         self.report(
                 {'INFO'}, "File: {0} - Created at: {1}".format(

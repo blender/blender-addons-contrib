@@ -71,21 +71,8 @@ class PieDelete(Menu):
         box.operator("mesh.delete", text="Only Faces", icon='UV_FACESEL').type = 'ONLY_FACE'
         box.operator("mesh.remove_doubles", text="Remove Doubles", icon='ORTHO')
 
-# Limited Dissolve
-
-
-class DeleteLimitedDissolve(Operator):
-    bl_idname = "delete.limiteddissolve"
-    bl_label = "Delete Limited Dissolve"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        bpy.ops.mesh.dissolve_limited
-        return {'FINISHED'}
-
 classes = (
     PieDelete,
-    DeleteLimitedDissolve,
     )
 
 addon_keymaps = []

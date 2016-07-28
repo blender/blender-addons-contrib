@@ -36,24 +36,12 @@ from bpy.types import (
         Operator,
         )
 
-# Persp/Ortho
-
-
-class PerspOrthoView(Operator):
-    bl_idname = "persp.orthoview"
-    bl_label = "Persp/Ortho"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        bpy.ops.view3d.view_persportho()
-        return {'FINISHED'}
-
 # Lock Camera Transforms
 
 
-class LockCameraTransforms(Operator):
-    bl_idname = "object.lockcameratransforms"
-    bl_label = "Lock Camera Transforms"
+class LockTransforms(Operator):
+    bl_idname = "object.locktransforms"
+    bl_label = "Lock Object Transforms"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -81,8 +69,6 @@ class LockCameraTransforms(Operator):
             obj.lock_scale[2] = False
         return {'FINISHED'}
 
-# Active Camera
-bpy.types.Scene.cameratoto = bpy.props.StringProperty(default="")
 
 # Pie View All Sel Glob Etc - Q
 
@@ -99,7 +85,7 @@ class PieViewallSelGlobEtc(Menu):
         # 6 - RIGHT
         pie.operator("view3d.view_selected", text="View Selected")
         # 2 - BOTTOM
-        pie.operator("persp.orthoview", text="Persp/Ortho", icon='RESTRICT_VIEW_OFF')
+        pie.operator("view3d.view_persportho", text="Persp/Ortho", icon='RESTRICT_VIEW_OFF')
         # 8 - TOP
         pie.operator("view3d.localview", text="Local/Global")
         # 7 - TOP - LEFT
@@ -152,21 +138,20 @@ class PieViewNumpad(Menu):
 
         if ob.lock_rotation[0] == False:
             row = box.row(align=True)
-            row.operator("object.lockcameratransforms", text="Lock Transforms", icon='LOCKED')
+            row.operator("object.locktransforms", text="Lock Transforms", icon='LOCKED')
 
         elif ob.lock_rotation[0] == True:
             row = box.row(align=True)
-            row.operator("object.lockcameratransforms", text="UnLock Transforms", icon='UNLOCKED')
+            row.operator("object.locktransforms", text="UnLock Transforms", icon='UNLOCKED')
         row = box.row(align=True)
         row.prop(rd, "use_border", text="Border")
         # 3 - BOTTOM - RIGHT
-        pie.operator("wm.call_menu_pie", text="View All/Sel/Glob...", icon='BBOX').name = "pie.vieallselglobetc"
+        pie.operator("wm.call_menu_pie", text="View All Pie", icon='BBOX').name = "pie.vieallselglobetc"
 
 classes = (
     PieViewNumpad,
-    LockCameraTransforms,
+    LockTransforms,
     PieViewallSelGlobEtc,
-    PerspOrthoView,
     )
 
 addon_keymaps = []
@@ -175,6 +160,10 @@ addon_keymaps = []
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
+
+# Active Camera
+    bpy.types.Scene.cameratoto = bpy.props.StringProperty(default="")
+
     wm = bpy.context.window_manager
 
     if wm.keyconfigs.addon:
@@ -198,6 +187,8 @@ def unregister():
             if kmi.idname == 'wm.call_menu_pie':
                 if kmi.properties.name == "pie.viewnumpad":
                     km.keymap_items.remove(kmi)
+
+    del bpy.types.Scene.cameratoto
 
 if __name__ == "__main__":
     register()

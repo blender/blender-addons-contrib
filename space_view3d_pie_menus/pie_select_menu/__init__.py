@@ -91,39 +91,58 @@ class PieSelectionsEM(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         # 4 - LEFT
-        pie.operator("view3d.select_circle", text="Circle Select", icon='BORDER_LASSO')
+        pie.operator("mesh.loop_multi_select", text="Select Ring", icon='ZOOM_PREVIOUS').ring = True
         # 6 - RIGHT
-        pie.operator("view3d.select_border", text="Border Select", icon='BORDER_RECT')
+        pie.operator("mesh.loop_multi_select", text="Select Loop", icon='ZOOM_PREVIOUS').ring = False
         # 2 - BOTTOM
         pie.operator("mesh.select_all", text="Invert Selection", icon='ZOOM_PREVIOUS').action = 'INVERT'
         # 8 - TOP
         pie.operator("mesh.select_all", text="De/Select All", icon='RENDER_REGION').action = 'TOGGLE'
         # 7 - TOP - LEFT
+        pie.operator("view3d.select_circle", text="Circle Select", icon='BORDER_LASSO')
+        # 9 - TOP - RIGHT
+        pie.operator("view3d.select_border", text="Border Select", icon='BORDER_RECT')
+        # 1 - BOTTOM - LEFT
         box = pie.split().column()
         row = box.row(align=True)
         box.operator("mesh.select_nth", text="Checker Select", icon='PARTICLE_POINT')
         box.operator("mesh.loop_to_region", text="Select Loop Inner Region", icon='FACESEL')
         box.operator("mesh.select_similar", text="Select Similar", icon='GHOST')
-        # 9 - TOP - RIGHT
-        pie.operator("object.selectallbyselection", text="Complete Select", icon='RENDER_REGION')
-        # 1 - BOTTOM - LEFT
-        pie.operator("mesh.loop_multi_select", text="Select Ring", icon='ZOOM_PREVIOUS').ring = True
         # 3 - BOTTOM - RIGHT
-        pie.operator("mesh.loop_multi_select", text="Select Loop", icon='ZOOM_PREVIOUS').ring = False
+        pie.menu("object.selectallbyselection", text="Multi Select", icon='RENDER_REGION')
 
 # Select All By Selection
 
 
-class SelectAllBySelection(Operator):
+class SelectAllBySelection(Menu):
     bl_idname = "object.selectallbyselection"
     bl_label = "Verts Edges Faces"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
 
-        bpy.ops.mesh.select_all(action='TOGGLE')
-        bpy.ops.mesh.select_all(action='TOGGLE')
-        return {'FINISHED'}
+        prop = layout.operator("wm.context_set_value", text="Vertex Select",
+                               icon='VERTEXSEL')
+        prop.value = "(True, False, False)"
+        prop.data_path = "tool_settings.mesh_select_mode"
+
+        prop = layout.operator("wm.context_set_value", text="Edge Select",
+                               icon='EDGESEL')
+        prop.value = "(False, True, False)"
+        prop.data_path = "tool_settings.mesh_select_mode"
+
+        prop = layout.operator("wm.context_set_value", text="Face Select",
+                               icon='FACESEL')
+        prop.value = "(False, False, True)"
+        prop.data_path = "tool_settings.mesh_select_mode"
+
+        prop = layout.operator("wm.context_set_value",
+                               text="Vertex & Edge & Face Select",
+                               icon='SNAP_VOLUME')
+        prop.value = "(True, True, True)"
+        prop.data_path = "tool_settings.mesh_select_mode"
 
 classes = (
     PieSelectionsOM,
@@ -145,14 +164,12 @@ def register():
         km = wm.keyconfigs.addon.keymaps.new(name='Object Mode')
         kmi = km.keymap_items.new('wm.call_menu_pie', 'A', 'PRESS')
         kmi.properties.name = "pie.selectionsom"
-#        kmi.active = True
         addon_keymaps.append((km, kmi))
 
         # Selection Edit Mode
         km = wm.keyconfigs.addon.keymaps.new(name='Mesh')
         kmi = km.keymap_items.new('wm.call_menu_pie', 'A', 'PRESS')
         kmi.properties.name = "pie.selectionsem"
-#        kmi.active = True
         addon_keymaps.append((km, kmi))
 
 
