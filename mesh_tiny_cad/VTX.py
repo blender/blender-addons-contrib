@@ -76,7 +76,7 @@ def perform_vtx(bm, pt, edges, pts, vertex_indices):
     idx1, idx2 = edges[0].index, edges[1].index
     fdp = pt, edges, pts, vertex_indices
 
-    # this list will hold those edges that pt lies on,
+    # this list will hold those edges that pt lies on
     edges_indices = cm.find_intersecting_edges(bm, pt, idx1, idx2)
     mode = 'VTX'[len(edges_indices)]
 
@@ -106,12 +106,12 @@ def perform_vtx(bm, pt, edges, pts, vertex_indices):
 
 def do_vtx_if_appropriate(bm, edges):
     vertex_indices = cm.get_vert_indices_from_bmedges(edges)
-
-    # test 1 , are there shared vers? if so return non-viable
+    
+    # test 1, are there shared vers? if so return non-viable
     if not len(set(vertex_indices)) == 4:
         return {'SHARED_VERTEX'}
 
-    # test 2 , is parallel?
+    # test 2, is parallel?
     p1, p2, p3, p4 = [bm.verts[i].co for i in vertex_indices]
     point = cm.get_intersection([p1, p2], [p3, p4])
     if not point:
