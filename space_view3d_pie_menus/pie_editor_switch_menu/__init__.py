@@ -40,7 +40,7 @@ from bpy.props import (
         )
 
 
-class AreaPieMenu(bpy.types.Menu):
+class AreaPieMenu(Menu):
     bl_idname = "INFO_MT_window_pie"
     bl_label = "Pie Menu"
     bl_description = "Window Pie Menus"
@@ -49,7 +49,7 @@ class AreaPieMenu(bpy.types.Menu):
         self.layout.operator(AreaTypePieOperator.bl_idname, icon="PLUGIN")
 
 
-class AreaTypePieOperator(bpy.types.Operator):
+class AreaTypePieOperator(Operator):
     bl_idname = "wm.area_type_pie_operator"
     bl_label = "Editor Type"
     bl_description = "This is pie menu of editor type change"
