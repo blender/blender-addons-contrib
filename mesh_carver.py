@@ -23,6 +23,8 @@ bl_info = {
     "author": "Pixivore, Cédric LEPILLER",
     "version": (1, 1, 5),
     "blender": (2, 77, 0),
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Modeling/Carver",
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "description": "Multiple tools to carve or to create objects.",
 }
@@ -456,7 +458,6 @@ class CarverPrefs(bpy.types.AddonPreferences):
 
     bpy.types.Scene.Enable_Tab_01 = bpy.props.BoolProperty(default=False)
     bpy.types.Scene.Enable_Tab_02 = bpy.props.BoolProperty(default=False)
-    bpy.types.Scene.Enable_Tab_03 = bpy.props.BoolProperty(default=False)
 
     bpy.types.Scene.Key_Create = bpy.props.StringProperty(
         name="Object creation",
@@ -558,13 +559,8 @@ class CarverPrefs(bpy.types.AddonPreferences):
             layout.label(text="Carver Operator")
             layout.label(text="Select object and [CTRL]+[SHIFT]+[X] to carve")
 
-        layout.prop(scene, "Enable_Tab_02", text="URL's", icon="URL")
+        layout.prop(scene, "Enable_Tab_02", text="Keys", icon="KEYINGSET")
         if scene.Enable_Tab_02:
-            row = layout.row()
-            row.operator("wm.url_open", text="pixivores.com").url = "http://pixivores.com"
-
-        layout.prop(scene, "Enable_Tab_03", text="Keys", icon="KEYINGSET")
-        if scene.Enable_Tab_03:
             split = layout.split()
             col = split.column()
             col.label("Object Creation:")
