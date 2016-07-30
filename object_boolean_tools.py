@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Bool Tool",
     "author": "Vitor Balbio, Mikhail Rachinskiy, TynkaTopi, Meta-Androcto",
-    "version": (0, 3, 2),
+    "version": (0, 3, 3),
     "blender": (2, 77, 0),
     "location": "View3D > Toolshelf > BoolTool",
     "description": "Bool Tools Hotkey: Ctrl Shift B",
@@ -930,8 +930,6 @@ class BoolTool_Menu(bpy.types.Menu):
         layout.operator(BTool_Slice.bl_idname, icon="ROTATECENTER")
         layout.separator()
 
-        layout.operator(BTool_DrawPolyBrush.bl_idname, icon="LINE_DATA")
-
         if (isCanvas(context.active_object)):
             layout.separator()
             layout.operator(BTool_AllBrushToMesh.bl_idname, icon="MOD_LATTICE", text="Apply All")
@@ -1168,6 +1166,21 @@ def UpdateBoolTool_Pref(self, context):
     else:
         UnRegisterFastT()
 
+## Addons Preferences Update Panel
+def update_panel(self, context):
+    try:
+        bpy.utils.unregister_class(BoolTool_Tools)
+        bpy.utils.unregister_class(BoolTool_Config)
+        bpy.utils.unregister_class(BoolTool_BViwer)
+    except:
+        pass
+    BoolTool_Tools.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(BoolTool_Tools)
+    BoolTool_Config.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(BoolTool_Config)
+    BoolTool_BViwer.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(BoolTool_BViwer)
+
 
 class BoolTool_Pref(bpy.types.AddonPreferences):
     bl_idname = __name__
@@ -1196,7 +1209,20 @@ class BoolTool_Pref(bpy.types.AddonPreferences):
             description="Use The Wireframe Instead Of Boolean"
             )
 
+    category = bpy.props.StringProperty(
+            name="Tab Category",
+            description="Choose a name for the category of the panel",
+            default="Bool Tools",
+            update=update_panel)
+
     def draw(self, context):
+
+        layout = self.layout
+        row = layout.row()
+        col = row.column()
+        col.label(text="Category:")
+        col.prop(self, "category", text="")
+        layout.separator()
         layout = self.layout
         layout.label("Experimental Features:")
         layout.prop(self, "fast_transform")
