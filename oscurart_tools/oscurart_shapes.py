@@ -20,12 +20,6 @@
 
 import bpy
 import math
-import sys
-import os
-import stat
-import bmesh
-import time
-import random
 
 # -----------------------------------CREATE SHAPES----------------
 
@@ -34,7 +28,6 @@ def DefSplitShapes(self, ACTIVESHAPE, LAYOUTCOMPAT):
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     ACTOBJ = bpy.context.active_object
-    LENKB = len(ACTOBJ.data.shape_keys.key_blocks)
     INDEX = ACTOBJ.active_shape_key_index
 
     if LAYOUTCOMPAT:
@@ -105,7 +98,6 @@ class CreaShapesLayout(bpy.types.Operator):
         OBJECTMODE = "bpy.ops.object.mode_set(mode='OBJECT')"
         POSEMODE = "bpy.ops.object.mode_set(mode='POSE')"
 
-        varindex = 0
         amt = bpy.data.armatures.new("ArmatureData")
         ob = bpy.data.objects.new("RIG_LAYOUT_" + SEL_OBJ.name, amt)
 

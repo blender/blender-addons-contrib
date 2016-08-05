@@ -19,14 +19,9 @@
 # <pep8 compliant>
 
 import bpy
-import math
-import sys
 import os
-import stat
 import bmesh
 import time
-import random
-import bgl
 import blf
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 
@@ -49,8 +44,8 @@ def defReconst(self, OFFSET):
         if vertice.co[0] < 0:
             bm.verts.remove(vertice)
             bmesh.update_edit_mesh(ob.data)
-    mod = ob.modifiers.new("Mirror", "MIRROR")
-    uv = ob.data.uv_textures.new(name="SYMMETRICAL")
+    # mod = ob.modifiers.new("Mirror", "MIRROR")
+    # uv = ob.data.uv_textures.new(name="SYMMETRICAL")
     for v in bm.faces:
         v.select = 1
     bmesh.update_edit_mesh(ob.data)
@@ -65,7 +60,7 @@ def defReconst(self, OFFSET):
     bpy.ops.object.mode_set(mode="EDIT", toggle=False)
     bm = bmesh.from_edit_mesh(ob.data)
     bm.select_flush(0)
-    uv = ob.data.uv_textures.new(name="ASYMMETRICAL")
+    # uv = ob.data.uv_textures.new(name="ASYMMETRICAL")
     ob.data.uv_textures.active = ob.data.uv_textures['ASYMMETRICAL']
     bpy.ops.uv.unwrap(
         method='ANGLE_BASED',
@@ -100,11 +95,10 @@ def side(self, nombre, offset):
     bpy.ops.object.mode_set(mode="EDIT", toggle=0)
     OBJECT = bpy.context.active_object
     ODATA = bmesh.from_edit_mesh(OBJECT.data)
-    MODE = bpy.context.mode
     bpy.context.tool_settings.mesh_select_mode = (True, False, False)
     for VERTICE in ODATA.verts[:]:
         VERTICE.select = False
-    if nombre == False:
+    if nombre is False:
         for VERTICES in ODATA.verts[:]:
             if VERTICES.co[0] < (offset):
                 VERTICES.select = 1
@@ -387,8 +381,6 @@ def DefOscOverlapUv(valpresicion):
     faceloc = {rounder(poly.center[:]): poly for poly in ob.data.polygons}
 
     # relativo de cada vertice y cada face
-    verteq = {vert: vertloc.get(absco(co), vertloc[co])
-              for co, vert in vertloc.items() if co[0] <= 0}
     verteqind = {vert.index: vertloc.get(
                  absco(co),
                  vertloc[co]).index for co,
@@ -402,13 +394,15 @@ def DefOscOverlapUv(valpresicion):
     lif = {poly: [i for i in poly.loop_indices] for poly in ob.data.polygons}
 
     # acomoda
-    vertexeq = {}
     for l, r in polyeq.items():
         if l.select:
             for lloop in lif[l]:
                 for rloop in lif[r]:
-                    # lloop,verteq[vertexvert[lloop]],rloop,vertexvert[rloop]
-                    if verteqind[vertexvert[lloop]] == vertexvert[rloop] and ob.data.uv_layers.active.data[rloop].select:
+                    if (
+                        verteqind[vertexvert[lloop]] == vertexvert[rloop] and
+                        ob.data.uv_layers.active.data[rloop].select
+                       ):
+
                         ob.data.uv_layers.active.data[
                             lloop].uv = ob.data.uv_layers.active.data[
                                 rloop].uv

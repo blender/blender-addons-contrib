@@ -19,20 +19,10 @@
 # <pep8 compliant>
 
 import bpy
-import math
-import sys
 import os
-import stat
-import bmesh
-import time
-import random
 from bpy_extras.object_utils import world_to_camera_view
 
 # ------------------------ SEARCH AND SELECT ------------------------
-
-# SETEO VARIABLE DE ENTORNO
-bpy.types.Scene.SearchAndSelectOt = bpy.props.StringProperty(
-    default="Object name initials")
 
 
 class SearchAndSelectOt(bpy.types.Operator):
@@ -229,12 +219,12 @@ def select_osc():
                 bpy.selection_osc.append(obj)
             elif sel > len(bpy.selection_osc):
                 for sobj in bpy.context.selected_objects:
-                    if (sobj in bpy.selection_osc) == False:
+                    if (sobj in bpy.selection_osc) is False:
                         bpy.selection_osc.append(sobj)
 
             elif sel < len(bpy.selection_osc):
                 for it in bpy.selection_osc:
-                    if (it in bpy.context.selected_objects) == False:
+                    if (it in bpy.context.selected_objects) is False:
                         bpy.selection_osc.remove(it)
 
 
@@ -379,7 +369,6 @@ class RenderOnlyInCamera (bpy.types.Operator):
 def duplicateSymmetrical(self, disconect):
     for objeto in bpy.context.selected_objects:
 
-        OBSEL = objeto
         bpy.ops.object.select_all(action='DESELECT')
         objeto.select = 1
         bpy.context.scene.objects.active = objeto
@@ -489,7 +478,7 @@ def duplicateSymmetrical(self, disconect):
                 0].targets[
             0].transform_type = 'ROT_Z'
 
-        if disconect != True:
+        if disconect is not True:
             bpy.ops.object.make_single_user(obdata=True, object=True)
             bpy.context.active_object.driver_remove("location")
             bpy.context.active_object.driver_remove("rotation_euler")

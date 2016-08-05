@@ -23,9 +23,6 @@ from mathutils import Matrix
 
 # ---------------------------RELOAD IMAGES------------------
 
-bpy.types.Scene.quick_animation_in = bpy.props.IntProperty(default=1)
-bpy.types.Scene.quick_animation_out = bpy.props.IntProperty(default=250)
-
 
 def DefQuickParent(inf, out):
     if bpy.context.object.type == "ARMATURE":

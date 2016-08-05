@@ -19,7 +19,6 @@
 # <pep8 compliant>
 
 import bpy
-import math
 import os
 import stat
 
@@ -45,11 +44,8 @@ def defRenderAll(frametype, scenes):
                 for ob in bpy.data.objects if ob.type in types if len(ob.material_slots)}
 
     for scene in scenes:
-        proptolist = list(eval(scene.overrides))
-        cursc = scene.name
+        proptolist = list(eval(scene.oscurart.overrides))
         renpath = scene.render.filepath
-        endpath = scene.render.filepath
-        filepath = bpy.data.filepath
 
         if frametype:
             scene.frame_start = FC
@@ -335,7 +331,8 @@ def RENDER():
     os.system(BAT)
 def CLEAN():
     global REPITE
-    FILES  = [root+'/'+FILE for root, dirs, files in os.walk(os.getcwd()) if len(files) > 0 for FILE in files if FILE.count('~') == False]
+    FILES  = [root+'/'+FILE for root, dirs, files in os.walk(os.getcwd()) if
+              len(files) > 0 for FILE in files if FILE.count('~') == False]
     RESPUESTA=False
     for FILE in FILES:
         if os.path.getsize(FILE) < %s:
@@ -463,7 +460,6 @@ class BrokenFramesPanel (bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        obj = context.object
         col = layout.column(align=1)
 
         for i in bpy.context.scene.broken_files:
@@ -642,7 +638,7 @@ def defCopyRenderSettings(mode):
                     pass
 
 
-class copyRenderSettings (bpy.types.Operator):
+class copyRenderSettings(bpy.types.Operator):
     bl_idname = "render.copy_render_settings_osc"
     bl_label = "Copy Render Settings"
     # bl_options = {'REGISTER', 'UNDO'}
