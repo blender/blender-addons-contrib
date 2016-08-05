@@ -40,8 +40,7 @@ from mathutils.geometry import (
         intersect_line_line,
         )
 from math import sin, cos, pi, sqrt, degrees, tan, radians
-import os
-import urllib
+
 from bpy.props import (
         BoolProperty,
         FloatProperty,
@@ -6322,34 +6321,14 @@ class ImportMultipleObjs(bpy.types.Operator, ImportHelper):
         return {'FINISHED'}
 
 
-# ***********  Autoupdate  ***************
-class ThisScriptUpdateAddon(bpy.types.Operator):
-    """ Update this addon without any browsing and so on. After - press F8 to reload addons """
-    bl_idname = "script.paul_update_addon"
-    bl_label = "Update 1D_script addon"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        script_paths = os.path.normpath(os.path.dirname(__file__))
-        os.curdir = os.path.dirname(os.path.join(script_paths, 'addons'))
-        os.chdir(os.curdir)
-
-        try:
-            url = 'http://dl.dropboxusercontent.com/u/59609328/Blender-Rus/1D_Scripts.py'
-            file = urllib.request.urlretrieve(url, os.path.normpath(os.path.join(os.curdir, '1D_Scripts.py')))
-            self.report({'INFO'}, "Reload addons with F8 button")
-        except:
-            self.report({'ERROR'}, "Cannot retrieve file from Internet")
-        return {'FINISHED'}
-
 
 classes = (
     eap_op0, eap_op1, eap_op2, eap_op3, ChunksOperator, f_op0,
     RenderMe, ExportSomeData, RotorOperator, DisableDubleSideOperator, ImportMultipleObjs,
     MatExrudeOperator, GetMatsOperator, CrossPolsOperator, SSOperator, SpreadOperator,
     AlignOperator, Project3DLoopOperator, BarcOperator, LayoutSSPanel, MessageOperator,
-    OffsetOperator, MiscOperator, paul_managerProps, ThisScriptUpdateAddon,
-    CheredatorModalOperator, D1_fedge, CornerOperator, SelOperator, RailerOperator,
+    OffsetOperator, MiscOperator, paul_managerProps, CheredatorModalOperator, D1_fedge, 
+    CornerOperator, SelOperator, RailerOperator,
     )
 
 
