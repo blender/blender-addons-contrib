@@ -19,24 +19,27 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Operator
+from bpy.props import BoolProperty
 import os
 from bpy_extras.object_utils import world_to_camera_view
 
+
 # ------------------------ SEARCH AND SELECT ------------------------
 
-
-class SearchAndSelectOt(bpy.types.Operator):
+class SearchAndSelectOt(Operator):
     bl_idname = "object.search_and_select_osc"
     bl_label = "Search And Select"
+    bl_description = "Selection based upon object names in the scene"
     bl_options = {"REGISTER", "UNDO"}
 
-    start = bpy.props.BoolProperty(name="Start With", default=True)
-    count = bpy.props.BoolProperty(name="Contain", default=True)
-    end = bpy.props.BoolProperty(name="End", default=True)
+    start = BoolProperty(name="Start With", default=True)
+    count = BoolProperty(name="Contain", default=True)
+    end = BoolProperty(name="End", default=True)
 
     def execute(self, context):
         for objeto in bpy.context.scene.objects:
-            variableNombre = bpy.context.scene.SearchAndSelectOt
+            variableNombre = bpy.context.scene.oscurart.SearchAndSelectOt
             if self.start:
                 if objeto.name.startswith(variableNombre):
                     objeto.select = True
@@ -51,11 +54,7 @@ class SearchAndSelectOt(bpy.types.Operator):
 
 # -------------------------RENAME OBJECTS----------------------------------
 
-# CREO VARIABLE
-bpy.types.Scene.RenameObjectOt = bpy.props.StringProperty(default="Type here")
-
-
-class renameObjectsOt (bpy.types.Operator):
+class renameObjectsOt (Operator):
     bl_idname = "object.rename_objects_osc"
     bl_label = "Rename Objects"
     bl_options = {"REGISTER", "UNDO"}
@@ -63,15 +62,16 @@ class renameObjectsOt (bpy.types.Operator):
     def execute(self, context):
         listaObj = bpy.context.selected_objects[:]
         for objeto in listaObj:
-            objeto.name = bpy.context.scene.RenameObjectOt
+            objeto.name = bpy.context.scene.oscurart.RenameObjectOt
         return {'FINISHED'}
 
 
 # ---------------------------REMOVE MODIFIERS Y APPLY MODIFIERS-----------
 
-class oscRemModifiers (bpy.types.Operator):
+class oscRemModifiers (Operator):
     bl_idname = "object.modifiers_remove_osc"
     bl_label = "Remove modifiers"
+    bl_description = "Removes all modifiers on all selected objects"
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
@@ -83,9 +83,11 @@ class oscRemModifiers (bpy.types.Operator):
         return {'FINISHED'}
 
 
-class oscApplyModifiers (bpy.types.Operator):
+class oscApplyModifiers (Operator):
     bl_idname = "object.modifiers_apply_osc"
     bl_label = "Apply modifiers"
+    bl_description = ("Applies all modifiers on all selected objects \n"
+                      "Warning: Make single user will be applied on Linked Object data")
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
@@ -115,37 +117,40 @@ class oscApplyModifiers (bpy.types.Operator):
 
 # ------------------------------------ RELINK OBJECTS---------------------
 
-
 def relinkObjects(self):
 
     LISTSCENE = []
+    if bpy.selection_osc:
+        for SCENE in bpy.data.scenes[:]:
+            if SCENE.objects:
+                if bpy.selection_osc[-1] in SCENE.objects[:]:
+                    LISTSCENE.append(SCENE)
 
-    for SCENE in bpy.data.scenes[:]:
-        if bpy.selection_osc[-1] in SCENE.objects[:]:
-            LISTSCENE.append(SCENE)
+        if LISTSCENE:
+            OBJECTS = bpy.selection_osc[:-1]
+            ACTOBJ = bpy.selection_osc[-1]
+            OBJSEL = bpy.selection_osc[:]
 
-    OBJECTS = bpy.selection_osc[:-1]
-    ACTOBJ = bpy.selection_osc[-1]
-    OBJSEL = bpy.selection_osc[:]
+            LISTSCENE.remove(bpy.context.scene)
 
-    LISTSCENE.remove(bpy.context.scene)
+            bpy.ops.object.select_all(action='DESELECT')
 
-    bpy.ops.object.select_all(action='DESELECT')
+            for OBJETO in OBJECTS:
+                if OBJETO.users != len(bpy.data.scenes):
+                    print(OBJETO.name)
+                    OBJETO.select = True
 
-    for OBJETO in OBJECTS:
-        if OBJETO.users != len(bpy.data.scenes):
-            print(OBJETO.name)
-            OBJETO.select = True
+            for SCENE in LISTSCENE:
+                bpy.ops.object.make_links_scene(scene=SCENE.name)
 
-    for SCENE in LISTSCENE:
-        bpy.ops.object.make_links_scene(scene=SCENE.name)
-
-    bpy.context.scene.objects.active = ACTOBJ
-    for OBJ in OBJSEL:
-        OBJ.select = True
+            bpy.context.scene.objects.active = ACTOBJ
+            for OBJ in OBJSEL:
+                OBJ.select = True
+        else:
+            self.report({'INFO'}, message="Scenes are empty")
 
 
-class OscRelinkObjectsBetween (bpy.types.Operator):
+class OscRelinkObjectsBetween(Operator):
     bl_idname = "object.relink_objects_between_scenes"
     bl_label = "Relink Objects Between Scenes"
     bl_options = {"REGISTER", "UNDO"}
@@ -157,42 +162,42 @@ class OscRelinkObjectsBetween (bpy.types.Operator):
 
 # ------------------------------------ COPY GROUPS AND LAYERS-------------
 
-
 def CopyObjectGroupsAndLayers(self):
 
     OBSEL = bpy.selection_osc[:]
-    GLOBALLAYERS = list(OBSEL[-1].layers[:])
-    ACTSCENE = bpy.context.scene
-    GROUPS = OBSEL[-1].users_group
-    ACTOBJ = OBSEL[-1]
+    if OBSEL:
+        GLOBALLAYERS = list(OBSEL[-1].layers[:])
+        ACTSCENE = bpy.context.scene
+        GROUPS = OBSEL[-1].users_group
+        ACTOBJ = OBSEL[-1]
 
-    for OBJECT in OBSEL[:-1]:
-        for scene in bpy.data.scenes[:]:
+        for OBJECT in OBSEL[:-1]:
+            for scene in bpy.data.scenes[:]:
 
-            # SI EL OBJETO ACTIVO ESTA EN LA ESCENA
-            if ACTOBJ in scene.objects[:] and OBJECT in scene.objects[:]:
-                scene.object_bases[
-                    OBJECT.name].layers[
-                        :] = scene.object_bases[
-                            ACTOBJ.name].layers[
-                                :]
-            elif ACTOBJ not in scene.objects[:] and OBJECT in scene.objects[:]:
-                scene.object_bases[OBJECT.name].layers[:] = list(GLOBALLAYERS)
+                # SI EL OBJETO ACTIVO ESTA EN LA ESCENA
+                if ACTOBJ in scene.objects[:] and OBJECT in scene.objects[:]:
+                    scene.object_bases[
+                        OBJECT.name].layers[
+                            :] = scene.object_bases[
+                                ACTOBJ.name].layers[
+                                    :]
+                elif ACTOBJ not in scene.objects[:] and OBJECT in scene.objects[:]:
+                    scene.object_bases[OBJECT.name].layers[:] = list(GLOBALLAYERS)
 
-        # REMUEVO DE TODO GRUPO
-        for GROUP in bpy.data.groups[:]:
-            if GROUP in OBJECT.users_group[:]:
-                GROUP.objects.unlink(OBJECT)
+            # REMUEVO DE TODO GRUPO
+            for GROUP in bpy.data.groups[:]:
+                if GROUP in OBJECT.users_group[:]:
+                    GROUP.objects.unlink(OBJECT)
 
-        # INCLUYO OBJETO EN GRUPOS
-        for GROUP in GROUPS:
-            GROUP.objects.link(OBJECT)
+            # INCLUYO OBJETO EN GRUPOS
+            for GROUP in GROUPS:
+                GROUP.objects.link(OBJECT)
 
-    bpy.context.window.screen.scene = ACTSCENE
-    bpy.context.scene.objects.active = ACTOBJ
+        bpy.context.window.screen.scene = ACTSCENE
+        bpy.context.scene.objects.active = ACTOBJ
 
 
-class OscCopyObjectGAL (bpy.types.Operator):
+class OscCopyObjectGAL (Operator):
     bl_idname = "object.copy_objects_groups_layers"
     bl_label = "Copy Groups And Layers"
     bl_options = {"REGISTER", "UNDO"}
@@ -242,8 +247,8 @@ class OscSelection(bpy.types.Header):
         row.label("Sels: "+str(len(bpy.selection_osc)))
         """
 
-# =============== DISTRIBUTE ======================
 
+# =============== DISTRIBUTE ======================
 
 def ObjectDistributeOscurart(self, X, Y, Z):
     if len(bpy.selection_osc[:]) > 1:
@@ -267,15 +272,15 @@ def ObjectDistributeOscurart(self, X, Y, Z):
             chunky += chunkglobal[1]
             chunkz += chunkglobal[2]
     else:
-        self.report({'ERROR'}, "Selection is only 1!")
+        self.report({'INFO'}, "Needs at least two selected objects")
 
 
-class DialogDistributeOsc(bpy.types.Operator):
+class DialogDistributeOsc(Operator):
     bl_idname = "object.distribute_osc"
     bl_label = "Distribute Objects"
-    Boolx = bpy.props.BoolProperty(name="X")
-    Booly = bpy.props.BoolProperty(name="Y")
-    Boolz = bpy.props.BoolProperty(name="Z")
+    Boolx = BoolProperty(name="X")
+    Booly = BoolProperty(name="Y")
+    Boolz = BoolProperty(name="Z")
 
     def execute(self, context):
         ObjectDistributeOscurart(self, self.Boolx, self.Booly, self.Boolz)
@@ -289,7 +294,6 @@ class DialogDistributeOsc(bpy.types.Operator):
 
 
 # ======================== SET LAYERS TO OTHER SCENES ====================
-
 
 def DefSetLayersToOtherScenes():
     actsc = bpy.context.screen.scene
@@ -306,7 +310,7 @@ def DefSetLayersToOtherScenes():
     bpy.context.screen.scene = actsc
 
 
-class SetLayersToOtherScenes (bpy.types.Operator):
+class SetLayersToOtherScenes (Operator):
     bl_idname = "object.set_layers_to_other_scenes"
     bl_label = "Copy actual Layers to Other Scenes"
     bl_options = {"REGISTER", "UNDO"}
@@ -354,7 +358,7 @@ def DefRenderOnlyInCamera():
             bpy.data.groups["NOTINCAMERA"].objects.link(ob)
 
 
-class RenderOnlyInCamera (bpy.types.Operator):
+class RenderOnlyInCamera (Operator):
     bl_idname = "group.group_in_out_camera"
     bl_label = "Make a group for objects in outer camera"
     bl_options = {"REGISTER", "UNDO"}
@@ -485,12 +489,12 @@ def duplicateSymmetrical(self, disconect):
             bpy.context.active_object.driver_remove("scale")
 
 
-class oscDuplicateSymmetricalOp (bpy.types.Operator):
+class oscDuplicateSymmetricalOp(Operator):
     bl_idname = "object.duplicate_object_symmetry_osc"
     bl_label = "Oscurart Duplicate Symmetrical"
     bl_options = {"REGISTER", "UNDO"}
 
-    desconecta = bpy.props.BoolProperty(name="Keep Connection", default=True)
+    desconecta = BoolProperty(name="Keep Connection", default=True)
 
     def execute(self, context):
 
@@ -512,7 +516,7 @@ def DefObjectToGroups():
             scgr.objects.link(ob)
 
 
-class ObjectsToGroups (bpy.types.Operator):
+class ObjectsToGroups(Operator):
     bl_idname = "object.objects_to_groups"
     bl_label = "Objects to Groups"
     bl_options = {"REGISTER", "UNDO"}

@@ -19,17 +19,21 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Operator
+from bpy.props import (
+            IntProperty,
+            BoolProperty,
+            FloatProperty,
+            EnumProperty,
+            )
 import os
 import bmesh
 import time
 import blf
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 
-C = bpy.context
-D = bpy.data
 
 # -----------------------------RECONST---------------------------
-
 
 def defReconst(self, OFFSET):
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -69,26 +73,28 @@ def defReconst(self, OFFSET):
         use_subsurf_data=0)
 
 
-class reConst (bpy.types.Operator):
+class reConst(Operator):
     bl_idname = "mesh.reconst_osc"
     bl_label = "ReConst Mesh"
     bl_options = {"REGISTER", "UNDO"}
-    OFFSET = bpy.props.FloatProperty(
-        name="Offset",
-        default=0.001,
-        min=-0,
-        max=0.1)
+    OFFSET = FloatProperty(
+            name="Offset",
+            default=0.001,
+            min=-0,
+            max=0.1
+            )
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
     def execute(self, context):
         defReconst(self, self.OFFSET)
         return {'FINISHED'}
 
-# -----------------------------------SELECT LEFT---------------------
 
+# -----------------------------------SELECT LEFT---------------------
 
 def side(self, nombre, offset):
 
@@ -110,17 +116,24 @@ def side(self, nombre, offset):
     bpy.ops.object.mode_set(mode="EDIT", toggle=0)
 
 
-class SelectMenor (bpy.types.Operator):
+class SelectMenor (Operator):
     bl_idname = "mesh.select_side_osc"
     bl_label = "Select Side"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
-    side = bpy.props.BoolProperty(name="Greater than zero", default=False)
-    offset = bpy.props.FloatProperty(name="Offset", default=0)
+    side = BoolProperty(
+            name="Greater than zero",
+            default=False
+            )
+    offset = FloatProperty(
+            name="Offset",
+            default=0
+            )
 
     def execute(self, context):
 
@@ -131,15 +144,15 @@ class SelectMenor (bpy.types.Operator):
 
 # -------------------------RESYM VG----------------------------------
 
-
-class resymVertexGroups (bpy.types.Operator):
+class resymVertexGroups(Operator):
     bl_idname = "mesh.resym_vertex_weights_osc"
     bl_label = "Resym Vertex Weights"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
     def execute(self, context):
 
@@ -162,14 +175,15 @@ class resymVertexGroups (bpy.types.Operator):
 
 # ------------------------IMPORT EXPORT GROUPS--------------------
 
-class OscExportVG (bpy.types.Operator):
+class OscExportVG(Operator):
     bl_idname = "file.export_groups_osc"
     bl_label = "Export Groups"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
     def execute(self, context):
 
@@ -187,14 +201,15 @@ class OscExportVG (bpy.types.Operator):
         return {'FINISHED'}
 
 
-class OscImportVG (bpy.types.Operator):
+class OscImportVG(Operator):
     bl_idname = "file.import_groups_osc"
     bl_label = "Import Groups"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
     def execute(self, context):
 
@@ -217,7 +232,6 @@ class OscImportVG (bpy.types.Operator):
 
 
 # ------------------------------------ RESYM MESH-------------------------
-
 
 def reSymSave(self, quality):
 
@@ -288,40 +302,47 @@ def reSymMesh(self, SELECTED, SIDE):
             MEMA(SYMAP)
 
 
-class OscResymSave (bpy.types.Operator):
+class OscResymSave(Operator):
     bl_idname = "mesh.resym_save_map"
     bl_label = "Resym save XML Map"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
-    quality = bpy.props.IntProperty(default=4, name="Quality")
+    quality = IntProperty(
+            default=4,
+            name="Quality"
+            )
 
     def execute(self, context):
         reSymSave(self, self.quality)
         return {'FINISHED'}
 
 
-class OscResymMesh (bpy.types.Operator):
+class OscResymMesh(Operator):
     bl_idname = "mesh.resym_mesh"
     bl_label = "Resym save Apply XML"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
-    selected = bpy.props.BoolProperty(default=False, name="Only Selected")
-
-    side = bpy.props.EnumProperty(
-        name="Side:",
-        description="Select Side",
-        items=(('+-', "+X to -X", "+X to -X"),
-               ('-+', "-X to +X", "-X to +X")),
-        default='+-',
-    )
+    selected = BoolProperty(
+            default=False,
+            name="Only Selected"
+            )
+    side = EnumProperty(
+            name="Side:",
+            description="Select Side",
+            items=(('+-', "+X to -X", "+X to -X"),
+                   ('-+', "-X to +X", "-X to +X")),
+            default='+-',
+            )
 
     def execute(self, context):
         reSymMesh(self, self.selected, self.side)
@@ -341,21 +362,24 @@ def DefOscObjectToMesh():
     bpy.context.scene.objects.link(OBJECT)
 
 
-class OscObjectToMesh(bpy.types.Operator):
+class OscObjectToMesh(Operator):
     bl_idname = "mesh.object_to_mesh_osc"
     bl_label = "Object To Mesh"
+    bl_description = "Works on Meshes, Meta objects, Curves and Surfaces"
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type in
+                {'MESH', 'META', 'CURVE', 'SURFACE'})
 
     def execute(self, context):
+        print("Active type object is", context.object.type)
         DefOscObjectToMesh()
         return {'FINISHED'}
 
 
 # ----------------------------- OVERLAP UV -------------------------------
-
 
 def DefOscOverlapUv(valpresicion):
     inicio = time.time()
@@ -398,10 +422,8 @@ def DefOscOverlapUv(valpresicion):
         if l.select:
             for lloop in lif[l]:
                 for rloop in lif[r]:
-                    if (
-                        verteqind[vertexvert[lloop]] == vertexvert[rloop] and
-                        ob.data.uv_layers.active.data[rloop].select
-                       ):
+                    if (verteqind[vertexvert[lloop]] == vertexvert[rloop] and
+                       ob.data.uv_layers.active.data[rloop].select):
 
                         ob.data.uv_layers.active.data[
                             lloop].uv = ob.data.uv_layers.active.data[
@@ -412,27 +434,29 @@ def DefOscOverlapUv(valpresicion):
     print("Time elapsed: %4s seconds" % (time.time() - inicio))
 
 
-class OscOverlapUv(bpy.types.Operator):
+class OscOverlapUv(Operator):
     bl_idname = "mesh.overlap_uv_faces"
     bl_label = "Overlap Uvs"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
-    presicion = bpy.props.IntProperty(
-        default=4,
-        min=1,
-        max=10,
-        name="precision")
+    presicion = IntProperty(
+            default=4,
+            min=1,
+            max=10,
+            name="precision"
+            )
 
     def execute(self, context):
         DefOscOverlapUv(self.presicion)
         return {'FINISHED'}
 
-# ------------------------------- IO VERTEX COLORS --------------------
 
+# ------------------------------- IO VERTEX COLORS --------------------
 
 def DefOscExportVC():
     with open(os.path.join(os.path.dirname(bpy.data.filepath), bpy.context.object.name) + ".vc", mode="w") as file:
@@ -450,28 +474,30 @@ def DefOscImportVC():
                 loopind].color = di[loopind]
 
 
-class OscExportVC (bpy.types.Operator):
+class OscExportVC(Operator):
     bl_idname = "mesh.export_vertex_colors"
     bl_label = "Export Vertex Colors"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
     def execute(self, context):
         DefOscExportVC()
         return {'FINISHED'}
 
 
-class OscImportVC (bpy.types.Operator):
+class OscImportVC(Operator):
     bl_idname = "mesh.import_vertex_colors"
     bl_label = "Import Vertex Colors"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
     def execute(self, context):
         DefOscImportVC()
@@ -479,7 +505,6 @@ class OscImportVC (bpy.types.Operator):
 
 
 # ------------------ PRINT VERTICES ----------------------
-
 
 def dibuja_callback(self, context):
     font_id = 0
@@ -494,13 +519,14 @@ def dibuja_callback(self, context):
         blf.draw(font_id, str(v.index))
 
 
-class ModalIndexOperator(bpy.types.Operator):
+class ModalIndexOperator(Operator):
     bl_idname = "view3d.modal_operator"
     bl_label = "Print Vertices"
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
     def modal(self, context, event):
         context.area.tag_redraw()
