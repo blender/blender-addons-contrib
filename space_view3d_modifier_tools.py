@@ -27,7 +27,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6"
     "/Py/Scripts",
-    "tracker_url": "https://developer.blender.org/maniphest/project/3/type/Bug/",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "3D View"}
 
 import bpy
@@ -77,12 +77,12 @@ class ApplyAllModifiers(Operator):
 
         # applying failed for some objects, show report
         message_obj = (",".join(collect_names) if collect_names and
-                       len(collect_names) < 8 else "some objects (Check System Console for more info)")
+                       len(collect_names) < 8 else "some objects (Check System Console)")
 
         self.report(type={"INFO"}, message=(message_a if not message_b else
                     "Applying modifiers failed for {}".format(message_obj)))
 
-        if (collect_names and message_obj == "some objects"):
+        if (collect_names and message_obj == "some objects (Check System Console)"):
             print("\n** MODIFIER SPECIALS REPORT **\n Applying failed on:\n",
                   ", ".join(collect_names))
 
