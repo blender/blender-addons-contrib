@@ -27,7 +27,8 @@ import bpy
 
 KEYMAPS = list()
 
-image_nodes = ("CompositorNodeImage",
+image_nodes = ("CompositorNodeRLayers",
+               "CompositorNodeImage",
                "CompositorNodeViewer",
                "CompositorNodeComposite",
                "ShaderNodeTexImage",
@@ -42,27 +43,47 @@ class AMTH_NODE_OT_show_active_node_image(bpy.types.Operator):
     bl_options = {"UNDO"}
 
     def execute(self, context):
-        preferences = context.user_preferences.addons["amaranth"].preferences
-        if preferences.use_image_node_display:
-            if context.active_node:
-                active_node = context.active_node
+        return {'FINISHED'}
 
-                if active_node.bl_idname in image_nodes:
-                    for area in context.screen.areas:
-                        if area.type == "IMAGE_EDITOR":
+    def invoke(self, context, event):
+        mlocx = event.mouse_region_x
+        mlocy = event.mouse_region_y
+        select_node = bpy.ops.node.select(mouse_x=mlocx, mouse_y=mlocy, extend=False)
+
+        if 'FINISHED' in select_node:  # Only run if we're clicking on a node
+            preferences = context.user_preferences.addons["amaranth"].preferences
+            if preferences.use_image_node_display:
+                if context.active_node:
+                    active_node = context.active_node
+
+                    if active_node.bl_idname in image_nodes:
+                        # Use largest image editor
+                        area = None
+                        area_size = 0
+                        for a in context.screen.areas:
+                            if a.type == "IMAGE_EDITOR":
+                                size = a.width * a.height
+                                if size > area_size:
+                                    area_size = size
+                                    area = a
+                        if area:
                             for space in area.spaces:
                                 if space.type == "IMAGE_EDITOR":
                                     if active_node.bl_idname == "CompositorNodeViewer":
                                         space.image = bpy.data.images[
                                             "Viewer Node"]
-                                    elif active_node.bl_idname == "CompositorNodeComposite":
+                                    elif active_node.bl_idname in ["CompositorNodeComposite", "CompositorNodeRLayers"]:
                                         space.image = bpy.data.images[
                                             "Render Result"]
                                     elif active_node.image:
                                         space.image = active_node.image
-                            break
+                                break
+                        else:
+                            return {'CANCELLED'}
 
-        return {"FINISHED"}
+            return {"FINISHED"}
+        else:
+            return {"PASS_THROUGH"}
 
 
 def register():
