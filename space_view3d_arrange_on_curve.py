@@ -1,14 +1,15 @@
 bl_info = {
     "name": "Arrange on Curve",
     "author": "Mano-Wii",
-    "version": (6, 3),
-    "blender": (2, 77),
+    "version": (6, 3, 0),
+    "blender": (2, 7, 7),
     "location": "View3D > TOOLS > Mano-Wii > Dist_Mano",
     "description": "Arrange objects along a curve",
     "warning": "Select curve",
     "wiki_url" : "http://blenderartists.org/forum/showthread.php?361029-Specify-an-object-from-a-list-with-all-selectable-objects",
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
-    "category": "3D View"}
+    "category": "3D View"
+    }
 
 import bpy, mathutils
 
@@ -303,7 +304,7 @@ def register():
 def unregister() :
     bpy.utils.unregister_module(__name__)
     del bpy.types.Scene.objeto_arranjar
-    del bpy.types.Scene.distancia_entre_objetos
+    del bpy.types.Scene.use_selected
     del bpy.types.Scene.select_type
 
 if __name__ == "__main__" :
