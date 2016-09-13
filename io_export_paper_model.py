@@ -27,7 +27,7 @@ bl_info = {
     "category": "Import-Export",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/Paper_Model",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
+    "tracker_url": "https://developer.blender.org/T38441"
 }
 
 #### TODO:
@@ -57,7 +57,7 @@ import bl_operators
 import bgl
 import mathutils as M
 from re import compile as re_compile
-from itertools import chain
+from itertools import chain, repeat
 from math import pi
 
 try:
@@ -81,7 +81,7 @@ def first_letters(text):
     """Iterator over the first letter of each word"""
     for match in first_letters.pattern.finditer(text):
         yield text[match.start()]
-first_letters.pattern = re_compile("(?<!\w)[\w]")
+first_letters.pattern = re_compile("((?<!\w)\w)|\d")
 
 
 def is_upsidedown_wrong(name):
@@ -175,21 +175,29 @@ class Unfolder:
 
     def copy_island_names(self, island_list):
         """Copy island label and abbreviation from the best matching island in the list"""
-        orig_list = {(frozenset(face.id for face in item.faces), item.label, item.abbreviation) for item in island_list}
-        for island in self.mesh.islands:
+        orig_islands = [{face.id for face in item.faces} for item in island_list]
+        matching = list()
+        for i, island in enumerate(self.mesh.islands):
             islfaces = {uvface.face.index for uvface in island.faces}
-            match = max(orig_list, key=lambda item: islfaces.intersection(item[0]))
-            island.label = match[1]
-            island.abbreviation = match[2]
+            matching.extend((len(islfaces.intersection(item)), i, j) for j, item in enumerate(orig_islands))
+        matching.sort(reverse=True)
+        available_new = [True for island in self.mesh.islands]
+        available_orig = [True for item in island_list]
+        for face_count, i, j in matching:
+            if available_new[i] and available_orig[j]:
+                available_new[i] = available_orig[j] = False
+                self.mesh.islands[i].label = island_list[j].label
+                self.mesh.islands[i].abbreviation = island_list[j].abbreviation
 
     def save(self, properties):
         """Export the document"""
         # Note about scale: input is direcly in blender length
         # Mesh.scale_islands multiplies everything by a user-defined ratio
-        # SVG object multiplies everything by 1000 (output in millimeters)
+        # exporters (SVG or PDF) multiply everything by 1000 (output in millimeters)
+        Exporter = SVG if properties.file_format == 'SVG' else PDF
         filepath = properties.filepath
-        if filepath.lower().endswith((".svg", ".png")):
-            filepath = filepath[0:-4]
+        extension = properties.file_format.lower()
+        filepath = bpy.path.ensure_ext(filepath, "." + extension)
         # page size in meters
         page_size = M.Vector((properties.output_size_x, properties.output_size_y))
         # printable area size in meters
@@ -206,14 +214,14 @@ class Unfolder:
 
         text_height = properties.sticker_width if (properties.do_create_numbers and len(self.mesh.islands) > 1) else 0
         aspect_ratio = printable_size.x / printable_size.y
-        # finalizing islands will scale everything so that the page height is 1
         # title height must be somewhat larger that text size, glyphs go below the baseline
         self.mesh.finalize_islands(title_height=text_height * 1.2)
         self.mesh.fit_islands(cage_size=printable_size)
 
         if properties.output_type != 'NONE':
             # bake an image and save it as a PNG to disk or into memory
-            use_separate_images = properties.image_packing in ('ISLAND_LINK', 'ISLAND_EMBED')
+            image_packing = properties.image_packing if properties.file_format == 'SVG' else 'ISLAND_EMBED'
+            use_separate_images = image_packing in ('ISLAND_LINK', 'ISLAND_EMBED')
             tex = self.mesh.save_uv(cage_size=printable_size, separate_image=use_separate_images, tex=self.tex)
             if not tex:
                 raise UnfoldError("The mesh has no UV Map slots left. Either delete a UV Map or export the net without textures.")
@@ -224,12 +232,12 @@ class Unfolder:
             rd.use_bake_selected_to_active = (properties.output_type == 'SELECTED_TO_ACTIVE')
 
             rd.bake_margin, rd.bake_distance, rd.bake_bias, rd.use_bake_to_vertex_color, rd.use_bake_clear = 0, 0, 0.001, False, False
-            if properties.image_packing == 'PAGE_LINK':
+            if image_packing == 'PAGE_LINK':
                 self.mesh.save_image(tex, printable_size * ppm, filepath)
-            elif properties.image_packing == 'ISLAND_LINK':
-                self.mesh.save_separate_images(tex, printable_size.y * ppm, filepath)
-            elif properties.image_packing == 'ISLAND_EMBED':
-                self.mesh.save_separate_images(tex, printable_size.y * ppm, filepath, do_embed=True)
+            elif image_packing == 'ISLAND_LINK':
+                self.mesh.save_separate_images(tex, ppm, filepath)
+            elif image_packing == 'ISLAND_EMBED':
+                self.mesh.save_separate_images(tex, ppm, filepath, embed=Exporter.encode_image)
 
             # revoke settings
             rd.bake_type, rd.use_bake_to_vertex_color, rd.use_bake_selected_to_active, rd.bake_distance, rd.bake_bias, rd.bake_margin, rd.use_bake_clear = recall
@@ -237,11 +245,10 @@ class Unfolder:
                 tex.active = True
                 bpy.ops.mesh.uv_texture_remove()
 
-        svg = SVG(page_size, properties.style, (properties.output_type == 'NONE'))
-        svg.do_create_stickers = properties.do_create_stickers
-        svg.margin = properties.output_margin
-        svg.text_size = properties.sticker_width
-        svg.write(self.mesh, filepath)
+        exporter = Exporter(page_size, properties.style, properties.output_margin, (properties.output_type == 'NONE'))
+        exporter.do_create_stickers = properties.do_create_stickers
+        exporter.text_size = properties.sticker_width
+        exporter.write(self.mesh, filepath)
 
 
 class Mesh:
@@ -558,20 +565,7 @@ class Mesh:
                 image.user_clear()
                 bpy.data.images.remove(image)
 
-    def save_separate_images(self, tex, scale, filepath, do_embed=False):
-        assert(os_path)  # check the module was imported
-        if do_embed:
-            import tempfile
-            import base64
-        else:
-            from os import mkdir
-            image_dir = filepath
-            try:
-                mkdir(image_dir)
-            except OSError:
-                # image_dir already existed
-                pass
-
+    def save_separate_images(self, tex, scale, filepath, embed=None):
         texfaces = tex.data
         # omitting these 3 lines causes a "Circular reference in texture stack" error
         for island in self.islands:
@@ -579,34 +573,26 @@ class Mesh:
                 texfaces[uvface.face.index].image = None
 
         for i, island in enumerate(self.islands, 1):
-            if do_embed:
-                tempfile_manager = tempfile.NamedTemporaryFile("rb", suffix=".png")
-                image_path = tempfile_manager.name
-                image_name = os_path.basename(tempfile_manager.name)
-                # note: image_path exists by now and Blender will overwrite it;
-                # we will read later from the same file
-            else:
-                image_path = os_path.join(image_dir, "island{}.png".format(i))
-                image_name = "{} isl{}".format(self.data.name[:15], i)
+            image_name = "{} isl{}".format(self.data.name[:15], i)
             image = create_blank_image(image_name, island.bounding_box * scale, alpha=0)
-            image.filepath_raw = image_path
             for uvface in island.faces:
                 texfaces[uvface.face.index].image = image
+            bpy.ops.object.bake_image()
 
-            try:
-                bpy.ops.object.bake_image()
-                image.save()
-            finally:
-                for uvface in island.faces:
-                    texfaces[uvface.face.index].image = None
-                image.user_clear()
-                bpy.data.images.remove(image)
-
-            if do_embed:
-                with tempfile_manager as imgfile:
-                    island.embedded_image = base64.encodebytes(imgfile.read()).decode('ascii')
+            if embed:
+                island.embedded_image = embed(image)
             else:
-                island.image_path = image_path
+                from os import makedirs
+                image_dir = filepath
+                makedirs(image_dir, exist_ok=True)
+                image_path = os_path.join(image_dir, "island{}.png".format(i))
+                image.filepath_raw = image_path
+                image.save()
+                island.image_path = image.path
+            for uvface in island.faces:
+                texfaces[uvface.face.index].image = None
+            image.user_clear()
+            bpy.data.images.remove(image)
 
 
 class Vertex:
@@ -1258,23 +1244,41 @@ class Sticker:
 
         other_first, other_second = (other.va, other.vb) if not other.uvface.flipped else (other.vb, other.va)
         other_edge = other_second.co - other_first.co
+
         # angle a is at vertex uvedge.va, b is at uvedge.vb
         cos_a = cos_b = 0.5
         sin_a = sin_b = 0.75**0.5
         # len_a is length of the side adjacent to vertex a, len_b likewise
         len_a = len_b = sticker_width / sin_a
+
         # fix overlaps with the most often neighbour - its sticking target
         if first_vertex == other_second:
             cos_a = max(cos_a, (edge*other_edge) / (edge.length**2))  # angles between pi/3 and 0
-            sin_a = abs(1 - cos_a**2)**0.5
-            len_b = min(len_a, (edge.length*sin_a) / (sin_a*cos_b + sin_b*cos_a))
-            len_a = 0 if sin_a == 0 else min(sticker_width / sin_a, (edge.length - len_b*cos_b) / cos_a)
         elif second_vertex == other_first:
             cos_b = max(cos_b, (edge*other_edge) / (edge.length**2))  # angles between pi/3 and 0
-            sin_b = abs(1 - cos_b**2)**0.5
-            len_a = min(len_a, (edge.length*sin_b) / (sin_a*cos_b + sin_b*cos_a))
-            len_b = 0 if sin_b == 0 else min(sticker_width / sin_b, (edge.length - len_a*cos_a) / cos_b)
-        v3 = UVVertex(second_vertex.co + M.Matrix(((cos_b, -sin_b), (sin_b, cos_b))) * edge * len_b / edge.length)
+
+        # Fix tabs for sticking targets with small angles
+        # Index of other uvedge in its face (not in its island)
+        other_idx = other.uvface.edges.index(other)
+        # Left and right neighbors in the face
+        other_face_neighbor_left = other.uvface.edges[(other_idx+1) % len(other.uvface.edges)]
+        other_face_neighbor_right = other.uvface.edges[(other_idx-1) % len(other.uvface.edges)]
+        other_edge_neighbor_a = other_face_neighbor_left.vb.co - other.vb.co
+        other_edge_neighbor_b = other_face_neighbor_right.va.co - other.va.co
+        # Adjacent angles in the face
+        cos_a = max(cos_a, (-other_edge*other_edge_neighbor_a) / (other_edge.length*other_edge_neighbor_a.length))
+        cos_b = max(cos_b, (other_edge*other_edge_neighbor_b) / (other_edge.length*other_edge_neighbor_b.length))
+
+        # Calculate the lengths of the glue tab edges using the possibly smaller angles
+        sin_a = abs(1 - cos_a**2)**0.5
+        len_b = min(len_a, (edge.length*sin_a) / (sin_a*cos_b + sin_b*cos_a))
+        len_a = 0 if sin_a == 0 else min(sticker_width / sin_a, (edge.length - len_b*cos_b) / cos_a)
+
+        sin_b = abs(1 - cos_b**2)**0.5
+        len_a = min(len_a, (edge.length*sin_b) / (sin_a*cos_b + sin_b*cos_a))
+        len_b = 0 if sin_b == 0 else min(sticker_width / sin_b, (edge.length - len_a*cos_a) / cos_b)
+
+        v3 = UVVertex(second_vertex.co + M.Matrix(((cos_b, -sin_b), (sin_b, cos_b))) * edge *len_b / edge.length)
         v4 = UVVertex(first_vertex.co + M.Matrix(((-cos_a, -sin_a), (sin_a, -cos_a))) * edge * len_a / edge.length)
         if v3.co != v4.co:
             self.vertices = [second_vertex, v3, v4, first_vertex]
@@ -1311,15 +1315,25 @@ class NumberAlone:
 class SVG:
     """Simple SVG exporter"""
 
-    def __init__(self, page_size: M.Vector, style, pure_net=True):
+    def __init__(self, page_size: M.Vector, style, margin, pure_net=True):
         """Initialize document settings.
         page_size: document dimensions in meters
         pure_net: if True, do not use image"""
         self.page_size = page_size
         self.pure_net = pure_net
         self.style = style
-        self.margin = 0
+        self.margin = margin
         self.text_size = 12
+
+    @classmethod
+    def encode_image(cls, bpy_image):
+        import tempfile
+        import base64
+        tempfile_manager = tempfile.NamedTemporaryFile("rb", suffix=".png")
+        bpy_image.filepath_raw = tempfile_manager.name
+        bpy_image.save()
+        with tempfile_manager as imgfile:
+            return base64.encodebytes(imgfile.read()).decode('ascii')
 
     def format_vertex(self, vector, pos=M.Vector((0, 0))):
         """Return a string with both coordinates of the given vertex."""
@@ -1361,14 +1375,15 @@ class SVG:
         styleargs.update({name: getattr(self.style, name) * self.style.line_width * 1000 for name in
             ("outer_width", "convex_width", "concave_width", "freestyle_width", "outbg_width", "inbg_width")})
         for num, page in enumerate(mesh.pages):
-            with open("{}_{}.svg".format(filename, page.name), 'w') as f:
+            page_filename = "{}_{}.svg".format(filename[:filename.rfind(".svg")], page.name) if len(mesh.pages) > 1 else filename
+            with open(page_filename, 'w') as f:
                 print(self.svg_base.format(width=self.page_size.x*1000, height=self.page_size.y*1000), file=f)
                 print(self.css_base.format(**styleargs), file=f)
                 if page.image_path:
                     print(self.image_linked_tag.format(
-                        pos="{0} {0}".format(self.page_size),
-                        width=self.page_size.x - 2 * self.page_size,
-                        height=self.page_size.y - 2 * self.page_size,
+                        pos="{0:.6f} {0:.6f}".format(self.margin*1000),
+                        width=(self.page_size.x - 2 * self.margin)*1000,
+                        height=(self.page_size.y - 2 * self.margin)*1000,
                         path=path_convert(page.image_path)),
                         file=f)
                 if len(page.islands) > 1:
@@ -1481,8 +1496,8 @@ class SVG:
                     print("</g>", file=f)
                 print("</svg>", file=f)
 
-    image_linked_tag = "<image transform='translate({pos})' width='{width}' height='{height}' xlink:href='{path}'/>"
-    image_embedded_tag = "<image transform='translate({pos})' width='{width}' height='{height}' xlink:href='data:image/png;base64,"
+    image_linked_tag = "<image transform='translate({pos})' width='{width:.6f}' height='{height:.6f}' xlink:href='{path}'/>"
+    image_embedded_tag = "<image transform='translate({pos})' width='{width:.6f}' height='{height:.6f}' xlink:href='data:image/png;base64,"
     text_tag = "<text transform='translate({x} {y})' style='font-size:{size:.2f}'><tspan>{label}</tspan></text>"
     text_transformed_tag = "<text transform='matrix({mat} {pos})' style='font-size:{size:.2f}'><tspan>{label}</tspan></text>"
     arrow_marker_tag = "<g><path transform='matrix({mat} {arrow_pos})' class='arrow' d='M 0 0 L 1 1 L 0 0.25 L -1 1 Z'/>" \
@@ -1557,6 +1572,225 @@ class SVG:
     </style>"""
 
 
+class PDF:
+    """Simple PDF exporter"""
+
+    mm_to_pt = 72 / 25.4
+    def __init__(self, page_size: M.Vector, style, margin, pure_net=True):
+        self.page_size = page_size
+        self.style = style
+        self.margin = M.Vector((margin, margin))
+        self.pure_net = pure_net
+
+    character_width_packed = {833: 'mM', 834: '¼½¾', 260: '¦|', 389: '*', 584: '>~+¬±<×÷=', 778: 'ÒGÖÕQÔØÓO', 333: '¹\xad\x98\x84²¨\x94\x9b¯¡´()\x8b\x93¸³-\x88`r', 334: '{}', 400: '°', 722: 'DÛÚUÑwRÐÜCÇNÙH', 611: '¿øTßZF\x8e', 469: '^', 278: 'ì\x05\x06 ;\x01/\x08I\x07,\x13\x11\x04\\.![\x15\r\x10:\x18]\x0c\x00\x1bÍf\xa0\x14\x1c\n\t\x1e\x1dïí\x12·\x16\x0bî\x0e\x03tÏ\x17\x1fÎ\x19\x0f\x02Ì\x1a', 537: '¶', 667: 'ÄË\x8aÃÀBÊVX&AKSÈÞPÁYÉ\x9fÝEÅÂ', 222: 'jl\x92\x91i\x82', 737: '©®', 355: '"', 1000: '\x89\x97\x8c\x99\x85Æ', 556: 'éhòúd»§ùþ5\x803õ¢åëûa64_ã\x83ñ¤8n?g2e#9«oqL$âö1päuð\x86¥µ\x967üóê\x87bá0àèô£', 365: 'º', 944: '\x9cW', 370: 'ª', 500: 'Js\x9eçyÿ\x9aývckzx', 350: '\x90\x8d\x81\x8f\x95\x7f\x9d', 1015: '@', 889: 'æ%', 191: "'"}
+    character_width = {c: value for (value, chars) in character_width_packed.items() for c in chars}
+    def text_width(self, text, scale=None):
+        return (scale or self.text_size) * sum(self.character_width.get(c, 556) for c in text) / 1000
+
+    @classmethod
+    def encode_image(cls, bpy_image):
+        data = bytes(int(255 * px) for (i, px) in enumerate(bpy_image.pixels) if i % 4 != 3)
+        image = {"Type": "XObject", "Subtype": "Image", "Width": bpy_image.size[0], "Height": bpy_image.size[1], "ColorSpace": "DeviceRGB", "BitsPerComponent": 8, "Interpolate": True, "Filter": ["ASCII85Decode", "FlateDecode"], "stream": data}
+        return image
+
+
+    def write(self, mesh, filename):
+        def format_dict(obj, refs=tuple()):
+            return "<< " + "".join("/{} {}\n".format(key, format_value(value, refs)) for (key, value) in obj.items()) + ">>"
+
+        def line_through(seq):
+            return "".join("{0.x:.6f} {0.y:.6f} {1} ".format(1000*v.co, c) for (v, c) in zip(seq, chain("m", repeat("l"))))
+
+        def format_value(value, refs=tuple()):
+            if value in refs:
+                return "{} 0 R".format(refs.index(value) + 1)
+            elif type(value) is dict:
+                return format_dict(value, refs)
+            elif type(value) in (list, tuple):
+                return "[ " + " ".join(format_value(item, refs) for item in value) + " ]"
+            elif type(value) is int:
+                return str(value)
+            elif type(value) is float:
+                return "{:.6f}".format(value)
+            elif type(value) is bool:
+                return "true" if value else "false"
+            else:
+                return "/{}".format(value)  # this script can output only PDF names, no strings
+
+        def write_object(index, obj, refs, f, stream=None):
+            byte_count = f.write("{} 0 obj\n".format(index))
+            if type(obj) is not dict:
+                stream, obj = obj, dict()
+            elif "stream" in obj:
+                stream = obj.pop("stream")
+            if stream:
+                if True or type(stream) is bytes:
+                    obj["Filter"] = ["ASCII85Decode", "FlateDecode"]
+                    stream = encode(stream)
+                obj["Length"] = len(stream)
+            byte_count += f.write(format_dict(obj, refs))
+            if stream:
+                byte_count += f.write("\nstream\n")
+                byte_count += f.write(stream)
+                byte_count += f.write("\nendstream")
+            return byte_count + f.write("\nendobj\n")
+
+        def encode(data):
+            from base64 import a85encode
+            from zlib import compress
+            if hasattr(data, "encode"):
+                data = data.encode()
+            return a85encode(compress(data), adobe=True, wrapcol=250)[2:].decode()
+
+        page_size_pt = 1000 * self.mm_to_pt * self.page_size
+        root = {"Type": "Pages", "MediaBox": [0, 0, page_size_pt.x, page_size_pt.y], "Kids": list()}
+        catalog = {"Type": "Catalog", "Pages": root}
+        font = {"Type": "Font", "Subtype": "Type1", "Name": "F1", "BaseFont": "Helvetica", "Encoding": "MacRomanEncoding"}
+
+        dl = [length * self.style.line_width * 1000 for length in (1, 4, 9)]
+        format_style = {'SOLID': list(), 'DOT': [dl[0], dl[1]], 'DASH': [dl[1], dl[2]], 'LONGDASH': [dl[2], dl[1]], 'DASHDOT': [dl[2], dl[1], dl[0], dl[1]]}
+        styles = {
+            "Gtext": {"ca": self.style.text_color[3], "Font": [font, 1000 * self.text_size]},
+            "Gsticker": {"ca": self.style.sticker_fill[3]}}
+        for name in ("outer", "convex", "concave", "freestyle"):
+            gs = {
+                "LW": self.style.line_width * getattr(self.style, name + "_width"),
+                "CA": getattr(self.style, name + "_color")[3],
+                "D": [format_style[getattr(self.style, name + "_style")], 0]}
+            styles["G" + name] = gs
+        for name in ("outbg", "inbg"):
+            gs = {
+                "LW": self.style.line_width * getattr(self.style, name + "_width"),
+                "CA": getattr(self.style, name + "_color")[3],
+                "D": [format_style['SOLID'], 0]}
+            styles["G" + name] = gs
+
+        objects = [root, catalog, font]
+        objects.extend(styles.values())
+
+        for page in mesh.pages:
+            commands = ["{0:.6f} 0 0 {0:.6f} 0 0 cm".format(self.mm_to_pt)]
+            resources = {"Font": {"F1": font}, "ExtGState": styles, "XObject": dict()}
+            for island in page.islands:
+                commands.append("q 1 0 0 1 {0.x:.6f} {0.y:.6f} cm".format(1000*(self.margin + island.pos)))
+                if island.embedded_image:
+                    identifier = "Im{}".format(len(resources["XObject"]) + 1)
+                    commands.append("q {0.x:.6f} 0 0 {0.y:.6f} 0 0 cm 1 0 0 -1 0 1 cm /{1} Do Q".format(1000 * island.bounding_box, identifier))
+                    objects.append(island.embedded_image)
+                    resources["XObject"][identifier] = island.embedded_image
+
+                if island.title:
+                    commands.append("/Gtext gs BT {x:.6f} {y:.6f} Td ({label}) Tj ET".format(
+                        size=1000*self.text_size,
+                        x=500 * (island.bounding_box.x - self.text_width(island.title)),
+                        y=1000 * 0.2 * self.text_size,
+                        label=island.title))
+
+                data_markers, data_stickerfill, data_outer, data_convex, data_concave, data_freestyle = (list() for i in range(6))
+                for marker in island.markers:
+                    if isinstance(marker, Sticker):
+                        data_stickerfill.append(line_through(marker.vertices) + "f")
+                        if marker.text:
+                            data_markers.append("q {mat[0][0]:.6f} {mat[1][0]:.6f} {mat[0][1]:.6f} {mat[1][1]:.6f} {pos.x:.6f} {pos.y:.6f} cm BT {align:.6f} 0 Td /F1 {size:.6f} Tf ({label}) Tj ET Q".format(
+                                label=marker.text,
+                                pos=1000*marker.center,
+                                mat=marker.rot,
+                                align=-500 * self.text_width(marker.text, marker.width),
+                                size=1000*marker.width))
+                    elif isinstance(marker, Arrow):
+                        size = 1000 * marker.size
+                        position = 1000 * (marker.center + marker.rot*marker.size*M.Vector((0, -0.9)))
+                        data_markers.append("q BT {pos.x:.6f} {pos.y:.6f} Td /F1 {size:.6f} Tf ({index}) Tj ET {mat[0][0]:.6f} {mat[1][0]:.6f} {mat[0][1]:.6f} {mat[1][1]:.6f} {arrow_pos.x:.6f} {arrow_pos.y:.6f} cm 0 0 m 1 -1 l 0 -0.25 l -1 -1 l f Q".format(
+                            index=marker.text,
+                            arrow_pos=1000 * marker.center,
+                            pos=position - 1000 * M.Vector((0.5 * self.text_width(marker.text), 0.4 * self.text_size)),
+                            mat=size * marker.rot,
+                            size=size))
+                    elif isinstance(marker, NumberAlone):
+                        data_markers.append("q {mat[0][0]:.6f} {mat[1][0]:.6f} {mat[0][1]:.6f} {mat[1][1]:.6f} {pos.x:.6f} {pos.y:.6f} cm BT /F1 {size:.6f} Tf ({label}) Tj ET Q".format(
+                            label=marker.text,
+                            pos=1000*marker.center,
+                            mat=format_matrix(marker.rot),
+                            size=1000*marker.size))
+
+                outer_edges = set(island.boundary)
+                while outer_edges:
+                    data_loop = list()
+                    uvedge = outer_edges.pop()
+                    while 1:
+                        if uvedge.sticker:
+                            data_loop.extend(uvedge.sticker.vertices[1:])
+                        else:
+                            vertex = uvedge.vb if uvedge.uvface.flipped else uvedge.va
+                            data_loop.append(vertex)
+                        uvedge = uvedge.neighbor_right
+                        try:
+                            outer_edges.remove(uvedge)
+                        except KeyError:
+                            break
+                    data_outer.append(line_through(data_loop) + "s")
+
+                for uvedge in island.edges:
+                    edge = uvedge.edge
+                    if edge.is_cut(uvedge.uvface.face) and not uvedge.sticker:
+                        continue
+                    data_uvedge = line_through((uvedge.va, uvedge.vb)) + "S"
+                    if edge.freestyle:
+                        data_freestyle.append(data_uvedge)
+                    # each uvedge is in two opposite-oriented variants; we want to add each only once
+                    if uvedge.sticker or uvedge.uvface.flipped != (uvedge.va.vertex.index > uvedge.vb.vertex.index):
+                        if edge.angle > 0.01:
+                            data_convex.append(data_uvedge)
+                        elif edge.angle < -0.01:
+                            data_concave.append(data_uvedge)
+                if island.is_inside_out:
+                    data_convex, data_concave = data_concave, data_convex
+
+                if data_stickerfill and self.style.sticker_fill[3] > 0:
+                    commands.append("/Gsticker gs {0[0]:.3f} {0[1]:.3f} {0[2]:.3f} rg".format(self.style.sticker_fill))
+                    commands.extend(data_stickerfill)
+                if data_freestyle:
+                    commands.append("/Gfreestyle gs {0[0]:.3f} {0[1]:.3f} {0[2]:.3f} RG".format(self.style.freestyle_color))
+                    commands.extend(data_freestyle)
+                if (data_convex or data_concave) and not self.pure_net and self.style.use_inbg:
+                    commands.append("/Ginbg gs {0[0]:.3f} {0[1]:.3f} {0[2]:.3f} RG".format(self.style.inbg_color))
+                    commands.extend(chain(data_convex, data_concave))
+                if data_convex:
+                    commands.append("/Gconvex gs {0[0]:.3f} {0[1]:.3f} {0[2]:.3f} RG".format(self.style.convex_color))
+                    commands.extend(data_convex)
+                if data_concave:
+                    commands.append("/Gconcave gs {0[0]:.3f} {0[1]:.3f} {0[2]:.3f} RG".format(self.style.concave_color))
+                    commands.extend(data_concave)
+                if data_outer:
+                    if not self.pure_net and self.style.use_outbg:
+                        commands.append("/Goutbg gs {0[0]:.3f} {0[1]:.3f} {0[2]:.3f} RG".format(self.style.outbg_color))
+                        commands.extend(data_outer)
+                    commands.append("/Gouter gs {0[0]:.3f} {0[1]:.3f} {0[2]:.3f} RG".format(self.style.outer_color))
+                    commands.extend(data_outer)
+                commands.append("/Gtext gs {0[0]:.3f} {0[1]:.3f} {0[2]:.3f} rg".format(self.style.text_color))
+                commands.extend(data_markers)
+                commands.append("Q")
+            content = "\n".join(commands)
+            page = {"Type": "Page", "Parent": root, "Contents": content, "Resources": resources}
+            root["Kids"].append(page)
+            objects.extend((page, content))
+
+        root["Count"] = len(root["Kids"])
+        with open(filename, "w+") as f:
+            xref_table = list()
+            position = f.write("%PDF-1.4\n")
+            for index, obj in enumerate(objects, 1):
+                xref_table.append(position)
+                position += write_object(index, obj, objects, f)
+            xref_pos = position
+            f.write("xref_table\n0 {}\n".format(len(xref_table) + 1))
+            f.write("{:010} {:05} f\n".format(0, 65536))
+            for position in xref_table:
+                f.write("{:010} {:05} n\n".format(position, 0))
+            f.write("trailer\n")
+            f.write(format_dict({"Size": len(xref_table), "Root": catalog}, objects))
+            f.write("\nstartxref\n{}\n%%EOF\n".format(xref_pos))
+
 
 class Unfold(bpy.types.Operator):
     """Blender Operator: unfold the selected object."""
@@ -1613,6 +1847,7 @@ class Unfold(bpy.types.Operator):
             unfolder.copy_island_names(mesh.paper_island_list)
 
         island_list = mesh.paper_island_list
+        attributes = {item.label: (item.abbreviation, item.auto_label, item.auto_abbrev) for item in island_list}
         island_list.clear()  # remove previously defined islands
         for island in unfolder.mesh.islands:
             # add islands to UI list and set default descriptions
@@ -1622,9 +1857,9 @@ class Unfold(bpy.types.Operator):
                 lface = list_item.faces.add()
                 lface.id = uvface.face.index
 
-            # name must be set afterwards because it invokes an update callback
-            list_item["abbreviation"] = island.abbreviation or "?"
-            list_item.label = island.label or "No Name"
+            list_item["label"] = island.label
+            list_item["abbreviation"], list_item["auto_label"], list_item["auto_abbrev"] = attributes.get(island.label, (island.abbreviation, True, True))
+            island_item_changed(list_item, context)
 
         mesh.paper_island_index = -1
         mesh.show_edge_seams = True
@@ -1798,6 +2033,12 @@ class ExportPaperModel(bpy.types.Operator):
     output_dpi = bpy.props.FloatProperty(name="Resolution (DPI)",
         description="Resolution of images in pixels per inch",
         default=90, min=1, soft_min=30, soft_max=600, subtype="UNSIGNED")
+    file_format = bpy.props.EnumProperty(name="Document Format",
+        description="File format of the exported net",
+        default='PDF', items=[
+            ('PDF', "PDF", "Adobe Portable Document Format 1.4"),
+            ('SVG', "SVG", "W3C Scalable Vector Graphics"),
+        ])
     image_packing = bpy.props.EnumProperty(name="Image Packing Method",
         description="Method of attaching baked image(s) to the SVG",
         default='ISLAND_EMBED', items=[
@@ -1891,6 +2132,7 @@ class ExportPaperModel(bpy.types.Operator):
         row.label(text="Document Settings")
 
         if self.ui_expanded_document:
+            box.prop(self.properties, "file_format", text="Format")
             box.prop(self.properties, "page_size_preset")
             col = box.column(align=True)
             col.active = self.page_size_preset == 'USER'
@@ -1912,7 +2154,9 @@ class ExportPaperModel(bpy.types.Operator):
             elif context.scene.render.engine != 'BLENDER_RENDER' and self.output_type != 'NONE':
                 col.label(text="Blender Internal engine will be used for texture baking.", icon='ERROR')
             col.prop(self.properties, "output_dpi")
-            col.prop(self.properties, "image_packing", text="Images")
+            row = col.row()
+            row.active = self.file_format == 'SVG'
+            row.prop(self.properties, "image_packing", text="Images")
 
         box = layout.box()
         row = box.row(align=True)
@@ -2041,6 +2285,7 @@ class VIEW3D_PT_paper_model_islands(bpy.types.Panel):
             if mesh.paper_island_index >= 0:
                 list_item = mesh.paper_island_list[mesh.paper_island_index]
                 sub = layout.column(align=True)
+                sub.prop(list_item, "auto_label")
                 sub.prop(list_item, "label")
                 sub.prop(list_item, "auto_abbrev")
                 row = sub.row()
@@ -2105,10 +2350,24 @@ def display_islands_changed(self, context):
 
 
 def label_changed(self, context):
+    """The label of an island was changed"""
+    # accessing properties via [..] to avoid a recursive call after the update
+    self["auto_label"] = not self.label or self.label.isspace()
+    island_item_changed(self, context)
+
+
+def island_item_changed(self, context):
     """The labelling of an island was changed"""
     # accessing properties via [..] to avoid a recursive call after the update
+    island_list = context.active_object.data.paper_island_list
+    if self.auto_label:
+        self["label"] = ""  # avoid self-conflict
+        number = 1
+        while any(item.label == "Island {}".format(number) for item in island_list):
+            number += 1
+        self["label"] = "Island {}".format(number)
     if self.auto_abbrev:
-        self["abbreviation"] = "".join(first_letters(self.label)).upper()
+        self["abbreviation"] = "".join(first_letters(self.label))[:3].upper()
     elif len(self.abbreviation) > 3:
         self["abbreviation"] = self.abbreviation[:3]
     self.name = "[{}] {} ({} {})".format(self.abbreviation, self.label, len(self.faces), "faces" if len(self.faces) > 1 else "face")
@@ -2126,10 +2385,13 @@ class IslandList(bpy.types.PropertyGroup):
         default="", update=label_changed)
     abbreviation = bpy.props.StringProperty(name="Abbreviation",
         description="Three-letter label to use when there is not enough space",
-        default="", update=label_changed)
+        default="", update=island_item_changed)
+    auto_label = bpy.props.BoolProperty(name="Auto Label",
+        description="Generate the label automatically",
+        default=True, update=island_item_changed)
     auto_abbrev = bpy.props.BoolProperty(name="Auto Abbreviation",
         description="Generate the abbreviation automatically",
-        default=True, update=label_changed)
+        default=True, update=island_item_changed)
 bpy.utils.register_class(FaceList)
 bpy.utils.register_class(IslandList)
 
