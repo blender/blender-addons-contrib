@@ -17,12 +17,42 @@ from bpy.props import *
 
 from . import Properties
 from . import Operators
-from . import Panel
+from . import auto_loft
+from . import curve_outline
+from . import add_curve_simple
 
+from bpy.types import (
+        AddonPreferences,
+        )
+from bpy.types import Scene, WindowManager
+import sys
 
-    
 def UpdateDummy(object, context):
-    pass
+        scene = context.scene
+        SINGLEDROP = scene.UTSingleDrop
+        DOUBLEDROP = scene.UTDoubleDrop
+        LOFTDROP = scene.UTLoftDrop
+        TRIPLEDROP = scene.UTTripleDrop
+        UTILSDROP = scene.UTUtilsDrop
+
+class SeparateOutline(bpy.types.Operator):
+    """Curve Outliner"""
+    bl_idname = "object.sep_outline"
+    bl_label = "Separate Outline"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Makes 'Outline' separate mesh"
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object is not None and
+                context.object.type == 'CURVE')
+
+    def execute(self, context):
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.curve.separate()
+        bpy.ops.object.editmode_toggle()
+
+        return {'FINISHED'}
         
 class CurveTools2Settings(bpy.types.PropertyGroup):
     # selection
@@ -56,11 +86,245 @@ class CurveTools2Settings(bpy.types.PropertyGroup):
 
     intAffectItems = (('Both', 'Both', 'Insert points into both curves'), ('Active', 'Active', 'Insert points into active curve only'), ('Other', 'Other', 'Insert points into other curve only'))
     IntersectCurvesAffect = EnumProperty(items = intAffectItems, name = "IntersectCurvesAffect", description = "Determines which of the selected curves will be affected by the operation", default = 'Both')
+ 
+class CurvePanel(bpy.types.Panel):
+    bl_label = "Curve Tools 2"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "Tools"
+
     
+    @classmethod
+    def poll(cls, context):
+        if len(context.selected_objects) > 0:
+            return (context.active_object.type == "CURVE")
+        
+    def draw(self, context):
+        scene = context.scene
+        SINGLEDROP = scene.UTSingleDrop
+        DOUBLEDROP = scene.UTDoubleDrop
+        LOFTDROP = scene.UTLoftDrop
+        TRIPLEDROP = scene.UTTripleDrop
+        UTILSDROP = scene.UTUtilsDrop
+        view = context.space_data
+        layout = self.layout
+
+        # Object Creation
+        box1 = self.layout.box()
+        col = box1.column(align=True)
+        row = col.row(align=True)
+        row.menu("INFO_MT_simple_menu", icon="OBJECT_DATAMODE")
+
+        # Z. selection
+        boxSelection = self.layout.box()
+        row = boxSelection.row(align = True)
+        row.operator("curvetools2.operatorselectioninfo", text = "Selection Info")
+        row.prop(context.scene.curvetools, "NrSelectedObjects", text = "")
+
+        # Single Curve options
+        box1 = self.layout.box()
+        col = box1.column(align=True)
+        row = col.row(align=True)
+        row.prop(scene, "UTSingleDrop", icon="TRIA_DOWN")
+        if SINGLEDROP:
+        # A. 1 curve
+            row = col.row(align=True)
+            row.label(text="Single Curve:")
+            row = col.row(align=True)
+        
+        # A.1 curve info/length
+            row.operator("curvetools2.operatorcurveinfo", text = "Curve info")
+            row = col.row(align=True)
+            row.operator("curvetools2.operatorcurvelength", text = "Calc Length")
+            row.prop(context.scene.curvetools, "CurveLength", text = "")
+        
+        # A.2 splines info
+            row = col.row(align=True)
+            row.operator("curvetools2.operatorsplinesinfo", text = "Curve splines info")
+        
+        # A.3 segments info
+            row = col.row(align=True)
+            row.operator("curvetools2.operatorsegmentsinfo", text = "Curve segments info")
+        
+        # A.4 origin to spline0start
+            row = col.row(align=True)
+            row.operator("curvetools2.operatororigintospline0start", text = "Set origin to spline start")
+
+
+        # Double Curve options
+        box2 = self.layout.box()
+        col = box2.column(align=True)
+        row = col.row(align=True)
+        row.prop(scene, "UTDoubleDrop", icon="TRIA_DOWN")
+        if DOUBLEDROP:
+        # B. 2 curves
+            row = col.row(align=True)
+            row.label(text = "2 curves:")
+        
+        # B.1 curve intersections
+            row = col.row(align=True)
+            row.operator("curvetools2.operatorintersectcurves", text = "Intersect curves")
+
+            row = col.row(align=True)
+            row.prop(context.scene.curvetools, "LimitDistance", text = "LimitDistance")
+        #row.active = (context.scene.curvetools.IntersectCurvesAlgorithm == '3D')
+
+            row = col.row(align=True)
+            row.prop(context.scene.curvetools, "IntersectCurvesAlgorithm", text = "Algorithm")
+
+            row = col.row(align=True)
+            row.prop(context.scene.curvetools, "IntersectCurvesMode", text = "Mode")
+
+            row = col.row(align=True)
+            row.prop(context.scene.curvetools, "IntersectCurvesAffect", text = "Affect")
+
+        # Loft options
+        box1 = self.layout.box()
+        col = box1.column(align=True)
+        row = col.row(align=True)
+        row.prop(scene, "UTLoftDrop", icon="TRIA_DOWN")
+
+        if LOFTDROP:
+        # B.2 surface generation
+            wm = context.window_manager
+            scene = context.scene
+            layout = self.layout
+            layout.operator("curvetools2.create_auto_loft")
+            lofters = [o for o in scene.objects if "autoloft" in o.keys()]
+            for o in lofters:
+                layout.label(o.name)
+            #layout.prop(o, '["autoloft"]', toggle=True)
+            layout.prop(wm, "auto_loft", toggle=True)
+        
+        # Advanced options
+        box1 = self.layout.box()
+        col = box1.column(align=True)
+        row = col.row(align=True)
+        row.prop(scene, "UTTripleDrop", icon="TRIA_DOWN")
+        if TRIPLEDROP:
+        # C. 3 curves
+            row = col.row(align=True)
+            row.operator("object._curve_outline", text = "Curve Outline")
+            row = col.row(align=True)
+            row.operator("object.sep_outline", text = "Separate Outline")
+            row = col.row(align=True)
+            vertex = []
+            selected = []
+            n = 0
+            obj = context.active_object
+            if obj != None:
+                if obj.type == 'CURVE':
+                    for i in obj.data.splines:
+                        for j in i.bezier_points:
+                            n += 1
+                            if j.select_control_point:
+                                selected.append(n)
+                                vertex.append(obj.matrix_world * j.co)
+
+                if len(vertex) > 0 and n > 2:
+                    row = col.row(align=True)
+                    simple_edit = row.operator("curve.bezier_points_fillet", text='Fillet')
+                if len(vertex) == 2 and abs(selected[0] - selected[1]) == 1:
+                    row = col.row(align=True)
+                    simple_divide = row.operator("curve.bezier_spline_divide", text='Divide')
+            row = col.row(align=True)
+            row.operator("curvetools2.operatorbirail", text = "Birail")
+        # Utils Curve options
+        box1 = self.layout.box()
+        col = box1.column(align=True)
+        row = col.row(align=True)
+        row.prop(scene, "UTUtilsDrop", icon="TRIA_DOWN")
+
+        if UTILSDROP:        
+      
+            # D.1 set spline resolution
+            row = col.row(align=True)
+            row.operator("curvetools2.operatorsplinessetresolution", text = "Set resolution")
+            row.prop(context.scene.curvetools, "SplineResolution", text = "")
+            
+            
+            # D.2 remove splines
+            row = col.row(align=True)
+            row.operator("curvetools2.operatorsplinesremovezerosegment", text = "Remove 0-segments splines")
+            
+            row = col.row(align=True)
+            row.operator("curvetools2.operatorsplinesremoveshort", text = "Remove short splines")
+
+            row = col.row(align=True)
+            row.prop(context.scene.curvetools, "SplineRemoveLength", text = "Threshold remove")
+            
+            
+            # D.3 join splines
+            
+            row = col.row(align=True)
+            row.operator("curvetools2.operatorsplinesjoinneighbouring", text = "Join neighbouring splines")
+
+            row = col.row(align=True)
+            row.prop(context.scene.curvetools, "SplineJoinDistance", text = "Threshold join")
+
+            row = col.row(align=True)
+            row.prop(context.scene.curvetools, "SplineJoinStartEnd", text = "Only at start & end")
+
+            row = col.row(align=True)
+            row.prop(context.scene.curvetools, "SplineJoinMode", text = "Join mode")
+        
+ 
+## Addons Preferences Update Panel
+def update_panel(self, context):
+    try:
+        bpy.utils.unregister_class(CurvePanel)
+    except:
+        pass
+    CurvePanel.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(CurvePanel)   
+
+class CurveAddonPreferences(bpy.types.AddonPreferences):
+    # this must match the addon name, use '__package__'
+    # when defining this in a submodule of a python package.
+    bl_idname = __name__
+
+    category = bpy.props.StringProperty(
+            name="Category",
+            description="Choose a name for the category of the panel",
+            default="Tools",
+            update=update_panel)
+
+    def draw(self, context):
+
+        layout = self.layout
+        row = layout.row()
+        col = row.column()
+        col.label(text="Category:")
+        col.prop(self, "category", text="")
 
 def register():
+    bpy.types.Scene.UTSingleDrop = bpy.props.BoolProperty(
+        name="Single Curve",
+        default=False,
+        description="Single Curve")
+    bpy.types.Scene.UTDoubleDrop = bpy.props.BoolProperty(
+        name="Two Curves",
+        default=False,
+        description="Two Curves")
+    bpy.types.Scene.UTLoftDrop = bpy.props.BoolProperty(
+        name="Two Curves Loft",
+        default=False,
+        description="Two Curves Loft")
+    bpy.types.Scene.UTTripleDrop = bpy.props.BoolProperty(
+        name="Advanced",
+        default=False,
+        description="Advanced")
+    bpy.types.Scene.UTUtilsDrop = bpy.props.BoolProperty(
+        name="Curves Utils",
+        default=False,
+        description="Curves Utils")
+
+    auto_loft.register()
+    curve_outline.register()
+    add_curve_simple.register()
     bpy.utils.register_class(Properties.CurveTools2SelectedObject)
-    
+    bpy.utils.register_class(CurveAddonPreferences)
     bpy.utils.register_class(CurveTools2Settings)
     bpy.types.Scene.curvetools = bpy.props.PointerProperty(type=CurveTools2Settings)
 
@@ -86,14 +350,22 @@ def register():
     
     # bpy.app.handlers.scene_update_pre.append(SceneUpdatePreHandler)
     
-    bpy.utils.register_class(Panel.Panel)
-
+    bpy.utils.register_class(CurvePanel)
+    bpy.utils.register_class(SeparateOutline)
     
 def unregister():
-    bpy.utils.unregister_class(Panel.Panel)
-    
+    del bpy.types.Scene.UTSingleDrop
+    del bpy.types.Scene.UTDoubleDrop
+    del bpy.types.Scene.UTLoftDrop
+    del bpy.types.Scene.UTTripleDrop
+    del bpy.types.Scene.UTUtilsDrop
+    auto_loft.unregister()
+    curve_outline.unregister()
+    add_curve_simple.unregister()
+    bpy.utils.unregister_class(CurveAddonPreferences)
     # bpy.app.handlers.scene_update_pre.remove(SceneUpdatePreHandler)
-    
+    bpy.utils.unregister_class(CurvePanel)
+    bpy.utils.unregister_class(SeparateOutline)
     bpy.utils.unregister_class(Operators.OperatorSplinesJoinNeighbouring)
     bpy.utils.unregister_class(Operators.OperatorSplinesRemoveShort)
     bpy.utils.unregister_class(Operators.OperatorSplinesRemoveZeroSegment)

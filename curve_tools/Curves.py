@@ -20,7 +20,7 @@ class BezierPoint:
         
     def Reversed(self):
         return BezierPoint(self.handle_right, self.co, self.handle_left)
-        
+
     def Reverse(self):
         tmp = self.handle_left
         self.handle_left = self.handle_right
