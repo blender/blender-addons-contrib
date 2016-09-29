@@ -168,10 +168,10 @@ class ShiftSubsurfLevel(bpy.types.Operator):
         exploding their CPU and RAM usage. 
     """
     bl_idname = "object.shift_subsurf_level"
-    bl_label = "Shift Subsurf Level"
+    bl_label = "Shift Subdivision Level"
 
-    delta = bpy.props.IntProperty(name="Delta", description="Amount to increase/decrease the subsurf level.", default=1)
-    new_if_missing = bpy.props.BoolProperty(name="New if Missing", description="Whether to add a new subsurf modifier if none exists.", default=False)
+    delta = bpy.props.IntProperty(name="Delta", description="Amount to increase/decrease the subdivision level.", default=1)
+    new_if_missing = bpy.props.BoolProperty(name="New if Missing", description="Whether to add a new Subdivision Surface modifier if none exists.", default=False)
 
     @classmethod
     def poll(cls, context):

@@ -237,8 +237,8 @@ class OscPc2ExporterBatch(bpy.types.Operator):
 
 class OscRemoveSubsurf(bpy.types.Operator):
     bl_idname = "object.remove_subsurf_modifier"
-    bl_label = "Remove SubSurf Modifier"
-    bl_description = "Remove SubSurf Modifier"
+    bl_label = "Remove Subdivision Surface Modifier"
+    bl_description = "Remove Subdivision Surface Modifier"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
