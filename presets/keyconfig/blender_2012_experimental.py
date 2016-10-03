@@ -170,8 +170,8 @@ class ShiftSubsurfLevel(bpy.types.Operator):
     bl_idname = "object.shift_subsurf_level"
     bl_label = "Shift Subdivision Level"
 
-    delta = bpy.props.IntProperty(name="Delta", description="Amount to increase/decrease the subdivision level.", default=1)
-    new_if_missing = bpy.props.BoolProperty(name="New if Missing", description="Whether to add a new Subdivision Surface modifier if none exists.", default=False)
+    delta = bpy.props.IntProperty(name="Delta", description="Amount to increase/decrease the subdivision level", default=1)
+    new_if_missing = bpy.props.BoolProperty(name="New if Missing", description="Whether to add a new Subdivision Surface modifier if none exists", default=False)
 
     @classmethod
     def poll(cls, context):
@@ -1285,7 +1285,6 @@ def MapAdd_View3D_MeshEditMode(kc):
     
     # Shortest path
     kmi = km.keymap_items.new('mesh.shortest_path_pick', 'RIGHTMOUSE', 'PRESS', alt=True) # Replace
-    kmi.properties.extend = False
     # TODO: add, remove
     
     # Edge loop
@@ -2759,10 +2758,6 @@ def MapAdd_AnimationChannels(kc):
     # Delete
     kmi = km.keymap_items.new('anim.channels_delete', 'X', 'PRESS')
     kmi = km.keymap_items.new('anim.channels_delete', 'DEL', 'PRESS')
-    
-    # Channel visibility
-    kmi = km.keymap_items.new('anim.channels_visibility_set', 'V', 'PRESS')
-    kmi = km.keymap_items.new('anim.channels_visibility_toggle', 'V', 'PRESS', shift=True)
     
     """
     kmi = km.keymap_items.new('anim.channels_rename', 'LEFTMOUSE', 'PRESS', ctrl=True)
