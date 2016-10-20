@@ -161,8 +161,10 @@ class OscEPc2ExporterPanel(View3DMCPanel, bpy.types.Panel):
 
 def OscSetFolder(context, filepath):
     fp =  filepath if os.path.isdir(filepath) else  os.path.dirname(filepath)
+    os.chdir(os.path.dirname(bpy.data.filepath))
+    rfp = os.path.relpath(fp)
     for sc in bpy.data.scenes:
-        sc.pc_pc2_folder = fp
+        sc.pc_pc2_folder = rfp
     return {'FINISHED'}
 
 
