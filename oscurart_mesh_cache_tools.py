@@ -15,6 +15,7 @@ import bpy
 import sys
 import os
 import struct
+from platform import system
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
@@ -83,7 +84,10 @@ def CargaAutoLoadPC(dummy):
                 for MOD in ob.modifiers:
                     if MOD.type == "MESH_CACHE":                    
                         #MOD = ob.modifiers.new("TempPC","MESH_CACHE")
-                        MOD.filepath = "%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, ob.name)
+                        if system().startswith("W"):
+                            MOD.filepath = "//%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, ob.name)
+                        else:
+                            MOD.filepath = "%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, ob.name)    
                         MOD.cache_format = "PC2"
                         MOD.forward_axis = "POS_Y"
                         MOD.up_axis = "POS_Z"
@@ -271,7 +275,10 @@ class OscPc2iMporterBatch(bpy.types.Operator):
     def execute(self, context):
         for OBJ in bpy.context.selected_objects[:]:
             MOD = OBJ.modifiers.new("MeshCache", 'MESH_CACHE')
-            MOD.filepath = "%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, OBJ.name)
+            if system().startswith("W"):
+                MOD.filepath = "//%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, OBJ.name)
+            else:
+                MOD.filepath = "%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, OBJ.name)    
             MOD.cache_format = "PC2"
             MOD.forward_axis = "POS_Y"
             MOD.up_axis = "POS_Z"
