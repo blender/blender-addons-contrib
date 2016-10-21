@@ -15,7 +15,6 @@ import bpy
 import sys
 import os
 import struct
-from platform import system
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
@@ -82,17 +81,17 @@ def CargaAutoLoadPC(dummy):
         if gr.use_auto_load:
             for ob in bpy.data.groups[gr.name].objects:
                 for MOD in ob.modifiers:
-                    if MOD.type == "MESH_CACHE":                    
-                        #MOD = ob.modifiers.new("TempPC","MESH_CACHE")
-                        if system().startswith("W"):
-                            MOD.filepath = "//%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, ob.name)
-                        else:
-                            MOD.filepath = "%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, ob.name)    
+                    if MOD.type == "MESH_CACHE":                                       
                         MOD.cache_format = "PC2"
                         MOD.forward_axis = "POS_Y"
                         MOD.up_axis = "POS_Z"
                         MOD.flip_axis = set(())
-                        MOD.frame_start = bpy.context.scene.pc_pc2_start                
+                        MOD.frame_start = bpy.context.scene.pc_pc2_start  
+                        os.chdir(os.path.dirname(bpy.data.groups[gr.name].library.filepath).replace("//",os.path.dirname(bpy.data.filepath)+os.sep)) #lib folder path
+                        mcf = os.path.dirname(bpy.data.filepath) + os.sep + bpy.context.scene.pc_pc2_folder #absolute mesh cache folder
+                        MOD.filepath = "//%s%s%s.pc2" % (os.path.relpath(mcf),os.sep,ob.name)  
+                         
+                        
                     
 bpy.app.handlers.load_post.append(CargaAutoLoadPC)  
 
@@ -275,10 +274,7 @@ class OscPc2iMporterBatch(bpy.types.Operator):
     def execute(self, context):
         for OBJ in bpy.context.selected_objects[:]:
             MOD = OBJ.modifiers.new("MeshCache", 'MESH_CACHE')
-            if system().startswith("W"):
-                MOD.filepath = "//%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, OBJ.name)
-            else:
-                MOD.filepath = "%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, OBJ.name)    
+            MOD.filepath = "//%s%s%s.pc2" % (bpy.context.scene.pc_pc2_folder, os.sep, OBJ.name)   
             MOD.cache_format = "PC2"
             MOD.forward_axis = "POS_Y"
             MOD.up_axis = "POS_Z"
