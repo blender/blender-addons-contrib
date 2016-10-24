@@ -87,9 +87,8 @@ def CargaAutoLoadPC(dummy):
                         MOD.up_axis = "POS_Z"
                         MOD.flip_axis = set(())
                         MOD.frame_start = bpy.context.scene.pc_pc2_start  
-                        os.chdir(os.path.dirname(bpy.data.groups[gr.name].library.filepath).replace("//",os.path.dirname(bpy.data.filepath)+os.sep)) #lib folder path
-                        mcf = os.path.dirname(bpy.data.filepath) + os.sep + bpy.context.scene.pc_pc2_folder #absolute mesh cache folder
-                        MOD.filepath = "//%s%s%s.pc2" % (os.path.relpath(mcf),os.sep,ob.name)  
+                        abspath = os.path.abspath(bpy.path.abspath("//"+bpy.context.scene.pc_pc2_folder))
+                        MOD.filepath = "%s/%s.pc2" % (abspath,ob.name)
                          
                         
                     
