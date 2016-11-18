@@ -21,8 +21,8 @@ bl_info = {
     "name": "Enhanced 3D Cursor",
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
-    "version": (2, 9, 8),
-    "blender": (2, 7, 0),
+    "version": (2, 9, 9),
+    "blender": (2, 7, 7),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -2360,7 +2360,7 @@ class SnapUtilityBase:
                 if not use_object_centers:
                     self.potential_snap_elements = [
                         (obj.matrix_world * obj.data.vertices[vi].co)
-                        for vi in obj.data.tessfaces[face_id].vertices
+                        for vi in obj.data.polygons[face_id].vertices
                     ]
 
                 if use_object_centers:
@@ -2766,7 +2766,7 @@ class Snap3DUtility(SnapUtilityBase):
 
         _ln = ln.copy()
 
-        face = obj.data.tessfaces[face_id]
+        face = obj.data.polygons[face_id]
         L = None
         t1 = None
 
@@ -2870,7 +2870,7 @@ class Snap3DUtility(SnapUtilityBase):
         return (matrix, face_id, obj, orig_obj)
 
     def interpolate_normal(self, obj, face_id, p, orig, ray):
-        face = obj.data.tessfaces[face_id]
+        face = obj.data.polygons[face_id]
 
         use_smooth = face.use_smooth
         if self.interpolation == 'NEVER':
