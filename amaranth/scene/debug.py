@@ -539,7 +539,7 @@ class AMTH_SCENE_OT_list_users_for_x_type(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         return bpy.context.scene.amth_datablock_types
-    
+
     def execute(self,context):
         datablock_type = bpy.context.scene.amth_datablock_types
 
@@ -1190,13 +1190,9 @@ class AMTH_LightersCorner(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        any_lamps = False
-        for ob in bpy.data.objects:
-            if ob.type == "LAMP" or utils.cycles_is_emission(context, ob):
-                any_lamps = True
-            else:
-                pass
-        return any_lamps
+        preferences = context.user_preferences.addons["amaranth"].preferences
+
+        return preferences.use_lighters_corner
 
     def draw_header(self, context):
         layout = self.layout

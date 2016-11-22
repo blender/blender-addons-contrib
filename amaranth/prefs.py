@@ -67,6 +67,12 @@ class AmaranthToolsetPreferences(bpy.types.AddonPreferences):
         default=True,
     )
 
+    use_lighters_corner = bpy.props.BoolProperty(
+        name="Lighter's Corner",
+        description="Display the Lighter's Corner panel on Scene properties",
+        default=False,
+    )
+
     def draw(self, context):
         layout = self.layout
 
@@ -90,6 +96,7 @@ class AmaranthToolsetPreferences(bpy.types.AddonPreferences):
         sub.prop(self, "use_scene_stats")
         sub.prop(self, "use_layers_for_render")
         sub.prop(self, "use_framerate")
+        sub.prop(self, "use_lighters_corner")
 
         sub.separator()
 
@@ -117,6 +124,8 @@ class AmaranthToolsetPreferences(bpy.types.AddonPreferences):
             text="Save the set of layers that should be activated for a final render")
         sub.label(
             text="Jump the amount of frames forward/backward that you've set as your framerate")
+        sub.label(
+            text="Display the Lighter's Corner panel on Scene properties")
 
         sub.separator()
         sub.label(text="")  # Nodes
