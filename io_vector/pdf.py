@@ -287,7 +287,7 @@ def GetPDFLiteralString(s, i):
             elif c == ord('t'):
                 v += '\t'
             elif ord('0') <= c <= ord('7'):
-                x = ord(c) - ord('0')
+                x = c - ord('0')
                 j += 1
                 if j < len(s):
                     c = ordat(s, j)
@@ -408,6 +408,23 @@ def GetPDFDict(s, i):
         print('unterminated dict starting at', i)
     return ((ODICT, v), j)
 
+# Crossref dict:
+# Cross references are a way of turning an (object #, generation #) into
+# an actual object in the file, when and indirect reference of the form
+#    object# generation# R
+# is found in another object.
+# Cross references are of two types:
+# 1) uncompressed: you find the object at a specified byte offset in the file
+# 2) compressed: you find the object in an object stream which is in turn found
+#    by looking for a specified object# with implicit generation 0.
+# We will build a map from (object#, generation#) to a tuple
+#    (kind, field2, field3)
+# where if kind==XUNCOMPRESSED then field2 is the file byte offset of the object and field2
+#                              is its generation #
+# and   if kind==XCOMPRESSED then field2 is the object # of the object stream containing it,
+#                              and field3 is the index of that object within the stream
+XUNCOMPRESSED = 1
+XCOMPRESSED = 2
 
 def GetPDFTrailerAndCrossrefs(s):
     """Find and return the (last) PDF trailer dictionary and cross reference
@@ -435,7 +452,69 @@ def GetPDFTrailerAndCrossrefs(s):
             print('cannot find crossref index')
         return (None, None)
     crossrefs = {}
+    d = None
     last_trailerdict = None
+    print("looking for crossref at", crossrefi)
+    if s[crossrefi:crossrefi+4] != b'xref':
+        # Could be Crossref stream
+        (obj, j) = GetPDFObject(s, crossrefi)
+        if PDFObjHasType(obj, OINDIRECTDEF):
+            strobj = obj[1][2]
+            if PDFObjHasType(strobj, OSTREAM):
+                strxrefs = GetPDFStreamContents(strobj, s, {}, False)
+                if strxrefs is None:
+                    if WARN:
+                        print('cannot decode crossref stream')
+                    return (None, {})
+                d = strobj[1][0]
+                w = GetTypedValFromDictEntry(d, 'W', OARRAY, s, {})
+                ty = GetTypedValFromDictEntry(d, 'Type', ONAME, s, {})
+                sz = GetTypedValFromDictEntry(d, 'Size', ONUM, s, {})
+                index = GetTypedValFromDictEntry(d, 'Index', OARRAY, s, {})
+                prev = GetTypedValFromDictEntry(d, 'Prev', ONUM, s, {})
+                if ty != 'XRef' or sz is None or w is None:
+                    if WARN:
+                        print('something wrong with XRef stream dictionary')
+                    return (None, {})
+                n1 = w[0][1]
+                n2 = w[1][1]
+                n3 = w[2][1]
+                ntot = n1 + n2 + n3
+                firstobjnum = 0
+                numobjs = sz
+                if index is not None:
+                    firstobjnum = index[0][1]
+                    numobjs = index[1][1]
+                k = 0
+                objnum = firstobjnum
+                while k + ntot <= len(strxrefs):
+                    if n1 == 0:
+                        f1 = 1
+                    else:
+                        (f1, k) = GetPDFMultiByteInt(strxrefs, k, n1)
+                    (f2, k) = GetPDFMultiByteInt(strxrefs, k, n2)
+                    if n3 == 0:
+                        f3 = 0
+                    else:
+                        (f3, k) = GetPDFMultiByteInt(strxrefs, k, n3)
+                    if f1 == 1:
+                        crossrefs[(objnum, f3)] = (XUNCOMPRESSED, f2, f3)
+                    elif f1 == 2:
+                        crossrefs[(objnum, 0)] = (XCOMPRESSED, f2, f3)
+                    elif f1 != 0:
+                        if WARN:
+                            print('unexpected type in XRef:', f1)
+                        return (None, {})
+                    objnum += 1
+            else:
+                if WARN:
+                    print("no xref and object there is not stream")
+                print (obj)
+        else:
+            if WARN:
+                print("no xref and not indirect def")
+            print(obj)
+        return (d, crossrefs)
     while crossrefi > 0:
         i = crossrefi
         if s[i:i + 4] != b'xref':
@@ -459,7 +538,7 @@ def GetPDFTrailerAndCrossrefs(s):
                 gen = int(s[i + 11:i + 16])
                 inuse = (ordat(s, i + 17) == ord('n'))
                 if inuse:
-                    crossrefs[(k, gen)] = byteoffset
+                    crossrefs[(k, gen)] = (XUNCOMPRESSED, byteoffset, gen)
                 i += 20
         # Should be at 'trailer' now
         (w, i) = GetPDFKeyword(s, i)
@@ -481,6 +560,21 @@ def GetPDFTrailerAndCrossrefs(s):
             crossrefi = -1
     return (last_trailerdict, crossrefs)
 
+def GetPDFMultiByteInt(s, i, fieldlen):
+    """Get a multibyte int from a string of bytes
+
+    Args:
+      s: string of bytes
+      i: int, offset in s to start getting the result
+      fieldlen: int, how many bytes to get
+    Returns:
+      int: accumulated multibyte value (high order byte first in s)
+    """
+
+    ans = 0
+    for k in range(i, i + fieldlen):
+        ans = ans * 256 + ord(s[k])
+    return (ans, i + fieldlen)
 
 def ReadPDFPageOneContents(filename):
     """Read a PDF file and return Content string for its first page.
@@ -604,7 +698,7 @@ def GetPDFObjFromIndirectRef(obj, s, crossrefs):
     Args:
       obj: (int, value) - should be (OINDIRECTREF, (obj_number, gen_number))
       s: string - contents of PDF file
-      crossrefs: dict - maps (obj_number, gen_number) to byte offset in s
+      crossrefs: dict - maps (obj_number, gen_number) to crossref triple
     Returns:
       (objectid, value) - the referred value (inside containing OINDIRECTDEF)
                           or None if there is any problem
@@ -615,14 +709,83 @@ def GetPDFObjFromIndirectRef(obj, s, crossrefs):
     key = obj[1]
     if key not in crossrefs:
         return None
-    i = crossrefs[key]
-    if i < 0 or i >= len(s):
+    (f1, f2, f3) = crossrefs[key]
+    if f1 == XUNCOMPRESSED:
+        if f2 < 0 or f2 >= len(s):
+            return None
+        (o, _) = GetPDFObject(s, f2)
+    elif f1 == XCOMPRESSED:
+        o = GetPDFCompressedObject(s, f2, f3, crossrefs)
+        return o
+    else:
+        if WARN:
+            print("Bad xref type")
         return None
-    (o, _) = GetPDFObject(s, i)
     if PDFObjHasType(o, OINDIRECTDEF):
         return o[1][2]
     else:
         return None
+
+
+def GetPDFCompressedObject(s, strnum, oindex, crossrefs):
+    """Get one complete object from compressed stream.
+
+    Args:
+      s : bytes holding contents of a PDF file
+      strnum: object number of object stream where object is
+      oindex: index of object within the stream
+      crossrefs: dict - maps (obj_number, gen_number) to crossref triple
+    Returns:
+      (objectid, value) - or None, if no such object
+    """
+
+    strkey = (strnum, 0)
+    if strkey not in crossrefs:
+        if WARN:
+            print("could not find object", strnum, "in crossrefs")
+        return None
+    (g1, g2, g3) = crossrefs[strkey]
+    if g1 != XUNCOMPRESSED:
+        if WARN:
+            print("stream object is not uncompressed", g1, g2, g3)
+        return None
+    if g2 < 0 or g2 >= len(s):
+        return None
+    (ostream, _) = GetPDFObject(s, g2)
+    if PDFObjHasType(ostream, OINDIRECTDEF):
+        ostream = ostream[1][2]
+    if not PDFObjHasType(ostream, OSTREAM):
+        if WARN:
+            print("stream object does not have type stream")
+        return None
+    streamcont = GetPDFStreamContents(ostream, s, crossrefs, False)
+    d = ostream[1][0]
+    ty = GetTypedValFromDictEntry(d, "Type", ONAME, s, crossrefs)
+    if ty != "ObjStm":
+        if WARN:
+            print("stream object does not have Type ObjStm")
+        return None
+    n = GetTypedValFromDictEntry(d, "N", ONUM, s, crossrefs)
+    first = GetTypedValFromDictEntry(d, "First", ONUM, s, crossrefs)
+    if not n or not first:
+        if WARN:
+            print("required n or first not in object stream")
+        return None
+    i = 0
+    ans = None
+    for count in range(n):
+        (intpair, i) = GetPDFTwoInts(streamcont, i)
+        if not intpair:
+            if WARN:
+                print("stream object did not find int pair at count", count)
+            return None
+        (id, off) = intpair
+        obj = GetPDFObject(streamcont, first + off)
+        if count == oindex:
+            if obj:
+                ans = obj[0]
+            break
+    return ans
 
 
 def GetPDFObjFromDictEntry(d, entryname, s, crossrefs):
@@ -668,7 +831,7 @@ def PDFDictType(d):
     return ''
 
 
-def GetPDFStreamContents(contentsobj, s, crossrefs):
+def GetPDFStreamContents(contentsobj, s, crossrefs, dodecode=True):
     """Return the contents of a stream object, applying any needed filters.
 
     For now, only handle FlateDecode filter, and with no DecodeParms.
@@ -677,8 +840,9 @@ def GetPDFStreamContents(contentsobj, s, crossrefs):
       contentsobj: (OSTREAM, (dict, istart, iend))
       s: bytes - PDF file contents
       crossrefs: dict - maps (obj_number, gen_number) to byte offset in s
+      dodecode: bool - should we decode too?
     Returns:
-      string - the contents (decoded using default (UTF-8) decoder)
+      string - the contents (if dodecode, decoded using default (UTF-8) decoder)
     """
 
     if not PDFObjHasType(contentsobj, OSTREAM):
@@ -702,8 +866,43 @@ def GetPDFStreamContents(contentsobj, s, crossrefs):
         if fname == 'FlateDecode':
             if not zlib:
                 raise RuntimeError("pdf decoding requires missing zlib module")
+            parms = GetTypedValFromDictEntry(d, 'DecodeParms', ODICT, s, crossrefs)
+            needPngPredictor = False
+            columns = 1
+            if parms is not None:
+                predictor = GetTypedValFromDictEntry(parms, 'Predictor', ONUM, s, crossrefs)
+                columns = GetTypedValFromDictEntry(parms, 'Columns', ONUM, s, crossrefs)
+                if predictor is not None:
+                    if predictor == 1:
+                        pass
+                    elif predictor < 10:
+                        if WARN:
+                            print('unhandled predictor type', predictor)
+                    else:
+                        if columns is None:
+                            columns = 1
+                        needPngPredictor = True
             ans = zlib.decompress(ans)
-            ans = ans.decode()
+            if needPngPredictor:
+                ansbytes = []
+                col1 = columns + 1
+                k = 0
+                currow = [0] * columns
+                while k + col1 <= len(ans):
+                    if ans[k] != 2:
+                        if WARN:
+                            print('unhandled PNG predictor type: ', ans[k])
+                    k += 1
+                    for j in range(0, columns):
+                        currow[j] = (currow[j] + ans[k + j]) & 0xFF
+                        ansbytes.append(chr(currow[j]))
+                    k += columns
+                if k != len(ans):
+                    if WARN:
+                        print("FlateDecode with prediction didn't consume all bytes")
+                ans = ''.join(ansbytes)
+            if dodecode:
+                ans = ans.decode()
         else:
             if WARN:
                 print('unhandled stream filter', fname)
