@@ -177,7 +177,7 @@ class EditToolsPanel(bpy.types.Panel):
         VERTDROP = scene.UTVertDrop
         EDGEDROP = scene.UTEdgeDrop
         FACEDROP = scene.UTFaceDrop
-        UTILSDROP = scene.UTUtilsDrop
+        UTILS1DROP = scene.UTUtils1Drop
         view = context.space_data
         toolsettings = context.tool_settings
         layout = self.layout
@@ -263,12 +263,12 @@ class EditToolsPanel(bpy.types.Panel):
         box1 = self.layout.box()
         col = box1.column(align=True)
         row = col.row(align=True)
-        row.prop(scene, "UTUtilsDrop", icon="TRIA_DOWN")
+        row.prop(scene, "UTUtils1Drop", icon="TRIA_DOWN")
 
-        if not UTILSDROP:
+        if not UTILS1DROP:
             row.menu("mesh.utils specials", icon="SOLO_OFF", text="")
             row.menu("VIEW3D_MT_Edit_MultiMET", icon="LOOPSEL", text="")
-        if UTILSDROP:
+        if UTILS1DROP:
             layout = self.layout
             row = layout.row()
             row.label(text="Utilities:")
@@ -566,7 +566,7 @@ def register():
         name="Face",
         default=False,
         description="Face Tools")
-    bpy.types.Scene.UTUtilsDrop = bpy.props.BoolProperty(
+    bpy.types.Scene.UTUtils1Drop = bpy.props.BoolProperty(
         name="Utils",
         default=False,
         description="Misc Utils")
@@ -590,7 +590,7 @@ def unregister():
     del bpy.types.Scene.UTVertDrop
     del bpy.types.Scene.UTEdgeDrop
     del bpy.types.Scene.UTFaceDrop
-    del bpy.types.Scene.UTUtilsDrop
+    del bpy.types.Scene.UTUtils1Drop
     wm = bpy.context.window_manager
     bpy.utils.unregister_module(__name__)
 
