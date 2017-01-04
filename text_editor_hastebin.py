@@ -19,8 +19,8 @@
 bl_info = {
     "name": "hastebin",
     "author": "Dalai Felinto (dfelinto)",
-    "version": (0, 7),
-    "blender": (2, 60, 0),
+    "version": (0, 8),
+    "blender": (2, 79, 0),
     "location": "Text editor > Properties panel",
     "description": "Send your selection or text to hastebin.com",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -30,9 +30,6 @@ bl_info = {
 
 
 import bpy
-import urllib
-import urllib.request
-import webbrowser
 
 class TEXT_PT_hastebin(bpy.types.Panel):
     bl_space_type = 'TEXT_EDITOR'
