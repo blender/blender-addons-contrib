@@ -17,33 +17,16 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "PasteAll",
+    "name": "hastebin",
     "author": "Dalai Felinto (dfelinto)",
     "version": (0, 7),
     "blender": (2, 60, 0),
     "location": "Text editor > Properties panel",
-    "description": "Send your selection or text to www.pasteall.org",
+    "description": "Send your selection or text to hastebin.com",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Text_Editor/PasteAll",
+        "Scripts/Text_Editor/hastebin",
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Text Editor"}
-
-# ########################################################
-# PasteAll.org Text Sender Script
-#
-# Dalai Felinto (dfelinto)
-# blenderecia.orgfree.com
-#
-# Rio de Janeiro - Brasil
-# Vancouver - Canada
-#
-# Original code: 23rd August 2010 (Blender 2.5.3 rev. 31525)
-#
-# Important Note:
-# This script is not official. I did it for fun and for my own usage.
-# And please do not abuse of their generosity - use it wisely (a.k.a no flood).
-#
-# ########################################################
 
 
 import bpy
@@ -51,21 +34,22 @@ import urllib
 import urllib.request
 import webbrowser
 
-class TEXT_PT_pasteall(bpy.types.Panel):
+class TEXT_PT_hastebin(bpy.types.Panel):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "PasteAll.org"
+    bl_label = "hastebin.com"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("text.pasteall", icon='URL')
+        layout.operator("text.hastebin", icon='URL')
         layout.prop(context.scene, "use_webbrowser")
 
-class TEXT_OT_pasteall(bpy.types.Operator):
+
+class TEXT_OT_hastebin(bpy.types.Operator):
     """"""
-    bl_idname = "text.pasteall"
-    bl_label = "PasteAll.org"
-    bl_description = "Send the current text or selection to www.pasteall.org"
+    bl_idname = "text.hastebin"
+    bl_label = "hastebin.com"
+    bl_description = "Send the current text or selection to http://hastebin.com"
 
     @classmethod
     def poll(cls, context):
@@ -83,24 +67,11 @@ class TEXT_OT_pasteall(bpy.types.Operator):
         # if no text is selected send the whole file
         if text is None: text = st.text.as_string()
 
-        # get the file type based on the extension
-        format = self.get_file_format(st.text)
-
         # send the text and receive the returned page
-        html = self.send_text(text, format)
+        page = self.send_text(text)
 
-        if html is None:
-            self.report({'ERROR'}, "Error in sending the text to the server.")
+        if page is None:
             return {'CANCELLED'}
-
-        # get the link of the posted page
-        page = self.get_page(str(html))
-
-        if page is None or page == "":
-            self.report({'ERROR'}, "Error in retrieving the page.")
-            return {'CANCELLED'}
-        else:
-            self.report({'INFO'}, page)
 
         # store the link in the clipboard
         bpy.context.window_manager.clipboard = page
@@ -113,35 +84,25 @@ class TEXT_OT_pasteall(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def send_text(self, text, format):
+    def send_text(self, text):
         """"""
-        import urllib
-        url = "http://www.pasteall.org/index.php"
-        values = {  'action' : 'savepaste',
-                    'parent_id' : '0',
-                    'language_id': format,
-                    'code' : text }
+        import requests
+        base_url = "https://hastebin.com"
 
         try:
-            data = urllib.parse.urlencode(values).encode()
-            req = urllib.request.Request(url, data)
-            response = urllib.request.urlopen(req)
-            page_source = response.read()
+            response = requests.post(base_url + "/documents", text)
+            final_url = "%s/%s" % (base_url, response.json()['key'])
+
+        except requests.exceptions.SSLError:
+            self.report({'ERROR'}, "Error with SSL authorization, requires a more recent Blender")
+            return None
+
         except:
+            self.report({'ERROR'}, "Error in sending the text to the server.")
             return None
-        else:
-            return page_source
 
-    def get_page(self, html):
-        """"""
-        id = html.find('directlink')
-        id_begin = id + 12 # hardcoded: directlink">
-        id_end = html[id_begin:].find("</a>")
-
-        if id != -1 and id_end != -1:
-            return html[id_begin:id_begin + id_end]
         else:
-            return None
+            return final_url
 
     def get_selected_text(self, text):
         """"""
@@ -191,16 +152,6 @@ class TEXT_OT_pasteall(bpy.types.Operator):
 
         return text_return
 
-    def get_file_format(self, text):
-        """Try to guess what is the format based on the file extension"""
-        extensions =   {'diff':'24',
-                        'patch':'24',
-                        'py':'62',
-                        'c':'12',
-                        'cpp':'18'}
-
-        type = text.name.split(".")[-1]
-        return extensions.get(type, '0')
 
 def register():
     bpy.types.Scene.use_webbrowser = bpy.props.BoolProperty(
@@ -210,11 +161,11 @@ def register():
 
     bpy.utils.register_module(__name__)
 
+
 def unregister():
     del bpy.types.Scene.use_webbrowser
     bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
-
 
