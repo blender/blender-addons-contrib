@@ -51,7 +51,7 @@ class CACHARANTH_GroupSelect(Operator):
     @classmethod
     def poll(cls, context):
         return bpy.data.groups
-    
+
     def execute(self,context):
         bpy.context.scene.meshcache_group = bpy.data.groups[int(self.group_select)].name
         return {'FINISHED'}
@@ -67,7 +67,7 @@ def MeshcacheFolderSet(context, filepath):
 
 
 class MeshcacheFolderSetButton(Operator, ImportHelper):
-    bl_idname = "buttons.meshcache_folder_set"  
+    bl_idname = "buttons.meshcache_folder_set"
     bl_label = "Set Mesh Cache Folder"
     filename_ext = ".mdd"
 
@@ -210,8 +210,7 @@ classes = (
     MESH_OT_MeshcacheExcludeNameRemove,
     MeshcacheExcludeNames,
     MeshcacheFolderSetButton,
-    CACHARANTH_GroupSelect,
-    Cacharanth_Pref
+    CACHARANTH_GroupSelect
     )
 
 def register():
