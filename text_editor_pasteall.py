@@ -205,7 +205,7 @@ class TEXT_OT_pasteall(bpy.types.Operator):
 def register():
     bpy.types.Scene.use_webbrowser = bpy.props.BoolProperty(
         name='Launch Browser',
-        description='Opens the page with the submitted text.',
+        description='Opens the page with the submitted text',
         default=True)
 
     bpy.utils.register_module(__name__)
