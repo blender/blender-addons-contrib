@@ -21,13 +21,13 @@ bl_info = {
     "name": "Enhanced 3D Cursor",
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
-    "version": (3, 0, 0),
+    "version": (3, 0, 1),
     "blender": (2, 7, 7),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/3D_interaction/Enhanced_3D_Cursor",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
+    "tracker_url": "https://github.com/dairin0d/enhanced-3d-cursor/issues",
     "category": "3D View"}
 
 """
@@ -4065,7 +4065,7 @@ class Cursor3DToolsSettings(bpy.types.PropertyGroup):
         min=0,
         max=10,
         options={'HIDDEN'})
-    
+
     auto_register_keymaps = bpy.props.BoolProperty(
         name="Auto Register Keymaps",
         default=True)
@@ -4090,6 +4090,12 @@ class CursorRuntimeSettings(bpy.types.PropertyGroup):
         default=(0.0, 0.0, 0.0),
         options={'HIDDEN'},
         subtype='XYZ')
+
+    use_cursor_monitor = bpy.props.BoolProperty(
+        name="Enable Cursor Monitor",
+        description="Record 3D cursor history "\
+            "(uses a background modal operator)",
+        default=True)
 
 class CursorDynamicSettings:
     local_matrix = Matrix()
@@ -4152,6 +4158,7 @@ class Cursor3DTools(bpy.types.Panel):
             bpy.ops.view3d.cursor3d_monitor()
         #=============================================#
 
+        wm = context.window_manager
         settings = find_settings()
 
         row = layout.split(0.5)
@@ -4182,6 +4189,8 @@ class Cursor3DTools(bpy.types.Panel):
         # === HISTORY === #
         history = settings.history
         row = layout.row(align=True)
+        row.prop(wm.cursor_3d_runtime_settings, "use_cursor_monitor",
+            text="", toggle=True, icon='REC')
         row.prop(history, "show_trace", text="", icon='SORTTIME')
         row = row.split(0.35, True)
         row.prop(history, "max_size", text="")
@@ -4595,6 +4604,10 @@ class CursorMonitor(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         try:
+            wm = context.window_manager
+            if not wm.cursor_3d_runtime_settings.use_cursor_monitor:
+                return False
+
             runtime_settings = find_runtime_settings()
             if not runtime_settings:
                 return False
@@ -4609,11 +4622,17 @@ class CursorMonitor(bpy.types.Operator):
             return False
 
     def modal(self, context, event):
+        wm = context.window_manager
+        if not wm.cursor_3d_runtime_settings.use_cursor_monitor:
+            self.cancel(context)
+            return {'CANCELLED'}
+
         # Scripts cannot be reloaded while modal operators are running
         # Intercept the corresponding event and shut down CursorMonitor
         # (it would be relaunched automatically afterwards)
         for kmi in CursorMonitor.script_reload_kmis:
             if IsKeyMapItemEvent(kmi, event):
+                self.cancel(context)
                 return {'CANCELLED'}
         
         try:
@@ -5461,6 +5480,9 @@ def update_keymap(activate):
     addon_prefs = userprefs.addons[__name__].preferences
     settings = find_settings()
 
+    wm.cursor_3d_runtime_settings.use_cursor_monitor = \
+        addon_prefs.use_cursor_monitor
+
     auto_register_keymaps = settings.auto_register_keymaps
     auto_register_keymaps &= addon_prefs.auto_register_keymaps
     if not auto_register_keymaps:
@@ -5504,9 +5526,15 @@ class ThisAddonPreferences(bpy.types.AddonPreferences):
     # this must match the addon name, use '__package__'
     # when defining this in a submodule of a python package.
     bl_idname = __name__
-    
+
     auto_register_keymaps = bpy.props.BoolProperty(
         name="Auto Register Keymaps",
+        default=True)
+
+    use_cursor_monitor = bpy.props.BoolProperty(
+        name="Enable Cursor Monitor",
+        description="Cursor monitor is a background modal operator "\
+            "that records 3D cursor history",
         default=True)
 
     def draw(self, context):
@@ -5516,6 +5544,7 @@ class ThisAddonPreferences(bpy.types.AddonPreferences):
         row.prop(self, "auto_register_keymaps", text="")
         row.prop(settings, "auto_register_keymaps")
         row.prop(settings, "free_coord_precision")
+        row.prop(self, "use_cursor_monitor")
 
 def extra_snap_menu_draw(self, context):
     layout = self.layout
