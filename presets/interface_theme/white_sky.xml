@@ -398,11 +398,7 @@
       </ThemeGraphEditor>
     </graph_editor>
     <file_browser>
-      <ThemeFileBrowser selected_file="#76acf6"
-                        scrollbar="#00ff00"
-                        scroll_handle="#ff0000"
-                        active_file="#ff0000"
-                        active_file_text="#ffffff">
+      <ThemeFileBrowser selected_file="#76acf6">
         <space>
           <ThemeSpaceGeneric back="#ffffff"
                              title="#000000"
