@@ -19,8 +19,8 @@
 bl_info = {
     'name': 'Dimension',
     'author': 'Spivak Vladimir (http://cwolf3d.korostyshev.net)',
-    'version': (3, 9, 4),
-    'blender': (2, 7, 4),
+    'version': (3, 9, 5),
+    'blender': (2, 7, 8),
     'location': 'View3D > Add > Curve',
     'description': 'Adds Dimension',
     'warning': '', # used for warning icon and text in addons panel
@@ -43,7 +43,7 @@ def addText(string = '', loc = ((0, 0, 0)), textsize = 1, align = 'CENTER', offs
     tcu = bpy.data.curves.new(string + 'Data', 'FONT')
     text = bpy.data.objects.new(string + 'Text', tcu)
     tcu.body = string
-    tcu.align = align
+    tcu.align_x = align
     tcu.size = textsize
     tcu.offset_y = offset_y
     if font == '':
@@ -1573,7 +1573,7 @@ def createCurve(vertArray, self, align_matrix):
     yy = sin(u) * g
 
     stext = str(stext)
-    if not self.Dimension_units == 'None' :
+    if self.Dimension_units != 'None' and self.Dimension_add_units_name:
         stext += self.Dimension_units
 
     if self.Dimension_Type == 'Angular1' or self.Dimension_Type == 'Angular2' or self.Dimension_Type == 'Angular3':
@@ -1637,23 +1637,29 @@ def createCurve(vertArray, self, align_matrix):
             DimensionCurve.rotation_euler[1] = radians(0)
             if self.Dimension_XYType == 'X':
                 DimensionCurve.rotation_euler[2] = radians(self.Dimension_rotation)
+                DimensionCurve.location[1] += self.Dimension_offset
             if self.Dimension_XYType == 'Y':
                 DimensionCurve.rotation_euler[2] = radians(90+self.Dimension_rotation)
+                DimensionCurve.location[0] += self.Dimension_offset
 
         if self.Dimension_XYZType == 'FRONT' or self.Dimension_XYZType == 'BACK':
             DimensionCurve.rotation_euler[0] = radians(90)
             if self.Dimension_XZType == 'X':
                 DimensionCurve.rotation_euler[1] = -radians(self.Dimension_rotation)
+                DimensionCurve.location[1] += self.Dimension_offset
             if self.Dimension_XZType == 'Z':
                 DimensionCurve.rotation_euler[1] = -radians(90+self.Dimension_rotation)
+                DimensionCurve.location[0] += self.Dimension_offset
             DimensionCurve.rotation_euler[2] = radians(0)
 
         if self.Dimension_XYZType == 'RIGHT' or self.Dimension_XYZType == 'LEFT':
             DimensionCurve.rotation_euler[0] = radians(90)
             if self.Dimension_YZType == 'Y':
                 DimensionCurve.rotation_euler[1] = -radians(self.Dimension_rotation)
+                DimensionCurve.location[0] += self.Dimension_offset
             if self.Dimension_YZType == 'Z':
                 DimensionCurve.rotation_euler[1] = -radians(90+self.Dimension_rotation)
+                DimensionCurve.location[1] += self.Dimension_offset
             DimensionCurve.rotation_euler[2] = radians(90)
 
         if self.Dimension_XYZType == 'TOP' or self.Dimension_XYZType == 'FRONT' or self.Dimension_XYZType == 'RIGHT':
@@ -1718,7 +1724,7 @@ def createCurve(vertArray, self, align_matrix):
         DimensionCurve.rotation_euler[0] = radians(self.Dimension_rotation)
         DimensionCurve.rotation_euler[1] = u1
         DimensionCurve.rotation_euler[2] = u2
-
+    
     # Align to view
     if self.Dimension_align_to_camera :
         obj_camera = bpy.context.scene.camera
@@ -1789,6 +1795,7 @@ def createCurve(vertArray, self, align_matrix):
     DimensionCurve.Dimension_depth_from_center = self.Dimension_depth_from_center
     DimensionCurve.Dimension_angle = self.Dimension_angle
     DimensionCurve.Dimension_rotation = self.Dimension_rotation
+    DimensionCurve.Dimension_offset = self.Dimension_offset
 
     #### Dimension text properties
     DimensionCurve.Dimension_textsize = self.Dimension_textsize
@@ -1811,6 +1818,10 @@ def createCurve(vertArray, self, align_matrix):
     #### Parent
     DimensionCurve.Dimension_parent = self.Dimension_parent
     DimensionCurve.Dimension_appoint_parent = self.Dimension_appoint_parent
+    
+    #### Units
+    DimensionCurve.Dimension_units = self.Dimension_units
+    DimensionCurve.Dimension_add_units_name = self.Dimension_add_units_name
 
     return
 
@@ -2198,6 +2209,9 @@ class Dimension(bpy.types.Operator):
     Dimension_rotation = FloatProperty(name = "Rotation",
                 default = 0,
                 description = "Rotation")
+    Dimension_offset = FloatProperty(name = "Offset",
+                default = 0,
+                description = "Offset")
 
     #### Dimension units properties
     Units = [
@@ -2215,6 +2229,9 @@ class Dimension(bpy.types.Operator):
     Dimension_units = EnumProperty(name = "Units",
                 items = Units,
                 description = "Units")
+    Dimension_add_units_name = BoolProperty(name = "Add units name",
+                default = False,
+                description = "Add units name")
 
     #### Dimension text properties
     Dimension_textsize = FloatProperty(name = "Size",
@@ -2291,6 +2308,7 @@ class Dimension(bpy.types.Operator):
             box.prop(self, 'Dimension_depth')
             box.prop(self, 'Dimension_depth_from_center')
             box.prop(self, 'Dimension_rotation')
+            box.prop(self, 'Dimension_offset')
 
         # options per Type Linear-2(width = 2, dsize = 1, depth = 0.1)
         if self.Dimension_Type == 'Linear-2':
@@ -2308,6 +2326,7 @@ class Dimension(bpy.types.Operator):
             box.prop(self, 'Dimension_dsize')
             box.prop(self, 'Dimension_depth')
             box.prop(self, 'Dimension_rotation')
+            box.prop(self, 'Dimension_offset')
 
         # options per Type Linear-3(width = 2, length = 2, dsize = 1, depth = 0.1)
         if self.Dimension_Type == 'Linear-3':
@@ -2327,6 +2346,7 @@ class Dimension(bpy.types.Operator):
             box.prop(self, 'Dimension_depth')
             box.prop(self, 'Dimension_depth_from_center')
             box.prop(self, 'Dimension_rotation')
+            box.prop(self, 'Dimension_offset')
 
         # options per Type Radius(width = 2, length = 2, dsize = 1, depth = 0.1)
         if self.Dimension_Type == 'Radius':
@@ -2401,6 +2421,7 @@ class Dimension(bpy.types.Operator):
                 props.Dimension_depth_from_center = self.Dimension_depth_from_center
                 props.Dimension_angle = self.Dimension_angle
                 props.Dimension_rotation = self.Dimension_rotation
+                props.Dimension_offset = self.Dimension_offset
                 props.Dimension_textsize = self.Dimension_textsize
                 props.Dimension_textdepth = self.Dimension_textdepth
                 props.Dimension_textround = self.Dimension_textround
@@ -2412,6 +2433,8 @@ class Dimension(bpy.types.Operator):
                 props.Dimension_arrowlength = self.Dimension_arrowlength
                 props.Dimension_parent = self.Dimension_parent
                 props.Dimension_appoint_parent = self.Dimension_appoint_parent
+                props.Dimension_units = self.Dimension_units
+                props.Dimension_add_units_name = self.Dimension_add_units_name
             box = layout.box()
             box.label("Options")
             box.prop(self, 'Dimension_width')
@@ -2458,6 +2481,7 @@ class Dimension(bpy.types.Operator):
                 props.Dimension_depth_from_center = self.Dimension_depth_from_center
                 props.Dimension_angle = self.Dimension_angle
                 props.Dimension_rotation = self.Dimension_rotation
+                props.Dimension_offset = self.Dimension_offset
                 props.Dimension_textsize = self.Dimension_textsize
                 props.Dimension_textdepth = self.Dimension_textdepth
                 props.Dimension_textround = self.Dimension_textround
@@ -2469,6 +2493,8 @@ class Dimension(bpy.types.Operator):
                 props.Dimension_arrowlength = self.Dimension_arrowlength
                 props.Dimension_parent = self.Dimension_parent
                 props.Dimension_appoint_parent = self.Dimension_appoint_parent
+                props.Dimension_units = self.Dimension_units
+                props.Dimension_add_units_name = self.Dimension_add_units_name
             box = layout.box()
             box.label("Options")
             box.prop(self, 'Dimension_width')
@@ -2513,6 +2539,7 @@ class Dimension(bpy.types.Operator):
                 props.Dimension_depth_from_center = self.Dimension_depth_from_center
                 props.Dimension_angle = self.Dimension_angle
                 props.Dimension_rotation = self.Dimension_rotation
+                props.Dimension_offset = self.Dimension_offset
                 props.Dimension_textsize = self.Dimension_textsize
                 props.Dimension_textdepth = self.Dimension_textdepth
                 props.Dimension_textround = self.Dimension_textround
@@ -2524,6 +2551,8 @@ class Dimension(bpy.types.Operator):
                 props.Dimension_arrowlength = self.Dimension_arrowlength
                 props.Dimension_parent = self.Dimension_parent
                 props.Dimension_appoint_parent = self.Dimension_appoint_parent
+                props.Dimension_units = self.Dimension_units
+                props.Dimension_add_units_name = self.Dimension_add_units_name
             box = layout.box()
             box.label("Options")
             box.prop(self, 'Dimension_width')
@@ -2552,6 +2581,7 @@ class Dimension(bpy.types.Operator):
             box.prop(self, 'Dimension_angle')
             box.prop(self, 'Dimension_rotation')
             box.prop(self, 'Dimension_note')
+            box.prop(self, 'Dimension_offset')
 
         col = layout.column()
         row = layout.row()
@@ -2582,6 +2612,7 @@ class Dimension(bpy.types.Operator):
 
         box = layout.box()
         box.prop(self, 'Dimension_units')
+        box.prop(self, 'Dimension_add_units_name')
 
         if not self.Dimension_parent == '':
             box = layout.box()
@@ -2951,6 +2982,7 @@ class DimensionPanel(bpy.types.Panel):
             props.Dimension_depth_from_center = obj.Dimension_depth_from_center
             props.Dimension_angle = obj.Dimension_angle
             props.Dimension_rotation = obj.Dimension_rotation
+            props.Dimension_offset = 0
             props.Dimension_textsize = obj.Dimension_textsize
             props.Dimension_textdepth = obj.Dimension_textdepth
             props.Dimension_textround = obj.Dimension_textround
@@ -2963,6 +2995,8 @@ class DimensionPanel(bpy.types.Panel):
             props.Dimension_arrowlength = obj.Dimension_arrowlength
             props.Dimension_parent = obj.Dimension_parent
             props.Dimension_appoint_parent = obj.Dimension_appoint_parent
+            props.Dimension_units = obj.Dimension_units
+            props.Dimension_add_units_name = obj.Dimension_add_units_name
 
 #location update
 def StartLocationUpdate(self, context):
@@ -3100,6 +3134,10 @@ def DimensionVariables():
     bpy.types.Object.Dimension_units = bpy.props.EnumProperty(name = "Units",
                 items = Units,
                 description = "Units")
+    bpy.types.Object.Dimension_add_units_name = bpy.props.BoolProperty(name = "Add units name",
+                description = "Add units name")
+    bpy.types.Object.Dimension_offset = bpy.props.FloatProperty(name = "Offset",
+                description = "Offset")
 
     #### Dimension text properties
     bpy.types.Object.Dimension_textsize = bpy.props.FloatProperty(name = "Size",
