@@ -80,7 +80,7 @@ def find_random_tip():
 
 
 def menu_func(self, context):
-    url_prefix = "https://www.blender.org/manual"
+    url_prefix = "https://docs.blender.org/manual/en/dev/"
 
     layout = self.layout
     tip, url = find_random_tip()
