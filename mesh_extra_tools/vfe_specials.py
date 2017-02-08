@@ -1,5 +1,4 @@
-# Save as mesh_context_menu.py and put it into addons directory
-# (or use Blender's Install From File... function).
+# gpl author: Stanislav Blinov
 
 bl_info = {
     "name": "V/E/F Context Menu",
@@ -11,10 +10,13 @@ bl_info = {
 }
 
 import bpy
-from bpy_extras import view3d_utils
+from bpy.types import (
+        Menu,
+        Operator,
+        )
 
 
-class MESH_MT_CombinedMenu(bpy.types.Menu):
+class MESH_MT_CombinedMenu(Menu):
     bl_idname = "mesh.addon_combined_component_menu"
     bl_label = "Components"
 
@@ -34,7 +36,7 @@ class MESH_MT_CombinedMenu(bpy.types.Menu):
             layout.menu("VIEW3D_MT_edit_mesh_faces")
 
 
-class MESH_OT_CallContextMenu(bpy.types.Operator):
+class MESH_OT_CallContextMenu(Operator):
     bl_idname = "mesh.addon_call_context_menu"
     bl_label = "Context Menu"
 
@@ -55,6 +57,7 @@ class MESH_OT_CallContextMenu(bpy.types.Operator):
         else:
             return bpy.ops.wm.call_menu(name=MESH_MT_CombinedMenu.bl_idname)
 
+
 classes = [
     MESH_MT_CombinedMenu,
     MESH_OT_CallContextMenu
@@ -73,7 +76,7 @@ def register():
 
 
 def unregister():
-    for cls in classes[::-1]:
+    for cls in classes:
         bpy.utils.unregister_class(cls)
 
     wm = bpy.context.window_manager
@@ -85,6 +88,7 @@ def unregister():
             if kmi.properties.name == "mesh.addon_call_context_menu":
                 km.keymap_items.remove(kmi)
                 break
+
 
 if __name__ == "__main__":
     register()

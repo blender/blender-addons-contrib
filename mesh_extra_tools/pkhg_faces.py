@@ -1,148 +1,249 @@
+# gpl author: PHKG
+
 bl_info = {
     "name": "PKHG faces",
-    "author": " PKHG ",
+    "author": "PKHG",
     "version": (0, 0, 5),
     "blender": (2, 7, 1),
     "location": "View3D > Tools > PKHG (tab)",
     "description": "Faces selected will become added faces of different style",
-    "warning": "not yet finished",
+    "warning": "",
     "wiki_url": "",
     "category": "Mesh",
 }
+
 import bpy
 import bmesh
-from mathutils import Vector, Matrix
-from bpy.props import BoolProperty, StringProperty, IntProperty, FloatProperty, EnumProperty
+from bpy.types import (
+        Operator,
+        Panel
+        )
+from mathutils import Vector
+from bpy.props import (
+        BoolProperty,
+        StringProperty,
+        IntProperty,
+        FloatProperty,
+        EnumProperty,
+        )
 
 
-class AddFaces(bpy.types.Operator):
-    """Get parameters and build object with added faces"""
+class MESH_OT_add_faces_to_object(Operator):
     bl_idname = "mesh.add_faces_to_object"
-    bl_label = "new FACES: add"
+    bl_label = "Face Extrude"
+    bl_description = "Set parameters and build object with added faces"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    reverse_faces = BoolProperty(name="reverse_faces", default=False,
-                                 description="revert the normal of selected faces")
+    reverse_faces = BoolProperty(
+                        name="Reverse Faces",
+                        default=False,
+                        description="Revert the normals of selected faces"
+                        )
     name_source_object = StringProperty(
-        name="which MESH",
-        description="lets you chose a mesh",
-        default="Cube")
-    remove_start_faces = BoolProperty(name="remove_start_faces", default=True,
-                                      description="make a choice, remove or not")
-    base_height = FloatProperty(name="base_height faces", min=-20,
-                                soft_max=10, max=20, default=0.2,
-                                description="sets general base_height")
+                        name="Mesh",
+                        description="Choose a Source Mesh",
+                        default="Cube"
+                        )
+    remove_start_faces = BoolProperty(
+                        name="Remove Start Faces",
+                        default=True,
+                        description="Make a choice about removal of Original Faces"
+                        )
+    base_height = FloatProperty(
+                        name="Base Height",
+                        min=-20,
+                        soft_max=10, max=20,
+                        default=0.2,
+                        description="Set general Base Height"
+                        )
+    use_relative_base_height = BoolProperty(
+                        name="rel.base_height",
+                        default=False,
+                        description="Relative or absolute Base Height"
+                        )
+    second_height = FloatProperty(
+                        name="2nd height", min=-5,
+                        soft_max=5, max=20,
+                        default=0.2,
+                        description="Second height for various shapes"
+                        )
+    width = FloatProperty(
+                        name="Width Faces",
+                        min=-20, max=20,
+                        default=0.5,
+                        description="Set general width"
+                        )
+    repeat_extrude = IntProperty(
+                        name="Repeat",
+                        min=1,
+                        soft_max=5, max=20,
+                        description="For longer base"
+                        )
+    move_inside = FloatProperty(
+                        name="Move Inside",
+                        min=0.0,
+                        max=1.0,
+                        default=0.5,
+                        description="How much move to inside"
+                        )
+    thickness = FloatProperty(
+                        name="Thickness",
+                        soft_min=0.01, min=0,
+                        soft_max=5.0, max=20.0,
+                        default=0
+                        )
+    depth = FloatProperty(
+                        name="Depth",
+                        min=-5,
+                        soft_max=5.0, max=20.0,
+                        default=0
+                        )
+    collapse_edges = BoolProperty(
+                        name="Make Point",
+                        default=False,
+                        description="Collapse the vertices of edges"
+                        )
+    spike_base_width = FloatProperty(
+                        name="Spike Base Width",
+                        default=0.4,
+                        min=-4.0,
+                        soft_max=1, max=20,
+                        description="Base width of a spike"
+                        )
+    base_height_inset = FloatProperty(
+                        name="Base Height Inset",
+                        default=0.0,
+                        min=-5, max=5,
+                        description="To elevate or drop the Base height Inset"
+                        )
+    top_spike = FloatProperty(
+                        name="Top Spike",
+                        default=1.0,
+                        min=-10.0, max=10.0,
+                        description="The Base Height of a spike"
+                        )
 
-    use_relative_base_height = BoolProperty(name="rel.base_height", default=False,
-                                            description=" reletive or absolute base_height")
-
-    relative_base_height = FloatProperty(name="relative_height", min=-5,
-                                         soft_max=5, max=20, default=0.2,
-                                         description="PKHG>TODO")
-    relative_width = FloatProperty(name="relative_width", min=-5,
-                                   soft_max=5, max=20, default=0.2,
-                                   description="PKHG>TODO")
-    second_height = FloatProperty(name="2. height", min=-5,
-                                  soft_max=5, max=20, default=0.2,
-                                  description="2. height for this and that")
-    width = FloatProperty(name="wds.faces", min=-20, max=20, default=0.5,
-                          description="sets general width")
-    repeat_extrude = IntProperty(name="repeat", min=1,
-                                 soft_max=5, max=20,
-                                 description="for longer base")
-    move_inside = FloatProperty(name="move inside", min=0.0,
-                                max=1.0, default=0.5,
-                                description="how much move to inside")
-    thickness = FloatProperty(name="thickness", soft_min=0.01, min=0,
-                              soft_max=5.0, max=20.0, default=0)
-    depth = FloatProperty(name="depth", min=-5,
-                          soft_max=5.0, max=20.0, default=0)
-
-    collapse_edges = BoolProperty(name="make point", default=False,
-                                  description="collapse vertices of edges")
-    spike_base_width = FloatProperty(name="spike_base_width", default=0.4,
-                                     min=-4.0, soft_max=1, max=20,
-                                     description="base width of a  spike")
-    base_height_inset = FloatProperty(name="base_height_inset", default=0.0,
-                                      min=-5, max=5,
-                                      description="to elevate/or neg the ...")
-    top_spike = FloatProperty(name="top_spike", default=1.0, min=-10.0, max=10.0,
-                              description=" the base_height of a spike")
-    top_extra_height = FloatProperty(name="top_extra_height", default=0.0, min=-10.0, max=10.0,
-                                     description=" add extra height")
-    step_with_real_spike = BoolProperty(name="step_with_real_spike", default=False,
-                                        description=" in stepped a real spike")
-    use_relative = BoolProperty(name="use_relative", default=False,
-                                description="change size using area, min of max")
-
+    top_extra_height = FloatProperty(
+                        name="Top Extra Height",
+                        default=0.0,
+                        min=-10.0, max=10.0,
+                        description="Add extra height"
+                        )
+    step_with_real_spike = BoolProperty(
+                        name="Step with Real Spike",
+                        default=False,
+                        description="In stepped, use a real spike"
+                        )
+    use_relative = BoolProperty(
+                        name="Use Relative",
+                        default=False,
+                        description="Change size using area, min or max"
+                        )
     face_types = EnumProperty(
-        description="different types of faces",
-        default="no",
-        items=[
-            ('no', 'choose!', 'choose one of the other possibilies'),
-            ('open inset', 'open inset', 'holes'),
-            ('with base', 'with base', 'base and ...'),
-            ('clsd vertical', 'clsd vertical', 'clsd vertical'),
-            ('open vertical', 'open vertical', 'openvertical'),
-            ('spiked', 'spiked', 'spike'),
-            ('stepped', 'stepped', 'stepped'),
-            ('boxed', 'boxed', 'boxed'),
-            ('bar', 'bar', 'bar'),
-        ])
-    strange_boxed_effect = BoolProperty(name="strange effect", default=False,
-                                        description="do not show one extrusion")
-    use_boundary = BoolProperty(name="use_boundary", default=True)
-    use_even_offset = BoolProperty(name="even_offset", default=True)
-    use_relative_offset = BoolProperty(name="relativ_offset", default=True)
-    use_edge_rail = BoolProperty(name="edge_rail", default=False)
-    use_outset = BoolProperty(name="outset", default=False)
-    use_select_inset = BoolProperty(name="inset", default=False)
-    use_interpolate = BoolProperty(name="interpolate", default=True)
+                        name="Face Types",
+                        description="Different types of Faces",
+                        default="no",
+                        items=[
+                            ('no', "Pick an Option", "Choose one of the available options"),
+                            ('open_inset', "Open Inset", "Inset without closing faces (holes)"),
+                            ('with_base', "With Base", "Base and ..."),
+                            ('clsd_vertical', "Closed Vertical", "Closed Vertical"),
+                            ('open_vertical', "Open Vertical", "Open Vertical"),
+                            ('spiked', "Spiked", "Spike"),
+                            ('stepped', "Stepped", "Stepped"),
+                            ('boxed', "Boxed", "Boxed"),
+                            ('bar', "Bar", "Bar"),
+                            ]
+                        )
+    strange_boxed_effect = BoolProperty(
+                        name="Strange Effect",
+                        default=False,
+                        description="Do not show one extrusion"
+                        )
+    use_boundary = BoolProperty(
+                        name="Use Boundary",
+                        default=True
+                        )
+    use_even_offset = BoolProperty(
+                        name="Even Offset",
+                        default=True
+                        )
+    use_relative_offset = BoolProperty(
+                        name="Relative Offset",
+                        default=True
+                        )
+    use_edge_rail = BoolProperty(
+                        name="Edge Rail",
+                        default=False
+                        )
+    use_outset = BoolProperty(
+                        name="Outset",
+                        default=False
+                        )
+    use_select_inset = BoolProperty(
+                        name="Inset",
+                        default=False
+                        )
+    use_interpolate = BoolProperty(
+                        name="Interpolate",
+                        default=True
+                        )
 
     @classmethod
     def poll(cls, context):
-
         result = False
         active_object = context.active_object
         if active_object:
-            mesh_objects_name = [el.name for el in bpy.data.objects if el.type ==
-                                 "MESH"]
+            mesh_objects_name = [el.name for el in bpy.data.objects if el.type == "MESH"]
             if active_object.name in mesh_objects_name:
                 result = True
 
         return result
 
-    def draw(self, context):  # PKHG>INFO Add_Faces_To_Object operator GUI
+    def draw(self, context):
         layout = self.layout
         col = layout.column()
-        col.label(text="ACTIVE object used!")
-        col.prop(self, "face_types")
+
+        col.separator()
+        col.label(text="Using Active Object", icon="INFO")
+        col.separator()
+        col.label("Face Types:")
+        col.prop(self, "face_types", text="")
+        col.separator()
         col.prop(self, "use_relative")
-        if self.face_types == "open inset":
+
+        if self.face_types == "open_inset":
             col.prop(self, "move_inside")
             col.prop(self, "base_height")
-        elif self.face_types == "with base":
+
+        elif self.face_types == "with_base":
             col.prop(self, "move_inside")
             col.prop(self, "base_height")
             col.prop(self, "second_height")
             col.prop(self, "width")
-        elif self.face_types == "clsd vertical":
+
+        elif self.face_types == "clsd_vertical":
             col.prop(self, "base_height")
-        elif self.face_types == "open vertical":
+
+        elif self.face_types == "open_vertical":
             col.prop(self, "base_height")
+
         elif self.face_types == "boxed":
             col.prop(self, "move_inside")
             col.prop(self, "base_height")
             col.prop(self, "top_spike")
             col.prop(self, "strange_boxed_effect")
+
         elif self.face_types == "spiked":
             col.prop(self, "spike_base_width")
             col.prop(self, "base_height_inset")
             col.prop(self, "top_spike")
+
         elif self.face_types == "bar":
             col.prop(self, "spike_base_width")
             col.prop(self, "top_spike")
             col.prop(self, "top_extra_height")
+
         elif self.face_types == "stepped":
             col.prop(self, "spike_base_width")
             col.prop(self, "base_height_inset")
@@ -151,13 +252,21 @@ class AddFaces(bpy.types.Operator):
             col.prop(self, "step_with_real_spike")
 
     def execute(self, context):
-        bpy.context.scene.objects.active
         obj_name = self.name_source_object
         face_type = self.face_types
+
+        is_selected = check_is_selected()
+
+        if not is_selected:
+            self.report({'WARNING'},
+                        "Operation Cancelled. No selected Faces found on the Active Object")
+            return {'CANCELLED'}
+
         if face_type == "spiked":
             Spiked(spike_base_width=self.spike_base_width,
                    base_height_inset=self.base_height_inset,
                    top_spike=self.top_spike, top_relative=self.use_relative)
+
         elif face_type == "boxed":
             startinfo = prepare(self, context, self.remove_start_faces)
             bm = startinfo['bm']
@@ -191,7 +300,7 @@ class AddFaces(bpy.types.Operator):
             bpy.ops.object.mode_set(mode='OBJECT')
             # PKHG>INFO base extrusion done and set to the mesh
 
-            # PKHG>INFO if the extrusion is NOT  done ... it looks straneg soon!
+            # PKHG>INFO if the extrusion is NOT  done ... it'll look strange soon!
             if not self.strange_boxed_effect:
                 bpy.ops.object.mode_set(mode='EDIT')
                 obj = context.active_object
@@ -219,7 +328,7 @@ class AddFaces(bpy.types.Operator):
                     top_extra_height=self.top_extra_height,
                     use_relative_offset=self.use_relative, with_spike=self.step_with_real_spike)
 
-        elif face_type == "open inset":
+        elif face_type == "open_inset":
             startinfo = prepare(self, context, self.remove_start_faces)
             bm = startinfo['bm']
 
@@ -245,7 +354,7 @@ class AddFaces(bpy.types.Operator):
                                t=distance[i], base_height=base_heights[i])
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        elif face_type == "with base":
+        elif face_type == "with_base":
             startinfo = prepare(self, context, self.remove_start_faces)
             bm = startinfo['bm']
             obj = startinfo['obj']
@@ -257,8 +366,8 @@ class AddFaces(bpy.types.Operator):
             base_height = self.base_height
             distance = None
             base_heights = None
-            if self.use_relative:
 
+            if self.use_relative:
                 distance = [min(t * area, 1.0) for i, area in enumerate(areas)]
                 base_heights = [base_height * area for i, area in enumerate(areas)]
             else:
@@ -280,6 +389,7 @@ class AddFaces(bpy.types.Operator):
             width = self.width
             vectors = [[ele.verts[:] for ele in edge] for edge in prepare_ring]
             n_ring_vecs = []
+
             for rings in vectors:
                 v = []
                 for edgv in rings:
@@ -290,6 +400,7 @@ class AddFaces(bpy.types.Operator):
 
                 vvv = [bm.verts[i].co for i in vv]
                 n_ring_vecs.append(vvv)
+
             for i, ring in enumerate(n_ring_vecs):
                 make_one_inset(self, context, bm=bm, ringvectors=ring,
                                center=centers[i], normal=normals[i],
@@ -297,13 +408,12 @@ class AddFaces(bpy.types.Operator):
             bpy.ops.object.mode_set(mode='OBJECT')
 
         else:
-
-            if face_type == "clsd vertical":
+            if face_type == "clsd_vertical":
                 obj_name = context.active_object.name
                 ClosedVertical(name=obj_name, base_height=self.base_height,
                                use_relative_base_height=self.use_relative)
 
-            elif face_type == "open vertical":
+            elif face_type == "open_vertical":
                 obj_name = context.active_object.name
                 OpenVertical(name=obj_name, base_height=self.base_height,
                              use_relative_base_height=self.use_relative)
@@ -351,50 +461,19 @@ class AddFaces(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ReverseFacesOperator(bpy.types.Operator):
-    """Reverse selected Faces"""
-    bl_idname = "mesh.revers_selected_faces"
-    bl_label = "reverse normal of selected faces1"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
-    reverse_faces = BoolProperty(name="reverse_faces", default=False,
-                                 description="revert the normal of selected faces")
-
-    def execute(self, context):
-        name = context.active_object.name
-        ReverseFaces(name=name)
-        return {'FINISHED'}
-
-
-class pkhg_help(bpy.types.Operator):
-    bl_idname = 'help.pkhg'
-    bl_label = ''
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label('To use:')
-        layout.label('Make a selection or selection of Faces')
-        layout.label('Extrude, rotate extrusions & more')
-        layout.label('Toggle edit mode after use')
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=300)
-
-
-class VIEW3D_Faces_Panel(bpy.types.Panel):
+class VIEW3D_Faces_Panel(Panel):
     bl_label = "Face Extrude"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_category = 'Tools'
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_category = "Tools"
+    bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
     def poll(cls, context):
-
         result = False
         active_object = context.active_object
         if active_object:
-            mesh_objects_name = [el.name for el in bpy.data.objects if el.type ==
-                                 "MESH"]
+            mesh_objects_name = [el.name for el in bpy.data.objects if el.type == "MESH"]
             if active_object.name in mesh_objects_name:
                 if active_object.mode == "OBJECT":
                     result = True
@@ -402,20 +481,17 @@ class VIEW3D_Faces_Panel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(AddFaces.bl_idname, "Selected Faces!")
-        layout.label("Use this to Extrude")
-        layout.label("Selected Faces Only")
-        layout.label("---------------------------------------")
-        layout.operator(ReverseFacesOperator.bl_idname, "Reverse faceNormals")
-        layout.label("Only Use This")
-        layout.label("After Mesh Creation")
-        layout.label("To Repair Normals")
-        layout.label("Save File Often")
+
+        row = layout.split(0.8, align=True)
+        row.operator("mesh.add_faces_to_object", "Selected Faces")
+        row.operator("mesh.extra_tools_help",
+                    icon="LAYER_USED").help_ids = "pkhg_faces"
+
 
 def find_one_ring(sel_vertices):
     ring0 = sel_vertices.pop(0)
-
     to_delete = []
+
     for i, edge in enumerate(sel_vertices):
         len_nu = len(ring0)
         if len(ring0 - edge) < len_nu:
@@ -431,16 +507,25 @@ def find_one_ring(sel_vertices):
 
 
 class Stepped:
+    def __init__(self, spike_base_width=0.5, base_height_inset=0.0, top_spike=0.2,
+                 top_relative=False, top_extra_height=0, use_relative_offset=False, with_spike=False):
 
-    def __init__(self, spike_base_width=0.5, base_height_inset=0.0, top_spike=0.2, top_relative=False, top_extra_height=0, use_relative_offset=False, with_spike=False):
-
-        obj = bpy.context.active_object
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False, use_edge_rail=False, thickness=spike_base_width, depth=0, use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=use_relative_offset, use_edge_rail=False, thickness=top_extra_height, depth=base_height_inset, use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
+        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False,
+                           use_edge_rail=False, thickness=spike_base_width, depth=0, use_outset=True,
+                           use_select_inset=False, use_individual=True, use_interpolate=True)
 
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=use_relative_offset, use_edge_rail=False, thickness=spike_base_width, depth=0, use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False, use_edge_rail=False, thickness=0, depth=top_spike, use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
+        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=use_relative_offset,
+                           use_edge_rail=False, thickness=top_extra_height, depth=base_height_inset,
+                           use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
+
+        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=use_relative_offset,
+                           use_edge_rail=False, thickness=spike_base_width, depth=0, use_outset=True,
+                           use_select_inset=False, use_individual=True, use_interpolate=True)
+
+        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False,
+                           use_edge_rail=False, thickness=0, depth=top_spike, use_outset=True,
+                           use_select_inset=False, use_individual=True, use_interpolate=True)
         if with_spike:
             bpy.ops.mesh.merge(type='COLLAPSE')
 
@@ -448,22 +533,24 @@ class Stepped:
 
 
 class Spiked:
-
     def __init__(self, spike_base_width=0.5, base_height_inset=0.0, top_spike=0.2, top_relative=False):
 
         obj = bpy.context.active_object
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False, use_edge_rail=False, thickness=spike_base_width, depth=base_height_inset, use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
-        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=top_relative, use_edge_rail=False, thickness=0, depth=top_spike, use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
+        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False,
+                           use_edge_rail=False, thickness=spike_base_width, depth=base_height_inset,
+                           use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
+
+        bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=top_relative,
+                           use_edge_rail=False, thickness=0, depth=top_spike, use_outset=True,
+                           use_select_inset=False, use_individual=True, use_interpolate=True)
+
         bm = bmesh.from_edit_mesh(obj.data)
-        selected_faces = [face for face in bm.faces if face.select]
-        edges_todo = []
         bpy.ops.mesh.merge(type='COLLAPSE')
         bpy.ops.object.mode_set(mode='OBJECT')
 
 
 class ClosedVertical:
-
     def __init__(self, name="Plane", base_height=1, use_relative_base_height=False):
         obj = bpy.data.objects[name]
 
@@ -478,8 +565,6 @@ class ClosedVertical:
         for f in res['faces']:
             f.select = True
 
-        lood = Vector((0, 0, 1))
-        # PKHG>INFO adjust extrusion by a vector! test just only lood
         factor = base_height
         for face in res['faces']:
             if use_relative_base_height:
@@ -492,28 +577,11 @@ class ClosedVertical:
                 el.co = tmp
 
         me = bpy.data.meshes[name]
-        bm.to_mesh(me)
-        bm.free()
-
-
-class ReverseFaces:
-
-    def __init__(self, name="Cube"):
-        obj = bpy.data.objects[name]
-        me = obj.data
-        bpy.ops.object.mode_set(mode='EDIT')
-        bm = bmesh.new()
-        bm.from_mesh(me)
-        bpy.ops.object.mode_set(mode='OBJECT')
-        sel = [f for f in bm.faces if f.select]
-
-        bmesh.ops.reverse_faces(bm, faces=sel)
         bm.to_mesh(me)
         bm.free()
 
 
 class OpenVertical:
-
     def __init__(self, name="Plane", base_height=1, use_relative_base_height=False):
 
         obj = bpy.data.objects[name]
@@ -528,7 +596,7 @@ class OpenVertical:
         for f in res['faces']:
             f.select = True
 
-        # PKHG>INFO adjust extrusion by a vector! test just only lood
+        # PKHG>INFO adjust extrusion by a vector
         factor = base_height
         for face in res['faces']:
             if use_relative_base_height:
@@ -549,47 +617,79 @@ class OpenVertical:
         bpy.ops.object.editmode_toggle()
 
 
-
 class StripFaces:
-
-    def __init__(self, use_boundary=True, use_even_offset=True, use_relative_offset=False, use_edge_rail=True, thickness=0.0, depth=0.0, use_outset=False, use_select_inset=False, use_individual=True, use_interpolate=True):
+    def __init__(self, use_boundary=True, use_even_offset=True, use_relative_offset=False,
+                 use_edge_rail=True, thickness=0.0, depth=0.0, use_outset=False,
+                 use_select_inset=False, use_individual=True, use_interpolate=True):
 
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.inset(use_boundary=use_boundary, use_even_offset=True, use_relative_offset=False, use_edge_rail=True, thickness=thickness, depth=depth, use_outset=use_outset, use_select_inset=use_select_inset, use_individual=use_individual, use_interpolate=use_interpolate)
+        bpy.ops.mesh.inset(use_boundary=use_boundary, use_even_offset=True, use_relative_offset=False,
+                           use_edge_rail=True, thickness=thickness, depth=depth, use_outset=use_outset,
+                           use_select_inset=use_select_inset, use_individual=use_individual,
+                           use_interpolate=use_interpolate)
+
         bpy.ops.object.mode_set(mode='OBJECT')
 
         # PKHG>IMFO only 3 parameters inc execution context supported!!
         if False:
-            bpy.ops.mesh.inset(use_boundary, use_even_offset, use_relative_offset, use_edge_rail, thickness, depth, use_outset, use_select_inset, use_individual, use_interpolate)
+            bpy.ops.mesh.inset(use_boundary, use_even_offset, use_relative_offset, use_edge_rail,
+                               thickness, depth, use_outset, use_select_inset, use_individual, use_interpolate)
         elif type == 0:
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False, use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False, use_select_inset=False, use_individual=True, use_interpolate=True)
+            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False,
+                               use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False,
+                               use_select_inset=False, use_individual=True, use_interpolate=True)
         elif type == 1:
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False, use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False, use_select_inset=False, use_individual=True, use_interpolate=False)
+            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=True, use_relative_offset=False,
+                               use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False,
+                               use_select_inset=False, use_individual=True, use_interpolate=False)
+
             bpy.ops.mesh.delete(type='FACE')
 
         elif type == 2:
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True, use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False, use_select_inset=False, use_individual=True, use_interpolate=False)
+            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True,
+                               use_edge_rail=True, thickness=thickness, depth=depth, use_outset=False,
+                               use_select_inset=False, use_individual=True, use_interpolate=False)
+
             bpy.ops.mesh.delete(type='FACE')
 
         elif type == 3:
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True, use_edge_rail=True, thickness=depth, depth=thickness, use_outset=False, use_select_inset=False, use_individual=True, use_interpolate=True)
+            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True,
+                               use_edge_rail=True, thickness=depth, depth=thickness, use_outset=False,
+                               use_select_inset=False, use_individual=True, use_interpolate=True)
+
             bpy.ops.mesh.delete(type='FACE')
         elif type == 4:
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True, use_edge_rail=True, thickness=thickness, depth=depth, use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
-            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True, use_edge_rail=True, thickness=thickness, depth=depth, use_outset=True, use_select_inset=False, use_individual=True, use_interpolate=True)
+            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True,
+                               use_edge_rail=True, thickness=thickness, depth=depth, use_outset=True,
+                               use_select_inset=False, use_individual=True, use_interpolate=True)
+
+            bpy.ops.mesh.inset(use_boundary=True, use_even_offset=False, use_relative_offset=True,
+                               use_edge_rail=True, thickness=thickness, depth=depth, use_outset=True,
+                               use_select_inset=False, use_individual=True, use_interpolate=True)
 
         bpy.ops.mesh.delete(type='FACE')
 
         bpy.ops.object.mode_set(mode='OBJECT')
 
 
+def check_is_selected():
+    is_selected = False
+    for face in bpy.context.active_object.data.polygons:
+        if face.select:
+            is_selected = True
+            break
+    return is_selected
+
+
 def prepare(self, context, remove_start_faces=True):
-    """Start for a face selected change of faces
-       select an object of type mesh, with  activated severel (all) faces
+    """
+       Start for a face selected change of faces
+       select an object of type mesh, with activated several (all) faces
     """
     obj = bpy.context.scene.objects.active
     bpy.ops.object.mode_set(mode='OBJECT')
     selectedpolygons = [el for el in obj.data.polygons if el.select]
+
     # PKHG>INFO copies of the vectors are needed, otherwise Blender crashes!
     centers = [face.center for face in selectedpolygons]
     centers_copy = [Vector((el[0], el[1], el[2])) for el in centers]
@@ -638,22 +738,20 @@ def prepare(self, context, remove_start_faces=True):
 
 def make_one_inset(self, context, bm=None, ringvectors=None, center=None,
                    normal=None, t=None, base_height=0):
-    """a face will get  'inserted' faces to create  (normaly)
-        a hole it t is > 0 and < 1)
-    """
+    # a face will get 'inserted' faces to create (normaly) a hole if t is > 0 and < 1)
     tmp = []
 
     for el in ringvectors:
         tmp.append((el * (1 - t) + center * t) + normal * base_height)
 
     tmp = [bm.verts.new(v) for v in tmp]  # the new corner bmvectors
-    # PKHG>INFO so to say sentinells, ot use ONE for ...
+    # PKHG>INFO so to say sentinells, to use ONE for ...
     tmp.append(tmp[0])
     vectorsFace_i = [bm.verts.new(v) for v in ringvectors]
     vectorsFace_i.append(vectorsFace_i[0])
     myres = []
     for ii in range(len(vectorsFace_i) - 1):
-        # PKHG>INFO next line: sequence important! for added edge
+        # PKHG>INFO next line: sequence is important! for added edge
         bmvecs = [vectorsFace_i[ii], vectorsFace_i[ii + 1], tmp[ii + 1], tmp[ii]]
         res = bm.faces.new(bmvecs)
         myres.append(res.edges[2])
@@ -662,22 +760,16 @@ def make_one_inset(self, context, bm=None, ringvectors=None, center=None,
 
 
 def extrude_faces(self, context, bm=None, face_l=None):
-    """
-       to make a ring extrusion!
-    """
-    all_results = []
+    # to make a ring extrusion
     res = bmesh.ops.extrude_discrete_faces(bm, faces=face_l)['faces']
 
     for face in res:
         face.select = True
-
     return res
 
 
 def extrude_edges(self, context, bm=None, edge_l_l=None):
-    """
-       to make a ring extrusion!
-    """
+    # to make a ring extrusion
     all_results = []
     for edge_l in edge_l_l:
         for edge in edge_l:
@@ -692,9 +784,7 @@ def extrude_edges(self, context, bm=None, edge_l_l=None):
 
 def translate_ONE_ring(self, context, bm=None, object_matrix=None, ring_edges=None,
                        normal=(0, 0, 1), distance=0.5):
-    """
-       translate a ring in given (normal?!) direction with given (global) amount
-    """
+    # translate a ring in given (normal?!) direction with given (global) amount
     tmp = []
     for edge in ring_edges:
         tmp.extend(edge.verts[:])
@@ -702,19 +792,17 @@ def translate_ONE_ring(self, context, bm=None, object_matrix=None, ring_edges=No
     tmp = set(tmp)
     tmp = list(tmp)
     bmesh.ops.translate(bm, vec=normal * distance, space=object_matrix, verts=tmp)
-    return ring_edges
     # PKHG>INFO relevant edges will stay selected
+    return ring_edges
 
 
 def move_corner_vecs_outside(self, context, bm=None, edge_list=None, center=None, normal=None,
                              base_height_erlier=0.5, distance=0.5):
-    """
-       move corners (outside meant mostly) dependent on the parameters
-    """
+    # move corners (outside meant mostly) dependent on the parameters
     tmp = []
     for edge in edge_list:
         tmp.extend([ele for ele in edge.verts if isinstance(ele, bmesh.types.BMVert)])
-    # PKHG>INFO to remove vertices, they are all twices used in the ring!
+    # PKHG>INFO to remove vertices, they are all used twice in the ring!
     tmp = set(tmp)
     tmp = list(tmp)
 
@@ -730,6 +818,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_module(__name__)
+
 
 if __name__ == "__main__":
     register()

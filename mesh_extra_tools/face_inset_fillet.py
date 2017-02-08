@@ -20,14 +20,19 @@
 # ***** END GPL LICENCE BLOCK *****
 # based completely on addon by zmj100
 # added some distance limits to prevent overlap - max12345
-# ------ ------
+
+
 import bpy
 import bmesh
-from bpy.props import FloatProperty, IntProperty, BoolProperty, EnumProperty
+from bpy.types import Operator
+from bpy.props import (
+        FloatProperty,
+        IntProperty,
+        BoolProperty,
+        EnumProperty,
+        )
 from math import tan, cos, degrees, radians, sin
 from mathutils import Matrix
-
-# ------ ------
 
 
 def edit_mode_out():
@@ -39,14 +44,14 @@ def edit_mode_in():
 
 
 def angle_rotation(rp, q, axis, angle):
-    """returns the vector made by the rotation of the vector q - rp by angle around axis and then adds rp"""
+    # returns the vector made by the rotation of the vector q
+    # rp by angle around axis and then adds rp
+
     return (Matrix.Rotation(angle, 3, axis) * (q - rp)) + rp
 
-# ------ ------
 
-
-def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_sides, out, radius, type_enum, kp):
-
+def face_inset_fillet(bme, face_index_list, inset_amount, distance,
+                      number_of_sides, out, radius, type_enum, kp):
     list_del = []
 
     for faceindex in face_index_list:
@@ -74,15 +79,15 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
             vec1 = p - p1
             vec2 = p - p2
             # vectors for the other corner points to the cornerpoint
-            # corresponding to i/p
+            # corresponding to i / p
             angle = vec1.angle(vec2)
 
             adj = inset_amount / tan(angle * 0.5)
             h = (adj ** 2 + inset_amount ** 2) ** 0.5
             if round(degrees(angle)) == 180 or round(degrees(angle)) == 0.0:
-                # if they corer is a straight line...
+                # if the corner is a straight line...
                 # I think this creates some new points...
-                if out == True:
+                if out is True:
                     val = ((f.normal).normalized() * inset_amount)
                 else:
                     val = -((f.normal).normalized() * inset_amount)
@@ -90,11 +95,12 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
             else:
                 # if the corner is an actual corner
                 val = ((f.normal).normalized() * h)
-                if out == True:
-                    # this shit -(p - (vec2.normalized() * adj))) is just the freaking axis afaik...
+                if out is True:
+                    # this -(p - (vec2.normalized() * adj))) is just the freaking axis afaik...
                     p6 = angle_rotation(p, p + val, -(p - (vec2.normalized() * adj)), -radians(90))
                 else:
-                    p6 = angle_rotation(p, p - val, ((p - (vec1.normalized() * adj)) - (p - (vec2.normalized() * adj))),
+                    p6 = angle_rotation(p, p - val,
+                                        ((p - (vec1.normalized() * adj)) - (p - (vec2.normalized() * adj))),
                                         -radians(90))
 
                 orientation_vertex_list.append(p6)
@@ -102,14 +108,16 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
         new_inner_face = []
         orientation_vertex_list_length = len(orientation_vertex_list)
         ovll = orientation_vertex_list_length
+
         for j in range(ovll):
             q = orientation_vertex_list[j]
             q1 = orientation_vertex_list[(j - 1) % ovll]
             q2 = orientation_vertex_list[(j + 1) % ovll]
-            # again, these are just vectors between somewhat displaced conernervertices
+            # again, these are just vectors between somewhat displaced corner vertices
             vec1_ = q - q1
             vec2_ = q - q2
             ang_ = vec1_.angle(vec2_)
+
             # the angle between them
             if round(degrees(ang_)) == 180 or round(degrees(ang_)) == 0.0:
                 # again... if it's really a line...
@@ -118,28 +126,26 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
                 dict_0[j].append(v)
             else:
                 # s.a.
-
-                if radius == False:
+                if radius is False:
                     h_ = distance * (1 / cos(ang_ * 0.5))
                     d = distance
-                elif radius == True:
+                elif radius is True:
                     h_ = distance / sin(ang_ * 0.5)
                     d = distance / tan(ang_ * 0.5)
-                #max(d) is vec1_.magnitude*0.5
-                # or vec2_.magnitude*0.5 respectively
+                # max(d) is vec1_.magnitude * 0.5
+                # or vec2_.magnitude * 0.5 respectively
 
                 # only functional difference v
-
                 if d > vec1_.magnitude * 0.5:
                     d = vec1_.magnitude * 0.5
+
                 if d > vec2_.magnitude * 0.5:
                     d = vec2_.magnitude * 0.5
-
                 # only functional difference ^
 
                 q3 = q - (vec1_.normalized() * d)
                 q4 = q - (vec2_.normalized() * d)
-                # these are new verts somewhat offset from the coners
+                # these are new verts somewhat offset from the corners
                 rp_ = q - ((q - ((q3 + q4) * 0.5)).normalized() * h_)
                 # reference point inside the curvature
                 axis_ = vec1_.cross(vec2_)
@@ -150,9 +156,7 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
                 cornerverts = []
 
                 for o in range(number_of_sides + 1):
-
                     # this calculates the actual new vertices
-
                     q5 = angle_rotation(rp_, q4, axis_, rot_ang * o / number_of_sides)
                     v = bme.verts.new(q5)
 
@@ -165,10 +169,10 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
                 cornerverts.reverse()
                 new_inner_face.extend(cornerverts)
 
-        if out == False:
+        if out is False:
             f = bme.faces.new(new_inner_face)
             f.select_set(True)
-        elif out == True and kp == True:
+        elif out is True and kp is True:
             f = bme.faces.new(new_inner_face)
             f.select_set(True)
 
@@ -196,46 +200,95 @@ def face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_si
                     bme.faces.index_update()
 
     del_ = [bme.faces.remove(f) for f in list_del]
-    del del_
+    if del_:
+        del del_
 
-# ------ operator 0 ------
 
+# Operator
 
-class faceinfillet_op0(bpy.types.Operator):
-    bl_idname = 'faceinfillet.op0_id'
-    bl_label = 'Face Inset Fillet'
-    bl_description = 'inset selected faces'
-    bl_options = {'REGISTER', 'UNDO'}
+class MESH_OT_face_inset_fillet(Operator):
+    bl_idname = "mesh.face_inset_fillet"
+    bl_label = "Face Inset Fillet"
+    bl_description = ("Inset selected and Fillet (make round) the corners of\n"
+                     "of the newly created Faces")
+    bl_options = {"REGISTER", "UNDO"}
 
-    inset_amount = FloatProperty(name='', default=0.04, min=0, max=100.0, step=1, precision=3)      # inset amount
-    number_of_sides = IntProperty(name='', default=4, min=1, max=100, step=1)      # number of sides
-    distance = FloatProperty(name='', default=0.04, min=0.00001, max=100.0, step=1, precision=3)
-    out = BoolProperty(name='Out', default=False)
-    radius = BoolProperty(name='Radius', default=False)
-    type_enum = EnumProperty(items=(('opt0', 'Type 1', ''), ('opt1', 'Type 2', '')), name='', default='opt0')
-    kp = BoolProperty(name='Keep face', default=False)
+    # inset amount
+    inset_amount = FloatProperty(
+                    name="Inset amount",
+                    description="Define the size of the Inset relative to the selection",
+                    default=0.04,
+                    min=0, max=100.0,
+                    step=1,
+                    precision=3
+                    )
+    # number of sides
+    number_of_sides = IntProperty(
+                    name="Number of sides",
+                    description="Define the roundness of the corners by specifying\n"
+                                "the subdivision count",
+                    default=4,
+                    min=1, max=100,
+                    step=1
+                    )
+    distance = FloatProperty(
+                    name="",
+                    description="Use distance or radius for corners' size calculation",
+                    default=0.04,
+                    min=0.00001, max=100.0,
+                    step=1,
+                    precision=3
+                    )
+    out = BoolProperty(
+                    name="Outside",
+                    description="Inset the Faces outwards in relation to the selection\n"
+                                "Note: depending on the geometry, can give unsatisfactory results",
+                    default=False
+                    )
+    radius = BoolProperty(
+                    name="Radius",
+                    description="Use radius for corners' size calculation",
+                    default=False
+                    )
+    type_enum = EnumProperty(
+                    items=(('opt0', "N-gon", "N-gon corners - Keep the corner Faces uncut"),
+                          ('opt1', "Triangle", "Triangulate corners")),
+                    name="Corner Type",
+                    default="opt0"
+                    )
+    kp = BoolProperty(
+                    name="Keep faces",
+                    description="Do not delete the inside Faces\n"
+                                "Only available if the Out option is checked",
+                    default=False
+                    )
 
     def draw(self, context):
         layout = self.layout
-        box = layout.box()
-        box.prop(self, 'type_enum', text='Corner type')
-        row0 = box.row(align=True)
-        row0.prop(self, 'out')
-        if self.out == True:
-            row0.prop(self, 'kp')
-        row = box.split(0.40, align=True)
-        row.label('Inset amount:')
-        row.prop(self, 'inset_amount')
-        row1 = box.split(0.60, align=True)
-        row1.label('Number of sides:')
-        row1.prop(self, 'number_of_sides', slider=True)
-        box.prop(self, 'radius')
-        row2 = box.split(0.40, align=True)
-        if self.radius == True:
-            row2.label('Radius:')
-        else:
-            row2.label('distance:')
-        row2.prop(self, 'distance')
+
+        layout.label("Corner Type:")
+
+        row = layout.row()
+        row.prop(self, "type_enum", text="")
+
+        row = layout.row(align=True)
+        row.prop(self, "out")
+
+        if self.out is True:
+            row.prop(self, "kp")
+
+        row = layout.row()
+        row.prop(self, "inset_amount")
+
+        row = layout.row()
+        row.prop(self, "number_of_sides")
+
+        row = layout.row()
+        row.prop(self, "radius")
+
+        row = layout.row()
+        dist_rad = "Radius" if self.radius else "Distance"
+        row.prop(self, "distance", text=dist_rad)
 
     def execute(self, context):
         # this really just prepares everything for the main function
@@ -255,32 +308,16 @@ class faceinfillet_op0(bpy.types.Operator):
         face_index_list = [f.index for f in bme.faces if f.select and f.is_valid]
 
         if len(face_index_list) == 0:
-            self.report({'INFO'}, 'No faces selected unable to continue.')
+            self.report({'WARNING'}, "No suitable Face selection found. Operation cancelled")
             edit_mode_in()
             return {'CANCELLED'}
+
         elif len(face_index_list) != 0:
-            face_inset_fillet(bme, face_index_list, inset_amount, distance, number_of_sides, out, radius, type_enum, kp)
+            face_inset_fillet(bme, face_index_list,
+                              inset_amount, distance, number_of_sides,
+                              out, radius, type_enum, kp)
 
         bme.to_mesh(ob_act.data)
         edit_mode_in()
+
         return {'FINISHED'}
-
-
-class inset_help(bpy.types.Operator):
-    bl_idname = 'help.face_inset'
-    bl_label = ''
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label('To use:')
-        layout.label('Select a face or faces & inset.')
-        layout.label('Inset square, circle or outside.')
-        layout.label('To Help:')
-        layout.label('Circle: use remove doubles to tidy joins.')
-        layout.label('Outset: select & use normals flip before extruding.')
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=350)

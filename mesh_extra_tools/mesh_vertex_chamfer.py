@@ -32,23 +32,46 @@ bl_info = {
 
 import bpy
 import bmesh
+from bpy.types import Operator
+from bpy.props import (
+        BoolProperty,
+        FloatProperty,
+        )
 
 
-class VertexChamfer(bpy.types.Operator):
+class VertexChamfer(Operator):
     bl_idname = "mesh.vertex_chamfer"
     bl_label = "Chamfer Vertex"
     bl_description = "Tri chamfer selected vertices"
     bl_options = {'REGISTER', 'UNDO'}
 
-    factor = bpy.props.FloatProperty(name="Factor",
-                                     default=0.1,
-                                     min=0.0,
-                                     soft_max=1.0)
-    relative = bpy.props.BoolProperty(name="Relative", default=True)
-    dissolve = bpy.props.BoolProperty(name="Remove", default=True)
-    displace = bpy.props.FloatProperty(name="Displace",
-                                       soft_min=-5.0,
-                                       soft_max=5.0)
+    factor = FloatProperty(
+            name="Factor",
+            description="Size of the Champfer",
+            default=0.1,
+            min=0.0,
+            soft_max=1.0
+            )
+    relative = BoolProperty(
+            name="Relative",
+            description="If Relative, Champfer size is relative to the edge lenght",
+            default=True
+            )
+    dissolve = BoolProperty(
+            name="Remove",
+            description="Remove/keep the original selected vertices\n"
+                        "Remove creates a new triangle face between the Champfer edges,\n"
+                        "similar to the Dissolve Vertices operator",
+            default=True
+            )
+    displace = FloatProperty(
+            name="Displace",
+            description="Active only if Remove option is disabled\n"
+                        "Displaces the original selected vertices along the normals\n"
+                        "defined by the Champfer edges",
+            soft_min=-5.0,
+            soft_max=5.0
+            )
 
     @classmethod
     def poll(self, context):
@@ -57,7 +80,7 @@ class VertexChamfer(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "factor", text="Fac" if self.relative else "Dist")
+        layout.prop(self, "factor", text="Distance" if self.relative else "Factor")
         sub = layout.row()
         sub.prop(self, "relative")
         sub.prop(self, "dissolve")
@@ -123,25 +146,6 @@ class VertexChamfer(bpy.types.Operator):
         me.calc_tessface()
 
         return {'FINISHED'}
-
-
-class chamfer_help(bpy.types.Operator):
-    bl_idname = 'help.vertexchamfer'
-    bl_label = ''
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label('To use:')
-        layout.label('Make a selection or selection of verts ')
-        layout.label('Result is triangle chamfer, works on single vert.')
-        layout.label('To Help:')
-        layout.label('In some cases may need to press F to fill result.')
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=300)
 
 
 def register():

@@ -27,9 +27,9 @@ bl_info = {
     "description": "Adds More vert/face/edge select modes.",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
-    "category": "Mesh"}
-
+    "tracker_url": "",
+    "category": "Mesh"
+    }
 
 if "bpy" in locals():
     import imp
@@ -51,31 +51,18 @@ else:
     from . import mesh_selection_topokit
     from . import mesh_info_select
 
-import bpy, bmesh
+import bpy
 
 
-#        layout.operator("mesh.ie",
-#            text="inner_edge_selection")
-
-# Register all operators and panels
-
-# Define "Extras" menu
-def menu_func(self, context):
-    if context.tool_settings.mesh_select_mode[2]:
-        self.layout.menu("mesh.face_select_tools", icon="PLUGIN")
-    if context.tool_settings.mesh_select_mode[1]:
-        self.layout.menu("mesh.edge_select_tools", icon="PLUGIN")
-    if context.tool_settings.mesh_select_mode[0]:
-        self.layout.menu("mesh.vert_select_tools", icon="PLUGIN")
-
+# Register
 
 def register():
-	bpy.utils.register_module(__name__)
-	bpy.types.VIEW3D_MT_select_edit_mesh.append(menu_func)
+    bpy.utils.register_module(__name__)
+
 
 def unregister():
-	bpy.utils.unregister_module(__name__)
-	bpy.types.VIEW3D_MT_select_edit_mesh.remove(menu_func)
+    bpy.utils.unregister_module(__name__)
+
 
 if __name__ == "__main__":
-	register()
+    register()

@@ -1,9 +1,10 @@
+# gpl authors: Oscurart, Greg
+
 bl_info = {
     "name": "Random Vertices",
     "author": "Oscurart, Greg",
-    "version": (1, 1),
+    "version": (1, 3),
     "blender": (2, 6, 3),
-    "api": 3900,
     "location": "Object > Transform > Random Vertices",
     "description": "Randomize selected components of active object.",
     "warning": "",
@@ -13,143 +14,125 @@ bl_info = {
 
 
 import bpy
+from bpy.types import Operator
 import random
 import bmesh
+from bpy.props import (
+        BoolProperty,
+        FloatProperty,
+        IntVectorProperty,
+        )
 
 
-def add_object(self, context, VALMIN, VALMAX, FACTOR, VGFILTER):
+def add_object(self, context, valmin, valmax, factor, vgfilter):
+    # select an option with weight map or not
+    mode = bpy.context.active_object.mode
+    # generate variables
+    objact = bpy.context.active_object
+    listver = []
+    warn_message = False
 
-    # DISCRIMINA EN LA OPCION CON MAPA DE PESO O NO
+    # switch to edit mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.mode_set(mode='EDIT')
 
-    if VGFILTER == True:
+    # bmesh object
+    odata = bmesh.from_edit_mesh(objact.data)
+    odata.select_flush(False)
 
-        # GENERO VARIABLES
-        MODE = bpy.context.active_object.mode
-        OBJACT = bpy.context.active_object
-        LISTVER = []
+    # if the vertex is selected add to the list
+    for vertice in odata.verts[:]:
+        if vertice.select:
+            listver.append(vertice.index)
 
-        # PASO A EDIT
-        bpy.ops.object.mode_set(mode='EDIT')
+    # If the minimum value is greater than the maximum, it adds a value to the maximum
+    if valmin[0] >= valmax[0]:
+        valmax[0] = valmin[0] + 1
 
-        # BMESH OBJECT
-        ODATA = bmesh.from_edit_mesh(OBJACT.data)
-        ODATA.select_flush(False)
+    if valmin[1] >= valmax[1]:
+        valmax[1] = valmin[1] + 1
 
-        # SI EL VERTICE ESTA SELECCIONADO LO SUMA A UNA LISTA
-        for vertice in ODATA.verts[:]:
-            if vertice.select:
-                LISTVER.append(vertice.index)
+    if valmin[2] >= valmax[2]:
+        valmax[2] = valmin[2] + 1
 
-        # SI EL VALOR MINIMO ES MAYOR AL MAXIMO, LE SUMA UN VALOR AL MAXIMO
-        if VALMIN[0] >= VALMAX[0]:
-            VALMAX[0] = VALMIN[0] + 1
+    odata.verts.ensure_lookup_table()
 
-        if VALMIN[1] >= VALMAX[1]:
-            VALMAX[1] = VALMIN[1] + 1
+    random_factor = factor
+    for vertice in listver:
+        odata.verts.ensure_lookup_table()
+        if odata.verts[vertice].select:
+            if vgfilter is True:
+                has_group = getattr(objact.data.vertices[vertice], "groups", None)
+                vertex_group = has_group[0] if has_group else None
+                vertexweight = getattr(vertex_group, "weight", None)
+                if vertexweight:
+                    random_factor = factor * vertexweight
+                else:
+                    random_factor = factor
+                    warn_message = True
 
-        if VALMIN[2] >= VALMAX[2]:
-            VALMAX[2] = VALMIN[2] + 1
-
-        for vertice in LISTVER:
-            if ODATA.verts[vertice].select:
-                VERTEXWEIGHT = OBJACT.data.vertices[vertice].groups[0].weight
-                ODATA.verts[vertice].co = (
-                    (((random.randrange(VALMIN[0], VALMAX[0], 1)) * VERTEXWEIGHT * FACTOR) / 1000) + ODATA.verts[vertice].co[0],
-                    (((random.randrange(VALMIN[1], VALMAX[1], 1)) * VERTEXWEIGHT * FACTOR) / 1000) + ODATA.verts[vertice].co[1],
-                    (((random.randrange(VALMIN[2], VALMAX[2], 1)) * VERTEXWEIGHT * FACTOR) / 1000) + ODATA.verts[vertice].co[2]
+            odata.verts[vertice].co = (
+                (((random.randrange(valmin[0], valmax[0], 1)) * random_factor) / 1000) +
+                odata.verts[vertice].co[0],
+                (((random.randrange(valmin[1], valmax[1], 1)) * random_factor) / 1000) +
+                odata.verts[vertice].co[1],
+                (((random.randrange(valmin[2], valmax[2], 1)) * random_factor) / 1000) +
+                odata.verts[vertice].co[2]
                 )
 
-    else:
-
-        if VGFILTER == False:
-
-            # GENERO VARIABLES
-            MODE = bpy.context.active_object.mode
-            OBJACT = bpy.context.active_object
-            LISTVER = []
-
-            # PASO A MODO OBJECT
-            bpy.ops.object.mode_set(mode='EDIT')
-
-            # BMESH OBJECT
-            ODATA = bmesh.from_edit_mesh(OBJACT.data)
-            ODATA.select_flush(False)
-
-            # SI EL VERTICE ESTA SELECCIONADO LO SUMA A UNA LISTA
-            for vertice in ODATA.verts[:]:
-                if vertice.select:
-                    LISTVER.append(vertice.index)
-
-            # SI EL VALOR MINIMO ES MAYOR AL MAXIMO, LE SUMA UN VALOR AL MAXIMO
-            if VALMIN[0] >= VALMAX[0]:
-                VALMAX[0] = VALMIN[0] + 1
-
-            if VALMIN[1] >= VALMAX[1]:
-                VALMAX[1] = VALMIN[1] + 1
-
-            if VALMIN[2] >= VALMAX[2]:
-                VALMAX[2] = VALMIN[2] + 1
-
-            for vertice in LISTVER:
-                ODATA.verts.ensure_lookup_table()
-                if ODATA.verts[vertice].select:
-                    ODATA.verts[vertice].co = (
-                        (((random.randrange(VALMIN[0], VALMAX[0], 1)) * FACTOR) / 1000) + ODATA.verts[vertice].co[0],
-                        (((random.randrange(VALMIN[1], VALMAX[1], 1)) * FACTOR) / 1000) + ODATA.verts[vertice].co[1],
-                        (((random.randrange(VALMIN[2], VALMAX[2], 1)) * FACTOR) / 1000) + ODATA.verts[vertice].co[2]
-                    )
+    if warn_message:
+        self.report({'WARNING'},
+                    "Some of the Selected Vertices don't have a Group with Vertex Weight assigned")
+    bpy.ops.object.mode_set(mode=mode)
 
 
-class OBJECT_OT_add_object(bpy.types.Operator):
-    """Add a Mesh Object"""
+class MESH_OT_random_vertices(Operator):
     bl_idname = "mesh.random_vertices"
     bl_label = "Random Vertices"
-    bl_description = "Random Vertices"
+    bl_description = ("Randomize the location of vertices by a specified\n"
+                      "Multiplier Factor and random values in the defined range\n"
+                      "or a multiplication of them and the Vertex Weights")
     bl_options = {'REGISTER', 'UNDO'}
 
-    VGFILTER = bpy.props.BoolProperty(name="Vertex Group", default=False)
-    FACTOR = bpy.props.FloatProperty(name="Factor", default=1)
-    VALMIN = bpy.props.IntVectorProperty(name="Min XYZ", default=(0, 0, 0))
-    VALMAX = bpy.props.IntVectorProperty(name="Max XYZ", default=(1, 1, 1))
+    vgfilter = BoolProperty(
+                name="Vertex Group",
+                description="Use Vertex Weight defined in the Active Group",
+                default=False
+                )
+    factor = FloatProperty(
+                name="Factor",
+                description="Base Multiplier of the randomization effect",
+                default=1
+                )
+    valmin = IntVectorProperty(
+                name="Min XYZ",
+                description="Define the minimum range of randomization values",
+                default=(0, 0, 0)
+                )
+    valmax = IntVectorProperty(
+                name="Max XYZ",
+                description="Define the maximum range of randomization values",
+                default=(1, 1, 1)
+                )
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object and context.object.type == "MESH" and
+               context.mode == "EDIT_MESH")
 
     def execute(self, context):
-
-        add_object(self, context, self.VALMIN, self.VALMAX, self.FACTOR, self.VGFILTER)
-
+        add_object(self, context, self.valmin, self.valmax, self.factor, self.vgfilter)
         return {'FINISHED'}
 
 
-class random_help(bpy.types.Operator):
-    bl_idname = 'help.random_vert'
-    bl_label = ''
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label('To use:')
-        layout.label('Make a selection or selection of Verts.')
-        layout.label('Randomize displaced positions')
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=300)
-
 # Registration
 
-
-def add_oscRandVerts_button(self, context):
-    self.layout.operator(
-        OBJECT_OT_add_object.bl_idname,
-        text="Random Vertices",
-        icon="PLUGIN")
-
-
 def register():
-    bpy.utils.register_class(OBJECT_OT_add_object)
-    bpy.types.VIEW3D_MT_transform.append(add_oscRandVerts_button)
+    bpy.utils.register_class(MESH_OT_random_vertices)
 
 
 def unregister():
-    bpy.utils.unregister_class(OBJECT_OT_add_object)
-    bpy.types.VIEW3D_MT_transform.remove(add_oscRandVerts_button)
+    bpy.utils.unregister_class(MESH_OT_random_vertices)
 
 
 if __name__ == '__main__':

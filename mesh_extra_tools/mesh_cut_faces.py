@@ -1,3 +1,5 @@
+# gpl author: Stanislav Blinov
+
 bl_info = {
     "name": "Cut Faces",
     "author": "Stanislav Blinov",
@@ -8,6 +10,13 @@ bl_info = {
 
 import bpy
 import bmesh
+
+from bpy.types import Operator
+from bpy.props import (
+        BoolProperty,
+        IntProperty,
+        EnumProperty,
+        )
 
 
 def bmesh_from_object(object):
@@ -101,16 +110,19 @@ def get_edge_rings(bm, keep_caps=True):
     return edges
 
 
-class MESH_xOT_deselect_boundary(bpy.types.Operator):
-    """Deselect boundary edges of selected faces"""
+class MESH_xOT_deselect_boundary(Operator):
     bl_idname = "mesh.ext_deselect_boundary"
     bl_label = "Deselect Boundary"
+    bl_description = ("Deselect boundary edges of selected faces\n"
+                      "Note: if all Faces are selected there is no boundary,\n"
+                      "so the tool will not have results")
     bl_options = {'REGISTER', 'UNDO'}
 
-    keep_cap_edges = bpy.props.BoolProperty(
-        name="Keep Cap Edges",
-        description="Keep quad strip cap edges selected",
-        default=False)
+    keep_cap_edges = BoolProperty(
+                        name="Keep Cap Edges",
+                        description="Keep quad strip cap edges selected",
+                        default=False
+                        )
 
     @classmethod
     def poll(cls, context):
@@ -124,7 +136,7 @@ class MESH_xOT_deselect_boundary(bpy.types.Operator):
         try:
             edges = get_edge_rings(bm, keep_caps=self.keep_cap_edges)
             if not edges:
-                self.report({'WARNING'}, "No suitable selection found")
+                self.report({'WARNING'}, "No suitable Face selection found. Operation cancelled")
                 return {'CANCELLED'}
 
             bpy.ops.mesh.select_all(action='DESELECT')
@@ -140,24 +152,10 @@ class MESH_xOT_deselect_boundary(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class cut_faces_help(bpy.types.Operator):
-    bl_idname = 'help.cut_faces'
-    bl_label = ''
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label('To use:')
-        layout.label('Make a selection or selection of Faces.')
-        layout.label('Some Functions work on plane only')
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=300)
-
-
-class MESH_xOT_cut_faces(bpy.types.Operator):
-    """Cut selected faces, connecting through their adjacent edges"""
+class MESH_xOT_cut_faces(Operator):
     bl_idname = "mesh.ext_cut_faces"
     bl_label = "Cut Faces"
+    bl_description = "Cut selected faces, connected through their adjacent edges"
     bl_options = {'REGISTER', 'UNDO'}
 
     # from bmesh_operators.h
@@ -166,36 +164,50 @@ class MESH_xOT_cut_faces(bpy.types.Operator):
     SUBD_FAN = 2
     SUBD_STRAIGHT_CUT = 3
 
-    num_cuts = bpy.props.IntProperty(
-        name="Number of Cuts",
-        default=1,
-        min=1,
-        max=100,
-        subtype='UNSIGNED')
-
-    use_single_edge = bpy.props.BoolProperty(
-        name="Quad/Tri Mode",
-        description="Cut boundary faces",
-        default=False)
-
-    corner_type = bpy.props.EnumProperty(
-        items=[('SUBD_INNERVERT', "Inner Vert", ""),
-               ('SUBD_PATH', "Path", ""),
-               ('SUBD_FAN', "Fan", ""),
-               ('SUBD_STRAIGHT_CUT', "Straight Cut", ""), ],
-        name="Quad Corner Type",
-        description="How to subdivide quad corners",
-        default='SUBD_STRAIGHT_CUT')
-
-    use_grid_fill = bpy.props.BoolProperty(
-        name="Use Grid Fill",
-        description="Fill fully enclosed faces with a grid",
-        default=True)
+    num_cuts = IntProperty(
+                name="Number of Cuts",
+                default=1,
+                min=1,
+                max=100,
+                subtype='UNSIGNED'
+                )
+    use_single_edge = BoolProperty(
+                name="Quad/Tri Mode",
+                description="Cut boundary faces",
+                default=False
+                )
+    corner_type = EnumProperty(
+                items=[('SUBD_INNERVERT', "Inner Vert", ""),
+                       ('SUBD_PATH', "Path", ""),
+                       ('SUBD_FAN', "Fan", ""),
+                       ('SUBD_STRAIGHT_CUT', "Straight Cut", ""),
+                       ],
+                name="Quad Corner Type",
+                description="How to subdivide quad corners",
+                default='SUBD_STRAIGHT_CUT'
+                )
+    use_grid_fill = BoolProperty(
+                name="Use Grid Fill",
+                description="Fill fully enclosed faces with a grid",
+                default=True
+                )
 
     @classmethod
     def poll(cls, context):
         active_object = context.active_object
         return active_object and active_object.type == 'MESH' and active_object.mode == 'EDIT'
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.label("Number of Cuts:")
+        layout.prop(self, "num_cuts", text="")
+
+        layout.prop(self, "use_single_edge")
+        layout.prop(self, "use_grid_fill")
+
+        layout.label("Quad Corner Type:")
+        layout.prop(self, "corner_type", text="")
 
     def cut_edges(self, context):
         object = context.active_object
@@ -204,7 +216,7 @@ class MESH_xOT_cut_faces(bpy.types.Operator):
         try:
             edges = get_edge_rings(bm, keep_caps=True)
             if not edges:
-                self.report({'WARNING'}, "No suitable selection found")
+                self.report({'WARNING'}, "No suitable Face selection found. Operation cancelled")
                 return False
 
             result = bmesh.ops.subdivide_edges(
@@ -235,33 +247,19 @@ class MESH_xOT_cut_faces(bpy.types.Operator):
         context.tool_settings.mesh_select_mode[:] = False, True, False
         # Try to select all possible loops
         bpy.ops.mesh.loop_multi_select(ring=False)
+
         return {'FINISHED'}
-
-
-def menu_deselect_boundary(self, context):
-    self.layout.operator(MESH_xOT_deselect_boundary.bl_idname)
-
-
-def menu_cut_faces(self, context):
-    self.layout.operator(MESH_xOT_cut_faces.bl_idname)
 
 
 def register():
     bpy.utils.register_class(MESH_xOT_deselect_boundary)
     bpy.utils.register_class(MESH_xOT_cut_faces)
 
-    if __name__ != "__main__":
-        bpy.types.VIEW3D_MT_select_edit_mesh.append(menu_deselect_boundary)
-        bpy.types.VIEW3D_MT_edit_mesh_faces.append(menu_cut_faces)
-
 
 def unregister():
     bpy.utils.unregister_class(MESH_xOT_deselect_boundary)
     bpy.utils.unregister_class(MESH_xOT_cut_faces)
 
-    if __name__ != "__main__":
-        bpy.types.VIEW3D_MT_select_edit_mesh.remove(menu_deselect_boundary)
-        bpy.types.VIEW3D_MT_edit_mesh_faces.remove(menu_cut_faces)
 
 if __name__ == "__main__":
     register()

@@ -19,10 +19,15 @@
 # By CoDEmanX
 
 import bpy
+from bpy.types import (
+        Panel,
+        Operator,
+        )
 
-class DATA_PT_info_panel(bpy.types.Panel):
+
+class DATA_PT_info_panel(Panel):
     """Creates a face info / select panel in the Object properties window"""
-    bl_label = "Face info / select"
+    bl_label = "Face Info / Select"
     bl_idname = "DATA_PT_face_info"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
@@ -31,7 +36,8 @@ class DATA_PT_info_panel(bpy.types.Panel):
 
     @classmethod
     def poll(self, context):
-        return context.active_object is not None and context.active_object.type == 'MESH'
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
 
     def draw(self, context):
         layout = self.layout
@@ -53,7 +59,10 @@ class DATA_PT_info_panel(bpy.types.Panel):
         info_str = "  Ngons: %i  Quads: %i  Tris: %i" % (ngons, quads, tris)
 
         col = layout.column()
-        col.label(info_str, icon='MESH_DATA')
+        split = col.split(0.9)
+
+        split.label(info_str, icon='MESH_DATA')
+        split.operator("mesh.refresh_info_panel", text="", icon="FILE_REFRESH")
 
         col = layout.column()
         col.label("Select faces by type:")
@@ -62,3 +71,38 @@ class DATA_PT_info_panel(bpy.types.Panel):
         row.operator("data.facetype_select", text="Ngons").face_type = "5"
         row.operator("data.facetype_select", text="Quads").face_type = "4"
         row.operator("data.facetype_select", text="Tris").face_type = "3"
+
+
+class MESH_OT_refresh_info_panel(Operator):
+    bl_idname = "mesh.refresh_info_panel"
+    bl_label = "Refresh"
+    bl_description = ("Refresh the info panel by switching to Object mode and back\n"
+                      "Limitation: the information doesn't account modifiers\n"
+                      "Be careful with usage if you need the Redo History in Edit Mode")
+    bl_options = {"REGISTER", "INTERNAL"}
+
+    @classmethod
+    def poll(self, context):
+        return (context.active_object is not None and
+                context.active_object.type == 'MESH')
+
+    def invoke(self, context, event):
+        return self.execute(context)
+
+    def execute(self, context):
+        try:
+            mode = bpy.context.active_object.mode
+
+            # switch to Object mode and restore selection
+            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.mode_set(mode=mode)
+
+            return {'FINISHED'}
+        except:
+            import traceback
+            traceback.print_exc()
+
+            self.report({'WARNING'},
+                        "The refresh could not be performed (Check the console for more info)")
+
+            return {'CANCELLED'}

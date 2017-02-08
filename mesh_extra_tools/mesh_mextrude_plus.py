@@ -15,11 +15,9 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+#
+# Repeats extrusion + rotation + scale for one or more faces
 
-################################################################################
-# Repeats extrusion + rotation + scale for one or more faces                   #
-
-################################################################################
 
 bl_info = {
     "name": "MExtrude Plus1",
@@ -36,24 +34,27 @@ bl_info = {
 
 import bpy
 import bmesh
-import mathutils
 import random
+from bpy.types import Operator
 from random import gauss
 from math import radians
-from mathutils import Euler, Vector
-from bpy.props import BoolProperty, FloatProperty, IntProperty, StringProperty
+from mathutils import Euler
+from bpy.props import (
+        FloatProperty,
+        IntProperty,
+        )
 
 
 def vloc(self, r):
     random.seed(self.ran + r)
-    return self.off * (1 + random.gauss(0, self.var1 / 3))
+    return self.off * (1 + gauss(0, self.var1 / 3))
 
 
 def vrot(self, r):
     random.seed(self.ran + r)
-    return Euler((radians(self.rotx) + random.gauss(0, self.var2 / 3),
-                  radians(self.roty) + random.gauss(0, self.var2 / 3),
-                  radians(self.rotz) + random.gauss(0, self.var2 / 3)), 'XYZ')
+    return Euler((radians(self.rotx) + gauss(0, self.var2 / 3),
+                  radians(self.roty) + gauss(0, self.var2 / 3),
+                  radians(self.rotz) + gauss(0, self.var2 / 3)), 'XYZ')
 
 
 def vsca(self, r):
@@ -61,32 +62,80 @@ def vsca(self, r):
     return self.sca * (1 + random.gauss(0, self.var3 / 3))
 
 
-class MExtrude(bpy.types.Operator):
-    bl_idname = 'object.mextrude'
-    bl_label = 'MExtrude'
-    bl_description = 'Multi Extrude'
-    bl_options = {'REGISTER', 'UNDO'}
+class MExtrude(Operator):
+    bl_idname = "object.mextrude"
+    bl_label = "Multi Extrude"
+    bl_description = ("Extrude selected Faces with Rotation,\n"
+                      "Scaling, Variation, Randomization")
+    bl_options = {"REGISTER", "UNDO"}
 
-    off = FloatProperty(name='Offset', min=-2, soft_min=0.001,
-                        soft_max=2, max=5, default=.5, description='Translation')
-    rotx = FloatProperty(name='Rot X', min=-85, soft_min=-30,
-                         soft_max=30, max=85, default=0, description='X rotation')
-    roty = FloatProperty(name='Rot Y', min=-85, soft_min=-30,
-                         soft_max=30, max=85, default=0, description='Y rotation')
-    rotz = FloatProperty(name='Rot Z', min=-85, soft_min=-30,
-                         soft_max=30, max=85, default=-0, description='Z rotation')
-    sca = FloatProperty(name='Scale', min=0.1, soft_min=0.5,
-                        soft_max=1.2, max=2, default=1.0, description='Scaling')
-    var1 = FloatProperty(name='Offset Var', min=-5, soft_min=-1,
-                         soft_max=1, max=5, default=0, description='Offset variation')
-    var2 = FloatProperty(name='Rotation Var', min=-5, soft_min=-1,
-                         soft_max=1, max=5, default=0, description='Rotation variation')
-    var3 = FloatProperty(name='Scale Noise', min=-5, soft_min=-1,
-                         soft_max=1, max=5, default=0, description='Scaling noise')
-    num = IntProperty(name='Repeat', min=1, max=50, soft_max=100,
-                      default=5, description='Repetitions')
-    ran = IntProperty(name='Seed', min=-9999, max=9999, default=0,
-                      description='Seed to feed random values')
+    off = FloatProperty(
+                name="Offset",
+                soft_min=0.001, soft_max=2,
+                min=-2, max=5,
+                default=.5,
+                description="Translation"
+                )
+    rotx = FloatProperty(
+                name="Rot X",
+                min=-85, max=85,
+                soft_min=-30, soft_max=30,
+                default=0,
+                description="X Rotation"
+                )
+    roty = FloatProperty(
+                name="Rot Y",
+                min=-85, max=85,
+                soft_min=-30,
+                soft_max=30,
+                default=0,
+                description="Y Rotation"
+                )
+    rotz = FloatProperty(
+                name="Rot Z",
+                min=-85, max=85,
+                soft_min=-30, soft_max=30,
+                default=-0,
+                description="Z Rotation"
+                )
+    sca = FloatProperty(
+                name="Scale",
+                min=0.1, max=2,
+                soft_min=0.5, soft_max=1.2,
+                default=1.0,
+                description="Scaling of the selected faces after extrusion"
+                )
+    var1 = FloatProperty(
+                name="Offset Var", min=-5, max=5,
+                soft_min=-1, soft_max=1,
+                default=0,
+                description="Offset variation"
+                )
+    var2 = FloatProperty(
+                name="Rotation Var",
+                min=-5, max=5,
+                soft_min=-1, soft_max=1,
+                default=0,
+                description="Rotation variation"
+                )
+    var3 = FloatProperty(
+                name="Scale Noise",
+                min=-5, max=5,
+                soft_min=-1, soft_max=1,
+                default=0,
+                description="Scaling noise"
+                )
+    num = IntProperty(
+                name="Repeat",
+                min=1, max=50,
+                soft_max=100,
+                default=5,
+                description="Repetitions")
+    ran = IntProperty(
+                name="Seed",
+                min=-9999, max=9999,
+                default=0,
+                description="Seed to feed random values")
 
     @classmethod
     def poll(cls, context):
@@ -95,25 +144,28 @@ class MExtrude(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        column = layout.column(align=True)
-        column.label(text='Transformations:')
-        column.prop(self, 'off', slider=True)
-        column.prop(self, 'rotx', slider=True)
-        column.prop(self, 'roty', slider=True)
-        column.prop(self, 'rotz', slider=True)
-        column.prop(self, 'sca', slider=True)
-        column = layout.column(align=True)
-        column.label(text='Variation settings:')
-        column.prop(self, 'var1', slider=True)
-        column.prop(self, 'var2', slider=True)
-        column.prop(self, 'var3', slider=True)
-        column.prop(self, 'ran')
-        column = layout.column(align=False)
-        column.prop(self, 'num')
+
+        col = layout.column(align=True)
+        col.label(text="Transformations:")
+        col.prop(self, "off", slider=True)
+        col.prop(self, "rotx", slider=True)
+        col.prop(self, "roty", slider=True)
+        col.prop(self, "rotz", slider=True)
+        col.prop(self, "sca", slider=True)
+
+        col = layout.column(align=True)
+        col.label(text="Variation settings:")
+        col.prop(self, "var1", slider=True)
+        col.prop(self, "var2", slider=True)
+        col.prop(self, "var3", slider=True)
+        col.prop(self, "ran")
+
+        col = layout.column(align=False)
+        col.prop(self, 'num')
 
     def execute(self, context):
         obj = bpy.context.object
-        data, om = obj.data, obj.mode
+        om = obj.mode
         bpy.context.tool_settings.mesh_select_mode = [False, False, True]
 
         # bmesh operations
@@ -169,34 +221,18 @@ class MExtrude(bpy.types.Operator):
         bpy.ops.object.mode_set(mode=om)
 
         if not len(sel):
-            self.report({'INFO'}, 'Select one or more faces...')
-        return{'FINISHED'}
+            self.report({"WARNING"}, "No suitable Face selection found. Operation cancelled")
+            return {'CANCELLED'}
 
-
-class mextrude_help(bpy.types.Operator):
-    bl_idname = 'help.mextrude'
-    bl_label = ''
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label('To use:')
-        layout.label('Make a selection or selection of Faces.')
-        layout.label('Extrude, rotate extrusions & more.')
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=300)
+        return {'FINISHED'}
 
 
 def register():
     bpy.utils.register_module(__name__)
 
-    # bpy.utils.register_class(BB)
-
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-
-    # bpy.utils.unregister_class(BB)
 
 
 if __name__ == '__main__':

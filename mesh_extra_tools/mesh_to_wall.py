@@ -24,16 +24,15 @@ bl_info = {
     "blender": (2, 71, 0),
     "location": "View3D > EditMode > Mesh",
     "description": "Make wall from single mesh lines.",
-    "url": "http://luxuy.github.io/BlenderAddons/Mesh-to-wall/Mesh_to_wall.html",
+    "url": "https://luxuy.github.io/BlenderAddons/Mesh-to-wall/Mesh_to_wall.html",
     "category": "Mesh"}
 
-import math
-import mathutils
-from mathutils import Vector
 import bpy
 import bmesh
-from functools import reduce
-from bpy.props import FloatProperty, IntProperty, BoolProperty, EnumProperty, StringProperty
+from bpy.types import Operator
+from bpy.props import FloatProperty
+from math import sin, radians
+from mathutils import Vector, Quaternion
 
 
 def link_verts(bm, ver_index):
@@ -69,9 +68,7 @@ def qq_sort(bm, ver_index, vm, wm):
 
 
 def turn_left(bm, v1, v2, vm, wm):
-
     links = [v1, v2]
-    size = len(link_verts(bm, links[-1]))
 
     verts = qq_sort(bm, links[-1], vm, wm)
     v = verts.index(links[-2])
@@ -82,7 +79,7 @@ def turn_left(bm, v1, v2, vm, wm):
 
     links.append(v_nxt)
 
-    while not(links[-1] == links[1] and links[-2] == links[0]):  # and len(links)<50:
+    while not(links[-1] == links[1] and links[-2] == links[0]):
 
         verts = qq_sort(bm, links[-1], vm, wm)
         v = verts.index(links[-2])
@@ -93,11 +90,11 @@ def turn_left(bm, v1, v2, vm, wm):
 
         links.append(v_nxt)
     links.pop()
+
     return links
 
 
 def lp_left(bm, lp, wid, vm, wm):
-    # pass
     size = len(lp)
     up = wm.inverted() * vm.inverted() * Vector((0, 0, 1))
     lp_off = []
@@ -135,8 +132,8 @@ def lp_left(bm, lp, wid, vm, wm):
         mid.normalize()
         if pre_ind == nxt_ind:
             mid = (pt - pre).normalized()
-            q_a = mathutils.Quaternion((0.0, 0.0, 1.0), math.radians(90.0))
-            q_b = mathutils.Quaternion((0.0, 0.0, 1.0), math.radians(-180.0))
+            q_a = Quaternion((0.0, 0.0, 1.0), radians(90.0))
+            q_b = Quaternion((0.0, 0.0, 1.0), radians(-180.0))
             mid.rotate(q_a)
             pt1 = pt + mid * wid
             mid.rotate(q_b)
@@ -147,8 +144,7 @@ def lp_left(bm, lp, wid, vm, wm):
         else:
             ang = mid.angle(pre - pt)
 
-            vec_len = wid / (math.sin(ang))
-            # print(wid)
+            vec_len = wid / (sin(ang))
             pt = pt + mid * vec_len
             new_vert = bm.verts.new(pt)
             lp_off.append(new_vert)
@@ -173,94 +169,84 @@ def lp_left(bm, lp, wid, vm, wm):
 
     return faces
 
-#================================================================================
 
+# Operators
 
-class MeshtoWall(bpy.types.Operator):
+class MeshtoWall(Operator):
     bl_idname = "bpt.mesh_to_wall"
-    bl_label = "Mesh to Wall"
+    bl_label = "Edge(s) to Wall"
     bl_description = "Top View, Extrude Flat Along Edges"
     bl_options = {'REGISTER', 'UNDO'}
 
-    wid = FloatProperty(name='Wall width:', default=0.1, min=0.001, max=10)
+    wid = FloatProperty(
+                name='Wall width:',
+                default=0.1,
+                min=0.001, max=10
+                )
+
+    def check_vert(self, context):
+        obj = bpy.context.object
+        if len(obj.data.vertices) <= 1:
+            return False
+        return True
 
     def execute(self, context):
         bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.ops.object.mode_set(mode='EDIT')
-        ob = bpy.context.object
-        bm = bmesh.from_edit_mesh(ob.data)
-        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.003)
-        bmesh.ops.delete(bm, geom=bm.faces, context=3)
-        context.tool_settings.mesh_select_mode = (True, True, False)
+        if self.check_vert(context):
+            bpy.ops.object.mode_set(mode='EDIT')
+            ob = bpy.context.object
+            bm = bmesh.from_edit_mesh(ob.data)
+            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.003)
+            bmesh.ops.delete(bm, geom=bm.faces, context=3)
+            context.tool_settings.mesh_select_mode = (True, True, False)
 
-        v3d = context.space_data
-        rv3d = v3d.region_3d
-        vm = rv3d.view_matrix
-        wm = ob.matrix_world
-        faces = []
-        sel = []
-        for v in bm.verts:
-            sel.append(v.index)
-        bpy.ops.mesh.select_all(action='DESELECT')
+            v3d = context.space_data
+            rv3d = v3d.region_3d
+            vm = rv3d.view_matrix
+            wm = ob.matrix_world
+            faces = []
+            sel = []
+            for v in bm.verts:
+                sel.append(v.index)
+            bpy.ops.mesh.select_all(action='DESELECT')
 
-        for j in sel:
-            verts = link_verts(bm, j)
+            for j in sel:
+                verts = link_verts(bm, j)
 
-            if len(verts) > 1:
+                if len(verts) > 1:
+                    for i in verts:
+                        lp = turn_left(bm, j, i, vm, wm)
 
-                for i in verts:
+                        bpy.ops.mesh.select_all(action='DESELECT')
 
-                    lp = turn_left(bm, j, i, vm, wm)
+                        faces += lp_left(bm, lp, self.wid * 0.5, vm, wm)
+                        lp = [bm.verts[i] for i in lp]
 
-                    bpy.ops.mesh.select_all(action='DESELECT')
+                        lp = lp[1:]
 
-                    faces += lp_left(bm, lp, self.wid * 0.5, vm, wm)
-                    lp = [bm.verts[i] for i in lp]
-
-                    lp = lp[1:]
-
-                    bpy.ops.mesh.select_all(action='DESELECT')
-
-        for f in faces:
-            try:
-                bm.faces.new(f)
-            except:
-                pass
-        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.003)
-        bm = bmesh.update_edit_mesh(ob.data, 1, 1)
+                        bpy.ops.mesh.select_all(action='DESELECT')
+            for f in faces:
+                try:
+                    bm.faces.new(f)
+                except:
+                    pass
+            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.003)
+            bm = bmesh.update_edit_mesh(ob.data, 1, 1)
+        else:
+            bpy.ops.object.mode_set(mode='EDIT')
+            self.report({'WARNING'}, "None or a single vertex found, cancelling the operation")
+            return {'CANCELLED'}
 
         return {'FINISHED'}
-
-
-class wall_help(bpy.types.Operator):
-    bl_idname = 'help.wall'
-    bl_label = ''
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label('To use:')
-        layout.label('Extrude Flat Edges.')
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=300)
-
-#-------------------------------------------------------------------------
-
-
-def menu_func(self, context):
-    self.layout.operator(MeshtoWall.bl_idname, text="Mesh to wall")
 
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.VIEW3D_MT_edit_mesh.append(menu_func)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
+
 
 if __name__ == "__main__":
     register()

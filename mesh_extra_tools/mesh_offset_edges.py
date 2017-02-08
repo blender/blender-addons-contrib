@@ -1,6 +1,5 @@
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -29,14 +28,20 @@ bl_info = {
     "tracker_url": "",
     "category": "Mesh"}
 
-import math
-from math import sin, cos, pi, copysign, radians
 import bpy
-from bpy_extras import view3d_utils
 import bmesh
+from bpy.types import Operator
+from math import sin, cos, pi, radians
 from mathutils import Vector
 from time import perf_counter
 
+from bpy.props import (
+        BoolProperty,
+        FloatProperty,
+        EnumProperty,
+        )
+
+# Globals
 X_UP = Vector((1.0, .0, .0))
 Y_UP = Vector((.0, 1.0, .0))
 Z_UP = Vector((.0, .0, 1.0))
@@ -45,9 +50,12 @@ ANGLE_90 = pi / 2
 ANGLE_180 = pi
 ANGLE_360 = 2 * pi
 
+# switch performance logging
+ENABLE_DEBUG = False
+
 
 def calc_loop_normal(verts, fallback=Z_UP):
-    # Calculate normal from verts using Newell's method.
+    # Calculate normal from verts using Newell's method
     normal = ZERO_VEC.copy()
 
     if verts[0] is verts[-1]:
@@ -118,14 +126,14 @@ def collect_loops(set_edges_orig):
                     loops.append(lp)
                     break
                 elif reverse is False:
-                    # Right side of half loop.
-                    # Reversing the loop to operate same procedure on the left side.
+                    # Right side of half loop
+                    # Reversing the loop to operate same procedure on the left side
                     lp.reverse()
                     v_right, v_left = v_left, v_right
                     reverse = True
                     continue
                 else:
-                    # Half loop, completed.
+                    # Half loop, completed
                     loops.append(lp)
                     break
     return loops
@@ -155,7 +163,7 @@ def get_adj_ix(ix_start, vec_edges, half_loop):
             ix_left = i
             break
     if half_loop:
-        # If index of one side is None, assign another index.
+        # If index of one side is None, assign another index
         if ix_right is None:
             ix_right = ix_left
         if ix_left is None:
@@ -170,10 +178,9 @@ def get_adj_faces(edges):
         adj_f = None
         co_adj = 0
         for f in e.link_faces:
-            # Search an adjacent face.
-            # Selected face has precedance.
+            # Search an adjacent face
+            # Selected face has precedence
             if not f.hide and f.normal != ZERO_VEC:
-                adj_exist = True
                 adj_f = f
                 co_adj += 1
                 if f.select:
@@ -207,7 +214,7 @@ def get_edge_rail(vert, set_edges_orig):
         vec_inner.normalize()
         return vec_inner
     elif co_edges == 1:
-        # No selected edges, one unselected edge.
+        # No selected edges, one unselected edge
         vec_inner.normalize()
         return vec_inner
     else:
@@ -215,8 +222,7 @@ def get_edge_rail(vert, set_edges_orig):
 
 
 def get_cross_rail(vec_tan, vec_edge_r, vec_edge_l, normal_r, normal_l):
-    # Cross rail is a cross vector between normal_r and normal_l.
-
+    # Cross rail is a cross vector between normal_r and normal_l
     vec_cross = normal_r.cross(normal_l)
     if vec_cross.dot(vec_tan) < .0:
         vec_cross *= -1
@@ -238,7 +244,6 @@ def move_verts(width, depth, verts, directions, geom_ex):
                 if e in geom_s:
                     verts_ex.append(e.other_vert(v))
                     break
-        #assert len(verts) == len(verts_ex)
         verts = verts_ex
 
     for v, (vec_width, vec_depth) in zip(verts, directions):
@@ -309,13 +314,13 @@ def get_vert_mirror_pairs(set_edges_orig, mirror_planes):
                 v1_dist = abs(p_norm.dot(v1.co - p_co))
                 v2_dist = abs(p_norm.dot(v2.co - p_co))
                 if v1_dist <= mlimit:
-                    # v1 is on a mirror plane.
+                    # v1 is on a mirror plane
                     vert_mirror_pairs[v1] = mp
                 if v2_dist <= mlimit:
-                    # v2 is on a mirror plane.
+                    # v2 is on a mirror plane
                     vert_mirror_pairs[v2] = mp
                 if v1_dist <= mlimit and v2_dist <= mlimit:
-                    # This edge is on a mirror_plane, so should not be offsetted.
+                    # This edge is on a mirror_plane, so should not be offsetted
                     set_edges_copy.remove(e)
         return vert_mirror_pairs, set_edges_copy
     else:
@@ -339,14 +344,15 @@ def reorder_loop(verts, edges, lp_normal, adj_faces):
     for i, adj_f in enumerate(adj_faces):
         if adj_f is None:
             continue
+
         v1, v2 = verts[i], verts[i + 1]
-        e = edges[i]
         fv = tuple(adj_f.verts)
         if fv[fv.index(v1) - 1] is v2:
             # Align loop direction
             verts.reverse()
             edges.reverse()
             adj_faces.reverse()
+
         if lp_normal.dot(adj_f.normal) < .0:
             lp_normal *= -1
         break
@@ -373,9 +379,9 @@ def get_directions(lp, vec_upward, normal_fallback, vert_mirror_pairs, **options
     set_edges = set(edges)
     lp_normal = calc_loop_normal(verts, fallback=normal_fallback)
 
-    # Loop order might be changed below.
+    # Loop order might be changed below
     if lp_normal.dot(vec_upward) < .0:
-        # Make this loop's normal towards vec_upward.
+        # Make this loop's normal towards vec_upward
         verts.reverse()
         edges.reverse()
         lp_normal *= -1
@@ -386,13 +392,13 @@ def get_directions(lp, vec_upward, normal_fallback, vert_mirror_pairs, **options
             reorder_loop(verts, edges, lp_normal, adj_faces)
     else:
         adj_faces = (None, ) * len(edges)
-    # Loop order might be changed above.
+    # Loop order might be changed above
 
     vec_edges = tuple((e.other_vert(v).co - v.co).normalized()
                       for v, e in zip(verts, edges))
 
     if verts[0] is verts[-1]:
-        # Real loop. Popping last vertex.
+        # Real loop. Popping last vertex
         verts.pop()
         HALF_LOOP = False
     else:
@@ -422,7 +428,7 @@ def get_directions(lp, vec_upward, normal_fallback, vert_mirror_pairs, **options
         norm_right = face_right.normal if face_right else lp_normal
         norm_left = face_left.normal if face_left else lp_normal
         if norm_right.angle(norm_left) > opt_threshold:
-            # Two faces are not flat.
+            # Two faces are not flat
             two_normals = True
         else:
             two_normals = False
@@ -434,17 +440,16 @@ def get_directions(lp, vec_upward, normal_fallback, vert_mirror_pairs, **options
 
         rail = None
         if two_normals or opt_edge_rail:
-            # Get edge rail.
-            # edge rail is a vector of an inner edge.
+            # Get edge rail
+            # edge rail is a vector of an inner edge
             if two_normals or (not opt_er_only_end) or VERT_END:
                 rail = get_edge_rail(vert, set_edges)
         if vert_mirror_pairs and VERT_END:
             if vert in vert_mirror_pairs:
-                rail, norm_avr = \
-                    get_mirror_rail(vert_mirror_pairs[vert], norm_avr)
+                rail, norm_avr = get_mirror_rail(vert_mirror_pairs[vert], norm_avr)
         if (not rail) and two_normals:
-            # Get cross rail.
-            # Cross rail is a cross vector between norm_right and norm_left.
+            # Get cross rail
+            # Cross rail is a cross vector between norm_right and norm_left
             rail = get_cross_rail(
                 tan_avr, edge_right, edge_left, norm_right, norm_left)
         if rail:
@@ -478,16 +483,18 @@ def get_directions(lp, vec_upward, normal_fallback, vert_mirror_pairs, **options
     return verts, directions
 
 
-def use_cashes(self, context):
-    self.caches_valid = True
-
 angle_presets = {'0°': 0,
                  '15°': radians(15),
                  '30°': radians(30),
                  '45°': radians(45),
                  '60°': radians(60),
                  '75°': radians(75),
-                 '90°': radians(90), }
+                 '90°': radians(90),
+                }
+
+
+def use_cashes(self, context):
+    self.caches_valid = True
 
 
 def assign_angle_presets(self, context):
@@ -495,70 +502,111 @@ def assign_angle_presets(self, context):
     self.angle = angle_presets[self.angle_presets]
 
 
-class OffsetEdges(bpy.types.Operator):
-    """Offset Edges."""
+class OffsetEdges(Operator):
     bl_idname = "mesh.offset_edges"
     bl_label = "Offset Edges"
+    bl_description = ("Extrude, Move or Offset the selected Edges\n"
+                      "Operates only on separate Edge loops selections")
     bl_options = {'REGISTER', 'UNDO'}
 
-    geometry_mode = bpy.props.EnumProperty(
-        items=[('offset', "Offset", "Offset edges"),
-               ('extrude', "Extrude", "Extrude edges"),
-               ('move', "Move", "Move selected edges")],
-        name="Geometory mode", default='offset',
-        update=use_cashes)
-    width = bpy.props.FloatProperty(
-        name="Width", default=.2, precision=4, step=1, update=use_cashes)
-    flip_width = bpy.props.BoolProperty(
-        name="Flip Width", default=False,
-        description="Flip width direction", update=use_cashes)
-    depth = bpy.props.FloatProperty(
-        name="Depth", default=.0, precision=4, step=1, update=use_cashes)
-    flip_depth = bpy.props.BoolProperty(
-        name="Flip Depth", default=False,
-        description="Flip depth direction", update=use_cashes)
-    depth_mode = bpy.props.EnumProperty(
-        items=[('angle', "Angle", "Angle"),
-               ('depth', "Depth", "Depth")],
-        name="Depth mode", default='angle', update=use_cashes)
-    angle = bpy.props.FloatProperty(
-        name="Angle", default=0, precision=3, step=.1,
-        min=-2 * pi, max=2 * pi, subtype='ANGLE',
-        description="Angle", update=use_cashes)
-    flip_angle = bpy.props.BoolProperty(
-        name="Flip Angle", default=False,
-        description="Flip Angle", update=use_cashes)
-    follow_face = bpy.props.BoolProperty(
-        name="Follow Face", default=False,
-        description="Offset along faces around")
-    mirror_modifier = bpy.props.BoolProperty(
-        name="Mirror Modifier", default=False,
-        description="Take into account of Mirror modifier")
-    edge_rail = bpy.props.BoolProperty(
-        name="Edge Rail", default=False,
-        description="Align vertices along inner edges")
-    edge_rail_only_end = bpy.props.BoolProperty(
-        name="Edge Rail Only End", default=False,
-        description="Apply edge rail to end verts only")
-    threshold = bpy.props.FloatProperty(
-        name="Flat Face Threshold", default=radians(0.05), precision=5,
-        step=1.0e-4, subtype='ANGLE',
-        description="If difference of angle between two adjacent faces is "
-                    "below this value, those faces are regarded as flat.",
-        options={'HIDDEN'})
-    caches_valid = bpy.props.BoolProperty(
-        name="Caches Valid", default=False,
-        options={'HIDDEN'})
-    angle_presets = bpy.props.EnumProperty(
-        items=[('0°', "0°", "0°"),
-               ('15°', "15°", "15°"),
-               ('30°', "30°", "30°"),
-               ('45°', "45°", "45°"),
-               ('60°', "60°", "60°"),
-               ('75°', "75°", "75°"),
-               ('90°', "90°", "90°"), ],
-        name="Angle Presets", default='0°',
-        update=assign_angle_presets)
+    geometry_mode = EnumProperty(
+                    items=[('offset', "Offset", "Offset edges"),
+                           ('extrude', "Extrude", "Extrude edges"),
+                           ('move', "Move", "Move selected edges")],
+                    name="Geometry mode",
+                    default='offset',
+                    update=use_cashes
+                    )
+    width = FloatProperty(
+                    name="Width",
+                    default=.2,
+                    precision=4, step=1,
+                    update=use_cashes
+                    )
+    flip_width = BoolProperty(
+                    name="Flip Width",
+                    default=False,
+                    description="Flip width direction",
+                    update=use_cashes
+                    )
+    depth = FloatProperty(
+                    name="Depth",
+                    default=.0,
+                    precision=4, step=1,
+                    update=use_cashes
+                    )
+    flip_depth = BoolProperty(
+                    name="Flip Depth",
+                    default=False,
+                    description="Flip depth direction",
+                    update=use_cashes
+                    )
+    depth_mode = EnumProperty(
+                    items=[('angle', "Angle", "Angle"),
+                           ('depth', "Depth", "Depth")],
+                    name="Depth mode",
+                    default='angle',
+                    update=use_cashes
+                    )
+    angle = FloatProperty(
+                    name="Angle", default=0,
+                    precision=3, step=.1,
+                    min=-2 * pi, max=2 * pi,
+                    subtype='ANGLE',
+                    description="Angle",
+                    update=use_cashes
+                    )
+    flip_angle = BoolProperty(
+                    name="Flip Angle",
+                    default=False,
+                    description="Flip Angle",
+                    update=use_cashes
+                    )
+    follow_face = BoolProperty(
+                    name="Follow Face",
+                    default=False,
+                    description="Offset along faces around"
+                    )
+    mirror_modifier = BoolProperty(
+                    name="Mirror Modifier",
+                    default=False,
+                    description="Take into account of Mirror modifier"
+                    )
+    edge_rail = BoolProperty(
+                    name="Edge Rail",
+                    default=False,
+                    description="Align vertices along inner edges"
+                    )
+    edge_rail_only_end = BoolProperty(
+                    name="Edge Rail Only End",
+                    default=False,
+                    description="Apply edge rail to end verts only"
+                    )
+    threshold = FloatProperty(
+                    name="Flat Face Threshold",
+                    default=radians(0.05), precision=5,
+                    step=1.0e-4, subtype='ANGLE',
+                    description="If difference of angle between two adjacent faces is "
+                                "below this value, those faces are regarded as flat",
+                    options={'HIDDEN'}
+                    )
+    caches_valid = BoolProperty(
+                    name="Caches Valid",
+                    default=False,
+                    options={'HIDDEN'}
+                    )
+    angle_presets = EnumProperty(
+                    items=[('0°', "0°", "0°"),
+                           ('15°', "15°", "15°"),
+                           ('30°', "30°", "30°"),
+                           ('45°', "45°", "45°"),
+                           ('60°', "60°", "60°"),
+                           ('75°', "75°", "75°"),
+                           ('90°', "90°", "90°"), ],
+                    name="Angle Presets",
+                    default='0°',
+                    update=assign_angle_presets
+                    )
 
     _cache_offset_infos = None
     _cache_edges_orig_ixs = None
@@ -570,13 +618,12 @@ class OffsetEdges(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, 'geometry_mode', text="")
-        #layout.prop(self, 'geometry_mode', expand=True)
 
         row = layout.row(align=True)
         row.prop(self, 'width')
         row.prop(self, 'flip_width', icon='ARROW_LEFTRIGHT', icon_only=True)
-
         layout.prop(self, 'depth_mode', expand=True)
+
         if self.depth_mode == 'angle':
             d_mode = 'angle'
             flip = 'flip_angle'
@@ -599,24 +646,24 @@ class OffsetEdges(bpy.types.Operator):
             row.prop(self, 'edge_rail_only_end', text="OnlyEnd", toggle=True)
 
         layout.prop(self, 'mirror_modifier')
-
-        layout.operator('mesh.offset_edges', text='Repeat')
+        layout.operator('mesh.offset_edges', text="Repeat")
 
         if self.follow_face:
             layout.separator()
-            layout.prop(self, 'threshold', text='Threshold')
+            layout.prop(self, 'threshold', text="Threshold")
 
     def get_offset_infos(self, bm, edit_object):
         if self.caches_valid and self._cache_offset_infos is not None:
-            # Return None, indicating to use cache.
+            # Return None, indicating to use cache
             return None, None
 
-        time = perf_counter()
+        if ENABLE_DEBUG:
+            time = perf_counter()
 
         set_edges_orig = collect_edges(bm)
         if set_edges_orig is None:
             self.report({'WARNING'},
-                        "No edges selected.")
+                        "No edges selected or edge loops could not be determined")
             return False, False
 
         if self.mirror_modifier:
@@ -627,8 +674,6 @@ class OffsetEdges(bpy.types.Operator):
             if set_edges:
                 set_edges_orig = set_edges
             else:
-                # self.report({'WARNING'},
-                #            "All selected edges are on mirror planes.")
                 vert_mirror_pairs = None
         else:
             vert_mirror_pairs = None
@@ -636,14 +681,14 @@ class OffsetEdges(bpy.types.Operator):
         loops = collect_loops(set_edges_orig)
         if loops is None:
             self.report({'WARNING'},
-                        "Overlap detected. Select non-overlap edge loops")
+                        "Overlap detected. Select non-overlapping edge loops")
             return False, False
 
         vec_upward = (X_UP + Y_UP + Z_UP).normalized()
-        # vec_upward is used to unify loop normals when follow_face is off.
+        # vec_upward is used to unify loop normals when follow_face is off
         normal_fallback = Z_UP
-        #normal_fallback = Vector(context.region_data.view_matrix[2][:3])
-        # normal_fallback is used when loop normal cannot be calculated.
+        # normal_fallback = Vector(context.region_data.view_matrix[2][:3])
+        # normal_fallback is used when loop normal cannot be calculated
 
         follow_face = self.follow_face
         edge_rail = self.edge_rail
@@ -660,22 +705,24 @@ class OffsetEdges(bpy.types.Operator):
             if verts:
                 offset_infos.append((verts, directions))
 
-        # Saving caches.
+        # Saving caches
         self._cache_offset_infos = _cache_offset_infos = []
         for verts, directions in offset_infos:
             v_ixs = tuple(v.index for v in verts)
             _cache_offset_infos.append((v_ixs, directions))
         self._cache_edges_orig_ixs = tuple(e.index for e in set_edges_orig)
 
-        print("Preparing OffsetEdges: ", perf_counter() - time)
+        if ENABLE_DEBUG:
+            print("Preparing OffsetEdges: ", perf_counter() - time)
 
         return offset_infos, set_edges_orig
 
     def do_offset_and_free(self, bm, me, offset_infos=None, set_edges_orig=None):
-        # If offset_infos is None, use caches.
-        # Makes caches invalid after offset.
+        # If offset_infos is None, use caches
+        # Makes caches invalid after offset
 
-        #time = perf_counter()
+        if ENABLE_DEBUG:
+            time = perf_counter()
 
         if offset_infos is None:
             # using cache
@@ -714,9 +761,10 @@ class OffsetEdges(bpy.types.Operator):
         bm.to_mesh(me)
         bpy.ops.object.mode_set(mode="EDIT")
         bm.free()
-        self.caches_valid = False  # Make caches invalid.
+        self.caches_valid = False  # Make caches invalid
 
-        #print("OffsetEdges offset: ", perf_counter() - time)
+        if ENABLE_DEBUG:
+            print("OffsetEdges offset: ", perf_counter() - time)
 
     def execute(self, context):
         # In edit mode
@@ -737,7 +785,7 @@ class OffsetEdges(bpy.types.Operator):
         return {'FINISHED'}
 
     def restore_original_and_free(self, context):
-        self.caches_valid = False  # Make caches invalid.
+        self.caches_valid = False  # Make caches invalid
         context.area.header_text_set()
 
         me = context.edit_object.data
@@ -763,50 +811,12 @@ class OffsetEdges(bpy.types.Operator):
         return self.execute(context)
 
 
-class offset_edges_help(bpy.types.Operator):
-    bl_idname = 'help.offset_edges'
-    bl_label = ''
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label('To use:')
-        layout.label('Make a selection or selection of Edges.')
-        layout.label('Extrude, rotate extrusions & more.')
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width=300)
-
-
-class OffsetEdgesMenu(bpy.types.Menu):
-    bl_idname = "VIEW3D_MT_edit_mesh_offset_edges"
-    bl_label = "Offset Edges"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_DEFAULT'
-
-        off = layout.operator('mesh.offset_edges', text='Offset')
-        off.geometry_mode = 'offset'
-
-        ext = layout.operator('mesh.offset_edges', text='Extrude')
-        ext.geometry_mode = 'extrude'
-
-        mov = layout.operator('mesh.offset_edges', text='Move')
-        mov.geometry_mode = 'move'
-
-
-def draw_item(self, context):
-    self.layout.menu("VIEW3D_MT_edit_mesh_offset_edges")
-
-
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.VIEW3D_MT_edit_mesh_edges.append(draw_item)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    bpy.types.VIEW3D_MT_edit_mesh_edges.remove(draw_item)
 
 
 if __name__ == '__main__':
