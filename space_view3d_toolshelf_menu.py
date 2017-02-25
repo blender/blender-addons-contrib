@@ -62,20 +62,20 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_View_Navigation", icon='ROTATE')
-            layout.menu("VIEW3D_MT_View_Toggle", icon='SPLITSCREEN')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_View_Directions2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_View_Navigation2", icon='ROTATE')
+            layout.menu("VIEW3D_MT_View_Toggle2", icon='SPLITSCREEN')
             layout.operator("view3d.snap_cursor_to_center",
                             text="Cursor to Center")
             layout.operator("view3d.snap_cursor_to_grid",
                             text="Cursor to Grid")
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
             if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
-                layout.menu("VIEW3D_MT_Edit_Gpencil", icon='GREASEPENCIL')
+                layout.menu("VIEW3D_MT_Edit_Gpencil2", icon='GREASEPENCIL')
 
 # Mesh Object Mode #
         if obj and obj.type == 'MESH' and obj.mode in {'OBJECT'}:
@@ -83,30 +83,30 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Object2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_Object2", icon='VIEW3D')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenu2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
-            layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_GroupMenu2", icon='GROUP')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
             if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
-                layout.menu("VIEW3D_MT_Edit_Gpencil", icon='GREASEPENCIL')
-            layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
+                layout.menu("VIEW3D_MT_Edit_Gpencil2", icon='GREASEPENCIL')
+            layout.menu("VIEW3D_MT_Camera_Options2", icon='OUTLINER_OB_CAMERA')
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
             layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Mode", icon='EDIT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Mode2", icon='EDIT')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -116,18 +116,18 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
         if obj and obj.type == 'MESH' and obj.mode in {'EDIT'}:
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Edit_Mesh", icon='RESTRICT_SELECT_OFF')
-            layout.menu("VIEW3D_MT_Edit_Multi", icon='VERTEXSEL')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Edit_Mesh2", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_Edit_Multi2", icon='VERTEXSEL')
             UseSeparator(self, context)
             layout.menu("INFO_MT_mesh_add", text="Add Mesh", icon='OUTLINER_OB_MESH')
-            layout.menu("VIEW3D_MT_Edit_Mesh", text="Mesh", icon='MESH_DATA')
+            layout.menu("VIEW3D_MT_Edit_Mesh2", text="Mesh", icon='MESH_DATA')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenuEdit", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_EditCursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenuEdit2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_EditCursorMenu2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UV_Map", icon='MOD_UVPROJECT')
+            layout.menu("VIEW3D_MT_UV_Map2", icon='MOD_UVPROJECT')
             layout.menu("VIEW3D_MT_edit_mesh_specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_edit_mesh_extrude", icon='ORTHO')
             UseSeparator(self, context)
@@ -136,8 +136,8 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_edit_mesh_delete", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Mode", icon='EDIT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Mode2", icon='EDIT')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -147,21 +147,21 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_Sculpts", icon='SCULPTMODE_HLT')
-            layout.menu("VIEW3D_MT_Brush_Selection", text="Sculpt Tool", icon='BRUSH_SCULPT_DRAW')
-            layout.menu("VIEW3D_MT_Brush_Settings", icon='BRUSH_DATA')
-            layout.menu("VIEW3D_MT_Hide_Masks", icon='RESTRICT_VIEW_OFF')
+            layout.menu("VIEW3D_MT_Sculpts2", icon='SCULPTMODE_HLT')
+            layout.menu("VIEW3D_MT_Brush_Selection2", text="Sculpt Tool", icon='BRUSH_SCULPT_DRAW')
+            layout.menu("VIEW3D_MT_Brush_Settings2", icon='BRUSH_DATA')
+            layout.menu("VIEW3D_MT_Hide_Masks2", icon='RESTRICT_VIEW_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_Sculpt_Specials", icon='SOLO_OFF')
+            layout.menu("VIEW3D_MT_Sculpt_Specials2", icon='SOLO_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenu2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Mode", icon='EDIT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Mode2", icon='EDIT')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -171,14 +171,14 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_Brush_Settings", icon='BRUSH_DATA')
-            layout.menu("VIEW3D_MT_Brush_Selection", text="Vertex Paint Tool", icon='BRUSH_VERTEXDRAW')
-            layout.menu("VIEW3D_MT_Vertex_Colors", icon='GROUP_VCOL')
+            layout.menu("VIEW3D_MT_Brush_Settings2", icon='BRUSH_DATA')
+            layout.menu("VIEW3D_MT_Brush_Selection2", text="Vertex Paint Tool", icon='BRUSH_VERTEXDRAW')
+            layout.menu("VIEW3D_MT_Vertex_Colors2", icon='GROUP_VCOL')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Mode", icon='EDIT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Mode2", icon='EDIT')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -188,14 +188,14 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_Paint_Weights", icon='WPAINT_HLT')
-            layout.menu("VIEW3D_MT_Brush_Settings", icon='BRUSH_DATA')
-            layout.menu("VIEW3D_MT_Brush_Selection", text="Weight Paint Tool", icon='BRUSH_TEXMASK')
+            layout.menu("VIEW3D_MT_Paint_Weights2", icon='WPAINT_HLT')
+            layout.menu("VIEW3D_MT_Brush_Settings2", icon='BRUSH_DATA')
+            layout.menu("VIEW3D_MT_Brush_Selection2", text="Weight Paint Tool", icon='BRUSH_TEXMASK')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Mode", icon='EDIT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Mode2", icon='EDIT')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -205,12 +205,12 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Brush_Settings", icon='BRUSH_DATA')
-            layout.menu("VIEW3D_MT_Brush_Selection", text="Texture Paint Tool", icon='SCULPTMODE_HLT')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Brush_Settings2", icon='BRUSH_DATA')
+            layout.menu("VIEW3D_MT_Brush_Selection2", text="Texture Paint Tool", icon='SCULPTMODE_HLT')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Mode", icon='EDIT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Mode2", icon='EDIT')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -221,29 +221,29 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Object2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_Object2", icon='VIEW3D')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenu2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
-            layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_GroupMenu2", icon='GROUP')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
-            layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
+            layout.menu("VIEW3D_MT_Camera_Options2", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
             layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other2", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -253,27 +253,27 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Edit_Curve",
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Edit_Curve2",
                         icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
             layout.menu("INFO_MT_curve_add", text="Add Curve",
                         icon='OUTLINER_OB_CURVE')
-            layout.menu("VIEW3D_MT_Edit_Curve", icon='CURVE_DATA')
+            layout.menu("VIEW3D_MT_Edit_Curve2", icon='CURVE_DATA')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.menu("VIEW3D_MT_EditCurveCtrlpoints",
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenu2", icon='CURSOR')
+            layout.menu("VIEW3D_MT_EditCurveCtrlpoints2",
                         icon='CURVE_BEZCURVE')
-            layout.menu("VIEW3D_MT_EditCurveSpecials",
+            layout.menu("VIEW3D_MT_EditCurveSpecials2",
                         icon='SOLO_OFF')
             UseSeparator(self, context)
             layout.operator("curve.delete", text="Delete Object",
                             icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other2", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -284,28 +284,28 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Object2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_Object2", icon='VIEW3D')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenu2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
-            layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_GroupMenu2", icon='GROUP')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
-            layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
+            layout.menu("VIEW3D_MT_Camera_Options2", icon='OUTLINER_OB_CAMERA')
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
             layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other2", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -315,27 +315,27 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Edit_Surface", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Edit_Surface2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
             layout.menu("INFO_MT_surface_add", text="Add Surface",
                         icon='OUTLINER_OB_SURFACE')
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenu2", icon='CURSOR')
             UseSeparator(self, context)
             layout.prop_menu_enum(settings, "proportional_edit",
                                   icon="PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff",
                                   icon="SMOOTHCURVE")
-            layout.menu("VIEW3D_MT_EditCurveSpecials",
+            layout.menu("VIEW3D_MT_EditCurveSpecials2",
                         icon='SOLO_OFF')
             UseSeparator(self, context)
             layout.operator("curve.delete", text="Delete Object",
                             icon='CANCEL')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other2", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -346,27 +346,27 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Object2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_Object2", icon='VIEW3D')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenu2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
-            layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_GroupMenu2", icon='GROUP')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
-            layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
+            layout.menu("VIEW3D_MT_Camera_Options2", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other2", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -376,15 +376,15 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_SelectMetaball", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_SelectMetaball2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.metaball_add", "type",
                                       text="Add Metaball",
                                       icon='OUTLINER_OB_META')
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenu2", icon='CURSOR')
             UseSeparator(self, context)
             layout.prop_menu_enum(settings, "proportional_edit",
                                   icon="PROP_CON")
@@ -394,8 +394,8 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator("mball.delete_metaelems", text="Delete Object",
                             icon='CANCEL')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other2", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -406,28 +406,28 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Object2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_Object2", icon='VIEW3D')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenu2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
-            layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_GroupMenu2", icon='GROUP')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
-            layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
+            layout.menu("VIEW3D_MT_Camera_Options2", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
             layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
             # New Entry For Switching to Editmode
             layout.operator("view3d.interactive_mode_text", icon='VIEW3D')
             UseSeparator(self, context)
@@ -441,11 +441,11 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
             layout.menu("VIEW3D_MT_select_edit_text", icon='VIEW3D')
             layout.menu("VIEW3D_MT_edit_font", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
                             icon='OBJECT_DATA')
             UseSeparator(self, context)
@@ -458,26 +458,26 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Object2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_Object2", icon='VIEW3D')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_CursorMenuLite", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_CursorMenuLite2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
-            layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_GroupMenu2", icon='GROUP')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
-            layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
+            layout.menu("VIEW3D_MT_Camera_Options2", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -488,26 +488,26 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Object2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_Object2", icon='VIEW3D')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenuLite", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_CursorMenuLite", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenuLite2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_CursorMenuLite2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
-            layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_GroupMenu2", icon='GROUP')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
-            layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
+            layout.menu("VIEW3D_MT_Camera_Options2", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -518,28 +518,28 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Object2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_Object2", icon='VIEW3D')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenuArmature", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenuLite", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenuArmature2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenuLite2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
-            layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_GroupMenu2", icon='GROUP')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
-            layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
+            layout.menu("VIEW3D_MT_Camera_Options2", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Armature", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Armature2", icon='VIEW3D')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -549,21 +549,21 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Edit_Armature",
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Edit_Armature2",
                         icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
             layout.menu("INFO_MT_armature_add", text="Add Armature",
                         icon='OUTLINER_OB_ARMATURE')
-            layout.menu("VIEW3D_MT_Edit_Armature", text="Armature",
+            layout.menu("VIEW3D_MT_Edit_Armature2", text="Armature",
                         icon='OUTLINER_DATA_ARMATURE')
-            layout.menu("VIEW3D_MT_EditArmatureTK",
+            layout.menu("VIEW3D_MT_EditArmatureTK2",
                         icon='ARMATURE_DATA')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenuArmatureEdit", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenuLite", icon='CURSOR')
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_TransformMenuArmatureEdit2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenuLite2", icon='CURSOR')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
             layout.menu("VIEW3D_MT_armature_specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_edit_armature_roll",
                         icon='BONE_DATA')
@@ -571,8 +571,8 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator("armature.delete", text="Delete Object",
                             icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Armature", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Armature2", icon='VIEW3D')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -584,15 +584,15 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Pose", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Pose2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_Pose", icon='OUTLINER_DATA_POSE')
-            layout.menu("VIEW3D_MT_TransformMenuArmaturePose", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_Pose2", icon='OUTLINER_DATA_POSE')
+            layout.menu("VIEW3D_MT_TransformMenuArmaturePose2", icon='MANIPUL')
             layout.menu("VIEW3D_MT_pose_transform", icon='EMPTY_DATA')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_CursorMenuLite", icon='CURSOR')
-            layout.menu("VIEW3D_MT_PoseCopy", icon='FILE')
+            layout.menu("VIEW3D_MT_CursorMenuLite2", icon='CURSOR')
+            layout.menu("VIEW3D_MT_PoseCopy2", icon='FILE')
 
             if arm.draw_type in {'BBONE', 'ENVELOPE'}:
                 layout.operator("transform.transform",
@@ -600,14 +600,14 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.menu("VIEW3D_MT_pose_apply", icon='AUTO')
             layout.operator("pose.relax", icon='ARMATURE_DATA')
-            layout.menu("VIEW3D_MT_KeyframeMenu", icon='KEY_HLT')
+            layout.menu("VIEW3D_MT_KeyframeMenu2", icon='KEY_HLT')
             layout.menu("VIEW3D_MT_pose_specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_pose_group", icon='GROUP_BONE')
             UseSeparator(self, context)
             layout.operator_menu_enum("pose.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT_BONE')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Armature", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Armature2", icon='VIEW3D')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -618,29 +618,29 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Object2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_Object2", icon='VIEW3D')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenu2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
-            layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_GroupMenu2", icon='GROUP')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
-            layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
+            layout.menu("VIEW3D_MT_Camera_Options2", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
             layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other2", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -650,13 +650,13 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Edit_Lattice",
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Edit_Lattice2",
                         icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenu2", icon='CURSOR')
             UseSeparator(self, context)
             layout.prop_menu_enum(settings, "proportional_edit",
                                   icon="PROP_CON")
@@ -665,8 +665,8 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             UseSeparator(self, context)
             layout.operator("lattice.make_regular")
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Other", icon='OBJECT_DATA')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Other2", icon='OBJECT_DATA')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -677,27 +677,27 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Object2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_Object2", icon='VIEW3D')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenuLite", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenuLite", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenuLite2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenuLite2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
-            layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_GroupMenu2", icon='GROUP')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_object_specials", text="Specials", icon='SOLO_OFF')
-            layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
+            layout.menu("VIEW3D_MT_Camera_Options2", icon='OUTLINER_OB_CAMERA')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -708,23 +708,23 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Object", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Object2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.menu("VIEW3D_MT_Object", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_AddMenu2", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_Object2", icon='VIEW3D')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenuLite", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_CursorMenuLite", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenuLite2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_CursorMenuLite2", icon='CURSOR')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
-            layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
+            layout.menu("VIEW3D_MT_ParentMenu2", icon='ROTACTIVE')
+            layout.menu("VIEW3D_MT_GroupMenu2", icon='GROUP')
             UseSeparator(self, context)
             layout.operator_menu_enum("object.constraint_add", "type", text="Add Constraint", icon='CONSTRAINT')
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -734,15 +734,15 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
-            layout.menu("VIEW3D_MT_Select_Particle",
+            layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_Select_Particle2",
                         icon='RESTRICT_SELECT_OFF')
-            layout.menu("VIEW3D_MT_Selection_Mode_Particle",
+            layout.menu("VIEW3D_MT_Selection_Mode_Particle2",
                         text="Select and Display Mode", icon='PARTICLE_PATH')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.menu("VIEW3D_MT_CursorMenuLite", icon='CURSOR')
+            layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
+            layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
+            layout.menu("VIEW3D_MT_CursorMenuLite2", icon='CURSOR')
             UseSeparator(self, context)
             layout.prop_menu_enum(settings, "proportional_edit",
                                   icon="PROP_CON")
@@ -754,8 +754,8 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             UseSeparator(self, context)
             layout.operator("object.delete", text="Delete Object", icon='X')
             UseSeparator(self, context)
-            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_Mode", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
+            layout.menu("VIEW3D_MT_Object_Interactive_Mode2", icon='VIEW3D')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -776,7 +776,7 @@ class VIEW3D_MT_Object2(Menu):
         layout.operator("object.delete", text="Delete...").use_global = False
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_object_parent")
-        layout.menu("VIEW3D_MT_Duplicate")
+        layout.menu("VIEW3D_MT_Duplicate2")
         layout.operator("object.join")
 
         if is_local_view:
@@ -787,9 +787,9 @@ class VIEW3D_MT_Object2(Menu):
             layout.operator("object.move_to_layer", text="Move to Layer...")
 
         layout.menu("VIEW3D_MT_make_links", text="Make Links...")
-        layout.menu("VIEW3D_MT_Object_Data_Link")
+        layout.menu("VIEW3D_MT_Object_Data_Link2")
         UseSeparator(self, context)
-        layout.menu("VIEW3D_MT_AutoSmooth", icon='ALIASED')
+        layout.menu("VIEW3D_MT_AutoSmooth2", icon='ALIASED')
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_object_constraints")
         layout.menu("VIEW3D_MT_object_track")
@@ -947,8 +947,8 @@ class VIEW3D_MT_CursorMenu2(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.menu("VIEW3D_Snap_Origin")
-        layout.menu("VIEW3D_Snap_Context")
+        layout.menu("VIEW3D_Snap_Origin2")
+        layout.menu("VIEW3D_Snap_Context2")
         UseSeparator(self, context)
         layout.operator("view3d.snap_cursor_to_selected",
                         text="Cursor to Selected")
@@ -966,7 +966,7 @@ class VIEW3D_MT_CursorMenu2(Menu):
         layout.operator("view3d.snap_cursor_selected_to_center",
                         text="Selection and Cursor to Center")
         UseSeparator(self, context)
-        layout.menu("VIEW3D_MT_Pivot")
+        layout.menu("VIEW3D_MT_Pivot2")
         layout.operator("view3d.pivot_cursor",
                         text="Set Cursor as Pivot Point")
         layout.operator("view3d.revert_pivot",
@@ -979,7 +979,7 @@ class VIEW3D_MT_CursorMenuLite2(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.menu("VIEW3D_Snap_Origin")
+        layout.menu("VIEW3D_Snap_Origin2")
         UseSeparator(self, context)
         layout.operator("view3d.snap_cursor_to_selected",
                         text="Cursor to Selected")
@@ -997,7 +997,7 @@ class VIEW3D_MT_CursorMenuLite2(Menu):
         layout.operator("view3d.snap_cursor_selected_to_center",
                         text="Selection and Cursor to Center")
         UseSeparator(self, context)
-        layout.menu("VIEW3D_MT_Pivot")
+        layout.menu("VIEW3D_MT_Pivot2")
         layout.operator("view3d.pivot_cursor",
                         text="Set Cursor as Pivot Point")
         layout.operator("view3d.revert_pivot",
@@ -1006,20 +1006,20 @@ class VIEW3D_MT_CursorMenuLite2(Menu):
 
 # ********** Object Interactive Mode **********
 class InteractiveMode2(Menu):
-    bl_idname = "VIEW3D_MT_Object_Interactive_Mode"
+    bl_idname = "VIEW3D_MT_Object_Interactive_Mode2"
     bl_label = "Interactive Mode"
     bl_description = "Menu of objects interactive modes (Window Types)"
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator(SetObjectMode.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
-        layout.operator(SetObjectMode.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
-        layout.operator(SetObjectMode.bl_idname, text="Sculpt", icon="SCULPTMODE_HLT").mode = "SCULPT"
-        layout.operator(SetObjectMode.bl_idname, text="Vertex Paint", icon="VPAINT_HLT").mode = "VERTEX_PAINT"
-        layout.operator(SetObjectMode.bl_idname, text="Weight Paint", icon="WPAINT_HLT").mode = "WEIGHT_PAINT"
-        layout.operator(SetObjectMode.bl_idname, text="Texture Paint", icon="TPAINT_HLT").mode = "TEXTURE_PAINT"
-        layout.operator(SetObjectMode.bl_idname, text="Particle Edit", icon="PARTICLEMODE").mode = "PARTICLE_EDIT"
+        layout.operator(SetObjectMode2.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
+        layout.operator(SetObjectMode2.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
+        layout.operator(SetObjectMode2.bl_idname, text="Sculpt", icon="SCULPTMODE_HLT").mode = "SCULPT"
+        layout.operator(SetObjectMode2.bl_idname, text="Vertex Paint", icon="VPAINT_HLT").mode = "VERTEX_PAINT"
+        layout.operator(SetObjectMode2.bl_idname, text="Weight Paint", icon="WPAINT_HLT").mode = "WEIGHT_PAINT"
+        layout.operator(SetObjectMode2.bl_idname, text="Texture Paint", icon="TPAINT_HLT").mode = "TEXTURE_PAINT"
+        layout.operator(SetObjectMode2.bl_idname, text="Particle Edit", icon="PARTICLEMODE").mode = "PARTICLE_EDIT"
         if context.gpencil_data:
             layout.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
@@ -1033,9 +1033,9 @@ class InteractiveModeArmature2(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator(SetObjectMode.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
-        layout.operator(SetObjectMode.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
-        layout.operator(SetObjectMode.bl_idname, text="Pose", icon="POSE_HLT").mode = "POSE"
+        layout.operator(SetObjectMode2.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
+        layout.operator(SetObjectMode2.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
+        layout.operator(SetObjectMode2.bl_idname, text="Pose", icon="POSE_HLT").mode = "POSE"
         if context.gpencil_data:
             layout.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
 
@@ -1275,7 +1275,7 @@ class VIEW3D_MT_Edit_Mesh2(Menu):
         layout.menu("VIEW3D_MT_edit_mesh_clean", icon='AUTO')
         layout.prop(view, "use_occlude_geometry")
         UseSeparator(self, context)
-        layout.menu("VIEW3D_MT_AutoSmooth", icon='META_DATA')
+        layout.menu("VIEW3D_MT_AutoSmooth2", icon='META_DATA')
         layout.operator("mesh.loopcut_slide",
                         text="Loopcut", icon='UV_EDGESEL')
         UseSeparator(self, context)
@@ -1407,7 +1407,7 @@ class VIEW3D_MT_EditCursorMenu2(Menu):
         layout.operator("view3d.snap_selected_to_grid",
                         text="Selection to Grid")
         UseSeparator(self, context)
-        layout.menu("VIEW3D_MT_Pivot")
+        layout.menu("VIEW3D_MT_Pivot2")
         layout.operator("view3d.pivot_cursor",
                         text="Set Cursor as Pivot Point")
         layout.operator("view3d.revert_pivot",
@@ -1829,7 +1829,7 @@ class VIEW3D_MT_Pose2(Menu):
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_pose_ik")
         layout.menu("VIEW3D_MT_pose_constraints")
-        layout.menu("VIEW3D_MT_PoseNames")
+        layout.menu("VIEW3D_MT_PoseNames2")
         layout.operator("pose.quaternions_flip")
         layout.operator_context = 'INVOKE_AREA'
         UseSeparator(self, context)
@@ -1847,7 +1847,7 @@ class VIEW3D_MT_TransformMenu2(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.menu("VIEW3D_MT_ManipulatorMenu1")
+        layout.menu("VIEW3D_MT_ManipulatorMenu12")
         UseSeparator(self, context)
         layout.operator("transform.translate", text="Grab/Move")
         layout.operator("transform.rotate", text="Rotate")
@@ -1877,7 +1877,7 @@ class VIEW3D_MT_TransformMenuEdit2(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.menu("VIEW3D_MT_ManipulatorMenu1")
+        layout.menu("VIEW3D_MT_ManipulatorMenu12")
         UseSeparator(self, context)
         layout.operator("transform.translate", text="Grab/Move")
         layout.operator("transform.rotate", text="Rotate")
@@ -1907,7 +1907,7 @@ class VIEW3D_MT_TransformMenuLite2(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.menu("VIEW3D_MT_ManipulatorMenu1")
+        layout.menu("VIEW3D_MT_ManipulatorMenu12")
         UseSeparator(self, context)
         layout.operator("transform.translate", text="Grab/Move")
         layout.operator("transform.rotate", text="Rotate")
@@ -1927,7 +1927,7 @@ class VIEW3D_MT_TransformMenuCamera2(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.menu("VIEW3D_MT_ManipulatorMenu1")
+        layout.menu("VIEW3D_MT_ManipulatorMenu12")
         layout.menu("VIEW3D_MT_object_clear")
         layout.menu("VIEW3D_MT_object_apply")
         layout.operator("transform.translate", text="Grab/Move")
@@ -1947,7 +1947,7 @@ class VIEW3D_MT_TransformMenuArmature2(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.menu("VIEW3D_MT_ManipulatorMenu1")
+        layout.menu("VIEW3D_MT_ManipulatorMenu12")
         UseSeparator(self, context)
         layout.operator("transform.translate", text="Grab/Move")
         layout.operator("transform.rotate", text="Rotate")
@@ -1973,7 +1973,7 @@ class VIEW3D_MT_TransformMenuArmatureEdit2(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.menu("VIEW3D_MT_ManipulatorMenu1")
+        layout.menu("VIEW3D_MT_ManipulatorMenu12")
         UseSeparator(self, context)
         layout.operator("transform.translate", text="Grab/Move")
         layout.operator("transform.rotate", text="Rotate")
@@ -1996,7 +1996,7 @@ class VIEW3D_MT_TransformMenuArmaturePose2(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.menu("VIEW3D_MT_ManipulatorMenu1")
+        layout.menu("VIEW3D_MT_ManipulatorMenu12")
         layout.operator("transform.translate", text="Grab/Move")
         layout.operator("transform.rotate", text="Rotate")
         layout.operator("transform.resize", text="Scale")
@@ -2066,24 +2066,24 @@ class VIEW3D_MT_View_Menu2(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.menu("VIEW3D_MT_Shade")
+        layout.menu("VIEW3D_MT_Shade2")
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_view_cameras", text="Cameras")
-        layout.menu("VIEW3D_MT_View_Directions")
-        layout.menu("VIEW3D_MT_View_Navigation")
+        layout.menu("VIEW3D_MT_View_Directions2")
+        layout.menu("VIEW3D_MT_View_Navigation2")
         UseSeparator(self, context)
-        layout.menu("VIEW3D_MT_View_Align")
-        layout.menu("VIEW3D_MT_View_Toggle")
+        layout.menu("VIEW3D_MT_View_Align2")
+        layout.menu("VIEW3D_MT_View_Toggle2")
         layout.operator("view3d.view_persportho")
         layout.operator("view3d.localview", text="View Global/Local")
         layout.operator("view3d.view_selected").use_all_regions = False
         layout.operator("view3d.view_all").center = False
         UseSeparator(self, context)
-        layout.menu("VIEW3D_MT_View_Border")
+        layout.menu("VIEW3D_MT_View_Border2")
         layout.operator("view3d.layers", text="Show All Layers").nr = 0
         UseSeparator(self, context)
         # New menu entry for Animation player
-        layout.menu("VIEW3D_MT_Animation_Player",
+        layout.menu("VIEW3D_MT_Animation_Player2",
                     text="Playback Animation", icon='PLAY')
 
 
@@ -2243,7 +2243,7 @@ class VIEW3D_MT_Select_Object2(Menu):
                                   text="Linked")
         layout.operator("object.select_camera", text="Select Camera")
         UseSeparator(self, context)
-        layout.menu("VIEW3D_MT_Select_Object_More_Less", text="More/Less")
+        layout.menu("VIEW3D_MT_Select_Object_More_Less2", text="More/Less")
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 
@@ -2287,9 +2287,9 @@ class VIEW3D_MT_Select_Edit_Mesh2(Menu):
         layout.operator("mesh.select_random", text="Random")
         layout.operator("mesh.select_nth", text="Every N Number of Verts")
         UseSeparator(self, context)
-        layout.menu("VIEW3D_MT_Edit_Mesh_Select_Trait")
-        layout.menu("VIEW3D_MT_Edit_Mesh_Select_Similar")
-        layout.menu("VIEW3D_MT_Edit_Mesh_Select_More_Less")
+        layout.menu("VIEW3D_MT_Edit_Mesh_Select_Trait2")
+        layout.menu("VIEW3D_MT_Edit_Mesh_Select_Similar2")
+        layout.menu("VIEW3D_MT_Edit_Mesh_Select_More_Less2")
         UseSeparator(self, context)
         layout.operator("mesh.select_mirror", text="Mirror")
         layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
@@ -2458,7 +2458,7 @@ class VIEW3D_MT_Select_Pose2(Menu):
                                   text="Grouped")
         UseSeparator(self, context)
         layout.operator("object.select_pattern", text="Select Pattern...")
-        layout.menu("VIEW3D_MT_select_pose_more_less")
+        layout.menu("VIEW3D_MT_Select_Pose_More_Less2")
 
 
 class VIEW3D_MT_Select_Pose_More_Less2(Menu):
