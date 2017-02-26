@@ -45,7 +45,8 @@ class DisplayData(PropertyGroup):
     viewport_shade = EnumProperty(items=[('BOUNDBOX', 'BOUNDBOX', 'BOUNDBOX'),
                                          ('WIREFRAME', 'WIREFRAME', 'WIREFRAME'),
                                          ('SOLID', 'SOLID', 'SOLID'),
-                                         ('TEXTURED', 'TEXTURED', 'TEXTURED')])
+                                         ('TEXTURED', 'TEXTURED', 'TEXTURED'),
+                                         ('RENDERED', 'RENDERED', 'RENDERED')])
     show_only_render = BoolProperty()
     show_outline_selected = BoolProperty()
     show_all_objects_origin = BoolProperty()

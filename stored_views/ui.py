@@ -194,7 +194,8 @@ class VIEW3D_PT_properties_stored_views(bpy.types.Panel):
                         icon_string = "WIRE"
                     elif shade == 'BOUNDBOX':
                         icon_string = 'BBOX'
-
+                    elif shade == 'RENDERED':
+                        icon_string = 'MATERIAL'
                 # stored view row
                 subrow = box.row(align=True)
                 # current view indicator
