@@ -54,7 +54,6 @@ if "bpy" in locals():
     importlib.reload(mesh_pen_tool)
     importlib.reload(vfe_specials)
     importlib.reload(mesh_help)
-
     importlib.reload(mesh_select_by_direction)
     importlib.reload(mesh_select_by_edge_length)
     importlib.reload(mesh_select_by_pi)
@@ -63,6 +62,7 @@ if "bpy" in locals():
     importlib.reload(mesh_index_select)
     importlib.reload(mesh_selection_topokit)
     importlib.reload(mesh_info_select)
+    importlib.reload(mesh_extrude_and_reshape)
 
 else:
     from . import face_inset_fillet
@@ -82,6 +82,7 @@ else:
     from . import mesh_pen_tool
     from . import vfe_specials
     from . import mesh_help
+    from . import mesh_extrude_and_reshape
 
     from .mesh_select_tools import mesh_select_by_direction
     from .mesh_select_tools import mesh_select_by_edge_length
@@ -169,6 +170,7 @@ class VIEW3D_MT_edit_mesh_extras(Menu):
 
             col.operator("object.mextrude", text="Multi Extrude")
             col.operator("mesh.face_inset_fillet", text="Face Inset Fillet")
+            col.operator("mesh.extrude_reshape", text="Push/Pull")
             col.operator("mesh.add_faces_to_object", text="PKHG Faces")
             col.operator("mesh.ext_cut_faces", text="Cut Faces")
             col.operator("mesh.split_solidify", text="Split Solidify")
@@ -291,6 +293,11 @@ class EditToolsPanel(Panel):
 
             row = layout.split(0.8, align=True)
             row.operator("object.mextrude", text="Multi Extrude")
+            row.operator("mesh.extra_tools_help",
+                        icon="LAYER_USED").help_ids = "mesh_mextrude_plus"
+
+            row = layout.split(0.8, align=True)
+            row.operator("mesh.extrude_reshape", text="Push/Pull")
             row.operator("mesh.extra_tools_help",
                         icon="LAYER_USED").help_ids = "mesh_mextrude_plus"
 
@@ -623,7 +630,8 @@ class VIEW3D_MT_edit_mesh_all(Menu):
 
 
 def menu_func(self, context):
-    self.layout.menu("VIEW3D_MT_edit_mesh_all")
+    self.layout.menu("VIEW3D_MT_edit_mesh_extras")
+    self.layout.menu("VIEW3D_MT_edit_mesh_edgetools")
 
 
 # Define "Select" Menu append
@@ -723,6 +731,7 @@ class mesh_extra_tools_pref(AddonPreferences):
 def register():
     mesh_pen_tool.register()
     vfe_specials.register()
+    mesh_extrude_and_reshape.register()
     bpy.utils.register_module(__name__)
 
     # Register Scene Properties
@@ -745,6 +754,7 @@ def register():
 def unregister():
     mesh_pen_tool.unregister()
     vfe_specials.unregister()
+    mesh_extrude_and_reshape.unregister()
 
     del bpy.types.Scene.mesh_extra_tools
     del bpy.types.Object.tkkey
