@@ -240,11 +240,13 @@ def draw_callback_px(self, context):
                                 blf.position(font_id, loc_4[0] + 10, loc_4[1] + 10, 0)
                                 blf.size(font_id, font_size, context.user_preferences.system.dpi)
                                 blf.draw(font_id, str(round(degrees(ang), 2)) + '')
-    # tool on / off
+    # tools on / off
     bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
     blf.position(font_id, self.text_location, 20, 0)
     blf.size(font_id, 15, context.user_preferences.system.dpi)
-    blf.draw(font_id, 'Draw On')
+    blf.draw(font_id, "Draw On")
+    blf.position(font_id, self.text_location, 40, 0)
+    blf.draw(font_id, "Extrude On" if pt_buf.ctrl else "Extrude Off")
 
 
 class pen_tool_properties(PropertyGroup):
@@ -295,6 +297,7 @@ class pt_buf():
     depth_location = Vector((0.0, 0.0, 0.0))
     alt = False
     shift = False
+    ctrl = False
     store_view_matrix = Matrix()
     view_location = (0.0, 0.0, 0.0)
 
@@ -381,6 +384,7 @@ class pen_tool_operator(Operator):
         pt_buf.depth_location = Vector((0.0, 0.0, 0.0))
         pt_buf.store_view_matrix = Matrix()
         pt_buf.view_location = (0.0, 0.0, 0.0)
+        pt_buf.ctrl = False
 
         context.area.tag_redraw()
         return {'FINISHED'}
@@ -395,14 +399,19 @@ class pen_tool_operator(Operator):
                 'NUMPAD_7', 'NUMPAD_8', 'NUMPAD_9', 'NUMPAD_5'}:
             return {'PASS_THROUGH'}
 
-        if event.type == 'LEFT_ALT' or event.type == 'RIGHT_ALT':
+        if event.type in {'LEFT_ALT', 'RIGHT_ALT'}:
             if event.value == 'PRESS':
                 pt_buf.alt = True
             if event.value == 'RELEASE':
                 pt_buf.alt = False
             return {'RUNNING_MODAL'}
 
-        elif event.type == 'LEFT_SHIFT' or event.type == 'RIGHT_SHIFT':
+        elif event.type in {'LEFT_CTRL', 'RIGHT_CTRL'}:
+            if event.value == 'PRESS':
+                pt_buf.ctrl = not pt_buf.ctrl
+            return {'RUNNING_MODAL'}
+
+        elif event.type in {'LEFT_SHIFT', 'RIGHT_SHIFT'}:
             if event.value == 'PRESS':
                 pt_buf.shift = True
             if event.value == 'RELEASE':
@@ -441,6 +450,12 @@ class pen_tool_operator(Operator):
                 pt_buf.list_m_loc_3d.append(mouse_loc_3d)
 
                 pt_buf.depth_location = pt_buf.list_m_loc_3d[-1]   # <-- depth location
+                # run Extrude at cursor
+                if pt_buf.ctrl:
+                    try:
+                        bpy.ops.mesh.dupli_extrude_cursor('INVOKE_DEFAULT', rotate_source=False)
+                    except:
+                        pass
             elif event.value == 'RELEASE':
                 pass
         elif event.type == 'RIGHTMOUSE':
@@ -457,6 +472,7 @@ class pen_tool_operator(Operator):
             pt_buf.sws = 'off'
             pt_buf.store_view_matrix = Matrix()
             pt_buf.view_location = (0.0, 0.0, 0.0)
+            pt_buf.ctrl = False
             return {'CANCELLED'}
 
         # Return has to be modal or the tool can crash

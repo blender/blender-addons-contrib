@@ -167,6 +167,7 @@ def help_custom_draw(identifier="default"):
                         "Press Ctrl + D key or click Draw button",
                         "To draw along x use SHIFT + MOUSEMOVE",
                         "To draw along y use ALT + MOUSEMOVE",
+                        "Press Ctrl to toggle Extrude at Cursor tool",
                         "Right click to finish drawing or",
                         "Press Esc to cancel",
                         ],
