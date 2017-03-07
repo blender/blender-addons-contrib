@@ -36,30 +36,13 @@ bl_info = {
 
 
 import bpy
-from bpy.types import (
-        Operator,
-        Panel,
-        PropertyGroup,
-        AddonPreferences,
-        )
-from bpy.props import (
-        IntProperty,
-        BoolProperty,
-        EnumProperty,
-        StringProperty,
-        )
+from bpy.types import Menu
 
 
-# define base dummy class for inheritance
-class BasePollCheck:
-    @classmethod
-    def poll(cls, context):
-        return True
-
-
-class VIEW3D_MT_Shade_menu(bpy.types.Menu):
+class VIEW3D_MT_Shade_menu(Menu):
     bl_label = "Shade"
     bl_description = "Global Shading settings"
+
     def draw(self, context):
         layout = self.layout
 
@@ -70,14 +53,14 @@ class VIEW3D_MT_Shade_menu(bpy.types.Menu):
             row.scale_y = 0.3
             row.scale_x = 0.5
             row.template_icon_view(context.space_data, "matcap_icon")
-# register the classes and props
+
+
+# Register
 def register():
     bpy.utils.register_module(__name__)
-    # Register Scene Properties
 
 
 def unregister():
-
     bpy.utils.unregister_module(__name__)
 
 

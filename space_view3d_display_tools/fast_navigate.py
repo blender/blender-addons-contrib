@@ -1,9 +1,7 @@
 # space_view_3d_display_tools.py Copyright (C) 2014, Jordi Vall-llovera
-#
 # Multiple display tools for fast navigate/interact with the viewport
-#
+
 # ***** BEGIN GPL LICENSE BLOCK *****
-#
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,51 +19,20 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_info = {
-    "name": "Display Tools",
-    "author": "Jordi Vall-llovera Medina, Jhon Wallace",
-    "version": (1, 6, 0),
-    "blender": (2, 7, 0),
-    "location": "Toolshelf",
-    "description": "Display tools for fast navigate/interact with the viewport",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/"
-                "3D_interaction/Display_Tools",
-    "tracker_url": "",
-    "category": "Addon Factory"}
-
 """
 Additional links:
     Author Site: http://www.jordiart.com
 """
 
 import bpy
-from bpy.types import (
-        Operator,
-        Panel,
-        PropertyGroup,
-        AddonPreferences,
-        )
-from bpy.props import (
-        IntProperty,
-        BoolProperty,
-        EnumProperty,
-        StringProperty,
-        )
-
-
-# define base dummy class for inheritance
-class BasePollCheck:
-    @classmethod
-    def poll(cls, context):
-        return True
+from bpy.types import Operator
+from bpy.props import BoolProperty
 
 
 # Fast Navigate toggle function
 def trigger_fast_navigate(trigger):
     scene = bpy.context.scene.display_tools
     scene.FastNavigateStop = False
-
     trigger = not trigger
 
 
@@ -95,10 +62,12 @@ def display_particles(mode):
 class FastNavigate(Operator):
     bl_idname = "view3d.fast_navigate_operator"
     bl_label = "Fast Navigate"
-    bl_description = "Operator that runs Fast navigate in modal mode"
+    bl_description = ("Limit the objects drawing in the 3D view for faster navigation\n"
+                      "Runs in modal mode until Stop is pressed")
 
     trigger = BoolProperty(default=False)
     mode = BoolProperty(default=False)
+    screen_width = [0, 0]
 
     def modal(self, context, event):
         context.area.tag_redraw()
@@ -128,7 +97,20 @@ class FastNavigate(Operator):
         trigger_fast_navigate(self.trigger)
         scene = context.scene.display_tools
         scene.DelayTime = scene.DelayTimeGlobal
+        self.get_screen_size(context, scene)
         return {'RUNNING_MODAL'}
+
+    @staticmethod
+    def calc_delay(scene):
+        if scene.Delay is True:
+            if scene.DelayTime < scene.DelayTimeGlobal:
+                scene.DelayTime += 1
+
+    def get_screen_size(self, context, scene):
+        if context.area.type == 'VIEW_3D':
+            coord_x = context.area.x + scene.ScreenStart
+            coord_max_x = context.area.width - scene.ScreenEnd
+            self.screen_width = [coord_x, coord_max_x]
 
     # Do repetitive fast navigate related stuff
     def fast_navigate_stuff(self, context, event):
@@ -139,7 +121,7 @@ class FastNavigate(Operator):
             self.cancel(context)
             return {'CANCELLED'}
 
-        if event.type == 'ESC' or event.type == 'RET' or event.type == 'SPACE':
+        if event.type in {'ESC', 'RET', 'SPACE'}:
             self.cancel(context)
             return {'CANCELLED'}
 
@@ -147,47 +129,38 @@ class FastNavigate(Operator):
             self.cancel(context)
             return {'CANCELLED'}
 
+        # limit the active area
+        if event.mouse_x not in range(self.screen_width[0], self.screen_width[1]):
+            return {'PASS_THROUGH'}
+
         # fast navigate while orbit/panning
         if event.type == 'MIDDLEMOUSE':
-            if scene.Delay is True:
-                if scene.DelayTime < scene.DelayTimeGlobal:
-                    scene.DelayTime += 1
+            self.calc_delay(scene)
             view.viewport_shade = scene.FastMode
             self.mode = False
 
         # fast navigate while transform operations
-        if event.type == 'G' or event.type == 'R' or event.type == 'S':
-            if scene.Delay is True:
-                if scene.DelayTime < scene.DelayTimeGlobal:
-                    scene.DelayTime += 1
+        if event.type in {'G', 'R', 'S'}:
+            self.calc_delay(scene)
             view.viewport_shade = scene.FastMode
             self.mode = False
 
         # fast navigate while menu popups or duplicates
-        if event.type == 'W' or event.type == 'D' or event.type == 'L'\
-          or event.type == 'U' or event.type == 'I' or event.type == 'M'\
-          or event.type == 'A' or event.type == 'B':
-            if scene.Delay is True:
-                if scene.DelayTime < scene.DelayTimeGlobal:
-                    scene.DelayTime += 1
+        if event.type in {'W', 'D', 'L', 'U', 'I', 'M', 'A', 'B'}:
+            self.calc_delay(scene)
             view.viewport_shade = scene.FastMode
             self.mode = False
 
         # fast navigate while numpad navigation
-        if (event.type == 'NUMPAD_PERIOD' or event.type == 'NUMPAD_1' or
-           event.type == 'NUMPAD_2' or event.type == 'NUMPAD_3' or
-           event.type == 'NUMPAD_4' or event.type == 'NUMPAD_5' or
-           event.type == 'NUMPAD_6' or event.type == 'NUMPAD_7' or
-           event.type == 'NUMPAD_8' or event.type == 'NUMPAD_9'):
-
-            if scene.Delay is True:
-                if scene.DelayTime < scene.DelayTimeGlobal:
-                    scene.DelayTime += 1
+        if event.type in {'NUMPAD_PERIOD', 'NUMPAD_1', 'NUMPAD_2', 'NUMPAD_3',
+                          'NUMPAD_4', 'NUMPAD_5', 'NUMPAD_6', 'NUMPAD_7',
+                          'NUMPAD_8', 'NUMPAD_9'}:
+            self.calc_delay(scene)
             view.viewport_shade = scene.FastMode
             self.mode = False
 
         # fast navigate while zooming with mousewheel too
-        if event.type == 'WHEELUPMOUSE' or event.type == 'WHEELDOWNMOUSE':
+        if event.type in {'WHEELUPMOUSE', 'WHEELDOWNMOUSE'}:
             scene.DelayTime = scene.DelayTimeGlobal
             view.viewport_shade = scene.FastMode
             self.mode = False
@@ -195,8 +168,8 @@ class FastNavigate(Operator):
         if event.type == 'MOUSEMOVE':
             if scene.Delay is True:
                 if scene.DelayTime == 0:
-                    scene.DelayTime = scene.DelayTimeGlobal
                     view.viewport_shade = scene.OriginalMode
+                    scene.DelayTime = scene.DelayTimeGlobal
                     self.mode = True
             else:
                 view.viewport_shade = scene.OriginalMode
@@ -205,8 +178,8 @@ class FastNavigate(Operator):
         if scene.Delay is True:
             scene.DelayTime -= 1
             if scene.DelayTime == 0:
-                scene.DelayTime = scene.DelayTimeGlobal
                 view.viewport_shade = scene.OriginalMode
+                scene.DelayTime = scene.DelayTimeGlobal
                 self.mode = True
 
         if scene.ShowParticles is False:
@@ -234,21 +207,19 @@ def fast_navigate_stop(context):
 class FastNavigateStop(Operator):
     bl_idname = "view3d.fast_navigate_stop"
     bl_label = "Stop"
-    bl_description = "Stop Fast Navigate Operator"
+    bl_description = "Stop Fast Navigate"
 
     def execute(self, context):
         fast_navigate_stop(context)
         return {'FINISHED'}
 
 
-# register the classes and props
+# Register
 def register():
     bpy.utils.register_module(__name__)
-    # Register Scene Properties
 
 
 def unregister():
-
     bpy.utils.unregister_module(__name__)
 
 

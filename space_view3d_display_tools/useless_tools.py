@@ -20,9 +20,9 @@ bl_info = {
     "name": "Useless Tools",
     "description": "Just a little collection of scripts and tools I use daily",
     "author": "Greg Zaal",
-    "version": (1, 2),
+    "version": (1, 2, 1),
     "blender": (2, 75, 0),
-    "location": "Mostly 3D view toolshelf",
+    "location": "3D View > Tools",
     "warning": "",
     "wiki_url": "",
     "tracker_url": "",
@@ -30,234 +30,290 @@ bl_info = {
 
 
 import bpy
-import os
-
-global obtypes
-obtypes = ['MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'ARMATURE', 'LATTICE', 'EMPTY', 'CAMERA', 'LAMP']
+from bpy.types import Operator
+from bpy.props import BoolProperty
 
 
-class UTSetSelectable(bpy.types.Operator):
+def print_errors(lists, operators="useless_tools.py"):
+    if lists:
+        print("\n[%s]\n\n%s\n" % (operators, "\n".join(lists)))
 
-    'Sets selectability for the selected objects'
-    bl_idname = 'ut.set_selectable'
-    bl_label = 'set selectable'
-    selectable = bpy.props.BoolProperty()
 
-    def execute(self, context,):
+class UTSetSelectable(Operator):
+    bl_idname = "ut.set_selectable"
+    bl_label = "Set Selectable"
+    bl_description = "Sets selectability for the selected objects"
+
+    selectable = BoolProperty()
+
+    def execute(self, context):
+        errors = []
         for obj in bpy.context.selected_objects:
-            if self.selectable == True:
+            try:
+                if self.selectable is True:
+                    obj.hide_select = False
+                else:
+                    obj.hide_select = True
+            except Exception as k:
+                name = getattr(obj, "name", "Nameless")
+                errors.append("Error on {} - {}".format(name, k))
+        if errors:
+            print_errors(errors, "Operator: ut.set_selectable")
+            self.report({'INFO'},
+                        "Set Selectable: some operations could not be performed (See console for more info)")
+
+        return {'FINISHED'}
+
+
+class UTSetRenderable(Operator):
+    bl_idname = "ut.set_renderable"
+    bl_label = "Set Renderable"
+    bl_description = "Sets renderability for the selected objects"
+
+    renderable = BoolProperty()
+
+    def execute(self, context):
+        errors = []
+        for obj in bpy.context.selected_objects:
+            try:
+                if self.renderable is True:
+                    obj.hide_render = False
+                else:
+                    obj.hide_render = True
+            except Exception as k:
+                name = getattr(obj, "name", "Nameless")
+                errors.append("Error on {} - {}".format(name, k))
+        if errors:
+            print_errors(errors, "Operator: ut.set_renderable")
+            self.report({'INFO'},
+                        "Set Renderable: some operations could not be performed (See console for more info)")
+
+        return {'FINISHED'}
+
+
+class UTAllSelectable(Operator):
+    bl_idname = "ut.all_selectable"
+    bl_label = "All Selectable"
+    bl_description = "Allows all objects to be selected"
+
+    def execute(self, context):
+        errors = []
+        for obj in bpy.data.objects:
+            try:
                 obj.hide_select = False
-            else:
-                obj.hide_select = True
+            except Exception as k:
+                name = getattr(obj, "name", "Nameless")
+                errors.append("Error on {} - {}".format(name, k))
+        if errors:
+            print_errors(errors, "Operator: ut.all_selectable")
+            self.report({'INFO'},
+                        "All Selectable: some operations could not be performed (See console for more info)")
+
         return {'FINISHED'}
 
 
-class UTSetRenderable(bpy.types.Operator):
+class UTAllRenderable(Operator):
+    bl_idname = "ut.all_renderable"
+    bl_label = "All Renderable"
+    bl_description = "Allow all objects to be rendered"
 
-    'Sets renderability for the selected objects'
-    bl_idname = 'ut.set_renderable'
-    bl_label = 'set renderable'
-    renderable = bpy.props.BoolProperty()
-
-    def execute(self, context,):
-        for obj in bpy.context.selected_objects:
-            if self.renderable == True:
+    def execute(self, context):
+        errors = []
+        for obj in bpy.data.objects:
+            try:
                 obj.hide_render = False
-            else:
-                obj.hide_render = True
+            except Exception as k:
+                name = getattr(obj, "name", "Nameless")
+                errors.append("Error on {} - {}".format(name, k))
+        if errors:
+            print_errors(errors, "Operator: ut.all_renderable")
+            self.report({'INFO'},
+                        "All Renderable: some operations could not be performed (See console for more info)")
         return {'FINISHED'}
 
 
-class UTAllSelectable(bpy.types.Operator):
-
-    'Allows all objects to be selected'
-    bl_idname = 'ut.all_selectable'
-    bl_label = 'all selectable'
-
-    def execute(self, context,):
-        for obj in bpy.data.objects:
-            obj.hide_select = False
-        return {'FINISHED'}
-
-
-class UTAllRenderable(bpy.types.Operator):
-
-    'Allows all objects to be rendered'
-    bl_idname = 'ut.all_renderable'
-    bl_label = 'all renderable'
-
-    def execute(self, context,):
-        for obj in bpy.data.objects:
-            obj.hide_render = False
-        return {'FINISHED'}
-
-
-class UTSelNGon(bpy.types.Operator):
-
-    'Selects faces with more than 4 vertices'
-    bl_idname = 'ut.select_ngons'
-    bl_label = 'Select NGons'
+class UTSelNGon(Operator):
+    bl_idname = "ut.select_ngons"
+    bl_label = "Select NGons"
+    bl_description = "Select faces with more than 4 vertices"
 
     @classmethod
     def poll(cls, context):
         if not context.active_object or context.mode != 'EDIT_MESH':
             return False
-        else:
-            return True
+        return True
 
     def execute(self, context):
-        context.tool_settings.mesh_select_mode = (False, False, True)
-        bpy.ops.mesh.select_face_by_sides(number=4, type='GREATER', extend=True)
+        errors = []
+        try:
+            context.tool_settings.mesh_select_mode = (False, False, True)
+            bpy.ops.mesh.select_face_by_sides(number=4, type='GREATER', extend=True)
+        except Exception as k:
+            errors.append("Error - {}".format(k))
+        if errors:
+            print_errors(errors, "Operator: ut.select_ngons")
+            self.report({'INFO'},
+                        "Select NGons: some operations could not be performed (See console for more info)")
+
         return {'FINISHED'}
 
 
-class UTWireHideSel(bpy.types.Operator):
+class UTWireShowHideSelAll(Operator):
+    bl_idname = "ut.wire_show_hide"
+    bl_label = "Show / Hide Wire Selected or All"
+    bl_description = "Change the status of the Wire display on Selected Objects"
 
-    'Hides the wire overlay of all objects in the selection'
-    bl_idname = 'ut.wirehidesel'
-    bl_label = 'Hide Wire'
-    show = bpy.props.BoolProperty(default=False)
+    show = BoolProperty(
+                default=False
+                )
+    selected = BoolProperty(
+                default=False
+                )
+
+    @classmethod
+    def poll(cls, context):
+        return not context.scene.display_tools.WT_handler_enable
 
     def execute(self, context):
-        for e in bpy.context.selected_objects:
+        errors = []
+        objects = bpy.context.selected_objects if self.selected else bpy.data.objects
+        for e in objects:
             try:
                 e.show_wire = self.show
-            except KeyError:
-                print("Error on " + e.name)
+            except Exception as k:
+                name = getattr(e, "name", "Nameless")
+                errors.append("Error on {} - {}".format(name, k))
+        if errors:
+            print_errors(errors, "Operator: ut.wire_show_hide")
+            self.report({'INFO'},
+                        "Show/Hide Wire: some operations could not be performed (See console for more info)")
+
         return {'FINISHED'}
 
 
-class UTWireHideAll(bpy.types.Operator):
+class UTSubsurfHideSelAll(Operator):
+    bl_idname = "ut.subsurf_show_hide"
+    bl_label = "Subsurf Show/Hide"
+    bl_description = ("Sets the Subsurf modifier on objects:\n"
+                      "Hide and Show operate on Selected Objects only\n"
+                      "Hide All and Show All operate on All Objects in the data")
 
-    'Hides the wire overlay of all objects'
-    bl_idname = 'ut.wirehideall'
-    bl_label = 'Hide Wire (All)'
-    show = bpy.props.BoolProperty(default=False)
+    show = BoolProperty(
+                default=False
+                )
+    selected = BoolProperty(
+                default=False
+                )
 
     def execute(self, context):
+        errors = []
+        objects = bpy.context.selected_objects if self.selected else bpy.data.objects
+        for e in objects:
+            try:
+                if e.type not in {"LAMP", "CAMERA", "EMPTY"}:
+                    e.modifiers['Subsurf'].show_viewport = self.show
+            except Exception as k:
+                name = getattr(e, "name", "Nameless")
+                errors.append(
+                    "No subsurf on {} or it is not named Subsurf\nError: {}".format(name, k))
+        if errors:
+            print_errors(errors, "Operator: ut.subsurf_show_hide")
+            self.report({'INFO'},
+                        "Subsurf Show/Hide: some operations could not be performed (See console for more info)")
+
+        return {'FINISHED'}
+
+
+class UTOptimalDisplaySelAll(Operator):
+    bl_idname = "ut.optimaldisplay"
+    bl_label = "Optimal Display"
+    bl_description = "Disables Optimal Display for all Subsurf modifiers on objects"
+
+    on = BoolProperty(
+                default=False
+                )
+    selected = BoolProperty(
+                default=False
+                )
+
+    def execute(self, context):
+        errors = []
+        objects = bpy.context.selected_objects if self.selected else bpy.data.objects
+        for e in objects:
+            try:
+                if e.type not in {"LAMP", "CAMERA", "EMPTY"}:
+                    e.modifiers['Subsurf'].show_only_control_edges = self.on
+            except Exception as k:
+                name = getattr(e, "name", "Nameless")
+                errors.append(
+                    "No subsurf on {} or it is not named Subsurf\nError: {}".format(name, k))
+        if errors:
+            print_errors(errors, "Operator: ut.optimaldisplay")
+            self.report({'INFO'},
+                        "Optimal Display: some operations could not be performed (See console for more info)")
+
+        return {'FINISHED'}
+
+
+class UTAllEdges(Operator):
+    bl_idname = "ut.all_edges"
+    bl_label = "All Edges"
+    bl_description = "Change the status of All Edges overlay on all objects"
+
+    on = BoolProperty(
+            default=False
+            )
+
+    def execute(self, context):
+        errors = []
         for e in bpy.data.objects:
             try:
-                e.show_wire = self.show
-            except KeyError:
-                print("Error on " + e.name)
+                e.show_all_edges = self.on
+            except Exception as k:
+                name = getattr(e, "name", "Nameless")
+                errors.append(
+                    "Enabling All Edges  on {} \nError: {}".format(name, k))
+        if errors:
+            print_errors(errors, "Operator: ut.all_edges")
+            self.report({'INFO'},
+                        "Enable All Edges: some operations could not be performed (See console for more info)")
+
         return {'FINISHED'}
 
 
-class UTSubsurfHideSel(bpy.types.Operator):
+class UTDoubleSided(Operator):
+    bl_idname = "ut.double_sided"
+    bl_label = "Double Sided Normals"
+    bl_description = "Disables Double Sided Normals for all objects"
 
-    'Sets the Subsurf modifier of all objects in selection to be invisible in the viewport'
-    bl_idname = 'ut.subsurfhidesel'
-    bl_label = 'Subsurf Hide'
-    show = bpy.props.BoolProperty(default=False)
-
-    def execute(self, context):
-        for e in bpy.context.selected_objects:
-            try:
-                e.modifiers['Subsurf'].show_viewport = self.show
-            except KeyError:
-                print("No subsurf on " + e.name + " or it is not named Subsurf")
-        return {'FINISHED'}
-
-
-class UTSubsurfHideAll(bpy.types.Operator):
-
-    'Sets the Subsurf modifier of all objects to be invisible in the viewport'
-    bl_idname = 'ut.subsurfhideall'
-    bl_label = 'Subsurf Hide (All)'
-    show = bpy.props.BoolProperty(default=False)
+    on = BoolProperty(
+                default=False
+                )
 
     def execute(self, context):
-        for e in bpy.data.objects:
-            try:
-                e.modifiers['Subsurf'].show_viewport = self.show
-            except KeyError:
-                print("No subsurf on " + e.name + " or it is not named Subsurf")
-        return {'FINISHED'}
-
-
-class UTOptimalDisplaySel(bpy.types.Operator):
-
-    'Disables Optimal Display for all Subsurf modifiers on selected objects'
-    bl_idname = 'ut.optimaldisplaysel'
-    bl_label = 'Optimal Display'
-    on = bpy.props.BoolProperty(default=False)
-
-    def execute(self, context):
-        for e in bpy.context.selected_objects:
-            try:
-                e.modifiers['Subsurf'].show_only_control_edges = self.on
-            except KeyError:
-                print("No subsurf on " + e.name + " or it is not named Subsurf")
-        return {'FINISHED'}
-
-
-class UTOptimalDisplayAll(bpy.types.Operator):
-
-    'Disables Optimal Display for all Subsurf modifiers'
-    bl_idname = 'ut.optimaldisplayall'
-    bl_label = 'Optimal Display Off (All)'
-    on = bpy.props.BoolProperty(default=False)
-
-    def execute(self, context):
-        for e in bpy.data.objects:
-            try:
-                e.modifiers['Subsurf'].show_only_control_edges = self.on
-            except KeyError:
-                print("No subsurf on " + e.name + " or it is not named Subsurf")
-        return {'FINISHED'}
-
-
-class UTAllEdges(bpy.types.Operator):
-
-    'Enables All Edges for all objects'
-    bl_idname = 'ut.all_edges'
-    bl_label = 'All Edges'
-    on = bpy.props.BoolProperty(default=False)
-
-    def execute(self, context):
-        for e in bpy.data.objects:
-            e.show_all_edges = self.on
-        return {'FINISHED'}
-
-
-class UTDoubleSided(bpy.types.Operator):
-
-    'Disables Double Sided Normals for all objects'
-    bl_idname = 'ut.double_sided'
-    bl_label = 'Double Sided Normals'
-    on = bpy.props.BoolProperty(default=False)
-
-    def execute(self, context):
+        errors = []
         for e in bpy.data.meshes:
             try:
                 e.show_double_sided = self.on
-            except KeyError:
-                print("Error setting double sided on " + e.name)
+            except Exception as k:
+                name = getattr(e, "name", "Nameless")
+                errors.append(
+                    "Applying Double Sided Normals on {} \nError: {}".format(name, k))
+        if errors:
+            print_errors(errors, "Operator: ut.double_sided")
+            self.report({'INFO'},
+                        "Double Sided Normals: some operations could not be performed (See console for more info)")
         return {'FINISHED'}
 
 
-
-class UTDrawTypeOp(bpy.types.Operator):
-
-    'Sets draw type for the selected objects'
-    bl_idname = 'ut.set_draw_type'
-    bl_label = 'Draw Type'
-    prop = bpy.props.StringProperty()
-
-    def execute(self, context,):
-        for obj in bpy.context.selected_objects:
-            obj.draw_type = self.prop
-        return {'FINISHED'}
+# Register
+def register():
+    bpy.utils.register_module(__name__)
 
 
-class UTDrawTypeMenu(bpy.types.Menu):
-    bl_idname = 'OBJECT_MT_DrawTypeMenu'
-    bl_label = "Draw Type"
+def unregister():
+    bpy.utils.unregister_module(__name__)
 
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("ut.set_draw_type", text="Textured").prop = "TEXTURED"
-        layout.operator("ut.set_draw_type", text="Solid").prop = "SOLID"
-        layout.operator("ut.set_draw_type", text="Wire").prop = "WIRE"
-        layout.operator("ut.set_draw_type", text="Bounds").prop = "BOUNDS"
 
+if __name__ == "__main__":
+    register()

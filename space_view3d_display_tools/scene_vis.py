@@ -1,9 +1,7 @@
 # space_view_3d_display_tools.py Copyright (C) 2014, Jordi Vall-llovera
-#
 # Multiple display tools for fast navigate/interact with the viewport
-#
+
 # ***** BEGIN GPL LICENSE BLOCK *****
-#
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,44 +19,13 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_info = {
-    "name": "Display Tools",
-    "author": "Jordi Vall-llovera Medina, Jhon Wallace",
-    "version": (1, 6, 0),
-    "blender": (2, 7, 0),
-    "location": "Toolshelf",
-    "description": "Display tools for fast navigate/interact with the viewport",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/"
-                "3D_interaction/Display_Tools",
-    "tracker_url": "",
-    "category": "Addon Factory"}
-
 """
 Additional links:
     Author Site: http://www.jordiart.com
 """
 
 import bpy
-from bpy.types import (
-        Operator,
-        Panel,
-        PropertyGroup,
-        AddonPreferences,
-        )
-from bpy.props import (
-        IntProperty,
-        BoolProperty,
-        EnumProperty,
-        StringProperty,
-        )
 
-
-# define base dummy class for inheritance
-class BasePollCheck:
-    @classmethod
-    def poll(cls, context):
-        return True
 
 # Set Render Settings
 def set_render_settings(context):
@@ -70,18 +37,12 @@ def set_render_settings(context):
     render.simplify_ao_sss = 0
 
 
-
-
-
-# register the classes and props
+# Register
 def register():
     bpy.utils.register_module(__name__)
-    # Register Scene Properties
-
 
 
 def unregister():
-
     bpy.utils.unregister_module(__name__)
 
 

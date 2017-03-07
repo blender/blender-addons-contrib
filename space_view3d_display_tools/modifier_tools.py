@@ -1,9 +1,7 @@
 # space_view_3d_display_tools.py Copyright (C) 2014, Jordi Vall-llovera
-#
 # Multiple display tools for fast navigate/interact with the viewport
-#
+
 # ***** BEGIN GPL LICENSE BLOCK *****
-#
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,49 +19,32 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_info = {
-    "name": "Display Tools",
-    "author": "Jordi Vall-llovera Medina, Jhon Wallace",
-    "version": (1, 6, 0),
-    "blender": (2, 7, 0),
-    "location": "Toolshelf",
-    "description": "Display tools for fast navigate/interact with the viewport",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/"
-                "3D_interaction/Display_Tools",
-    "tracker_url": "",
-    "category": "Addon Factory"}
-
 """
 Additional links:
     Author Site: http://www.jordiart.com
 """
 
 import bpy
-from bpy.types import (
-        Operator,
-        Panel,
-        PropertyGroup,
-        AddonPreferences,
-        )
+from bpy.types import Operator
 from bpy.props import (
         IntProperty,
         BoolProperty,
-        EnumProperty,
-        StringProperty,
         )
 
 
-class ToggleApplyModifiersView(Operator):
-    bl_idname = "object.toggle_apply_modifiers_view"
+# function taken from space_view3d_modifier_tools.py
+class DisplayApplyModifiersView(Operator):
+    bl_idname = "view3d.toggle_apply_modifiers_view"
     bl_label = "Hide Viewport"
     bl_description = "Shows/Hide modifiers of the active / selected object(s) in 3d View"
-    bl_options = {'REGISTER'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
 
     def execute(self, context):
         is_apply = True
         message_a = ""
-
         for mod in context.active_object.modifiers:
             if mod.show_viewport:
                 is_apply = False
@@ -83,6 +64,7 @@ class ToggleApplyModifiersView(Operator):
             message_a = "Hiding modifiers in the 3d View"
 
         self.report(type={"INFO"}, message=message_a)
+
         return {'FINISHED'}
 
 
@@ -255,13 +237,9 @@ class ModifiersSubsurfLevel_Set(Operator, BasePollCheck):
         return {'FINISHED'}
 
 
-
-
-# register the classes and props
+# Register
 def register():
     bpy.utils.register_module(__name__)
-    # Register Scene Properties
-
 
 
 def unregister():

@@ -19,16 +19,25 @@
 
 bl_info = {
     "name": "Selection Restrictor",
-    'author': "Ales Sidenko",
+    "author": "Ales Sidenko",
     "version": (0, 1),
-    'location': "3d viewer header",
-    'warning': "",
-    'description': "This addon helps to restrict the selection of objects by type. "
+    "location": "3d viewer header",
+    "warning": "",
+    "description": "This addon helps to restrict the selection of objects by type. "
                    "Please email me if you find a bug (sidenkoai@gmail.com)",
-    'category': '3D View'}
+    "category": "3D View"
+    }
 
 import bpy
-from bpy.types import Header
+from bpy.types import (
+        Menu,
+        Operator,
+        )
+from bpy.props import (
+        BoolProperty,
+        StringProperty,
+        )
+
 from bpy.app.handlers import persistent
 
 mesh = 'OBJECT_DATA'
@@ -47,7 +56,7 @@ show = 'TRIA_RIGHT'
 show_restrictor = False
 hide = True
 
-# chekcing properties in scene to update icons when opening file of switching between scenes
+# checking properties in scene to update icons when opening file of switching between scenes
 # (executing in end of script)
 
 
@@ -123,7 +132,7 @@ def check_restrictors(dummy):
     else:
         camrestrictorenabled = False
         cam = 'CAMERA_DATA'
-     # lamp
+    # lamp
     if bpy.context.scene.get('lamprestrictor') is None:
         lamprestrictorenabled = True
         lamp = 'OUTLINER_OB_LAMP'
@@ -175,12 +184,13 @@ def check_restrictors(dummy):
 # hide or unhide buttons
 
 
-class RestrictorShow(bpy.types.Operator):
+class RestrictorShow(Operator):
     bl_idname = "restrictor.show"
     bl_label = "Show/Hide Selection Restrictors"
     bl_option = {'REGISTER', 'UNDO'}
     bl_description = "Show/Hide Selection Restrictors"
-    hide = bpy.props.StringProperty()
+
+    hide = StringProperty()
 
     def execute(self, context):
         global show
@@ -198,19 +208,18 @@ class RestrictorShow(bpy.types.Operator):
 # hide or unhide object to restrictor
 
 
-class IgnoreRestrictors(bpy.types.Operator):
+class IgnoreRestrictors(Operator):
     bl_idname = "ignore.restrictors"
     bl_label = "Ignore Restrictor by Selected Objects"
     bl_option = {'REGISTER', 'UNDO'}
     bl_description = "Ignore or do not ignore Restrictor by selected objects"
-    ignore = bpy.props.BoolProperty()
+    ignore = BoolProperty()
 
     def execute(self, context):
-        if self.ignore == True:
+        if self.ignore is True:
             for ob in bpy.context.selected_objects:
                 ob['ignore_restrictors'] = 1
-
-        if self.ignore == False:
+        else:
             for ob in bpy.context.selected_objects:
                 if ob.get('ignore_restrictors') is not None:
                     del ob["ignore_restrictors"]
@@ -222,23 +231,20 @@ class IgnoreRestrictors(bpy.types.Operator):
 # restrictor for mesh
 
 
-class RestrictorMesh(bpy.types.Operator):
+class RestrictorMesh(Operator):
     bl_idname = "restrictor.mesh"
     bl_label = "restrictor meshes"
     bl_option = {'REGISTER', 'UNDO'}
     bl_description = "Meshes selection restrictor"
-    mesh = bpy.props.StringProperty()
+    mesh = StringProperty()
 
     def execute(self, context):
         global mesh
         global meshrestrictorenabled
-        print(" ")
-
         if bpy.context.scene.get('meshrestrictor') is not None:
             meshrestrictorenabled = True
             if bpy.context.scene.get('meshrestrictor') is not None:
                 del bpy.context.scene['meshrestrictor']
-            print("не фильтруем геометрию")
             mesh = 'OBJECT_DATA'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'MESH':
@@ -246,7 +252,6 @@ class RestrictorMesh(bpy.types.Operator):
                         ob.hide_select = False
 
         else:
-            print("фильтруем геометрию")
             meshrestrictorenabled = False
             bpy.context.scene['meshrestrictor'] = 1
             mesh = 'MESH_CUBE'
@@ -261,7 +266,7 @@ class RestrictorMesh(bpy.types.Operator):
 # restrictor for curves
 
 
-class RestrictorCurve(bpy.types.Operator):
+class RestrictorCurve(Operator):
     bl_idname = "restrictor.curve"
     bl_label = "restrictor curves"
     bl_option = {'REGISTER', 'UNDO'}
@@ -270,13 +275,11 @@ class RestrictorCurve(bpy.types.Operator):
     def execute(self, context):
         global curve
         global curverestrictorenabled
-        print(" ")
 
         if bpy.context.scene.get('curverestrictor') is not None:
             curverestrictorenabled = True
             if bpy.context.scene.get('curverestrictor') is not None:
                 del bpy.context.scene['curverestrictor']
-            print("не фильтруем кривые")
             curve = 'OUTLINER_OB_CURVE'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'CURVE':
@@ -284,7 +287,6 @@ class RestrictorCurve(bpy.types.Operator):
                         ob.hide_select = False
 
         else:
-            print("фильтруем кривые")
             curverestrictorenabled = False
             bpy.context.scene['curverestrictor'] = 1
             curve = 'CURVE_DATA'
@@ -298,7 +300,7 @@ class RestrictorCurve(bpy.types.Operator):
 
 
 # restrictor for armatures
-class RestrictorArm(bpy.types.Operator):
+class RestrictorArm(Operator):
     bl_idname = "restrictor.arm"
     bl_label = "restrictor armatures"
     bl_option = {'REGISTER', 'UNDO'}
@@ -307,13 +309,11 @@ class RestrictorArm(bpy.types.Operator):
     def execute(self, context):
         global arm
         global armrestrictorenabled
-        print(" ")
 
         if bpy.context.scene.get('armrestrictor') is not None:
             armrestrictorenabled = True
             if bpy.context.scene.get('armrestrictor') is not None:
                 del bpy.context.scene['armrestrictor']
-            print("не фильтруем арматуру")
             arm = 'OUTLINER_OB_ARMATURE'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'ARMATURE':
@@ -321,7 +321,6 @@ class RestrictorArm(bpy.types.Operator):
                         ob.hide_select = False
 
         else:
-            print("фильтруем арматуру")
             armrestrictorenabled = False
             bpy.context.scene['armrestrictor'] = 1
             arm = 'ARMATURE_DATA'
@@ -336,7 +335,7 @@ class RestrictorArm(bpy.types.Operator):
 # restrictor for epties
 
 
-class RestrictorEmpty(bpy.types.Operator):
+class RestrictorEmpty(Operator):
     bl_idname = "restrictor.empty"
     bl_label = "restrictor empties"
     bl_option = {'REGISTER', 'UNDO'}
@@ -345,13 +344,11 @@ class RestrictorEmpty(bpy.types.Operator):
     def execute(self, context):
         global empty
         global emptyrestrictorenabled
-        print(" ")
 
         if bpy.context.scene.get('emptyrestrictor') is not None:
             emptyrestrictorenabled = True
             if bpy.context.scene.get('emptyrestrictor') is not None:
                 del bpy.context.scene['emptyrestrictor']
-            print("не фильтруем пустышки")
             empty = 'OUTLINER_OB_EMPTY'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'EMPTY':
@@ -359,7 +356,6 @@ class RestrictorEmpty(bpy.types.Operator):
                         ob.hide_select = False
 
         else:
-            print("фильтруем пустышки")
             emptyrestrictorenabled = False
             bpy.context.scene['emptyrestrictor'] = 1
             empty = 'EMPTY_DATA'
@@ -371,10 +367,9 @@ class RestrictorEmpty(bpy.types.Operator):
 
         return{'FINISHED'}
 
+
 # restrictor for cameras
-
-
-class RestrictorCam(bpy.types.Operator):
+class RestrictorCam(Operator):
     bl_idname = "restrictor.cam"
     bl_label = "restrictor cameras"
     bl_option = {'REGISTER', 'UNDO'}
@@ -383,13 +378,11 @@ class RestrictorCam(bpy.types.Operator):
     def execute(self, context):
         global cam
         global camrestrictorenabled
-        print(" ")
 
         if bpy.context.scene.get('camrestrictor') is not None:
             camrestrictorenabled = True
             if bpy.context.scene.get('camrestrictor') is not None:
                 del bpy.context.scene['camrestrictor']
-            print("не фильтруем камеры")
             cam = 'OUTLINER_OB_CAMERA'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'CAMERA':
@@ -397,7 +390,6 @@ class RestrictorCam(bpy.types.Operator):
                         ob.hide_select = False
 
         else:
-            print("фильтруем камеры")
             camrestrictorenabled = False
             bpy.context.scene['camrestrictor'] = 1
             cam = 'CAMERA_DATA'
@@ -409,10 +401,9 @@ class RestrictorCam(bpy.types.Operator):
 
         return{'FINISHED'}
 
+
 # restrictor for lamps
-
-
-class RestrictorLamp(bpy.types.Operator):
+class RestrictorLamp(Operator):
     bl_idname = "restrictor.lamp"
     bl_label = "restrictor lamps"
     bl_option = {'REGISTER', 'UNDO'}
@@ -421,13 +412,11 @@ class RestrictorLamp(bpy.types.Operator):
     def execute(self, context):
         global lamp
         global lamprestrictorenabled
-        print(" ")
 
         if bpy.context.scene.get('lamprestrictor') is not None:
             lamprestrictorenabled = True
             if bpy.context.scene.get('lamprestrictor') is not None:
                 del bpy.context.scene['lamprestrictor']
-            print("не фильтруем лампочки")
             lamp = 'OUTLINER_OB_LAMP'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'LAMP':
@@ -435,7 +424,6 @@ class RestrictorLamp(bpy.types.Operator):
                         ob.hide_select = False
 
         else:
-            print("фильтруем лампочки")
             lamprestrictorenabled = False
             bpy.context.scene['lamprestrictor'] = 1
             lamp = 'LAMP_DATA'
@@ -447,10 +435,9 @@ class RestrictorLamp(bpy.types.Operator):
 
         return{'FINISHED'}
 
+
 # restrictor for lattice
-
-
-class RestrictorLat(bpy.types.Operator):
+class RestrictorLat(Operator):
     bl_idname = "restrictor.lat"
     bl_label = "restrictor lattices"
     bl_option = {'REGISTER', 'UNDO'}
@@ -459,21 +446,17 @@ class RestrictorLat(bpy.types.Operator):
     def execute(self, context):
         global lat
         global latrestrictorenabled
-        print(" ")
 
         if bpy.context.scene.get('latrestrictor') is not None:
             latrestrictorenabled = True
             if bpy.context.scene.get('latrestrictor') is not None:
                 del bpy.context.scene['latrestrictor']
-            print("не фильтруем латтисы")
             lat = 'OUTLINER_OB_LATTICE'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'LATTICE':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
-
         else:
-            print("фильтруем латтисы")
             latrestrictorenabled = False
             bpy.context.scene['latrestrictor'] = 1
             lat = 'LATTICE_DATA'
@@ -488,7 +471,7 @@ class RestrictorLat(bpy.types.Operator):
 # restrictor for text
 
 
-class RestrictorFont(bpy.types.Operator):
+class RestrictorFont(Operator):
     bl_idname = "restrictor.font"
     bl_label = "restrictor font"
     bl_option = {'REGISTER', 'UNDO'}
@@ -497,21 +480,17 @@ class RestrictorFont(bpy.types.Operator):
     def execute(self, context):
         global font
         global fontrestrictorenabled
-        print(" ")
 
         if bpy.context.scene.get('fontrestrictor') is not None:
             fontrestrictorenabled = True
             if bpy.context.scene.get('fontrestrictor') is not None:
                 del bpy.context.scene['fontrestrictor']
-            print("не фильтруем текст")
             font = 'OUTLINER_OB_FONT'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'FONT':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
-
         else:
-            print("фильтруем текст")
             fontrestrictorenabled = False
             bpy.context.scene['fontrestrictor'] = 1
             font = 'FONT_DATA'
@@ -526,7 +505,7 @@ class RestrictorFont(bpy.types.Operator):
 # restrictor for metaballs
 
 
-class RestrictorMeta(bpy.types.Operator):
+class RestrictorMeta(Operator):
     bl_idname = "restrictor.meta"
     bl_label = "restrictor metaballs"
     bl_option = {'REGISTER', 'UNDO'}
@@ -535,21 +514,17 @@ class RestrictorMeta(bpy.types.Operator):
     def execute(self, context):
         global meta
         global metarestrictorenabled
-        print(" ")
 
         if bpy.context.scene.get('metarestrictor') is not None:
             metarestrictorenabled = True
             if bpy.context.scene.get('metarestrictor') is not None:
                 del bpy.context.scene['metarestrictor']
-            print("не фильтруем метаболы")
             meta = 'OUTLINER_OB_META'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'META':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
-
         else:
-            print("фильтруем метаболы")
             metarestrictorenabled = False
             bpy.context.scene['metarestrictor'] = 1
             meta = 'META_DATA'
@@ -561,10 +536,9 @@ class RestrictorMeta(bpy.types.Operator):
 
         return{'FINISHED'}
 
+
 # restrictor for surfaces
-
-
-class RestrictorSurf(bpy.types.Operator):
+class RestrictorSurf(Operator):
     bl_idname = "restrictor.surf"
     bl_label = "restrictor surfaces"
     bl_option = {'REGISTER', 'UNDO'}
@@ -573,21 +547,17 @@ class RestrictorSurf(bpy.types.Operator):
     def execute(self, context):
         global surf
         global surfrestrictorenabled
-        print(" ")
 
         if bpy.context.scene.get('surfrestrictor') is not None:
             surfrestrictorenabled = True
             if bpy.context.scene.get('surfrestrictor') is not None:
                 del bpy.context.scene['surfrestrictor']
-            print("не фильтруем поверхности")
             surf = 'OUTLINER_OB_SURFACE'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'SURFACE':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
-
         else:
-            print("фильтруем поверхности")
             surfrestrictorenabled = False
             bpy.context.scene['surfrestrictor'] = 1
             surf = 'SURFACE_DATA'
@@ -599,25 +569,22 @@ class RestrictorSurf(bpy.types.Operator):
 
         return{'FINISHED'}
 
+
 # restrictor for speaks
-
-
-class RestrictorSound(bpy.types.Operator):
+class RestrictorSound(Operator):
     bl_idname = "restrictor.speak"
-    bl_label = "restrictor speaks"
-    bl_option = {'REGISTER', 'UNDO'}
+    bl_label = "Restrictor Speakers"
     bl_description = "Sounds selection restrictor"
+    bl_option = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         global speak
         global speakrestrictorenabled
-        print(" ")
 
         if bpy.context.scene.get('speakrestrictor') is not None:
             speakrestrictorenabled = True
             if bpy.context.scene.get('speakrestrictor') is not None:
                 del bpy.context.scene['speakrestrictor']
-            print("не фильтруем динамики")
             speak = 'OUTLINER_OB_SPEAKER'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'SPEAKER':
@@ -625,7 +592,6 @@ class RestrictorSound(bpy.types.Operator):
                         ob.hide_select = False
 
         else:
-            print("фильтруем динамики")
             speakrestrictorenabled = False
             bpy.context.scene['speakrestrictor'] = 1
             speak = 'SPEAKER'
@@ -637,10 +603,9 @@ class RestrictorSound(bpy.types.Operator):
 
         return{'FINISHED'}
 
+
 # refresh restrictors for newly created objects
-
-
-class RefreshRestrictors(bpy.types.Operator):
+class RefreshRestrictors(Operator):
     bl_idname = "refresh.restrictors"
     bl_label = "Refresh Selection Restrictors"
     bl_option = {'REGISTER', 'UNDO'}
@@ -659,19 +624,15 @@ class RefreshRestrictors(bpy.types.Operator):
         global meta
         global surf
         global speak
-        print(" ")
-        print("обновляем фильтры")
 
-# refresh meshes
+        # refresh meshes
         if bpy.context.scene.get('meshrestrictor') is None:
-            print("геометрия не фильтруется")
             mesh = 'OBJECT_DATA'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'MESH':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
         else:
-            print("геометрия фильтруется")
             mesh = 'MESH_CUBE'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'MESH':
@@ -679,48 +640,42 @@ class RefreshRestrictors(bpy.types.Operator):
                         ob.hide_select = True
                         ob.select = False
 
-# refresh curves
+        # refresh curves
         if bpy.context.scene.get('curverestrictor') is None:
-            print("кривые не фильтруются")
             curve = 'OUTLINER_OB_CURVE'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'CURVE':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
         else:
-            print("кривые фильтруются")
             curve = 'CURVE_DATA'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'CURVE':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = True
                         ob.select = False
-# refresh armatures
+        # refresh armatures
         if bpy.context.scene.get('armrestrictor') is None:
-            print("арматура не фильтруется")
             arm = 'OUTLINER_OB_ARMATURE'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'ARMATURE':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
         else:
-            print("арматура фильтруется")
             arm = 'ARMATURE_DATA'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'ARMATURE':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = True
                         ob.select = False
-# refresh empties
+        # refresh empties
         if bpy.context.scene.get('emptyrestrictor') is None:
-            print("пустышки не фильтруются")
             empty = 'OUTLINER_OB_EMPTY'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'EMPTY':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
         else:
-            print("пустышки фильтруются")
             empty = 'EMPTY_DATA'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'EMPTY':
@@ -728,16 +683,14 @@ class RefreshRestrictors(bpy.types.Operator):
                         ob.hide_select = True
                         ob.select = False
 
-# refresh cameras
+        # refresh cameras
         if bpy.context.scene.get('camrestrictor') is None:
-            print("камеры не фильтруются")
             cam = 'OUTLINER_OB_CAMERA'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'CAMERA':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
         else:
-            print("камеры фильтруются")
             cam = 'CAMERA_DATA'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'CAMERA':
@@ -745,9 +698,8 @@ class RefreshRestrictors(bpy.types.Operator):
                         ob.hide_select = True
                         ob.select = False
 
-# refresh lamps
+        # refresh lamps
         if bpy.context.scene.get('lamprestrictor') is None:
-            print("лампочки не фильтруются")
             lamp = 'OUTLINER_OB_LAMP'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'LAMP':
@@ -761,9 +713,8 @@ class RefreshRestrictors(bpy.types.Operator):
                         ob.hide_select = True
                         ob.select = False
 
-# refresh lattices
+        # refresh lattices
         if bpy.context.scene.get('latrestrictor') is None:
-            print("латтисы не фильтруются")
             lat = 'OUTLINER_OB_LATTICE'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'LATTICE':
@@ -777,32 +728,28 @@ class RefreshRestrictors(bpy.types.Operator):
                         ob.hide_select = True
                         ob.select = False
 
-# refresh text
+        # refresh text
         if bpy.context.scene.get('fontrestrictor') is None:
-
             font = 'OUTLINER_OB_FONT'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'FONT':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
         else:
-            print(".")
             font = 'FONT_DATA'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'FONT':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = True
                         ob.select = False
-# refresh metaballs
+    # refresh metaballs
         if bpy.context.scene.get('metarestrictor') is None:
-            print(".")
             meta = 'OUTLINER_OB_META'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'META':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
         else:
-            print(".")
             meta = 'META_DATA'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'META':
@@ -810,16 +757,14 @@ class RefreshRestrictors(bpy.types.Operator):
                         ob.hide_select = True
                         ob.select = False
 
-# refresh surfaces
+    # refresh surfaces
         if bpy.context.scene.get('surfrestrictor') is None:
-            print(".")
             surf = 'OUTLINER_OB_SURFACE'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'SURFACE':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
         else:
-            print(".")
             surf = 'SURFACE_DATA'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'SURFACE':
@@ -827,16 +772,14 @@ class RefreshRestrictors(bpy.types.Operator):
                         ob.hide_select = True
                         ob.select = False
 
-# refresh speaks
+    # refresh speakers
         if bpy.context.scene.get('speakrestrictor') is None:
-            print(".")
             speak = 'OUTLINER_OB_SPEAKER'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'SPEAKER':
                     if ob.get('ignore_restrictors') is None:
                         ob.hide_select = False
         else:
-            print(".")
             speak = 'SPEAKER'
             for ob in bpy.context.scene.objects:
                 if ob.type == 'SPEAKER':
@@ -846,10 +789,11 @@ class RefreshRestrictors(bpy.types.Operator):
         return{'FINISHED'}
 
 
-class RestrictorSelection(bpy.types.Menu):
+class RestrictorSelection(Menu):
     """Restrict Selection"""
     bl_label = "Selection"
     bl_idname = "RestrictorSelection"
+
     def draw(self, context):
         global mesh
         global curve
@@ -866,7 +810,6 @@ class RestrictorSelection(bpy.types.Menu):
         global show
 
         layout = self.layout
-        view = context.space_data
 
         layout.operator("restrictor.mesh", icon=mesh, text="Mesh")
         layout.operator("restrictor.curve", icon=curve, text="Curve")
@@ -885,7 +828,6 @@ class RestrictorSelection(bpy.types.Menu):
 
 
 def view3d_select_menu(self, context):
-    layout = self.layout
     self.layout.menu(RestrictorSelection.bl_idname)
 
 
@@ -897,6 +839,7 @@ def unregister():
     bpy.types.VIEW3D_HT_header.remove(view3d_select_menu)
 
     bpy.utils.unregister_class(RefreshRestrictors)
+
 
 if __name__ == "__main__":
     register()
