@@ -19,7 +19,7 @@
 # Contributed to by:
 # meta-androcto,  Hidesato Ikeya, zmj100, luxuy_BlenderCN, TrumanBlending, PKHG, #
 # Oscurart, Greg, Stanislav Blinov, komi3D, BlenderLab, Paul Marshall (brikbot), #
-# metalliandy, macouno, CoDEmanX, dustractor, Liero, lijenstina #
+# metalliandy, macouno, CoDEmanX, dustractor, Liero, lijenstina, Germano Cavalcante #
 
 bl_info = {
     "name": "Edit Tools 2",
@@ -102,6 +102,7 @@ from bpy.types import (
         )
 from bpy.props import (
         BoolProperty,
+        BoolVectorProperty,
         IntVectorProperty,
         PointerProperty,
         )
@@ -196,16 +197,15 @@ class EditToolsPanel(Panel):
 
     def draw(self, context):
         scene = context.scene
-        VERTDROP = scene.mesh_extra_tools.UTVertDrop
-        EDGEDROP = scene.mesh_extra_tools.UTEdgeDrop
-        FACEDROP = scene.mesh_extra_tools.UTFaceDrop
-        UTILSDROP = scene.mesh_extra_tools.UTUtilsDrop
-
+        VERTDROP = scene.mesh_extra_tools.UiTabDrop[0]
+        EDGEDROP = scene.mesh_extra_tools.UiTabDrop[1]
+        FACEDROP = scene.mesh_extra_tools.UiTabDrop[2]
+        UTILSDROP = scene.mesh_extra_tools.UiTabDrop[3]
         # Change icons depending on the bool state (complient with the rest of the UI)
-        icon_active_1 = "TRIA_RIGHT" if not VERTDROP else "TRIA_DOWN"
-        icon_active_2 = "TRIA_RIGHT" if not EDGEDROP else "TRIA_DOWN"
-        icon_active_3 = "TRIA_RIGHT" if not FACEDROP else "TRIA_DOWN"
-        icon_active_4 = "TRIA_RIGHT" if not UTILSDROP else "TRIA_DOWN"
+        icon_active_0 = "TRIA_RIGHT" if not VERTDROP else "TRIA_DOWN"
+        icon_active_1 = "TRIA_RIGHT" if not EDGEDROP else "TRIA_DOWN"
+        icon_active_2 = "TRIA_RIGHT" if not FACEDROP else "TRIA_DOWN"
+        icon_active_3 = "TRIA_RIGHT" if not UTILSDROP else "TRIA_DOWN"
 
         layout = self.layout
 
@@ -213,7 +213,7 @@ class EditToolsPanel(Panel):
         box1 = self.layout.box()
         col = box1.column(align=True)
         row = col.row(align=True)
-        row.prop(scene.mesh_extra_tools, "UTVertDrop", icon=icon_active_1)
+        row.prop(scene.mesh_extra_tools, "UiTabDrop", text="Vertex", index=0, icon=icon_active_0)
         if not VERTDROP:
             row.menu("mesh.vert_select_tools", icon="RESTRICT_SELECT_OFF", text="")
             row.menu("VIEW3D_MT_Select_Vert", icon="VERTEXSEL", text="")
@@ -237,7 +237,7 @@ class EditToolsPanel(Panel):
         box1 = self.layout.box()
         col = box1.column(align=True)
         row = col.row(align=True)
-        row.prop(scene.mesh_extra_tools, "UTEdgeDrop", icon=icon_active_2)
+        row.prop(scene.mesh_extra_tools, "UiTabDrop", text="Edge", index=1, icon=icon_active_1)
 
         if not EDGEDROP:
             row.menu("mesh.edge_select_tools", icon="RESTRICT_SELECT_OFF", text="")
@@ -280,7 +280,7 @@ class EditToolsPanel(Panel):
         box1 = self.layout.box()
         col = box1.column(align=True)
         row = col.row(align=True)
-        row.prop(scene.mesh_extra_tools, "UTFaceDrop", icon=icon_active_3)
+        row.prop(scene.mesh_extra_tools, "UiTabDrop", text="Face", index=2, icon=icon_active_2)
 
         if not FACEDROP:
             row.menu("mesh.face_select_tools", icon="RESTRICT_SELECT_OFF", text="")
@@ -299,7 +299,7 @@ class EditToolsPanel(Panel):
             row = layout.split(0.8, align=True)
             row.operator("mesh.extrude_reshape", text="Push/Pull")
             row.operator("mesh.extra_tools_help",
-                        icon="LAYER_USED").help_ids = "mesh_mextrude_plus"
+                        icon="LAYER_USED").help_ids = "mesh_extrude_and_reshape"
 
             row = layout.split(0.8, align=True)
             row.operator("mesh.face_inset_fillet", text="Inset Fillet")
@@ -320,7 +320,7 @@ class EditToolsPanel(Panel):
         box1 = self.layout.box()
         col = box1.column(align=True)
         row = col.row(align=True)
-        row.prop(scene.mesh_extra_tools, "UTUtilsDrop", icon=icon_active_4)
+        row.prop(scene.mesh_extra_tools, "UiTabDrop", text="Utils", index=3, icon=icon_active_3)
 
         if not UTILSDROP:
             row.menu("mesh.utils specials", icon="SOLO_OFF", text="")
@@ -646,26 +646,13 @@ def menu_select(self, context):
 
 # Scene Properties
 class MeshExtraToolsSceneProps(PropertyGroup):
-    UTVertDrop = BoolProperty(
-        name="Vertex",
-        default=False,
-        description="Show/Hide Vertex Tools"
-        )
-    UTEdgeDrop = BoolProperty(
-        name="Edge",
-        default=False,
-        description="Show/Hide Edge Tools"
-        )
-    UTFaceDrop = BoolProperty(
-        name="Face",
-        default=False,
-        description="Show/Hide Face Tools"
-        )
-    UTUtilsDrop = BoolProperty(
-        name="Utils",
-        default=False,
-        description="Show/Hide Miscellaneous Utils"
-        )
+    # Define the UI drop down prop
+    UiTabDrop = BoolVectorProperty(
+            name="Tab",
+            description="Expand/Collapse UI elements",
+            default=(False,) * 4,
+            size=4,
+            )
 
 
 # Add-on Preferences

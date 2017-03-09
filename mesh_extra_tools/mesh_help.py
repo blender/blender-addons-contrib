@@ -127,6 +127,17 @@ def help_custom_draw(identifier="default"):
                         "Works only with selections that enclose Faces",
                         "(i.e. all Edges or Vertices of a Face selected)",
                         ],
+                "mesh_extrude_and_reshape": [
+                        "To use:",
+                        "Extrude Face and merge Edge intersections,",
+                        "between the mesh and the new Edges",
+                        "Note:",
+                        "If selected Vertices don't form Face they will be",
+                        "still extruded in the same direction",
+                        "Limitation:",
+                        "Works only with the last selected face",
+                        "(or all Edges or Vertices of a Face selected)",
+                        ],
                 "face_inset_fillet": [
                         "To use:",
                         "Select one or multiple faces and inset",
