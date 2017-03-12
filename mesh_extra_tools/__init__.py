@@ -29,7 +29,7 @@ bl_info = {
     "location": "View3D > Toolshelf > Tools and Specials (W-key)",
     "description": "Extra mesh edit tools - modifying meshes and selection",
     "warning": "",
-    "wiki_url": "",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/Extra_Tools",
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Mesh"}
 
