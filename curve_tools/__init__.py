@@ -25,7 +25,7 @@ from . import Properties
 from . import Operators
 from . import auto_loft
 from . import curve_outline
-from . import add_curve_simple
+
 
 from bpy.types import (
         AddonPreferences,
@@ -179,11 +179,6 @@ class CurvePanel(bpy.types.Panel):
         UTILSDROP = scene.UTUtilsDrop
         layout = self.layout
 
-        # Object Creation
-        box1 = self.layout.box()
-        col = box1.column(align=True)
-        row = col.row(align=True)
-        row.menu("INFO_MT_simple_menu", icon="OBJECT_DATAMODE")
 
         # Z. selection
         boxSelection = self.layout.box()
@@ -393,7 +388,6 @@ def register():
                                     )
     auto_loft.register()
     curve_outline.register()
-    add_curve_simple.register()
     bpy.utils.register_class(Properties.CurveTools2SelectedObject)
     bpy.utils.register_class(CurveAddonPreferences)
     bpy.utils.register_class(CurveTools2Settings)
@@ -434,7 +428,6 @@ def unregister():
 
     auto_loft.unregister()
     curve_outline.unregister()
-    add_curve_simple.unregister()
     bpy.utils.unregister_class(CurveAddonPreferences)
     # bpy.app.handlers.scene_update_pre.remove(SceneUpdatePreHandler)
     bpy.utils.unregister_class(CurvePanel)
