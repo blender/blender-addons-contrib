@@ -4,7 +4,7 @@ from .Utils.core import *
 
 class MasterSymmetryMenu(bpy.types.Menu):
     bl_label = "Symmetry Options"
-    bl_idname = "view3d.master_symmetry_menu"
+    bl_idname = "VIEW3D_MT_sv3_master_symmetry_menu"
 
     @classmethod
     def poll(self, context):
@@ -29,10 +29,13 @@ class MasterSymmetryMenu(bpy.types.Menu):
 
 class SymmetryMenu(bpy.types.Menu):
     bl_label = "Symmetry"
-    bl_idname = "view3d.symmetry_menu"
+    bl_idname = "VIEW3D_MT_sv3_symmetry_menu"
 
     def draw(self, context):
         menu = Menu(self)
+
+        menu.add_item().label(text="Symmetry")
+        menu.add_item().separator()
 
         menu.add_item().prop(context.tool_settings.sculpt, "use_symmetry_x", toggle=True)
         menu.add_item().prop(context.tool_settings.sculpt, "use_symmetry_y", toggle=True)
@@ -41,19 +44,12 @@ class SymmetryMenu(bpy.types.Menu):
 
 class SymmetryRadialMenu(bpy.types.Menu):
     bl_label = "Radial"
-    bl_idname = "view3d.symmetry_radial_menu"
+    bl_idname = "VIEW3D_MT_sv3_symmetry_radial_menu"
 
     def draw(self, context):
         menu = Menu(self)
 
+        menu.add_item().label(text="Radial")
+        menu.add_item().separator()
+        
         menu.add_item("column").prop(context.tool_settings.sculpt, "radial_symmetry", text="", slider=True)
-
-### ------------ New hotkeys and registration ------------ ###
-def register():
-    pass
-
-def unregister():
-    pass 
-if __name__ == "__main__":
-    register()
-

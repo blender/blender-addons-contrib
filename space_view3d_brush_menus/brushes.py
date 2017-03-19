@@ -5,7 +5,7 @@ from .Utils.core import *
  
 class BrushesMenu(bpy.types.Menu):
     bl_label = "Brush"
-    bl_idname = "view3d.brushes_menu"
+    bl_idname = "VIEW3D_MT_sv3_brushes_menu"
 
     def init(self):
         if get_mode() == sculpt:
@@ -23,11 +23,12 @@ class BrushesMenu(bpy.types.Menu):
                     "MASK": 'BRUSH_MASK',
                     "NUDGE": 'BRUSH_NUDGE',
                     "PINCH": 'BRUSH_PINCH',
+                    "ROTATE": 'BRUSH_ROTATE',
                     "SCRAPE": 'BRUSH_SCRAPE',
+                    "SIMPLIFY": 'BRUSH_SUBTRACT',
                     "SMOOTH": 'BRUSH_SMOOTH',
                     "SNAKE_HOOK": 'BRUSH_SNAKE_HOOK',
-                    "THUMB": 'BRUSH_THUMB',
-                    "ROTATE": 'BRUSH_ROTATE'}
+                    "THUMB": 'BRUSH_THUMB'}
 
         elif get_mode() == vertex_paint:
             datapath = "tool_settings.vertex_paint.brush"

@@ -21,10 +21,10 @@
 """ Copyright 2011 GPL licence applies"""
 
 bl_info = {
-    "name": "Sculpt/Paint Menus",
-    "description": "",
-    "author": "Ryan Inch",
-    "version": (1, 1, 2),
+    "name": "Sculpt/Paint Brush Menus",
+    "description": "Fast access to brushes & tools in Sculpt and Paint Modes",
+    "author": "Ryan Inch (Imaginer)",
+    "version": (1, 1, 3),
     "blender": (2, 7, 8),
     "location": "Alt V in Sculpt/Paint Modes",
     "warning": '',  # used for warning icon and text in addons panel
@@ -40,7 +40,6 @@ from bl_ui.properties_paint_common import (
         brush_mask_texture_settings,
         )
 from .Utils.core import *
-from .Utils import keymodes
 
 from . import brush_menu
 from . import brushes
@@ -49,15 +48,6 @@ from . import dyntopo_menu
 from . import stroke_menu
 from . import symmetry_menu
 from . import texture_menu
-
-addon_files = [
-    brush_menu,
-    curve_menu,
-    dyntopo_menu,
-    stroke_menu,
-    symmetry_menu,
-    texture_menu,
-]
 
 # Use compact brushes menus #
 def UseBrushesLists():
@@ -111,21 +101,6 @@ class VIEW3D_MT_Brush_Selection1(bpy.types.Menu):
                 layout.template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8)
 
 
-@bpy.app.handlers.persistent
-def scene_update_post_reg(scene):
-    # remove handler
-    bpy.app.handlers.scene_update_post.remove(scene_update_post_reg)
-
-    # disable conflicting hotkeys
-    keymodes.opposingkeys(False)
-
-    # register all blender classes
-    bpy.utils.register_module(__name__)
-
-    # register all files
-    for addon_file in addon_files:
-        addon_file.register()
-
 class VIEW3D_MT_Brushes_Pref(bpy.types.AddonPreferences):
     bl_idname = __name__
 
@@ -143,23 +118,21 @@ class VIEW3D_MT_Brushes_Pref(bpy.types.AddonPreferences):
         row.prop(self, "use_brushes_lists")
 
 def register():
-    # add a handler so blender registers keymaps and stuff after everything has loaded
-    bpy.app.handlers.scene_update_post.append(scene_update_post_reg)
-
+    # register all blender classes
+    bpy.utils.register_module(__name__)
+    
+    # register brush menu
+    brush_menu.register()
 
 def unregister():
-    # unregister all files
-    for addon_file in addon_files:
-        addon_file.unregister()
-
-    # unregister all blender classes
-    bpy.utils.unregister_module(__name__)
-
-    # re-enable all the keymaps you disabled
-    keymodes.opposingkeys(True)
-
+    # unregister brush menu
+    brush_menu.unregister()
+    
     # delete all the properties you have created
     del_props()
+    
+    # unregister all blender classes
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

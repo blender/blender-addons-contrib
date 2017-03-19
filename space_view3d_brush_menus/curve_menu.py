@@ -3,7 +3,7 @@ from .Utils.core import *
 
 class BrushCurveMenu(bpy.types.Menu):
     bl_label = "Curve"
-    bl_idname = "view3d.brush_curve_menu"
+    bl_idname = "VIEW3D_MT_sv3_brush_curve_menu"
 
     @classmethod
     def poll(self, context):
@@ -33,7 +33,7 @@ class BrushCurveMenu(bpy.types.Menu):
 
 class CurvePopup(bpy.types.Operator):
     bl_label = "Adjust Curve"
-    bl_idname = "view3d.curve_popup"
+    bl_idname = "view3d.sv3_curve_popup"
     bl_options = {'REGISTER'}
 
     def draw(self, context):
@@ -55,17 +55,3 @@ class CurvePopup(bpy.types.Operator):
 
     def execute(self, context):
         return context.window_manager.invoke_popup(self, width=180)
-
-### ------------ New hotkeys and registration ------------ ###
-
-addon_keymaps = []
-
-
-def register():
-    pass
-
-def unregister():
-    pass 
-if __name__ == "__main__":
-    register()
-
