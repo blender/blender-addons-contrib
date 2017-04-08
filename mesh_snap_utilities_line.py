@@ -22,7 +22,7 @@
 bl_info = {
     "name": "Snap_Utilities_Line",
     "author": "Germano Cavalcante",
-    "version": (5, 7),
+    "version": (5, 7, 1),
     "blender": (2, 75, 0),
     "location": "View3D > TOOLS > Snap Utilities > snap utilities",
     "description": "Extends Blender Snap controls",
@@ -85,7 +85,13 @@ def location_3d_to_region_2d(region, rv3d, coord):
     height_half = region.height / 2.0
     return Vector((width_half + width_half * (prj.x / prj.w),
                    height_half + height_half * (prj.y / prj.w),
+                   prj.z / prj.w
                    ))
+
+def fac_nearest_to_segment_2d(co2v, v2d0, v2d1):
+    u = v2d1.xy - v2d0.xy
+    h = co2v.xy - v2d0.xy
+    return u.dot(h) / u.length_squared
 
 def region_2d_to_orig_and_view_vector(region, rv3d, coord, clamp=None):
     viewinv = rv3d.view_matrix.inverted()
@@ -139,165 +145,209 @@ def out_Location(rv3d, region, orig, vector):
         hit = Vector()
     return hit
 
-def snap_utilities(self,
-                context,
-                obj_matrix_world,
-                bm_geom,
-                bool_update,
-                mcursor,
-                outer_verts = False,
-                constrain = None,
-                previous_vert = None,
-                ignore_obj = None,
-                increment = 0.0):
+class SnapCache():
+        bvert = None
+        vco = None
+
+        bedge = None
+        v0 = None
+        v1 = None
+        vmid = None
+        vperp = None
+        v2d0 = None
+        v2d1 = None
+        v2dmid = None
+        v2dperp = None
+
+        bface = None
+        fmid = None
+        fnor = None
+
+        out_obj = None
+        out_obmat = None
+        out_obimat = None
+
+
+def snap_utilities(
+        cache, context, obj_matrix_world,
+        bm, mcursor,
+        outer_verts = False,
+        constrain = None,
+        previous_vert = None,
+        ignore_obj = None,
+        increment = 0.0):
 
     rv3d = context.region_data
     region = context.region
+    scene = context.scene
     is_increment = False
+    r_loc = None
+    r_type = None
+    r_len = 0.0
+    bm_geom = None
 
-    if not hasattr(self, 'snap_cache'):
-        self.snap_cache = True
-        self.type = 'OUT'
-        self.bvert = None
-        self.bedge = None
-        self.bface = None
-        self.hit = False
-        self.out_obj = None
+    if bm.select_history:
+        bm.select_history[0].select = False
+        bm.select_history.clear()
 
-    if bool_update:
-        #self.bvert = None
-        self.bedge = None
-        #self.bface = None
+    bpy.ops.view3d.select(location = (int(mcursor.x), int(mcursor.y)))
+
+    if bm.select_history:
+        bm_geom = bm.select_history[0]
 
     if isinstance(bm_geom, bmesh.types.BMVert):
-        self.type = 'VERT'
+        r_type = 'VERT'
 
-        if self.bvert != bm_geom:
-            self.bvert = bm_geom
-            self.vert = obj_matrix_world * self.bvert.co
-            #self.Pvert = location_3d_to_region_2d(region, rv3d, self.vert)
+        if cache.bvert != bm_geom:
+            cache.bvert = bm_geom
+            cache.vco = obj_matrix_world * cache.bvert.co
+            #cache.v2d = location_3d_to_region_2d(region, rv3d, cache.vco)
         
         if constrain:
-            #self.location = (self.vert-self.const).project(vector_constrain) + self.const
-            location = intersect_point_line(self.vert, constrain[0], constrain[1])
+            location = intersect_point_line(cache.vco, constrain[0], constrain[1])
             #factor = location[1]
-            self.location = location[0]
+            r_loc = location[0]
         else:
-            self.location = self.vert
+            r_loc = cache.vco
 
     elif isinstance(bm_geom, bmesh.types.BMEdge):
-        if self.bedge != bm_geom:
-            self.bedge = bm_geom
-            self.vert0 = obj_matrix_world*self.bedge.verts[0].co
-            self.vert1 = obj_matrix_world*self.bedge.verts[1].co
-            self.po_cent = (self.vert0+self.vert1)/2
-            self.Pcent = location_3d_to_region_2d(region, rv3d, self.po_cent)
-            self.Pvert0 = location_3d_to_region_2d(region, rv3d, self.vert0)
-            self.Pvert1 = location_3d_to_region_2d(region, rv3d, self.vert1)
+        if cache.bedge != bm_geom:
+            cache.bedge = bm_geom
+            cache.v0 = obj_matrix_world * bm_geom.verts[0].co
+            cache.v1 = obj_matrix_world * bm_geom.verts[1].co
+            cache.vmid = 0.5 * (cache.v0 + cache.v1)
+            cache.v2d0 = location_3d_to_region_2d(region, rv3d, cache.v0)
+            cache.v2d1 = location_3d_to_region_2d(region, rv3d, cache.v1)
+            cache.v2dmid = location_3d_to_region_2d(region, rv3d, cache.vmid)
         
-            if previous_vert and previous_vert not in self.bedge.verts:
-                    pvert_co = obj_matrix_world*previous_vert.co
-                    point_perpendicular = intersect_point_line(pvert_co, self.vert0, self.vert1)
-                    self.po_perp = point_perpendicular[0]
+            if previous_vert and previous_vert not in bm_geom.verts:
+                    pvert_co = obj_matrix_world * previous_vert.co
+                    perp_point = intersect_point_line(pvert_co, cache.v0, cache.v1)
+                    cache.vperp = perp_point[0]
                     #factor = point_perpendicular[1] 
-                    self.Pperp = location_3d_to_region_2d(region, rv3d, self.po_perp)
+                    cache.v2dperp = location_3d_to_region_2d(region, rv3d, perp_point[0])
+
+            #else: cache.v2dperp = None
 
         if constrain:
-            location = intersect_line_line(constrain[0], constrain[1], self.vert0, self.vert1)
+            location = intersect_line_line(constrain[0], constrain[1], cache.v0, cache.v1)
             if location == None:
                 is_increment = True
                 orig, view_vector = region_2d_to_orig_and_view_vector(region, rv3d, mcursor)
                 end = orig + view_vector
                 location = intersect_line_line(constrain[0], constrain[1], orig, end)
-            if location:
-                self.location = location[0]
-            else:
-                self.location = constrain[0]
+            r_loc = location[0]
         
-        elif hasattr(self, 'Pperp') and abs(self.Pperp[0]-mcursor[0]) < 10 and abs(self.Pperp[1]-mcursor[1]) < 10:
-            self.type = 'PERPENDICULAR'
-            self.location = self.po_perp
+        elif cache.v2dperp and\
+            abs(cache.v2dperp[0] - mcursor[0]) < 10 and abs(cache.v2dperp[1] - mcursor[1]) < 10:
+                r_type = 'PERPENDICULAR'
+                r_loc = cache.vperp
 
-        elif abs(self.Pcent[0]-mcursor[0]) < 10 and abs(self.Pcent[1]-mcursor[1]) < 10:
-            self.type = 'CENTER'
-            self.location = self.po_cent
+        elif abs(cache.v2dmid[0] - mcursor[0]) < 10 and abs(cache.v2dmid[1] - mcursor[1]) < 10:
+            r_type = 'CENTER'
+            r_loc = cache.vmid
 
         else:
-            if increment and previous_vert in self.bedge.verts:
+            if increment and previous_vert in cache.bedge.verts:
                 is_increment = True
-            self.type = 'EDGE'
-            orig, view_vector = region_2d_to_orig_and_view_vector(region, rv3d, mcursor)
-            end = orig + view_vector
-            self.location = intersect_line_line(self.vert0, self.vert1, orig, end)[0]
+
+            r_type = 'EDGE'
+            fac = fac_nearest_to_segment_2d(mcursor, cache.v2d0, cache.v2d1)
+            fac *= cache.v2d0.z / cache.v2d1.z #convert to fac3d
+            r_loc = cache.v0 + fac * (cache.v1 - cache.v0)
 
     elif isinstance(bm_geom, bmesh.types.BMFace):
         is_increment = True
-        self.type = 'FACE'
+        r_type = 'FACE'
 
-        if self.bface != bm_geom:
-            self.bface = bm_geom
-            self.face_center = obj_matrix_world*bm_geom.calc_center_median()
-            self.face_normal = bm_geom.normal*obj_matrix_world.inverted()
+        if cache.bface != bm_geom:
+            cache.bface = bm_geom
+            cache.fmid = obj_matrix_world*bm_geom.calc_center_median()
+            cache.fnor = bm_geom.normal*obj_matrix_world.inverted()
 
         orig, view_vector = region_2d_to_orig_and_view_vector(region, rv3d, mcursor)
         end = orig + view_vector
-        location = intersect_line_plane(orig, end, self.face_center, self.face_normal, False)
+        r_loc = intersect_line_plane(orig, end, cache.fmid, cache.fnor, False)
+
         if constrain:
             is_increment = False
-            location = intersect_point_line(location, constrain[0], constrain[1])[0]
+            r_loc = intersect_point_line(r_loc, constrain[0], constrain[1])[0]
 
-        self.location = location
-
-    else:
+    else: #OUT
         is_increment = True
-        self.type = 'OUT'
+        r_type = 'OUT'
 
         orig, view_vector = region_2d_to_orig_and_view_vector(region, rv3d, mcursor)
 
-        result, self.location, normal, face_index, self.out_obj, self.out_mat = context.scene.ray_cast(orig, view_vector, 3.3e+38)
-        if result and self.out_obj != ignore_obj:
-            self.type = 'FACE'
-            if outer_verts:
-                if face_index != -1:
+        face_index = -1
+        if cache.out_obj == None:
+            result, r_loc, normal, face_index, cache.out_obj, cache.out_obmat = scene.ray_cast(orig, view_vector)
+            if result:
+                r_type = 'FACE'
+                cache.out_obimat = cache.out_obmat.inverted()
+            else:
+                face_index = -1
+                r_loc = None
+
+        if cache.out_obj and cache.out_obj != ignore_obj:
+            if not r_loc or outer_verts:
+                location = None
+                if face_index == -1:
+                    # get the ray relative to the cache.out_obj
+                    ray_origin_obj = cache.out_obimat * orig
+                    end = orig + view_vector * 1000
+                    ray_target_obj = cache.out_obimat * end
+                    result, location, normal, face_index = cache.out_obj.ray_cast(ray_origin_obj, ray_target_obj)
+
+                if face_index == -1:
+                    cache.out_obj = None
+
+                elif outer_verts:
+                    vloc = None
                     try:
-                        verts = self.out_obj.data.polygons[face_index].vertices
+                        me = cache.out_obj.data
+                        verts = me.polygons[face_index].vertices
                         v_dist = 100
 
                         for i in verts:
-                            v_co = self.out_mat*self.out_obj.data.vertices[i].co
+                            v_co = cache.out_obmat * me.vertices[i].co
                             v_2d = location_3d_to_region_2d(region, rv3d, v_co)
-                            dist = (Vector(mcursor)-v_2d).length_squared
+                            dist = (Vector(mcursor) - v_2d.xy).length_squared
                             if dist < v_dist:
-                                is_increment = False
-                                self.type = 'VERT'
                                 v_dist = dist
-                                self.location = v_co
-                    except:
-                        print('Fail')
-            if constrain:
+                                vloc = v_co
+                    except Exception as e:
+                        print('Fail', e)
+
+                    if vloc:
+                        is_increment = False
+                        r_type = 'VERT'
+                        r_loc = vloc
+
+                if not r_loc:
+                    r_type = 'FACE'
+                    r_loc = cache.out_obmat * location
+
+        if constrain:
+            if r_loc:
                 is_increment = False
-                self.preloc = self.location
-                self.location = intersect_point_line(self.preloc, constrain[0], constrain[1])[0]
-        else:
-            if constrain:
-                location = intersect_line_line(constrain[0], constrain[1], orig, orig+view_vector)
-                if location:
-                    self.location = location[0]
-                else:
-                    self.location = constrain[0]
+                r_loc = intersect_point_line(r_loc, constrain[0], constrain[1])[0]
             else:
-                self.location = out_Location(rv3d, region, orig, view_vector)
+                r_loc = intersect_line_line(constrain[0], constrain[1], orig, end)[0]
+
+        elif not r_loc:
+            r_loc = out_Location(rv3d, region, orig, view_vector)
 
     if previous_vert:
-        pvert_co = obj_matrix_world*previous_vert.co
-        vec = self.location - pvert_co
+        pv_co = obj_matrix_world * previous_vert.co
+        vec = r_loc - pv_co
         if is_increment and increment:
-            pvert_co = obj_matrix_world*previous_vert.co
-            vec = self.location - pvert_co
-            self.len = round((1/increment)*vec.length)*increment
-            self.location = self.len*vec.normalized() + pvert_co
+            r_len = round((1 / increment) * vec.length) * increment
+            r_loc = r_len * vec.normalized() + pv_co
         else:
-            self.len = vec.length
+            r_len = vec.length
+
+    return r_loc, r_type, bm_geom, r_len
 
 def get_isolated_edges(bmvert):
     linked = [e for e in bmvert.link_edges if not e.link_faces]
@@ -365,7 +415,7 @@ def draw_line(self, obj, Bmesh, bm_geom, location):
                 link_two_faces = V1.link_faces and V2.link_faces
                 if link_two_faces:
                     self.list_faces = [f for f in V2.link_faces if f in V1.link_faces]
-                    
+
                 elif not self.list_faces:
                     faces, co2 = (V1.link_faces, V2.co.copy()) if V1.link_faces else (V2.link_faces, V1.co.copy())
                     for face in faces:
@@ -384,7 +434,7 @@ def draw_line(self, obj, Bmesh, bm_geom, location):
                 else:
                     if self.intersect:
                         facesp = bmesh.ops.connect_vert_pair(Bmesh, verts = [V1, V2], verts_exclude=Bmesh.verts)
-                        print(facesp)
+                        #print(facesp)
                     if not self.intersect or not facesp['edges']:
                         edge = Bmesh.edges.new([V1, V2])
                         self.list_edges.append(edge)
@@ -511,12 +561,12 @@ class SnapUtilitiesLine(bpy.types.Operator):
     def draw_callback_px(self, context):
         # draw 3d point OpenGL in the 3D View
         bgl.glEnable(bgl.GL_BLEND)
+        bgl.glDisable(bgl.GL_DEPTH_TEST)
 
         if self.vector_constrain:
             vc = self.vector_constrain
             if hasattr(self, 'preloc') and self.type in {'VERT', 'FACE'}:
                 bgl.glColor4f(1.0,1.0,1.0,0.5)
-                bgl.glDepthRange(0,0)
                 bgl.glPointSize(5)
                 bgl.glBegin(bgl.GL_POINTS)
                 bgl.glVertex3f(*self.preloc)
@@ -542,17 +592,15 @@ class SnapUtilitiesLine(bpy.types.Operator):
                 Color4f = self.center_color
             elif self.type == 'PERPENDICULAR':
                 Color4f = self.perpendicular_color
-                
+
         bgl.glColor4f(*Color4f)
-        bgl.glDepthRange(0,0)
         bgl.glPointSize(10)
         bgl.glBegin(bgl.GL_POINTS)
         bgl.glVertex3f(*self.location)
         bgl.glEnd()
-        bgl.glDisable(bgl.GL_BLEND)
 
         # draw 3d line OpenGL in the 3D View
-        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthRange(0,0.9999)
         bgl.glColor4f(1.0, 0.8, 0.0, 1.0)    
         bgl.glLineWidth(2)    
@@ -572,8 +620,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
         bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
     
     def modal(self, context, event):
-        if context.area:
-            context.area.tag_redraw()
+        context.area.tag_redraw()
             
         if event.ctrl and event.type == 'Z' and event.value == 'PRESS':
             bpy.ops.ed.undo()
@@ -591,42 +638,27 @@ class SnapUtilitiesLine(bpy.types.Operator):
             if self.rv3d.view_matrix != self.rotMat:
                 self.rotMat = self.rv3d.view_matrix.copy()
                 self.bool_update = True
+                self.cache.bedge = None
             else:
                 self.bool_update = False
 
-            if self.bm.select_history:
-                self.geom = self.bm.select_history[0]
-            else: #See IndexError or AttributeError:
-                self.geom = None
-
-            x, y = (event.mouse_region_x, event.mouse_region_y)
-            if self.geom:
-                self.geom.select = False
-                self.bm.select_history.clear()
-
-            bpy.ops.view3d.select(location=(x, y))
+            mval = Vector((event.mouse_region_x, event.mouse_region_y))
 
             if self.list_verts != []:
                 previous_vert = self.list_verts[-1]
             else:
                 previous_vert = None
-            
-            
-            outer_verts = self.outer_verts and not self.keytab
 
-            snap_utilities(self, 
-                context, 
-                self.obj_matrix,
-                self.geom,
-                self.bool_update,
-                (x, y),
-                outer_verts = self.outer_verts,
-                constrain = self.vector_constrain,
-                previous_vert = previous_vert,
-                ignore_obj = self.obj,
-                increment = self.incremental,
-                )
-            
+            outer_verts = self.outer_verts and not self.keytab
+            self.location, self.type, self.geom, self.len = snap_utilities(
+                    self.cache, context, self.obj_matrix,
+                    self.bm, mval,
+                    outer_verts = self.outer_verts,
+                    constrain = self.vector_constrain,
+                    previous_vert = previous_vert,
+                    ignore_obj = self.obj,
+                    increment = self.incremental
+            )
             if self.snap_to_grid and self.type == 'OUT':
                 loc = self.location/self.rd
                 self.location = Vector((round(loc.x),
@@ -635,7 +667,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
 
             if self.keyf8 and self.list_verts_co:
                 lloc = self.list_verts_co[-1]
-                orig, view_vec = region_2d_to_orig_and_view_vector(self.region, self.rv3d, (x, y))
+                orig, view_vec = region_2d_to_orig_and_view_vector(self.region, self.rv3d, mval)
                 location = intersect_point_line(lloc, orig, (orig+view_vec))
                 vec = (location[0] - lloc)
                 ax, ay, az = abs(vec.x),abs(vec.y),abs(vec.z)
@@ -792,6 +824,7 @@ class SnapUtilitiesLine(bpy.types.Operator):
             self.obj = bpy.context.active_object
             self.obj_matrix = self.obj.matrix_world.copy()
             self.bm = bmesh.from_edit_mesh(self.obj.data)
+            self.cache = SnapCache()
             
             self.location = Vector()
             self.list_verts = []
