@@ -68,3 +68,7 @@ class SEQExportStrip(bpy.types.Operator):
         winman = context.window_manager
         winman.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+classes = (
+    SEQExportStrip,
+)
