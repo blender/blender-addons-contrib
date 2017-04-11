@@ -147,6 +147,8 @@ class VIEW3D_PT_properties_stored_views(bpy.types.Panel):
         col.prop_enum(stored_views, "mode", 'VIEW')
         row = layout.row()
         row.operator("view3d.camera_to_view", text="Camera To view")
+        row.operator("stored_views.newcamera", text="New Camera To view")
+        
         row = col.row(align=True)
         row.prop_enum(stored_views, "mode", 'POV')
         row.prop_enum(stored_views, "mode", 'LAYERS')
@@ -208,3 +210,22 @@ class VIEW3D_PT_properties_stored_views(bpy.types.Panel):
                                 text="", icon="REC").index = i
                 subrow.operator("stored_views.delete",
                                 text="", icon="PANEL_CLOSE").index = i
+
+        layout = self.layout
+        scene = context.scene
+        layout.label("Camera Selector")
+        cameras = sorted([o for o in scene.objects if o.type == 'CAMERA'],
+                         key=lambda o: o.name)
+
+        if len(cameras) > 0:
+            for camera in cameras:
+                row = layout.row(align=True)
+                btn = row.operator("cameraselector.set_scene_camera",
+                                   text=camera.name, icon='OUTLINER_DATA_CAMERA')
+                btn.chosen_camera = camera.name
+
+                btn = row.operator("cameraselector.add_camera_marker",
+                                   text='', icon='MARKER')
+                btn.chosen_camera = camera.name
+        else:
+            layout.label("No cameras in this scene")

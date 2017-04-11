@@ -60,7 +60,7 @@ class IO_Utils():
         dump["info"]["script"] = bl_info['name']
         dump["info"]["script_version"] = bl_info['version']
         dump["info"]["version"] = bpy.app.version
-        dump["info"]["build_revision"] = bpy.app.build_revision
+#        dump["info"]["build_revision"] = bpy.app.build_revision
         dump["info"]["preset_name"] = name
 
         # get current stored views settings
@@ -121,13 +121,13 @@ class IO_Utils():
         # save to file
         filepath = filepath
         filepath = bpy.path.ensure_ext(filepath, '.blsv')
-        file = gzip.open(filepath, mode='w')
-        pickle.dump(dump, file)
+        file = gzip.open(filepath, mode='wb')
+        pickle.dump(dump, file, protocol=pickle.HIGHEST_PROTOCOL)
         file.close()
 
     @staticmethod
     def stored_views_apply_preset(filepath, replace=True):
-        file = gzip.open(filepath, mode='r')
+        file = gzip.open(filepath, mode='rb')
         dump = pickle.load(file)
         file.close()
 

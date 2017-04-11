@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Stored Views",
     "description": "Save and restore User defined views, pov, layers and display configs.",
-    "author": "nfloyd",
-    "version": (0, 3, 3, 'beta'),
+    "author": "nfloyd, Francesco Siddi",
+    "version": (0, 3, 3,),
     "blender": (2, 71, 0),
     "location": "View3D > Properties > Stored Views",
     "warning": 'beta release, single view only',
