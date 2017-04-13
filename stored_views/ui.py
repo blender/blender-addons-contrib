@@ -1,6 +1,7 @@
+'''
 import logging
 module_logger = logging.getLogger(__name__)
-
+'''
 
 import bpy
 import blf
@@ -28,11 +29,6 @@ def init_draw(context=None):
 
 
 def _draw_callback_px(self, context):
-
-    try:
-        print("SELF", self)
-    except:
-        print("red err?")
 
     r_width = context.region.width
     r_height = context.region.height
@@ -104,13 +100,13 @@ class VIEW3D_stored_views_draw(bpy.types.Operator):
                     elif data.mode == 'DISPLAY':
                         is_modified = core.Display.is_modified(context, sv)
                     if is_modified:
-                        module_logger.debug('view modified - index: %s name: %s' % (data.current_index, sv.name))
+#                        module_logger.debug('view modified - index: %s name: %s' % (data.current_index, sv.name))
                         self.view_name = ""
                         stored_views.view_modified = is_modified
                 return {"PASS_THROUGH"}
 
         else:
-            module_logger.debug('exit')
+#            module_logger.debug('exit')
             context.window_manager["stored_views_osd"] = False
             VIEW3D_stored_views_draw.handle_remove(context)
             return {'FINISHED'}
@@ -133,7 +129,7 @@ class VIEW3D_PT_properties_stored_views(bpy.types.Panel):
     bl_region_type = "UI"
 
     def draw(self, context):
-        logger = logging.getLogger('%s Properties panel' % __name__)
+#        logger = logging.getLogger('%s Properties panel' % __name__)
         layout = self.layout
 
         if bpy.ops.view3d.stored_views_initialize.poll():

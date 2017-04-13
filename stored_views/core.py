@@ -1,6 +1,7 @@
+'''
 import logging
 module_logger = logging.getLogger(__name__)
-
+'''
 import hashlib
 
 import bpy
@@ -8,7 +9,7 @@ import bpy
 
 class StoredView():
     def __init__(self, mode, index=None):
-        self.logger = logging.getLogger('%s.StoredView' % __name__)
+#        self.logger = logging.getLogger('%s.StoredView' % __name__)
         self.scene = bpy.context.scene
         self.view3d = bpy.context.space_data
         self.index = index
@@ -20,12 +21,12 @@ class StoredView():
         else:
             stored_view = self.data_store.get(self.index)
         self.from_v3d(stored_view)
-        self.logger.debug('index: %s name: %s' % (self.data_store.current_index, stored_view.name))
+#        self.logger.debug('index: %s name: %s' % (self.data_store.current_index, stored_view.name))
 
     def set(self):
         stored_view = self.data_store.get(self.index)
         self.update_v3d(stored_view)
-        self.logger.debug('index: %s name: %s' % (self.data_store.current_index, stored_view.name))
+#        self.logger.debug('index: %s name: %s' % (self.data_store.current_index, stored_view.name))
 
     def from_v3d(self, stored_view):
         raise NotImplementedError("Subclass must implement abstract method")
@@ -41,7 +42,7 @@ class StoredView():
 class POV(StoredView):
     def __init__(self, index=None):
         super().__init__(mode='POV', index=index)
-        self.logger = logging.getLogger('%s.POV' % __name__)
+#        self.logger = logging.getLogger('%s.POV' % __name__)
 
     def from_v3d(self, stored_view):
         view3d = self.view3d
@@ -120,17 +121,17 @@ class POV(StoredView):
     @staticmethod
     def is_modified(context, stored_view):
         # TODO: check for others param, currently only perspectiveand perspective_matrix are checked
-        logger = logging.getLogger('%s.POV' % __name__)
+#        logger = logging.getLogger('%s.POV' % __name__)
         view3d = context.space_data
         region3d = view3d.region_3d
         if region3d.view_perspective != stored_view.perspective:
-            logger.debug('view_perspective')
+#            logger.debug('view_perspective')
             return True
 
         md5 = POV._get_perspective_matrix_md5(region3d)
         if (md5 != stored_view.perspective_matrix_md5 and
             region3d.view_perspective != "CAMERA"):
-            logger.debug('perspective_matrix')
+#            logger.debug('perspective_matrix')
             return True
 
         return False
@@ -144,7 +145,7 @@ class POV(StoredView):
 class Layers(StoredView):
     def __init__(self, index=None):
         super().__init__(mode='LAYERS', index=index)
-        self.logger = logging.getLogger('%s.Layers' % __name__)
+#        self.logger = logging.getLogger('%s.Layers' % __name__)
 
     def from_v3d(self, stored_view):
         view3d = self.view3d
@@ -162,19 +163,19 @@ class Layers(StoredView):
 
     @staticmethod
     def is_modified(context, stored_view):
-        logger = logging.getLogger('%s.Layers' % __name__)
+#        logger = logging.getLogger('%s.Layers' % __name__)
         if stored_view.lock_camera_and_layers != context.space_data.lock_camera_and_layers:
-            logger.debug('lock_camera_and_layers')
+#            logger.debug('lock_camera_and_layers')
             return True
         if stored_view.lock_camera_and_layers == True:
             for i in range(20):
                 if stored_view.scene_layers[i] != context.scene.layers[i]:
-                    logger.debug('scene_layers[%s]' % (i, ))
+#                    logger.debug('scene_layers[%s]' % (i, ))
                     return True
         else:
             for i in range(20):
                 if stored_view.view_layers[i] != context.space_data.view3d.layers[i]:
-                    logger.debug('view_layers[%s]' % (i ,))
+#                    logger.debug('view_layers[%s]' % (i ,))
                     return True
         return False
 
@@ -182,7 +183,7 @@ class Layers(StoredView):
 class Display(StoredView):
     def __init__(self, index=None):
         super().__init__(mode='DISPLAY', index=index)
-        self.logger = logging.getLogger('%s.Display' % __name__)
+#        self.logger = logging.getLogger('%s.Display' % __name__)
 
     def from_v3d(self, stored_view):
         view3d = self.view3d
@@ -220,24 +221,24 @@ class Display(StoredView):
 
     @staticmethod
     def is_modified(context, stored_view):
-        logger = logging.getLogger('%s.Display' % __name__)
+ #       logger = logging.getLogger('%s.Display' % __name__)
         view3d = context.space_data
         excludes = ["material_mode", "quad_view", "lock_rotation", "show_sync_view", "use_box_clip", "name"]
         for k, v in stored_view.items():
             if k not in excludes:
                 if getattr(view3d, k) != getattr(stored_view, k):
-                    logger.debug('%s' % (k ,))
+#                    logger.debug('%s' % (k ,))
                     return True
 
         if stored_view.material_mode != context.scene.game_settings.material_mode:
-            logger.debug('material_mode')
+#            logger.debug('material_mode')
             return True
 
 
 class View(StoredView):
     def __init__(self, index=None):
         super().__init__(mode='VIEW', index=index)
-        self.logger = logging.getLogger('%s.View' % __name__)
+#        self.logger = logging.getLogger('%s.View' % __name__)
         self.pov = POV()
         self.layers = Layers()
         self.display = Display()

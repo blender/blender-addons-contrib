@@ -39,6 +39,7 @@ bl_info = {
 # TODO: list reordering
 
 # logging setup
+'''
 import logging
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ hdlr = logging.StreamHandler()
 fmtr = logging.Formatter('%(asctime)s %(levelname)s %(name)s : %(funcName)s - %(message)s')
 hdlr.setFormatter(fmtr)
 logger.addHandler(hdlr)
-
+'''
 
 if "bpy" in locals():
     import imp
