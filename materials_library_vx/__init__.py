@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Material Library VX",
     "author": "Mackraken",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (2, 77, 0),
     "location": "Properties > Material",
     "description": "Material Library VX",
@@ -716,6 +716,7 @@ bpy.types.Scene.matlib = PointerProperty(type = matlibProperties)
 class matlibLibsMenu(bpy.types.Menu):
     bl_idname = "matlib.libs_menu"
     bl_label = "Libraries Menu"
+    bl_description = "Main Categories Menu"
 
     def draw(self, context):
         layout = self.layout
@@ -727,6 +728,7 @@ class matlibLibsMenu(bpy.types.Menu):
 class matlibCatsMenu(bpy.types.Menu):
     bl_idname = "matlib.cats_menu"
     bl_label = "Categories Menu"
+    bl_description = "Sub Categories Menu"
 
     def draw(self, context):
         layout = self.layout
@@ -1011,11 +1013,17 @@ class matlibvxPanel(bpy.types.Panel):
             row = layout.row(align=True)
             text = "All"
             if matlib.current_category: text = matlib.current_category
+            col = self.layout.column(align=True)
+            row = col.row(align=True)
             row.menu("matlib.cats_menu",text=text)
-            row.prop(matlib, "filter", icon="FILTER", text="")
-            row.operator("matlib.operator", icon="FILE_PARENT", text="").cmd="FILTER_SET"
-            row.operator("matlib.operator", icon="ZOOMIN", text="").cmd="FILTER_ADD"
-            row.operator("matlib.operator", icon="ZOOMOUT", text="").cmd="FILTER_REMOVE"
+            col = self.layout.column(align=True)
+            row = col.row(align=True)
+            row.prop(matlib, "filter", icon="FILTER", text="Filter Category")
+            row.operator("matlib.operator", icon="FILE_PARENT", text="Set Filter").cmd="FILTER_SET"
+            col = self.layout.column(align=True)
+            row = col.row(align=True)
+            row.operator("matlib.operator", icon="ZOOMIN", text="Add Filter").cmd="FILTER_ADD"
+            row.operator("matlib.operator", icon="ZOOMOUT", text="Remove Filter").cmd="FILTER_REMOVE"
 			
 classes = [matlibvxPanel, matlibOperator, matlibLibsMenu, matlibCatsMenu]
 #print(bpy.context.scene)
