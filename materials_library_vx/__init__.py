@@ -1,4 +1,4 @@
-# #####BEGIN GPL LICENSE BLOCK #####
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -14,7 +14,7 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# #####END GPL LICENSE BLOCK #####
+# ##### END GPL LICENSE BLOCK #####
 # contributed to by meta-androcto
 
 bl_info = {
@@ -29,131 +29,178 @@ bl_info = {
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Material"}
 
-import zipfile, urllib.request, os, sys, re
-import csv, codecs
+# TODO: translate comments, cleanup imports, remove dead code, fix xml set fiter crash
+
+import bpy
+import json
+import zipfile
+import urllib.request
+import os
+import sys
+import re
+import csv
+import codecs
 import collections
 import subprocess
 import webbrowser
-import bpy, json
-from bpy.props import *
+from bpy.types import (
+        Operator,
+        Menu,
+        Panel,
+        PropertyGroup,
+        AddonPreferences,
+        )
+from bpy.props import (
+        BoolProperty,
+        CollectionProperty,
+        EnumProperty,
+        IntProperty,
+        StringProperty,
+        PointerProperty,
+        )
 
-print (30*"-")
 
 dev = False
-
 matlib_path = os.path.dirname(__file__)
 
 if dev:
     matlib_path = r"D:\Blender Foundation\Blender\2.72\scripts\addons\matlib"
 
-##debug print variables
+
+# debug print variables
 def dd(*args, dodir=False):
     if dev:
         if dodir:
             print(dir(*args))
         print(*args)
 
-#Regular Functions
+
+# add-on settings
+def addon_settings():
+    # separate function just for more convience
+    addon = bpy.context.user_preferences.addons[__name__]
+    compact = addon.preferences.use_brushes_menu_type
+
+    return compact
+
+
+# Regular Functions
 def winpath(path):
     return path.replace("\\", "\\\\")
-        
+
+
 def update_search_index(self, context):
     search = self.search
     for i, it in enumerate(self.materials):
-        if it.name==search:
+        if it.name == search:
             self.mat_index = i
             break
-        
+
+
 def check_path(path):
-# isabs sometimes returns true on relpaths
+    # isabs sometimes returns true on relpaths
     if path and os.path.exists(path) and os.path.isfile(path) and os.path.isabs(path):
         try:
             if bpy.data.filepath and bpy.path.relpath(bpy.data.filepath) == bpy.path.relpath(path):
                 return False
         except:
             pass
-# paths are on different drives. No problem then
+        # paths are on different drives. No problem then
         return True
     return False
+
 
 def update_lib_index(self, context):
     self.load_library()
 
+
 def update_cat_index(self, context):
-    dd("cat index:", self.current_category, self.filter)
+    dd("cat index:", self.current_category, self.filters)
 
-    if self.filter:
-        self.filter = True
+    if self.filters:
+        self.filters = True
 
-                
+
 def update_filter(self, context):
-    
-    dd("filter:", self.filter, self.cat_index, self.current_category)
-#	index = self.cat_index
-#	
-#	if self.filter:
-#		cat = self.current_category
-#	else:
-#		cat = ""
-#		
-#	self.current_library.filter = cat
+
+    dd("filter:", self.filters, self.cat_index, self.current_category)
+    """
+    index = self.cat_index
+
+    if self.filters:
+        cat = self.current_category
+    else:
+        cat = ""
+
+    self.current_library.filters = cat
+    """
     self.update_list()
-            
+
+
 def check_index(collection, index):
     count = len(collection)
-    return count>0 and index<count and index>=0
+    return count > 0 and index < count and index >= 0
+
 
 def send_command(cmd, output="sendmat.py"):
-        bin = winpath(bpy.app.binary_path)
-        scriptpath = winpath(os.path.join(matlib_path, output))
-        
-        with open(scriptpath, "w") as f:
-            f.write(cmd)
-        
-        import subprocess
+    bin = winpath(bpy.app.binary_path)
+    scriptpath = winpath(os.path.join(matlib_path, output))
 
-        if output == "createlib.py":
-            code = subprocess.call([bin, "-b", "-P", scriptpath])
-        else:
-            libpath = winpath(bpy.context.scene.matlib.current_library.path)
-            code = subprocess.call([bin, "-b", libpath, "-P", scriptpath])
-            
-# code returns 0 if ok, 1 if not
-        return abs(code-1)
-    
+    with open(scriptpath, "w") as f:
+        f.write(cmd)
+
+    if output == "createlib.py":
+        code = subprocess.call([bin, "-b", "-P", scriptpath])
+    else:
+        libpath = winpath(bpy.context.scene.matlib.current_library.path)
+        code = subprocess.call([bin, "-b", libpath, "-P", scriptpath])
+
+    # code returns 0 if ok, 1 if not
+    return abs(code - 1)
+
+
 def list_materials(path, sort=False):
     list = []
     with bpy.data.libraries.load(path) as (data_from, data_to):
         for mat in data_from.materials:
             list.append(mat)
-            
-    if sort: list = sorted(list)
+
+    if sort:
+        list = sorted(list)
     return list
 
+
 # category properties (none atm)
-class EmptyGroup(bpy.types.PropertyGroup):
+class EmptyGroup(PropertyGroup):
     pass
+
+
 bpy.utils.register_class(EmptyGroup)
 
-class matlibMaterials(bpy.types.PropertyGroup):
+
+class matlibMaterials(PropertyGroup):
     category = StringProperty()
+
+
 bpy.utils.register_class(matlibMaterials)
 
-#bpy.types.Scene.matlib_categories = CollectionProperty(type=EmptyGroup)
 
-### CATEGORIES
+# bpy.types.Scene.matlib_categories = CollectionProperty(type=EmptyGroup)
+
+
+# CATEGORIES
 class Categories():
-    
-    #cats = bpy.context.scene.matlib.categories
-    
+
+    # cats = bpy.context.scene.matlib.categories
+
     def __init__(self, cats):
         self.cats = cats
-        
+
     def save(self):
         scn = bpy.context.scene
         cats = set([cat.name for cat in self.cats])
         libpath = bpy.context.scene.matlib.current_library.path
-        
+
         cmd = """
 print(30*"+")
 import bpy
@@ -170,13 +217,13 @@ for cat in cats:
             cmd += """
 cat = cats.add()
 cat.name = "%s" """ % cat.capitalize()
-        cmd +='''
+        cmd += '''
 bpy.ops.wm.save_mainfile(filepath="%s", check_existing=False, compress=True)''' % winpath(libpath)
 
         return send_command(cmd, "save_categories.py")
 
     def read(self, pull=True):
-        #mandar a imprimir el listado
+        # mandar a imprimir el listado
         catfile = winpath(os.path.join(matlib_path, "categories.txt"))
         cmd = """
 import bpy, json
@@ -191,31 +238,32 @@ for cat in bpy.context.scene.matlib_categories:
         if "category" in mat.keys() and mat['category'] == cat.name:
             materials.append(mat.name)
     cats.append([cat.name, materials])
-with open("%s", "w") as f: 
+with open("%s", "w") as f:
     f.write(json.dumps(cats, sort_keys=True, indent=4))
 """ % catfile
-        if pull: send_command(cmd)
-        
-        #leer el fichero
+        if pull:
+            send_command(cmd)
+
+        # leer el fichero
         with open(catfile, "r") as f:
             cats = json.loads(f.read())
 
         dd(cats)
-        
-#		#refrescar categorias
-#		for cat in self.cats:
-#			self.cats.remove(0)
-#		
-#		for cat in cats:
-#			item = self.cats.add()
-#			item.name = cat
-#			
+        """
+        # refrescar categorias
+        for cat in self.cats:
+           self.cats.remove(0)
+
+        for cat in cats:
+           item = self.cats.add()
+           item.name = cat
+        """
         return cats
-    
+
     def view(self):
         for cat in self.cats:
             dd(cat.name)
-            
+
     def add(self, name):
         if name and name not in [item.name for item in self.cats]:
             name = name.strip().capitalize()
@@ -226,130 +274,178 @@ with open("%s", "w") as f:
                 return True
         else:
             dd("duplicated?")
-            
+
     def remove(self, index):
         self.cats.remove(index)
         self.save()
 
+
 class Library():
-    
+
     def __init__(self, name):
         self.name = name
         self.path = os.path.join(matlib_path, name)
-#	@property
-#	def default(self):
-#		return self.name == default_library
-    
+    """
+    @property
+    def default(self):
+        return self.name == default_library
+    """
     @property
     def shortname(self):
-#		if self.default:
-#			return "Default Library"	
+        # if self.default:
+            # return "Default Library"
         return bpy.path.display_name(self.name).title()
-    
-        
+
     def __repr__(self):
         return str(type(self).__name__) + "('" + self.name + "')"
-    
-#bpy.utils.register_class(Library)
+
+
+# bpy.utils.register_class(Library)
 
 def get_libraries():
     libs = [Library(f) for f in os.listdir(matlib_path) if f[-5::] == "blend"]
     return sorted(libs, key=lambda x: bpy.path.display_name(x.name))
 
+
 libraries = get_libraries()
 
-### MATLIB CLASS
-class matlibProperties(bpy.types.PropertyGroup):
-    
-# MATLIB PROPERTIES
 
-# libraries are read from the xml
-    lib_index = IntProperty(min = -1, default = -1, update=update_lib_index)
-    all_materials = CollectionProperty(type = matlibMaterials)
-    materials = CollectionProperty(type = matlibMaterials)
-    mat_index = IntProperty(min = -1, default = -1)
-    categories = CollectionProperty(type = EmptyGroup)
-    cat_index = IntProperty(min = -1, default = -1, update=update_cat_index)
-    search = StringProperty(name="Search", description="Find By Name", update=update_search_index)
+# MATLIB CLASS
+class matlibProperties(PropertyGroup):
 
-# MATLIB OPTIONS
-# link: import material linked
-# force import:
-#   if disable it wont import a material if its present in the scene,(avoid duplicates)
-#   instead it will apply the scene material rather than importing the same one from the library
-# filter: enable or disable category filter
-# last selected: store the last selected object to regain focus when apply a material.
-# hide_search: Hides Search Field
-    link = BoolProperty(name = "Linked", description="Link the material", default = False)
-    force_import = BoolProperty(name = "Force Import", description="Use Scene Materials by default", default = False)
-    filter = BoolProperty(name = "Filter",description="Filter Categories", default = False, update=update_filter)
-    show_prefs = BoolProperty(name = "show_prefs", description="Preferences", default = False)
-    last_selected = StringProperty(name="Last Selected")
-    hide_search = BoolProperty(name="Hide Search", description="Use Blender Search Only")
-#   import_file = StringProperty("Import File", subtype="FILE_PATH")
-#   path = os.path.dirname(path)
-#   Development only
-    
+    # MATLIB PROPERTIES
+
+    # libraries are read from the xml
+    lib_index = IntProperty(
+                    min=-1,
+                    default=-1,
+                    update=update_lib_index
+                    )
+    all_materials = CollectionProperty(
+                    type=matlibMaterials
+                    )
+    materials = CollectionProperty(
+                    type=matlibMaterials
+                    )
+    mat_index = IntProperty(
+                    min=-1, default=-1
+                    )
+    categories = CollectionProperty(
+                    type=EmptyGroup
+                    )
+    cat_index = IntProperty(
+                    min=-1,
+                    default=-1,
+                    update=update_cat_index
+                    )
+    search = StringProperty(
+                    name="Search",
+                    description="Find By Name",
+                    update=update_search_index
+                    )
+
+    # MATLIB OPTIONS
+    # link: import material linked
+    # force import:
+    #   if disable it wont import a material if its present in the scene,(avoid duplicates)
+    #   instead it will apply the scene material rather than importing the same one from the library
+    # filters: enable or disable category filter
+    # last selected: store the last selected object to regain focus when apply a material.
+    # hide_search: Hides Search Field
+
+    link = BoolProperty(
+                    name="Linked",
+                    description="Link the material",
+                    default=False
+                    )
+    force_import = BoolProperty(
+                    name="Force Import",
+                    description="Use Scene Materials by default",
+                    default=False
+                    )
+    filters = BoolProperty(
+                    name="Filter",
+                    description="Filter Categories",
+                    default=False,
+                    update=update_filter
+                    )
+    show_prefs = BoolProperty(
+                    name="show_prefs",
+                    description="Preferences",
+                    default=False
+                    )
+    last_selected = StringProperty(
+                    name="Last Selected"
+                    )
+    hide_search = BoolProperty(
+                    name="Hide Search",
+                    description="Use Blender Search Only"
+                    )
+
+    # import_file = StringProperty("Import File", subtype="FILE_PATH")
+    # path = os.path.dirname(path)
+    # Development only
+
     @property
     def libraries(self):
         global libraries
         return libraries
-    
+
     @property
     def current_library(self):
         if check_index(libraries, self.lib_index):
             return libraries[self.lib_index]
+
     @property
     def active_material(self):
         if check_index(self.materials, self.mat_index):
-            return self.materials[self.mat_index]	
-        
+            return self.materials[self.mat_index]
+
     def reload(self):
         dd("loading libraries")
-        
+
         if self.current_library:
             self.load_library()
         elif self.lib_index == -1 and len(libraries):
             self.lib_index = 0
-        
-    
-    def add_library(self, path, setEnabled = False):
-# sanitize path
+
+    def add_library(self, path, setEnabled=False):
+        # sanitize path
         ext = os.path.extsep + "blend"
         if not path.endswith(ext):
             path += ext
-            
+
         if check_path(path):
-#			if path == default_library:
-#				return 'ERROR', "Cannot add default library."				
-            #if path in [lib.path for lib in self.libraries]:
+            # if path == default_library:
+            #   return 'ERROR', "Cannot add default library."
+            # if path in [lib.path for lib in self.libraries]:
             return 'ERROR', "Library already exists."
         else:
             dd("Can't find " + path)
-# create file
+            # create file
             cmd = '''
 import bpy
 bpy.ops.wm.save_mainfile(filepath="%s", check_existing=False, compress=True)''' % winpath(path)
             if not (send_command(cmd, "createlib.py")):
                 return 'ERROR', "There was an error creating the file. Make sure you run Blender with admin rights."
-            
-#           self.libraries = sorted(self.libraries, key=lambda lib: sortlibs(lib))
+
+            # self.libraries = sorted(self.libraries, key=lambda lib: sortlibs(lib))
             dd("adding library", path)
             global libraries
             libraries = get_libraries()
             return "INFO", "Library added"
-        
+
     def load_library(self):
         self.empty_list(True)
         if not self.current_library:
             return 'ERROR', "Library not found!."
-            
+
         path = self.current_library.path
-    
+
         dd("loading library", self.lib_index, path)
-        
+
         if check_path(path):
-            self.filter = False
+            self.filters = False
             self.cat_index = -1
 
             categories = Categories(self.categories)
@@ -358,7 +454,7 @@ bpy.ops.wm.save_mainfile(filepath="%s", check_existing=False, compress=True)''' 
 
             for mat in self.all_materials:
                 self.all_materials.remove(0)
-                
+
             for mat in list_materials(self.current_library.path, True):
                 item = self.all_materials.add()
                 item.name = mat
@@ -366,78 +462,80 @@ bpy.ops.wm.save_mainfile(filepath="%s", check_existing=False, compress=True)''' 
                     if mat in cat[1]:
                         item.category = cat[0]
                         break
-                
+
             self.update_list()
         else:
-            return 'ERROR', "Library not found!."
-    
+            return 'ERROR', "Library not found!"
+
     def update_list(self):
-### THIS HAS TO SORT
+        # THIS HAS TO SORT
         self.empty_list()
         if self.current_library:
             current_category = self.current_category
-#           sorteditems = sorted(self.all_materials, key=lambda x: x.name)
+            # sorteditems = sorted(self.all_materials, key=lambda x: x.name)
             for mat in self.all_materials:
-#               print(current_category, mat.category)
-                if not self.filter or (self.filter and mat.category == current_category) or current_category == "":
+                # print(current_category, mat.category)
+                if not self.filters or (self.filters and mat.category == current_category) or \
+                   current_category == "":
                     item = self.materials.add()
                     item.name = mat.name
                     item.category = mat.category
-                
-    def empty_list(self, cats = False):
-#       self.mat_index = -1
+
+    def empty_list(self, cats=False):
+        # self.mat_index = -1
         for it in self.materials:
             self.materials.remove(0)
-        
+
         if cats:
             for c in self.categories:
                 self.categories.remove(0)
-    
-    ### CATEGORIES
+
+    # CATEGORIES
     @property
     def current_category(self):
-#       print(self.mat_index)
+        # print(self.mat_index)
         if check_index(self.categories, self.cat_index):
-            return self.categories[self.cat_index].name			
+            return self.categories[self.cat_index].name
         return ""
 
     def load_categories(self):
-        
+
         for c in self.categories:
             self.categories.remove(0)
-        
+
         for c in self.cats:
             cat = self.categories.add()
             cat.name = c[0]
-                
+
     def add_category(self, name):
         if name:
             name = name.strip().title()
             dd("add category", name)
             categories = Categories(self.categories)
-            
+
             categories.add(name)
-                        
-#			if lib:
-#				cat = xml.find("category", name, lib, create = True)
-#				self.load_categories()
-#			else:
-#				return 'ERROR', "Library not found"
+            """
+            if lib:
+                cat = xml.find("category", name, lib, create = True)
+                self.load_categories()
+            else:
+                return 'ERROR', "Library not found"
+            """
     def remove_category(self):
         dd("removing category", self.current_category)
         categories = Categories(self.categories)
         categories.remove(self.cat_index)
-        
+
     def set_category(self):
         mat = self.active_material
-#       dd(lib, mat, self.current_category)
+        # dd(lib, mat, self.current_category)
         if mat:
-# set mat to category
-            if self.cat_index>-1:
+            # set mat to category
+            if self.cat_index > -1:
                 dd(self.current_category)
                 cat = self.current_category
                 if cat == self.all_materials[self.mat_index].category:
-                    return 
+                    return
                 cmd = """
 import bpy
 try:
@@ -452,27 +550,29 @@ if mat:
                     self.all_materials[self.mat_index].category = cat
                     mat.category = cat
                 else:
-                    return "WARNING", "There was an error."		
-                 
-#				catnode = xml.find("category", self.current_category, lib, True)
-#				matnode = xml.find("material", mat.name, lib)
-#				if matnode:
-#					catnode.appendChild(matnode)
-#				else:
-#					matnode = xml.find("material", mat.name, catnode, True)
-#				xml.save()
-#				mat.category = cat
-#				self.current_library.materials[self.mat_index].category = cat
-# remove mat from any category
+                    return "WARNING", "There was an error."
+
+                # catnode = xml.find("category", self.current_category, lib, True)
+                # matnode = xml.find("material", mat.name, lib)
+                # if matnode:
+                #     catnode.appendChild(matnode)
+                # else:
+                #     matnode = xml.find("material", mat.name, catnode, True)
+                # xml.save()
+                # mat.category = cat
+                # self.current_library.materials[self.mat_index].category = cat
+            # remove mat from any category
             else:
+                """
                 matnode = xml.find("material", mat.name, lib)
                 if matnode:
                     xml.deleteNode(matnode)
-                mat.category = ""		
+                """
+                mat.category = ""
                 self.current_library.materials[self.mat_index].category = ""
         else:
             return "WARNING", "Select a material"
-        
+
     def get_material(self, name, link=False):
         with bpy.data.libraries.load(self.current_library.path, link, False) as (data_from, data_to):
             data_to.materials = [name]
@@ -480,35 +580,37 @@ if mat:
             print(name + " linked.")
         else:
             print(name + " appended.")
-            
+
     def apply(self, context, preview=False):
         name = self.active_material.name
-        if not name: return "WARNING", "Select a material from the list."
-        
+        if not name:
+            return "WARNING", "Select a material from the list."
+
         linked = self.link or preview
-        force =  self.force_import or linked
-            
+        force = self.force_import or linked
+
         objects = []
         active = context.object
         dummy = self.get_dummy(context)
-        
-# setup objects
+
+        # setup objects
         if preview:
             if context.mode == "EDIT_MESH":
                 return "WARNING", "Can't preview on EDIT MODE"
-            if dummy!= active:
+
+            if dummy != active:
                 self.last_selected = context.object.name
             context.scene.objects.active = dummy
             objects.append(dummy)
-# apply
+        # apply
         else:
             objects = [obj for obj in context.selected_objects if hasattr(obj.data, "materials")]
-            
+
         if not objects:
             return "INFO", "Please select an object"
-            
+
         if dummy == context.object and not preview:
-            if (len(objects)==1 and dummy.select):
+            if (len(objects) == 1 and dummy.select):
                 return "ERROR", "Apply is disabled for the Material Preview Object"
             try:
                 last = context.scene.objects[self.last_selected]
@@ -522,21 +624,21 @@ if mat:
 # objects = context.selected_objects
 
         material = None
-        
-# mira si hay materiales linkados de la libreria actual
+
+        # mira si hay materiales linkados de la libreria actual
         for mat in bpy.data.materials:
             try:
                 samelib = bpy.path.relpath(mat.library.filepath) == bpy.path.relpath(self.current_library.path)
             except:
                 samelib = False
-            
+
             if mat.name == name and mat.library and samelib:
                 material = mat
                 dd("encontre linked", name, "no importo nada")
                 break
-                                    
+
         if not force:
-# busca materiales no linkados
+            # busca materiales no linkados
             for mat in bpy.data.materials:
                 if mat.name == name and not mat.library:
                     material = mat
@@ -544,7 +646,7 @@ if mat:
                     break
 
         if not material:
-# go get it
+            # go get it
             dd("voy a buscarlo")
             nmats = len(bpy.data.materials)
             self.get_material(name, linked)
@@ -553,12 +655,13 @@ if mat:
             else:
                 for mat in reversed(bpy.data.materials):
                     if mat.name[0:len(name)] == name:
-# careful on how blender writes library paths
+                        # careful on how blender writes library paths
                         try:
-                            samelib = bpy.path.relpath(mat.library.filepath) == bpy.path.relpath(self.current_library.path)
+                            samelib = bpy.path.relpath(mat.library.filepath) == \
+                                      bpy.path.relpath(self.current_library.path)
                         except:
                             samelib = False
-                            
+
                         if linked and mat.library and samelib:
                             material = mat
                             dd(name, "importado con link")
@@ -571,13 +674,13 @@ if mat:
             if material:
                 material.use_fake_user = False
                 material.user_clear()
-                            
-#           print ("Material", material)
-        
-#       if material:
-# maybe some test cases doesnt return a material, gotta take care of that
-# i cannot think of any case like that right now
-# maybe import linked when the database isnt sync
+
+            # print ("Material", material)
+
+        # if material:
+        # maybe some test cases doesnt return a material, gotta take care of that
+        # i cannot think of any case like that right now
+        # maybe import linked when the database isnt sync
         if context.mode == "EDIT_MESH":
             obj = context.object
             dd(material)
@@ -586,17 +689,17 @@ if mat:
                 if mat == material:
                     index = i
                     break
-                
+
             if index == -1:
                 obj.data.materials.append(material)
-                index = len(obj.data.materials)-1
+                index = len(obj.data.materials) - 1
             dd(index)
             import bmesh
-            bm  = bmesh.from_edit_mesh(obj.data)
+            bm = bmesh.from_edit_mesh(obj.data)
             for f in bm.faces:
                 if f.select:
                     f.material_index = index
-            
+
         else:
             for obj in objects:
                 index = obj.active_material_index
@@ -605,41 +708,41 @@ if mat:
                     obj.material_slots[index].material = material
                 else:
                     obj.data.materials.append(material)
-                    
+
             if not linked:
                 bpy.ops.object.make_local(type="SELECT_OBDATA_MATERIAL")
-                
+
     def add_material(self, mat):
 
         if not mat:
             return 'WARNING', "Select a material from the scene."
-        
+
         name = mat.name
         thispath = winpath(bpy.data.filepath)
         libpath = winpath(self.current_library.path)
-        
+
         if not thispath:
             return 'WARNING', "Save this file before export."
-        
+
         if not libpath:
             return 'WARNING', "Library not found!."
-        
+
         elif bpy.data.is_dirty:
             bpy.ops.wm.save_mainfile(check_existing=True)
-        
+
         if mat.library:
             return 'WARNING', 'Cannot export linked materials.'
-        
+
         dd("adding material", name, libpath)
-        
+
         overwrite = ""
         if name in list_materials(libpath):
             overwrite = '''
 mat = bpy.data.materials["%s"]
 mat.name = "tmp"
 mat.use_fake_user = False
-mat.user_clear()'''	% name
-        
+mat.user_clear()''' % name
+
         cmd = '''
 import bpy{0}
 with bpy.data.libraries.load("{1}") as (data_from, data_to):
@@ -649,30 +752,31 @@ mat.use_fake_user=True
 bpy.ops.file.pack_all()
 bpy.ops.wm.save_mainfile(filepath="{3}", check_existing=False, compress=True)
 '''.format(overwrite, thispath, name, libpath)
-        
+
         if send_command(cmd):
-#           self.load_library()
+            # self.load_library()
             if not overwrite:
                 item = self.all_materials.add()
                 item.name = name
                 if "category" in mat.keys():
                     item.category = mat['category']
-# reorder all_materials
-                items = sorted([[item.name, item.category] for item in self.all_materials], key = lambda x: x[0])	
+                # reorder all_materials
+                items = sorted([[item.name, item.category] for item in self.all_materials],
+                                key=lambda x: x[0])
 
-                self.all_materials.clear()		
+                self.all_materials.clear()
                 for it in items:
                     item = self.all_materials.add()
                     item.name = it[0]
                     item.category = it[1]
-                    
+
                 self.update_list()
-                
+
             return 'INFO', "Material added."
         else:
             print("Save Material Error: Run Blender with administrative priviledges.")
             return 'WARNING', "There was an error saving the material"
-    
+
     def remove_material(self):
         name = self.active_material.name
         libpath = winpath(self.current_library.path)
@@ -681,14 +785,14 @@ bpy.ops.wm.save_mainfile(filepath="{3}", check_existing=False, compress=True)
 mat = bpy.data.materials["%s"]
 mat.use_fake_user = False
 mat.user_clear()
-bpy.ops.wm.save_mainfile(filepath="%s", check_existing=False, compress=True)''' % (name , libpath)
+bpy.ops.wm.save_mainfile(filepath="%s", check_existing=False, compress=True)''' % (name, libpath)
             if send_command(cmd, "removemat.py"):
                 self.all_materials.remove(self.mat_index)
                 self.update_list()
             else:
-                return 'ERROR', "There was an error."	
+                return 'ERROR', "There was an error."
         return "INFO", name + " removed."
-    
+
     def get_dummy(self, context):
         dummy_name = "Material_Preview_Dummy"
         dummy_mesh = "Material_Preview_Mesh"
@@ -696,24 +800,26 @@ bpy.ops.wm.save_mainfile(filepath="%s", check_existing=False, compress=True)''' 
         try:
             dummy = scn.objects[dummy_name]
         except:
-# create dummy
+            # create dummy
             try:
                 me = bpy.data.meshes(dummy_mesh)
             except:
                 me = bpy.data.meshes.new(dummy_mesh)
             dummy = bpy.data.objects.new(dummy_name, me)
             scn.objects.link(dummy)
-            
+
         dummy.hide = True
         dummy.hide_render = True
         dummy.hide_select = True
         return dummy
-                    
-bpy.utils.register_class(matlibProperties)
-bpy.types.Scene.matlib = PointerProperty(type = matlibProperties)
 
-### MENUS
-class matlibLibsMenu(bpy.types.Menu):
+
+bpy.utils.register_class(matlibProperties)
+bpy.types.Scene.matlib = PointerProperty(type=matlibProperties)
+
+
+# MENUS
+class matlibLibsMenu(Menu):
     bl_idname = "matlib.libs_menu"
     bl_label = "Libraries Menu"
     bl_description = "Main Categories Menu"
@@ -721,11 +827,13 @@ class matlibLibsMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         libs = libraries
-#       layout.operator("matlib.operator", text="Default Library").cmd="lib-1"
+        # layout.operator("matlib.operator", text="Default Library").cmd = "lib-1"
+
         for i, lib in enumerate(libs):
-            layout.operator("matlib.operator", text=lib.shortname).cmd="lib"+str(i)
-            
-class matlibCatsMenu(bpy.types.Menu):
+            layout.operator("matlib.operator", text=lib.shortname).cmd = "lib" + str(i)
+
+
+class matlibCatsMenu(Menu):
     bl_idname = "matlib.cats_menu"
     bl_label = "Categories Menu"
     bl_description = "Sub Categories Menu"
@@ -733,161 +841,172 @@ class matlibCatsMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         cats = context.scene.matlib.categories
-        layout.operator("matlib.operator", text="All").cmd="cat-1"
+        layout.operator("matlib.operator", text="All").cmd = "cat-1"
+
         for i, cat in enumerate(cats):
-            layout.operator("matlib.operator", text=cat.name).cmd="cat"+str(i)
-            
-### OPERATORS
-    
-class matlibOperator(bpy.types.Operator):
+            layout.operator("matlib.operator", text=cat.name).cmd = "cat" + str(i)
+
+
+# OPERATORS
+
+class matlibOperator(Operator):
     """Add, Remove, Reload, Apply, Preview, Clean Material"""
     bl_label = "New"
     bl_idname = "matlib.operator"
     __doc__ = "Add, Remove, Reload, Apply, Preview, Clean Material"
-    
-    category = StringProperty(name="Category")
-    filepath = StringProperty(options={'HIDDEN'})
-    cmd = bpy.props.StringProperty(name="Command", options={'HIDDEN'})
-    filter_glob = StringProperty(default="*.blend", options={'HIDDEN'})
+
+    category = StringProperty(
+                    name="Category"
+                    )
+    filepath = StringProperty(
+                    options={'HIDDEN'}
+                    )
+    cmd = StringProperty(
+                    name="Command",
+                    options={'HIDDEN'}
+                    )
+    filter_glob = StringProperty(
+                    default="*.blend",
+                    options={'HIDDEN'}
+                    )
+
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
-    
+
     def draw(self, context):
         layout = self.layout
-#       cmd = LIBRARY_ADD
+        # cmd = LIBRARY_ADD
         if self.cmd == "LIBRARY_ADD":
-#           layout.label("Select a blend file as library or")
-#           layout.label("Type a name to create a new library.")
+            # layout.label("Select a blend file as library or")
+            # layout.label("Type a name to create a new library.")
             layout.prop(self, "category", text="Library")
         elif self.cmd == "FILTER_ADD":
             layout.prop(self, "category")
-            
+
     def invoke(self, context, event):
-        
         cmd = self.cmd
         print("invoke", cmd)
-        
+
         if cmd == "LIBRARY_ADD":
             self.filepath = matlib_path + os.path.sep
             dd("filepath", self.filepath, matlib_path)
-#           context.window_manager.fileselect_add(self)
+            # context.window_manager.fileselect_add(self)
             context.window_manager.invoke_props_dialog(self)
             return {'RUNNING_MODAL'}
         elif cmd == "FILTER_ADD":
             context.window_manager.invoke_props_dialog(self)
             return {'RUNNING_MODAL'}
         return self.execute(context)
-    
-### TODO: execute doesnt trigger remove
+
     def execute(self, context):
-        
+        # TODO: execute doesnt trigger remove
         success = ""
         matlib = context.scene.matlib
-        
+
         if self.cmd == "init":
             print("initialize")
             return {'FINISHED'}
-        
-# Library Commands	
+
+        # Library Commands
         if self.cmd[0:3] == "lib":
             index = int(self.cmd[3::])
             matlib.lib_index = index
-#           success = matlib.load_library()
+            # success = matlib.load_library()
         elif self.cmd == "LIBRARY_ADD":
             dd("execute lib add")
             libname = self.category
-            if libname[-6::] != ".blend": libname+= ".blend"
+            if libname[-6::] != ".blend":
+                libname += ".blend"
             libname = os.path.join(matlib_path, libname)
             print(libname)
-            
-            success = matlib.add_library(libname, True) 
+
+            success = matlib.add_library(libname, True)
             for i, l in enumerate(libraries):
                 if l.name == self.category:
                     matlib.lib_index = i
                     break
-                
+
         elif self.cmd == "RELOAD":
             success = matlib.reload()
-            
+
         if not matlib.current_library:
             self.report({'ERROR'}, "Select a Library")
             return {'CANCELLED'}
-                    
+
         if self.cmd == "FILTER_ADD":
             success = matlib.add_category(self.category)
             for i, cat in enumerate(matlib.categories):
                 if cat.name == self.category:
                     matlib.cat_index = i
                     break
-            
+
         elif self.cmd == "FILTER_REMOVE":
             matlib.remove_category()
-            
+
         elif self.cmd == "FILTER_SET":
             success = matlib.set_category()
-        
+
         elif self.cmd[0:3] == "cat":
             index = int(self.cmd[3::])
             matlib.cat_index = index
-        
-# Common Commands
+
+        # Common Commands
         elif self.cmd == "ADD":
             success = matlib.add_material(context.object.active_material)
-            
+
         elif self.cmd == "REMOVE":
             success = matlib.remove_material()
-            
-        
+
         elif self.cmd == "APPLY":
             success = matlib.apply(context)
-        
+
         elif self.cmd == "PREVIEW":
             success = matlib.apply(context, True)
-        
-        elif self.cmd=="FLUSH":
-# release dummy materials
+
+        elif self.cmd == "FLUSH":
+            # release dummy materials
             dummy = matlib.get_dummy(context)
             if dummy == context.object:
                 try:
                     context.scene.objects.active = scn.objects[matlib.last_selected]
                 except:
                     pass
-                
+
             for slot in dummy.material_slots:
                 slot.material = None
-            i=0
+            i = 0
             for mat in bpy.data.materials:
-                if mat.users==0:
-                    i+=1
-                    print (mat.name, "removed.")
+                if mat.users == 0:
+                    i += 1
+                    print(mat.name, "removed.")
                     bpy.data.materials.remove(mat)
-            
+
             plural = "s"
-            if i==1: 
+            if i == 1:
                 plural = ""
-                
-            self.report({'INFO'}, str(i) + " material"+plural+" removed.")
-        
-### CONVERT
+
+            self.report({'INFO'}, str(i) + " material" + plural + " removed.")
+
+        # CONVERT
         elif self.cmd == "CONVERT":
             return {'FINISHED'}
             lib = matlib.current_library
             if lib:
-                
+
                 path = os.path.join(matlib_path, "www")
                 if not os.path.exists(path):
                     os.mkdir(path)
                 path = os.path.join(path, lib.shortname)
                 if not os.path.exists(path):
                     os.mkdir(path)
-                    
+
                 path = winpath(path)
                 libpath = winpath(lib.name)
-                
+
                 print(path)
                 print(libpath)
-                
+
 # decirle a la libreria que cree un fichero blend por cada material que tenga.
                 cmd = """
 print(30*"+")
@@ -899,14 +1018,14 @@ def list_materials():
             list.append(mat)
     return sorted(list)
 
-def get_material(name, link=False):	
+def get_material(name, link=False):
     with bpy.data.libraries.load("{0}", link, False) as (data_from, data_to):
         data_to.materials = [name]
     if link:
         print(name + " linked.")
     else:
         print(name + " appended.")
-        
+
 for scn in bpy.data.scenes:
     for obj in scn.objects:
         scn.objects.unlink(obj)
@@ -917,7 +1036,7 @@ def clean_materials():
     for mat in bpy.data.materials:
         mat.user_clear()
         bpy.data.materials.remove(mat)
-        
+
 bin = bpy.app.binary_path
 mats = list_materials()
 bpy.context.user_preferences.filepaths.save_version = 0
@@ -932,14 +1051,15 @@ for mat in mats:
 """.format(libpath, path)
                 print(cmd)
                 send_command(cmd, "createlib.py")
-                
+
         if type(success).__name__ == "tuple":
             print(success)
             self.report({success[0]}, success[1])
-            
+
         return {'FINISHED'}
-    
-class matlibvxPanel(bpy.types.Panel):
+
+
+class matlibvxPanel(Panel):
     bl_label = "Material Library VX"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
@@ -947,94 +1067,137 @@ class matlibvxPanel(bpy.types.Panel):
 
     @classmethod
     def poll(self, context):
-        return context.active_object.active_material!=None
+        return context.active_object.active_material is not None
 
     def draw(self, context):
         layout = self.layout
         matlib = context.scene.matlib
-        
-#hyper ugly trick but i dont know how to init classes at register time
-#		if matlibProperties.init:
-#			matlibProperties.init = False
-#			matlib.__init__()
-            
-#libaries
+        """
+        # hyper ugly trick but i dont know how to init classes at register time
+        if matlibProperties.init:
+            matlibProperties.init = False
+            matlib.__init__()
+        """
+        # libaries
         row = layout.row(align=True)
         if matlib.current_library:
             text = matlib.current_library.shortname
         else:
-            text = "Select Library"           
-        row.menu("matlib.libs_menu",text=text)
+            text = "Select Library"
+        row.menu("matlib.libs_menu", text=text)
         if matlib.active_material:
             row.label(matlib.active_material.category)
         else:
             row.label("")
-#		
-#		#search
-        if not matlib.hide_search:	
+
+        # search
+        if not matlib.hide_search:
             row = layout.row()
             row.prop_search(matlib, "search", matlib, "materials", text="", icon="VIEWZOOM")
-        
-#		#list
+
+        # list
         col = self.layout.column(align=True)
         row = col.row(align=True)
         row.template_list("UI_UL_list", "  ", matlib, "materials", matlib, "mat_index", rows=6)
+
         col = self.layout.column(align=True)
         row = col.row(align=True)
-#operators
+        # operators
         row.operator("matlib.operator", icon="MATERIAL", text="Apply").cmd = "APPLY"
         row.operator("matlib.operator", icon="COLOR", text="Preview").cmd = "PREVIEW"
+
         col = self.layout.column(align=True)
         row = col.row(align=True)
         row.operator("matlib.operator", icon="ZOOMIN", text="Add Mat").cmd = "ADD"
         row.operator("matlib.operator", icon="ZOOMOUT", text="Remove Mat").cmd = "REMOVE"
+
         col = self.layout.column(align=True)
         row = col.row(align=True)
         row.operator("matlib.operator", icon="FILE_REFRESH", text="Reload").cmd = "RELOAD"
         row.operator("matlib.operator", icon="GHOST_DISABLED", text="Flush Unused").cmd = "FLUSH"
+
         col = self.layout.column(align=True)
         row = col.row(align=True)
         col.prop(matlib, "show_prefs", icon="MODIFIER", text="Advanced")
 
-
-# prefs
+        # prefs
         if matlib.show_prefs:
             row = layout.row()
             row.prop(matlib, "force_import")
             row.prop(matlib, "link")
             row = layout.row()
             row.prop(matlib, "hide_search")
-#			row = layout.row(align=True)
-#           row = layout.row()
-#           row.operator("matlib.operator", icon="URL", text="Convert Library").cmd="CONVERT"
-#           categories
+            # row = layout.row(align=True)
+            # row = layout.row()
+            # row.operator("matlib.operator", icon="URL", text="Convert Library").cmd = "CONVERT"
+            # categories
             row = layout.row()
             row.operator("matlib.operator", icon="ZOOMIN", text="Add library").cmd = "LIBRARY_ADD"
             row = layout.row(align=True)
             text = "All"
-            if matlib.current_category: text = matlib.current_category
-            col = self.layout.column(align=True)
-            row = col.row(align=True)
-            row.menu("matlib.cats_menu",text=text)
-            col = self.layout.column(align=True)
-            row = col.row(align=True)
-            row.prop(matlib, "filter", icon="FILTER", text="Filter Category")
-            row.operator("matlib.operator", icon="FILE_PARENT", text="Set Filter").cmd="FILTER_SET"
-            col = self.layout.column(align=True)
-            row = col.row(align=True)
-            row.operator("matlib.operator", icon="ZOOMIN", text="Add Filter").cmd="FILTER_ADD"
-            row.operator("matlib.operator", icon="ZOOMOUT", text="Remove Filter").cmd="FILTER_REMOVE"
-			
-classes = [matlibvxPanel, matlibOperator, matlibLibsMenu, matlibCatsMenu]
-#print(bpy.context.scene)
+            if matlib.current_category:
+                text = matlib.current_category
+
+            if addon_settings() == "normal":
+                col = self.layout.column(align=True)
+                row = col.row(align=True)
+                row.menu("matlib.cats_menu", text=text)
+                col = self.layout.column(align=True)
+                row = col.row(align=True)
+                row.prop(matlib, "filters", icon="FILTER", text="Filter Category")
+                row.operator("matlib.operator", icon="FILE_PARENT", text="Set Filter").cmd = "FILTER_SET"
+                col = self.layout.column(align=True)
+                row = col.row(align=True)
+                row.operator("matlib.operator", icon="ZOOMIN", text="Add Filter").cmd = "FILTER_ADD"
+                row.operator("matlib.operator", icon="ZOOMOUT", text="Remove Filter").cmd = "FILTER_REMOVE"
+            else:
+                row.menu("matlib.cats_menu", text=text)
+                row.prop(matlib, "filters", icon="FILTER", text="")
+                row.operator("matlib.operator", icon="FILE_PARENT", text="").cmd = "FILTER_SET"
+                row.operator("matlib.operator", icon="ZOOMIN", text="").cmd = "FILTER_ADD"
+                row.operator("matlib.operator", icon="ZOOMOUT", text="").cmd = "FILTER_REMOVE"
+
+
+class matlibvxPref(AddonPreferences):
+    bl_idname = __name__
+
+    use_brushes_menu_type = EnumProperty(
+        name="Choose Panel layout",
+        description="",
+        items=[('compact', "Icon only panels",
+                "Use more compact layout"),
+               ('normal', "Icon and text panels",
+                "Use an usually spaced layout")
+            ],
+        default='normal'
+        )
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(self, "use_brushes_menu_type", expand=True)
+
+
+classes = (
+    matlibvxPanel,
+    matlibOperator,
+    matlibLibsMenu,
+    matlibCatsMenu,
+    matlibvxPref,
+    )
+
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
+    for cls in classes:
+        bpy.utils.register_class(cls)
+
 
 def unregister():
-    for c in classes:
-        bpy.utils.unregister_class(c)
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
+
 
 if __name__ == "__main__":
     register()
