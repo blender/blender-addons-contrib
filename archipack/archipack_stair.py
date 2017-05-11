@@ -27,7 +27,7 @@
 # noinspection PyUnresolvedReferences
 import bpy
 # noinspection PyUnresolvedReferences
-from bpy.types import Operator, PropertyGroup, Mesh, Panel
+from bpy.types import Operator, PropertyGroup, Mesh, Panel, Menu
 from bpy.props import (
     FloatProperty, BoolProperty, IntProperty, CollectionProperty,
     StringProperty, EnumProperty, FloatVectorProperty
@@ -39,6 +39,7 @@ from mathutils import Vector, Matrix
 from math import sin, cos, pi, floor, acos
 from .archipack_manipulator import Manipulable, archipack_manipulator
 from .archipack_2d import Line, Arc
+from .archipack_preset import ArchipackPreset
 
 
 class Stair():
@@ -954,7 +955,7 @@ class StairGenerator():
                 p0 = (stair.lerp(0) - c).to_3d()
                 p1 = (stair.lerp(1) - c).to_3d()
                 manipulator.set_pts([(c.x, c.y, stair.top), p0, p1])
-                manipulator.type = 'ARC_ANGLE_RADIUS'
+                manipulator.type_key = 'ARC_ANGLE_RADIUS'
                 manipulator.prop1_name = 'da'
                 manipulator.prop2_name = 'radius'
             else:
@@ -965,7 +966,7 @@ class StairGenerator():
                 v0 = stair.lerp(0)
                 v1 = stair.lerp(1)
                 manipulator.set_pts([(v0.x, v0.y, stair.top), (v1.x, v1.y, stair.top), (side, 0, 0)])
-                manipulator.type = 'SIZE'
+                manipulator.type_key = 'SIZE'
                 manipulator.prop1_name = 'length'
 
             for i in range(stair.n_step):
@@ -990,7 +991,7 @@ class StairGenerator():
         x = o.bound_box[6][0] - o.bound_box[0][0]
         y = o.bound_box[6][1] - o.bound_box[0][1]
         z = o.bound_box[6][2] - o.bound_box[0][2]
-        self.user_defined_post_scale = Vector((post_x / x, post_y / y, post_z / z))
+        self.user_defined_post_scale = Vector((post_x / x, post_y / -y, post_z / z))
         m = o.data
         # create vertex group lookup dictionary for names
         vgroup_names = {vgroup.index: vgroup.name for vgroup in o.vertex_groups}
@@ -1062,10 +1063,10 @@ class StairGenerator():
         dx = post_x * vn
         dy = post_y * Vector((vn.y, -vn.x))
         oy = sub_offset_x * vn
-        x0, y0 = n.p + dx + dy + oy
-        x1, y1 = n.p + dx - dy + oy
-        x2, y2 = n.p - dx - dy + oy
-        x3, y3 = n.p - dx + dy + oy
+        x0, y0 = n.p - dx + dy + oy
+        x1, y1 = n.p - dx - dy + oy
+        x2, y2 = n.p + dx - dy + oy
+        x3, y3 = n.p + dx + dy + oy
         f = len(verts)
         verts.extend([(x0, y0, z0), (x0, y0, z3),
                     (x1, y1, z1), (x1, y1, z4),
@@ -1528,7 +1529,6 @@ def update_preset(self, context):
         self.parts[1].type = 'D_STAIR'
         self.da = pi
     self.auto_update = True
-    self.update(context, manipulable_refresh=True)
 
 
 materials_enum = (
@@ -2269,8 +2269,11 @@ class archipack_stair(Manipulable, PropertyGroup):
     # .auto_update = False
     # bulk changes
     # .auto_update = True
-    # .update(context, manipulable_refresh=True)
-    auto_update = BoolProperty(default=True)
+    auto_update = BoolProperty(
+            options={'SKIP_SAVE'},
+            default=True,
+            update=update_manipulators
+            )
 
     def find_in_selection(self, context):
         """
@@ -2302,16 +2305,14 @@ class archipack_stair(Manipulable, PropertyGroup):
         for i in range(len(self.parts), self.n_parts):
             p = self.parts.add()
             m = p.manipulators.add()
-            m.type = 'SIZE'
+            m.type_key = 'SIZE'
             m.prop1_name = 'length'
 
     def update(self, context, manipulable_refresh=False):
 
-        if not self.auto_update:
-            return
         active, selected, o = self.find_in_selection(context)
 
-        if o is None:
+        if o is None or not self.auto_update:
             return
 
         # clean up manipulators before any data model change
@@ -2473,10 +2474,10 @@ class archipack_stair(Manipulable, PropertyGroup):
         elif self.handrail_profil == 'SQUARE':
             x = 0.5 * self.handrail_x
             y = self.handrail_y
-            handrail = [Vector((-x, 0)), Vector((-x, y)), Vector((x, y)), Vector((x, 0))]
+            handrail = [Vector((-x, y)), Vector((-x, 0)), Vector((x, 0)), Vector((x, y))]
         elif self.handrail_profil == 'CIRCLE':
             r = self.handrail_radius
-            handrail = [Vector((r * sin(0.1 * a * pi), r * (0.5 + cos(0.1 * a * pi)))) for a in range(0, 20)]
+            handrail = [Vector((r * sin(0.1 * -a * pi), r * (0.5 + cos(0.1 * -a * pi)))) for a in range(0, 20)]
 
         if self.right_handrail:
             g.make_profile(handrail, int(self.idmat_handrail), "RIGHT", self.handrail_slice_right,
@@ -2503,6 +2504,7 @@ class archipack_stair(Manipulable, PropertyGroup):
                 self.string_alt, 0, verts, faces, matids, uvs)
 
         bmed.buildmesh(context, o, verts, faces, matids=matids, uvs=uvs, weld=True, clean=True)
+        bpy.ops.object.shade_smooth()
 
         # enable manipulators rebuild
         if manipulable_refresh:
@@ -2565,9 +2567,15 @@ class ARCHIPACK_PT_stair(Panel):
             return
         layout = self.layout
         row = layout.row(align=True)
-        row.operator('archipack.stair_manipulate')
+        row.operator('archipack.stair_manipulate', icon='HAND')
         row = layout.row(align=True)
         row.prop(prop, 'presets')
+        box = layout.box()
+        # box.label(text="Styles")
+        row = box.row(align=True)
+        row.menu("ARCHIPACK_MT_stair_preset", text=bpy.types.ARCHIPACK_MT_stair_preset.bl_label)
+        row.operator("archipack.stair_preset", text="", icon='ZOOMIN')
+        row.operator("archipack.stair_preset", text="", icon='ZOOMOUT').remove_active = True
         box = layout.box()
         box.prop(prop, 'width')
         box.prop(prop, 'height')
@@ -2776,8 +2784,8 @@ class ARCHIPACK_PT_stair(Panel):
 
 class ARCHIPACK_OT_stair(Operator):
     bl_idname = "archipack.stair"
-    bl_label = "Stair (alpha)"
-    bl_description = "Stair (alpha)"
+    bl_label = "Stair"
+    bl_description = "Create a Stair"
     bl_category = 'Archipack'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2809,6 +2817,9 @@ class ARCHIPACK_OT_stair(Operator):
         o.location = bpy.context.scene.cursor_location
         o.select = True
         context.scene.objects.active = o
+        # auto smooth arround 12 deg fix Tynkatopi smoothing issue ;)
+        m.auto_smooth_angle = 0.20944
+        m.use_auto_smooth = True
         return o
 
     # -----------------------------------------------------
@@ -2848,17 +2859,52 @@ class ARCHIPACK_OT_stair_manipulate(Operator):
         if context.space_data.type == 'VIEW_3D':
             o = context.active_object
             self.d = o.data.archipack_stair[0]
-            self.d.manipulable_invoke(context)
-            context.window_manager.modal_handler_add(self)
-            return {'RUNNING_MODAL'}
+            if self.d.manipulable_invoke(context):
+                context.window_manager.modal_handler_add(self)
+                return {'RUNNING_MODAL'}
+            else:
+                return {'FINISHED'}
         else:
             self.report({'WARNING'}, "Active space must be a View3d")
             return {'CANCELLED'}
+
+
+# ------------------------------------------------------------------
+# Define operator class to load / save presets
+# ------------------------------------------------------------------
+
+
+class ARCHIPACK_MT_stair_preset(Menu):
+    bl_label = "Stair Styles"
+    preset_subdir = "archipack_stair"
+    preset_operator = "script.execute_preset"
+    draw = Menu.draw_preset
+
+
+class ARCHIPACK_OT_stair_preset(ArchipackPreset, Operator):
+    """Add a Fence Preset"""
+    bl_idname = "archipack.stair_preset"
+    bl_label = "Add Stair Style"
+    preset_menu = "ARCHIPACK_MT_stair_preset"
+
+    datablock_name = StringProperty(
+        name="Datablock",
+        default='archipack_stair',
+        maxlen=64,
+        options={'HIDDEN', 'SKIP_SAVE'},
+        )
+
+    @property
+    def blacklist(self):
+        return ['n_parts', 'parts', 'width', 'height', 'radius',
+            'total_angle', 'da', 'presets', 'manipulators']
 
 
 bpy.utils.register_class(archipack_stair_material)
 bpy.utils.register_class(archipack_stair_part)
 bpy.utils.register_class(archipack_stair)
 Mesh.archipack_stair = CollectionProperty(type=archipack_stair)
+bpy.utils.register_class(ARCHIPACK_MT_stair_preset)
 bpy.utils.register_class(ARCHIPACK_PT_stair)
 bpy.utils.register_class(ARCHIPACK_OT_stair)
+bpy.utils.register_class(ARCHIPACK_OT_stair_preset)
