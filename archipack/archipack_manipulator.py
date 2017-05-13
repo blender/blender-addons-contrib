@@ -1996,7 +1996,7 @@ def exit_stack(key):
             if m is not None:
                 m.exit()
         del manip_stack[key]
-    
+
 
 def clean_stack():
     """
