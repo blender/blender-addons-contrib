@@ -1424,7 +1424,6 @@ class SizeLocationManipulator(SizeManipulator):
             dl = 0.5 * dl
         else:
             dl = -0.5 * dl
-        self.dl += dl
         self.move(context, self.manipulator.prop2_name, dl)
         self.set_value(context, self.datablock, self.manipulator.prop1_name, length)
         self.move_linked(context, self.manipulator.prop2_name, dl)
