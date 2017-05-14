@@ -17,12 +17,12 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "ANT Displace",
+    "name": "A.N.T. Displace",
     "author": "Jimmy Hazevoet",
     "version": (0, 1, 6),
     "blender": (2, 77, 0),
     "location": "View3D > Tool Shelf",
-    "description": "Displace vertices of selected mesh",
+    "description": "Another Noise Tool: Displace vertices of selected mesh",
     "warning": "",
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Add_Mesh/ANT_Landscape",
@@ -31,17 +31,19 @@ bl_info = {
 
 """
 # -------------------------------------------------------------
---- UPDATE:     - VERSION 0,1,6 (5/2017) - Vert Displace Version
+- UPDATE: A.N.T. Displace - Version 0,1,6 (5/2017)
 # -------------------------------------------------------------
                 - NEW:
                 -
-                - Vert Displace Version
+                - Displace vertices of selected mesh
+                - Use Blender internal texture data block - texture nodes
+                - Use vertex group weight of active group
                 - Slope map, z normal to vertex group weight,
                     and optional select vertices on flat area's
+                - Use Blender internal texture data block - texture nodes
                 - Noise variations (from old A.N.T. Blender-2.49 addon)
-                - Variable X and Y noise size (and X Y Offset since version 0.1.5)
-                - Plateau and Sealevel renamed to Maximum (plateau) and Minimum (now: seabed)
-                - Variable X and Y edge fallof with variable edge level (now: sealevel)
+                - Variable X, Y, Z noise Size and Offset
+                - Plateau and Sealevel renamed to Maximum and Minimum 
                 -
 # -------------------------------------------------------------
 # Another Noise Tool: Vert Displace Version
@@ -77,18 +79,14 @@ Invert:          Invert terrain height.
 Offset:          Terrain height offset.
 Seabed:          Flattens terrain at seabed level.
 Plateau:         Flattens terrain at plateau level.
-Falloff:         Terrain height falloff: X falloff, Y falloff, XY falloff
-Edge Level:      Falloff edge level, sealevel
-FalloffSizeX:    Scale falloff x
-FalloffSizeY:    Scale falloff y
 Strata:          Strata amount, number of strata / terrace layers.
 Strata type:     Strata types, Smooth, Sharp-sub, Sharp-add, Quantize
+Vertex Group:    Use vertex group weight
 """
 
 # ------------------------------------------------------------
 # import modules
 import bpy
-import os
 from bpy.props import (
         BoolProperty,
         EnumProperty,
@@ -193,7 +191,7 @@ def marble_noise(x, y, z, origin, size, shape, bias, sharpnes, turb, depth, hard
     x += origin[0]
     y += origin[1]
     z += origin[2]
-    value = s + turb * turbulence_vector((x, y, z), depth, hard, basis)[0]
+    value = s + turb * turbulence_vector((x, y, z), depth, hard, basis)[2]
 
     if bias is 1:
         value = cos_bias(value)
@@ -260,12 +258,10 @@ def distorted_heteroTerrain(coords, H, lacunarity, octaves, offset, distort, bas
 
 
 ## SlickRock:
-def slick_rock(coords, H, lacunarity, octaves, offset, gain, basis, vlbasis):
+def slick_rock(coords, H, lacunarity, octaves, offset, gain, distort, basis, vlbasis):
     x, y, z = coords
-    gain = 5.0
-    vlbasis = 7
-    n = multi_fractal((x,y,z), 1.0, 2.0, 1.0, basis) * 0.5
-    r = ridged_multi_fractal((x + n, y + n, z + n), H, lacunarity, octaves, offset, gain, vlbasis)
+    n = multi_fractal((x,y,z), 1.0, 2.0, 2.0, basis) * distort * 0.5
+    r = ridged_multi_fractal((x + n, y + n, z + n), H, lacunarity, octaves, offset + 0.1, gain * 2, vlbasis)
     return (n + (n * r)) * 0.5
 
 
@@ -279,9 +275,8 @@ def vl_hTerrain(coords, H, lacunarity, octaves, offset, basis, vlbasis, distort)
 
 # another turbulence
 def ant_turbulence(coords, depth, hardnoise, nbasis, amp, freq, distortion):
-    a = amp
     x, y, z = coords
-    tv = turbulence_vector((x + 3, y, z), depth, hardnoise, nbasis, a, freq)
+    tv = turbulence_vector((x+1, y+2, z+3), depth, hardnoise, nbasis, amp, freq)
     d = (distortion * tv[0]) * 0.25
     return (d + ((tv[0] - tv[1]) * (tv[2])**2))
 
@@ -321,49 +316,48 @@ def planet_noise(coords, oct=6, hard=0, noisebasis=1, nabla=0.001):
 
 
 # ------------------------------------------------------------
-# landscape_gen
-def landscape_gen(x, y, z, meshsize_x, meshsize_y, options):
+# noise_gen
+def noise_gen(coords, props):
 
-    rseed = options[0]
-    nsize = options[1]
-    ntype = options[2]
-    nbasis = int(options[3][0])
-    vlbasis = int(options[4][0])
-    distortion = options[5]
-    hardnoise = int(options[6])
-    depth = options[7]
-    dimension = options[8]
-    lacunarity = options[9]
-    offset = options[10]
-    gain = options[11]
-    marblebias = int(options[12][0])
-    marblesharpnes = int(options[13][0])
-    marbleshape = int(options[14][0])
-    invert = options[15]
-    height = options[16]
-    heightoffset = options[17]
-    falloff = int(options[18][0])
-    sealevel = options[19]
-    platlevel = options[20]
-    strata = options[21]
-    stratatype = options[22]
-    sphere = options[23]
-    x_offset = options[24]
-    y_offset = options[25]
-    edge_level = options[26]
-    falloffsize_x = options[27]
-    falloffsize_y = options[28]
-    size_x = options[29]
-    size_y = options[30]
-    amp = options[31]
-    freq = options[32]
+    rseed = props[0]
+    nsize = props[1]
+    ntype = props[2]
+    nbasis = int(props[3][0])
+    vlbasis = int(props[4][0])
+    distortion = props[5]
+    hardnoise = int(props[6])
+    depth = props[7]
+    dimension = props[8]
+    lacunarity = props[9]
+    offset = props[10]
+    gain = props[11]
+    marblebias = int(props[12][0])
+    marblesharpnes = int(props[13][0])
+    marbleshape = int(props[14][0])
+    invert = props[15]
+    height = props[16]
+    heightoffset = props[17]
+    minimum = props[18]
+    maximum = props[19]
+    strata = props[20]
+    stratatype = props[21]
+    x_offset = props[22]
+    y_offset = props[23]
+    z_offset = props[24]
+    size_x = props[25]
+    size_y = props[26]
+    size_z = props[27]
+    amp = props[28]
+    freq = props[29]
+    texture_name = props[30]
 
+    x, y, z = coords
     # origin
     if rseed is 0:
-        origin = x_offset, y_offset, 0
+        origin = x_offset, y_offset, z_offset
         origin_x = x_offset
         origin_y = y_offset
-        origin_z = 0
+        origin_z = z_offset
         o_range = 1.0
     else:
         # randomise origin
@@ -375,15 +369,9 @@ def landscape_gen(x, y, z, meshsize_x, meshsize_y, options):
         oz = (origin[2] * o_range)
         origin_x = (ox - (ox / 2)) + x_offset
         origin_y = (oy - (oy / 2)) + y_offset
-        origin_z = (oz - (oz / 2))
+        origin_z = (oz - (oz / 2)) + z_offset
 
-    ncoords = (x / (nsize * size_x) + origin_x, y / (nsize * size_y) + origin_y, z / nsize + origin_z)
-
-    # noise basis type's
-    if nbasis is 9:
-        nbasis = 14
-    if vlbasis is 9:
-        vlbasis = 14
+    ncoords = (x / (nsize * size_x) + origin_x, y / (nsize * size_y) + origin_y, z / (nsize * size_z) + origin_z)
 
     # noise type's
     if ntype == 'multi_fractal':
@@ -438,10 +426,16 @@ def landscape_gen(x, y, z, meshsize_x, meshsize_y, options):
         value = double_multiFractal(ncoords, dimension, lacunarity, depth, offset, gain, nbasis, vlbasis)
 
     elif ntype == 'slick_rock':
-        value = slick_rock(ncoords,dimension, lacunarity, depth, offset, gain, nbasis, vlbasis)
+        value = slick_rock(ncoords,dimension, lacunarity, depth, offset, gain, distortion, nbasis, vlbasis)
 
     elif ntype == 'planet_noise':
         value = planet_noise(ncoords, depth, hardnoise, nbasis)[2] * 0.5 + 0.5
+
+    elif ntype == 'blender_texture':
+        if texture_name in bpy.data.textures:
+            value = bpy.data.textures[texture_name].evaluate(ncoords)[3]
+        else:
+            value = 0.0
     else:
         value = 0.0
 
@@ -452,23 +446,7 @@ def landscape_gen(x, y, z, meshsize_x, meshsize_y, options):
     else:
         value = value * height + heightoffset
 
-    # Edge falloff:
-    if falloff:
-        ratio_x, ratio_y = abs(x) * 2 / meshsize_x, abs(y) * 2 / meshsize_y
-        fallofftypes = [0,
-                        sqrt(ratio_y**falloffsize_y),
-                        sqrt(ratio_x**falloffsize_x),
-                        sqrt(ratio_x**falloffsize_x + ratio_y**falloffsize_y)
-                       ]
-        dist = fallofftypes[falloff]
-        value -= edge_level
-        if(dist < 1.0):
-            dist = (dist * dist * (3 - 2 * dist))
-            value = (value - value * dist) + edge_level
-        else:
-            value = edge_level
-
-    # strata / terrace / layered
+    # strata / terrace / layers
     if stratatype != '0':
         strata = strata / height
 
@@ -492,11 +470,11 @@ def landscape_gen(x, y, z, meshsize_x, meshsize_y, options):
         steps = (int( value * strata ) * 1.0 / strata)
         value = (value * (1.0 - 0.5) + steps * 0.5)
 
-    # clamp height
-    if (value < sealevel):
-        value = sealevel
-    if (value > platlevel):
-        value = platlevel
+    # clamp height min max
+    if (value < minimum):
+        value = minimum
+    if (value > maximum):
+        value = maximum
 
     return value
 
@@ -509,13 +487,25 @@ class ANTSlopeVGroup(bpy.types.Operator):
     bl_description = "Slope map - z normal value to vertex group weight"
     #bl_options = {'REGISTER'} 
 
+    z_method = EnumProperty(
+            name="Method:",
+            default='SLOPE_Z',
+            items=[
+                ('SLOPE_Z', "Slope Z", "Slope for planar mesh"),
+                ('SLOPE_XYZ', "Slope XYZ", "Slope for spherical mesh")
+                ])
+    group_name = StringProperty(
+            name="Vertex Group Name:",
+            default="Slope",
+            description="Name"
+            )
     select_flat = BoolProperty(
-            name="Vert Select",
+            name="Vert Select:",
             default=True,
             description="Select vertices on flat surface"
             )
     select_range = FloatProperty(
-            name="Vert Select: Range",
+            name="Vert Select Range:",
             default=0.0,
             min=0.0,
             max=1.0,
@@ -526,32 +516,40 @@ class ANTSlopeVGroup(bpy.types.Operator):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
+
     def execute(self, context):
-        message = "Popup Values: %d, %f" % \
-            (self.select_flat, self.select_range)
+        message = "Popup Values: %d, %f, %s, %s" % \
+            (self.select_flat, self.select_range, self.group_name, self.z_method)
         self.report({'INFO'}, message)
 
         ob = bpy.context.active_object
+
         if self.select_flat:
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.select_all(action='DESELECT')
+            bpy.context.tool_settings.mesh_select_mode = [True, False, False]
             bpy.ops.object.mode_set(mode='OBJECT')
 
         vertex_group = ob.vertex_groups.active
-        if vertex_group is None:
+        if vertex_group is None or vertex_group.name is not self.group_name:
             bpy.ops.object.vertex_group_add()
             vertex_group = ob.vertex_groups.active
         else:
             vertex_group = ob.vertex_groups.active
 
         for v in ob.data.vertices:
-            z = v.normal[2]
+            if self.z_method == 'SLOPE_XYZ':
+                z = (v.co.normalized() * v.normal.normalized()) * 2 - 1
+            else:
+                z = v.normal[2]
+
             vertex_group.add([v.index], z, 'REPLACE')
             if self.select_flat:
                 if z >= (1.0 - self.select_range):
                     v.select = True
 
-        vertex_group.name = 'Slope'
+        vertex_group.name = self.group_name
+
         return {'FINISHED'}
 
 
@@ -570,31 +568,6 @@ class do_displace(bpy.types.Operator):
             default=0,
             description="Randomize noise origin"
             )
-    sphere_mesh = BoolProperty(
-            name="Sphere",
-            default = False,
-            description = "Generate Sphere mesh"
-            )
-    meshsize = FloatProperty(
-            name="Size",
-            min=0.01,
-            max=100000.0,
-            default=2.0,
-            description="Mesh size"
-            )
-    meshsize_x = FloatProperty(
-            name="Size X",
-            min=0.01,
-            default=2.0,
-            description="Mesh x size"
-            )
-    meshsize_y = FloatProperty(
-            name="Size Y",
-            min=0.01,
-            default=2.0,
-            description="Mesh y size"
-            )
-
     x_offset = FloatProperty(
             name="Offset X",
             default=0.0,
@@ -605,11 +578,16 @@ class do_displace(bpy.types.Operator):
             default=0.0,
             description="Noise Y Offset"
             )
+    z_offset = FloatProperty(
+            name="Offset Z",
+            default=0.0,
+            description="Noise Z Offset"
+            )
     noise_size = FloatProperty(
             name="Noise Size",
             min=0.01,
             max=1000.0,
-            default=1.0,
+            default=0.25,
             description="Noise size"
             )
     noise_size_x = FloatProperty(
@@ -625,6 +603,13 @@ class do_displace(bpy.types.Operator):
             max=1000.0,
             default=1.0,
             description="Noise y size"
+            )
+    noise_size_z = FloatProperty(
+            name="Size Z",
+            min=0.01,
+            max=1000.0,
+            default=1.0,
+            description="Noise Z size"
             )
     NoiseTypes = [
             ('multi_fractal', "Multi Fractal", "Blender: Multi Fractal algorithm"),
@@ -643,7 +628,8 @@ class do_displace(bpy.types.Operator):
             ('distorted_heteroTerrain', "Distorted hTerrain", "A.N.T distorted hTerrain"),
             ('double_multiFractal', "Double MultiFractal", "A.N.T: double multiFractal"),
             ('slick_rock', "Slick Rock", "A.N.T: slick rock"),
-            ('planet_noise', "Planet Noise", "Planet Noise by: Farsthary")
+            ('planet_noise', "Planet Noise", "Planet Noise by: Farsthary"),
+            ('blender_texture', "Blender Texture - Texture Nodes", "Blender Internal Texture Data Block")
             ]
     noise_type = EnumProperty(
             name="Type",
@@ -786,7 +772,7 @@ class do_displace(bpy.types.Operator):
             name="Height",
             min=-10000.0,
             max=10000.0,
-            default=0.5,
+            default=0.25,
             description="Noise intensity scale"
             )
     invert = BoolProperty(
@@ -800,62 +786,29 @@ class do_displace(bpy.types.Operator):
             default=0.0,
             description="Height offset"
             )
-    fallTypes = [
-            ("0", "None", "None"),
-            ("1", "Y", "Y Falloff"),
-            ("2", "X", "X Falloff"),
-            ("3", "X Y", "X Y Falloff")
-            ]
-    edge_falloff = EnumProperty(
-            name="Falloff",
-            description="Flatten edges",
-            default="0",
-            items=fallTypes
-            )
-    falloff_size_x = FloatProperty(
-            name="Falloff X",
-            min=0.1,
-            max=100.0,
-            default=4.0,
-            description="Falloff x scale"
-            )
-    falloff_size_y = FloatProperty(
-            name="Falloff Y",
-            min=0.1,
-            max=100.0,
-            default=4.0,
-            description="Falloff y scale"
-            )
-    edge_level = FloatProperty(
-            name="Edge Level",
-            min=-10000.0,
-            max=10000.0,
-            default=0.0,
-            description="Edge level, sealevel offset"
-            )
-    plateaulevel = FloatProperty(
+    maximum = FloatProperty(
             name="Maximum",
             min=-10000.0,
             max=10000.0,
             default=1.0,
-            description="Maximum, flattens terrain at plateau level"
+            description="Maximum"
             )
-    sealevel = FloatProperty(
+    minimum = FloatProperty(
             name="Minimum",
             min=-10000.0,
             max=10000.0,
             default=-1.0,
-            description="Minimum, flattens terrain at seabed level"
+            description="Minimum"
             )
     strata = FloatProperty(
             name="Amount",
             min=0.01,
             max=1000.0,
             default=5.0,
-            description="Strata layers / distortion"
+            description="Strata layers / terraces"
             )
     StrataTypes = [
-            ("0", "None", "No strata / filter"),
+            ("0", "None", "No strata"),
             ("1", "Smooth", "Smooth transitions"),
             ("2", "Sharp -", "Sharp substract transitions"),
             ("3", "Sharp +", "Sharp add transitions"),
@@ -864,20 +817,24 @@ class do_displace(bpy.types.Operator):
             ]
     strata_type = EnumProperty(
             name="Strata",
-            description="Strata and distortion types",
+            description="Strata types",
             default="0",
             items=StrataTypes
             )
-
+    use_vgroup = BoolProperty(
+            name="Vertex Group Weight",
+            default=False,
+            description="Use active vertex group weight"
+            )
     show_noise_settings = BoolProperty(
             name="Noise Settings",
             default=True,
             description="Show noise settings"
             )
     show_terrain_settings = BoolProperty(
-            name="Terrain Settings",
+            name="Displace Settings",
             default=True,
-            description="Show terrain settings"
+            description="Show displace settings"
             )
     refresh = BoolProperty(
             name="Refresh",
@@ -889,6 +846,10 @@ class do_displace(bpy.types.Operator):
             description="Automatic refresh",
             default=True
             )
+    texture_name = StringProperty(
+        name="Texture",
+        default=""
+        )
 
     def draw(self, context):
         sce = context.scene
@@ -909,14 +870,20 @@ class do_displace(bpy.types.Operator):
         box.prop(self, "show_noise_settings", toggle=True)
         if self.show_noise_settings:
             box.prop(self, "noise_type")
-            box.prop(self, "basis_type")
+            if self.noise_type == "blender_texture":
+                box.prop_search(self, "texture_name", bpy.data, "textures")
+            else:
+                box.prop(self, "basis_type")
+
             col = box.column(align=True)
             col.prop(self, "random_seed")
             col = box.column(align=True)
             col.prop(self, "x_offset")
             col.prop(self, "y_offset")
+            col.prop(self, "z_offset")
             col.prop(self, "noise_size_x")
             col.prop(self, "noise_size_y")
+            col.prop(self, "noise_size_z")
             col = box.column(align=True)
             col.prop(self, "noise_size")
 
@@ -1024,7 +991,11 @@ class do_displace(bpy.types.Operator):
                 col.prop(self, "noise_depth")
                 col.prop(self, "dimension")
                 col.prop(self, "lacunarity")
+                col.prop(self, "gain")
                 col.prop(self, "moffset")
+                col.prop(self, "distortion")
+                col.separator()
+                col.prop(self, "vl_basis_type")
             elif self.noise_type == "planet_noise":
                 col.prop(self, "noise_depth")
                 col.separator()
@@ -1039,25 +1010,15 @@ class do_displace(bpy.types.Operator):
             row.prop(self, "height")
             row.prop(self, "invert", toggle=True, text="", icon='ARROW_LEFTRIGHT')
             col.prop(self, "offset")
-            col.prop(self, "plateaulevel")
-            col.prop(self, "sealevel")
-
-            col = box.column(align=False)
-            col.prop(self, "edge_falloff")
-            if self.edge_falloff is not "0":
-                col = box.column(align=True)
-                col.prop(self, "edge_level")
-                if self.edge_falloff in ["2", "3"]:
-                    col.prop(self, "falloff_size_x")
-                if self.edge_falloff in ["1", "3"]:
-                    col.prop(self, "falloff_size_y")
-
+            col.prop(self, "maximum")
+            col.prop(self, "minimum")
+            col = box.column(align=True)
+            col.prop(self, "use_vgroup", toggle=True)
             col = box.column(align=False)
             col.prop(self, "strata_type")
             if self.strata_type is not "0":
                 col = box.column(align=False)
                 col.prop(self, "strata")
-
 
     @classmethod
     def poll(cls, context):
@@ -1077,15 +1038,9 @@ class do_displace(bpy.types.Operator):
         # turn off undo
         undo = bpy.context.user_preferences.edit.use_global_undo
         bpy.context.user_preferences.edit.use_global_undo = False
-        # object
-        obj = bpy.context.object
-        # mode
-        om = obj.mode
-        bpy.ops.object.mode_set()
 
-        scene = context.scene
-        # options
-        options = [
+        # settings
+        props = [
             self.random_seed,
             self.noise_size,
             self.noise_type,
@@ -1104,41 +1059,53 @@ class do_displace(bpy.types.Operator):
             self.invert,
             self.height,
             self.offset,
-            self.edge_falloff,
-            self.sealevel,
-            self.plateaulevel,
+            self.minimum,
+            self.maximum,
             self.strata,
             self.strata_type,
-            self.sphere_mesh,
             self.x_offset,
             self.y_offset,
-            self.edge_level,
-            self.falloff_size_x,
-            self.falloff_size_y,
+            self.z_offset,
             self.noise_size_x,
             self.noise_size_y,
+            self.noise_size_z,
             self.amplitude,
-            self.frequency
+            self.frequency,
+            self.texture_name
             ]
 
-        # Displace vertices
-        me = obj.data
-        for v in me.vertices:
-            v.co += v.normal * landscape_gen(v.co[0], v.co[1], v.co[2], obj.scale[0], obj.scale[1], options)
-        me.update()
+        # do displace
+        obj = context.object
+        mesh = obj.data
+
+        if not self.use_vgroup:
+            for v in mesh.vertices:
+                v.co += v.normal * noise_gen(v.co, props)
+        else:
+            vertex_group = obj.vertex_groups.active 
+            if vertex_group:
+                index = 0
+                for v in mesh.vertices:
+                    v.co += vertex_group.weight(index) * v.normal * noise_gen(v.co, props)
+                    index += 1
+
+        mesh.update()
+
+        if bpy.ops.object.shade_smooth == True:
+            bpy.ops.object.shade_smooth()
+
+
 
         if self.auto_refresh is False:
             self.refresh = False
 
-        # restore user settings
-        bpy.ops.object.mode_set(mode=om)
-
         # restore pre operator undo state
         context.user_preferences.edit.use_global_undo = undo
 
+
         return {'FINISHED'}
 
-
+# ------------------------------------------------------------
 # ------------------------------------------------------------
 class panel_func_ant_displace(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
