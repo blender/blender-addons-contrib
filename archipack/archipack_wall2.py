@@ -556,7 +556,7 @@ class archipack_wall2(Manipulable, PropertyGroup):
                 look at fence implementation for this part
         """
         raise NotImplementedError
-        
+
         for i, line in enumerate(lines):
             if type(line).__name__ == 'Line':
                 self.parts[i].a0 = line.angle
@@ -762,7 +762,7 @@ class archipack_wall2(Manipulable, PropertyGroup):
         for child in relocate:
             name, wall_idx, pos, flip = child
             self.add_child(name, wall_idx, pos, flip)
-            
+
         # add a dumb size from last child to end of wall segment
         for i in range(sum(wall_with_childs)):
             m = self.childs_manipulators.add()
@@ -888,7 +888,7 @@ class archipack_wall2(Manipulable, PropertyGroup):
             if not self.realtime:
                 self.update_childs(context, o, g)
             # trigger wall's update by hand as those manipulations
-            # dosen't affect wall data 
+            # dosen't affect wall data
             # NOTE: update manipulators should be sufficient here
             self.update(context)
 
@@ -920,16 +920,16 @@ class archipack_wall2(Manipulable, PropertyGroup):
 
             # snap point
             self.manip_stack.append(part.manipulators[2].setup(context, o, self))
-            
-            # height as per segment will be here when done 
-            
+
+            # height as per segment will be here when done
+
         # TODO:
         # add last segment snap manipulator at end of the segment
-        
+
         # width + counter
         for m in self.manipulators:
             self.manip_stack.append(m.setup(context, o, self))
-        
+
         # dumb between childs
         for m in self.childs_manipulators:
             self.manip_stack.append(m.setup(context, o, self))
@@ -1087,7 +1087,7 @@ class ARCHIPACK_OT_wall2(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     auto_manipulate = BoolProperty(default=True)
-    
+
     def draw(self, context):
         layout = self.layout
         row = layout.row()
@@ -1268,17 +1268,18 @@ class ARCHIPACK_OT_wall2_draw(Operator):
 
                 snap_point(takeloc, self.sp_draw, self.sp_callback, constraint_axis=(True, True, False))
             return {'RUNNING_MODAL'}
-            
-        if event.type in {'BACK_SPACE'} and event.value == 'RELEASE':
+
+        if ((event.type in {'Z'} and event.ctrl and event.value == 'RELEASE') or
+                (event.type in {'BACK_SPACE'} and event.value == 'RELEASE')):
             if self.o is not None:
-                o = self.o                
+                o = self.o
                 o.select = True
                 context.scene.objects.active = o
                 d = o.data.archipack_wall2[0]
                 if d.n_parts > 1:
                     d.n_parts -= 1
-                
-            
+            return {'RUNNING_MODAL'}
+
         if self.state == 'CANCEL' or (event.type in {'ESC', 'RIGHTMOUSE'} and
                 event.value == 'RELEASE'):
 
