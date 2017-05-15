@@ -294,24 +294,13 @@ def OscLinkedGroupToLocal():
     for ob in GROBJS:
         NEWGROUP.objects.link(ob)
         NEWOBJ.append(ob)
-    """    
-    for ob in NEWOBJ:
-        if ob.type == "MESH":
-            if len(ob.modifiers):
-                for MODIFIER in ob.modifiers[:]:
-                    if MODIFIER.type == "SUBSURF" or MODIFIER.type == "MASK":
-                        ob.modifiers.remove(MODIFIER)
-    """                    
+                  
 
 class OscGroupLinkedToLocal(bpy.types.Operator):
     bl_idname = "group.linked_group_to_local"
     bl_label = "Group Linked To Local"
     bl_description = "Group Linked To Local"
     bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        return(bpy.context.scene.pc_pc2_group != "")
 
     def execute(self, context):
         OscLinkedGroupToLocal()
