@@ -16,24 +16,26 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_info = {
-    "name": "KTX RenderSlot",
-    "author": "Roel Koster, @koelooptiemanna, irc:kostex",
-    "version": (1, 2),
-    "blender": (2, 7, 0),
-    "location": "Properties Editor > Render > Render",
-    "category": "Render"}
-
 import bpy
 from bpy.types import Operator
 from bpy.props import IntProperty
 from sys import platform
 from bpy.app.handlers import persistent
 
+
+bl_info = {
+    "name": "KTX RenderSlot",
+    "author": "Roel Koster, @koelooptiemanna, irc:kostex",
+    "version": (1, 2, 1),
+    "blender": (2, 7, 0),
+    "location": "Properties Editor > Render > Render",
+    "category": "Render"}
+
+
 nullpath = '/nul' if platform == 'win32' else '/dev/null'
 
 
-class SlotBuffer():
+class SlotBuffer:
     data = '00000000'
 
 
@@ -41,8 +43,8 @@ class KTX_RenderSlot(Operator):
     bl_label = "Select Render Slot"
     bl_idname = "ktx.renderslot"
     bl_description = ("Select Render Slot\n"
-                      "Note: Dot Besides the number slot has data\n"
-                      "< is active slot")
+                      "Note: Dot next to number means slot has image data\n"
+                      "[x] is active slot")
 
     number = IntProperty()
 
@@ -61,7 +63,6 @@ class KTX_CheckSlots(Operator):
         img = bpy.data.images['Render Result']
         active = img.render_slots.active_index
         slots = ''
-        i = 0
         for i in range(8):
             img.render_slots.active_index = i
             try:
@@ -84,12 +85,11 @@ def ui(self, context):
             active = bpy.data.images['Render Result'].render_slots.active_index
             row = layout.row(align=True)
             row.alignment = 'EXPAND'
-            i = 0
             for i in range(8):
-                is_active = bool(i==active)
+                is_active = bool(i == active)
                 test_active = bool(bpy.context.scene.ktx_occupied_render_slots.data[i] == '1')
                 icons = "LAYER_ACTIVE" if test_active else "BLANK1"
-                label = str(i + 1)+"<" if is_active else str(i + 1)
+                label = "[{}]".format(str(i + 1)) if is_active else str(i + 1)
                 row.operator('ktx.renderslot', text=label, icon=icons).number = i
         except:
             row.label(text="No Render Slots available yet", icon="INFO")
@@ -103,9 +103,10 @@ def ktx_render_handler(scene):
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.RENDER_PT_render.prepend(ui)
-    bpy.types.Scene.ktx_occupied_render_slots = SlotBuffer()
+    bpy.types.Scene.ktx_occupied_render_slots = SlotBuffer
 
     bpy.app.handlers.render_post.append(ktx_render_handler)
+
 
 def unregister():
     bpy.utils.unregister_module(__name__)
