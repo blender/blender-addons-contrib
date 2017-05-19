@@ -32,7 +32,16 @@ bl_info = {
 
 
 import bpy, bmesh 
-from bpy.props import StringProperty, IntProperty, FloatProperty, EnumProperty, BoolProperty, BoolVectorProperty, FloatVectorProperty
+from bpy.props import (
+        StringProperty,
+        IntProperty,
+        FloatProperty,
+        EnumProperty,
+        BoolProperty,
+        BoolVectorProperty,
+        FloatVectorProperty,
+        )
+
 
 def testPrint():
     
@@ -55,14 +64,23 @@ class lattice_to_selection(bpy.types.Operator):
         bl_label = "Lattice to Selection"               
         bl_options = {'REGISTER', 'UNDO'} 
         
-        apply_rot = BoolProperty(name = "Local", description = "Orient the lattice to the active object", default = True)
-        parent_to = BoolProperty(name = "Parent to Lattice", description = "Parents all the objects to the Lattice", default = False)
+        apply_rot = BoolProperty(
+                        name = "Local",
+                        description = "Orient the lattice to the active object",
+                        default = True
+                        )
+        parent_to = BoolProperty(
+                        name = "Parent to Lattice",
+                        description = "Parents all the objects to the Lattice",
+                        default = False
+                        )
         move_first = BoolProperty(name = "First in Modifier Stack", description = "Moves the lattice modifier to be first in the stack", default = False)
-        interpolation = bpy.props.EnumProperty(items= (('KEY_LINEAR', 'Linear', 'Linear Interpolation'),
-                                                     ('KEY_CARDINAL', 'Cardinal', 'Cardinal Interpolation'),
-                                                     ('KEY_CATMULL_ROM', 'Catmull Rom', 'Catmull Rom Interpolation'),
-                                                     ('KEY_BSPLINE', 'BSpline', 'BSpline Interpolation')),
-                                                     name = "Interpolation", default = 'KEY_BSPLINE')
+        interpolation = bpy.props.EnumProperty(
+                                   items= (('KEY_LINEAR', 'Linear', 'Linear Interpolation'),
+                                   ('KEY_CARDINAL', 'Cardinal', 'Cardinal Interpolation'),
+                                   ('KEY_CATMULL_ROM', 'Catmull Rom', 'Catmull Rom Interpolation'),
+                                   ('KEY_BSPLINE', 'BSpline', 'BSpline Interpolation')),
+                                   name = "Interpolation", default = 'KEY_BSPLINE')
         seg_u = IntProperty( name = "Lattice U", default = 2, soft_min = 2)
         seg_v = IntProperty( name = "Lattice V", default = 2, soft_min = 2 )
         seg_w = IntProperty( name = "Lattice W", default = 2, soft_min = 2 )
@@ -2429,7 +2447,9 @@ class ktools_mesh(bpy.types.Operator): #Namesuggestion: K-Tools or K-Mac
 def menu_func(self, context):
     self.layout.separator()
     self.layout.menu("VIEW3D_MT_edit_mesh_ktools_menuEdit", text = "KTools")
-    
+def menu_func_ob(self, context):
+    self.layout.separator()
+    self.layout.menu("OBJECT_MT_ktools_menu", text = "KTools")    
 
 #Register and Unregister all the operators
 def register():
@@ -2454,16 +2474,12 @@ def register():
         bpy.utils.register_class(VIEW3D_MT_edit_mesh_ktools_menuEdit)
         bpy.utils.register_class(ktools)
         bpy.utils.register_class(ktools_mesh)
-        bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_func)
+
+        bpy.types.VIEW3D_MT_edit_mesh_specials.prepend(menu_func)
+        bpy.types.VIEW3D_MT_object_specials.prepend(menu_func_ob)
         
         kc = bpy.context.window_manager.keyconfigs.addon
         if kc:
-            # Add KTools object menu to inputs
-            km = kc.keymaps.new(name="Object Mode", space_type="EMPTY")
-            kmi = km.keymap_items.new('object.ktools', 'Q', 'PRESS', shift=True)
-            # Add KTools edit menu to inputs
-            km = kc.keymaps.new(name="Mesh", space_type="EMPTY")
-            kmi = km.keymap_items.new('mesh.ktools_mesh', 'Q', 'PRESS', shift=True)
             # Add paint select to CTRL+SHIFT+ALT+LeftMouse
             km = kc.keymaps.new(name="3D View", space_type="VIEW_3D")
             kmi = km.keymap_items.new('view3d.select_paint', 'ACTIONMOUSE', 'PRESS', shift=True, ctrl=True, alt=True)
@@ -2492,20 +2508,12 @@ def unregister():
         bpy.utils.unregister_class(VIEW3D_MT_edit_mesh_ktools_menuEdit)
         bpy.utils.unregister_class(ktools)
         bpy.utils.unregister_class(ktools_mesh)
+
         bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func)
+        bpy.types.VIEW3D_MT_object_specials.remove(menu_func_ob)
 
         kc = bpy.context.window_manager.keyconfigs.addon
         if kc:
-            km = kc.keymaps["Object Mode"]
-            for kmi in km.keymap_items:
-                if kmi.idname == 'object.ktools':
-                    km.keymap_items.remove(kmi)
-                    break
-            km = kc.keymaps["Mesh"]
-            for kmi in km.keymap_items:
-                if kmi.idname == 'mesh.ktools_mesh':
-                    km.keymap_items.remove(kmi)
-                    break
             km = kc.keymaps["3D View"]
             for kmi in km.keymap_items:
                 if kmi.idname == 'view3d.select_paint':
