@@ -17,120 +17,18 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 END GPL LICENSE BLOCK
 
-#############################################################################
+#============================================================================
 
-xoffsets.py (alpha version 005)
-
-Performance Note:
-The Add-On's vertex finding code is still mostly a proof-of-concept without 
-any performance optimizations. During trial runs the Add-On worked fine 
-with basic models, but once vertex counts reached the 10K to 30K range 
-performance took a major hit. Using the Add-On with anything more complex 
-than that might still be possible, but is not recommended.
+mesh_xoffsets.py (alpha version 005)
 
 Install instructions (if downloaded separately from Blender):
-1) Save the xoffsets.py file to your computer.
+1) Save the mesh_xoffsets.py file to your computer.
 2) In Blender, go to File > User Preferences > Add-ons
-3) Press Install From File and select the xoffsets.py file you
+3) Press Install From File and select the mesh_xoffsets.py file you
     just downloaded.
-4) Enable the Add-On by clicking on box to the left of Add-On's name
+4) Enable the Add-On by clicking on the box to the left of Add-On's name
 
-Basic Usage: 
-Launch the Add-On from the Spacebar menu by typing in: Exact Offsets
-After launching the addon, it will be in "Point Select" mode where you can 
-select 2 or 3 "reference points" using the Left Mouse Button. Points are 
-selected by left clicking on/near the vertices of a mesh model in the 
-3D View. A point will be placed at the vertex closest to the location you 
-clicked (except when there are no vertices near the mouse cursor). The order 
-in which you selected the points determines their function and color:
-
-* 1st point set is the "Anchor" (red)
-* 2nd point set is the "Free" (green)
-* If a 3rd point is set, the 2nd point becomes the "Pivot" (blue) and the 
-   3rd point (last) becomes the "Free" point
-
-Unselecting points:
-If you click on an already "selected" reference point it will become 
-"unselected". For "unselecting" points, the Anchor > Pivot > Free 
-association works in reverse from when you selected points. 
-
-Examples:
-* If 2 points are selected and the Anchor is unselected, the Free point 
-   (being the only point selected) becomes the "new" Anchor.
-* If 3 points are selected and the Pivot is unselected, the Free and Anchor 
-   remain unchanged and the Pivot is removed.
-* If 3 points are selected and the Free is unselected, the Anchor remains
-   unchanged and the Pivot becomes the "new" Free.
-
-Entering a new measurement
-After you select 2 or 3 points, a "button" will appear in the 3D View 
-displaying the distance or rotation value between the selected points. If 
-you click on the button a "Measure Input" dialog box will appear displaying 
-the current measure between the points. If you change the measure in the 
-dialog box and click "OK", a translation (move), scale, or rotation will be
-performed depending on which mode was active.
-
-Available transform modes: 
-Translate, Scale (Object mode only), and Rotation.
-Translate mode is active when only 2 points are selected.
-Scale mode is active if 2 points are selected and attached to same object.
-Rotate mode active when 3 points are selected.
-
-Direction of Movement
-When a new measurement is input with the dialog box, the Free point will 
-move away from or towards the Anchor point to match the updated measurement. 
-If Blender was in Object Mode, the Object the "Free" point was attached to 
-will be moved. If Blender was in Edit Mode, the "Free" point's vertex will 
-be moved. If the Free point was part of a selection set, all other selected 
-vertices (if in Edit Mode) or Mesh Objects (if in Object Mode) will be moved 
-along with the Free point (except when in scale mode).
-
-Translate mode:
-Without an axis lock set, the Free point will move along the slope between 
-the Anchor and Free points. 
-With an axis lock set, Free is moved along set axis.
-
-Rotation mode:
-When an axis lock is set, the Free point will rotate around that axis where 
-it passes through the Pivot point's location. The displayed angle measurement
-(in degrees) represents the smallest angle created starting from the 
-Anchor-Pivot line (at 0 degrees) to the Pivot-Free line. Because the smallest
-angle is used to determine the direction to move the Free point, if the angle 
-measured 0 or 180 degrees before entering a new rotation value, the new 
-location for the Free point will have to be manually selected with the 
-Left Mouse Button. When no axis lock is set, the Free point will rotate 
-around the "face normal" of Anchor-Pivot-Free "face" coming off the Pivot's 
-location. You will not be able to do a rotation without an axis lock set if 
-the original rotation value was 0 or 180 degrees.
-
-Scale mode (Object Mode Only):
-If scale mode is active and no axis lock set, the whole object is scaled up 
-or down so the distance between the Anchor and Free points matches the 
-distance input with the dialog box. If an axis lock was set, the object will 
-scale only along the selected axis. Note that the object is scaled in the 
-direction of the Free point with the Anchor point maintaining its 
-original location.
-
-Notes: 
-* You cannot select more than 1 point in a given 3D location (Points can't 
-   share the same coordinates).
-* If Objects have an unapplied scale or rotation, transforms may not work as
-   intended (scale in particular).
-* Entering negative values will reverse the direction of the transformation.
-   For example, If a Z axis lock was applied, the Free vertex was 2 units 
-    above the Anchor, and -3 was entered, the Free vertex would be moved down
-    5 units to sit 3 units below the Anchor.
-
-Hotkeys:
-LMB = Left Mouse Button, RMB = Right Mouse Button
-
-ESC      exits the add-on
-LMB+RMB  exits the add-on
-LMB      selects points and activates button
-X        sets X-axis lock
-Y        sets Y-axis lock
-Z        sets Z-axis lock
-C        clears axis lock (sets "Spherical" lock in rotation mode)
+#============================================================================
 
 todo:
   [?] rewrite/refactor code to optimize for modal operation
@@ -143,7 +41,7 @@ todo:
   [ ] better measurement input panel
   [ ] add hotkey reference info into 3D View ?
 
-#############################################################################
+#============================================================================
 '''
 
 bl_info = {
