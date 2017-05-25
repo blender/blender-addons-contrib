@@ -51,6 +51,7 @@ bl_info = {
     "blender": (2, 7, 7),
     "location": "View3D",
     "description": "Tool for precisely setting distance, scale, and rotation of mesh geometry",
+    "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Mesh/Exact_Offsets",
     "category": "Mesh"
 }
 
