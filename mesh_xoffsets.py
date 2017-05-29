@@ -96,8 +96,16 @@ def getRegRv3d():
     RegRv3d = (region, rv3d)
 
 
+class Colr:
+    red   = 1.0, 0.0, 0.0, 0.5
+    green = 0.0, 1.0, 0.0, 0.5
+    blue  = 0.0, 0.0, 1.0, 0.5
+    white = 1.0, 1.0, 1.0, 1.0
+    grey  = 1.0, 1.0, 1.0, 0.4
+
+
 # vertex storage class, stores reference point info
-class vertObj:
+class VertObj:
     def __init__(self, objInd=-1, vertInd=-1, co3D=[], co2D=[], dist2D=-1, refInd=-1):
         self.objInd = objInd
         self.vertInd = vertInd
@@ -121,22 +129,19 @@ class vertObj:
 
 
 # stores info for the reference points info
-class referencePoints():
+class ReferencePoints():
     def __init__(self, count=0, rLs=[(),(),()], mLs=[(),(),()], axisLock='', col_ls=[]):
         self.cnt = count
         self.rLs = rLs
         self.mLs = mLs
         self.axLock = axisLock
         self.col_ls = col_ls
-        self.colorRed   = [1.0, 0.0, 0.0, 0.5]
-        self.colorGreen = [0.0, 1.0, 0.0, 0.5]
-        self.colorBlue  = [0.0, 0.0, 1.0, 0.5]
 
     def update_col_ls(self):
         if self.cnt < 3:
-            self.col_ls = [self.colorRed,self.colorGreen]
+            self.col_ls = [Colr.red,Colr.green]
         else: # self.cnt > 2
-            self.col_ls = [self.colorRed,self.colorBlue,self.colorGreen]
+            self.col_ls = [Colr.red,Colr.blue,Colr.green]
 
     def removePt(self,remInd):
         # hackery or smart, you decide...
@@ -176,7 +181,7 @@ class referencePoints():
 # stores rotation info
 # for passing data from draw_callback_px to external functions
 # not as bad as hiding arguments in passed variables, but still seems hackish
-class rotationData:
+class RotationData:
     def __init__(self):
         self.newAngR = 0.0
         self.newAngD = 0.0
@@ -343,14 +348,14 @@ def getRotatedPoint(PivC,angleDiffRad,rotDat,movCo):
 # returns modified list of 3D coordinates or empty tuple if problem
 # returns supplied list of 3D coordinates if no axis lock
 # todo : send transfMode instead of refCount ?
-# todo : move inside referencePoints class ?
+# todo : move inside ReferencePoints class ?
 def setLockPts(axis, rPts, refCount):
     if refCount < 2:
         return []
     if axis == '':
         return rPts
     else:
-        NewPtLs = [ vertObj(), vertObj() ]
+        NewPtLs = [ VertObj(), VertObj() ]
         rPts2 = [rPts[i].co3D for i in range(refCount)] # shorthand
         if refCount == 2:  # translate
         # finds 3D midpoint between 2 supplied coordinates
@@ -390,7 +395,7 @@ def setLockPts(axis, rPts, refCount):
                 # axis lock creates identical points, return empty list
                 return []
             else:
-                NewPtLs.append( vertObj( -1,-1,movCo,[],-1,-1 ) )
+                NewPtLs.append( VertObj( -1,-1,movCo,[],-1,-1 ) )
 
         for itm in NewPtLs: itm.set2D()
         return NewPtLs
@@ -428,9 +433,9 @@ def findCorrectRot(self, rotDat):
 
 def find_closest_vert(obInd,loc,meshObj):
     meshDat = meshObj.data
-    closVert = vertObj()
+    closVert = VertObj()
     for i, v in enumerate(meshDat.vertices):
-        tmpOb = vertObj(obInd, i)
+        tmpOb = VertObj(obInd, i)
         tmpOb.co3D = meshObj.matrix_world * v.co # global instead of local
         tmpOb.set2D()
         tmpOb.dist2D = get_dist_2D( loc, tmpOb.co2D )
@@ -443,7 +448,7 @@ def find_closest_vert(obInd,loc,meshObj):
 
 
 def find_all(co_find):
-    closest = vertObj()
+    closest = VertObj()
     indexLs = []
     objLen = len(bpy.context.scene.objects)
     for i in range(objLen):
@@ -467,7 +472,7 @@ def find_all(co_find):
 
 def draw_font_at_pt(text, pt_co, pt_color):
     font_id = 0
-    bgl.glColor4f(*pt_color) # grey
+    bgl.glColor4f(*pt_color)
     blf.position(font_id, pt_co[0], pt_co[1], 0)
     blf.size(font_id, 32, 72)
     blf.draw(font_id, text)
@@ -563,9 +568,9 @@ def sceneRefresh(edType):
             for i in scn_selected: sObjs[i].select = True
 
 
-# takes vertObj type and 3D coordinate list as arguments, 
+# takes VertObj type and 3D coordinate list as arguments, 
 # calculates difference between their 3D locations
-# to determine translation to apply to object in vertObj arg
+# to determine translation to apply to object in VertObj arg
 def do_translation( mode,newCo,freeObj,selectLs=[],freeInSel=False ):
     coorChange, oldCo = [0,0,0], [0,0,0]
     if mode == "OBJECT":  # get Free's global coordinates
@@ -647,11 +652,9 @@ def do_scale(self, scale_factor, sel_backup):
 # cursor, and boolean indicating whether left mouse was clicked (Lclick).
 # Returns New 3D Location chosen by user
 # rPco == rotation Positive coordinate,  rNco == rot Negative coor
-# todo : make rPco_2D,rNco_2D vertObj types ?
+# todo : make rPco_2D,rNco_2D VertObj types ?
 def choose_0_or_180(piv,rPco,rPangR,rNco,rNangR,mouseLoc,Lclick):
     global RegRv3d  # RegRv3d = (region, rv3d)
-    colorGrey = [1.0, 1.0, 1.0, 0.4]
-    colorGreen = [0.0, 1.0, 0.0, 0.5]
     region, rv3d = RegRv3d[0], RegRv3d[1]
     rPco_2D = location_3d_to_region_2d(region, rv3d, rPco)
     rNco_2D = location_3d_to_region_2d(region, rv3d, rNco)
@@ -660,22 +663,22 @@ def choose_0_or_180(piv,rPco,rPangR,rNco,rNangR,mouseLoc,Lclick):
     ms_co2_dis = get_dist_2D(rNco_2D, mouseLoc)
     # draw both buttons and wait for Lmouse click input
     if   ms_co1_dis < ms_co2_dis:
-        draw_line_2D(piv2D, rPco_2D, colorGreen)
-        draw_pt_2D(rPco_2D, colorGreen, 14)
-        draw_pt_2D(rNco_2D, colorGrey)
+        draw_line_2D(piv2D, rPco_2D, Colr.green)
+        draw_pt_2D(rPco_2D, Colr.green, 14)
+        draw_pt_2D(rNco_2D, Colr.grey)
         if Lclick:
             #print("Chose coor rPco!")
             return rPco, rPangR
     elif ms_co2_dis < ms_co1_dis:
-        draw_line_2D(piv2D, rNco_2D, colorGreen)
-        draw_pt_2D(rNco_2D, colorGreen, 14)
-        draw_pt_2D(rPco_2D, colorGrey)
+        draw_line_2D(piv2D, rNco_2D, Colr.green)
+        draw_pt_2D(rNco_2D, Colr.green, 14)
+        draw_pt_2D(rPco_2D, Colr.grey)
         if Lclick:
             #print("Chose coor rNco!")
             return rNco, rNangR
     else:
-        draw_pt_2D(rPco_2D, colorGrey)
-        draw_pt_2D(rNco_2D, colorGrey)
+        draw_pt_2D(rPco_2D, Colr.grey)
+        draw_pt_2D(rNco_2D, Colr.grey)
     return None, None
 
 
@@ -733,14 +736,14 @@ def do_rotate(self, newFreeCoor,freeInSel,selectedLs,sel_backup):
 
             # Code below isn't pretty, but works for now...
             # Basically it takes object numbers stored in selectedLs and uses
-            # them to create vertObj objects, but using selected object's
+            # them to create VertObj objects, but using selected object's
             # origins as "Free vertex" values instead of actual Free vertex.
             # Then it rotates these "Free vertex" values around Anchor by
             # radian value stored in self.rDat.angDiffR
             # todo: clean this up along with the rest of the selectedLs code
             if freeInSel:
                 for ob in selectedLs:
-                    newOb = vertObj( ob, -1, Vector([*bpy.context.scene.objects[ob].location]) )
+                    newOb = VertObj( ob, -1, Vector([*bpy.context.scene.objects[ob].location]) )
                     lockPts = setLockPts(axisLock,[self.refPts.rLs[0],self.refPts.rLs[1],newOb], self.refPts.cnt) # todo
                     if (lockPts != []):
                         glbCo = lockPts[2].co3D
@@ -763,7 +766,7 @@ def do_rotate(self, newFreeCoor,freeInSel,selectedLs,sel_backup):
             bm.verts[freeVerIn].co = inverMW * Vector( newFreeCoor )
             # if Free was in a selection, rotate the rest of the selection
             if freeInSel:
-                newPt = vertObj()
+                newPt = VertObj()
                 for v2 in selectedLs:
                     newPt.co3D = activMW * bm.verts[v2].co
                     lockPts = setLockPts( self.refPts.axLock,[self.refPts.rLs[0],self.refPts.rLs[1],newPt], self.refPts.cnt)
@@ -848,9 +851,9 @@ def drawAllPts(self):
     else:
         midP = []
         if refPts.cnt < 3:
-            midP = vertObj( -1,-1,getMidpoint3D( refPts.rLs[0].co3D, refPts.rLs[1].co3D ))
+            midP = VertObj( -1,-1,getMidpoint3D( refPts.rLs[0].co3D, refPts.rLs[1].co3D ))
         else:
-            midP = vertObj( -1,-1,lockPts[1].co3D.copy() )
+            midP = VertObj( -1,-1,lockPts[1].co3D.copy() )
 
         lastPt = []
         if refPts.axLock == '':
@@ -862,11 +865,11 @@ def drawAllPts(self):
                 lastPt = refPts.rLs[i].co2D
         else:
             if   refPts.axLock == 'X':
-                draw_font_at_pt ( refPts.axLock, [70,70], refPts.colorRed )
+                draw_font_at_pt ( refPts.axLock, [70,70], Colr.red )
             elif refPts.axLock == 'Y':
-                draw_font_at_pt ( refPts.axLock, [70,70], refPts.colorGreen )
+                draw_font_at_pt ( refPts.axLock, [70,70], Colr.green )
             elif refPts.axLock == 'Z':
-                draw_font_at_pt ( refPts.axLock, [70,70], refPts.colorBlue )
+                draw_font_at_pt ( refPts.axLock, [70,70], Colr.blue )
             for i in range( refPts.cnt ):
                 refPts.rLs[i].set2D()
                 draw_pt_2D(refPts.rLs[i].co2D, refPts.col_ls[i])
@@ -877,15 +880,14 @@ def drawAllPts(self):
                 lastPt = refPts.mLs[i].co2D
 
         if btnDrawn:
-            colorWhite = [1.0, 1.0, 1.0, 1.0]
             midP.set2D()
             MeasStr = format(currMeasStor, '.2f')
-            self.boxCo = draw_btn(MeasStr, midP.co2D, self.mouseLoc,colorWhite,refPts.col_ls[0])
+            self.boxCo = draw_btn(MeasStr, midP.co2D, self.mouseLoc,Colr.white,refPts.col_ls[0])
 
 
 # == pop-up dialog code ==
 # todo: update with newer menu code if it can ever be made to work
-class changeInputPanel(bpy.types.Operator):
+class ChangeInputPanel(bpy.types.Operator):
     bl_idname = "object.ms_input_dialog_op"
     bl_label = "Measurement Input Panel"
     bl_options = {'INTERNAL'}
@@ -1193,7 +1195,7 @@ def doTransform(self):
             if freeInSel:
                 for ob in selectedLs:
                     coorChange = [0,0,0]
-                    newOb = vertObj(ob, -1, Vector([*bpy.context.scene.objects[ob].location]))
+                    newOb = VertObj(ob, -1, Vector([*bpy.context.scene.objects[ob].location]))
                     for i in range(3):
                         coorChange[i] = newOb.co3D[i] + chngCo[i]
                     do_translation( "OBJECT", coorChange, newOb )
@@ -1240,7 +1242,7 @@ def draw_callback_px(self, context):
         drawAllPts(self)
 
 
-class xOffsets(bpy.types.Operator):
+class Xoffsets(bpy.types.Operator):
     """Select vertices with the mouse"""
     bl_idname = "view3d.xoffsets_main"
     bl_label = "Exact Offsets"
@@ -1316,9 +1318,9 @@ class xOffsets(bpy.types.Operator):
             self.currEdType = ""  # current Blender Editor Type
             self.transfMode = ""  # transform mode
             self.AddOnMode = SET_REF_PTS  # transform mode
-            self.rDat = rotationData()
+            self.rDat = RotationData()
             self.newFreeCoor = ()
-            self.refPts = referencePoints()
+            self.refPts = ReferencePoints()
             self.sel_Stor = []
             self.boxCo = []
             self.btnDrawn = False
@@ -1344,12 +1346,12 @@ class xOffsets(bpy.types.Operator):
 
 
 def register():
-    bpy.utils.register_class(xOffsets)
-    bpy.utils.register_class(changeInputPanel)
+    bpy.utils.register_class(Xoffsets)
+    bpy.utils.register_class(ChangeInputPanel)
 
 def unregister():
-    bpy.utils.unregister_class(xOffsets)
-    bpy.utils.unregister_class(changeInputPanel)
+    bpy.utils.unregister_class(Xoffsets)
+    bpy.utils.unregister_class(ChangeInputPanel)
 
 if __name__ == "__main__":
     register()
