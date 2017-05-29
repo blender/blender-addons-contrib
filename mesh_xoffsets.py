@@ -116,7 +116,7 @@ class VertObj:
         self.obj = bpy.context.scene.objects # short hand, for internal use
 
     def copy(self): # return independent copy of vertObj
-        return vertObj( self.objInd, self.vertInd, self.co3D.copy(), [*self.co2D], self.dist2D, self.refInd )
+        return VertObj( self.objInd, self.vertInd, self.co3D.copy(), [*self.co2D], self.dist2D, self.refInd )
 
     def set2D(self):
         global RegRv3d
@@ -218,6 +218,12 @@ def get_dist_3D(ptA, ptB):
     return res
 
 
+# for making sure rise over run doesn't get flipped
+def slope_check(pt1,pt2):
+    cmp = ( pt1[0] >= pt2[0], pt1[1] >= pt2[1], pt1[2] >= pt2[2] )
+    return cmp
+
+
 def get_slope_3D(self, ptA, ptB):
     dist3D = get_dist_3D( ptA, ptB )
     x1,y1,z1 = ptA[0],ptA[1],ptA[2]
@@ -239,12 +245,6 @@ def get_new_pt_3D(xyz,slope3D,dis3D):
     newY = y1 + ( dis3D * slopeY )
     newZ = z1 + ( dis3D * slopeZ )
     return Vector([newX,newY,newZ])
-
-
-# for making sure rise over run doesn't get flipped
-def slope_check(pt1,pt2):
-    cmp = ( pt1[0] >= pt2[0], pt1[1] >= pt2[1], pt1[2] >= pt2[2] )
-    return cmp
 
 
 # todo: split into 2 functions ?
@@ -468,7 +468,47 @@ def find_all(co_find):
         return []
 
 
+# == 3D View mouse location and button code ==
+# Functions outside_loop() and point_inside_loop() for creating the measure
+# change "button" in the 3D View taken from patmo141's Vitual Button script:
+# https://blenderartists.org/forum/showthread.php?259085
+
+def outside_loop(loopCoords):
+    xs = [v[0] for v in loopCoords]
+    ys = [v[1] for v in loopCoords]
+    maxx = max(xs)
+    maxy = max(ys)
+    bound = (1.1*maxx, 1.1*maxy)
+    return bound
+
+
+def point_inside_loop(loopCoords, mousLoc):
+    nverts = len(loopCoords)
+    #vectorize our two item tuple
+    out = Vector(outside_loop(loopCoords))
+    vecMous = Vector(mousLoc)
+    intersections = 0
+    for i in range(0,nverts):
+        a = Vector(loopCoords[i-1])
+        b = Vector(loopCoords[i])
+        if intersect_line_line_2d(vecMous,out,a,b):
+            intersections += 1
+    inside = False
+    if fmod(intersections,2):
+        inside = True
+    return inside
+
+
 ### GL drawing code ### 
+
+
+def get_box_coor(origin,rWidth,rHeight,xOffset,yOffset):
+    coBL = (origin[0]-xOffset), (origin[1]-yOffset)
+    coTL = (origin[0]-xOffset), (origin[1]+rHeight+yOffset)
+    coTR = (origin[0]+rWidth+xOffset), (origin[1]+rHeight+yOffset)
+    coBR = (origin[0]+rWidth+xOffset), (origin[1]-yOffset)
+    return [coBL, coTL, coTR, coBR]
+
 
 def draw_font_at_pt(text, pt_co, pt_color):
     font_id = 0
@@ -511,43 +551,103 @@ def draw_box(boxCo, color):
     return
 
 
-# == 3D View mouse location and button code ==
-# Functions outside_loop() and point_inside_loop() for creating the measure
-# change "button" in the 3D View taken from patmo141's Vitual Button script:
-# https://blenderartists.org/forum/showthread.php?259085
+def draw_btn(text, co2D, mouseLoc, colorOff, colorOn):
+    color = colorOff
+    offSet = 5
+    font_id = 0
+    blf.size(font_id, 32, 72)
+    w, h = blf.dimensions(font_id, text)
+    textCoor = (co2D[0] - w/2, (co2D[1] + 5*offSet))
+    boxCo = get_box_coor(textCoor, w, h, offSet, offSet)
 
-def outside_loop(loopCoords):
-    xs = [v[0] for v in loopCoords]
-    ys = [v[1] for v in loopCoords]
-    maxx = max(xs)
-    maxy = max(ys)
-    bound = (1.1*maxx, 1.1*maxy)
-    return bound
+    bgl.glColor4f(*color)
+    blf.position(font_id, textCoor[0], textCoor[1], 0.0)
+    blf.draw(font_id, text)
+    if point_inside_loop(boxCo,mouseLoc):
+        color = colorOn
 
-
-def point_inside_loop(loopCoords, mousLoc):
-    nverts = len(loopCoords)
-    #vectorize our two item tuple
-    out = Vector(outside_loop(loopCoords))
-    vecMous = Vector(mousLoc)
-    intersections = 0
-    for i in range(0,nverts):
-        a = Vector(loopCoords[i-1])
-        b = Vector(loopCoords[i])
-        if intersect_line_line_2d(vecMous,out,a,b):
-            intersections += 1
-    inside = False
-    if fmod(intersections,2):
-        inside = True
-    return inside
+    draw_box(boxCo, color)
+    return boxCo
 
 
-def get_box_coor(origin,rWidth,rHeight,xOffset,yOffset):
-    coBL = (origin[0]-xOffset), (origin[1]-yOffset)
-    coTL = (origin[0]-xOffset), (origin[1]+rHeight+yOffset)
-    coTR = (origin[0]+rWidth+xOffset), (origin[1]+rHeight+yOffset)
-    coBR = (origin[0]+rWidth+xOffset), (origin[1]-yOffset)
-    return [coBL, coTL, coTR, coBR]
+def drawAllPts(self):
+    global currMeasStor
+    refPts,btnDrawn,lockPts = self.refPts,self.btnDrawn,self.refPts.mLs
+    if refPts.cnt == 1:
+        refPts.rLs[0].set2D()
+        draw_pt_2D(refPts.rLs[0].co2D, refPts.col_ls[0])
+    else:
+        midP = []
+        if refPts.cnt < 3:
+            midP = VertObj( -1,-1,getMidpoint3D( refPts.rLs[0].co3D, refPts.rLs[1].co3D ))
+        else:
+            midP = VertObj( -1,-1,lockPts[1].co3D.copy() )
+
+        lastPt = []
+        if refPts.axLock == '':
+            for i in range( refPts.cnt ):
+                refPts.rLs[i].set2D()
+                draw_pt_2D(refPts.rLs[i].co2D, refPts.col_ls[i])
+                if lastPt != []:
+                    draw_line_2D(lastPt, refPts.rLs[i].co2D, refPts.col_ls[0])
+                lastPt = refPts.rLs[i].co2D
+        else:
+            if   refPts.axLock == 'X':
+                draw_font_at_pt ( refPts.axLock, [70,70], Colr.red )
+            elif refPts.axLock == 'Y':
+                draw_font_at_pt ( refPts.axLock, [70,70], Colr.green )
+            elif refPts.axLock == 'Z':
+                draw_font_at_pt ( refPts.axLock, [70,70], Colr.blue )
+            for i in range( refPts.cnt ):
+                refPts.rLs[i].set2D()
+                draw_pt_2D(refPts.rLs[i].co2D, refPts.col_ls[i])
+                refPts.mLs[i].set2D()
+                draw_pt_2D(refPts.mLs[i].co2D, refPts.col_ls[i])
+                if lastPt != []:
+                    draw_line_2D(lastPt, refPts.mLs[i].co2D, refPts.col_ls[0])
+                lastPt = refPts.mLs[i].co2D
+
+        if btnDrawn:
+            midP.set2D()
+            MeasStr = format(currMeasStor, '.2f')
+            self.boxCo = draw_btn(MeasStr, midP.co2D, self.mouseLoc,Colr.white,refPts.col_ls[0])
+
+
+'''
+# for testing / debug purposes, may use later for UI elements
+# finds 0 and 180 degree reference points
+def draw_pts_0_180(self,ptLs,axisLock,Color):
+    AncC = ptLs[0].co3D
+    PivC = ptLs[1].co3D
+    FreC = ptLs[2].co3D
+    region = bpy.context.region
+    rv3d = []
+    for area in bpy.context.screen.areas:
+        if area.type == "VIEW_3D": 
+            rv3d = area.spaces[0].region_3d
+            break
+    A2P_dis = get_dist_3D( AncC, PivC )
+    P2F_dis = get_dist_3D( PivC, FreC )
+    dis180 = A2P_dis + P2F_dis
+    co180 = get_new_3D_coor(self,'',AncC, PivC, dis180)
+    co000 = get_new_3D_coor(self,'',PivC, AncC, P2F_dis)
+    co180_2d, co000_2d = [], []
+
+    if axisLock == '':
+        co180_2d = location_3d_to_region_2d(region, rv3d, [ co180[0],co180[1],co180[2] ])
+        co000_2d = location_3d_to_region_2d(region, rv3d, [ co000[0],co000[1],co000[2] ])
+    elif axisLock == 'X':
+        co180_2d = location_3d_to_region_2d(region, rv3d, [ FreC[0],co180[1],co180[2] ])
+        co000_2d = location_3d_to_region_2d(region, rv3d, [ FreC[0],co000[1],co000[2] ])
+    elif axisLock == 'Y':
+        co180_2d = location_3d_to_region_2d(region, rv3d, [ co180[0],FreC[1],co180[2] ])
+        co000_2d = location_3d_to_region_2d(region, rv3d, [ co000[0],FreC[1],co000[2] ])
+    elif axisLock == 'Z':
+        co180_2d = location_3d_to_region_2d(region, rv3d, [ co180[0],co180[1],FreC[2] ])
+        co000_2d = location_3d_to_region_2d(region, rv3d, [ co000[0],co000[1],FreC[2] ])
+    draw_pt_2D( co180_2d, Color )
+    draw_pt_2D( co000_2d, Color )
+'''
 
 
 def sceneRefresh(edType):
@@ -786,105 +886,6 @@ def do_rotate(self, newFreeCoor,freeInSel,selectedLs,sel_backup):
         self.refPts.rLs[obI].set2D()
 
 
-'''
-# for testing / debug purposes, may use later for UI elements
-# finds 0 and 180 degree reference points
-def draw_pts_0_180(self,ptLs,axisLock,Color):
-    AncC = ptLs[0].co3D
-    PivC = ptLs[1].co3D
-    FreC = ptLs[2].co3D
-    region = bpy.context.region
-    rv3d = []
-    for area in bpy.context.screen.areas:
-        if area.type == "VIEW_3D": 
-            rv3d = area.spaces[0].region_3d
-            break
-    A2P_dis = get_dist_3D( AncC, PivC )
-    P2F_dis = get_dist_3D( PivC, FreC )
-    dis180 = A2P_dis + P2F_dis
-    co180 = get_new_3D_coor(self,'',AncC, PivC, dis180)
-    co000 = get_new_3D_coor(self,'',PivC, AncC, P2F_dis)
-    co180_2d, co000_2d = [], []
-
-    if axisLock == '':
-        co180_2d = location_3d_to_region_2d(region, rv3d, [ co180[0],co180[1],co180[2] ])
-        co000_2d = location_3d_to_region_2d(region, rv3d, [ co000[0],co000[1],co000[2] ])
-    elif axisLock == 'X':
-        co180_2d = location_3d_to_region_2d(region, rv3d, [ FreC[0],co180[1],co180[2] ])
-        co000_2d = location_3d_to_region_2d(region, rv3d, [ FreC[0],co000[1],co000[2] ])
-    elif axisLock == 'Y':
-        co180_2d = location_3d_to_region_2d(region, rv3d, [ co180[0],FreC[1],co180[2] ])
-        co000_2d = location_3d_to_region_2d(region, rv3d, [ co000[0],FreC[1],co000[2] ])
-    elif axisLock == 'Z':
-        co180_2d = location_3d_to_region_2d(region, rv3d, [ co180[0],co180[1],FreC[2] ])
-        co000_2d = location_3d_to_region_2d(region, rv3d, [ co000[0],co000[1],FreC[2] ])
-    draw_pt_2D( co180_2d, Color )
-    draw_pt_2D( co000_2d, Color )
-'''
-
-
-def draw_btn(text, co2D, mouseLoc, colorOff, colorOn):
-    color = colorOff
-    offSet = 5
-    font_id = 0
-    blf.size(font_id, 32, 72)
-    w, h = blf.dimensions(font_id, text)
-    textCoor = (co2D[0] - w/2, (co2D[1] + 5*offSet))
-    boxCo = get_box_coor(textCoor, w, h, offSet, offSet)
-
-    bgl.glColor4f(*color)
-    blf.position(font_id, textCoor[0], textCoor[1], 0.0)
-    blf.draw(font_id, text)
-    if point_inside_loop(boxCo,mouseLoc):
-        color = colorOn
-
-    draw_box(boxCo, color)
-    return boxCo
-
-
-def drawAllPts(self):
-    global currMeasStor
-    refPts,btnDrawn,lockPts = self.refPts,self.btnDrawn,self.refPts.mLs
-    if refPts.cnt == 1:
-        refPts.rLs[0].set2D()
-        draw_pt_2D(refPts.rLs[0].co2D, refPts.col_ls[0])
-    else:
-        midP = []
-        if refPts.cnt < 3:
-            midP = VertObj( -1,-1,getMidpoint3D( refPts.rLs[0].co3D, refPts.rLs[1].co3D ))
-        else:
-            midP = VertObj( -1,-1,lockPts[1].co3D.copy() )
-
-        lastPt = []
-        if refPts.axLock == '':
-            for i in range( refPts.cnt ):
-                refPts.rLs[i].set2D()
-                draw_pt_2D(refPts.rLs[i].co2D, refPts.col_ls[i])
-                if lastPt != []:
-                    draw_line_2D(lastPt, refPts.rLs[i].co2D, refPts.col_ls[0])
-                lastPt = refPts.rLs[i].co2D
-        else:
-            if   refPts.axLock == 'X':
-                draw_font_at_pt ( refPts.axLock, [70,70], Colr.red )
-            elif refPts.axLock == 'Y':
-                draw_font_at_pt ( refPts.axLock, [70,70], Colr.green )
-            elif refPts.axLock == 'Z':
-                draw_font_at_pt ( refPts.axLock, [70,70], Colr.blue )
-            for i in range( refPts.cnt ):
-                refPts.rLs[i].set2D()
-                draw_pt_2D(refPts.rLs[i].co2D, refPts.col_ls[i])
-                refPts.mLs[i].set2D()
-                draw_pt_2D(refPts.mLs[i].co2D, refPts.col_ls[i])
-                if lastPt != []:
-                    draw_line_2D(lastPt, refPts.mLs[i].co2D, refPts.col_ls[0])
-                lastPt = refPts.mLs[i].co2D
-
-        if btnDrawn:
-            midP.set2D()
-            MeasStr = format(currMeasStor, '.2f')
-            self.boxCo = draw_btn(MeasStr, midP.co2D, self.mouseLoc,Colr.white,refPts.col_ls[0])
-
-
 # == pop-up dialog code ==
 # todo: update with newer menu code if it can ever be made to work
 class ChangeInputPanel(bpy.types.Operator):
@@ -996,38 +997,6 @@ def resetSettings(self):
                 self.exitCheck = True
 
 
-def procClick(self):
-# handles left mouse clicks. sets and removes reference points and
-# activates the pop-up dialog if the "button" is clicked
-    global popUpActive
-    axisKeyCheck(self)
-
-    if self.LmouseClick:
-        self.LmouseClick = False
-        if self.btnDrawn and point_inside_loop(self.boxCo,self.LmouseLoc):
-            self.btnDrawn = False
-            if canTransf(self):
-                # operation will continue on in background after "ms_input_dialog_op" is called
-                # need to have popup loop running and waiting for input
-                popUpActive = True
-                self.AddOnMode = CHECK_POPUP_INFO
-                drawAllPts(self)
-                bpy.ops.object.ms_input_dialog_op('INVOKE_DEFAULT')
-            else:
-                resetSettings(self)
-        else:
-            found_pt = find_all( self.LmouseLoc )
-            if found_pt != []:
-                self.refPts.tryAdd(found_pt)
-                self.refPts.mLs = setLockPts(self.refPts.axLock,self.refPts.rLs,self.refPts.cnt)
-
-                if self.refPts.cnt < 2:
-                    self.btnDrawn = False
-                else:
-                    updateLockPts(self, self.refPts.axLock)
-                    self.btnDrawn = True
-
-
 def getSelected(refPts, currEdType):
     # First generate list of selected geometry to see if Free was selected
     # for determining whether to run multi-selection transforms and for
@@ -1125,39 +1094,36 @@ def canTransf(self):
     return success
 
 
-def checkPopUpInfo(self):
-    global popUpActive, newMeasStor, currMeasStor
-    if popUpActive == False:
-        if newMeasStor != None:
-            if self.transfMode == SCALE and newMeasStor < 0:
-                self.report({'ERROR'}, 'Scale input cannot be negative.')
-                resetSettings(self)
+def procClick(self):
+# handles left mouse clicks. sets and removes reference points and
+# activates the pop-up dialog if the "button" is clicked
+    global popUpActive
+    axisKeyCheck(self)
+
+    if self.LmouseClick:
+        self.LmouseClick = False
+        if self.btnDrawn and point_inside_loop(self.boxCo,self.LmouseLoc):
+            self.btnDrawn = False
+            if canTransf(self):
+                # operation will continue on in background after "ms_input_dialog_op" is called
+                # need to have popup loop running and waiting for input
+                popUpActive = True
+                self.AddOnMode = CHECK_POPUP_INFO
+                drawAllPts(self)
+                bpy.ops.object.ms_input_dialog_op('INVOKE_DEFAULT')
             else:
-                self.sel_Stor = getSelected(self.refPts, self.currEdType)
-                freeInSel = self.sel_Stor[0]
-                self.AddOnMode = DO_TRANSFORM
-                if self.transfMode == ROTATE:
-                    if freeInSel:
-                        if self.currEdType == "EDIT_MESH":
-                            self.sel_Stor[1].remove(self.refPts.rLs[2].vertInd)
-                    find_rotate_amnt(self, currMeasStor)
-                    if AreFloatsEq(currMeasStor, 0.0) or AreFloatsEq(currMeasStor, 180.0):        
-                        rotDat, angDiffRad = self.rDat, self.rDat.angDiffR
-                        Piv, Mov = self.refPts.rLs[1].co3D, self.refPts.rLs[2].co3D
-                        tmpCoP = getRotatedPoint(Piv, angDiffRad,rotDat,Mov)
-                        tmpCoN = getRotatedPoint(Piv,-angDiffRad,rotDat,Mov)
-                        self.modal_buff = (tmpCoP, angDiffRad, tmpCoN, -angDiffRad)
-                        self.transfMode = GET_0_OR_180
-                        doTransform(self)
-                    else:
-                        self.newFreeCoor, self.rDat.angDiffR = findCorrectRot(self, self.rDat)
-                        doTransform(self)
-                else:
-                    doTransform(self)
-                
+                resetSettings(self)
         else:
-            #print( "resetSettings(self)" )
-            resetSettings(self)
+            found_pt = find_all( self.LmouseLoc )
+            if found_pt != []:
+                self.refPts.tryAdd(found_pt)
+                self.refPts.mLs = setLockPts(self.refPts.axLock,self.refPts.rLs,self.refPts.cnt)
+
+                if self.refPts.cnt < 2:
+                    self.btnDrawn = False
+                else:
+                    updateLockPts(self, self.refPts.axLock)
+                    self.btnDrawn = True
 
 
 def doTransform(self):
@@ -1221,6 +1187,41 @@ def doTransform(self):
         if self.newFreeCoor != ():
             do_rotate(self,self.newFreeCoor,freeInSel,selectedLs,sel_backup)
         resetSettings(self)
+
+
+def checkPopUpInfo(self):
+    global popUpActive, newMeasStor, currMeasStor
+    if popUpActive == False:
+        if newMeasStor != None:
+            if self.transfMode == SCALE and newMeasStor < 0:
+                self.report({'ERROR'}, 'Scale input cannot be negative.')
+                resetSettings(self)
+            else:
+                self.sel_Stor = getSelected(self.refPts, self.currEdType)
+                freeInSel = self.sel_Stor[0]
+                self.AddOnMode = DO_TRANSFORM
+                if self.transfMode == ROTATE:
+                    if freeInSel:
+                        if self.currEdType == "EDIT_MESH":
+                            self.sel_Stor[1].remove(self.refPts.rLs[2].vertInd)
+                    find_rotate_amnt(self, currMeasStor)
+                    if AreFloatsEq(currMeasStor, 0.0) or AreFloatsEq(currMeasStor, 180.0):        
+                        rotDat, angDiffRad = self.rDat, self.rDat.angDiffR
+                        Piv, Mov = self.refPts.rLs[1].co3D, self.refPts.rLs[2].co3D
+                        tmpCoP = getRotatedPoint(Piv, angDiffRad,rotDat,Mov)
+                        tmpCoN = getRotatedPoint(Piv,-angDiffRad,rotDat,Mov)
+                        self.modal_buff = (tmpCoP, angDiffRad, tmpCoN, -angDiffRad)
+                        self.transfMode = GET_0_OR_180
+                        doTransform(self)
+                    else:
+                        self.newFreeCoor, self.rDat.angDiffR = findCorrectRot(self, self.rDat)
+                        doTransform(self)
+                else:
+                    doTransform(self)
+                
+        else:
+            #print( "resetSettings(self)" )
+            resetSettings(self)
 
 
 def draw_callback_px(self, context):
