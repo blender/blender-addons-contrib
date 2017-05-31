@@ -19,7 +19,7 @@ END GPL LICENSE BLOCK
 
 #============================================================================
 
-mesh_xoffsets.py (alpha version 005)
+mesh_xoffsets.py (alpha version 007b)
 
 Install instructions (if downloaded separately from Blender):
 1) Save the mesh_xoffsets.py file to your computer.
@@ -47,7 +47,7 @@ todo:
 bl_info = {
     "name": "Exact Offsets",
     "author": "nBurn",
-    "version": (0, 0, 5),
+    "version": (0, 0, 7),
     "blender": (2, 7, 7),
     "location": "View3D",
     "description": "Tool for precisely setting distance, scale, and rotation of mesh geometry",
@@ -64,8 +64,6 @@ from math import fmod, sqrt, degrees, radians
 from mathutils import Vector, geometry, Quaternion, Euler
 from mathutils.geometry import intersect_line_line_2d
 from bpy_extras.view3d_utils import location_3d_to_region_2d
-#import code
-#code.interact(local=locals())
 #__import__('code').interact(local=dict(globals(), **locals()))
 
 print("Exact Offsets loaded")
@@ -105,9 +103,71 @@ class Colr:
     grey  = 1.0, 1.0, 1.0, 0.4
 
 
+# Class to stores selection info for scene and/or edited mesh
+# Generates a list of mesh objects in the scene and lists of selected mesh
+# and non-mesh objects and selected vertices (if in Edit Mode). These lists
+# are used to speed up mesh object iteration and for restoring the selected
+# objects after transforms.
+class SceneSelectionInfo:
+    def __init__(self):
+        self.selNMObjs = []  # selected non-mesh objects
+        self.MshObjs = []
+        self.selMshObjs = []
+        self.selMshVts = []
+        self.activeObj = None
+        self.obj = bpy.context.scene.objects  # short hand, for internal use
+
+    # Checks if there was changes to the selected objects or verts. It is
+    # assumed no objects added or removed while the addon is running. This
+    # should not be run while the snap point is active / existing.
+    def update(self, EdType):
+        tmp = []
+        if EdType == "OBJECT":
+            if self.obj.active.type == 'MESH':
+                self.activeObj = self.obj.active
+            else:
+                self.obj.active = self.obj[ self.MshObjs[0] ]
+                self.activeObj = self.obj.active
+            for i in self.MshObjs:
+                if self.obj[i].select:
+                    tmp.append(i)
+            self.selMshObjs = tmp.copy()
+            #print("self.selMshObjs", self.selMshObjs)  # debug
+
+        elif EdType == "EDIT_MESH":
+            bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
+            if hasattr(bm.verts, "ensure_lookup_table"):
+                bm.verts.ensure_lookup_table()
+            for ind in range(len(bm.verts)):
+                if bm.verts[ind].select == True:
+                    tmp.append(ind)
+            self.selMshVts = tmp.copy()
+
+    def restoreSelected(self, EdType):
+        if EdType == "OBJECT":
+            self.obj.active = self.activeObj
+            for ind in self.selMshObjs:
+                self.obj[ind].select = True
+        elif EdType == "EDIT_MESH":
+            bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
+            if hasattr(bm.verts, "ensure_lookup_table"):
+                bm.verts.ensure_lookup_table()
+            for ind in self.selMshVts:
+                bm.verts[ind].select = True
+
+    # for generating MshObjs and selNMObjs info when addon first run
+    def startRun(self, EdType):
+        for i in range(len(self.obj)):
+            if self.obj[i].type == 'MESH':
+                self.MshObjs.append(i)
+            elif self.obj[i].select:
+                self.selNMObjs.append(i)
+        self.update(EdType)
+
+
 # vertex storage class, stores reference point info
 class VertObj:
-    def __init__(self, objInd=-1, vertInd=-1, co3D=(), co2D=(), dist2D=-1, refInd=-1):
+    def __init__(self, objInd=-1, vertInd=-1, co3D=(), co2D=(), dist2D=4000, refInd=-1):
         self.objInd = objInd
         self.vertInd = vertInd
         self.co3D = co3D
@@ -200,78 +260,44 @@ class RotationData:
 
 # === Linear Equations ===
 
-#def getMidpoint2D(x1, y1, x2, y2):
-#    return ( (x1+x2)/2 , (y1+y2)/2 )
+def getMidpoint(ptA, ptB):
+    return ptA.lerp(ptB, 0.5)
 
 
-def getMidpoint3D(ptA, ptB):
-    x1, y1, z1 = ptA[0], ptA[1], ptA[2]
-    x2, y2, z2 = ptB[0], ptB[1], ptB[2]
-    return Vector([ (x1+x2)/2 , (y1+y2)/2 , (z1+z2)/2 ])
-
-
-def get_dist_2D(ptA, ptB):
-    x1, y1 = ptA[0], ptA[1]
-    x2, y2 = ptB[0], ptB[1]
-    return sqrt( abs( ((x2-x1)**2) + ((y2-y1)**2) ) )
-
-
-def get_dist_3D(ptA, ptB):
-    x1, y1, z1 = ptA[0], ptA[1], ptA[2]
-    x2, y2, z2 = ptB[0], ptB[1], ptB[2]
-    res = sqrt( abs( ((x2-x1)**2) + ((y2-y1)**2) + ((z2-z1)**2) ) )
-    return res
+def get_dist(ptA, ptB):
+    return (ptA - ptB).length
 
 
 # For making sure rise over run doesn't get flipped.
 def slope_check(pt1, pt2):
-    cmp = ( pt1[0] >= pt2[0], pt1[1] >= pt2[1], pt1[2] >= pt2[2] )
-    return cmp
-
-
-def get_slope_3D(self, ptA, ptB):
-    dist3D = get_dist_3D(ptA, ptB)
-    x1, y1, z1 = ptA[0], ptA[1], ptA[2]
-    x2, y2, z2 = ptB[0], ptB[1], ptB[2]
-    if dist3D == 0:
-        self.report({'ERROR'}, 'Distance between points cannot be zero.')
-        return
-    xSlope = (x1 - x2) / dist3D
-    ySlope = (y1 - y2) / dist3D
-    zSlope = (z1 - z2) / dist3D
-    return (xSlope, ySlope, zSlope)
-
-
-def get_new_pt_3D(xyz, slope3D, dis3D):
-    #newX = (x1 +- (dis3D * slopeX) )
-    x1, y1, z1 = xyz[0], xyz[1], xyz[2]
-    slopeX, slopeY, slopeZ = slope3D[0], slope3D[1], slope3D[2]
-    newX = x1 + (dis3D * slopeX)
-    newY = y1 + (dis3D * slopeY)
-    newZ = z1 + (dis3D * slopeZ)
-    return Vector([newX, newY, newZ])
+    cmp_ls = []
+    for i in range(len(pt1)):
+        cmp_ls.append(floatsAlmEq(pt1[i], pt2[i]) or pt1[i] > pt2[i])
+    return cmp_ls
 
 
 # Finds 3D location that shares same slope of line connecting Anchor and
 # Free or that is on axis line going through Anchor.
-def get_new_3D_coor(self, lock, ptA, ptF, newDis):
-    ptN_1, ptN_2 = (), ()
+def get_new_3D_co(self, lock, rpLs, oldDis, newDis):
+    ptA, ptF = rpLs[0].co3D, rpLs[1].co3D
     if lock == '':
         if newDis == 0:
             return ptA
         origSlope = slope_check(ptA, ptF)
-        slope3D = get_slope_3D(self, ptF, ptA)
-        ptN_1 = get_new_pt_3D(ptA, slope3D, newDis)
-        ptN_2 = get_new_pt_3D(ptA, slope3D, -newDis)
+        scale = newDis / oldDis
+        ptN_1 = ptA.lerp(ptF,  scale)
+        ptN_2 = ptA.lerp(ptF, -scale)
         ptN_1_slp = slope_check(ptA, ptN_1)
         ptN_2_slp = slope_check(ptA, ptN_2)
         if origSlope == ptN_1_slp:
+            #print("ptN_1 !")  # debug
             if newDis > 0:
                 return ptN_1
             else:
                 # for negative distances
                 return ptN_2
         elif origSlope == ptN_2_slp:
+            #print("ptN_2 !")  # debug
             if newDis > 0:
                 return ptN_2
             else:
@@ -301,7 +327,7 @@ def get_new_3D_coor(self, lock, ptA, ptF, newDis):
 # try a different power of ten for the "tol" value (eg 0.01 or 0.00001)
 # todo: replace this with Python 3.5's math.isclose() ?
 # do recent versions of Blender support math.isclose()?
-def AreFloatsEq(flt_A, flt_B):
+def floatsAlmEq(flt_A, flt_B):
     tol = 0.0001
     return flt_A > (flt_B - tol) and flt_A < (flt_B + tol)
 
@@ -317,14 +343,16 @@ def getLineAngle3D(Aco, Bco, Cco):
 # Checks if the 3 coordinates arguments (pt1, pt2, pt3) will create
 # an angle with a measurement matching the value in the argument
 # expAngMeas (expected angle measurement).
-def angleMatch3D(pt1, pt2, pt3, expAng):
+def angleMatch3D(pt1, pt2, pt3, expAngMeas):
     angMeas = getLineAngle3D(pt1, pt2, pt3)
-    #print("pt1", pt1)  # debug
-    #print("pt2", pt2)  # debug
-    #print("pt3", pt3)  # debug
-    #print("expAng ", expAng)  # debug
-    #print("angMeas ", angMeas)  # debug
-    return AreFloatsEq(angMeas, expAng)
+    '''
+    print("pt1", pt1)  # debug
+    print("pt2", pt2)  # debug
+    print("pt3", pt3)  # debug
+    print("expAng ", expAngMeas)  # debug
+    print("angMeas ", angMeas)  # debug
+    '''
+    return floatsAlmEq(angMeas, expAngMeas)
 
 
 # Calculates rotation around axis or face normal at Pivot's location.
@@ -349,85 +377,80 @@ def getRotatedPoint(PivC, angleDiffRad, rotDat, movCo):
     return movAligned + PivC
 
 
-# Takes axis (str), list of 3D coordinates, and amount of 3D coordinates (int)
-# returns modified list of 3D coordinates or empty tuple if problem
-# returns supplied list of 3D coordinates if no axis lock
-# todo : send transfMode instead of refCount ?
+# Takes a refPts (ReferencePoints class) argument and modifies its member
+# variable lpLs (lock pt list). The lpLs variable is assigned a modified list
+# of 3D coordinates (if an axis lock was provided), the contents of the
+# refPts' rpLs var (if no axis lock was provided), or an empty list (if there
+# wasn't enough refPts or there was a problem creating the modified list).
 # todo : move inside ReferencePoints class ?
-def setLockPts(axis, rPts, refCount):
-    if refCount < 2:
-        return []
-    if axis == '':
-        return rPts
+def setLockPts(refPts):
+    if refPts.cnt < 2:
+        refPts.lpLs = []
+    elif refPts.axLock == '':
+        refPts.lpLs = refPts.rpLs
     else:
-        NewPtLs = [ VertObj(), VertObj() ]
-        rPts2 = [rPts[i].co3D for i in range(refCount)]  # shorthand
-
+        refPts.lpLs = []
+        new0, new1 = VertObj(), VertObj()
+        ptls = [refPts.rpLs[i].co3D for i in range(refPts.cnt)]  # shorthand
         # finds 3D midpoint between 2 supplied coordinates
         # axis determines which coordinates are assigned midpoint values
         # if X, Anchor is [AncX, MidY, MidZ] and Free is [FreeX, MidY, MidZ]
-        if refCount == 2:  # translate
-            mid3D = getMidpoint3D( rPts2[0], rPts2[1] )
-            if axis == 'X':
-                NewPtLs[0].co3D = Vector([ rPts2[0][0], mid3D[1], mid3D[2] ])
-                NewPtLs[1].co3D = Vector([ rPts2[1][0], mid3D[1], mid3D[2] ])
-            elif axis == 'Y':
-                NewPtLs[0].co3D = Vector([ mid3D[0], rPts2[0][1], mid3D[2] ])
-                NewPtLs[1].co3D = Vector([ mid3D[0], rPts2[1][1], mid3D[2] ])
-            elif axis == 'Z':
-                NewPtLs[0].co3D = Vector([ mid3D[0], mid3D[1], rPts2[0][2] ])
-                NewPtLs[1].co3D = Vector([ mid3D[0], mid3D[1], rPts2[1][2] ])
-            if NewPtLs[0].co3D == NewPtLs[1].co3D:
-                # axis lock creates identical points, return empty list
-                return []
+        if refPts.cnt == 2:  # translate
+            mid3D = getMidpoint(ptls[0], ptls[1])
+            if refPts.axLock == 'X':
+                new0.co3D = Vector([ ptls[0][0], mid3D[1], mid3D[2] ])
+                new1.co3D = Vector([ ptls[1][0], mid3D[1], mid3D[2] ])
+            elif refPts.axLock == 'Y':
+                new0.co3D = Vector([ mid3D[0], ptls[0][1], mid3D[2] ])
+                new1.co3D = Vector([ mid3D[0], ptls[1][1], mid3D[2] ])
+            elif refPts.axLock == 'Z':
+                new0.co3D = Vector([ mid3D[0], mid3D[1], ptls[0][2] ])
+                new1.co3D = Vector([ mid3D[0], mid3D[1], ptls[1][2] ])
+            if new0.co3D != new1.co3D:
+                refPts.lpLs = [new0, new1]
 
         # axis determines which of the Free's coordinates are assigned
         # to Anchor and Pivot coordinates eg:
         # if X, Anchor is [FreeX, AncY, AncZ] and Pivot is [FreeX, PivY, PivZ]
-        elif refCount == 3:  # rotate
-            movCo = rPts[2].co3D.copy()
-            if axis == 'X':
-                NewPtLs[0].co3D = Vector([ movCo[0], rPts2[0][1], rPts2[0][2] ])
-                NewPtLs[1].co3D = Vector([ movCo[0], rPts2[1][1], rPts2[1][2] ])
-            elif axis == 'Y':
-                NewPtLs[0].co3D = Vector([ rPts2[0][0], movCo[1], rPts2[0][2] ])
-                NewPtLs[1].co3D = Vector([ rPts2[1][0], movCo[1], rPts2[1][2] ])
-            elif axis == 'Z':
-                NewPtLs[0].co3D = Vector([ rPts2[0][0], rPts2[0][1], movCo[2] ])
-                NewPtLs[1].co3D = Vector([ rPts2[1][0], rPts2[1][1], movCo[2] ])
-            if NewPtLs[0].co3D == NewPtLs[1].co3D or \
-            NewPtLs[0].co3D == movCo or \
-            NewPtLs[1].co3D == movCo:
-                # axis lock creates identical points, return empty list
-                return []
-            else:
-                NewPtLs.append( VertObj(-1, -1, movCo, [], -1, -1) )
+        elif refPts.cnt == 3:  # rotate
+            movCo = refPts.rpLs[2].co3D.copy()
+            if refPts.axLock == 'X':
+                new0.co3D = Vector([ movCo[0], ptls[0][1], ptls[0][2] ])
+                new1.co3D = Vector([ movCo[0], ptls[1][1], ptls[1][2] ])
+            elif refPts.axLock == 'Y':
+                new0.co3D = Vector([ ptls[0][0], movCo[1], ptls[0][2] ])
+                new1.co3D = Vector([ ptls[1][0], movCo[1], ptls[1][2] ])
+            elif refPts.axLock == 'Z':
+                new0.co3D = Vector([ ptls[0][0], ptls[0][1], movCo[2] ])
+                new1.co3D = Vector([ ptls[1][0], ptls[1][1], movCo[2] ])
+            if new0.co3D != new1.co3D and \
+            new0.co3D != movCo and \
+            new1.co3D != movCo:
+                new2 = VertObj(-1, -1, movCo, [], -1, -1)
+                refPts.lpLs = [new0, new1, new2]
 
-        for itm in NewPtLs: itm.set2D()
-        return NewPtLs
+        if refPts.lpLs != []:
+            for itm in refPts.lpLs: itm.set2D()
 
 
 # Finds out whether positive rotDat.newAngR or negative rotDat.newAngR
 # will result in the desired rotation angle.
-# todo : move self.refPts.rpLs to passed args ?
-def findCorrectRot(self, rotDat):
-    refPts2 = self.refPts.rpLs
-    angDiffRad, newAngleRad = rotDat.angDiffR, rotDat.newAngR
-    PivPt, movePt = refPts2[1].co3D, refPts2[2].co3D
+def findCorrectRot(refPts, rotDat):
+    angDiffRad, newAngRad = rotDat.angDiffR, rotDat.newAngR
+    PivPt, movePt = refPts.rpLs[1].co3D, refPts.rpLs[2].co3D
     tmpCoP = getRotatedPoint(PivPt, angDiffRad, rotDat, movePt)
-    tmpCoN = getRotatedPoint(PivPt, -angDiffRad, rotDat, movePt)
+    tmpCoN = getRotatedPoint(PivPt,-angDiffRad, rotDat, movePt)
     #print("tmpCoP", tmpCoP, "\ntmpCoN", tmpCoN)  # debug
-    self.refPts.lpLs = setLockPts(self.refPts.axLock, refPts2, self.refPts.cnt)
-    lockPts = self.refPts.lpLs
+    setLockPts(refPts)
+    lockPts = refPts.lpLs
     # is below check needed? is lockPts tested before findCorrectRot called?
     # will be needed for a selection move?
     if lockPts == []:
         print("lockPts == [] CHECK IS NEEDED!")
-        self.refPts.lpLs = refPts2
-        self.refPts.axLock = ''
+        refPts.axLock = ''
         return ()
     else:
-        if angleMatch3D(lockPts[0].co3D, lockPts[1].co3D, tmpCoP, newAngleRad):
+        if angleMatch3D(lockPts[0].co3D, lockPts[1].co3D, tmpCoP, newAngRad):
             #print("matched positive tmpCo")  # debug
             return tmpCoP, angDiffRad
         else:
@@ -437,39 +460,23 @@ def findCorrectRot(self, rotDat):
 
 # === Point finding code ===
 
-def find_closest_vert(obInd, loc, meshObj):
-    meshDat = meshObj.data
-    closVert = VertObj()
-    for i, v in enumerate(meshDat.vertices):
-        tmpOb = VertObj(obInd, i)
-        tmpOb.co3D = meshObj.matrix_world * v.co # global instead of local
-        tmpOb.set2D()
-        tmpOb.dist2D = get_dist_2D(loc, tmpOb.co2D)
-        if closVert.dist2D != -1:
-            if closVert.dist2D > tmpOb.dist2D:
-                closVert = tmpOb
-        else:
-            closVert = tmpOb
-    return closVert
-
 
 # Returns the closest vertex found to the supplied 2D location.
 # Returns None if no vertex found.
-def find_all(co_find):
+def find_closest_vert(loc, meshIndLs):
+    global RegRv3d
+    region, rv3d = RegRv3d[0], RegRv3d[1]
+    objs = bpy.context.scene.objects  # shorthand
     closest = VertObj()
-    indexLs = []
-    objLen = len(bpy.context.scene.objects)
-    for i in range(objLen):
-        if bpy.context.scene.objects[i].type == 'MESH':
-            indexLs.append(i)
-    for iNum in indexLs:
-        meshC = bpy.context.scene.objects[iNum]
-        tempOb = find_closest_vert(iNum, co_find, meshC)
-        if closest.dist2D == -1:
-            closest = tempOb
-        else:
-            if tempOb.dist2D < closest.dist2D:
-                closest = tempOb
+    for ind in meshIndLs:
+        meshObj = objs[ind]
+        if len(meshObj.data.vertices) > 0:
+            for i, v in enumerate(meshObj.data.vertices):
+                co3D = meshObj.matrix_world * v.co
+                co2D = location_3d_to_region_2d(region, rv3d, co3D)
+                dist2D = get_dist(loc, co2D)
+                if closest.dist2D > dist2D:
+                    closest = VertObj(ind, i, co3D, co2D, dist2D)
     if closest.dist2D < 40:
         return closest
     else:
@@ -510,7 +517,18 @@ def point_inside_loop(loopCoords, mousLoc):
 # === GL drawing code ===
 
 
-def get_box_coor(origin, rWidth, rHeight, xOffset, yOffset):
+def draw_logo(text, pt_co):
+    pt_color = [1.0, 1.0, 0.5, 0.6]  # pale yellow
+    font_id = 0
+    bgl.glColor4f(*pt_color)
+    blf.position(font_id, pt_co[0], pt_co[1], 0)
+    blf.size(font_id, 32, 32)
+    blf.draw(font_id, text)
+    w, h = blf.dimensions(font_id, text)
+    return [w, h]
+
+
+def get_btn_coor(origin, rWidth, rHeight, xOffset, yOffset):
     coBL = (origin[0]-xOffset), (origin[1]-yOffset)
     coTL = (origin[0]-xOffset), (origin[1]+rHeight+yOffset)
     coTR = (origin[0]+rWidth+xOffset), (origin[1]+rHeight+yOffset)
@@ -549,47 +567,49 @@ def draw_line_2D(pt_co_1, pt_co_2, pt_color):
     return
 
 
-def draw_box(boxCo, color):
+def draw_box(box_co, color):
     bgl.glColor4f(*color)
     bgl.glBegin(bgl.GL_LINE_STRIP)
-    for coord in boxCo:
-        bgl.glVertex2f( coord[0], coord[1] )
-    bgl.glVertex2f( boxCo[0][0], boxCo[0][1] )
+    for coord in box_co:
+        bgl.glVertex2f(coord[0], coord[1])
+    bgl.glVertex2f(box_co[0][0], box_co[0][1])
     bgl.glEnd()
     return
 
 
-def draw_btn(text, co2D, mouseLoc, colorOff, colorOn):
+def draw_meas_btn(text, co2D, mouseLoc, colorOff, colorOn):
     color = colorOff
     offSet = 5
     font_id = 0
-    blf.size(font_id, 32, 72)
+    blf.size(font_id, 24, 72)
     w, h = blf.dimensions(font_id, text)
     textCoor = (co2D[0] - w/2, (co2D[1] + 5*offSet))
-    boxCo = get_box_coor(textCoor, w, h, offSet, offSet)
+    btnCo = get_btn_coor(textCoor, w, h, offSet, offSet)
 
     bgl.glColor4f(*color)
     blf.position(font_id, textCoor[0], textCoor[1], 0.0)
     blf.draw(font_id, text)
-    if point_inside_loop(boxCo, mouseLoc):
+    if point_inside_loop(btnCo, mouseLoc):
         color = colorOn
 
-    draw_box(boxCo, color)
-    return boxCo
+    draw_box(btnCo, color)
+    return btnCo
 
 
-def drawAllPts(self):
+# Draw User Interface
+def drawUI(self):
     global currMeasStor
-    refPts, btnDrawn, lockPts = self.refPts, self.btnDrawn, self.refPts.lpLs
+    refPts, measBtnAct = self.refPts, self.measBtnAct
     if refPts.cnt == 1:
         refPts.rpLs[0].set2D()
         draw_pt_2D(refPts.rpLs[0].co2D, refPts.colrLs[0])
     else:
         midP = []
         if refPts.cnt < 3:
-            midP = VertObj( -1, -1, getMidpoint3D(refPts.rpLs[0].co3D, refPts.rpLs[1].co3D) )
+            midP = VertObj(-1, -1, getMidpoint(refPts.rpLs[0].co3D,
+                    refPts.rpLs[1].co3D))
         else:
-            midP = VertObj( -1, -1, lockPts[1].co3D.copy() )
+            midP = VertObj( -1, -1, refPts.lpLs[1].co3D.copy() )
 
         lastPt = []
         if refPts.axLock == '':
@@ -601,11 +621,11 @@ def drawAllPts(self):
                 lastPt = refPts.rpLs[i].co2D
         else:
             if   refPts.axLock == 'X':
-                draw_font_at_pt (refPts.axLock, [70, 70], Colr.red)
+                draw_font_at_pt(refPts.axLock, [80, 36], Colr.red)
             elif refPts.axLock == 'Y':
-                draw_font_at_pt (refPts.axLock, [70, 70], Colr.green)
+                draw_font_at_pt(refPts.axLock, [80, 36], Colr.green)
             elif refPts.axLock == 'Z':
-                draw_font_at_pt (refPts.axLock, [70, 70], Colr.blue)
+                draw_font_at_pt(refPts.axLock, [80, 36], Colr.blue)
             for i in range(refPts.cnt):
                 refPts.rpLs[i].set2D()
                 draw_pt_2D(refPts.rpLs[i].co2D, refPts.colrLs[i])
@@ -615,143 +635,62 @@ def drawAllPts(self):
                     draw_line_2D(lastPt, refPts.lpLs[i].co2D, refPts.colrLs[0])
                 lastPt = refPts.lpLs[i].co2D
 
-        if btnDrawn:
+        if measBtnAct:
             midP.set2D()
             MeasStr = format(currMeasStor, '.2f')
-            self.boxCo = draw_btn(MeasStr, midP.co2D, self.mouseLoc, Colr.white, refPts.colrLs[0])
+            self.measBtnCo = draw_meas_btn(MeasStr, midP.co2D,
+                        self.mouseLoc, Colr.white, Colr.red)
 
 
-'''
-# for testing / debug purposes, may use later for UI elements
-# finds 0 and 180 degree reference points
-def draw_pts_0_180(self, ptLs, axisLock, Color):
-    AncC = ptLs[0].co3D
-    PivC = ptLs[1].co3D
-    FreC = ptLs[2].co3D
-    region = bpy.context.region
-    rv3d = []
-    for area in bpy.context.screen.areas:
-        if area.type == "VIEW_3D": 
-            rv3d = area.spaces[0].region_3d
-            break
-    A2P_dis = get_dist_3D(AncC, PivC)
-    P2F_dis = get_dist_3D(PivC, FreC)
-    dis180 = A2P_dis + P2F_dis
-    co180 = get_new_3D_coor(self, '', AncC, PivC, dis180)
-    co000 = get_new_3D_coor(self, '', PivC, AncC, P2F_dis)
-    co180_2d, co000_2d = [], []
-
-    if axisLock == '':
-        co180_2d = location_3d_to_region_2d(region, rv3d, [ co180[0], co180[1], co180[2] ])
-        co000_2d = location_3d_to_region_2d(region, rv3d, [ co000[0], co000[1], co000[2] ])
-    elif axisLock == 'X':
-        co180_2d = location_3d_to_region_2d(region, rv3d, [ FreC[0], co180[1], co180[2] ])
-        co000_2d = location_3d_to_region_2d(region, rv3d, [ FreC[0], co000[1], co000[2] ])
-    elif axisLock == 'Y':
-        co180_2d = location_3d_to_region_2d(region, rv3d, [ co180[0], FreC[1], co180[2] ])
-        co000_2d = location_3d_to_region_2d(region, rv3d, [ co000[0], FreC[1], co000[2] ])
-    elif axisLock == 'Z':
-        co180_2d = location_3d_to_region_2d(region, rv3d, [ co180[0], co180[1], FreC[2] ])
-        co000_2d = location_3d_to_region_2d(region, rv3d, [ co000[0], co000[1], FreC[2] ])
-    draw_pt_2D(co180_2d, Color)
-    draw_pt_2D(co000_2d, Color)
-'''
-
-
-def sceneRefresh(edType):
-    if bpy.context.scene.objects.active.type != 'MESH':
-        for i in bpy.context.scene.objects:
-            if i.type == 'MESH':
-                bpy.context.scene.objects.active = i
-                break
-    if bpy.context.scene.objects.active.type == 'MESH':
-        sObjs = bpy.context.scene.objects
-        scn_selected = []
-        if edType != "EDIT_MESH":
-            scn_selected = [o for o in range(len(sObjs)) if sObjs[o].select]
-            bpy.ops.object.select_all(action='DESELECT')
+# Refreshes mesh drawing in 3D view and updates mesh coordinate
+# data so refPts are drawn at correct locations.
+# Using editmode_toggle to do this seems hackish, but editmode_toggle seems
+# to be the only thing that updates both drawing and coordinate info.
+def EditModeRefresh(edType):
+    if edType == "EDIT_MESH":
         bpy.ops.object.editmode_toggle()
         bpy.ops.object.editmode_toggle()
-        if scn_selected != []:
-            for i in scn_selected: sObjs[i].select = True
 
 
-# Takes VertObj type and 3D coordinate list as arguments, 
-# calculates difference between their 3D locations
-# to determine translation to apply to object in VertObj arg
-def do_translation(mode, newCo, freeObj, selectLs=(), freeInSel=False):
-    coorChange, oldCo = [0, 0, 0], [0, 0, 0]
-    if mode == "OBJECT":  # get Free's global coordinates
-        oldCo = freeObj.co3D
-    elif mode == "EDIT_MESH":  # get Free's local coordinates
-        oldCo = bpy.context.scene.objects[freeObj.objInd].data.vertices[freeObj.vertInd].co
-    for i in range(3):
-        if oldCo[i] != newCo[i]:
-            coorChange[i] = - ( oldCo[i] - newCo[i] )
-        else:
-            coorChange[i] = 0
-    #print("coorChange", coorChange)  # debug
+# Takes the Editor Mode (mode), newCo (Vector), and freeObj (VertObj) as
+# arguments. Calculates difference between the 3D locations in newCo and
+# freeObj to determine the translation to apply to the selected geometry.
+def do_translation(mode, newCo, freeObj):
+    objs = bpy.context.scene.objects  # shorthand
+    #print("coChg", coChg)  # debug
     if mode == "OBJECT":
-        bpy.ops.object.select_all(action='DESELECT')
-        bpy.context.scene.objects[freeObj.objInd].select = True
-        bpy.ops.transform.translate(value=(coorChange[0], coorChange[1], coorChange[2]))
-        bpy.ops.object.select_all(action='DESELECT')
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.editmode_toggle()
-        return Vector([*coorChange])
+        coChg = -(freeObj.co3D - newCo)  # coChg = coordinate change
+        bpy.ops.transform.translate(value=(coChg[0], coChg[1], coChg[2]))
     elif mode == "EDIT_MESH":
-        bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
-        activMW = bpy.context.edit_object.matrix_world
-        if hasattr(bm.verts, "ensure_lookup_table"):
-            bm.verts.ensure_lookup_table()
-        for v2 in selectLs:
-            bm.verts[v2].co.x += coorChange[0]
-            bm.verts[v2].co.y += coorChange[1]
-            bm.verts[v2].co.z += coorChange[2]
-
-        newVertLoc = activMW * bm.verts[freeObj.vertInd].co
-        bmesh.update_edit_mesh(bpy.context.scene.objects[freeObj.objInd].data)
-        sceneRefresh(mode)
-        return newVertLoc
+        tLoc = objs[freeObj.objInd].data.vertices[freeObj.vertInd].co
+        oldCo = bpy.context.edit_object.matrix_world * tLoc
+        coChg = -(oldCo - newCo)
+        bpy.ops.transform.translate(value=(coChg[0], coChg[1], coChg[2]))
 
 
-# Performs scale using the result from dividing the user input measure
-# (newMeasStor) by the distance between the anchor and free as the
-# scale_factor. Then translates scaled object so the Anchor point 
-# returns to its pre-scale location
-# takes: self, scale_factor (float, sel_backup (list)
-# returns: null
-def do_scale(self, scale_factor, sel_backup):
-    #print("scale!!!!")
-    anchNum = self.refPts.rpLs[0].objInd
+# Performs a scale transformation using the provided sFac (scale factor)
+# argument. The scale factor is the result from dividing the user input
+# measure (newMeasStor) by the distance between the Anchor and Free
+# (currMeasStor). After the object is scaled, it is then translated so the
+# Anchor point returns to its "pre-scaled" location.
+# takes: refPts (ReferencePoints), sFac (float)
+def do_scale(refPts, sFac):
     # store Anchor location for use after scale
-    anchCo = self.refPts.rpLs[0].co3D
-    # todo: check on axis locks for scales to make sure they work right
-    # todo: what happens if scale_factor is zero?
-    scaleLkMult, cnstrBlVals = (), ()
-    if   self.refPts.axLock ==  '':
-        scaleLkMult, cnstrBlVals = (scale_factor, scale_factor, scale_factor), (True, True, True)
-    elif self.refPts.axLock == 'X':
-        scaleLkMult, cnstrBlVals = (scale_factor, 1, 1), (True, False, False)
-    elif self.refPts.axLock == 'Y':
-        scaleLkMult, cnstrBlVals = (1, scale_factor, 1), (False, True, False)
-    elif self.refPts.axLock == 'Z':
-        scaleLkMult, cnstrBlVals = (1, 1, scale_factor), (False, False, True)
-    bpy.ops.object.select_all(action='DESELECT')
-    bpy.context.scene.objects[anchNum].select = True
-    bpy.ops.transform.resize(value=scaleLkMult, constraint_axis=cnstrBlVals)
-    bpy.ops.object.select_all(action='DESELECT')
-    self.refPts.rpLs[0].update3D()
+    anchCo = refPts.rpLs[0].co3D.copy()
+    axMultip, cnstrBlVals = (), ()
+    if   refPts.axLock ==  '':
+        axMultip, cnstrBlVals = (sFac, sFac, sFac), (True, True, True)
+    elif refPts.axLock == 'X':
+        axMultip, cnstrBlVals = (sFac, 1, 1), (True, False, False)
+    elif refPts.axLock == 'Y':
+        axMultip, cnstrBlVals = (1, sFac, 1), (False, True, False)
+    elif refPts.axLock == 'Z':
+        axMultip, cnstrBlVals = (1, 1, sFac), (False, False, True)
+    bpy.ops.transform.resize(value=axMultip, constraint_axis=cnstrBlVals)
+    refPts.rpLs[0].update3D()
     # move scaled object so Anchor returns to where it was located
     # before scale was applied
-    do_translation( "OBJECT", anchCo, self.refPts.rpLs[0] )
-    for obI in range(self.refPts.cnt):
-        self.refPts.rpLs[obI].update3D()
-        self.refPts.rpLs[obI].set2D()
-    # restore selected items (except Anchor)
-    for ind in sel_backup:
-        bpy.context.scene.objects[ind].select = True
-    resetSettings(self)
+    do_translation("OBJECT", anchCo, refPts.rpLs[0])
 
 
 # Takes 2D Pivot Point (piv) for piv to temp lines, 2 possible rotation
@@ -768,8 +707,8 @@ def choose_0_or_180(piv, rPco, rPangR, rNco, rNangR, mouseLoc, Lclick):
     rPco_2D = location_3d_to_region_2d(region, rv3d, rPco)
     rNco_2D = location_3d_to_region_2d(region, rv3d, rNco)
     piv2D = location_3d_to_region_2d(region, rv3d, piv.co3D)
-    ms_co1_dis = get_dist_2D(rPco_2D, mouseLoc)
-    ms_co2_dis = get_dist_2D(rNco_2D, mouseLoc)
+    ms_co1_dis = get_dist(rPco_2D, mouseLoc)
+    ms_co2_dis = get_dist(rNco_2D, mouseLoc)
     # draw both buttons and wait for Lmouse click input
     if   ms_co1_dis < ms_co2_dis:
         draw_line_2D(piv2D, rPco_2D, Colr.green)
@@ -791,108 +730,58 @@ def choose_0_or_180(piv, rPco, rPangR, rNco, rNangR, mouseLoc, Lclick):
     return None, None
 
 
-# Reduces the provided rotation amount (newMeasStor) to an "equivalent" value
-# less than or equal to 180 degrees.
-def find_rotate_amnt(self, currMeasStor):
-    global newMeasStor
-    #print("curr angle", currMeasStor)
-    #print("new angle", newMeasStor)
+# Reduces the provided rotation amount (newMsStor) to an "equivalent" value
+# less than or equal to 180 degrees. Calculates the angle offset from
+# currMsStor to achieve a newMsStor value. Finally, copies axis lock info
+# from refPts to rDat.
+def prep_rotation_info(refPts, rDat, currMsStor, newMsStor):
+    #print("curr angle", currMsStor)  # debug
+    #print("new angle", newMsStor)  # debug
 
-    # workaround for negative rotation angles
-    while newMeasStor < 0:
-        newMeasStor = newMeasStor + 360
+    # workaround for angles over 360 degrees and negative angles
+    if newMsStor > 360 or newMsStor < 0:
+        newMsStor = newMsStor % 360
+    rDat.angDiffD = newMsStor - currMsStor
     # fix for angles over 180 degrees
-    if newMeasStor > 360:
-        newMeasStor = newMeasStor % 360
-    self.rDat.angDiffD = newMeasStor - currMeasStor
-    if newMeasStor > 180:
-        self.rDat.newAngR = radians(180 - (newMeasStor % 180))
+    if newMsStor > 180:
+        rDat.newAngR = radians(180 - (newMsStor % 180))
     else:
-        self.rDat.newAngR = radians(newMeasStor)
-    self.rDat.angDiffR = radians(self.rDat.angDiffD)
-    self.rDat.axisLk = self.refPts.axLock
+        rDat.newAngR = radians(newMsStor)
+    rDat.angDiffR = radians(rDat.angDiffD)
+    rDat.axisLk = refPts.axLock
 
 
-# Takes: self, newFreeCoor (float), freeInSel (bool), selectedLs (list),
-#   sel_backup (list)
-# Uses values to calculate rotation value, then performs rotation
-def do_rotate(self, newFreeCoor, freeInSel, selectedLs, sel_backup):
-    #print("angRadChng", self.rDat.angDiffR, " angDegChng", degrees(self.rDat.angDiffR))  # debug
-    freeNum = self.refPts.rpLs[2].objInd
-    freeVerIn = self.refPts.rpLs[2].vertInd
-    axisLock = self.refPts.axLock
+# Takes: self, newFreeCo (Vector) as args. Uses newFreeCo to calculate
+# the rotation value and then does a rotation on the selected objects or
+# vertices using the obtained value.
+def do_rotate(EdType, newFreeCo, refPts, rDat):
+    #print("angDiffRad", rDat.angDiffR," angDiffReg", degrees(rDat.angDiffR))  # debug
+    Free = refPts.rpLs[2]
+    axisLock = refPts.axLock
+    objs = bpy.context.scene.objects  # shorthand
 
-    # todo: shouldn't below check be before do_rotate ?
-    # eg: if newFreeCoor != (): do_rotate(); else self.AddOnMode = XO_CLICK_CHECK
-    if newFreeCoor != ():
+    opsAxLock = ()
+    if   axisLock == 'X': opsAxLock = 1, 0, 0
+    elif axisLock == 'Y': opsAxLock = 0, 1, 0
+    elif axisLock == 'Z': opsAxLock = 0, 0, 1
+    elif axisLock ==  '': opsAxLock = rDat.pivNorm
 
-        pivC = self.refPts.rpLs[1].co3D
-        if self.currEdType == "OBJECT":
-            opsAxLock = ()
-            if   axisLock == 'X': opsAxLock = (1, 0, 0)
-            elif axisLock == 'Y': opsAxLock = (0, 1, 0)
-            elif axisLock == 'Z': opsAxLock = (0, 0, 1)
-            elif axisLock ==  '': opsAxLock = self.rDat.pivNorm
+    if EdType == "OBJECT":
+        bpy.ops.transform.rotate(value=rDat.angDiffR, axis=opsAxLock,
+                constraint_axis=(False, False, False))
+        Free.update3D()
+        coChg = -(Free.co3D - newFreeCo)  # coChg = coordinate change
+        bpy.ops.transform.translate(value=(coChg[0], coChg[1], coChg[2]))
 
-            bpy.ops.object.select_all(action='DESELECT')
-            bpy.context.scene.objects[freeNum].select = True
-            bpy.ops.transform.rotate(value=self.rDat.angDiffR, axis=opsAxLock, constraint_axis=(False, False, False))
-
-            bpy.ops.object.select_all(action='DESELECT')
-            self.refPts.rpLs[2].update3D()
-            # Free is rotated first
-            do_translation( "OBJECT", newFreeCoor, self.refPts.rpLs[2] )
-
-            # Code below isn't pretty, but works for now...
-            # Basically it takes object numbers stored in selectedLs and uses
-            # them to create VertObj objects, but using selected object's
-            # origins as "Free vertex" values instead of actual Free vertex.
-            # Then it rotates these "Free vertex" values around Anchor by
-            # radian value stored in self.rDat.angDiffR
-            # todo: clean this up along with the rest of the selectedLs code
-            if freeInSel:
-                for ob in selectedLs:
-                    newOb = VertObj( ob, -1, Vector([*bpy.context.scene.objects[ob].location]) )
-                    lockPts = setLockPts(axisLock, [self.refPts.rpLs[0], self.refPts.rpLs[1], newOb], self.refPts.cnt) # todo
-                    if (lockPts != []):
-                        glbCo = lockPts[2].co3D
-                        tmpCo = getRotatedPoint(pivC, self.rDat.angDiffR, self.rDat, glbCo)
-                        bpy.ops.object.select_all(action='DESELECT')
-                        bpy.context.scene.objects[ob].select = True
-                        bpy.ops.transform.rotate(value=self.rDat.angDiffR, axis=opsAxLock, constraint_axis=(False, False, False))
-
-                        bpy.ops.object.select_all(action='DESELECT')
-                        newOb.co3D = Vector([*bpy.context.scene.objects[ob].location])
-                        do_translation("OBJECT", tmpCo, newOb)
-            # restore selected items (except Anchor)
-            for ind in sel_backup:
-                bpy.context.scene.objects[ind].select = True
-
-        elif self.currEdType == "EDIT_MESH":
-            bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
-            activMW = bpy.context.edit_object.matrix_world
-            inverMW = bpy.context.edit_object.matrix_world.inverted()
-            bm.verts[freeVerIn].co = inverMW * Vector(newFreeCoor)
-            # if Free was in a selection, rotate the rest of the selection
-            if freeInSel:
-                newPt = VertObj()
-                for v2 in selectedLs:
-                    newPt.co3D = activMW * bm.verts[v2].co
-                    lockPts = setLockPts(self.refPts.axLock, [self.refPts.rpLs[0], self.refPts.rpLs[1], newPt], self.refPts.cnt)
-                    if (lockPts != []):
-                        glbCo = lockPts[2].co3D
-                        # can't just send rDat because of findCorrectRot()
-                        tmpCo = getRotatedPoint(pivC, self.rDat.angDiffR, self.rDat, glbCo)
-                        bm.verts[v2].co = inverMW * tmpCo
-
-            bmesh.update_edit_mesh(bpy.context.scene.objects[freeNum].data)  # refresh data?
-
-    # update 3D View and coordinates
-    sceneRefresh(self.currEdType)
-
-    for obI in range(self.refPts.cnt):
-        self.refPts.rpLs[obI].update3D()
-        self.refPts.rpLs[obI].set2D()
+    elif EdType == "EDIT_MESH":
+        bpy.ops.transform.rotate(value=rDat.angDiffR, axis=opsAxLock,
+                constraint_axis=(False, False, False))
+        EditModeRefresh(EdType)
+        Free.update3D()
+        tLoc = objs[Free.objInd].data.vertices[Free.vertInd].co
+        oldCo = bpy.context.edit_object.matrix_world * tLoc
+        coChg = -(oldCo - newFreeCo)
+        bpy.ops.transform.translate(value=(coChg[0], coChg[1], coChg[2]))
 
 
 # == pop-up dialog code ==
@@ -929,20 +818,20 @@ class DialogPanel(bpy.types.Panel):
 
 # Updates lock points and changes currMeasStor to use measure based on
 # lock points instead of refPts (for axis constrained transformations).
-def updateLockPts(self, axis):
+def updateLockPts(self, refPts):
     global currMeasStor
-    self.refPts.lpLs = setLockPts(axis, self.refPts.rpLs, self.refPts.cnt)
-    if self.refPts.lpLs == []:
-        self.report({'ERROR'}, axis+' axis lock creates identical points')
-        self.refPts.lpLs = self.refPts.rpLs
-        self.refPts.axLock = ''
+    setLockPts(refPts)
+    if refPts.lpLs == []:
+        self.report({'ERROR'}, refPts.axLock+' axis lock creates identical points')
+        refPts.lpLs = refPts.rpLs
+        refPts.axLock = ''
     # update Measurement in currMeasStor
-    LkPts = self.refPts.lpLs
-    if self.refPts.cnt < 2:
+    LkPts = refPts.lpLs
+    if refPts.cnt < 2:
         currMeasStor = 0.0
-    elif self.refPts.cnt == 2:
-        currMeasStor = get_dist_3D(LkPts[0].co3D, LkPts[1].co3D)
-    elif self.refPts.cnt == 3:
+    elif refPts.cnt == 2:
+        currMeasStor = get_dist(LkPts[0].co3D, LkPts[1].co3D)
+    elif refPts.cnt == 3:
         lineAngR = getLineAngle3D(LkPts[0].co3D, LkPts[1].co3D, LkPts[2].co3D)
         currMeasStor = degrees(lineAngR)
 
@@ -977,87 +866,39 @@ def axisKeyCheck(self):
             self.keyZ = False
         if changeLock:
             self.refPts.axLock = axis
-            updateLockPts(self, axis)
+            updateLockPts(self, self.refPts)
 
 
 # Adjusts settings so procClick can run again for next possible transform
 def resetSettings(self):
+    global newMeasStor
+    newMeasStor = None
     self.LmouseLoc = [-5000, -5000]
     self.LmouseClick = False
+    EditModeRefresh(self.currEdType)
+    for ob in range(self.refPts.cnt):
+        self.refPts.rpLs[ob].update3D()
+        self.refPts.rpLs[ob].set2D()
     if self.refPts.cnt < 2:
-        self.btnDrawn = False
+        self.measBtnAct = False
     else:
-        updateLockPts(self, self.refPts.axLock)
-        self.btnDrawn = True
-    sceneRefresh(self.currEdType)
+        updateLockPts(self, self.refPts)
+        self.measBtnAct = True
     self.AddOnMode = XO_CLICK_CHECK
-    self.refPts.lpLs = setLockPts(self.refPts.axLock, self.refPts.rpLs, self.refPts.cnt)
+    setLockPts(self.refPts)
+
+    # restore selected items (except Anchor)
+    # needed so update selection will work correctly
+    self.sel_backup.restoreSelected(self.currEdType)
 
     # make sure last transform didn't cause points to overlap
     PtA = self.refPts.rpLs[0].co3D
-    PtB = []
-    if self.refPts.cnt == 2:
-        PtB = self.refPts.rpLs[1].co3D
-    elif self.refPts.cnt == 3:
-        PtB = self.refPts.rpLs[2].co3D
-    if AreFloatsEq(PtA[0], PtB[0]): 
-        if AreFloatsEq(PtA[1], PtB[1]):
-            if AreFloatsEq(PtA[2], PtB[2]):
+    PtB = self.refPts.rpLs[self.refPts.cnt - 1].co3D
+    if floatsAlmEq(PtA[0], PtB[0]): 
+        if floatsAlmEq(PtA[1], PtB[1]):
+            if floatsAlmEq(PtA[2], PtB[2]):
                 self.report({'ERROR'}, 'Free and Anchor share same location.')
-                self.exitCheck = True
-
-
-# First generate list of selected geometry to see if Free was selected
-# for determining whether to run multi-selection transforms and for
-# restoring selected items after object mode transforms.
-# Does not add Free to selected list in object mode and does not add
-# Anchor to selected list in either mode.
-def getSelected(refPts, currEdType):
-    freeInSel = False
-    selectedLs = []
-    sel_backup = []
-    Anchor = refPts.rpLs[0]
-    Free = []
-    if refPts.cnt == 2:
-        Free = refPts.rpLs[1]
-    elif refPts.cnt == 3:
-        Free = refPts.rpLs[2]
-
-    if currEdType == "OBJECT":
-        objLen = len(bpy.context.scene.objects)
-        for i in range(objLen):
-            if bpy.context.scene.objects[i].select:
-                sel_backup.append(i)
-            if bpy.context.scene.objects[i].type == 'MESH':
-                if bpy.context.scene.objects[i].select:
-                    if i == Free.objInd:
-                        freeInSel = True
-                        #print("freeInSel", freeInSel)  # debug
-                    elif i != Anchor.objInd:
-                        selectedLs.append(i)
-
-    elif currEdType == "EDIT_MESH":
-        bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
-        activMW = bpy.context.edit_object.matrix_world
-        vertCnt = len(bm.verts)
-        for v1 in range(vertCnt):
-            if bm.verts[v1].select:
-                # todo: add float compare safeguard?
-                # compare refPts using vert index instead of coordinates?
-                vGlbCo = activMW * bm.verts[v1].co
-                if vGlbCo != Anchor.co3D:
-                    if vGlbCo == Free.co3D:
-                        freeInSel = True
-                        #print("freeInSel", freeInSel)  # debug
-                    selectedLs.append(v1)
-
-    if freeInSel == False:
-        if currEdType == "OBJECT":
-            selectedLs = [Free.objInd]
-        elif currEdType == "EDIT_MESH":
-            selectedLs = [Free.vertInd]
-    #print("selectedLs", selectedLs)  # debug
-    return (freeInSel, selectedLs, sel_backup)
+                self.refPts = ReferencePoints()  # reset ref pt data
 
 
 # Can a transformation be performed?
@@ -1090,8 +931,8 @@ def canTransf(self):
             success = True
         # if not flat angle and no axis lock set, begin preparations for
         # arbitrary axis / spherical rotation
-        elif AreFloatsEq(currMeasStor, 0.0) == False and \
-        AreFloatsEq(currMeasStor, 180.0) == False:
+        elif floatsAlmEq(currMeasStor, 0.0) == False and \
+        floatsAlmEq(currMeasStor, 180.0) == False:
             AncC = self.refPts.rpLs[0].co3D
             PivC = self.refPts.rpLs[1].co3D
             FreC = self.refPts.rpLs[2].co3D
@@ -1112,112 +953,150 @@ def procClick(self):
     axisKeyCheck(self)
     if self.LmouseClick:
         self.LmouseClick = False
-        if self.btnDrawn and point_inside_loop(self.boxCo, self.LmouseLoc):
-            self.btnDrawn = False
+        if self.measBtnAct and point_inside_loop(self.measBtnCo, self.LmouseLoc):
             if canTransf(self):
-                # operation will continue on in background after "ms_input_dialog_op" is called
+                # refresh the viewport and update the selection list just in
+                # case we are coming here from an earlier resetSettings call
+                # and the selection was changed after that
+                EditModeRefresh(self.currEdType)
+                self.sel_backup.update(self.currEdType)
+                # operation will continue on in background
+                # after "ms_input_dialog_op" is called
                 # need to have popup loop running and waiting for input
+                self.measBtnAct = False
                 popUpActive = True
                 self.AddOnMode = XO_CHECK_POPUP_INFO
-                drawAllPts(self)
+                drawUI(self)
                 bpy.ops.object.ms_input_dialog_op('INVOKE_DEFAULT')
             else:
                 resetSettings(self)
         else:
-            found_pt = find_all(self.LmouseLoc)
+            found_pt = find_closest_vert(self.LmouseLoc, self.sel_backup.MshObjs)
             if found_pt != None:
                 self.refPts.tryAdd(found_pt)
-                self.refPts.lpLs = setLockPts(self.refPts.axLock, self.refPts.rpLs, self.refPts.cnt)
-
+                setLockPts(self.refPts)
                 if self.refPts.cnt < 2:
-                    self.btnDrawn = False
+                    self.measBtnAct = False
                 else:
-                    updateLockPts(self, self.refPts.axLock)
-                    self.btnDrawn = True
+                    updateLockPts(self, self.refPts)
+                    self.measBtnAct = True
+
+
+# Generates a list of which selected mesh objects or selected vertices will
+# remain selected based on the editor type, the transform mode, and whether
+# the Free was part of the selected geometry. Mesh objects or vertices are
+# then selected or unselected to match the contents of the generated list.
+def prepareSelected(selBak, refPts, EdType, transfMode):
+    objs = bpy.context.scene.objects  # shorthand
+    anch = refPts.rpLs[0]
+    free = refPts.rpLs[refPts.cnt - 1]
+    freeInSel = False
+    selectedLs = None
+
+    if EdType == "OBJECT":
+        selectedLs = selBak.selMshObjs.copy()
+        freeInd = free.objInd
+        # If Scale Mode, auto-fail freeInSel as Scale only runs on Free Obj
+        if transfMode == XO_SCALE:
+            freeInSel = False
+        else:
+            # See if Free's Obj was selected
+            if objs[anch.objInd].select:
+                selectedLs.remove(anch.objInd)
+            if objs[freeInd].select:
+                freeInSel = True
+        # Unselect everything in case a non-mesh obj was selected
+        bpy.ops.object.select_all(action='DESELECT')
+        if freeInSel == False:
+            selectedLs = [freeInd]
+        # Reselect just the mesh objects contained in selectedLs 
+        for ind in selectedLs:
+            objs[ind].select = True
+
+    elif EdType == "EDIT_MESH":
+        selectedLs = selBak.selMshVts.copy()
+        freeInd = free.vertInd
+        bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
+        if hasattr(bm.verts, "ensure_lookup_table"):
+            bm.verts.ensure_lookup_table()
+        # The 'EDIT' mode check below is not needed as this was
+        # already verified in can_transf()
+        #if objs[free.objInd].mode == 'EDIT':
+        if bm.verts[freeInd].select:
+            freeInSel = True
+            # Make sure the anchor isn't selected. If it is, "unselect" it.
+            # Note that it's not possible to just unselect a single vert
+            # without also unselecting ALL edges and faces that vert was
+            # a part of. As there does not seem to be any simple method to
+            # find and unselect those edges and faces, instead unselect
+            # everything and then reselect all the verts that were
+            # originally selected, one-by-one, except the the vert that is
+            # being "unselected".
+            if objs[anch.objInd].mode == 'EDIT':
+                if bm.verts[anch.vertInd].select:
+                    selectedLs.remove(anch.vertInd)
+                    if freeInSel == True:
+                        bpy.ops.mesh.select_all(action='DESELECT')
+                        for ind in selectedLs:
+                            bm.verts[ind].select = True
+        # If the Free is not selected the transform will be on the Free only.
+        # Unselect everything else and make so only the Free is selected.
+        else:
+            selectedLs = [freeInd]
+            bpy.ops.mesh.select_all(action='DESELECT')
+            bm.verts[freeInd].select = True
+        EditModeRefresh(EdType)
 
 
 def doTransform(self):
     global currMeasStor, newMeasStor
-    freeInSel, selectedLs, sel_backup = self.sel_Stor[0], self.sel_Stor[1], self.sel_Stor[2]
-    rPts, axLock = self.refPts.rpLs, self.refPts.axLock
+    rpLs, axLock = self.refPts.rpLs, self.refPts.axLock
+    currEd = self.currEdType
 
     # Onto Transformations...
 
     if self.transfMode == XO_GET_0_OR_180:
-        self.newFreeCoor, self.rDat.angDiffR = choose_0_or_180(self.refPts.rpLs[1], *self.modal_buff, self.mouseLoc, self.LmouseClick)
+        self.newFreeCo, self.rDat.angDiffR = choose_0_or_180(rpLs[1],
+                *self.modal_buff, self.mouseLoc, self.LmouseClick)
         if self.LmouseClick:
             self.LmouseClick = False
-            if self.newFreeCoor != ():
-                do_rotate(self, self.newFreeCoor, freeInSel, selectedLs, sel_backup)
+            if self.newFreeCo != ():
+                do_rotate(currEd, self.newFreeCo, self.refPts, self.rDat)
             resetSettings(self)
-            
+
     elif self.transfMode == XO_MOVE:
-        newCoor = get_new_3D_coor(self, axLock, rPts[0].co3D, rPts[1].co3D, newMeasStor)
-        if newCoor == None:
-            resetSettings(self)
-            return
-        #print('newCoor', newCoor) #, self.refPts.rpLs[1] )  # debug
-        if self.currEdType == "OBJECT":
-
-            # translate Free object and get store the translation change info
-            chngCo = do_translation( "OBJECT", newCoor, rPts[1] )
-            tmpCoLocal = bpy.context.scene.objects[rPts[1].objInd].data.vertices[rPts[1].vertInd].co
-            tmpGlob = bpy.context.scene.objects[rPts[1].objInd].matrix_world * tmpCoLocal
-            self.refPts.rpLs[1].co3D = tmpGlob
-            self.refPts.rpLs[1].set2D()
-
-            # If more than 1 mesh object was selected and Free was
-            # in selection set, translate other selected objects.
-            # Use list returned from do_translation operation on
-            # Free (chngCo) to do translations
-            if freeInSel:
-                for ob in selectedLs:
-                    coorChange = [0, 0, 0]
-                    newOb = VertObj(ob, -1, Vector([*bpy.context.scene.objects[ob].location]))
-                    for i in range(3):
-                        coorChange[i] = newOb.co3D[i] + chngCo[i]
-                    do_translation("OBJECT", coorChange, newOb)
-            # restore selected items (except Anchor)
-            for ind in sel_backup:
-                bpy.context.scene.objects[ind].select = True
-
-        elif self.currEdType == "EDIT_MESH":
-            inverMW = bpy.context.edit_object.matrix_world.inverted()
-            locCo = inverMW * Vector(newCoor)
-            newVertLoc = do_translation("EDIT_MESH", locCo, rPts[1], selectedLs, freeInSel)
-            self.refPts.rpLs[1].co3D = newVertLoc
-            self.refPts.rpLs[1].set2D()
-
+        newCoor = get_new_3D_co(self, axLock, rpLs, currMeasStor, newMeasStor)
+        if newCoor != None:
+            #print('newCoor', newCoor)  #, self.refPts.rpLs[1] )  # debug
+            do_translation(currEd, newCoor, rpLs[1])
         resetSettings(self)
 
     elif self.transfMode == XO_SCALE:
         scale_factor = newMeasStor / currMeasStor
-        do_scale(self, scale_factor, sel_backup)
+        do_scale(self.refPts, scale_factor)
+        resetSettings(self)
 
     elif self.transfMode == XO_ROTATE:
         # for "normal" (non 0_or_180) rotations
-        if self.newFreeCoor != ():
-            do_rotate(self, self.newFreeCoor, freeInSel, selectedLs, sel_backup)
+        if self.newFreeCo != ():
+            do_rotate(currEd, self.newFreeCo, self.refPts, self.rDat)
         resetSettings(self)
 
 
-def checkPopUpInfo(self):
-    global popUpActive, newMeasStor, currMeasStor
+def checkPopUpInput(self):
+    global popUpActive, currMeasStor, newMeasStor
     if popUpActive == False:
         if newMeasStor != None:
             if self.transfMode == XO_SCALE and newMeasStor < 0:
                 self.report({'ERROR'}, 'Scale input cannot be negative.')
                 resetSettings(self)
             else:
-                self.sel_Stor = getSelected(self.refPts, self.currEdType)
-                freeInSel = self.sel_Stor[0]
+                prepareSelected(self.sel_backup, self.refPts,
+                        self.currEdType, self.transfMode)
                 self.AddOnMode = XO_DO_TRANSFORM
                 if self.transfMode == XO_ROTATE:
-                    if freeInSel:
-                        if self.currEdType == "EDIT_MESH":
-                            self.sel_Stor[1].remove(self.refPts.rpLs[2].vertInd)
-                    find_rotate_amnt(self, currMeasStor)
-                    if AreFloatsEq(currMeasStor, 0.0) or AreFloatsEq(currMeasStor, 180.0):        
+                    prep_rotation_info(self.refPts, self.rDat, currMeasStor, newMeasStor)
+                    if floatsAlmEq(currMeasStor, 0.0) or floatsAlmEq(currMeasStor, 180.0):
                         rotDat, angDiffRad = self.rDat, self.rDat.angDiffR
                         Piv, Mov = self.refPts.rpLs[1].co3D, self.refPts.rpLs[2].co3D
                         tmpCoP = getRotatedPoint(Piv, angDiffRad, rotDat, Mov)
@@ -1226,7 +1105,8 @@ def checkPopUpInfo(self):
                         self.transfMode = XO_GET_0_OR_180
                         doTransform(self)
                     else:
-                        self.newFreeCoor, self.rDat.angDiffR = findCorrectRot(self, self.rDat)
+                        self.newFreeCo, self.rDat.angDiffR = \
+                                findCorrectRot(self.refPts, self.rDat)
                         doTransform(self)
                 else:  # transfMode == XO_MOVE
                     doTransform(self)
@@ -1234,21 +1114,29 @@ def checkPopUpInfo(self):
             resetSettings(self)
 
 
+def exit_addon(self):
+    for i in self.sel_backup.selNMObjs:
+        self.sel_backup.obj[i].select = True
+    #print("\n\n\n  Add-On Exited!\n")  # debug
+
+
 def draw_callback_px(self, context):
+    draw_logo(  "Exact", [10, 92])
+    draw_logo("Offsets", [10, 78])
     getRegRv3d()
 
     if self.AddOnMode == XO_CLICK_CHECK:
         procClick(self)
 
     elif self.AddOnMode == XO_CHECK_POPUP_INFO:
-        checkPopUpInfo(self)
+        checkPopUpInput(self)
 
     elif self.AddOnMode == XO_DO_TRANSFORM:
         doTransform(self)
 
     self.LmouseClick = False
     if self.refPts.cnt > 0:
-        drawAllPts(self)
+        drawUI(self)
 
 
 class Xoffsets(bpy.types.Operator):
@@ -1261,7 +1149,8 @@ class Xoffsets(bpy.types.Operator):
     @classmethod
     def poll(self, context):
         if context.mode == 'OBJECT' or context.mode == 'EDIT_MESH':
-            return bpy.context.scene.objects.active.type == 'MESH'
+            if bpy.context.scene.objects.active != None:
+                return bpy.context.scene.objects.active.type == 'MESH'
         else:
             return False
 
@@ -1269,15 +1158,18 @@ class Xoffsets(bpy.types.Operator):
         context.area.tag_redraw()
         self.currEdType = context.mode
 
-        if event.type in {'A', 'MIDDLEMOUSE', 'WHEELUPMOUSE', 'WHEELDOWNMOUSE', 'NUMPAD_1', 'NUMPAD_2', 'NUMPAD_3', 'NUMPAD_4', 'NUMPAD_6', 'NUMPAD_7', 'NUMPAD_8', 'NUMPAD_9', 'TAB'}:
+        if event.type in {'A', 'MIDDLEMOUSE', 'WHEELUPMOUSE',
+        'WHEELDOWNMOUSE', 'NUMPAD_1', 'NUMPAD_2', 'NUMPAD_3', 'NUMPAD_4',
+        'NUMPAD_6', 'NUMPAD_7', 'NUMPAD_8', 'NUMPAD_9', 'TAB'}:
             return {'PASS_THROUGH'}
 
         if event.type == 'MOUSEMOVE':
-            self.mouseLoc = (event.mouse_region_x, event.mouse_region_y)
+            self.mouseLoc = Vector((event.mouse_region_x, event.mouse_region_y))
 
         if event.type == 'RIGHTMOUSE':
             if self.LmousePressed:
                 bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+                exit_addon(self)
                 return {'CANCELLED'}
             else:
                 return {'PASS_THROUGH'}
@@ -1287,7 +1179,7 @@ class Xoffsets(bpy.types.Operator):
 
         if event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
             self.LmouseClick = True
-            self.LmouseLoc = (event.mouse_region_x, event.mouse_region_y)
+            self.LmouseLoc = Vector((event.mouse_region_x, event.mouse_region_y))
 
         if event.type == 'C' and event.value == 'PRESS':
             #print("Pressed C!\n")  # debug
@@ -1307,11 +1199,12 @@ class Xoffsets(bpy.types.Operator):
 
         if event.type == 'ESC':
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-            #print("\n\n\n  Game Over!\n")  # debug
+            exit_addon(self)
             return {'CANCELLED'}
 
         if self.exitCheck:
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+            exit_addon(self)
             return {'FINISHED'}
 
         return {'RUNNING_MODAL'}
@@ -1322,19 +1215,21 @@ class Xoffsets(bpy.types.Operator):
             args = (self, context)
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-            self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
+            self._handle = bpy.types.SpaceView3D.draw_handler_add(
+                    draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
 
             self.currEdType = context.mode  # current Blender Editor Type
             self.transfMode = ""  # transform mode
             self.AddOnMode = XO_CLICK_CHECK  # transform mode
             self.rDat = RotationData()
-            self.newFreeCoor = ()
+            self.newFreeCo = ()  # new Free Coordinates
             self.refPts = ReferencePoints()
-            self.sel_Stor = []
-            self.boxCo = []
-            self.btnDrawn = False
+            self.sel_Stor = []  # selection storage
+            self.sel_backup = SceneSelectionInfo()
+            self.measBtnCo = []
+            self.measBtnAct = False  # measure button active
             self.modal_buff = []
-            self.mouseLoc = (event.mouse_region_x, event.mouse_region_y)
+            self.mouseLoc = Vector((event.mouse_region_x, event.mouse_region_y))
             self.LmousePressed = False
             self.LmouseClick = False
             self.LmouseLoc = []
@@ -1345,8 +1240,11 @@ class Xoffsets(bpy.types.Operator):
             self.exitCheck = False
 
             #print("Exact Offsets started!")  # debug
-            sceneRefresh(context.mode)  # refresh the viewport
+            self.sel_backup.startRun(self.currEdType)
+            EditModeRefresh(self.currEdType)  # refresh the viewport
             context.window_manager.modal_handler_add(self)
+            getRegRv3d()
+
             return {'RUNNING_MODAL'}
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")
