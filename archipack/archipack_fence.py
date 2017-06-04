@@ -56,16 +56,10 @@ class Fence():
 
     def set_offset(self, offset, last=None):
         """
-            Offset line and compute intersection point between
-            straight segments
+            Offset line and compute intersection point
+            between segments
         """
-        self.line = self.offset(offset)
-        if last is not None:
-            i, p, t = self.line.intersect(last)
-            if type(self).__name__ == 'StraightFence':
-                self.line.p0 = p
-            if type(last).__name__ == 'StraightFence':
-                last.line.p1 = p
+        self.line = self.make_offset(offset, last)
 
     @property
     def t_diff(self):
@@ -76,8 +70,7 @@ class Fence():
         return StraightFence(s.p, s.v)
 
     def curved_fence(self, a0, da, radius):
-        n = self.normal(1)
-        n.v = radius * n.v.normalized()
+        n = self.normal(1).rotate(a0).scale(radius)
         if da < 0:
             n.v = -n.v
         a0 = n.angle
@@ -127,7 +120,7 @@ class FenceGenerator():
         self.user_defined_uvs = None
         self.user_defined_mat = None
 
-    def add_part(self, type, radius, a0, da, length):
+    def add_part(self, part):
 
         if len(self.segs) < 1:
             s = None
@@ -136,18 +129,18 @@ class FenceGenerator():
 
         # start a new fence
         if s is None:
-            if type == 'S_FENCE':
+            if part.type == 'S_FENCE':
                 p = Vector((0, 0))
-                v = length * Vector((cos(a0), sin(a0)))
+                v = part.length * Vector((cos(part.a0), sin(part.a0)))
                 s = StraightFence(p, v)
-            elif type == 'C_FENCE':
-                c = -radius * Vector((cos(a0), sin(a0)))
-                s = CurvedFence(c, radius, 0, da)
+            elif part.type == 'C_FENCE':
+                c = -part.radius * Vector((cos(part.a0), sin(part.a0)))
+                s = CurvedFence(c, part.radius, part.a0, part.da)
         else:
-            if type == 'S_FENCE':
-                s = s.straight_fence(a0, length)
-            elif type == 'C_FENCE':
-                s = s.curved_fence(a0, da, radius)
+            if part.type == 'S_FENCE':
+                s = s.straight_fence(part.a0, part.length)
+            elif part.type == 'C_FENCE':
+                s = s.curved_fence(part.a0, part.da, part.radius)
 
         s.dist = self.length
         self.length += s.length
@@ -202,14 +195,14 @@ class FenceGenerator():
 
             if type(f).__name__ == "StraightFence":
                 # segment length
-                manipulators[1].type = 'SIZE'
+                manipulators[1].type_key = 'SIZE'
                 manipulators[1].prop1_name = "length"
                 manipulators[1].set_pts([p0, p1, (1, 0, 0)])
             else:
                 # segment radius + angle
                 v0 = (f.p0 - f.c).to_3d()
                 v1 = (f.p1 - f.c).to_3d()
-                manipulators[1].type = 'ARC_ANGLE_RADIUS'
+                manipulators[1].type_key = 'ARC_ANGLE_RADIUS'
                 manipulators[1].prop1_name = "da"
                 manipulators[1].prop2_name = "radius"
                 manipulators[1].set_pts([f.c.to_3d(), v0, v1])
@@ -269,9 +262,10 @@ class FenceGenerator():
 
         if self.user_defined_post is not None:
             x, y = -n.v.normalized()
+            p = n.p + sub_offset_x * n.v.normalized()
             tM = Matrix([
-                [x, y, 0, n.p.x],
-                [y, -x, 0, n.p.y],
+                [x, y, 0, p.x],
+                [y, -x, 0, p.y],
                 [0, 0, 1, zl + post_alt],
                 [0, 0, 0, 1]
             ])
@@ -361,7 +355,7 @@ class FenceGenerator():
         # self.set_offset(sub_offset_x)
 
         t_post = (0.5 * post_y - y) / self.length
-        t_spacing = sub_spacing / self.length
+        t_spacing = (sub_spacing + y) / self.length
 
         for segment in self.segments:
             t_step = segment.t_step
@@ -431,15 +425,24 @@ class FenceGenerator():
                 while self.segs[i].t_end < t_cur:
                     i += 1
                 f = self.segs[i]
+                # 1st section
                 t = (t_cur - f.t_start) / f.t_diff
                 n = f.line.normal(t)
                 subs.append((n, f.dz / f.length, f.z0 + f.dz * t))
-                # crossing sections
+                # crossing sections -> new segment
                 while i < segment.i_end:
                     f = self.segs[i]
                     if f.t_end < t_end:
-                        n = f.line.normal(1)
-                        subs.append((n, f.dz / f.length, f.z0 + f.dz))
+                        if type(f).__name__ == 'CurvedFence':
+                            n_s = int(max(1, abs(f.da) * (30 / segment.n_step) / pi - 1))
+                            for j in range(1, n_s + 1):
+                                t = j / n_s
+                                n = f.line.sized_normal(t, 1)
+                                # n.p = f.lerp(x_offset)
+                                subs.append((n, f.dz / f.length, f.z0 + f.dz * t))
+                        else:
+                            n = f.line.normal(1)
+                            subs.append((n, f.dz / f.length, f.z0 + f.dz))
                     if f.t_start + f.t_diff >= t_end:
                         break
                     elif f.t_start < t_end:
@@ -447,9 +450,21 @@ class FenceGenerator():
 
                 f = self.segs[i]
                 # last section
-                t = (t_end - f.t_start) / f.t_diff
-                n = f.line.normal(t)
-                subs.append((n, f.dz / f.length, f.z0 + f.dz * t))
+                if type(f).__name__ == 'CurvedFence':
+                    t0 = (t_cur - f.t_start) / f.t_diff
+                    t1 = (t_end - f.t_start) / f.t_diff
+                    n_s = int(max(1, abs(f.da) * (30 / segment.n_step) / pi - 1))
+                    dt = (t1 - t0) / n_s
+                    for j in range(1, n_s + 1):
+                        t = t0 + dt * j
+                        n = f.line.sized_normal(t, 1)
+                        # n.p = f.lerp(x_offset)
+                        subs.append((n, f.dz / f.length, f.z0 + f.dz * t))
+                else:
+                    t = (t_end - f.t_start) / f.t_diff
+                    n = f.line.normal(t)
+                    subs.append((n, f.dz / f.length, f.z0 + f.dz * t))
+
                 self.get_panel(subs, altitude, x, z, sub_offset_x, idmat, verts, faces, matids, uvs)
                 s += 1
 
@@ -480,9 +495,17 @@ class FenceGenerator():
         sections.append((n, f.dz / f.length, f.z0))
 
         for s, f in enumerate(self.segs):
-            n = f.line.sized_normal(1, 1)
-            # n.p = f.lerp(x_offset)
-            sections.append((n, f.dz / f.length, f.z0 + f.dz))
+            if type(f).__name__ == 'CurvedFence':
+                n_s = int(max(1, abs(f.da) * 30 / pi - 1))
+                for i in range(1, n_s + 1):
+                    t = i / n_s
+                    n = f.line.sized_normal(t, 1)
+                    # n.p = f.lerp(x_offset)
+                    sections.append((n, f.dz / f.length, f.z0 + f.dz * t))
+            else:
+                n = f.line.sized_normal(1, 1)
+                # n.p = f.lerp(x_offset)
+                sections.append((n, f.dz / f.length, f.z0 + f.dz))
 
         if extend != 0:
             t = 1 + extend / self.segs[-1].line.length
@@ -491,7 +514,7 @@ class FenceGenerator():
             sections.append((n, f.dz / f.length, f.z0 + f.dz * t))
 
         user_path_verts = len(sections)
-        f = len(verts)
+        offset = len(verts)
         if user_path_verts > 0:
             user_path_uv_v = []
             n, dz, z0 = sections[-1]
@@ -528,7 +551,7 @@ class FenceGenerator():
                 user_path_uv_v=user_path_uv_v,
                 user_path_verts=user_path_verts
                 )
-            faces += lofter.faces(16, offset=f, path_type='USER_DEFINED')
+            faces += lofter.faces(16, offset=offset, path_type='USER_DEFINED')
             matids += lofter.mat(16, idmat, idmat, path_type='USER_DEFINED')
             v = Vector((0, 0))
             uvs += lofter.uv(16, v, v, v, v, 0, v, 0, 0, path_type='USER_DEFINED')
@@ -544,6 +567,67 @@ def update_manipulators(self, context):
 
 def update_path(self, context):
     self.update_path(context)
+
+
+def update_type(self, context):
+
+    d = self.find_in_selection(context)
+
+    if d is not None and d.auto_update:
+
+        d.auto_update = False
+        # find part index
+        idx = 0
+        for i, part in enumerate(d.parts):
+            if part == self:
+                idx = i
+                break
+        part = d.parts[idx]
+        a0 = 0
+        if idx > 0:
+            g = d.get_generator()
+            w0 = g.segs[idx - 1]
+            a0 = w0.straight(1).angle
+            if "C_" in self.type:
+                w = w0.straight_fence(part.a0, part.length)
+            else:
+                w = w0.curved_fence(part.a0, part.da, part.radius)
+        else:
+            g = FenceGenerator(None)
+            g.add_part(self)
+            w = g.segs[0]
+
+        # w0 - w - w1
+        dp = w.p1 - w.p0
+        if "C_" in self.type:
+            part.radius = 0.5 * dp.length
+            part.da = pi
+            a0 = atan2(dp.y, dp.x) - pi / 2 - a0
+        else:
+            part.length = dp.length
+            a0 = atan2(dp.y, dp.x) - a0
+
+        if a0 > pi:
+            a0 -= 2 * pi
+        if a0 < -pi:
+            a0 += 2 * pi
+        part.a0 = a0
+
+        if idx + 1 < d.n_parts:
+            # adjust rotation of next part
+            part1 = d.parts[idx + 1]
+            if "C_" in part.type:
+                a0 = part1.a0 - pi / 2
+            else:
+                a0 = part1.a0 + w.straight(1).angle - atan2(dp.y, dp.x)
+
+            if a0 > pi:
+                a0 -= 2 * pi
+            if a0 < -pi:
+                a0 += 2 * pi
+            part1.a0 = a0
+
+        d.auto_update = True
 
 
 materials_enum = (
@@ -590,24 +674,24 @@ class archipack_fence_part(PropertyGroup):
                 ('C_FENCE', 'Curved fence', '', 1),
                 ),
             default='S_FENCE',
-            update=update_manipulators
+            update=update_type
             )
     length = FloatProperty(
             name="length",
             min=0.01,
-            max=1000.0,
             default=2.0,
+            unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     radius = FloatProperty(
             name="radius",
-            min=0.5,
-            max=100.0,
+            min=0.01,
             default=0.7,
+            unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     da = FloatProperty(
-            name="angle",
+            name="total angle",
             min=-pi,
             max=pi,
             default=pi / 2,
@@ -624,7 +708,8 @@ class archipack_fence_part(PropertyGroup):
             )
     dz = FloatProperty(
             name="delta z",
-            default=0
+            default=0,
+            unit='LENGTH', subtype='DISTANCE'
             )
 
     manipulators = CollectionProperty(type=archipack_manipulator)
@@ -651,7 +736,7 @@ class archipack_fence_part(PropertyGroup):
     def draw(self, layout, context, index):
         box = layout.box()
         row = box.row()
-        row.prop(self, "type", text="")
+        row.prop(self, "type", text=str(index + 1))
         if self.type in ['C_FENCE']:
             row = box.row()
             row.prop(self, "radius")
@@ -660,6 +745,7 @@ class archipack_fence_part(PropertyGroup):
         else:
             row = box.row()
             row.prop(self, "length")
+        row = box.row()
         row.prop(self, "a0")
 
 
@@ -670,6 +756,7 @@ class archipack_fence(Manipulable, PropertyGroup):
             name="user defined",
             update=update_path
             )
+    
     user_defined_resolution = IntProperty(
             name="resolution",
             min=1,
@@ -683,7 +770,6 @@ class archipack_fence(Manipulable, PropertyGroup):
             )
     x_offset = FloatProperty(
             name="x offset",
-            min=-1000, max=1000,
             default=0.0, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
@@ -691,9 +777,9 @@ class archipack_fence(Manipulable, PropertyGroup):
 
     radius = FloatProperty(
             name="radius",
-            min=0.5,
-            max=100.0,
+            min=0.01,
             default=0.7,
+            unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     da = FloatProperty(
@@ -708,7 +794,7 @@ class archipack_fence(Manipulable, PropertyGroup):
             name="angle",
             min=0,
             max=2 * pi,
-            default=pi / 2,
+            default=pi / 8,
             subtype='ANGLE', unit='ROTATION',
             update=update_manipulators
             )
@@ -727,14 +813,14 @@ class archipack_fence(Manipulable, PropertyGroup):
             )
     post_spacing = FloatProperty(
             name="spacing",
-            min=0.1, max=1000,
+            min=0.1,
             default=1.0, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     post_x = FloatProperty(
             name="width",
-            min=0.001, max=1000,
+            min=0.001,
             default=0.04, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
@@ -748,14 +834,13 @@ class archipack_fence(Manipulable, PropertyGroup):
             )
     post_z = FloatProperty(
             name="height",
-            min=0.001, max=1000,
+            min=0.001,
             default=1, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     post_alt = FloatProperty(
             name="altitude",
-            min=-100, max=1000,
             default=0, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
@@ -782,42 +867,40 @@ class archipack_fence(Manipulable, PropertyGroup):
             )
     subs_spacing = FloatProperty(
             name="spacing",
-            min=0.05, max=1000,
+            min=0.05,
             default=0.10, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     subs_x = FloatProperty(
             name="width",
-            min=0.001, max=1000,
+            min=0.001,
             default=0.02, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     subs_y = FloatProperty(
             name="length",
-            min=0.001, max=1000,
+            min=0.001,
             default=0.02, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     subs_z = FloatProperty(
             name="height",
-            min=0.001, max=1000,
+            min=0.001,
             default=1, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     subs_alt = FloatProperty(
             name="altitude",
-            min=-100, max=1000,
             default=0, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     subs_offset_x = FloatProperty(
             name="offset",
-            min=-100.0, max=100,
             default=0.0, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
@@ -853,35 +936,33 @@ class archipack_fence(Manipulable, PropertyGroup):
             )
     panel_alt = FloatProperty(
             name="altitude",
-            min=-100, max=1000,
             default=0.25, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     panel_x = FloatProperty(
             name="width",
-            min=0.001, max=1000,
+            min=0.001,
             default=0.01, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     panel_z = FloatProperty(
             name="height",
-            min=0.001, max=1000,
+            min=0.001,
             default=0.6, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     panel_dist = FloatProperty(
             name="space",
-            min=0.001, max=1000,
+            min=0.001,
             default=0.05, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     panel_offset_x = FloatProperty(
             name="offset",
-            min=-100.0, max=100,
             default=0.0, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
@@ -913,7 +994,7 @@ class archipack_fence(Manipulable, PropertyGroup):
                 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05
             ],
             size=31,
-            min=0.001, max=1000,
+            min=0.001,
             precision=2, step=1,
             unit='LENGTH',
             update=update
@@ -927,7 +1008,7 @@ class archipack_fence(Manipulable, PropertyGroup):
                 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05
             ],
             size=31,
-            min=0.001, max=1000,
+            min=0.001,
             precision=2, step=1,
             unit='LENGTH',
             update=update
@@ -941,7 +1022,6 @@ class archipack_fence(Manipulable, PropertyGroup):
                 0, 0, 0, 0, 0, 0, 0
             ],
             size=31,
-            min=-100, max=100,
             precision=2, step=1,
             unit='LENGTH',
             update=update
@@ -955,7 +1035,6 @@ class archipack_fence(Manipulable, PropertyGroup):
                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
             ],
             size=31,
-            min=-100, max=100,
             precision=2, step=1,
             unit='LENGTH',
             update=update
@@ -969,21 +1048,19 @@ class archipack_fence(Manipulable, PropertyGroup):
             )
     handrail_offset = FloatProperty(
             name="offset",
-            min=-100.0, max=100,
             default=0.0, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     handrail_alt = FloatProperty(
             name="altitude",
-            min=-100, max=1000,
             default=1.0, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     handrail_extend = FloatProperty(
             name="extend",
-            min=0, max=10,
+            min=0,
             default=0.1, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
@@ -1010,21 +1087,21 @@ class archipack_fence(Manipulable, PropertyGroup):
             )
     handrail_x = FloatProperty(
             name="width",
-            min=0.001, max=100,
+            min=0.001,
             default=0.04, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     handrail_y = FloatProperty(
             name="height",
-            min=0.001, max=100,
+            min=0.001,
             default=0.04, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
             )
     handrail_radius = FloatProperty(
             name="radius",
-            min=0.001, max=100,
+            min=0.001,
             default=0.02, precision=2, step=1,
             unit='LENGTH', subtype='DISTANCE',
             update=update
@@ -1183,7 +1260,7 @@ class archipack_fence(Manipulable, PropertyGroup):
         g = FenceGenerator(self.parts)
         for part in self.parts:
             # type, radius, da, length
-            g.add_part(part.type, part.radius, part.a0, part.da, part.length)
+            g.add_part(part)
 
         # param_t(da, part_length)
         g.param_t(self.angle_limit, self.post_spacing)
@@ -1328,6 +1405,9 @@ class ARCHIPACK_PT_fence(Panel):
     bl_label = "Fence"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
+    # bl_context = 'object'
+    # bl_space_type = 'VIEW_3D'
+    # bl_region_type = 'UI'
     bl_category = 'ArchiPack'
 
     def draw(self, context):
@@ -1338,16 +1418,18 @@ class ARCHIPACK_PT_fence(Panel):
             return
         layout = self.layout
         row = layout.row(align=True)
-        row.operator('archipack.fence_manipulate')
+        row.operator('archipack.fence_manipulate', icon='HAND')
         box = layout.box()
         # box.label(text="Styles")
         row = box.row(align=True)
         row.menu("ARCHIPACK_MT_fence_preset", text=bpy.types.ARCHIPACK_MT_fence_preset.bl_label)
         row.operator("archipack.fence_preset", text="", icon='ZOOMIN')
         row.operator("archipack.fence_preset", text="", icon='ZOOMOUT').remove_active = True
-        row = layout.row(align=True)
         box = layout.box()
+        row = box.row(align=True)
+        row.operator("archipack.fence_curve_update", text="", icon='FILE_REFRESH')
         row.prop_search(prop, "user_defined_path", scene, "objects", text="", icon='OUTLINER_OB_CURVE')
+
         box.prop(prop, 'user_defined_resolution')
         box.prop(prop, 'x_offset')
         box.prop(prop, 'angle_limit')
@@ -1529,9 +1611,6 @@ class ARCHIPACK_OT_fence(Operator):
         context.scene.objects.active = o
         d.update(context)
         # MaterialUtils.add_fence_materials(o)
-        o.location = bpy.context.scene.cursor_location
-        o.select = True
-        context.scene.objects.active = o
         return o
 
     # -----------------------------------------------------
@@ -1542,6 +1621,8 @@ class ARCHIPACK_OT_fence(Operator):
             bpy.ops.object.select_all(action="DESELECT")
             o = self.create(context)
             o.location = bpy.context.scene.cursor_location
+            o.select = True
+            context.scene.objects.active = o
             if self.auto_manipulate:
                 bpy.ops.archipack.fence_manipulate('INVOKE_DEFAULT')
             return {'FINISHED'}
@@ -1553,6 +1634,39 @@ class ARCHIPACK_OT_fence(Operator):
 # ------------------------------------------------------------------
 # Define operator class to create object
 # ------------------------------------------------------------------
+
+class ARCHIPACK_OT_fence_curve_update(Operator):
+    bl_idname = "archipack.fence_curve_update"
+    bl_label = "Fence curve update"
+    bl_description = "Update fence data from curve"
+    bl_category = 'Archipack'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(self, context):
+        return ARCHIPACK_PT_fence.filter(context.active_object)
+    # -----------------------------------------------------
+    # Draw (create UI interface)
+    # -----------------------------------------------------
+    # noinspection PyUnusedLocal
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label("Use Properties panel (N) to define parms", icon='INFO')
+
+    # -----------------------------------------------------
+    # Execute
+    # -----------------------------------------------------
+    def execute(self, context):
+        if context.mode == "OBJECT":
+            d = ARCHIPACK_PT_fence.params(context.active_object)
+            if d is not None:
+                d.update_path(context)
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'}, "Archipack: Option only valid in Object mode")
+            return {'CANCELLED'}
 
 
 class ARCHIPACK_OT_fence_from_curve(Operator):
@@ -1642,21 +1756,10 @@ class ARCHIPACK_OT_fence_manipulate(Operator):
     def poll(self, context):
         return ARCHIPACK_PT_fence.filter(context.active_object)
 
-    def modal(self, context, event):
-        return self.d.manipulable_modal(context, event)
-
     def invoke(self, context, event):
-        if context.space_data.type == 'VIEW_3D':
-            o = context.active_object
-            self.d = o.data.archipack_fence[0]
-            if self.d.manipulable_invoke(context):
-                context.window_manager.modal_handler_add(self)
-                return {'RUNNING_MODAL'}
-            else:
-                return {'FINISHED'}
-        else:
-            self.report({'WARNING'}, "Active space must be a View3d")
-            return {'CANCELLED'}
+        o = context.active_object
+        o.data.archipack_fence[0].manipulable_invoke(context)
+        return {'FINISHED'}
 
 
 # ------------------------------------------------------------------
@@ -1700,6 +1803,7 @@ def register():
     bpy.utils.register_class(ARCHIPACK_OT_fence_preset)
     bpy.utils.register_class(ARCHIPACK_OT_fence_manipulate)
     bpy.utils.register_class(ARCHIPACK_OT_fence_from_curve)
+    bpy.utils.register_class(ARCHIPACK_OT_fence_curve_update)
 
 
 def unregister():
@@ -1713,3 +1817,4 @@ def unregister():
     bpy.utils.unregister_class(ARCHIPACK_OT_fence_preset)
     bpy.utils.unregister_class(ARCHIPACK_OT_fence_manipulate)
     bpy.utils.unregister_class(ARCHIPACK_OT_fence_from_curve)
+    bpy.utils.unregister_class(ARCHIPACK_OT_fence_curve_update)
