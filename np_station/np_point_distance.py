@@ -267,6 +267,7 @@ def draw_callback_px_TRANS(self, context):
     xyz_distances = addon_prefs.nppd_xyz_distances
     xyz_backdrop = addon_prefs.nppd_xyz_backdrop
     stereo_cage = addon_prefs.nppd_stereo_cage
+    gold = addon_prefs.nppd_gold
 
     if addon_prefs.nppd_col_line_main_DEF == False:
         col_line_main = addon_prefs.nppd_col_line_main
@@ -341,8 +342,13 @@ def draw_callback_px_TRANS(self, context):
     np_print(startloc2d, endloc2d)
     # np_print('1')
     dist = (mathutils.Vector(endloc3d) - mathutils.Vector(startloc3d))
+    distgold = dist / 1.6180339887
+    goldloc3d = mathutils.Vector(startloc3d) + distgold
+    goldloc2d = view3d_utils.location_3d_to_region_2d(
+        region, rv3d, goldloc3d)
     distn = dist.length * scale
     distn = str(abs(round(distn, 2)))
+
     dist = dist.length * scale
 
     if suffix is not None:
@@ -624,6 +630,70 @@ def draw_callback_px_TRANS(self, context):
             for x, y in dots3:
                 bgl.glVertex2f(x, y)
             bgl.glEnd()
+
+    if gold and phase != 0:
+        '''
+        goldtriangle = [[0, 0], [-1, 1], [1, 1]]
+        for co in goldtriangle:
+            co[0] = round((co[0] * 10), 0) + goldloc2d[0]
+            co[1] = round((co[1] * 10), 0) + goldloc2d[1]
+        bgl.glColor4f(1.0, 0.5, 0.0, 1.0)
+        bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+        for x, y in goldtriangle:
+            bgl.glVertex2f(x, y)
+        bgl.glEnd()
+        '''
+        goldvec1 = mathutils.Vector((1.0 , 0.0))
+        goldvec2 = endloc2d - startloc2d
+        if goldvec1.length != 0.0 and goldvec2.length != 0.0:
+            ang = goldvec1.angle_signed(goldvec2)
+            coy = round(cos(ang), 8)
+            cox = round(sin(ang), 8)
+            goldtick = [[-cox, -coy], [0, 0], [cox, coy]]
+            for co in goldtick:
+                co[0] = round((co[0] * 10), 0) + goldloc2d[0]
+                co[1] = round((co[1] * 10), 0) + goldloc2d[1]
+            bgl.glColor4f(0.95, 0.55, 0.0, 1.0)
+            bgl.glLineWidth(2)
+            bgl.glBegin(bgl.GL_LINE_STRIP) 
+            for x, y in goldtick:
+                bgl.glVertex2f(x, y)
+            bgl.glEnd()
+            bgl.glLineWidth(1)
+            if xyz_distances:
+                distgold_first = (goldloc3d - startloc3d).length * scale
+                distgold_first = str(abs(round(distgold_first, 2)))
+                distgold_sec = (endloc3d - goldloc3d).length * scale
+                distgold_sec = str(abs(round(distgold_sec, 2)))
+                goldloc_first = [((startloc2d[0] + goldloc2d[0]) / 2), ((startloc2d[1] + goldloc2d[1]) / 2)]
+                goldloc_sec = [((goldloc2d[0] + endloc2d[0]) / 2), ((goldloc2d[1] + endloc2d[1]) / 2)]
+                if xyz_backdrop:
+                    bgl.glColor4f(1.0, 0.5, 0.0, 1.0)
+                    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+                    bgl.glVertex2f(goldloc_first[0]-2, goldloc_first[1]-2)
+                    bgl.glVertex2f(goldloc_first[0]-2, goldloc_first[1]+10)
+                    bgl.glVertex2f(goldloc_first[0]+50, goldloc_first[1]+10)
+                    bgl.glVertex2f(goldloc_first[0]+50, goldloc_first[1]-2)
+                    bgl.glEnd()
+                bgl.glColor4f(0.95, 0.55, 0.0, 1.0)
+                if xyz_backdrop:
+                    bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
+                blf.position(font_id, goldloc_first[0], goldloc_first[1], 0)
+                blf.draw(font_id, distgold_first)
+                if xyz_backdrop:
+                    bgl.glColor4f(1.0, 0.5, 0.0, 1.0)
+                    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+                    bgl.glVertex2f(goldloc_sec[0]-2, goldloc_sec[1]-2)
+                    bgl.glVertex2f(goldloc_sec[0]-2, goldloc_sec[1]+10)
+                    bgl.glVertex2f(goldloc_sec[0]+50, goldloc_sec[1]+10)
+                    bgl.glVertex2f(goldloc_sec[0]+50, goldloc_sec[1]-2)
+                    bgl.glEnd()
+                bgl.glColor4f(0.95, 0.55, 0.0, 1.0)
+                if xyz_backdrop:
+                    bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
+                blf.position(font_id, goldloc_sec[0], goldloc_sec[1], 0)
+                blf.draw(font_id, distgold_sec)
+
 
     # NUMERICAL DISTANCE:
 

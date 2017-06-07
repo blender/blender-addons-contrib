@@ -379,6 +379,11 @@ class NP020Preferences(bpy.types.AddonPreferences):
             description = 'Include an extra step to display the last measured distance in the viewport',
             default = False)
 
+    nppd_gold = bpy.props.BoolProperty(
+            name = 'Golden ratio',
+            description = 'Display a marker showing the position of the golden division point (1.61803 : 1)',
+            default = False)
+
     nppd_info = bpy.props.BoolProperty(
             name = 'Value to header info',
             description = 'Display last measured distance on the header',
@@ -799,6 +804,7 @@ class NP020Preferences(bpy.types.AddonPreferences):
             col = split.column()
             col.prop(self, "nppd_hold")
             col = split.column()
+            col.prop(self, "nppd_gold")
             col = split.column()
             col.prop(self, "nppd_info")
             col = split.column()

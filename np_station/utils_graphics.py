@@ -130,6 +130,29 @@ def addon_settings_graph():
 
 def display_instructions(region, rv3d, instruct, keys_aff, keys_nav, keys_neg):
 
+
+    userpref = bpy.context.user_preferences
+    system = userpref.system
+    rwtools = 0
+    rwui = 0
+
+    np_print(system.window_draw_method, system.use_region_overlap)
+
+
+    if system.use_region_overlap:
+        if system.window_draw_method in ('TRIPLE_BUFFER', 'AUTOMATIC') :
+
+            area = bpy.context.area
+            np_print('GO', area.regions)
+            for r in area.regions:
+                if r.type == 'TOOLS':
+                    rwtools = r.width
+                elif r.type == 'UI':
+                    rwui = r.width
+
+    np_print('rwtools', rwtools, 'rwui', rwui)
+    field_keys_y = 46
+    field_keys_x = 80
     rw = region.width
     rh = region.height
     np_print('rw, rh', rw, rh)
@@ -137,7 +160,7 @@ def display_instructions(region, rv3d, instruct, keys_aff, keys_nav, keys_neg):
     expand = False
     crop = False
 
-    len_aff_max = rw - 140
+    len_aff_max = rw - 140 - rwtools - rwui
     len_aff = len(keys_aff) * 5
     len_neg = len(keys_neg) * 5
     len_ins = len(instruct) * 18
@@ -145,7 +168,7 @@ def display_instructions(region, rv3d, instruct, keys_aff, keys_nav, keys_neg):
 
     rw_min = 480
     rh_min = 280
-    if rw < rw_min or rh < rh_min: crop = True
+    if rw - rwtools - rwui < rw_min or rh < rh_min: crop = True
 
 
     version = '020'
@@ -170,42 +193,41 @@ def display_instructions(region, rv3d, instruct, keys_aff, keys_nav, keys_neg):
         np_print(keys_aff_1)
         np_print(keys_aff_2)
 
-    field_keys_y = 46
-    field_keys_x = 80
-    field_keys_aff_1 = [[field_keys_x, field_keys_y + 21], [field_keys_x, field_keys_y + 39], [rw - int(field_keys_x / 2), field_keys_y + 39], [rw - int(field_keys_x / 2), field_keys_y + 21]]
+
+    field_keys_aff_1 = [[field_keys_x + rwtools, field_keys_y + 21], [field_keys_x + rwtools, field_keys_y + 39], [rw - int(field_keys_x / 2) - rwui, field_keys_y + 39], [rw - int(field_keys_x / 2) - rwui, field_keys_y + 21]]
     field_keys_aff_2 = copy.deepcopy(field_keys_aff_1)
-    field_keys_neg = [[field_keys_x, field_keys_y], [field_keys_x, field_keys_y + 18], [rw - field_keys_x / 2, field_keys_y + 18], [rw - field_keys_x / 2, field_keys_y]]
+    field_keys_neg = [[field_keys_x + rwtools, field_keys_y], [field_keys_x + rwtools, field_keys_y + 18], [rw - int(field_keys_x / 2) - rwui, field_keys_y + 18], [rw - int(field_keys_x / 2) - rwui, field_keys_y]]
     if expand:
         field_keys_aff_2 = copy.deepcopy(field_keys_neg)
-        field_keys_neg = [[field_keys_x, field_keys_y - 21], [field_keys_x, field_keys_y - 3], [rw - field_keys_x / 2, field_keys_y - 3], [rw - field_keys_x / 2, field_keys_y - 21]]
+        field_keys_neg = [[field_keys_x + rwtools, field_keys_y - 21], [field_keys_x + rwtools, field_keys_y - 3], [rw - int(field_keys_x / 2) - rwui, field_keys_y - 3], [rw - int(field_keys_x / 2) - rwui, field_keys_y - 21]]
 
     size_font_np = 25
     size_font_instruct = 21
     size_font_keys = 11
     len_np_ins = len_ins + int(size_font_np * 2.1)
 
-    pos_font_np_x = (rw - (len_np_ins / 2)) / 2
+    pos_font_np_x = (rw - len_np_ins / 2) / 2 + rwtools / 2 - rwui / 2
     pos_font_np_y = 150
     if crop: pos_font_np_y = 75
     pos_font_instruct_x = pos_font_np_x + int(size_font_np * 2.1)
     pos_font_instruct_y = pos_font_np_y + 4
-    pos_font_keys_aff_1_x = field_keys_x + 8
+    pos_font_keys_aff_1_x = field_keys_x + 8 + rwtools
     pos_font_keys_aff_1_y = field_keys_y + 26
     pos_font_keys_aff_2_x = copy.deepcopy(pos_font_keys_aff_1_x)
     pos_font_keys_aff_2_y = copy.deepcopy(pos_font_keys_aff_1_y)
-    pos_font_keys_nav_x = field_keys_x + 8
+    pos_font_keys_nav_x = field_keys_x + 8 + rwtools
     pos_font_keys_nav_y = field_keys_y + 5
-    pos_font_keys_neg_x = rw - 52 - len_neg
+    pos_font_keys_neg_x = rw - 52 - len_neg - rwui
     np_print('len_neg', len_neg)
     np_print('pos_font_keys_neg_x', pos_font_keys_neg_x)
     pos_font_keys_neg_y = field_keys_y + 5
     if expand:
-        pos_font_keys_aff_2_x = field_keys_x + 8
+        pos_font_keys_aff_2_x = field_keys_x + 8 + rwtools
         pos_font_keys_aff_2_y = field_keys_y + 5
-        pos_font_keys_nav_x = field_keys_x + 8
+        pos_font_keys_nav_x = field_keys_x + 8 + rwtools
         pos_font_keys_nav_y = field_keys_y - 16
-        pos_font_keys_neg_x = rw - 52 - len_neg
-        pos_font_keys_neg_y = field_keys_y - 16
+        pos_font_keys_neg_x = rw - 52 - len_neg - rwui
+        pos_font_keys_neg_y = field_keys_y - 16 - rwui
 
     col_font_np = addon_settings_graph()['col_font_np']
     col_font_instruct_main = addon_settings_graph()['col_font_instruct_main']
