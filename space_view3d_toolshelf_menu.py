@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Dynamic Toolshelf Menu",
     "author": "meta-androcto",
-    "version": (3, 0, 1),
+    "version": (3, 0, 2),
     "blender": (2, 7, 7),
     "location": "View3D > Spacebar Key, Dynamic Tab",
     "description": "Context Sensitive Toolshelf Menu",
@@ -429,7 +429,7 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_UndoS2", icon='ARROW_LEFTRIGHT')
             # New Entry For Switching to Editmode
-            layout.operator("view3d.interactive_mode_text", icon='VIEW3D')
+            layout.operator("view3d.interactive_mode_text2", icon='VIEW3D')
             UseSeparator(self, context)
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
@@ -963,13 +963,13 @@ class VIEW3D_MT_CursorMenu2(Menu):
         layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Offset)").use_offset = True
         layout.operator("view3d.snap_selected_to_grid",
                         text="Selection to Grid")
-        layout.operator("view3d.snap_cursor_selected_to_center",
+        layout.operator("view3d.snap_cursor_selected_to_center2",
                         text="Selection and Cursor to Center")
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_Pivot2")
-        layout.operator("view3d.pivot_cursor",
+        layout.operator("view3d.pivot_cursor2",
                         text="Set Cursor as Pivot Point")
-        layout.operator("view3d.revert_pivot",
+        layout.operator("view3d.revert_pivot2",
                         text="Revert Pivot Point")
 
 
@@ -994,13 +994,13 @@ class VIEW3D_MT_CursorMenuLite2(Menu):
         layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Offset)").use_offset = True
         layout.operator("view3d.snap_selected_to_grid",
                         text="Selection to Grid")
-        layout.operator("view3d.snap_cursor_selected_to_center",
+        layout.operator("view3d.snap_cursor_selected_to_center2",
                         text="Selection and Cursor to Center")
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_Pivot2")
-        layout.operator("view3d.pivot_cursor",
+        layout.operator("view3d.pivot_cursor2",
                         text="Set Cursor as Pivot Point")
-        layout.operator("view3d.revert_pivot",
+        layout.operator("view3d.revert_pivot2",
                         text="Revert Pivot Point")
 
 
@@ -1021,12 +1021,12 @@ class InteractiveMode2(Menu):
         layout.operator(SetObjectMode2.bl_idname, text="Texture Paint", icon="TPAINT_HLT").mode = "TEXTURE_PAINT"
         layout.operator(SetObjectMode2.bl_idname, text="Particle Edit", icon="PARTICLEMODE").mode = "PARTICLE_EDIT"
         if context.gpencil_data:
-            layout.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
+            layout.operator("view3d.interactive_mode_grease_pencil2", icon="GREASEPENCIL")
 
 
 # ********** Object Armature Interactive Mode **********
 class InteractiveModeArmature2(Menu):
-    bl_idname = "VIEW3D_MT_Object_Interactive_Armature"
+    bl_idname = "VIEW3D_MT_Object_Interactive_Armature2"
     bl_label = "Interactive Mode"
     bl_description = "Menu of objects interactive mode"
 
@@ -1037,12 +1037,12 @@ class InteractiveModeArmature2(Menu):
         layout.operator(SetObjectMode2.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
         layout.operator(SetObjectMode2.bl_idname, text="Pose", icon="POSE_HLT").mode = "POSE"
         if context.gpencil_data:
-            layout.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
+            layout.operator("view3d.interactive_mode_grease_pencil2", icon="GREASEPENCIL")
 
 
 # ********** Interactive Mode Other **********
 class InteractiveModeOther2(Menu):
-    bl_idname = "VIEW3D_MT_Object_Interactive_Other"
+    bl_idname = "VIEW3D_MT_Object_Interactive_Other2"
     bl_label = "Interactive Mode"
     bl_description = "Menu of objects interactive mode"
 
@@ -1051,12 +1051,12 @@ class InteractiveModeOther2(Menu):
         layout.operator("object.editmode_toggle", text="Edit/Object Toggle",
                         icon='OBJECT_DATA')
         if context.gpencil_data:
-            layout.operator("view3d.interactive_mode_grease_pencil", icon="GREASEPENCIL")
+            layout.operator("view3d.interactive_mode_grease_pencil2", icon="GREASEPENCIL")
 
 
 # ********** Grease Pencil Interactive Mode **********
 class VIEW3D_OT_Interactive_Mode_Grease_Pencil2(Operator):
-    bl_idname = "view3d.interactive_mode_grease_pencil"
+    bl_idname = "view3d.interactive_mode_grease_pencil2"
     bl_label = "Edit Strokes"
     bl_description = "Toggle Edit Strokes for Grease Pencil"
 
@@ -1126,7 +1126,7 @@ class VIEW3D_MT_Edit_Gpencil2(Menu):
 
 # ********** Text Interactive Mode **********
 class VIEW3D_OT_Interactive_Mode_Text2(Operator):
-    bl_idname = "view3d.interactive_mode_text"
+    bl_idname = "view3d.interactive_mode_text2"
     bl_label = "Enter Edit Mode"
     bl_description = "Toggle object's editmode"
 
@@ -1385,7 +1385,7 @@ class VIEW3D_MT_EditCursorMenu2(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("object.setorigintoselected",
+        layout.operator("object.setorigintoselected2",
                         text="Origin to Selected V/F/E")
         UseSeparator(self, context)
         layout.menu("VIEW3D_Snap_Origin")
@@ -1399,7 +1399,7 @@ class VIEW3D_MT_EditCursorMenu2(Menu):
                         text="Cursor to Grid")
         layout.operator("view3d.snap_cursor_to_active",
                         text="Cursor to Active")
-        layout.operator("view3d.snap_cursor_to_edge_intersection",
+        layout.operator("view3d.snap_cursor_to_edge_intersection2",
                         text="Cursor to Edge Intersection")
         UseSeparator(self, context)
         layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor").use_offset = False
@@ -1408,9 +1408,9 @@ class VIEW3D_MT_EditCursorMenu2(Menu):
                         text="Selection to Grid")
         UseSeparator(self, context)
         layout.menu("VIEW3D_MT_Pivot2")
-        layout.operator("view3d.pivot_cursor",
+        layout.operator("view3d.pivot_cursor2",
                         text="Set Cursor as Pivot Point")
-        layout.operator("view3d.revert_pivot",
+        layout.operator("view3d.revert_pivot2",
                         text="Revert Pivot Point")
 
 
@@ -1697,7 +1697,7 @@ class VIEW3D_MT_Sculpt_Specials2(Menu):
 class VIEW3D_OT_Display_Wire_All2(Operator):
     """Display Wire on All Objects"""
     bl_label = "Wire on All Objects"
-    bl_idname = "view3d.display_wire_all"
+    bl_idname = "view3d.display_wire_all2"
 
     @classmethod
     def poll(cls, context):
@@ -2182,7 +2182,7 @@ class VIEW3D_MT_Shade2(Menu):
                 layout.operator("OBJECT_OT_shade_flat")
 
         UseSeparator(self, context)
-        layout.operator("view3d.display_wire_all", text="Wire all", icon='WIRE')
+        layout.operator("view3d.display_wire_all2", text="Wire all", icon='WIRE')
         layout.prop(context.object, "show_x_ray", text="X-Ray", icon="META_CUBE")
 
         UseSeparator(self, context)
@@ -2714,7 +2714,7 @@ class VIEW3D_MT_Angle_Control2(Menu):
 
 # Cursor Menu Operators #
 class VIEW3D_OT_Pivot_Cursor2(Operator):
-    bl_idname = "view3d.pivot_cursor"
+    bl_idname = "view3d.pivot_cursor2"
     bl_label = "Cursor as Pivot Point"
     bl_description = "Set Pivot Point back to Cursor"
 
@@ -2729,7 +2729,7 @@ class VIEW3D_OT_Pivot_Cursor2(Operator):
 
 
 class VIEW3D_OT_Revert_Pivot2(Operator):
-    bl_idname = "view3d.revert_pivot"
+    bl_idname = "view3d.revert_pivot2"
     bl_label = "Revert Pivot Point to Median"
     bl_description = "Set Pivot Point back to Median"
 
@@ -2798,7 +2798,7 @@ def edgeIntersect(context, operator):
 
 # Cursor Edge Intersection Operator #
 class VIEW3D_OT_CursorToEdgeIntersection2(Operator):
-    bl_idname = "view3d.snap_cursor_to_edge_intersection"
+    bl_idname = "view3d.snap_cursor_to_edge_intersection2"
     bl_label = "Cursor to Edge Intersection"
     bl_description = "Finds the mid-point of the shortest distance between two edges"
 
@@ -2819,7 +2819,7 @@ class VIEW3D_OT_CursorToEdgeIntersection2(Operator):
 
 # Set Mode Operator #
 class SetObjectMode2(Operator):
-    bl_idname = "object.set_object_mode"
+    bl_idname = "object.set_object_mode2"
     bl_label = "Set the object interactive mode"
     bl_description = "I set the interactive mode of object"
     bl_options = {'REGISTER'}
@@ -2857,7 +2857,7 @@ def vfeOrigin(context):
 
 
 class SetOriginToSelected2(Operator):
-    bl_idname = "object.setorigintoselected"
+    bl_idname = "object.setorigintoselected2"
     bl_label = "Set Origin to Selected"
     bl_description = "Set Origin to Selected"
 
@@ -2876,7 +2876,7 @@ class SetOriginToSelected2(Operator):
 
 # Code thanks to Isaac Weaver (wisaac) D1963
 class SnapCursSelToCenter2(Operator):
-    bl_idname = "view3d.snap_cursor_selected_to_center"
+    bl_idname = "view3d.snap_cursor_selected_to_center2"
     bl_label = "Snap Cursor & Selection to Center"
     bl_description = ("Snap 3D cursor and selected objects to the center \n"
                       "Works only in Object Mode")
