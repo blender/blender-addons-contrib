@@ -1959,6 +1959,7 @@ class archipack_manipulator(PropertyGroup):
             Factory return a manipulator object or None
             o:         object
             datablock: datablock to modify
+            snap_callback: function call y
         """
 
         self.get_prefs(context)
@@ -2010,6 +2011,24 @@ class ARCHIPACK_OT_manipulate(Operator):
             return {'CANCELLED'}
 
 
+class ARCHIPACK_OT_disable_manipulate(Operator):
+    bl_idname = "archipack.disable_manipulate"
+    bl_label = "Disable Manipulate"
+    bl_description = "Disable any active manipulate"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(self, context):
+        return True
+
+    def execute(self, context):
+        if ArchipackStore.manipulable is not None and ArchipackStore.manipulable.manipulate_mode:
+            ArchipackStore.manipulable.manipulable_disable(context)
+            return {'FINISHED'}
+        else:
+            return {'CANCELLED'}
+
+
 class Manipulable():
     """
         A class extending PropertyGroup to setup gl manipulators
@@ -2018,6 +2037,7 @@ class Manipulable():
     """
     manipulators = CollectionProperty(
             type=archipack_manipulator,
+            # options={'SKIP_SAVE'},
             description="store 3d points to draw gl manipulators"
             )
     manipulable_refresh = BoolProperty(
@@ -2038,7 +2058,7 @@ class Manipulable():
     manipulable_selectable = BoolProperty(
             default=False,
             options={'SKIP_SAVE'},
-            description="Flag allow select mode"
+            description="Flag make manipulators selectable"
             )
     keymap = None
 
@@ -2047,6 +2067,13 @@ class Manipulable():
     manipulable_start_point = Vector((0, 0))
     manipulable_end_point = Vector((0, 0))
     manipulable_draw_handler = None
+
+    def setup_manipulators(self):
+        """
+            Must implement manipulators creation
+            TODO: call from update and manipulable_setup
+        """
+        raise NotImplementedError
 
     def manipulable_draw_callback(self, _self, context):
         self.manipulable_area.draw(context)
@@ -2079,11 +2106,14 @@ class Manipulable():
         """
         self.manipulable_disable(context)
         o = context.active_object
+        self.setup_manipulators()
         for m in self.manipulators:
             self.manip_stack.append(m.setup(context, o, self))
 
     def _manipulable_invoke(self, context):
+        
         ArchipackStore.manipulable = self
+        
         # take care of context switching
         # when call from outside of 3d view
         if context.space_data.type == 'VIEW_3D':
@@ -2110,11 +2140,13 @@ class Manipulable():
                 _manipulable_invoke(context)
 
         """
-        # print("self.manipulate_mode:%s" % (self.manipulate_mode))
+        # print("manipulable_invoke self.manipulate_mode:%s" % (self.manipulate_mode))
         if self.manipulate_mode:
             self.manipulable_disable(context)
             return False
-
+        else:
+            bpy.ops.archipack.disable_manipulate()
+            
         self.manip_stack = []
         # kills other's manipulators
         self.manipulate_mode = True
@@ -2162,7 +2194,9 @@ class Manipulable():
             # to delete / duplicate / link duplicate / unlink of
             # a complete set of wall, doors and windows at once
             self.manipulable_disable(context)
-            bpy.ops.object.delete('INVOKE_DEFAULT', use_global=False)
+            
+            if bpy.ops.object.delete.poll():
+                bpy.ops.object.delete('INVOKE_DEFAULT', use_global=False)
 
             return {'FINISHED'}
 
@@ -2249,8 +2283,9 @@ class Manipulable():
                         manipulator.select(self.manipulable_area)
             # keep focus to prevent left select mouse to actually move object
             return {'RUNNING_MODAL'}
-
-        if event.type in {'RIGHTMOUSE', 'ESC'} and event.value == 'PRESS':
+        
+        # event.alt here to prevent 3 button mouse emulation exit while zooming
+        if event.type in {'RIGHTMOUSE', 'ESC'} and event.value == 'PRESS' and not event.alt:
             self.manipulable_disable(context)
             self.manipulable_exit(context)
             return {'FINISHED'}
@@ -2300,6 +2335,7 @@ def register():
     # wall's line based object snap
     register_manipulator('WALL_SNAP', WallSnapManipulator)
     bpy.utils.register_class(ARCHIPACK_OT_manipulate)
+    bpy.utils.register_class(ARCHIPACK_OT_disable_manipulate)
     bpy.utils.register_class(archipack_manipulator)
     bpy.app.handlers.load_pre.append(empty_stack)
 
@@ -2310,5 +2346,6 @@ def unregister():
     del manipulators_class_lookup
     del manip_stack
     bpy.utils.unregister_class(ARCHIPACK_OT_manipulate)
+    bpy.utils.unregister_class(ARCHIPACK_OT_disable_manipulate)
     bpy.utils.unregister_class(archipack_manipulator)
     bpy.app.handlers.load_pre.remove(empty_stack)

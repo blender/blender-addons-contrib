@@ -31,7 +31,7 @@ bl_info = {
     'author': 's-leger',
     'license': 'GPL',
     'deps': 'shapely',
-    'version': (1, 2, 3),
+    'version': (1, 2, 4),
     'blender': (2, 7, 8),
     'location': 'View3D > Tools > Create > Archipack',
     'warning': '',
@@ -55,11 +55,12 @@ if "bpy" in locals():
     imp.reload(archipack_stair)
     imp.reload(archipack_wall)
     imp.reload(archipack_wall2)
-    # imp.reload(archipack_roof2d)
+    imp.reload(archipack_roof2d)
     imp.reload(archipack_slab)
     imp.reload(archipack_fence)
     imp.reload(archipack_truss)
     imp.reload(archipack_rendering)
+    imp.reload(addon_updater_ops)
     try:
         imp.reload(archipack_polylib)
         HAS_POLYLIB = True
@@ -78,11 +79,12 @@ else:
     from . import archipack_stair
     from . import archipack_wall
     from . import archipack_wall2
-    # from . import archipack_roof2d
+    from . import archipack_roof2d
     from . import archipack_slab
     from . import archipack_fence
     from . import archipack_truss
     from . import archipack_rendering
+    from . import addon_updater_ops
     try:
         """
             polylib depends on shapely
@@ -95,8 +97,6 @@ else:
         HAS_POLYLIB = False
         pass
 
-    # from . import archipack_polylib
-
     print("archipack: ready")
 
 # noinspection PyUnresolvedReferences
@@ -108,9 +108,10 @@ from bpy.types import (
     )
 from bpy.props import (
     EnumProperty, PointerProperty,
-    StringProperty,
+    StringProperty, BoolProperty,
     IntProperty, FloatProperty, FloatVectorProperty
     )
+
 from bpy.utils import previews
 icons_collection = {}
 
@@ -228,6 +229,41 @@ class Archipack_Pref(AddonPreferences):
             min=0, max=1
             )
 
+    # addon updater preferences
+
+    auto_check_update = BoolProperty(
+        name="Auto-check for Update",
+        description="If enabled, auto-check for updates using an interval",
+        default=False,
+        )
+
+    updater_intrval_months = IntProperty(
+        name='Months',
+        description="Number of months between checking for updates",
+        default=0,
+        min=0
+        )
+    updater_intrval_days = IntProperty(
+        name='Days',
+        description="Number of days between checking for updates",
+        default=7,
+        min=0,
+        )
+    updater_intrval_hours = IntProperty(
+        name='Hours',
+        description="Number of hours between checking for updates",
+        default=0,
+        min=0,
+        max=23
+        )
+    updater_intrval_minutes = IntProperty(
+        name='Minutes',
+        description="Number of minutes between checking for updates",
+        default=0,
+        min=0,
+        max=59
+        )
+
     def draw(self, context):
         layout = self.layout
         row = layout.row()
@@ -258,6 +294,7 @@ class Archipack_Pref(AddonPreferences):
         col.label(text="Manipulators:")
         col.prop(self, "arrow_size")
         col.prop(self, "handle_size")
+        addon_updater_ops.update_settings_ui(self, context)
 
 
 # ----------------------------------------------------
@@ -392,8 +429,9 @@ class TOOLS_PT_Archipack_Tools(Panel):
         box = row.box()
         box.label("Auto boolean")
         row = box.row(align=True)
-        row.operator("archipack.auto_boolean", text="Robust", icon='HAND').interactive = False
-        row.operator("archipack.auto_boolean", text="Interactive", icon='AUTO').interactive = True
+        # row.operator("archipack.auto_boolean", text="Robust", icon='HAND').mode = 'ROBUST'
+        # row.operator("archipack.auto_boolean", text="Interactive", icon='AUTO').mode = 'INTERACTIVE'
+        row.operator("archipack.auto_boolean", text="AutoBoolean", icon='AUTO').mode = 'HYBRID'
         row = layout.row(align=True)
         box = row.box()
         box.label("Rendering")
@@ -416,6 +454,8 @@ class TOOLS_PT_Archipack_Create(Panel):
 
     def draw(self, context):
         global icons_collection
+        addon_updater_ops.check_for_update_background(context)
+
         icons = icons_collection["main"]
         layout = self.layout
         row = layout.row(align=True)
@@ -424,24 +464,29 @@ class TOOLS_PT_Archipack_Create(Panel):
         row = box.row(align=True)
         col = row.column()
         subrow = col.row(align=True)
-        subrow.operator("archipack.window",
+        subrow.operator("archipack.window_preset_menu",
+                    text="Window",
                     icon_value=icons["window"].icon_id
-                    ).mode = 'CREATE'
-        subrow.operator("archipack.window_draw",
+                    ).preset_operator = "archipack.window"
+        subrow.operator("archipack.window_preset_menu",
                     text="",
-                    icon='GREASEPENCIL')
+                    icon='GREASEPENCIL'
+                    ).preset_operator = "archipack.window_draw"
         col = row.column()
         subrow = col.row(align=True)
-        subrow.operator("archipack.door",
+        subrow.operator("archipack.door_preset_menu",
+                    text="Door",
                     icon_value=icons["door"].icon_id
-                    ).mode = 'CREATE'
-        subrow.operator("archipack.door_draw",
+                    ).preset_operator = "archipack.door"
+        subrow.operator("archipack.door_preset_menu",
                     text="",
-                    icon='GREASEPENCIL')
+                    icon='GREASEPENCIL'
+                    ).preset_operator = "archipack.door_draw"
         row = box.row(align=True)
-        row.operator("archipack.stair",
+        row.operator("archipack.stair_preset_menu",
+                    text="Stair",
                     icon_value=icons["stair"].icon_id
-                    )
+                    ).preset_operator = "archipack.stair"
         row = box.row(align=True)
         row.operator("archipack.wall2",
                     icon_value=icons["wall"].icon_id
@@ -450,18 +495,16 @@ class TOOLS_PT_Archipack_Create(Panel):
         row.operator("archipack.wall2_from_curve", text="", icon='CURVE_DATA')
 
         row = box.row(align=True)
-        row.operator("archipack.fence",
+        row.operator("archipack.fence_preset_menu",
+                    text="Fence",
                     icon_value=icons["fence"].icon_id
-                    )
+                    ).preset_operator = "archipack.fence"
         row.operator("archipack.fence_from_curve", text="", icon='CURVE_DATA')
-        # row = box.row(align=True)
-        # row.operator("archipack.roof", icon='CURVE_DATA')
         row = box.row(align=True)
         row.operator("archipack.truss",
                     icon_value=icons["truss"].icon_id
                     )
         row = box.row(align=True)
-        # row.operator("archipack.slab")
         row.operator("archipack.slab_from_curve",
                     icon_value=icons["slab"].icon_id
                     )
@@ -471,14 +514,21 @@ class TOOLS_PT_Archipack_Create(Panel):
                     icon_value=icons["wall"].icon_id)
         row.operator("archipack.slab_from_wall",
                     icon_value=icons["slab"].icon_id
-                    )
+                    ).ceiling = False
+        row.operator("archipack.slab_from_wall",
+                    text="->Ceiling",
+                    icon_value=icons["slab"].icon_id
+                    ).ceiling = True
 
+        addon_updater_ops.update_notice_box_ui(self, context)
+        # row = box.row(align=True)
+        # row.operator("archipack.roof", icon='CURVE_DATA')
 
 # ----------------------------------------------------
 # ALT + A menu
 # ----------------------------------------------------
 
-# Define "Archipack" menu
+
 def menu_func(self, context):
     global icons_collection
     icons = icons_collection["main"]
@@ -489,22 +539,22 @@ def menu_func(self, context):
                     text="Wall",
                     icon_value=icons["wall"].icon_id
                     )
-    layout.operator("archipack.window",
+    layout.operator("archipack.window_preset_menu",
                     text="Window",
                     icon_value=icons["window"].icon_id
-                    ).mode = 'CREATE'
-    layout.operator("archipack.door",
+                    ).preset_operator = "archipack.window"
+    layout.operator("archipack.door_preset_menu",
                     text="Door",
                     icon_value=icons["door"].icon_id
-                    ).mode = 'CREATE'
-    layout.operator("archipack.stair",
+                    ).preset_operator = "archipack.door"
+    layout.operator("archipack.stair_preset_menu",
                     text="Stair",
                     icon_value=icons["stair"].icon_id
-                    )
-    layout.operator("archipack.fence",
+                    ).preset_operator = "archipack.stair"
+    layout.operator("archipack.fence_preset_menu",
                     text="Fence",
                     icon_value=icons["fence"].icon_id
-                    )
+                    ).preset_operator = "archipack.fence"
     layout.operator("archipack.truss",
                     text="Truss",
                     icon_value=icons["truss"].icon_id
@@ -538,7 +588,7 @@ def register():
         name, ext = os.path.splitext(icon)
         icons.load(name, os.path.join(icons_dir, icon), 'IMAGE')
     icons_collection["main"] = icons
-    
+
     archipack_snap.register()
     archipack_manipulator.register()
     archipack_reference_point.register()
@@ -548,7 +598,7 @@ def register():
     archipack_stair.register()
     archipack_wall.register()
     archipack_wall2.register()
-    # archipack_roof2d.register()
+    archipack_roof2d.register()
     archipack_slab.register()
     archipack_fence.register()
     archipack_truss.register()
@@ -562,6 +612,8 @@ def register():
     WindowManager.archipack = PointerProperty(type=archipack_data)
     bpy.utils.register_class(Archipack_Pref)
     update_panel(None, bpy.context)
+
+    addon_updater_ops.register(bl_info)
     # bpy.utils.register_module(__name__)
 
 
@@ -583,7 +635,7 @@ def unregister():
     archipack_stair.unregister()
     archipack_wall.unregister()
     archipack_wall2.unregister()
-    # archipack_roof2d.unregister()
+    archipack_roof2d.unregister()
     archipack_slab.unregister()
     archipack_fence.unregister()
     archipack_truss.unregister()
@@ -598,6 +650,9 @@ def unregister():
     for icons in icons_collection.values():
         previews.remove(icons)
     icons_collection.clear()
+
+    addon_updater_ops.unregister(bl_info)
+
     # bpy.utils.unregister_module(__name__)
 
 
