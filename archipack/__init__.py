@@ -55,7 +55,7 @@ if "bpy" in locals():
     imp.reload(archipack_stair)
     imp.reload(archipack_wall)
     imp.reload(archipack_wall2)
-    imp.reload(archipack_roof2d)
+    # imp.reload(archipack_roof2d)
     imp.reload(archipack_slab)
     imp.reload(archipack_fence)
     imp.reload(archipack_truss)
@@ -79,7 +79,7 @@ else:
     from . import archipack_stair
     from . import archipack_wall
     from . import archipack_wall2
-    from . import archipack_roof2d
+    # from . import archipack_roof2d
     from . import archipack_slab
     from . import archipack_fence
     from . import archipack_truss
@@ -598,7 +598,7 @@ def register():
     archipack_stair.register()
     archipack_wall.register()
     archipack_wall2.register()
-    archipack_roof2d.register()
+    # archipack_roof2d.register()
     archipack_slab.register()
     archipack_fence.register()
     archipack_truss.register()
@@ -635,7 +635,7 @@ def unregister():
     archipack_stair.unregister()
     archipack_wall.unregister()
     archipack_wall2.unregister()
-    archipack_roof2d.unregister()
+    # archipack_roof2d.unregister()
     archipack_slab.unregister()
     archipack_fence.unregister()
     archipack_truss.unregister()
@@ -651,7 +651,7 @@ def unregister():
         previews.remove(icons)
     icons_collection.clear()
 
-    addon_updater_ops.unregister(bl_info)
+    addon_updater_ops.unregister()
 
     # bpy.utils.unregister_module(__name__)
 
