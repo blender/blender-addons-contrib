@@ -23,10 +23,14 @@ from bpy.props import StringProperty
 
 bl_info = {
     "name": "KTX Selectbuffer",
+    "description": "Enable boolean operations on selections",
     "author": "Roel Koster, @koelooptiemanna, irc:kostex",
-    "version": (1, 3, 1),
+    "version": (1, 3, 2),
     "blender": (2, 7, 0),
     "location": "View3D > Properties",
+    "warning": "",
+    "wiki_url": "https://github.com/kostex/blenderscripts/",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "3D View"}
 
 
