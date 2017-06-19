@@ -25,10 +25,14 @@ from bpy.props import StringProperty, BoolProperty
 
 bl_info = {
     "name": "KTX Mesh Versions",
+	"description": "Keep multiple mesh versions of an object",
     "author": "Roel Koster, @koelooptiemanna, irc:kostex",
-    "version": (1, 4, 3),
+    "version": (1, 4, 4),
     "blender": (2, 7, 0),
     "location": "View3D > Properties",
+    "warning": "",
+    "wiki_url": "https://github.com/kostex/blenderscripts/",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Object"}
 
 
