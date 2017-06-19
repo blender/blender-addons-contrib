@@ -25,10 +25,14 @@ from bpy.app.handlers import persistent
 
 bl_info = {
     "name": "KTX RenderSlot",
+	"description": "Display/select renderslot in the render tab",
     "author": "Roel Koster, @koelooptiemanna, irc:kostex",
-    "version": (1, 2, 5),
+    "version": (1, 2, 6),
     "blender": (2, 7, 0),
     "location": "Properties Editor > Render > Render",
+    "warning": "",
+    "wiki_url": "https://github.com/kostex/blenderscripts/",
+    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Render"}
 
 
@@ -112,6 +116,7 @@ def ui(self, context):
 
 def register():
     bpy.utils.register_module(__name__)
+
     bpy.types.RENDER_PT_render.prepend(ui)
     bpy.types.Scene.ktx_auto_advance_slot = BoolProperty(default=False, description="Auto Advance to Next Slot after a Render")
     bpy.types.Scene.ktx_occupied_render_slots = OccupiedSlots
