@@ -19,11 +19,7 @@
 
 """
     cursor_utils.py
-
     Helper methods for accessing the 3D cursor
-    
-    
-
 """
 
 
@@ -49,7 +45,7 @@ class CursorAccess:
         return space
 
     @classmethod
-    def setCursor(cls,coordinates):
+    def setCursor(cls, coordinates):
         spc = cls.findSpace()
         spc.cursor_location = coordinates
 
