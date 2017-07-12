@@ -145,6 +145,12 @@ class VIEW3D_OT_cursor_to_sl_mirror(Operator):
         cc.setCursor(p + v)
 
     def execute(self, context):
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         BlenderFake.forceUpdate()
         obj = context.active_object
         cc = context.scene.cursor_control
@@ -225,6 +231,12 @@ class VIEW3D_OT_cursor_to_vertex(Operator):
         mati = mat.copy()
         mati.invert()
         vs = obj.data.vertices
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         c = mati * Vector(CursorAccess.getCursor())
         v = None
         d = -1
@@ -260,6 +272,12 @@ class VIEW3D_OT_cursor_to_line(Operator):
         return {'FINISHED'}
 
     def execute(self, context):
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         BlenderFake.forceUpdate()
         cc = context.scene.cursor_control
         cc.hideLinexChoice()
@@ -315,6 +333,12 @@ class VIEW3D_OT_cursor_to_edge(Operator):
         return {'FINISHED'}
 
     def execute(self, context):
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         BlenderFake.forceUpdate()
         cc = context.scene.cursor_control
         cc.hideLinexChoice()
@@ -373,6 +397,12 @@ class VIEW3D_OT_cursor_to_plane(Operator):
         return {'FINISHED'}
 
     def execute(self, context):
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         BlenderFake.forceUpdate()
         cc = context.scene.cursor_control
         cc.hideLinexChoice()
@@ -431,6 +461,12 @@ class VIEW3D_OT_cursor_to_face(Operator):
         return context.active_object is not None
 
     def execute(self, context):
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         BlenderFake.forceUpdate()
         cc = context.scene.cursor_control
         cc.hideLinexChoice()
@@ -582,6 +618,12 @@ class VIEW3D_OT_cursor_to_cylinderaxis(Operator):
         return context.active_object is not None
 
     def execute(self, context):
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         BlenderFake.forceUpdate()
         cc = context.scene.cursor_control
         cc.hideLinexChoice()
@@ -619,6 +661,12 @@ class VIEW3D_OT_cursor_to_spherecenter(Operator):
         return context.active_object is not None
 
     def execute(self, context):
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         BlenderFake.forceUpdate()
         cc = context.scene.cursor_control
         cc.hideLinexChoice()
@@ -675,6 +723,12 @@ class VIEW3D_OT_cursor_to_perimeter(Operator):
         return context.active_object is not None
 
     def execute(self, context):
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         BlenderFake.forceUpdate()
         cc = context.scene.cursor_control
         cc.hideLinexChoice()
@@ -726,6 +780,12 @@ class VIEW3D_OT_cursor_offset_from_radius(Operator):
         return {'FINISHED'}
 
     def execute(self, context):
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         BlenderFake.forceUpdate()
         cc = context.scene.cursor_control
         cc.hideLinexChoice()
@@ -833,7 +893,6 @@ class VIEW3D_OT_cursor_stepval_vvdist(Operator):
         mat = obj.matrix_world
         mati = mat.copy()
         mati.invert()
-        c = mati * Vector(CursorAccess.getCursor())
 
         sf = [f for f in obj.data.vertices if f.select == 1]
         v0 = Vector(sf[0].co)
@@ -924,6 +983,12 @@ class VIEW3D_OT_ccdelta_vvdist(Operator):
         return context.active_object is not None
 
     def execute(self, context):
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         BlenderFake.forceUpdate()
         cc = context.scene.cursor_control
         obj = bpy.context.active_object

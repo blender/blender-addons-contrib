@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Cursor Control",
     "author": "Morgan Mörtsell (Seminumerical)",
-    "version": (0, 7, 2),
+    "version": (0, 7, 3),
     "blender": (2, 65, 4),
     "location": "View3D > Properties > Cursor",
     "description": "Control the Cursor",

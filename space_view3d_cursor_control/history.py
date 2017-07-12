@@ -197,8 +197,11 @@ class VIEW3D_PT_cursor_history(Panel):
 
     @classmethod
     def poll(self, context):
-        # Display in object or edit mode.
+        # Display in object or edit mode
         cc = context.scene.cursor_history
+        if CursorAccess.getCursor() is None:
+            return False
+
         cc.addHistoryLocation(CursorAccess.getCursor())
         if (context.area.type == 'VIEW_3D' and
                 (context.mode == 'EDIT_MESH' or
@@ -239,7 +242,8 @@ class VIEW3D_PT_cursor_history(Panel):
 
         row = layout.row()
         col = row.column()
-        col.prop(CursorAccess.findSpace(), "cursor_location")
+        if CursorAccess.findSpace():
+            col.prop(CursorAccess.findSpace(), "cursor_location")
 
 
 class VIEW3D_PT_cursor_history_init(Panel):

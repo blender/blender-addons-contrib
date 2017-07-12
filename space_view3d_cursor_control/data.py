@@ -78,7 +78,7 @@ class CursorControlData(PropertyGroup):
     def setCursor(self, v):
         if self.stepLengthEnable:
             c = CursorAccess.getCursor()
-            if((Vector(c) - Vector(v)).length > 0):
+            if c and ((Vector(c) - Vector(v)).length > 0):
                 if self.stepLengthMode == 'Absolute':
                     v = Vector(v) - Vector(c)
                     v.normalize()
@@ -112,8 +112,10 @@ class CursorControlData(PropertyGroup):
 
     def addDeltaVectorToCursor(self):
         c = CursorAccess.getCursor()
-        CursorAccess.setCursor(Vector(c) + Vector(self.deltaVector))
+        if c:
+            CursorAccess.setCursor(Vector(c) + Vector(self.deltaVector))
 
     def subDeltaVectorToCursor(self):
         c = CursorAccess.getCursor()
-        CursorAccess.setCursor(Vector(c) - Vector(self.deltaVector))
+        if c:
+            CursorAccess.setCursor(Vector(c) - Vector(self.deltaVector))

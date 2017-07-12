@@ -85,6 +85,11 @@ class VIEW3D_OT_cursor_memory_save(Operator):
         return {'FINISHED'}
 
     def execute(self, context):
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         cc = context.scene.cursor_memory
         cc.savedLocation = CursorAccess.getCursor()
         CursorAccess.setCursor(cc.savedLocation)
@@ -101,6 +106,12 @@ class VIEW3D_OT_cursor_memory_swap(Operator):
         return {'FINISHED'}
 
     def execute(self, context):
+
+        if CursorAccess.getCursor() is None:
+            self.report({'WARNING'},
+                        "Cursor location cannot be retrieved. Operation Cancelled")
+            return {"CANCELLED"}
+
         location = CursorAccess.getCursor().copy()
         cc = context.scene.cursor_memory
         CursorAccess.setCursor(cc.savedLocation)
@@ -167,9 +178,9 @@ class VIEW3D_PT_cursor_memory(Panel):
         if (context.area.type == 'VIEW_3D' and
                 (context.mode == 'EDIT_MESH' or
                  context.mode == 'OBJECT')):
-            return 1
+            return True
 
-        return 0
+        return False
 
     def draw_header(self, context):
         layout = self.layout
