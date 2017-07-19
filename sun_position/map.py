@@ -239,7 +239,8 @@ class MapClass:
         self.glImage = None
         self.image.bindcode = 0
         self.isActive = False
-        Sun.SP.ShowMap = False
+        if Sun.SP:
+            Sun.SP.ShowMap = False
 
     def load_blender_image(self, file_name):
         if file_name == "None":

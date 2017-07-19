@@ -222,8 +222,9 @@ class HdrClass:
         self.glImage = None
         self.image.bindcode = 0
         self.isActive = False
-        Sun.SP.ShowHdr = False
-        Sun.SP.BindToSun = True
+        if Sun.SP:
+            Sun.SP.ShowHdr = False
+            Sun.SP.BindToSun = True
         Sun.BindToSun = False
         Display.refresh()
 

@@ -31,8 +31,8 @@ class NorthClass:
             self.handler = None
         self.isActive = False
         self.refresh_screen()
-
-        Sun.SP.ShowNorth = False
+        if Sun.SP:
+            Sun.SP.ShowNorth = False
         Sun.ShowNorth = False
 
 

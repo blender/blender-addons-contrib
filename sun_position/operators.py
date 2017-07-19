@@ -158,8 +158,11 @@ class SunPos_OT_Controller(bpy.types.Operator):
         Stop_all_handlers()
         Controller.remove_handler()
         Display.setAction('ENABLE')
-        Sun.SP.IsActive = False
-
+        try:
+            Sun.SP.IsActive = False
+        except:
+            pass
+            
     def modal(self, context, event):
 
         if Display.PANEL:
@@ -269,14 +272,16 @@ def Cleanup_callback(self, context):
 
 def Cleanup_objects():
     try:
-        Sun.SP.UseObjectGroup = False
+        if Sun.SP:
+            Sun.SP.UseObjectGroup = False
         Sun.UseObjectGroup = False
     except:
         pass
     del Sun.Selected_objects[:]
     del Sun.Selected_names[:]
     Display.setAction('ENABLE')
-    Sun.SP.IsActive = False
+    if Sun.SP:
+        Sun.SP.IsActive = False
 
 
 def Stop_all_handlers():
