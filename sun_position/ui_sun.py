@@ -666,7 +666,7 @@ class SunPos_OT_MapChoice(bpy.types.Operator):
             ("1", wmp[1][0], ""),
             ("0", wmp[0][0], ""),
         ),
-        default="2")
+        default="1")
 
     def execute(self, context):
         sp = context.scene.SunPos_property
