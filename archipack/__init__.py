@@ -154,6 +154,11 @@ class Archipack_Pref(AddonPreferences):
         description="Put Achipack's object into a sub menu (shift+a)",
         default=True
     )
+    max_style_draw_tool = BoolProperty(
+        name="Draw a wall use 3dsmax style",
+        description="Reverse clic / release cycle for Draw a wall",
+        default=True
+    )
     # Arrow sizes (world units)
     arrow_size = FloatProperty(
             name="Arrow",
@@ -236,6 +241,7 @@ class Archipack_Pref(AddonPreferences):
         col.prop(self, "tools_category")
         col.prop(self, "create_category")
         col.prop(self, "create_submenu")
+        col.prop(self, "max_style_draw_tool")
         box = layout.box()
         row = box.row()
         split = row.split(percentage=0.5)
@@ -272,7 +278,8 @@ class TOOLS_PT_Archipack_PolyLib(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "Tools"
-
+    bl_context = "objectmode"
+    
     @classmethod
     def poll(self, context):
 
@@ -377,7 +384,8 @@ class TOOLS_PT_Archipack_Tools(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "Tools"
-
+    bl_context = "objectmode"
+    
     @classmethod
     def poll(self, context):
         return True
@@ -405,7 +413,8 @@ class TOOLS_PT_Archipack_Create(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "Create"
-
+    bl_context = "objectmode"
+    
     @classmethod
     def poll(self, context):
         return True
@@ -522,7 +531,8 @@ def draw_menu(self, context):
 class ARCHIPACK_create_menu(Menu):
     bl_label = 'Archipack'
     bl_idname = 'ARCHIPACK_create_menu'
-
+    bl_context = "objectmode"
+    
     def draw(self, context):
         draw_menu(self, context)
 
@@ -604,7 +614,7 @@ def unregister():
     bpy.utils.unregister_class(TOOLS_PT_Archipack_Tools)
     bpy.utils.unregister_class(TOOLS_PT_Archipack_Create)
     bpy.utils.unregister_class(Archipack_Pref)
-
+    
     # unregister subs
     archipack_snap.unregister()
     archipack_manipulator.unregister()

@@ -1786,6 +1786,8 @@ class ARCHIPACK_OT_wall2_draw(ArchpackDrawTool, Operator):
     parent = None
     takemat = None
 
+    max_style_draw_tool = False
+
     @classmethod
     def poll(cls, context):
         return True
@@ -1923,25 +1925,36 @@ class ARCHIPACK_OT_wall2_draw(ArchpackDrawTool, Operator):
 
         if self.state == 'STARTING':
             takeloc = self.mouse_to_plane(context, event)
-            # print("STARTING")
-            snap_point(takeloc=takeloc,
-                callback=self.sp_init,
-                constraint_axis=(True, True, False),
-                release_confirm=True)
+            # wait for takeloc being visible when button is over horizon
+            rv3d = context.region_data
+            viewinv = rv3d.view_matrix.inverted()
+            if (takeloc * viewinv).z < 0:
+                # print("STARTING")
+                # when user press draw button
+                snap_point(takeloc=takeloc,
+                    callback=self.sp_init,
+                    # transform_orientation=context.space_data.transform_orientation,
+                    constraint_axis=(True, True, False),
+                    release_confirm=True)
             return {'RUNNING_MODAL'}
 
         elif self.state == 'RUNNING':
             # print("RUNNING")
+            # when user start drawing
+
+            # release confirm = False on blender mode
+            # release confirm = True on max mode
             self.state = 'CREATE'
             snap_point(takeloc=self.takeloc,
                 draw=self.sp_draw,
                 takemat=self.takemat,
+                transform_orientation=context.space_data.transform_orientation,
                 callback=self.sp_callback,
                 constraint_axis=(True, True, False),
-                release_confirm=True)
+                release_confirm=self.max_style_draw_tool)
             return {'RUNNING_MODAL'}
 
-        elif event.type in {'LEFTMOUSE', 'RET', 'NUMPAD_ENTER', 'SPACE'}:
+        elif self.state != 'CANCEL' and event.type in {'LEFTMOUSE', 'RET', 'NUMPAD_ENTER', 'SPACE'}:
 
             # print('LEFTMOUSE %s' % (event.value))
             self.feedback.instructions(context, "Draw a wall", "Click & Drag to add a segment", [
@@ -1952,8 +1965,13 @@ class ARCHIPACK_OT_wall2_draw(ArchpackDrawTool, Operator):
                 ('RIGHTCLICK or ESC', 'exit')
                 ])
 
-            if event.value == 'PRESS':
+            # press with max mode release with blender mode
+            if self.max_style_draw_tool:
+                evt_value = 'PRESS'
+            else:
+                evt_value = 'RELEASE'
 
+            if event.value == evt_value:
                 if self.flag_next:
                     self.flag_next = False
                     o = self.o
@@ -1981,7 +1999,7 @@ class ARCHIPACK_OT_wall2_draw(ArchpackDrawTool, Operator):
                     draw=self.sp_draw,
                     callback=self.sp_callback,
                     constraint_axis=(True, True, False),
-                    release_confirm=True)
+                    release_confirm=self.max_style_draw_tool)
 
             return {'RUNNING_MODAL'}
 
@@ -2010,12 +2028,17 @@ class ARCHIPACK_OT_wall2_draw(ArchpackDrawTool, Operator):
             else:
                 self.o.select = True
                 context.scene.objects.active = self.o
-                # self.ensure_ccw()
+                d = archipack_wall2.datablock(self.o)
+
+                # remove last segment with blender mode
+                if not self.max_style_draw_tool:
+                    if not d.closed and d.n_parts > 1:
+                        d.n_parts -= 1
+
                 self.o.select = True
                 context.scene.objects.active = self.o
                 # make T child
                 if self.parent is not None:
-                    d = archipack_wall2.datablock(self.o)
                     d.t_part = self.parent
 
                 if bpy.ops.archipack.wall2_manipulate.poll():
@@ -2028,6 +2051,8 @@ class ARCHIPACK_OT_wall2_draw(ArchpackDrawTool, Operator):
     def invoke(self, context, event):
 
         if context.mode == "OBJECT":
+            prefs = context.user_preferences.addons[__name__.split('.')[0]].preferences
+            self.max_style_draw_tool = prefs.max_style_draw_tool
             self.keymap = Keymaps(context)
             self.wall_part1 = GlPolygon((0.5, 0, 0, 0.2))
             self.wall_line1 = GlPolyline((0.5, 0, 0, 0.8))
