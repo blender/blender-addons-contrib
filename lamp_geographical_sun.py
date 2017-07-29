@@ -43,7 +43,7 @@ bl_info = {
     "author": "Doug Hammond (dougal2)",
     "version": (0, 0, 1),
     "blender": (2, 56, 0),
-    "category": "Object",
+    "category": "Lighting",
     "location": "Lamp data > Geographical Sun",
     "warning": "",
     "wiki_url": "",
