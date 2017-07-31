@@ -21,6 +21,11 @@
 import bpy
 import math
 
+from bpy.types import (
+    PoseBone,
+    ShapeKey,
+)
+
 # may be overwritten by user!
 from . import USE_VERBOSE
 
@@ -451,12 +456,12 @@ def widget_iter_shapekey(context, mpr, ob, fmap, fmap_target):
 
 def widget_clear_location(context, mpr, ob, fmap, fmap_target):
 
-    if isinstance(fmap_target, bpy.types.ShapeKey):
+    if isinstance(fmap_target, ShapeKey):
         shape = fmap_target
         del fmap_target
         # gets clamped
         shape.value = 0.0
-    elif isinstance(fmap_target, bpy.types.PoseBone):
+    elif isinstance(fmap_target, PoseBone):
         pose_bone = fmap_target
         del fmap_target
 
@@ -469,7 +474,7 @@ def widget_clear_location(context, mpr, ob, fmap, fmap_target):
 
 def widget_clear_rotation(context, mpr, ob, fmap, fmap_target):
 
-    if isinstance(fmap_target, bpy.types.PoseBone):
+    if isinstance(fmap_target, PoseBone):
         pose_bone = fmap_target
         del fmap_target
         tweak_attr = pose_bone_rotation_attr_from_mode(pose_bone)
@@ -490,7 +495,7 @@ def widget_clear_rotation(context, mpr, ob, fmap, fmap_target):
 
 def widget_clear_scale(context, mpr, ob, fmap, fmap_target):
 
-    if isinstance(fmap_target, bpy.types.PoseBone):
+    if isinstance(fmap_target, PoseBone):
         pose_bone = fmap_target
         del fmap_target
 

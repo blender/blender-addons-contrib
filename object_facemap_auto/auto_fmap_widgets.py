@@ -44,7 +44,11 @@ import bpy
 from bpy.types import (
     ManipulatorGroup,
     Manipulator,
+
+    PoseBone,
+    ShapeKey,
 )
+
 from bpy.props import (
     IntProperty,
 )
@@ -141,15 +145,10 @@ class AutoFaceMapWidget(Manipulator):
 
     def draw_select(self, context, select_id):
         if USE_VERBOSE:
-            print("(draw_select)", self, context)
+            print("(draw_select)", self, context, select_id >> 8)
         self.draw_preset_facemap(self.fmap_mesh_object, self.fmap_index, select_id)
 
     def invoke(self, context, event):
-        from bpy.types import (
-            PoseBone,
-            ShapeKey,
-        )
-
         if USE_VERBOSE:
             print("(invoke)", self, event)
 
@@ -172,6 +171,8 @@ class AutoFaceMapWidget(Manipulator):
                     mpr_list.append(mpr)
 
         self._iter = []
+
+        self.group.is_modal = True
 
         for mpr in mpr_list:
             ob = mpr.fmap_mesh_object
@@ -220,6 +221,7 @@ class AutoFaceMapWidget(Manipulator):
             self._iter.append(mpr_iter)
 
     def exit(self, context, cancel):
+        self.group.is_modal = False
         # failed case
         if not self._iter:
             return
@@ -265,6 +267,7 @@ class AutoFaceMapWidgetGroup(ManipulatorGroup):
         # "widgets",
         # need some comparison
         "last_active_object",
+        "is_modal",
     )
 
     @classmethod
@@ -304,111 +307,111 @@ class AutoFaceMapWidgetGroup(ManipulatorGroup):
                     yield from AutoFaceMapWidgetGroup.mesh_objects_from_armature(ob_iter, visible_mesh_objects)
                 unique_objects.add(ob_iter)
 
+    def setup_manipulator_from_facemap(self, fmap_mesh_object, fmap, i):
+        color_fallback = 0.15, 0.62, 1.0
+
+        # foo;bar;baz --> ("foo", "bar;baz")
+        fmap_name = fmap.name
+        fmap_name_strip, fmap_rules = fmap.name.partition(";")[::2]
+        fmap_target = face_map_find_target(fmap_mesh_object, fmap_name_strip)
+
+        if fmap_target is None:
+            return None
+
+        if True:
+            mpr = self.manipulators.new(AutoFaceMapWidget.bl_idname)
+            mpr.fmap_index = i
+            # widgets[fmap_name] = mpr
+
+        mpr.fmap_index = i
+        mpr.fmap = fmap
+        mpr.fmap_mesh_object = fmap_mesh_object
+        mpr.fmap_target = fmap_target
+
+        # See 'select_refresh' which syncs back in the other direction.
+        mpr.select = fmap.select
+
+        # foo;bar=baz;bonzo=bingo --> {"bar": baz", "bonzo": bingo}
+        mpr.fmap_target_rules = dict(
+            item.partition("=")[::2] for item in fmap_rules,
+        )
+
+        # XXX, we might want to have some way to extract a 'center' from a face-map
+        # for now use the pose-bones location.
+        if isinstance(fmap_target, PoseBone):
+            mpr.matrix_basis = (fmap_target.id_data.matrix_world * fmap_target.matrix).normalized()
+
+        # mpr.draw_style = 'BOX'
+        mpr.use_draw_hover = True
+        mpr.use_draw_modal = True
+
+        if isinstance(fmap_target, PoseBone):
+            mpr.color = pose_bone_get_color(fmap_target) or color_fallback
+        else:  # We could color shapes, for now not.
+            mpr.color = color_fallback
+
+        mpr.alpha = 0.5
+
+        mpr.color_highlight = mpr.color
+        mpr.alpha_highlight = 0.5
+        return mpr
+
     def setup(self, context):
         from bpy.types import (
             PoseBone,
             ShapeKey,
         )
 
-        # For weak sanity check - detects undo
-        self.last_active_object = context.active_object
+        self.is_modal = False
 
         # we could remove this,
         # for now ensure keymaps are added on setup
         self.evil_keymap_setup(context)
 
-        '''
-        widgets = getattr(self, "widgets", None)
-        if widgets is None:
-            self.widgets = widgets = {}
-            is_refresh = False
+        is_update = hasattr(self, "last_active_object")
+
+        # For weak sanity check - detects undo
+        if is_update and (self.last_active_object != context.active_object):
+            is_update = False
+            self.manipulators.clear()
+
+        self.last_active_object = context.active_object
+
+        if not is_update:
+            for fmap_mesh_object in self.mesh_objects_from_context(context):
+                for (i, fmap) in enumerate(fmap_mesh_object.face_maps):
+                    self.setup_manipulator_from_facemap(fmap_mesh_object, fmap, i)
         else:
-            is_refresh = True
+            # first attempt simple update
+            force_full_update = False
+            mpr_iter_old = iter(self.manipulators)
+            for fmap_mesh_object in self.mesh_objects_from_context(context):
+                for (i, fmap) in enumerate(fmap_mesh_object.face_maps):
+                    mpr_old = next(mpr_iter_old, None)
+                    if (
+                            (mpr_old is None) or
+                            (mpr_old.fmap_mesh_object != fmap_mesh_object) or
+                            (mpr_old.fmap != fmap)
+                    ):
+                        force_full_update = True
+                        break
+                    # else we will want to update the base matrix at least
+                    # possibly colors
+                    # but its not so important
+            del mpr_iter_old
 
-        # for now always fully new!
-        is_refresh = False
-        self.manipulators.clear()
-        '''
-
-        color_fallback = 0.15, 0.62, 1.0
-
-        # Arrow manipulator has one 'offset' property we can assign to the lamp energy.
-        print(len(self.manipulators))
-        for ob in self.mesh_objects_from_context(context):
-            for (i, fmap) in enumerate(ob.face_maps):
-                # foo;bar;baz --> ("foo", "bar;baz")
-                fmap_name = fmap.name
-                fmap_name_strip, fmap_rules = fmap.name.partition(";")[::2]
-                fmap_target = face_map_find_target(ob, fmap_name_strip)
-
-                if fmap_target is None:
-                    continue
-
-                '''
-                if is_refresh:
-                    mpr = widgets.get(fmap_name)
-                else:
-                    mpr = None
-
-
-                if mpr is None:
-                '''
-                if True:
-                    mpr = self.manipulators.new(AutoFaceMapWidget.bl_idname)
-                    mpr.fmap_index = i
-                    # widgets[fmap_name] = mpr
-
-                mpr.fmap_index = i
-                # print(hash(mpr), hash(fmap))
-                mpr.fmap = fmap
-                mpr.fmap_mesh_object = ob
-                mpr.fmap_target = fmap_target
-
-                # See 'select_refresh' which syncs back in the other direction.
-                mpr.select = fmap.select
-
-                # foo;bar=baz;bonzo=bingo --> {"bar": baz", "bonzo": bingo}
-                mpr.fmap_target_rules = dict(
-                    item.partition("=")[::2] for item in fmap_rules,
-                )
-
-                # mpr.target_set_prop("offset", ob.data, "energy")
-                # mpr.matrix_basis = ob.matrix_world.normalized()
-
-                # XXX, we might want to have some way to extract a 'center' from a face-map
-                # for now use the pose-bones location.
-                if isinstance(fmap_target, PoseBone):
-                    mpr.matrix_basis = (fmap_target.id_data.matrix_world * fmap_target.matrix).normalized()
-
-                # mpr.draw_style = 'BOX'
-                mpr.use_draw_hover = True
-                mpr.use_draw_modal = True
-
-                if False:
-                    # Fancy-pants random colors based on name (without _L, _R)
-                    mpr.color = 1.0, 0.0, 0.0
-                    mpr.color.h = (hash(fmap.name.rstrip('LR')) % 100) / 100.0
-                    mpr.color.s = 0.3
-                elif False:
-                    # Single color
-                    mpr.color = color_fallback
-                else:
-                    if isinstance(fmap_target, PoseBone):
-                        mpr.color = pose_bone_get_color(fmap_target) or color_fallback
-                    else:
-                        # We could color shapes, for now not.
-                        mpr.color = color_fallback
-
-                mpr.alpha = 0.5
-
-                mpr.color_highlight = mpr.color
-                mpr.alpha_highlight = 0.5
+            if force_full_update:
+                self.manipulators.clear()
+                # same as above
+                for fmap_mesh_object in self.mesh_objects_from_context(context):
+                    for (i, fmap) in enumerate(fmap_mesh_object.face_maps):
+                        self.setup_manipulator_from_facemap(fmap_mesh_object, fmap, i)
 
     def refresh(self, context):
+        if self.is_modal:
+            return
         # WEAK!
-        if self.last_active_object != context.active_object:
-            self.manipulators.clear()
-            self.setup(context)
+        self.setup(context)
 
     @classmethod
     def evil_keymap_setup(cls, context):
@@ -420,7 +423,9 @@ class AutoFaceMapWidgetGroup(ManipulatorGroup):
         # TODO, lookup existing keys and use those.
 
         # in-place of bpy.ops.object.location_clear and friends.
-        km = context.window_manager.keyconfigs.active.keymaps[cls.bl_idname]
+        km = context.window_manager.keyconfigs.active.keymaps.get(cls.bl_idname)
+        if km is None:
+            return
         kmi = km.keymap_items.new('my_facemap.transform_clear', 'G', 'PRESS', alt=True)
         kmi.properties.clear_types = {'LOCATION'}
         kmi = km.keymap_items.new('my_facemap.transform_clear', 'R', 'PRESS', alt=True)
