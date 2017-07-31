@@ -271,7 +271,7 @@ def widget_iter_pose_rotate(context, mpr, ob, fmap, fmap_target):
 
         # calculate rotation matrix from input
         co_init, co = coords_to_loc_3d(context, (mval_init, mval), depth_location)
-        co_delta = world_to_local_3x3 * (co - co_init)
+        # co_delta = world_to_local_3x3 * (co - co_init)
 
         input_scale = 1.0
         is_precise = 'PRECISE' in tweak

@@ -49,14 +49,12 @@ from bpy.types import (
     ShapeKey,
 )
 
-from bpy.props import (
-    IntProperty,
-)
-
 
 # USE_VERBOSE = True
-from . import USE_VERBOSE
-from . import USE_RELOAD
+from . import (
+    USE_VERBOSE,
+    USE_RELOAD,
+)
 
 
 # -----------------------------------------------------------------------------
@@ -105,27 +103,22 @@ def pose_bone_get_color(pose_bone):
 # -----------------------------------------------------------------------------
 # Face-map manipulators
 
-
-#import IPython; IPython.embed()
-
 class AutoFaceMapWidget(Manipulator):
     bl_idname = "VIEW3D_WT_auto_facemap"
 
-    # property definitions this manipulator will edit
-    # bl_target_properties = (
-    #     dict(id="offset", type='FLOAT', array_length=1),
-    #     dict(id="location", type='FLOAT', array_length=3),
-    # )
-
     __slots__ = (
-        "fmap_index",
+        # Face-map this widget displays.
         "fmap",
+        # Face-Map index is used for drawing.
+        "fmap_index",
+        # Mesh object the face map is attached to.
         "fmap_mesh_object",
-        # PoseBone or ShapeKey
+        # Item this widget controls:
+        # PoseBone or ShapeKey.
         "fmap_target",
         # list of rules, eg: ["action=rotate", ...]
         "fmap_target_rules",
-        # iterator to use while interacting
+        # Iterator to use while interacting.
         "_iter",
     )
 
@@ -312,17 +305,13 @@ class AutoFaceMapWidgetGroup(ManipulatorGroup):
 
         # foo;bar;baz --> ("foo", "bar;baz")
         fmap_name = fmap.name
-        fmap_name_strip, fmap_rules = fmap.name.partition(";")[::2]
+        fmap_name_strip, fmap_rules = fmap_name.partition(";")[::2]
         fmap_target = face_map_find_target(fmap_mesh_object, fmap_name_strip)
 
         if fmap_target is None:
             return None
 
-        if True:
-            mpr = self.manipulators.new(AutoFaceMapWidget.bl_idname)
-            mpr.fmap_index = i
-            # widgets[fmap_name] = mpr
-
+        mpr = self.manipulators.new(AutoFaceMapWidget.bl_idname)
         mpr.fmap_index = i
         mpr.fmap = fmap
         mpr.fmap_mesh_object = fmap_mesh_object
@@ -341,7 +330,6 @@ class AutoFaceMapWidgetGroup(ManipulatorGroup):
         if isinstance(fmap_target, PoseBone):
             mpr.matrix_basis = (fmap_target.id_data.matrix_world * fmap_target.matrix).normalized()
 
-        # mpr.draw_style = 'BOX'
         mpr.use_draw_hover = True
         mpr.use_draw_modal = True
 
@@ -357,11 +345,6 @@ class AutoFaceMapWidgetGroup(ManipulatorGroup):
         return mpr
 
     def setup(self, context):
-        from bpy.types import (
-            PoseBone,
-            ShapeKey,
-        )
-
         self.is_modal = False
 
         # we could remove this,
