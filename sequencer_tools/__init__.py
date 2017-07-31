@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Sequencer Tools",
     "author": "mont29",
-    "version": (0, 0, 4),
+    "version": (0, 0, 5),
     "blender": (2, 78, 0),
     "location": "Sequencer menus/UI",
     "description": "Various Sequencer tools.",

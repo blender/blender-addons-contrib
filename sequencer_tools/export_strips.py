@@ -48,6 +48,8 @@ class SEQExportStrip(bpy.types.Operator):
                 start = strip.frame_final_start
             if end is None or strip.frame_final_end > end:
                 end = strip.frame_final_end
+        if start is None or end is None:
+            return {'CANCELLED'}
         sce.frame_start = start
         sce.frame_end = end
 
