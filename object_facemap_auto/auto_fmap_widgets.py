@@ -212,6 +212,7 @@ class AutoFaceMapWidget(Manipulator):
             mpr_iter.send(event)
 
             self._iter.append(mpr_iter)
+        return {'RUNNING_MODAL'}
 
     def exit(self, context, cancel):
         self.group.is_modal = False
@@ -235,7 +236,7 @@ class AutoFaceMapWidget(Manipulator):
     def modal(self, context, event, tweak):
         # failed case
         if not self._iter:
-            return
+            return {'CANCELLED'}
 
         # iter prints
         for mpr_iter in self._iter:
@@ -247,6 +248,7 @@ class AutoFaceMapWidget(Manipulator):
                 # avoid flooding output
                 # We might want to remove this from the list!
                 # self._iter = None
+        return {'RUNNING_MODAL'}
 
 
 class AutoFaceMapWidgetGroup(ManipulatorGroup):
