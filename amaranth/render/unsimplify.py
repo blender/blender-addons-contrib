@@ -64,7 +64,11 @@ def register():
     bpy.app.handlers.render_post.append(unsimplify_render_post)
     bpy.types.SCENE_PT_simplify.append(unsimplify_ui)
     if utils.cycles_exists():
-        bpy.types.CyclesScene_PT_simplify.append(unsimplify_ui)
+        if bpy.app.version >= (2, 79, 1):
+            bpy.types.CYCLES_SCENE_PT_simplify.append(unsimplify_ui)
+        else:
+            bpy.types.CyclesScene_PT_simplify.append(unsimplify_ui)
+
 
 
 def unregister():
@@ -73,4 +77,8 @@ def unregister():
     bpy.app.handlers.render_post.remove(unsimplify_render_post)
     bpy.types.SCENE_PT_simplify.remove(unsimplify_ui)
     if utils.cycles_exists():
-        bpy.types.CyclesScene_PT_simplify.remove(unsimplify_ui)
+        if bpy.app.version >= (2, 79, 1):
+            bpy.types.CYCLES_SCENE_PT_simplify.remove(unsimplify_ui)
+        else:
+            bpy.types.CyclesScene_PT_simplify.remove(unsimplify_ui)
+
