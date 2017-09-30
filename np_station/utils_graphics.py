@@ -489,10 +489,10 @@ def display_distance_between_two_points(region, rv3d, p1_3d, p2_3d):
     scale_dist = addon_settings_graph('scale_dist')
     suffix_dist = addon_settings_graph('suffix_dist')
 
-    if type(p1_3d) != Vector:
+    if type(p1_3d) is not Vector:
         p1_3d = Vector(p1_3d)
 
-    if type(p2_3d) != Vector:
+    if type(p2_3d) is not Vector:
         p2_3d = Vector(p2_3d)
 
 
