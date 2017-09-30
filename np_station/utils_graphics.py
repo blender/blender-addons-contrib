@@ -32,101 +32,116 @@ from bpy.app.handlers import persistent
 from .utils_geometry import *
 from .utils_function import *
 
- # GET ADDON COLOR SETTINGS AND PRODUCE VALUES:
+# GET ADDON COLOR SETTINGS AND PRODUCE VALUES:
 
-def addon_settings_graph():
+class SettingsStore:
+    add_set_graph_dict = None
 
+# Use global SettingsStore class to store dict so it is not recreated each call
+# todo : come up with better way for storing and checking add-on settings
+def addon_settings_graph(key):
     addon_prefs = bpy.context.user_preferences.addons[__package__].preferences
 
-    np_col_scheme = addon_prefs.np_col_scheme
-    np_size_num = int(round(addon_prefs.np_size_num, 0))
-    #np_print('size_num', np_size_num)
-    np_scale_dist = addon_prefs.np_scale_dist
-    np_suffix_dist = addon_prefs.np_suffix_dist
-    np_display_badge = addon_prefs.np_display_badge
-    np_size_badge = int(round(addon_prefs.np_size_badge, 0))
+    if SettingsStore.add_set_graph_dict is not None:
+        add_set_graph_dict = SettingsStore.add_set_graph_dict
+        settings_change = (
+            add_set_graph_dict['col_scheme'] != addon_prefs.np_col_scheme,
+            add_set_graph_dict['size_num'] != addon_prefs.np_size_num,
+            add_set_graph_dict['scale_dist'] != addon_prefs.np_scale_dist,
+            add_set_graph_dict['suffix_dist'] != addon_prefs.np_suffix_dist,
+            add_set_graph_dict['display_badge'] != addon_prefs.np_display_badge,
+            add_set_graph_dict['size_badge'] != addon_prefs.np_size_badge)
+        if True in settings_change:
+            SettingsStore.add_set_graph_dict = None
 
-    add_set_graph_dict = {}
+    if SettingsStore.add_set_graph_dict is None:
+        #print(" add_set_graph_dict == None ")
+        add_set_graph_dict = {}
+        add_set_graph_dict.update(
+            col_scheme = addon_prefs.np_col_scheme,
+            size_num = addon_prefs.np_size_num,
+            scale_dist = addon_prefs.np_scale_dist,
+            suffix_dist = addon_prefs.np_suffix_dist,
+            display_badge = addon_prefs.np_display_badge,
+            size_badge = addon_prefs.np_size_badge)
 
-    if np_col_scheme == 'csc_default_grey':
-        add_set_graph_dict['col_font_np'] = (0.95, 0.95, 0.95, 1.0)
-        add_set_graph_dict['col_font_instruct_main'] = (0.67, 0.67, 0.67, 1.0)
-        add_set_graph_dict['col_font_instruct_shadow'] = (0.15, 0.15, 0.15, 1.0)
-        add_set_graph_dict['col_font_keys'] = (0.15, 0.15, 0.15, 1.0)
-        add_set_graph_dict['col_field_keys_aff'] = (0.51, 0.51, 0.51, 1.0)
-        add_set_graph_dict['col_field_keys_neg'] = (0.41, 0.41, 0.41, 1.0)
+        if addon_prefs.np_col_scheme == 'csc_default_grey':
+            add_set_graph_dict.update(
+                col_font_np = (0.95, 0.95, 0.95, 1.0),
+                col_font_instruct_main = (0.67, 0.67, 0.67, 1.0),
+                col_font_instruct_shadow = (0.15, 0.15, 0.15, 1.0),
+                col_font_keys = (0.15, 0.15, 0.15, 1.0),
+                col_field_keys_aff = (0.51, 0.51, 0.51, 1.0),
+                col_field_keys_neg = (0.41, 0.41, 0.41, 1.0),
 
-        add_set_graph_dict['col_line_main'] = (0.9, 0.9, 0.9, 1.0)
-        add_set_graph_dict['col_line_shadow'] = (0.1, 0.1, 0.1, 0.25)
-        add_set_graph_dict['col_num_main'] = (0.95, 0.95, 0.95, 1.0)
-        add_set_graph_dict['col_num_shadow'] = (0.0, 0.0, 0.0, 0.75)
+                col_line_main = (0.9, 0.9, 0.9, 1.0),
+                col_line_shadow = (0.1, 0.1, 0.1, 0.25),
+                col_num_main = (0.95, 0.95, 0.95, 1.0),
+                col_num_shadow = (0.0, 0.0, 0.0, 0.75),
 
-        add_set_graph_dict['col_gw_line_cross'] = (0.25, 0.35, 0.4, 0.87)
-        add_set_graph_dict['col_gw_line_base_free'] = (1.0, 1.0, 1.0, 0.85)
-        add_set_graph_dict['col_gw_line_base_lock_x'] = (1.0, 0.0, 0.0, 1.0)
-        add_set_graph_dict['col_gw_line_base_lock_y'] = (0.5, 0.75, 0.0, 1.0)
-        add_set_graph_dict['col_gw_line_base_lock_z'] = (0.0, 0.2, 0.85, 1.0)
-        add_set_graph_dict['col_gw_line_base_lock_arb'] = (0.0, 0.0, 0.0, 0.5)
-        add_set_graph_dict['col_gw_line_all'] = (1.0, 1.0, 1.0, 0.85)
+                col_gw_line_cross = (0.25, 0.35, 0.4, 0.87),
+                col_gw_line_base_free = (1.0, 1.0, 1.0, 0.85),
+                col_gw_line_base_lock_x = (1.0, 0.0, 0.0, 1.0),
+                col_gw_line_base_lock_y = (0.5, 0.75, 0.0, 1.0),
+                col_gw_line_base_lock_z = (0.0, 0.2, 0.85, 1.0),
+                col_gw_line_base_lock_arb = (0.0, 0.0, 0.0, 0.5),
+                col_gw_line_all = (1.0, 1.0, 1.0, 0.85),
 
-        add_set_graph_dict['col_gw_fill_base_x'] = (1.0, 0.0, 0.0, 0.2)
-        add_set_graph_dict['col_gw_fill_base_y'] = (0.0, 1.0, 0.0, 0.2)
-        add_set_graph_dict['col_gw_fill_base_z'] = (0.0, 0.2, 0.85, 0.2)
-        add_set_graph_dict['col_gw_fill_base_arb'] = (0.0, 0.0, 0.0, 0.15)
+                col_gw_fill_base_x = (1.0, 0.0, 0.0, 0.2),
+                col_gw_fill_base_y = (0.0, 1.0, 0.0, 0.2),
+                col_gw_fill_base_z = (0.0, 0.2, 0.85, 0.2),
+                col_gw_fill_base_arb = (0.0, 0.0, 0.0, 0.15),
 
-        add_set_graph_dict['col_bg_fill_main_run'] = (1.0, 0.5, 0.0, 1.0)
-        add_set_graph_dict['col_bg_fill_main_nav'] = (0.5, 0.75 ,0.0 ,1.0)
-        add_set_graph_dict['col_bg_fill_square'] = (0.0, 0.0, 0.0, 1.0)
-        add_set_graph_dict['col_bg_fill_aux'] = (0.4, 0.15, 0.75, 1.0) #(0.4, 0.15, 0.75, 1.0) (0.2, 0.15, 0.55, 1.0)
-        add_set_graph_dict['col_bg_line_symbol'] = (1.0, 1.0, 1.0, 1.0)
-        add_set_graph_dict['col_bg_font_main'] = (1.0, 1.0, 1.0, 1.0)
-        add_set_graph_dict['col_bg_font_aux'] = (1.0, 1.0, 1.0, 1.0)
+                col_bg_fill_main_run = (1.0, 0.5, 0.0, 1.0),
+                col_bg_fill_main_nav = (0.5, 0.75 ,0.0 ,1.0),
+                col_bg_fill_square = (0.0, 0.0, 0.0, 1.0),
+                col_bg_fill_aux = (0.4, 0.15, 0.75, 1.0), #(0.4, 0.15, 0.75, 1.0) (0.2, 0.15, 0.55, 1.0)
+                col_bg_line_symbol = (1.0, 1.0, 1.0, 1.0),
+                col_bg_font_main = (1.0, 1.0, 1.0, 1.0),
+                col_bg_font_aux = (1.0, 1.0, 1.0, 1.0)
+            )
 
-    elif np_col_scheme == 'csc_school_marine':
-        add_set_graph_dict['col_font_np'] = (0.25, 0.35, 0.4, 0.87)
-        add_set_graph_dict['col_font_instruct_main'] = (1.0, 1.0, 1.0, 1.0)
-        add_set_graph_dict['col_font_instruct_shadow'] = (0.25, 0.35, 0.4, 0.6)
-        add_set_graph_dict['col_font_keys'] = (1.0, 1.0, 1.0, 1.0)
-        add_set_graph_dict['col_field_keys_aff'] = (0.55, 0.6, 0.64, 1.0)
-        add_set_graph_dict['col_field_keys_neg'] = (0.67, 0.72, 0.76, 1.0)
+        elif addon_prefs.np_col_scheme == 'csc_school_marine':
+            add_set_graph_dict.update(
+                col_font_np = (0.25, 0.35, 0.4, 0.87),
+                col_font_instruct_main = (1.0, 1.0, 1.0, 1.0),
+                col_font_instruct_shadow = (0.25, 0.35, 0.4, 0.6),
+                col_font_keys = (1.0, 1.0, 1.0, 1.0),
+                col_field_keys_aff = (0.55, 0.6, 0.64, 1.0),
+                col_field_keys_neg = (0.67, 0.72, 0.76, 1.0),
 
-        add_set_graph_dict['col_line_main'] = (1.0, 1.0, 1.0, 1.0)
-        add_set_graph_dict['col_line_shadow'] = (0.1, 0.1, 0.1, 0.25)
-        add_set_graph_dict['col_num_main'] = (0.25, 0.35, 0.4, 1.0) #(1.0, 0.5, 0.0, 1.0)
-        add_set_graph_dict['col_num_shadow'] = (1.0, 1.0, 1.0, 1.0)
+                col_line_main = (1.0, 1.0, 1.0, 1.0),
+                col_line_shadow = (0.1, 0.1, 0.1, 0.25),
+                col_num_main = (0.25, 0.35, 0.4, 1.0), #(1.0, 0.5, 0.0, 1.0)
+                col_num_shadow = (1.0, 1.0, 1.0, 1.0),
 
-        add_set_graph_dict['col_gw_line_cross'] = (0.25, 0.35, 0.4, 0.87)
-        add_set_graph_dict['col_gw_line_base_free'] = (1.0, 1.0, 1.0, 0.85)
-        add_set_graph_dict['col_gw_line_base_lock_x'] = (1.0, 0.0, 0.0, 1.0)
-        add_set_graph_dict['col_gw_line_base_lock_y'] = (0.5, 0.75, 0.0, 1.0)
-        add_set_graph_dict['col_gw_line_base_lock_z'] = (0.0, 0.2, 0.85, 1.0)
-        add_set_graph_dict['col_gw_line_base_lock_arb'] = (0.0, 0.0, 0.0, 0.5)
-        add_set_graph_dict['col_gw_line_all'] = (1.0, 1.0, 1.0, 0.85)
+                col_gw_line_cross = (0.25, 0.35, 0.4, 0.87),
+                col_gw_line_base_free = (1.0, 1.0, 1.0, 0.85),
+                col_gw_line_base_lock_x = (1.0, 0.0, 0.0, 1.0),
+                col_gw_line_base_lock_y = (0.5, 0.75, 0.0, 1.0),
+                col_gw_line_base_lock_z = (0.0, 0.2, 0.85, 1.0),
+                col_gw_line_base_lock_arb = (0.0, 0.0, 0.0, 0.5),
+                col_gw_line_all = (1.0, 1.0, 1.0, 0.85),
 
-        add_set_graph_dict['col_gw_fill_base_x'] = (1.0, 0.0, 0.0, 0.2)
-        add_set_graph_dict['col_gw_fill_base_y'] = (0.0, 1.0, 0.0, 0.2)
-        add_set_graph_dict['col_gw_fill_base_z'] = (0.0, 0.2, 0.85, 0.2)
-        add_set_graph_dict['col_gw_fill_base_arb'] = (0.0, 0.0, 0.0, 0.15)
+                col_gw_fill_base_x = (1.0, 0.0, 0.0, 0.2),
+                col_gw_fill_base_y = (0.0, 1.0, 0.0, 0.2),
+                col_gw_fill_base_z = (0.0, 0.2, 0.85, 0.2),
+                col_gw_fill_base_arb = (0.0, 0.0, 0.0, 0.15),
 
-        add_set_graph_dict['col_bg_fill_main_run'] = (1.0, 0.5, 0.0, 1.0)
-        add_set_graph_dict['col_bg_fill_main_nav'] = (0.5, 0.75 ,0.0 ,1.0)
-        add_set_graph_dict['col_bg_fill_square'] = (0.0, 0.0, 0.0, 1.0)
-        add_set_graph_dict['col_bg_fill_aux'] = (0.4, 0.15, 0.75, 1.0) #(0.4, 0.15, 0.75, 1.0) (0.2, 0.15, 0.55, 1.0)
-        add_set_graph_dict['col_bg_line_symbol'] = (1.0, 1.0, 1.0, 1.0)
-        add_set_graph_dict['col_bg_font_main'] = (1.0, 1.0, 1.0, 1.0)
-        add_set_graph_dict['col_bg_font_aux'] = (1.0, 1.0, 1.0, 1.0)
+                col_bg_fill_main_run = (1.0, 0.5, 0.0, 1.0),
+                col_bg_fill_main_nav = (0.5, 0.75 ,0.0 ,1.0),
+                col_bg_fill_square = (0.0, 0.0, 0.0, 1.0),
+                col_bg_fill_aux = (0.4, 0.15, 0.75, 1.0), #(0.4, 0.15, 0.75, 1.0) (0.2, 0.15, 0.55, 1.0)
+                col_bg_line_symbol = (1.0, 1.0, 1.0, 1.0),
+                col_bg_font_main = (1.0, 1.0, 1.0, 1.0),
+                col_bg_font_aux = (1.0, 1.0, 1.0, 1.0)
+            )
+        SettingsStore.add_set_graph_dict = add_set_graph_dict.copy()
 
-
-    add_set_graph_dict['size_num'] = np_size_num
-    add_set_graph_dict['scale_dist'] = np_scale_dist
-    add_set_graph_dict['suffix_dist'] = np_suffix_dist
-    add_set_graph_dict['display_badge'] = np_display_badge
-    add_set_graph_dict['size_badge'] = np_size_badge
-
-    return add_set_graph_dict
+    return SettingsStore.add_set_graph_dict[key]
 
 
- # ON-SCREEN INSTRUCTIONS:
+# ON-SCREEN INSTRUCTIONS:
 
 def display_instructions(region, rv3d, instruct, keys_aff, keys_nav, keys_neg):
 
@@ -229,12 +244,12 @@ def display_instructions(region, rv3d, instruct, keys_aff, keys_nav, keys_neg):
         pos_font_keys_neg_x = rw - 52 - len_neg - rwui
         pos_font_keys_neg_y = field_keys_y - 16 - rwui
 
-    col_font_np = addon_settings_graph()['col_font_np']
-    col_font_instruct_main = addon_settings_graph()['col_font_instruct_main']
-    col_font_instruct_shadow = addon_settings_graph()['col_font_instruct_shadow']
-    col_font_keys = addon_settings_graph()['col_font_keys']
-    col_field_keys_aff = addon_settings_graph()['col_field_keys_aff']
-    col_field_keys_neg = addon_settings_graph()['col_field_keys_neg']
+    col_font_np = addon_settings_graph('col_font_np')
+    col_font_instruct_main = addon_settings_graph('col_font_instruct_main')
+    col_font_instruct_shadow = addon_settings_graph('col_font_instruct_shadow')
+    col_font_keys = addon_settings_graph('col_font_keys')
+    col_field_keys_aff = addon_settings_graph('col_field_keys_aff')
+    col_field_keys_neg = addon_settings_graph('col_field_keys_neg')
 
 
 
@@ -311,7 +326,7 @@ def display_instructions(region, rv3d, instruct, keys_aff, keys_nav, keys_neg):
 
 
 
- # ON-SCREEN DISPLAY OF GEOWIDGET:
+# ON-SCREEN DISPLAY OF GEOWIDGET:
 
 def display_geowidget(region, rv3d, fac, ro_hor, q, helploc, n, qdef, geowidget_base, geowidget_top, geowidget_rest):
 
@@ -329,18 +344,18 @@ def display_geowidget(region, rv3d, fac, ro_hor, q, helploc, n, qdef, geowidget_
     geowidget_cross = rotate_graphic(geowidget_cross, q)
     geowidget_cross = translate_graphic(geowidget_cross, helploc)
 
-    col_gw_line_cross = addon_settings_graph()['col_gw_line_cross']
-    col_gw_line_base_free = addon_settings_graph()['col_gw_line_base_free']
-    col_gw_line_base_lock_x = addon_settings_graph()['col_gw_line_base_lock_x']
-    col_gw_line_base_lock_y = addon_settings_graph()['col_gw_line_base_lock_y']
-    col_gw_line_base_lock_z = addon_settings_graph()['col_gw_line_base_lock_z']
-    col_gw_line_base_lock_arb = addon_settings_graph()['col_gw_line_base_lock_arb']
-    col_gw_line_all = addon_settings_graph()['col_gw_line_all']
+    col_gw_line_cross = addon_settings_graph('col_gw_line_cross')
+    col_gw_line_base_free = addon_settings_graph('col_gw_line_base_free')
+    col_gw_line_base_lock_x = addon_settings_graph('col_gw_line_base_lock_x')
+    col_gw_line_base_lock_y = addon_settings_graph('col_gw_line_base_lock_y')
+    col_gw_line_base_lock_z = addon_settings_graph('col_gw_line_base_lock_z')
+    col_gw_line_base_lock_arb = addon_settings_graph('col_gw_line_base_lock_arb')
+    col_gw_line_all = addon_settings_graph('col_gw_line_all')
 
-    col_gw_fill_base_x = addon_settings_graph()['col_gw_fill_base_x']
-    col_gw_fill_base_y = addon_settings_graph()['col_gw_fill_base_y']
-    col_gw_fill_base_z = addon_settings_graph()['col_gw_fill_base_z']
-    col_gw_fill_base_arb = addon_settings_graph()['col_gw_fill_base_arb']
+    col_gw_fill_base_x = addon_settings_graph('col_gw_fill_base_x')
+    col_gw_fill_base_y = addon_settings_graph('col_gw_fill_base_y')
+    col_gw_fill_base_z = addon_settings_graph('col_gw_fill_base_z')
+    col_gw_fill_base_arb = addon_settings_graph('col_gw_fill_base_arb')
 
 
 
@@ -466,88 +481,66 @@ def display_geowidget(region, rv3d, fac, ro_hor, q, helploc, n, qdef, geowidget_
         bgl.glEnd()
 
 
- # ON-SCREEN DISPLAY OF DISTANCE BETWEEN TWO 3D POINTS:
+# ON-SCREEN DISPLAY OF DISTANCE BETWEEN TWO 3D POINTS:
 
 def display_distance_between_two_points(region, rv3d, p1_3d, p2_3d):
 
+    size_num = addon_settings_graph('size_num')
+    scale_dist = addon_settings_graph('scale_dist')
+    suffix_dist = addon_settings_graph('suffix_dist')
 
-    size_num = addon_settings_graph()['size_num']
-    scale_dist = addon_settings_graph()['scale_dist']
-    suffix_dist = addon_settings_graph()['suffix_dist']
-
-    if type(p1_3d) == tuple:
+    if type(p1_3d) != Vector:
         p1_3d = Vector(p1_3d)
 
-    if type(p2_3d) == tuple:
+    if type(p2_3d) != Vector:
         p2_3d = Vector(p2_3d)
-
-    dist_num = p2_3d - p1_3d
-    dist_num = dist_num.length * scale_dist
-    dist_num = abs(round(dist_num,2))
-
-
-    if suffix_dist == 'None':
-        suffix_dist = None
-
-    elif suffix_dist in ('km', 'm', 'cm', 'mm', 'nm', 'thou'):
-        suffix_dist = ' ' + suffix_dist
-
-    elif suffix_dist == "'":
-        suffix_dist = "'"
-
-    elif suffix_dist == '"':
-        suffix_dist = '"'
-
-
-
-    if suffix_dist is not None:
-        dist = str(dist_num) + suffix_dist
-    else:
-        dist = str(dist_num)
 
 
     p1_2d = view3d_utils.location_3d_to_region_2d(region, rv3d, p1_3d)
     p2_2d = view3d_utils.location_3d_to_region_2d(region, rv3d, p2_3d)
 
     if p1_2d is None:
-        p1_2d = (0.0, 0.0)
-        p2_2d = (0.0, 0.0)
+        p1_2d = 0.0, 0.0
+        p2_2d = 0.0, 0.0
 
-    distloc = []
-    p1_x = p1_2d[0]
-    p1_y = p1_2d[1]
-    p2_x = p2_2d[0]
-    p2_y = p2_2d[1]
-    if p1_x > region.width:
-        p1_x = region.width
-    if p1_x < 0:
-        p1_x = 0
-    if p1_y > region.height:
-        p1_y = region.height
-    if p1_y < 0:
-        p1_y = 0
-    if p2_x > region.width:
-        p2_x = region.width
-    if p2_x < 0:
-        p2_x = 0
-    if p2_y > region.height:
-        p2_y = region.height
-    if p2_y < 0:
-        p2_y = 0
-    distloc.append((p1_x+p2_x)/2)
-    distloc.append((p1_y+p2_y)/2)
+    def get_pts_mean(locs2d, max):
+        res = 0
+        for i in locs2d:
+            if i > max:
+                res += max
+            elif i > 0:
+                res += i
+        return res / 2
 
-    col_num_main = addon_settings_graph()['col_num_main']
-    col_num_shadow = addon_settings_graph()['col_num_shadow']
+    mean_x = get_pts_mean( (p1_2d[0], p2_2d[0]), region.width )
+    mean_y = get_pts_mean( (p1_2d[1], p2_2d[1]), region.height )
+    distloc = mean_x, mean_y
+
+    dist_3d = (p2_3d - p1_3d).length
+    dist_3d_rnd = abs(round(dist_3d, 2))
+    dist = str(dist_3d_rnd)
+
+    dist_num = (p2_3d - p1_3d).length * scale_dist
+    dist_num = abs(round(dist_num, 2))
+
+
+    if suffix_dist != 'None':
+        dist = str(dist_num) + suffix_dist
+    else:
+        dist = str(dist_num)
+
+    col_num_main = addon_settings_graph('col_num_main')
+    col_num_shadow = addon_settings_graph('col_num_shadow')
 
 
     #np_print('dist = ', dist, 'distloc = ', distloc, 'dist_num = ', dist_num)
-    bgl.glColor4f(*col_num_shadow)
     if dist_num not in (0, 'a'):
+        bgl.glColor4f(*col_num_shadow)
         font_id = 0
         blf.size(font_id, size_num, 72)
         blf.position(font_id, (distloc[0]-1), (distloc[1]-1), 0)
         blf.draw(font_id, dist)
+
         bgl.glColor4f(*col_num_main)
         font_id = 0
         blf.size(font_id, size_num, 72)
@@ -557,7 +550,8 @@ def display_distance_between_two_points(region, rv3d, p1_3d, p2_3d):
 
     return (dist_num, dist)
 
-    # LINE:
+
+# LINE:
 
 def display_line_between_two_points(region, rv3d, p1_3d, p2_3d):
 
@@ -570,8 +564,8 @@ def display_line_between_two_points(region, rv3d, p1_3d, p2_3d):
         p1_2d = (0.0, 0.0)
         p2_2d = (0.0, 0.0)
 
-    col_line_main = addon_settings_graph()['col_line_main']
-    col_line_shadow = addon_settings_graph()['col_line_shadow']
+    col_line_main = addon_settings_graph('col_line_main')
+    col_line_shadow = addon_settings_graph('col_line_shadow')
 
     bgl.glColor4f(*col_line_shadow)
     bgl.glLineWidth(1.4)
@@ -589,19 +583,19 @@ def display_line_between_two_points(region, rv3d, p1_3d, p2_3d):
     bgl.glDisable(bgl.GL_BLEND)
 
 
-    # BADGE:
+# BADGE:
 
 def display_cursor_badge(co2d, symbol, badge_mode, message_main, message_aux, aux_num, aux_str):
 
-    display_badge = addon_settings_graph()['display_badge']
-    size_badge = addon_settings_graph()['size_badge']
-    col_bg_fill_main_run = addon_settings_graph()['col_bg_fill_main_run']
-    col_bg_fill_main_nav = addon_settings_graph()['col_bg_fill_main_nav']
-    col_bg_fill_aux = addon_settings_graph()['col_bg_fill_aux']
-    col_bg_fill_square = addon_settings_graph()['col_bg_fill_square']
-    col_bg_line_symbol = addon_settings_graph()['col_bg_line_symbol']
-    col_bg_font_main = addon_settings_graph()['col_bg_font_main']
-    col_bg_font_aux = addon_settings_graph()['col_bg_font_aux']
+    display_badge = addon_settings_graph('display_badge')
+    size_badge = addon_settings_graph('size_badge')
+    col_bg_fill_main_run = addon_settings_graph('col_bg_fill_main_run')
+    col_bg_fill_main_nav = addon_settings_graph('col_bg_fill_main_nav')
+    col_bg_fill_aux = addon_settings_graph('col_bg_fill_aux')
+    col_bg_fill_square = addon_settings_graph('col_bg_fill_square')
+    col_bg_line_symbol = addon_settings_graph('col_bg_line_symbol')
+    col_bg_font_main = addon_settings_graph('col_bg_font_main')
+    col_bg_font_aux = addon_settings_graph('col_bg_font_aux')
 
 
 

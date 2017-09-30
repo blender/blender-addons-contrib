@@ -192,8 +192,8 @@ def draw_callback1_px(self, context):
     display_instructions(region, rv3d, instruct, keys_aff, keys_nav, keys_neg)
 
 
-    col_bg_fill_main_run = addon_settings_graph()['col_bg_fill_main_run']
-    col_bg_fill_main_nav = addon_settings_graph()['col_bg_fill_main_nav']
+    col_bg_fill_main_run = addon_settings_graph('col_bg_fill_main_run')
+    col_bg_fill_main_nav = addon_settings_graph('col_bg_fill_main_nav')
 
     # Drawing the small icon near the cursor and the shader name:
     # First color is for lighter themes, second for default and darker themes:

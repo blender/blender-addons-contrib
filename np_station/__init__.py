@@ -166,14 +166,12 @@ class NP020Preferences(bpy.types.AddonPreferences):
         default = 'csc_default_grey',
         description = 'Choose the overall addon color scheme, according to your current Blender theme')
 
-    np_size_num = bpy.props.FloatProperty(
+    np_size_num = bpy.props.IntProperty(
             name='',
             description='Size of the numerics that display on-screen dimensions, the default is 18',
             default=18,
             min=10,
-            max=30,
-            step=100,
-            precision=0)
+            max=30)
 
     np_scale_dist = bpy.props.FloatProperty(
             name='',
@@ -185,10 +183,10 @@ class NP020Preferences(bpy.types.AddonPreferences):
 
     np_suffix_dist = bpy.props.EnumProperty(
         name='',
-        items=(("'", "'", ''), ('"', '"', ''), ('thou', 'thou', ''),
-               ('km', 'km', ''), ('m', 'm', ''), ('cm', 'cm', ''),
-               ('mm', 'mm', ''), ('nm', 'nm', ''), ('None', 'None', '')),
-        default='cm',
+        items=(("'", "'", ''), ('"', '"', ''), (' thou', 'thou', ''),
+               (' km', 'km', ''), (' m', 'm', ''), (' cm', 'cm', ''),
+               (' mm', 'mm', ''), (' nm', 'nm', ''), ('None', 'None', '')),
+        default=' cm',
         description='Add a unit extension after the numerical distance ')
 
     np_display_badge = bpy.props.BoolProperty(
@@ -196,14 +194,12 @@ class NP020Preferences(bpy.types.AddonPreferences):
             description='Use the graphical badge near the mouse cursor',
             default=True)
 
-    np_size_badge = bpy.props.FloatProperty(
+    np_size_badge = bpy.props.IntProperty(
             name='badge_size',
-            description='Size of the mouse badge, the default is 2.0',
+            description='Size of the mouse badge, the default is 2',
             default=2,
-            min=0.5,
-            step=10,
-            precision=1)
-
+            min=0,
+            step=10)
 
     op_prefs = bpy.props.EnumProperty(
         name ='Individual operator settings',
