@@ -139,7 +139,7 @@ class NPPSGetContext(bpy.types.Operator):
         if bpy.context.selected_objects == []:
             self.report({'WARNING'}, "Please select objects first")
             return {'CANCELLED'}
-        NP020PS.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap) 
+        NP020PS.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap)
         NP020PS.snap_element = copy.deepcopy(bpy.context.tool_settings.snap_element)
         NP020PS.snap_target = copy.deepcopy(bpy.context.tool_settings.snap_target)
         NP020PS.pivot_point = copy.deepcopy(bpy.context.space_data.pivot_point)

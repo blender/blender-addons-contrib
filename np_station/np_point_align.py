@@ -64,7 +64,7 @@ class NP020PL:
 def NPPL_scene_update(context):
 
     if bpy.data.objects.is_updated:
-        region = bpy.context.region 
+        region = bpy.context.region
         rv3d = bpy.context.region_data
         helper = NP020PL.helper
         co = helper.location
@@ -81,7 +81,7 @@ class NPPLGetContext(bpy.types.Operator):
         if bpy.context.selected_objects == []:
             self.report({'WARNING'}, "Please select objects first")
             return {'CANCELLED'}
-        NP020PL.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap) 
+        NP020PL.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap)
         NP020PL.snap_element = copy.deepcopy(bpy.context.tool_settings.snap_element)
         NP020PL.snap_target = copy.deepcopy(bpy.context.tool_settings.snap_target)
         NP020PL.pivot_point = copy.deepcopy(bpy.context.space_data.pivot_point)
@@ -152,7 +152,7 @@ class NPPLAddHelper(bpy.types.Operator):
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
-        np_print('03_AddHelper_START', ';', 'NP020PL.flag = ', NP020PL.flag)  
+        np_print('03_AddHelper_START', ';', 'NP020PL.flag = ', NP020PL.flag)
         enterloc = NP020PL.enterloc
         bpy.ops.object.add(type = 'MESH',location = enterloc)
         helper = bpy.context.active_object

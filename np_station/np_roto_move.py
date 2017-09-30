@@ -67,7 +67,7 @@ class NP020RM:
 def NPRM_scene_update(context):
 
     if bpy.data.objects.is_updated:
-        region = bpy.context.region 
+        region = bpy.context.region
         rv3d = bpy.context.region_data
         helper = NP020RM.helper
         co = helper.location
@@ -83,7 +83,7 @@ class NPRMGetContext(bpy.types.Operator):
         if bpy.context.selected_objects == []:
             self.report({'WARNING'}, "Please select objects first")
             return {'CANCELLED'}
-        NP020RM.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap) 
+        NP020RM.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap)
         NP020RM.snap_element = copy.deepcopy(bpy.context.tool_settings.snap_element)
         NP020RM.snap_target = copy.deepcopy(bpy.context.tool_settings.snap_target)
         NP020RM.pivot_point = copy.deepcopy(bpy.context.space_data.pivot_point)
@@ -154,7 +154,7 @@ class NPRMAddHelper(bpy.types.Operator):
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
-        np_print('03_AddHelper_START', ';', 'NP020RM.flag = ', NP020RM.flag)  
+        np_print('03_AddHelper_START', ';', 'NP020RM.flag = ', NP020RM.flag)
         enterloc = NP020RM.enterloc
         bpy.ops.object.add(type = 'MESH',location = enterloc)
         helper = bpy.context.active_object
@@ -323,7 +323,7 @@ class NPRMBglPlane(bpy.types.Operator):
             view_vector = view3d_utils.region_2d_to_vector_3d(region, rv3d, co2d)
             viewloc = view3d_utils.region_2d_to_origin_3d(region, rv3d, co2d)
             away = (centerloc - viewloc).length
-            pointloc = viewloc + view_vector * away # to place the helper on centerloc to be in the vicinity of projection plane 
+            pointloc = viewloc + view_vector * away # to place the helper on centerloc to be in the vicinity of projection plane
             helper.location = pointloc
             helper.hide = False
             NP020RM.qdef = copy.deepcopy(NP020RM.q)
@@ -453,7 +453,7 @@ def DRAW_Overlay(self, context):
     flag = NP020RM.flag
     helper = NP020RM.helper
     angstep = NP020RM.angstep
-    region = bpy.context.region 
+    region = bpy.context.region
     rv3d = bpy.context.region_data
     rw = region.width
     rh = region.height
@@ -508,7 +508,7 @@ def DRAW_Overlay(self, context):
         circle[i] = co
     np_print('rmin', rmin)
     np_print('rmax', rmax)
-    if flag not in ('RUNTRANSSTART', 'RUNROTEND'): 
+    if flag not in ('RUNTRANSSTART', 'RUNROTEND'):
         fac = (rmin * 2) / rmax
         NP020RM.fac = fac
     else: fac = NP020RM.fac
@@ -928,7 +928,7 @@ class NPRMRestoreContext(bpy.types.Operator):
         bpy.ops.object.delete('EXEC_DEFAULT')
         for ob in selob:
             ob.select = True
-        
+
         bpy.context.tool_settings.use_snap = NP020RM.use_snap
         bpy.context.tool_settings.snap_element = NP020RM.snap_element
         bpy.context.tool_settings.snap_target = NP020RM.snap_target

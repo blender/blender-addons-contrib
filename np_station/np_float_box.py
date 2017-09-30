@@ -109,7 +109,7 @@ class NP020FB:
 def NPFB_scene_update(context):
 
     if bpy.data.objects.is_updated:
-        region = bpy.context.region 
+        region = bpy.context.region
         rv3d = bpy.context.region_data
         helper = NP020FB.helper
         co = helper.location
@@ -123,7 +123,7 @@ class NPFBGetContext(bpy.types.Operator):
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
-        NP020FB.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap) 
+        NP020FB.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap)
         NP020FB.snap_element = copy.deepcopy(bpy.context.tool_settings.snap_element)
         NP020FB.snap_target = copy.deepcopy(bpy.context.tool_settings.snap_target)
         NP020FB.pivot_point = copy.deepcopy(bpy.context.space_data.pivot_point)
@@ -194,7 +194,7 @@ class NPFBAddHelper(bpy.types.Operator):
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
-        np_print('03_AddHelper_START', ';', 'NP020FB.flag = ', NP020FB.flag)  
+        np_print('03_AddHelper_START', ';', 'NP020FB.flag = ', NP020FB.flag)
         enterloc = NP020FB.enterloc
         bpy.ops.object.add(type = 'MESH',location = enterloc)
         helper = bpy.context.active_object
@@ -474,7 +474,7 @@ def DRAW_Overlay(self, context):
     badge_mode = 'RUN'
 
 
-    if qdef != None: 
+    if qdef != None:
         matrix.rotate(ro_hor)
         matrix.rotate(qdef)
     NP020FB.matrix = matrix
@@ -727,7 +727,7 @@ class NPFBRestoreContext(bpy.types.Operator):
         bpy.ops.object.select_all(action = 'DESELECT')
         helper.select = True
         bpy.ops.object.delete('EXEC_DEFAULT')
-        if boxob == None: 
+        if boxob == None:
             for ob in selob:
                 ob.select = True
             if NP020FB.acob is not None:

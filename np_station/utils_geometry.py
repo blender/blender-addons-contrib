@@ -167,7 +167,7 @@ def get_ro_x_from_iso(region, rv3d, co2d, centerloc):
 
     v = Vector((1.0, 0.0, 0.0))
     ro_hor = v.rotation_difference(viso)
-    if viso[0] == -1.0000: 
+    if viso[0] == -1.0000:
         ro_hor = Quaternion ((0.0000, 0.0000, -0.0000, 1.000))
     #ro_hor_deg = degrees(ro_hor)
     #np_print('viso = ', viso)
@@ -186,7 +186,7 @@ def get_ro_normal_from_vertical(region, rv3d, co2d):
     n = scenecast[2]
     if n == Vector((0.0, 0.0, 0.0)):
         if ray_origin[2] > 0:
-            if ray_target[2] < ray_origin[2]: 
+            if ray_target[2] < ray_origin[2]:
                 n = Vector((0.0, 0.0, 1.0))
                 if ray_origin[2] > 10: draw_plane_point = Vector((0.0, 0.0, (ray_origin[2] - 10)))
                 else: draw_plane_point = Vector((0.0, 0.0, 0.0))
@@ -570,7 +570,7 @@ def get_eul_z_angle_difffff_in_rotated_system(eul_0, eul_1, n):
     elif int(b.y) == -0 and b.z < -3:
         alpha_real = alpha_real + (180*int(b.z / 1.55))
     '''
-    alpha_real = degrees(b.z - a.z ) 
+    alpha_real = degrees(b.z - a.z )
     if n[2] < 0: alpha_real = - alpha_real
     np_print('alpha_real', alpha_real)
 
@@ -623,7 +623,7 @@ def get_eul_z_angle_diffffff_in_rotated_system(eul_0, eul_1, n): # v6?
     np_print('>>>>>>> eul_1 =', round(degrees(b.x),6), round(degrees(b.y),6), round(degrees(b.z),6))
     np_print('------- eul_1 =', b)
 
-    alpha_real = degrees(b.z - a.z ) 
+    alpha_real = degrees(b.z - a.z )
     if n[2] < 0: alpha_real = - alpha_real
     np_print('alpha_real', alpha_real)
 

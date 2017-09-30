@@ -123,10 +123,10 @@ def draw_callback1_px(self, context):
             if len(slots) == 0:
                 self.shader = None
                 self.shadername = 'None'
-            elif slots[matindex].material is not None: 
+            elif slots[matindex].material is not None:
                 self.shader = slots[matindex].material
                 self.shadername = slots[matindex].material.name
-            else: 
+            else:
                 self.shader = None
                 self.shadername = 'None'
             bpy.context.scene.objects.active = hitob
@@ -223,7 +223,7 @@ def draw_callback1_px(self, context):
         bgl.glEnd()
         #bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
         bgl.glColor4f(1.0, 1.0, 1.0, 0.8)
-        bgl.glBegin(bgl.GL_LINE_STRIP) 
+        bgl.glBegin(bgl.GL_LINE_STRIP)
         for x,y in cur:
             bgl.glVertex2f(x,y)
         bgl.glEnd()
@@ -238,7 +238,7 @@ def draw_callback1_px(self, context):
         square = [[17, 30], [17, 39], [26, 39], [26, 30]]
         cur = [[18, 30], [21, 33], [18, 36], [14, 32], [16, 32], [18, 30]]
         curtip = [[14, 32], [16, 32], [15, 33], [14, 32]]
-        curbag = [[18, 30], [15, 33], [21, 33], [18, 30]] 
+        curbag = [[18, 30], [15, 33], [21, 33], [18, 30]]
         scale = 2.8
         if mode in (3, 7): col_square = col_bg_fill_main_nav
         else: col_square = (0.25, 0.35, 0.4, 0.87)
@@ -261,7 +261,7 @@ def draw_callback1_px(self, context):
         bgl.glEnd()
         #bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
         bgl.glColor4f(1.0, 1.0, 1.0, 0.8)
-        bgl.glBegin(bgl.GL_LINE_STRIP) 
+        bgl.glBegin(bgl.GL_LINE_STRIP)
         for x,y in cur:
             bgl.glVertex2f(x,y)
         bgl.glEnd()
@@ -320,7 +320,7 @@ class NP020ShaderBrush(bpy.types.Operator):
 
         if event.ctrl and event.shift and event.type == 'MOUSEMOVE':
             self.mode = 2
-            self.co2d = ((event.mouse_region_x, event.mouse_region_y)) 
+            self.co2d = ((event.mouse_region_x, event.mouse_region_y))
 
         if event.alt and event.type == 'MOUSEMOVE':
             self.mode = 3
@@ -368,7 +368,7 @@ class NP020ShaderBrush(bpy.types.Operator):
 
         if event.ctrl and event.shift and event.type == 'LEFTMOUSE' and event.value == 'PRESS':
             self.mode = 6
-            self.co2d = ((event.mouse_region_x, event.mouse_region_y)) 
+            self.co2d = ((event.mouse_region_x, event.mouse_region_y))
 
         if event.alt and event.type == 'LEFTMOUSE' and event.value == 'PRESS':
             self.mode = 7
@@ -384,7 +384,7 @@ class NP020ShaderBrush(bpy.types.Operator):
 
         if event.ctrl and event.shift and event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
             self.mode = 2
-            self.co2d = ((event.mouse_region_x, event.mouse_region_y)) 
+            self.co2d = ((event.mouse_region_x, event.mouse_region_y))
 
         if event.alt and event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
             self.mode = 3
@@ -409,7 +409,7 @@ class NP020ShaderBrush(bpy.types.Operator):
             args = (self, context)
             self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback1_px, args, 'WINDOW', 'POST_PIXEL')
 
-            self.region = bpy.context.region 
+            self.region = bpy.context.region
             self.rv3d = bpy.context.region_data
 
             ob = bpy.context.active_object

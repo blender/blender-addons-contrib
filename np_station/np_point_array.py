@@ -145,7 +145,7 @@ class NPPAGetContext(bpy.types.Operator):
         if bpy.context.selected_objects == []:
             self.report({'WARNING'}, "Please select objects first")
             return {'CANCELLED'}
-        NP020PA.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap) 
+        NP020PA.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap)
         NP020PA.snap_element = copy.deepcopy(bpy.context.tool_settings.snap_element)
         NP020PA.snap_target = copy.deepcopy(bpy.context.tool_settings.snap_target)
         NP020PA.pivot_point = copy.deepcopy(bpy.context.space_data.pivot_point)
@@ -223,7 +223,7 @@ class NPPAAddHelpers(bpy.types.Operator):
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
-        np_print('03_AddHelpers_START', ';', 'flag = ', NP020PA.flag)  
+        np_print('03_AddHelpers_START', ';', 'flag = ', NP020PA.flag)
         enterloc = NP020PA.enterloc
         bpy.ops.object.add(type = 'MESH',location = enterloc)
         take = bpy.context.active_object
@@ -321,7 +321,7 @@ class NPPARunTranslate(bpy.types.Operator):
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             take.hide = True
             place.hide = True
-            self.co2d = ((event.mouse_region_x, event.mouse_region_y))  
+            self.co2d = ((event.mouse_region_x, event.mouse_region_y))
             co2d = self.co2d
             region = context.region
             rv3d = context.region_data
@@ -345,7 +345,7 @@ class NPPARunTranslate(bpy.types.Operator):
             return{'FINISHED'}
 
         elif event.type == 'RIGHTMOUSE':
-            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')  
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             if flag == 'RUNTRANSZERO':
                 NP020PA.flag = 'EXIT'
             elif flag == 'RUNTRANSFIRST':
@@ -370,7 +370,7 @@ class NPPARunTranslate(bpy.types.Operator):
             return{'FINISHED'}
 
         elif event.type == 'ESC':
-            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')	  
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             if flag == 'RUNTRANSZERO':
                 NP020PA.flag = 'EXIT'
             elif flag == 'RUNTRANSFIRST':
@@ -419,7 +419,7 @@ class NPPARunTranslate(bpy.types.Operator):
             flag = 'WARNING3D'
             NP020PA.flag = flag
             np_print('04_RunTrans_INVOKE_DECLINED_FINISHED',';','flag = ', NP020PA.flag)
-            return {'CANCELLED'} 
+            return {'CANCELLED'}
 
 
 # Defining the set of instructions that will draw the OpenGL elements on the screen during the execution of RunTranslate operator:
@@ -574,9 +574,9 @@ class NPPANavTranslate(bpy.types.Operator):
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             self.co2d = ((event.mouse_region_x, event.mouse_region_y))
             region = context.region
-            rv3d = context.region_data 
+            rv3d = context.region_data
             co2d = self.co2d
-            view_vector = view3d_utils.region_2d_to_vector_3d(region, rv3d, co2d) 
+            view_vector = view3d_utils.region_2d_to_vector_3d(region, rv3d, co2d)
             enterloc = view3d_utils.region_2d_to_origin_3d(region, rv3d, co2d) + view_vector*NP020PA.away
             placeloc3d = NP020PA.placeloc3d
             navdelta = enterloc - NP020PA.awayloc
@@ -687,7 +687,7 @@ class NPPAPrepareNext(bpy.types.Operator):
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
-        np_print('05_PrepareNext_START',';','flag = ', NP020PA.flag)  
+        np_print('05_PrepareNext_START',';','flag = ', NP020PA.flag)
         if NP020PA.flag == 'RUNTRANSFIRST_break':
             NP020PA.flag = 'RUNTRANSFIRST'
         np_print('05_PrepareNext_FINISHED',';','flag = ', NP020PA.flag)
@@ -765,7 +765,7 @@ class NPPAArrayTranslate(bpy.types.Operator):
 
         elif event.type in ('RET', 'NUMPAD_ENTER') and event.value == 'PRESS':
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-            selob = bpy.context.selected_objects 
+            selob = bpy.context.selected_objects
             bpy.ops.object.select_all(action='DESELECT')
             for ob in arob:
                 ob.select = True
@@ -783,7 +783,7 @@ class NPPAArrayTranslate(bpy.types.Operator):
                 value = NP020PA.ar23d - NP020PA.ar13d
             else:
                 value = (NP020PA.ar23d - NP020PA.ar13d)/(NP020PA.count - 1)
-            selob = bpy.context.selected_objects 
+            selob = bpy.context.selected_objects
             bpy.ops.object.select_all(action='DESELECT')
             for ob in arob:
                 ob.select = True
@@ -805,7 +805,7 @@ class NPPAArrayTranslate(bpy.types.Operator):
                 value = NP020PA.ar23d - NP020PA.ar13d
             else:
                 value = (NP020PA.ar23d - NP020PA.ar13d)/(NP020PA.count - 1)
-            selob = bpy.context.selected_objects 
+            selob = bpy.context.selected_objects
             bpy.ops.object.select_all(action='DESELECT')
             for ob in arob:
                 ob.select = True
@@ -834,7 +834,7 @@ class NPPAArrayTranslate(bpy.types.Operator):
             return {'PASS_THROUGH'}
 
         np_print('06_ArrayTrans_INVOKED_RUNNING_MODAL',';','flag = ', NP020PA.flag)
-        return {'RUNNING_MODAL'}  
+        return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
         np_print('06_ArrayTrans_INVOKE_START')
@@ -854,7 +854,7 @@ class NPPAArrayTranslate(bpy.types.Operator):
                 np_print(loc, rot, sca, ob.matrix_world)
                 np_print('deltavec = ', deltavec)
                 deltavec.rotate(rot.conjugated())
-                np_print('sca.length', sca.length)  
+                np_print('sca.length', sca.length)
                 deltavec[0] = deltavec[0] / sca[0]
                 deltavec[1] = deltavec[1] / sca[1]
                 deltavec[2] = deltavec[2] / sca[2]
@@ -881,7 +881,7 @@ class NPPAArrayTranslate(bpy.types.Operator):
                 if i == lenselob-1:
                     bpy.context.scene.objects.active = ob
             args = (self, context)
-            self._handle = bpy.types.SpaceView3D.draw_handler_add(DRAW_ArrayTranslate, args, 'WINDOW', 'POST_PIXEL')      
+            self._handle = bpy.types.SpaceView3D.draw_handler_add(DRAW_ArrayTranslate, args, 'WINDOW', 'POST_PIXEL')
             context.window_manager.modal_handler_add(self)
             np_print('06_ArayTrans_INVOKE_a_RUNNING_MODAL',';','flag = ', NP020PA.flag)
             return {'RUNNING_MODAL'}
@@ -1102,7 +1102,7 @@ class NPPAPreferences(bpy.types.AddonPreferences):
 
     suffix = bpy.props.EnumProperty(
         name='Unit suffix',
-        items=(("'","'",''), ('"','"',''), ('thou','thou',''), ('km','km',''), ('m','m',''), ('cm','cm',''), ('mm','mm',''), ('nm','nm',''), ('None','None','')),       
+        items=(("'","'",''), ('"','"',''), ('thou','thou',''), ('km','km',''), ('m','m',''), ('cm','cm',''), ('mm','mm',''), ('nm','nm',''), ('None','None','')),
         default='cm',
         description='Add a unit extension after the numerical distance ')
 
@@ -1210,5 +1210,5 @@ def unregister():
     #pass
     #bpy.utils.unregister_class(NPPAPreferences)
     #bpy.utils.unregister_module(__name__)
-    bpy.app.handlers.scene_update_post.remove(NPPA_scene_update)       
+    bpy.app.handlers.scene_update_post.remove(NPPA_scene_update)
 

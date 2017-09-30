@@ -90,7 +90,7 @@ class NPDM_dim_definition(bpy.types.PropertyGroup):
     arrow_show = bpy.props.BoolProperty(name='Arrow_Show', description='Are the arrows displayed', default=True, update=display_toggle_callback)
     arrow_shape = bpy.props.EnumProperty(name="Arrow_Shape", description='Shape of the base line arrows', items=('NONE', 'ARROW', 'TRIANGLE', 'DOT','TICK'), default='NONE', update=display_toggle_callback)
     arrow_size = bpy.props.IntProperty(name="Arrow_Size", description='Size of the base line arrows', default=10, max=50, min=-50, update=display_toggle_callback)
-    arrow_thickness = bpy.props.FloatProperty(name="Arrow_Thickness", description='Thickness of the base line arrows, if type is TICK', default=1.0, max=30, min=0, update=display_toggle_callback) #for shape thick, or use rectangular shape 
+    arrow_thickness = bpy.props.FloatProperty(name="Arrow_Thickness", description='Thickness of the base line arrows, if type is TICK', default=1.0, max=30, min=0, update=display_toggle_callback) #for shape thick, or use rectangular shape
     arrow_color = bpy.props.FloatVectorProperty(name='Arrow_Color', description = 'Color of the base line arrows', default=(1.0, 1.0, 1.0, 1.0), size=4, subtype="COLOR", min=0, max=1, update=display_toggle_callback)
 
     num_show = bpy.props.BoolProperty(name='Num_Show', description='Is the numeric displayed', default=True, update=display_toggle_callback)

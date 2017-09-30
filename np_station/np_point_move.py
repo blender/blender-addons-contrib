@@ -120,7 +120,7 @@ class NPPMGetContext(bpy.types.Operator):
         if bpy.context.selected_objects == []:
             self.report({'WARNING'}, "Please select objects first")
             return {'CANCELLED'}
-        NP020PM.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap) 
+        NP020PM.use_snap = copy.deepcopy(bpy.context.tool_settings.use_snap)
         NP020PM.snap_element = copy.deepcopy(bpy.context.tool_settings.snap_element)
         NP020PM.snap_target = copy.deepcopy(bpy.context.tool_settings.snap_target)
         NP020PM.pivot_point = copy.deepcopy(bpy.context.space_data.pivot_point)
@@ -191,7 +191,7 @@ class NPPMAddHelper(bpy.types.Operator):
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
-        # np_print('03_AddHelpers_START', ';', 'flag = ', NP020PM.flag)  
+        # np_print('03_AddHelpers_START', ';', 'flag = ', NP020PM.flag)
         enterloc = NP020PM.enterloc
         bpy.ops.object.add(type = 'MESH',location = enterloc)
         helper = bpy.context.active_object

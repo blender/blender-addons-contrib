@@ -655,7 +655,7 @@ def draw_callback_px_TRANS(self, context):
                 co[1] = round((co[1] * 10), 0) + goldloc2d[1]
             bgl.glColor4f(0.95, 0.55, 0.0, 1.0)
             bgl.glLineWidth(2)
-            bgl.glBegin(bgl.GL_LINE_STRIP) 
+            bgl.glBegin(bgl.GL_LINE_STRIP)
             for x, y in goldtick:
                 bgl.glVertex2f(x, y)
             bgl.glEnd()

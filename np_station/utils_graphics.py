@@ -401,13 +401,13 @@ def display_geowidget(region, rv3d, fac, ro_hor, q, helploc, n, qdef, geowidget_
     bgl.glEnd()
 
     bgl.glColor4f(*col_gw_fill_base_arb)
-    if n[0] == 0.0 and n[1] == 0.0 and n[2] == 1.0: 
+    if n[0] == 0.0 and n[1] == 0.0 and n[2] == 1.0:
         bgl.glColor4f(*col_gw_fill_base_z)
         np_print('go_Z')
-    elif n[0] == 1.0 and n[1] == 0.0 and n[2] == 0.0: 
+    elif n[0] == 1.0 and n[1] == 0.0 and n[2] == 0.0:
         bgl.glColor4f(*col_gw_fill_base_x)
         np_print('go_X')
-    elif n[0] == 0.0 and n[1] == 1.0 and n[2] == 0.0: 
+    elif n[0] == 0.0 and n[1] == 1.0 and n[2] == 0.0:
         bgl.glColor4f(*col_gw_fill_base_y)
         np_print('go_Y')
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
@@ -548,7 +548,7 @@ def display_distance_between_two_points(region, rv3d, p1_3d, p2_3d):
         blf.size(font_id, size_num, 72)
         blf.position(font_id, (distloc[0]-1), (distloc[1]-1), 0)
         blf.draw(font_id, dist)
-        bgl.glColor4f(*col_num_main) 
+        bgl.glColor4f(*col_num_main)
         font_id = 0
         blf.size(font_id, size_num, 72)
         blf.position(font_id, distloc[0], distloc[1], 0)
@@ -575,13 +575,13 @@ def display_line_between_two_points(region, rv3d, p1_3d, p2_3d):
 
     bgl.glColor4f(*col_line_shadow)
     bgl.glLineWidth(1.4)
-    bgl.glBegin(bgl.GL_LINE_STRIP) 
+    bgl.glBegin(bgl.GL_LINE_STRIP)
     bgl.glVertex2f((p1_2d[0]-1),(p1_2d[1]-1))
     bgl.glVertex2f((p2_2d[0]-1),(p2_2d[1]-1))
     bgl.glEnd()
     bgl.glColor4f(*col_line_main)
     bgl.glLineWidth(1.4)
-    bgl.glBegin(bgl.GL_LINE_STRIP) 
+    bgl.glBegin(bgl.GL_LINE_STRIP)
     bgl.glVertex2f(*p1_2d)
     bgl.glVertex2f(*p2_2d)
     bgl.glEnd()

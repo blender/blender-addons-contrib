@@ -26,7 +26,7 @@ bl_info = {
     'warning': '',
     'description': 'Set of utilities for CAD-like precision modeling',
     'wiki_url': 'https://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/NP_Station',
-    'category': '3D View'} 
+    'category': '3D View'}
 
 if 'bpy' in locals():
     import imp
@@ -82,7 +82,7 @@ class NP020BasePanel(bpy.types.Panel):
         col.operator('object.np_020_float_rectangle', icon='MESH_PLANE', text='float_rectangle')
         col.operator('object.np_020_float_box', icon='MESH_CUBE', text='float_box')
 
-        self.layout.separator() 
+        self.layout.separator()
         row = self.layout.row(True)
         col = row.column(True)
         col.label(" Modify:",icon = "MODIFIER")
@@ -96,7 +96,7 @@ class NP020BasePanel(bpy.types.Panel):
         col.operator('object.np_020_point_align', icon='ORTHO', text='point_align')
 
 
-        self.layout.separator() 
+        self.layout.separator()
         row = self.layout.row(True)
         col = row.column(True)
         col.label(" Transfer:",icon = 'BRUSH_DATA')
@@ -104,7 +104,7 @@ class NP020BasePanel(bpy.types.Panel):
         col.operator('object.np_020_shader_brush', icon='MOD_DYNAMICPAINT', text='shader_brush')
 
 
-        self.layout.separator() 
+        self.layout.separator()
         row = self.layout.row(True)
         col = row.column(True)
         col.label(" Measure:",icon = "ALIGN")
@@ -296,7 +296,7 @@ class NP020Preferences(bpy.types.AddonPreferences):
 
     nppi_suffix = bpy.props.EnumProperty(
         name='Unit suffix',
-        items=(("'","'",''), ('"','"',''), ('thou','thou',''), ('km','km',''), ('m','m',''), ('cm','cm',''), ('mm','mm',''), ('nm','nm',''), ('None','None','')),       
+        items=(("'","'",''), ('"','"',''), ('thou','thou',''), ('km','km',''), ('m','m',''), ('cm','cm',''), ('mm','mm',''), ('nm','nm',''), ('None','None','')),
         default='cm',
         description='Add a unit extension after the numerical distance ')
 
@@ -494,7 +494,7 @@ class NP020Preferences(bpy.types.AddonPreferences):
 
     nppa_suffix = bpy.props.EnumProperty(
         name='Unit suffix',
-        items=(("'","'",''), ('"','"',''), ('thou','thou',''), ('km','km',''), ('m','m',''), ('cm','cm',''), ('mm','mm',''), ('nm','nm',''), ('None','None','')),       
+        items=(("'","'",''), ('"','"',''), ('thou','thou',''), ('km','km',''), ('m','m',''), ('cm','cm',''), ('mm','mm',''), ('nm','nm',''), ('None','None','')),
         default='cm',
         description='Add a unit extension after the numerical distance ')
 
@@ -634,7 +634,7 @@ class NP020Preferences(bpy.types.AddonPreferences):
 
     npfr_suffix = bpy.props.EnumProperty(
         name='Unit suffix',
-        items=(("'","'",''), ('"','"',''), ('thou','thou',''), ('km','km',''), ('m','m',''), ('cm','cm',''), ('mm','mm',''), ('nm','nm',''), ('None','None','')),       
+        items=(("'","'",''), ('"','"',''), ('thou','thou',''), ('km','km',''), ('m','m',''), ('cm','cm',''), ('mm','mm',''), ('nm','nm',''), ('None','None','')),
         default='cm',
         description='Add a unit extension after the numerical distance ')
 
