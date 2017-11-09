@@ -19,7 +19,7 @@ END GPL LICENSE BLOCK
 
 #============================================================================
 
-mesh_xoffsets.py (alpha version 008)
+mesh_xoffsets.py (alpha version 008b with experimental snap code)
 
 Install instructions (if downloaded separately from Blender):
 1) Save the mesh_xoffsets.py file to your computer.
@@ -40,6 +40,10 @@ todo:
         launching addon, disabling perspective change for now
   [ ] better measurement input panel
   [ ] add hotkey reference info into 3D View ?
+  [?] snap_point not deleted after exit
+  [X] only free move during translate when in selected objects
+  [X] snap toggle button still drawn when dialog opened (jumps to dialog box)
+  [ ] 
 
 #============================================================================
 '''
@@ -63,6 +67,7 @@ from copy import deepcopy
 from math import fmod, sqrt, degrees, radians
 from mathutils import Vector, geometry, Quaternion, Euler
 from mathutils.geometry import intersect_line_line_2d
+from bpy_extras import view3d_utils
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 #__import__('code').interact(local=dict(globals(), **locals()))
 
@@ -76,12 +81,15 @@ print("Exact Offsets loaded")
     XO_MOVE,
     XO_SCALE,
     XO_ROTATE,
-) = range(7)
+    XO_SLOW3DTO2D,
+    XO_GRABONLY
+) = range(9)
 
 curr_meas_stor = 0.0
 new_meas_stor = None
 popup_active = False
 reg_rv3d = ()
+pt_store = []
 
 
 def get_reg_rv3d():
@@ -163,6 +171,22 @@ class SceneSelectionInfo:
             elif self.obj[i].select:
                 self.sel_nm_objs.append(i)
         self.update(ed_type)
+
+
+def backup_snap_settings():
+    backup = [
+        deepcopy(bpy.context.tool_settings.use_snap),
+        deepcopy(bpy.context.tool_settings.snap_element),
+        deepcopy(bpy.context.tool_settings.snap_target)
+    ]
+    return backup
+
+
+def restore_snap_settings(backup):
+    bpy.context.tool_settings.use_snap = deepcopy(backup[0])
+    bpy.context.tool_settings.snap_element = deepcopy(backup[1])
+    bpy.context.tool_settings.snap_target = deepcopy(backup[2])
+    return
 
 
 # vertex storage class, stores reference point info
@@ -457,7 +481,7 @@ def find_correct_rot(ref_pts, rot_dat):
             return t_co_neg, -ang_diff_rad
 
 
-# === Point finding code ===
+# === Original point finding code ===
 
 
 # Returns the closest vertex found to the supplied 2D location.
@@ -480,6 +504,94 @@ def find_closest_vert(loc, mesh_idx_ls):
         return closest
     else:
         return None
+
+
+# === Experimental PointFind code ===
+
+
+def inside_bound_box(obj_num, co):
+    objs = bpy.context.scene.objects  # shorthand
+    m_w = objs[obj_num].matrix_world
+    bb = [m_w * Vector(v[:]) for v in objs[obj_num].bound_box]
+    bbx = [x[0] for x in bb]
+    bby = [y[1] for y in bb]
+    bbz = [z[2] for z in bb]
+    x_min = min(bbx); x_max = max(bbx)
+    y_min = min(bby); y_max = max(bby)
+    z_min = min(bbz); z_max = max(bbz)
+    tol = 0.0001
+    if co[0] < (x_min - tol) or co[0] > (x_max + tol): return False
+    if co[1] < (y_min - tol) or co[1] > (y_max + tol): return False
+    if co[2] < (z_min - tol) or co[2] > (z_max + tol): return False
+    return True
+
+
+# Returns the first vertex found at the supplied 3D location
+# Returns None if no vertex found.
+def find_snap_loc(loc, mesh_objs):
+    global pt_store
+    objs = bpy.context.scene.objects
+    #print("\nfind_snap_loc, loc:", loc)  # debug
+    for i in mesh_objs:
+        if inside_bound_box(i, loc):
+            test_loc = objs[i].matrix_world.inverted() * loc
+            v_idx = 0
+            for v in objs[i].data.vertices:
+                if flts_alm_eq( v.co[0], test_loc[0] ):
+                    if flts_alm_eq( v.co[1], test_loc[1] ):
+                        if flts_alm_eq( v.co[2], test_loc[2] ):
+                            world_loc = objs[i].matrix_world * v.co
+                            return VertObj(i, v_idx, world_loc)  # success!
+                v_idx += 1
+    # find_snap_loc failed to find loc match if it reaches here
+    return None
+
+
+def create_snap_pt(ms_loc, ed_type, sel_backup):
+    global reg_rv3d, pt_store
+    sel_backup.update(ed_type)
+    region, rv3d = reg_rv3d[0], reg_rv3d[1]
+    v_u = view3d_utils  # shorthand
+    persp_md_fix = v_u.region_2d_to_vector_3d(region, rv3d, ms_loc) / 5
+    enterloc = v_u.region_2d_to_origin_3d(region, rv3d, ms_loc) + persp_md_fix
+    if ed_type == 'OBJECT':
+        bpy.ops.object.add(type = 'MESH', location = enterloc)
+        pt_store = bpy.context.object
+    elif ed_type == 'EDIT_MESH':
+        # Make sure transform.translate only grabs newly created vert. Only
+        # need to do this in edit mode, object mode does this automatically.
+        bpy.ops.mesh.select_all(action='DESELECT')
+        inver_mw = bpy.context.edit_object.matrix_world.inverted()
+        bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
+        bm.verts.new(inver_mw * enterloc)
+        if hasattr(bm.verts, "ensure_lookup_table"):
+            bm.verts.ensure_lookup_table()
+        bmesh.update_edit_mesh(bpy.context.edit_object.data)
+        bm.select_history.add( bm.verts[-1] )
+        bm.verts[-1].select = True
+        pt_store = bm.select_history.active.co
+        #print("pt_store", pt_store)  # debug
+    # todo : move below to backup_snap_settings ?
+    bpy.context.tool_settings.use_snap = True
+    bpy.context.tool_settings.snap_element = 'VERTEX'
+    bpy.context.tool_settings.snap_target = 'ACTIVE'
+    bpy.ops.transform.translate('INVOKE_DEFAULT')
+
+
+# Makes sure only the "guide point" object or vert
+# added with create_snap_pt is deleted.
+def remove_snap_pt(ed_type, sel_backup):
+    if ed_type == 'OBJECT':
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.context.scene.objects[0].select = True
+        bpy.ops.object.delete()
+    elif ed_type == 'EDIT_MESH':
+        bpy.ops.mesh.select_all(action='DESELECT')
+        bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
+        bm.verts[-1].select = True
+        editmode_refresh(ed_type)
+        bpy.ops.mesh.delete(type='VERT')
+    sel_backup.restore_selected(ed_type)
 
 
 # === 3D View mouse location and button code ===
@@ -593,50 +705,79 @@ def draw_meas_btn(text, co2D, mouse_loc, color_off, color_on):
     return btn_co
 
 
+# Draw snap toggle button
+def draw_st_btn(text, co2D, mouse_loc, color_off, color_on):
+    color = color_off
+    offSet = 5
+    font_id = 0
+    blf.size(font_id, 18, 72)
+    w, h = blf.dimensions(font_id, text)
+    textCoor = (co2D[0] - w/2, (co2D[1] ))  #+ 5*offSet))
+    btn_co = get_btn_coor(textCoor, w, h, offSet, offSet)
+
+    bgl.glColor4f(*color)
+    blf.position(font_id, textCoor[0], textCoor[1] + 4, 0.0)
+    blf.draw(font_id, text)
+    if point_inside_loop(btn_co, mouse_loc):
+        color = color_on
+
+    draw_box(btn_co, color)
+    return btn_co
+
+
 # Draw User Interface
 def drawUI(self):
-    global curr_meas_stor
-    ref_pts, meas_btn_act = self.ref_pts, self.meas_btn_act
-    if ref_pts.cnt == 1:
-        ref_pts.rp_ls[0].set2D()
-        draw_pt_2D(ref_pts.rp_ls[0].co2D, ref_pts.colr_ls[0])
-    else:
-        midP = []
-        if ref_pts.cnt < 3:
-            midP = VertObj(-1, -1, get_midpoint(ref_pts.rp_ls[0].co3D,
-                    ref_pts.rp_ls[1].co3D))
+    if self.ref_pts.cnt > 0:
+        global curr_meas_stor
+        ref_pts, meas_btn_act = self.ref_pts, self.meas_btn_act
+        if ref_pts.cnt == 1:
+            ref_pts.rp_ls[0].set2D()
+            draw_pt_2D(ref_pts.rp_ls[0].co2D, ref_pts.colr_ls[0])
         else:
-            midP = VertObj( -1, -1, ref_pts.rp_ls[1].co3D.copy() )
+            midP = []
+            if ref_pts.cnt < 3:
+                midP = VertObj(-1, -1, get_midpoint(ref_pts.rp_ls[0].co3D,
+                        ref_pts.rp_ls[1].co3D))
+            else:
+                midP = VertObj( -1, -1, ref_pts.rp_ls[1].co3D.copy() )
 
-        lastPt = []
-        if ref_pts.ax_lock == '':
-            for i in range(ref_pts.cnt):
-                ref_pts.rp_ls[i].set2D()
-                draw_pt_2D(ref_pts.rp_ls[i].co2D, ref_pts.colr_ls[i])
-                if lastPt != []:
-                    draw_line_2D(lastPt, ref_pts.rp_ls[i].co2D, ref_pts.colr_ls[0])
-                lastPt = ref_pts.rp_ls[i].co2D
-        else:
-            if   ref_pts.ax_lock == 'X':
-                draw_font_at_pt(ref_pts.ax_lock, [80, 36], Colr.red)
-            elif ref_pts.ax_lock == 'Y':
-                draw_font_at_pt(ref_pts.ax_lock, [80, 36], Colr.green)
-            elif ref_pts.ax_lock == 'Z':
-                draw_font_at_pt(ref_pts.ax_lock, [80, 36], Colr.blue)
-            for i in range(ref_pts.cnt):
-                ref_pts.rp_ls[i].set2D()
-                draw_pt_2D(ref_pts.rp_ls[i].co2D, ref_pts.colr_ls[i])
-                ref_pts.lp_ls[i].set2D()
-                draw_pt_2D(ref_pts.lp_ls[i].co2D, ref_pts.colr_ls[i])
-                if lastPt != []:
-                    draw_line_2D(lastPt, ref_pts.lp_ls[i].co2D, ref_pts.colr_ls[0])
-                lastPt = ref_pts.lp_ls[i].co2D
+            lastPt = []
+            if ref_pts.ax_lock == '':
+                for i in range(ref_pts.cnt):
+                    ref_pts.rp_ls[i].set2D()
+                    draw_pt_2D(ref_pts.rp_ls[i].co2D, ref_pts.colr_ls[i])
+                    if lastPt != []:
+                        draw_line_2D(lastPt, ref_pts.rp_ls[i].co2D, ref_pts.colr_ls[0])
+                    lastPt = ref_pts.rp_ls[i].co2D
+            else:
+                if   ref_pts.ax_lock == 'X':
+                    draw_font_at_pt(ref_pts.ax_lock, [80, 36], Colr.red)
+                elif ref_pts.ax_lock == 'Y':
+                    draw_font_at_pt(ref_pts.ax_lock, [80, 36], Colr.green)
+                elif ref_pts.ax_lock == 'Z':
+                    draw_font_at_pt(ref_pts.ax_lock, [80, 36], Colr.blue)
+                for i in range(ref_pts.cnt):
+                    ref_pts.rp_ls[i].set2D()
+                    draw_pt_2D(ref_pts.rp_ls[i].co2D, ref_pts.colr_ls[i])
+                    ref_pts.lp_ls[i].set2D()
+                    draw_pt_2D(ref_pts.lp_ls[i].co2D, ref_pts.colr_ls[i])
+                    if lastPt != []:
+                        draw_line_2D(lastPt, ref_pts.lp_ls[i].co2D, ref_pts.colr_ls[0])
+                    lastPt = ref_pts.lp_ls[i].co2D
 
-        if meas_btn_act:
-            midP.set2D()
-            meas_str = format(curr_meas_stor, '.2f')
-            self.meas_btn_co = draw_meas_btn(meas_str, midP.co2D,
-                        self.mouse_loc, Colr.white, Colr.red)
+            if meas_btn_act:
+                midP.set2D()
+                meas_str = format(curr_meas_stor, '.2f')
+                self.meas_btn_co = draw_meas_btn(meas_str, midP.co2D,
+                            self.mouse_loc, Colr.white, Colr.red)
+
+    if self.snap_btn_act:
+        midP2 = 200, 12
+        meas_str2 = "Snap: off"
+        if self.pt_find_md == XO_GRABONLY:
+            meas_str2 = "Snap: on"
+        self.snap_btn_co = draw_st_btn(meas_str2, midP2, self.mouse_loc,
+                    Colr.white, Colr.red)
 
 
 # Refreshes mesh drawing in 3D view and updates mesh coordinate
@@ -883,11 +1024,12 @@ def reset_settings(self):
     else:
         updatelock_pts(self, self.ref_pts)
         self.meas_btn_act = True
+    self.snap_btn_act = True
     self.addon_mode = XO_CLICK_CHECK
     set_lock_pts(self.ref_pts)
 
     # restore selected items (except Anchor)
-    # needed so update selection will work correctly
+    # needed so XO_GRABONLY and XO_SLOW3DTO2D update selection correctly
     self.sel_backup.restore_selected(self.curr_ed_type)
 
     # make sure last transform didn't cause points to overlap
@@ -898,6 +1040,9 @@ def reset_settings(self):
             if flts_alm_eq(pt1[2], pt2[2]):
                 self.report({'ERROR'}, 'Free and Anchor share same location.')
                 self.ref_pts = ReferencePoints()  # reset ref pt data
+    
+    if self.pt_find_md == XO_GRABONLY:
+        create_snap_pt(self.mouse_loc, self.curr_ed_type, self.sel_backup)
 
 
 # Can a transformation be performed?
@@ -945,32 +1090,55 @@ def can_transf(self):
     return success
 
 
-# Handles left mouse clicks, sets and removes reference points, and
-# activates the pop-up dialog if the "meas button" is clicked.
+# Handles left mouse clicks, sets and removes reference points,
+# activates the pop-up dialog if the "meas button" is clicked,
+# and changes pt_find_md if "snap button" is clicked.
 def proc_click(self):
     global popup_active
     axis_key_check(self)
     if self.left_click:
         self.left_click = False
         if self.meas_btn_act and point_inside_loop(self.meas_btn_co, self.left_click_loc):
+            if self.pt_find_md == XO_GRABONLY:
+                remove_snap_pt(self.curr_ed_type, self.sel_backup)
             if can_transf(self):
                 # refresh the viewport and update the selection list just in
                 # case we are coming here from an earlier reset_settings call
                 # and the selection was changed after that
                 editmode_refresh(self.curr_ed_type)
-                self.sel_backup.update(self.curr_ed_type)
+                if self.pt_find_md == XO_SLOW3DTO2D:
+                    self.sel_backup.update(self.curr_ed_type)
                 # operation will continue on in background
                 # after "ms_input_dialog_op" is called
                 # need to have popup loop running and waiting for input
                 self.meas_btn_act = False
+                self.snap_btn_act = False
                 popup_active = True
                 self.addon_mode = XO_CHECK_POPUP_INFO
                 drawUI(self)
                 bpy.ops.object.ms_input_dialog_op('INVOKE_DEFAULT')
             else:
                 reset_settings(self)
+        elif self.snap_btn_act and point_inside_loop(self.snap_btn_co, self.left_click_loc):
+            if self.pt_find_md == XO_SLOW3DTO2D:
+                self.pt_find_md = XO_GRABONLY
+                create_snap_pt(self.mouse_loc, self.curr_ed_type, self.sel_backup)
+            else:
+                remove_snap_pt(self.curr_ed_type, self.sel_backup)
+                self.pt_find_md = XO_SLOW3DTO2D
         else:
-            found_pt = find_closest_vert(self.left_click_loc, self.sel_backup.msh_objs)
+            found_pt = None
+            if self.pt_find_md == XO_GRABONLY:
+                t_loc = None
+                if self.curr_ed_type == 'OBJECT':
+                    t_loc = pt_store.location.copy()
+                elif self.curr_ed_type == 'EDIT_MESH':
+                    t_loc = bpy.context.edit_object.matrix_world * pt_store
+                remove_snap_pt(self.curr_ed_type, self.sel_backup)
+                found_pt = find_snap_loc(t_loc, self.sel_backup.msh_objs)
+                create_snap_pt(self.mouse_loc, self.curr_ed_type, self.sel_backup)
+            else:
+                found_pt = find_closest_vert(self.left_click_loc, self.sel_backup.msh_objs)
             if found_pt != None:
                 self.ref_pts.try_add(found_pt)
                 set_lock_pts(self.ref_pts)
@@ -1114,8 +1282,15 @@ def check_popup_input(self):
 
 
 def exit_addon(self):
+    if self.pt_find_md == XO_GRABONLY:
+        remove_snap_pt(self.curr_ed_type, self.sel_backup)
+        self.pt_find_md = XO_SLOW3DTO2D
+        if self.curr_ed_type == 'EDIT_MESH':
+            for i in self.sel_backup.sel_msh_objs:
+                self.sel_backup.obj[i].select = True
     for i in self.sel_backup.sel_nm_objs:
         self.sel_backup.obj[i].select = True
+    restore_snap_settings(self.settings_backup)
     #print("\n\n\n  Add-On Exited!\n")  # debug
 
 
@@ -1134,8 +1309,7 @@ def draw_callback_px(self, context):
         do_transform(self)
 
     self.left_click = False
-    if self.ref_pts.cnt > 0:
-        drawUI(self)
+    drawUI(self)
 
 
 class Xoffsets(bpy.types.Operator):
@@ -1225,8 +1399,12 @@ class Xoffsets(bpy.types.Operator):
             self.ref_pts = ReferencePoints()
             self.sel_stor = []  # selection storage
             self.sel_backup = SceneSelectionInfo()
+            self.settings_backup = None
             self.meas_btn_co = []
             self.meas_btn_act = False  # measure button active
+            self.snap_btn_co = []
+            self.snap_btn_act = True
+            self.pt_find_md = XO_SLOW3DTO2D  # point find mode
             self.modal_buff = []
             self.mouse_loc = Vector((event.mouse_region_x, event.mouse_region_y))
             self.left_click_held = False
@@ -1240,6 +1418,8 @@ class Xoffsets(bpy.types.Operator):
 
             #print("Exact Offsets started!")  # debug
             self.sel_backup.start_run(self.curr_ed_type)
+            self.settings_backup = backup_snap_settings()
+            drawUI(self)  # sets up self.snap_btn_co values
             editmode_refresh(self.curr_ed_type)  # refresh the viewport
             context.window_manager.modal_handler_add(self)
             get_reg_rv3d()
