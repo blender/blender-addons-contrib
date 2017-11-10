@@ -782,10 +782,10 @@ def draw_ui(self):
 
     if self.snap_btn_act:
         sbtn_co = self.rtoolsw + 200, 12
-        meas_str2 = "Snap: off"
+        sbtn_str = "Snap: off"
         if self.pt_find_md == GRABONLY:
-            meas_str2 = "Snap: on"
-        self.snap_btn_co = draw_st_btn(meas_str2, sbtn_co, self.mouse_co,
+            sbtn_str = "Snap: on"
+        self.snap_btn_co = draw_st_btn(sbtn_str, sbtn_co, self.mouse_co,
                     Colr.white1, Colr.red)
 
 
