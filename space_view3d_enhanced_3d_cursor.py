@@ -21,7 +21,7 @@ bl_info = {
     "name": "Enhanced 3D Cursor",
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
-    "version": (3, 0, 3),
+    "version": (3, 0, 4),
     "blender": (2, 7, 7),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
@@ -2141,6 +2141,8 @@ class View3DUtility:
                     bone = obj.data.bones[v3d.lock_bone]
             except:
                 bone = None
+        else:
+            bone = None
 
         return obj, bone
 
@@ -4378,7 +4380,7 @@ class SnapCursor_Circumscribed(bpy.types.Operator):
             self.report({'WARNING'}, 'Not implemented \
                         for %s mode' % context.mode)
             return {'CANCELLED'}
-
+        
         pos = center_of_circumscribed_circle(vecs)
         if pos is None:
             self.report({'WARNING'}, 'Select 3 objects/elements')
@@ -4399,7 +4401,7 @@ class SnapCursor_Inscribed(bpy.types.Operator):
             self.report({'WARNING'}, 'Not implemented \
                         for %s mode' % context.mode)
             return {'CANCELLED'}
-
+        
         pos = center_of_inscribed_circle(vecs)
         if pos is None:
             self.report({'WARNING'}, 'Select 3 objects/elements')
@@ -4659,7 +4661,7 @@ class CursorMonitor(bpy.types.Operator):
             if IsKeyMapItemEvent(kmi, event):
                 self.cancel(context)
                 return {'CANCELLED'}
-
+        
         try:
             return self._modal(context, event)
         except Exception as e:
@@ -4692,7 +4694,7 @@ class CursorMonitor(bpy.types.Operator):
             context.area.tag_redraw()
 
         settings = find_settings()
-
+        
         propagate_settings_to_all_screens(settings)
 
         # ================== #
@@ -5535,20 +5537,19 @@ def update_keymap(activate):
 
     wm = bpy.context.window_manager
     userprefs = bpy.context.user_preferences
+    settings = find_settings()
+
+    auto_register_keymaps = settings.auto_register_keymaps
 
     # add a check for Templates switching introduced in 2.78.x/2.79
-    is_prefs = bool(__name__ in userprefs.addons.keys())
-    addon_prefs = userprefs.addons[__name__].preferences if is_prefs else None
-
-    settings = find_settings()
-    if addon_prefs:
+    if __name__ in userprefs.addons.keys():
+        addon_prefs = userprefs.addons[__name__].preferences
         wm.cursor_3d_runtime_settings.use_cursor_monitor = \
             addon_prefs.use_cursor_monitor
-
-        auto_register_keymaps = settings.auto_register_keymaps
         auto_register_keymaps &= addon_prefs.auto_register_keymaps
-        if not auto_register_keymaps:
-            return
+
+    if not auto_register_keymaps:
+        return
 
     try:
         km = wm.keyconfigs.user.keymaps['3D View']
