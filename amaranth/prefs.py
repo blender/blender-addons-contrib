@@ -13,64 +13,59 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import bpy
+from bpy.props import (
+        BoolProperty,
+        IntProperty,
+        )
 
 
 class AmaranthToolsetPreferences(bpy.types.AddonPreferences):
     bl_idname = "amaranth"
-    use_frame_current = bpy.props.BoolProperty(
+    use_frame_current = BoolProperty(
         name="Current Frame Slider",
         description="Set the current frame from the Specials menu in the 3D View",
         default=True,
     )
-    use_file_save_reload = bpy.props.BoolProperty(
+    use_file_save_reload = BoolProperty(
         name="Save & Reload File",
         description="File menu > Save & Reload, or Ctrl + Shift + W",
         default=True,
     )
-
-    use_scene_refresh = bpy.props.BoolProperty(
+    use_scene_refresh = BoolProperty(
         name="Refresh Scene",
         description="Specials Menu [W], or hit F5",
         default=True,
     )
-    use_timeline_extra_info = bpy.props.BoolProperty(
+    use_timeline_extra_info = BoolProperty(
         name="Timeline Extra Info",
         description="Timeline Header",
         default=True,
     )
-    use_image_node_display = bpy.props.BoolProperty(
+    use_image_node_display = BoolProperty(
         name="Active Image Node in Editor",
         description="Display active node image in image editor",
         default=True,
     )
-    use_scene_stats = bpy.props.BoolProperty(
+    use_scene_stats = BoolProperty(
         name="Extra Scene Statistics",
         description="Display extra scene statistics in Info header (may be slow in heavy scenes)",
         default=False,
     )
-
-    frames_jump = bpy.props.IntProperty(
+    frames_jump = IntProperty(
         name="Frames",
         description="Number of frames to jump forward/backward",
         default=10,
-        min=1)
-
-    use_framerate = bpy.props.BoolProperty(
+        min=1
+    )
+    use_framerate = BoolProperty(
         name="Framerate Jump",
         description="Jump the amount of frames forward/backward that you have set as your framerate",
         default=False,
     )
-
-    use_layers_for_render = bpy.props.BoolProperty(
+    use_layers_for_render = BoolProperty(
         name="Current Layers for Render",
         description="Save the layers that should be enabled for render",
         default=True,
-    )
-
-    use_lighters_corner = bpy.props.BoolProperty(
-        name="Lighter's Corner",
-        description="Display the Lighter's Corner panel on Scene properties",
-        default=False,
     )
 
     def draw(self, context):
@@ -96,7 +91,6 @@ class AmaranthToolsetPreferences(bpy.types.AddonPreferences):
         sub.prop(self, "use_scene_stats")
         sub.prop(self, "use_layers_for_render")
         sub.prop(self, "use_framerate")
-        sub.prop(self, "use_lighters_corner")
 
         sub.separator()
 
@@ -124,8 +118,6 @@ class AmaranthToolsetPreferences(bpy.types.AddonPreferences):
             text="Save the set of layers that should be activated for a final render")
         sub.label(
             text="Jump the amount of frames forward/backward that you've set as your framerate")
-        sub.label(
-            text="Display the Lighter's Corner panel on Scene properties")
 
         sub.separator()
         sub.label(text="")  # Nodes

@@ -28,6 +28,8 @@ Find it on the User Preferences, Editing.
 """
 
 import bpy
+from bpy.types import Operator
+from bpy.props import BoolProperty
 
 KEYMAPS = list()
 
@@ -40,17 +42,18 @@ def is_keyframe(ob, frame):
                 return True
     return False
 
+
 # monkey path is_keyframe function
 bpy.types.Object.is_keyframe = is_keyframe
 
 
 # FEATURE: Jump to frame in-between next and previous keyframe
-class AMTH_SCREEN_OT_keyframe_jump_inbetween(bpy.types.Operator):
-
+class AMTH_SCREEN_OT_keyframe_jump_inbetween(Operator):
     """Jump to half in-between keyframes"""
     bl_idname = "screen.amth_keyframe_jump_inbetween"
     bl_label = "Jump to Keyframe In-between"
-    backwards = bpy.props.BoolProperty()
+
+    backwards = BoolProperty()
 
     def execute(self, context):
         back = self.backwards
@@ -110,16 +113,20 @@ class AMTH_SCREEN_OT_keyframe_jump_inbetween(bpy.types.Operator):
 
 
 # FEATURE: Jump forward/backward every N frames
-class AMTH_SCREEN_OT_frame_jump(bpy.types.Operator):
-
+class AMTH_SCREEN_OT_frame_jump(Operator):
     """Jump a number of frames forward/backwards"""
     bl_idname = "screen.amaranth_frame_jump"
     bl_label = "Jump Frames"
 
-    forward = bpy.props.BoolProperty(default=True)
+    forward = BoolProperty(default=True)
 
     def execute(self, context):
         scene = context.scene
+
+        get_addon = "amaranth" in context.user_preferences.addons.keys()
+        if not get_addon:
+            return {"CANCELLED"}
+
         preferences = context.user_preferences.addons["amaranth"].preferences
 
         if preferences.use_framerate:
@@ -135,6 +142,10 @@ class AMTH_SCREEN_OT_frame_jump(bpy.types.Operator):
 
 
 def ui_userpreferences_edit(self, context):
+    get_addon = "amaranth" in context.user_preferences.addons.keys()
+    if not get_addon:
+        return
+
     preferences = context.user_preferences.addons["amaranth"].preferences
 
     col = self.layout.column()
@@ -144,11 +155,13 @@ def ui_userpreferences_edit(self, context):
 
 
 def label(self, context):
+    get_addon = "amaranth" in context.user_preferences.addons.keys()
+    if not get_addon:
+        return
 
-    preferences = context.user_preferences.addons["amaranth"].preferences
     layout = self.layout
 
-    if preferences.use_timeline_extra_info:
+    if context.user_preferences.addons["amaranth"].preferences.use_timeline_extra_info:
         row = layout.row(align=True)
 
         row.operator(AMTH_SCREEN_OT_keyframe_jump_inbetween.bl_idname,

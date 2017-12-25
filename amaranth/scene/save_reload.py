@@ -27,7 +27,6 @@ KEYMAPS = list()
 
 
 class AMTH_WM_OT_save_reload(bpy.types.Operator):
-
     """Save and Reload the current blend file"""
     bl_idname = "wm.save_reload"
     bl_label = "Save & Reload"
@@ -43,13 +42,16 @@ class AMTH_WM_OT_save_reload(bpy.types.Operator):
     def execute(self, context):
         path = bpy.data.filepath
         self.save_reload(context, path)
+
         return {"FINISHED"}
 
 
 def button_save_reload(self, context):
-    preferences = context.user_preferences.addons["amaranth"].preferences
+    get_addon = "amaranth" in context.user_preferences.addons.keys()
+    if not get_addon:
+        return
 
-    if preferences.use_file_save_reload:
+    if context.user_preferences.addons["amaranth"].preferences.use_file_save_reload:
         self.layout.separator()
         self.layout.operator(
             AMTH_WM_OT_save_reload.bl_idname,

@@ -25,9 +25,12 @@ import bpy
 
 
 def button_frame_current(self, context):
-    preferences = context.user_preferences.addons["amaranth"].preferences
+    get_addon = "amaranth" in context.user_preferences.addons.keys()
+    if not get_addon:
+        return
+
     scene = context.scene
-    if preferences.use_frame_current:
+    if context.user_preferences.addons["amaranth"].preferences.use_frame_current:
         self.layout.separator()
         self.layout.prop(scene, "frame_current", text="Set Current Frame")
 

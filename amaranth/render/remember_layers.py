@@ -30,11 +30,15 @@ Now all you need to do before saving your file for rendering is press the
 """
 
 import bpy
+from bpy.types import Operator
+from bpy.props import (
+        BoolProperty,
+        IntProperty,
+        )
 
 
 # FEATURE: Set Layers to Render
-class AMTH_SCENE_OT_layers_render_save(bpy.types.Operator):
-
+class AMTH_SCENE_OT_layers_render_save(Operator):
     """Save the current scene layers as those that should be enabled for final renders"""
     bl_idname = "scene.amaranth_layers_render_save"
     bl_label = "Save as Layers for Render"
@@ -54,8 +58,7 @@ class AMTH_SCENE_OT_layers_render_save(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AMTH_SCENE_OT_layers_render_view(bpy.types.Operator):
-
+class AMTH_SCENE_OT_layers_render_view(Operator):
     """Enable the scene layers that should be active for final renders"""
     bl_idname = "scene.amaranth_layers_render_view"
     bl_label = "View Layers for Render"
@@ -80,7 +83,7 @@ class AMTH_SCENE_OT_layers_render_view(bpy.types.Operator):
                     if layers_render:
                         bpy.ops.view3d.layers(
                             override,
-                            nr=layers_render[0]+1,
+                            nr=layers_render[0] + 1,
                             extend=False,
                             toggle=False)
 
@@ -99,14 +102,13 @@ class AMTH_SCENE_OT_layers_render_view(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AMTH_SCENE_OT_layers_render_set_individual(bpy.types.Operator):
-
+class AMTH_SCENE_OT_layers_render_set_individual(Operator):
     """Whether this layer should be enabled or not for final renders"""
     bl_idname = "scene.amaranth_layers_render_set_individual"
     bl_label = "Set This Layer for Render"
 
-    toggle = bpy.props.BoolProperty()
-    number = bpy.props.IntProperty()
+    toggle = BoolProperty()
+    number = IntProperty()
 
     def execute(self, context):
         number = self.number
@@ -130,8 +132,7 @@ class AMTH_SCENE_OT_layers_render_set_individual(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class AMTH_SCENE_OT_layers_render_clear(bpy.types.Operator):
-
+class AMTH_SCENE_OT_layers_render_clear(Operator):
     """Clear layers for render"""
     bl_idname = "scene.amaranth_layers_render_clear"
     bl_label = "Clear Layers for Render"
@@ -145,10 +146,11 @@ class AMTH_SCENE_OT_layers_render_clear(bpy.types.Operator):
 
 
 def ui_layers_for_render(self, context):
+    get_addon = "amaranth" in context.user_preferences.addons.keys()
+    if not get_addon:
+        return
 
-    preferences = context.user_preferences.addons["amaranth"].preferences
-
-    if preferences.use_layers_for_render:
+    if context.user_preferences.addons["amaranth"].preferences.use_layers_for_render:
         lfr_available = context.scene.get("amth_layers_for_render")
         if lfr_available:
             lfr = context.scene["amth_layers_for_render"]
@@ -207,10 +209,11 @@ def ui_layers_for_render(self, context):
 
 
 def ui_layers_for_render_header(self, context):
+    get_addon = "amaranth" in context.user_preferences.addons.keys()
+    if not get_addon:
+        return
 
-    preferences = context.user_preferences.addons["amaranth"].preferences
-
-    if preferences.use_layers_for_render:
+    if context.user_preferences.addons["amaranth"].preferences.use_layers_for_render:
         if context.scene.get("amth_layers_for_render"):
             self.layout.operator(
                 AMTH_SCENE_OT_layers_render_view.bl_idname,

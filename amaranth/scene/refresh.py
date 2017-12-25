@@ -26,12 +26,15 @@ KEYMAPS = list()
 
 
 class AMTH_SCENE_OT_refresh(bpy.types.Operator):
-
     """Refresh the current scene"""
     bl_idname = "scene.refresh"
     bl_label = "Refresh!"
 
     def execute(self, context):
+        get_addon = "amaranth" in context.user_preferences.addons.keys()
+        if not get_addon:
+            return {"CANCELLED"}
+
         preferences = context.user_preferences.addons["amaranth"].preferences
         scene = context.scene
 
@@ -44,9 +47,11 @@ class AMTH_SCENE_OT_refresh(bpy.types.Operator):
 
 
 def button_refresh(self, context):
-    preferences = context.user_preferences.addons["amaranth"].preferences
+    get_addon = "amaranth" in context.user_preferences.addons.keys()
+    if not get_addon:
+        return
 
-    if preferences.use_scene_refresh:
+    if context.user_preferences.addons["amaranth"].preferences.use_scene_refresh:
         self.layout.separator()
         self.layout.operator(AMTH_SCENE_OT_refresh.bl_idname,
                              text="Refresh!",

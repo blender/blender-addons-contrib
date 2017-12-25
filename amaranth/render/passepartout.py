@@ -23,16 +23,18 @@ import bpy
 
 
 def button_camera_passepartout(self, context):
-
     view3d = context.space_data.region_3d
-    cam = context.scene.camera.data
+    cam = context.scene.camera
 
     if view3d.view_perspective == "CAMERA":
+        if cam is None or not hasattr(cam, "data") or cam.type != "CAMERA":
+            return
+
         layout = self.layout
-        if cam.show_passepartout:
-            layout.prop(cam, "passepartout_alpha", text="Passepartout")
+        if cam.data.show_passepartout:
+            layout.prop(cam.data, "passepartout_alpha", text="Passepartout")
         else:
-            layout.prop(cam, "show_passepartout")
+            layout.prop(cam.data, "show_passepartout")
 
 
 def register():
