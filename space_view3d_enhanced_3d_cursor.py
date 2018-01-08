@@ -21,7 +21,7 @@ bl_info = {
     "name": "Enhanced 3D Cursor",
     "description": "Cursor history and bookmarks; drag/snap cursor.",
     "author": "dairin0d",
-    "version": (3, 0, 4),
+    "version": (3, 0, 5),
     "blender": (2, 7, 7),
     "location": "View3D > Action mouse; F10; Properties panel",
     "warning": "",
@@ -2669,14 +2669,17 @@ class Snap3DUtility(SnapUtilityBase):
                 # returns points in flipped order
                 lb, la = sec
 
-            # Note: in 2.77 the ray_cast API has changed.
-            # was: location, normal, index
-            # now: result, location, normal, index
             def ray_cast(obj, la, lb):
-                res = obj.ray_cast(la, lb)
                 if bpy.app.version < (2, 77, 0):
+                    # Object.ray_cast(start, end)
+                    # returns (location, normal, index)
+                    res = obj.ray_cast(la, lb)
                     return ((res[-1] >= 0), res[0], res[1], res[2])
-                return res
+                else:
+                    # Object.ray_cast(origin, direction, [distance])
+                    # returns (result, location, normal, index)
+                    ld = lb - la
+                    return obj.ray_cast(la, ld, ld.magnitude)
 
             # Does ray actually intersect something?
             try:
