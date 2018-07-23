@@ -959,8 +959,10 @@ class VIEW3D_MT_CursorMenu2(Menu):
         layout.operator("view3d.snap_cursor_to_active",
                         text="Cursor to Active")
         UseSeparator(self, context)
-        layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor").use_offset = False
-        layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Offset)").use_offset = True
+        layout.operator("view3d.snap_selected_to_cursor",
+                        text="Selection to Cursor").use_offset = False
+        layout.operator("view3d.snap_selected_to_cursor",
+                        text="Selection to Cursor (Keep Offset)").use_offset = True
         layout.operator("view3d.snap_selected_to_grid",
                         text="Selection to Grid")
         layout.operator("view3d.snap_cursor_selected_to_center2",
@@ -990,8 +992,10 @@ class VIEW3D_MT_CursorMenuLite2(Menu):
         layout.operator("view3d.snap_cursor_to_active",
                         text="Cursor to Active")
         UseSeparator(self, context)
-        layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor").use_offset = False
-        layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Offset)").use_offset = True
+        layout.operator("view3d.snap_selected_to_cursor",
+                        text="Selection to Cursor").use_offset = False
+        layout.operator("view3d.snap_selected_to_cursor",
+                        text="Selection to Cursor (Keep Offset)").use_offset = True
         layout.operator("view3d.snap_selected_to_grid",
                         text="Selection to Grid")
         layout.operator("view3d.snap_cursor_selected_to_center2",
@@ -1402,8 +1406,10 @@ class VIEW3D_MT_EditCursorMenu2(Menu):
         layout.operator("view3d.snap_cursor_to_edge_intersection2",
                         text="Cursor to Edge Intersection")
         UseSeparator(self, context)
-        layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor").use_offset = False
-        layout.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Offset)").use_offset = True
+        layout.operator("view3d.snap_selected_to_cursor", 
+                        text="Selection to Cursor").use_offset = False
+        layout.operator("view3d.snap_selected_to_cursor",
+                        text="Selection to Cursor (Keep Offset)").use_offset = True
         layout.operator("view3d.snap_selected_to_grid",
                         text="Selection to Grid")
         UseSeparator(self, context)
