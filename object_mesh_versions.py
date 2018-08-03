@@ -25,10 +25,10 @@ from bpy.props import StringProperty, BoolProperty
 
 bl_info = {
     "name": "KTX Mesh Versions",
-	"description": "Keep multiple mesh versions of an object",
+    "description": "Keep multiple mesh versions of an object",
     "author": "Roel Koster, @koelooptiemanna, irc:kostex",
-    "version": (1, 4, 4),
-    "blender": (2, 7, 0),
+    "version": (1, 5, 0),
+    "blender": (2, 80, 0),
     "location": "View3D > Properties",
     "warning": "",
     "wiki_url": "https://github.com/kostex/blenderscripts/",
@@ -52,7 +52,7 @@ class KTX_MeshSelect(bpy.types.Operator):
     bl_idname = "ktx.meshversions_select"
     bl_description = "Link the selected mesh to the current object"
 
-    m_index = StringProperty()
+    m_index : StringProperty()
 
     def execute(self, context):
         c_mode = bpy.context.object.mode
@@ -69,7 +69,7 @@ class KTX_MeshRemove(bpy.types.Operator):
     bl_idname = "ktx.meshversions_remove"
     bl_description = "Remove/Delete the selected mesh"
 
-    m_index = StringProperty()
+    m_index : StringProperty()
 
     def execute(self, context):
         bpy.data.meshes.remove(bpy.data.meshes[self.m_index])
@@ -168,18 +168,36 @@ class KTX_Mesh_Versions(bpy.types.Panel):
             layout.label("No Meshes Exist")
 
 
+classes = (
+    KTX_Mesh_Versions,
+    KTX_MeshInit,
+    KTX_MeshCreate,
+    KTX_MeshRemove,
+    KTX_MeshSelect,
+    KTX_Cleanup
+)
+
+
 def register():
+    from bpy.utils import register_class
+
     bpy.types.Object.ktx_object_id = bpy.props.StringProperty(name="KTX Object ID", description="Unique ID to 'link' one object to multiple meshes")
     bpy.types.Mesh.ktx_mesh_id = bpy.props.StringProperty(name="KTX Mesh ID", description="Unique ID to 'link' multiple meshes to one object")
     bpy.types.Scene.ktx_defpin = bpy.props.BoolProperty(name="Auto Pinning", description="When creating a new version, set pinning to ON automatically (FAKE_USER=TRUE)", default=False)
-    bpy.utils.register_module(__name__)
+
+    for cls in classes:
+        register_class(cls)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    from bpy.utils import unregister_class
+
     del bpy.types.Mesh.ktx_mesh_id
     del bpy.types.Object.ktx_object_id
     del bpy.types.Scene.ktx_defpin
+
+    for cls in classes:
+        unregister_class(cls)
 
 
 if __name__ == "__main__":
