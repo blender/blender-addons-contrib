@@ -64,13 +64,13 @@ def menu_func_rocks(self, context):
 def register():
     bpy.utils.register_module(__name__)
 
-    bpy.types.INFO_MT_mesh_add.append(menu_func_rocks)
+    bpy.types.VIEW3D_MT_mesh_add.append(menu_func_rocks)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
 
-    bpy.types.INFO_MT_mesh_add.remove(menu_func_rocks)
+    bpy.types.VIEW3D_MT_mesh_add.remove(menu_func_rocks)
 
 
 if __name__ == "__main__":

@@ -3182,14 +3182,14 @@ def Dimension_button(self, context):
 def register():
     bpy.utils.register_module(__name__)
 
-    bpy.types.INFO_MT_curve_add.append(Dimension_button)
+    bpy.types.VIEW3D_MT_curve_add.append(Dimension_button)
 
     DimensionVariables()
 
 def unregister():
     bpy.utils.unregister_module(__name__)
 
-    bpy.types.INFO_MT_curve_add.remove(Dimension_button)
+    bpy.types.VIEW3D_MT_curve_add.remove(Dimension_button)
 
 if __name__ == "__main__":
     register()

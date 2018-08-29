@@ -120,7 +120,7 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.menu("VIEW3D_MT_Select_Edit_Mesh2", icon='RESTRICT_SELECT_OFF')
             layout.menu("VIEW3D_MT_Edit_Multi2", icon='VERTEXSEL')
             UseSeparator(self, context)
-            layout.menu("INFO_MT_mesh_add", text="Add Mesh", icon='OUTLINER_OB_MESH')
+            layout.menu("VIEW3D_MT_mesh_add", text="Add Mesh", icon='OUTLINER_OB_MESH')
             layout.menu("VIEW3D_MT_Edit_Mesh2", text="Mesh", icon='MESH_DATA')
             UseSeparator(self, context)
             layout.menu("VIEW3D_MT_TransformMenuEdit2", icon='MANIPUL')
@@ -257,7 +257,7 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.menu("VIEW3D_MT_Select_Edit_Curve2",
                         icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("INFO_MT_curve_add", text="Add Curve",
+            layout.menu("VIEW3D_MT_curve_add", text="Add Curve",
                         icon='OUTLINER_OB_CURVE')
             layout.menu("VIEW3D_MT_Edit_Curve2", icon='CURVE_DATA')
             UseSeparator(self, context)
@@ -318,7 +318,7 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.menu("VIEW3D_MT_View_Menu2", icon='ZOOM_ALL')
             layout.menu("VIEW3D_MT_Select_Edit_Surface2", icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("INFO_MT_surface_add", text="Add Surface",
+            layout.menu("VIEW3D_MT_surface_add", text="Add Surface",
                         icon='OUTLINER_OB_SURFACE')
             layout.menu("VIEW3D_MT_TransformMenu2", icon='MANIPUL')
             layout.menu("VIEW3D_MT_MirrorMenu2", icon='MOD_MIRROR')
@@ -553,7 +553,7 @@ class VIEW3D_PT_Toolshelf_menu(View3DPanel, Panel):
             layout.menu("VIEW3D_MT_Select_Edit_Armature2",
                         icon='RESTRICT_SELECT_OFF')
             UseSeparator(self, context)
-            layout.menu("INFO_MT_armature_add", text="Add Armature",
+            layout.menu("VIEW3D_MT_armature_add", text="Add Armature",
                         icon='OUTLINER_OB_ARMATURE')
             layout.menu("VIEW3D_MT_Edit_Armature2", text="Armature",
                         icon='OUTLINER_DATA_ARMATURE')
@@ -809,18 +809,18 @@ class VIEW3D_MT_AddMenu2(Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.menu("INFO_MT_mesh_add", text="Add Mesh",
+        layout.menu("VIEW3D_MT_mesh_add", text="Add Mesh",
                     icon='OUTLINER_OB_MESH')
-        layout.menu("INFO_MT_curve_add", text="Add Curve",
+        layout.menu("VIEW3D_MT_curve_add", text="Add Curve",
                     icon='OUTLINER_OB_CURVE')
-        layout.menu("INFO_MT_surface_add", text="Add Surface",
+        layout.menu("VIEW3D_MT_surface_add", text="Add Surface",
                     icon='OUTLINER_OB_SURFACE')
         layout.operator_menu_enum("object.metaball_add", "type",
                                   icon='OUTLINER_OB_META')
         layout.operator("object.text_add", text="Add Text",
                         icon='OUTLINER_OB_FONT')
         UseSeparator(self, context)
-        layout.menu("INFO_MT_armature_add", text="Add Armature",
+        layout.menu("VIEW3D_MT_armature_add", text="Add Armature",
                     icon='OUTLINER_OB_ARMATURE')
         layout.operator("object.add", text="Lattice",
                         icon='OUTLINER_OB_LATTICE').type = 'LATTICE'

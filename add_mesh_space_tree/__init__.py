@@ -1110,11 +1110,11 @@ def menu_func(self, context):
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
+    bpy.types.VIEW3D_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
+    bpy.types.VIEW3D_MT_mesh_add.remove(menu_func)
     bpy.utils.unregister_module(__name__)
 
 

@@ -161,7 +161,7 @@ class SyncAllSubsurfRenderLevels(bpy.types.Operator):
 
 
 class RenderResolutionPercentageMenu(bpy.types.Menu):
-    bl_idname = "INFO_MT_render_resolution_percentage"
+    bl_idname = "TOPBAR_MT_render_resolution_percentage"
     bl_label = "Rendering size (%)"
     bl_description = "Setting is set to either rendered in what percent of the size of the resolution"
 
@@ -189,7 +189,7 @@ class RenderResolutionPercentageMenu(bpy.types.Menu):
 
 
 class SimplifyRenderMenu(bpy.types.Menu):
-    bl_idname = "INFO_MT_render_simplify"
+    bl_idname = "TOPBAR_MT_render_simplify"
     bl_label = "Simplify Render"
     bl_description = "I simplified set of rendering"
 
@@ -204,7 +204,7 @@ class SimplifyRenderMenu(bpy.types.Menu):
 
 
 class ShadeingMenu(bpy.types.Menu):
-    bl_idname = "INFO_MT_render_shadeing"
+    bl_idname = "TOPBAR_MT_render_shadeing"
     bl_label = "Use shading"
     bl_description = "Shading on / off"
 
@@ -217,7 +217,7 @@ class ShadeingMenu(bpy.types.Menu):
 
 
 class SubsurfMenu(bpy.types.Menu):
-    bl_idname = "INFO_MT_render_subsurf"
+    bl_idname = "TOPBAR_MT_render_subsurf"
     bl_label = "Subsurf Level All"
     bl_description = "Subsurf subdivision level of all objects"
 
@@ -330,7 +330,7 @@ def menu(self, context):
 
 
 class AnimateRenderMenu(bpy.types.Menu):
-    bl_idname = "INFO_MT_render_animate_menu"
+    bl_idname = "TOPBAR_MT_render_animate_menu"
     bl_label = "Animation"
     bl_description = "Set Frames & Animation Length"
 
@@ -424,12 +424,12 @@ class RenderSettingsPanel(bpy.types.Panel):
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_render.append(menu)
+    bpy.types.TOPBAR_MT_render.append(menu)
 
 # unregister
 
 def unregister():
-    bpy.types.INFO_MT_render.remove(menu)
+    bpy.types.TOPBAR_MT_render.remove(menu)
     bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
