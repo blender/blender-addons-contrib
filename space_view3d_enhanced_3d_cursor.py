@@ -1432,8 +1432,8 @@ class EnhancedSetCursor(bpy.types.Operator):
                 m = MatrixCompose(_x, y, z, p0)
             snapshot.matrix_world = m
 
-            snapshot.empty_draw_type = 'SINGLE_ARROW'
-            #snapshot.empty_draw_type = 'ARROWS'
+            snapshot.empty_display_type = 'SINGLE_ARROW'
+            #snapshot.empty_display_type = 'ARROWS'
             #snapshot.layers = [True] * 20 # ?
             scene.objects.link(snapshot)
 #============================================================================#
@@ -2502,7 +2502,7 @@ class Snap3DUtility(SnapUtilityBase):
 
         self.bbox_obj = self.cache._make_obj(mesh, None)
         self.bbox_obj.hide = True
-        self.bbox_obj.draw_type = 'WIRE'
+        self.bbox_obj.display_type = 'WIRE'
         self.bbox_obj.name = "BoundBoxSnap"
 
         self.shade_bbox = (shade == 'BOUNDBOX')
@@ -2517,8 +2517,8 @@ class Snap3DUtility(SnapUtilityBase):
         to_exclude = set(to_exclude)
 
         for target in to_include:
-            if only_solid and ((target.draw_type == 'BOUNDS') \
-                    or (target.draw_type == 'WIRE')):
+            if only_solid and ((target.display_type == 'BOUNDS') \
+                    or (target.display_type == 'WIRE')):
                 to_exclude.add(target)
 
         SnapUtilityBase.update_targets(self, to_include, to_exclude)
@@ -2569,7 +2569,7 @@ class Snap3DUtility(SnapUtilityBase):
                        else 'PREVIEW')
             mesh_obj = self.cache.get(obj, variant, reuse=False)
             if (mesh_obj is None) or self.shade_bbox or \
-                    (obj.draw_type == 'BOUNDS'):
+                    (obj.display_type == 'BOUNDS'):
                 if is_local:
                     bbox = [(-1, -1, -1), (1, 1, 1)]
                 else:
@@ -2623,13 +2623,13 @@ class Snap3DUtility(SnapUtilityBase):
                 # is there a better check?
                 # ("a is b" doesn't work here)
                 continue
-            if obj.show_x_ray != x_ray:
+            if obj.show_in_front != x_ray:
                 continue
 
             if is_bbox:
                 obj = self.get_bbox_obj(obj, \
                     sys_matrix, sys_matrix_inv, is_local)
-            elif obj.draw_type == 'BOUNDS':
+            elif obj.display_type == 'BOUNDS':
                 # Outside of BBox, there is no meaningful visual snapping
                 # for such display mode
                 continue
@@ -2780,7 +2780,7 @@ class Snap3DUtility(SnapUtilityBase):
 
         if is_bbox:
             self.bbox_obj.matrix_world = m.copy()
-            self.bbox_obj.show_x_ray = orig_obj.show_x_ray
+            self.bbox_obj.show_in_front = orig_obj.show_in_front
             self.hide_bbox(False)
 
         _ln = ln.copy()
@@ -3182,7 +3182,7 @@ class MeshCache:
 
             # This is necessary for correct bbox display # TODO
             # (though it'd be better to change the logic in the raycasting)
-            tmp_obj.show_x_ray = src_obj.show_x_ray
+            tmp_obj.show_in_front = src_obj.show_in_front
 
             tmp_obj.dupli_faces_scale = src_obj.dupli_faces_scale
             tmp_obj.dupli_frames_end = src_obj.dupli_frames_end

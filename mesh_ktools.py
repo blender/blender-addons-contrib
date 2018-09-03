@@ -564,7 +564,7 @@ class quickbool(bpy.types.Operator):
                                         bpy.ops.object.select_pattern(pattern=name)
                                         bpy.context.scene.objects.active = bpy.data.objects[name] 
 
-                                        bpy.context.object.draw_type = 'WIRE'
+                                        bpy.context.object.display_type = 'WIRE'
                                         
                                         # Move to garbage layer
                                         if move_to == True:

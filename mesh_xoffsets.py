@@ -1278,12 +1278,10 @@ def exit_addon(self):
 def check_for_reg_overlap(self):
     system = bpy.context.user_preferences.system
     if system.use_region_overlap:
-        # other draw_method options don't create transparent side bars
-        if system.window_draw_method in ('TRIPLE_BUFFER', 'AUTOMATIC'):
-            area = bpy.context.area
-            for r in area.regions:
-                if r.type == 'TOOLS':
-                    self.rtoolsw = r.width
+        area = bpy.context.area
+        for r in area.regions:
+            if r.type == 'TOOLS':
+                self.rtoolsw = r.width
 
 
 def draw_callback_px(self, context):

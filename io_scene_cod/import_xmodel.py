@@ -299,7 +299,7 @@ def load(self, context, filepath=""):
         enter_editmode=True,
         location=origin)
     ob = bpy.context.object
-    ob.show_x_ray = True
+    ob.show_in_front = True
     ob.name = name
     amt = ob.data
     amt.name = name + "Amt"
@@ -351,7 +351,7 @@ def createRig(context, name, origin, boneTable):
         enter_editmode=True,
         location=origin)
     ob = bpy.context.object
-    ob.show_x_ray = True
+    ob.show_in_front = True
     ob.name = name
     amt = ob.data
     amt.name = name + "Amt"

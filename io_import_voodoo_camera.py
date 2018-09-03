@@ -81,7 +81,7 @@ def voodoo_import(infile,ld_cam,ld_points):
         data.dof_distance = 0.0
         data.clip_start = 0.1
         data.clip_end = 1000.0
-        data.draw_size = 0.5
+        data.display_size = 0.5
         scene.objects.link(vcam)
         vcam.parent = dummy
 
