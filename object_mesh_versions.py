@@ -27,7 +27,7 @@ bl_info = {
     "name": "KTX Mesh Versions",
     "description": "Keep multiple mesh versions of an object",
     "author": "Roel Koster, @koelooptiemanna, irc:kostex",
-    "version": (1, 5, 0),
+    "version": (1, 5, 1),
     "blender": (2, 80, 0),
     "location": "View3D > Properties",
     "warning": "",
@@ -131,7 +131,7 @@ class KTX_Mesh_Versions(bpy.types.Panel):
                         row.operator("ktx.meshversions_create")
                         box = layout.box()
                         box.scale_y = 0.65
-                        box.label("Currently active mesh: " + obj.data.name)
+                        box.label(text="Currently active mesh: " + obj.data.name)
                         for m in bpy.data.meshes:
                             if m.ktx_mesh_id == obj.ktx_object_id:
                                 mesh_name = m.name
@@ -142,17 +142,17 @@ class KTX_Mesh_Versions(bpy.types.Panel):
                                     row.operator("ktx.meshversions_remove", text="", icon="X").m_index = mesh_name
                                 icon = 'PINNED' if m.use_fake_user else 'UNPINNED'
                                 row.prop(m, "use_fake_user", text="", icon=icon)
-                        box.label()
+                        box.label(text="")
                         row = layout.row(align=True)
                         row.operator("ktx.cleanup", text="Cleanup Mode")
                     else:
                         layout.operator("ktx.meshversions_init")
                 else:
-                    layout.label("Select a Mesh Object")
+                    layout.label(text="Select a Mesh Object")
                     layout.operator("ktx.cleanup", text="Cleanup Mode")
 
             else:
-                layout.label('All Meshes (Cleanup/Pin):')
+                layout.label(text="All Meshes (Cleanup/Pin):")
                 box = layout.box()
                 box.scale_y = 0.65
                 for m in bpy.data.meshes:
@@ -163,9 +163,9 @@ class KTX_Mesh_Versions(bpy.types.Panel):
                         row.operator("ktx.meshversions_remove", text="", icon="X").m_index = mesh_name
                     icon = 'PINNED' if m.use_fake_user else 'UNPINNED'
                     row.prop(m, "use_fake_user", text="", icon=icon)
-                box.label()
+                box.label(text="")
         else:
-            layout.label("No Meshes Exist")
+            layout.label(text="No Meshes Exist")
 
 
 classes = (
