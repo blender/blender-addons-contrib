@@ -137,7 +137,7 @@ def widget_iter_template(context, mpr, ob, fmap, fmap_target):
     if USE_VERBOSE:
         print("(iter-exit)", event)
 
-    context.area.header_text_set()
+    context.area.header_text_set("")
 
 
 def widget_iter_pose_translate(context, mpr, ob, fmap, fmap_target):
@@ -213,7 +213,7 @@ def widget_iter_pose_translate(context, mpr, ob, fmap, fmap_target):
     else:
         pose_bone_autokey(pose_bone, tweak_attr, tweak_attr_lock)
 
-    context.area.header_text_set()
+    context.area.header_text_set("")
 
 
 def widget_iter_pose_rotate(context, mpr, ob, fmap, fmap_target):
@@ -323,7 +323,7 @@ def widget_iter_pose_rotate(context, mpr, ob, fmap, fmap_target):
     else:
         pose_bone_autokey(pose_bone, tweak_attr, tweak_attr_lock)
 
-    context.area.header_text_set()
+    context.area.header_text_set("")
 
 
 def widget_iter_pose_scale(context, mpr, ob, fmap, fmap_target):
@@ -387,7 +387,7 @@ def widget_iter_pose_scale(context, mpr, ob, fmap, fmap_target):
     else:
         pose_bone_autokey(pose_bone, tweak_attr, tweak_attr_lock)
 
-    context.area.header_text_set()
+    context.area.header_text_set("")
 
 
 def widget_iter_shapekey(context, mpr, ob, fmap, fmap_target):
@@ -448,7 +448,7 @@ def widget_iter_shapekey(context, mpr, ob, fmap, fmap_target):
     else:
         shape.id_data.keyframe_insert(shape.path_from_id() + ".value")
 
-    context.area.header_text_set()
+    context.area.header_text_set("")
 
 
 # -------------------------
