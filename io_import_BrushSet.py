@@ -104,18 +104,18 @@ class BrushSetImporter(bpy.types.Operator):
     bl_idname = "import_image.brushset"
     bl_label = "Import BrushSet"
 
-    filename = StringProperty(name = "File Name", 
-                              description = "filepath", 
-                              default = "", 
-                              maxlen = 1024, 
-                              options = {'ANIMATABLE'}, 
+    filename = StringProperty(name = "File Name",
+                              description = "filepath",
+                              default = "",
+                              maxlen = 1024,
+                              options = {'ANIMATABLE'},
                               subtype = 'NONE')
-    
-    filepath = StringProperty(name = "File Name", 
-                              description = "filepath", 
-                              default = "", 
-                              maxlen = 1024, 
-                              options = {'ANIMATABLE'}, 
+
+    filepath = StringProperty(name = "File Name",
+                              description = "filepath",
+                              default = "",
+                              maxlen = 1024,
+                              options = {'ANIMATABLE'},
                               subtype = 'NONE')
 
     def execute(self, context):

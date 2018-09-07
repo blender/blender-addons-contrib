@@ -4405,7 +4405,7 @@ class SnapCursor_Circumscribed(bpy.types.Operator):
             self.report({'WARNING'}, 'Not implemented \
                         for %s mode' % context.mode)
             return {'CANCELLED'}
-        
+
         pos = center_of_circumscribed_circle(vecs)
         if pos is None:
             self.report({'WARNING'}, 'Select 3 objects/elements')
@@ -4426,7 +4426,7 @@ class SnapCursor_Inscribed(bpy.types.Operator):
             self.report({'WARNING'}, 'Not implemented \
                         for %s mode' % context.mode)
             return {'CANCELLED'}
-        
+
         pos = center_of_inscribed_circle(vecs)
         if pos is None:
             self.report({'WARNING'}, 'Select 3 objects/elements')
@@ -4686,7 +4686,7 @@ class CursorMonitor(bpy.types.Operator):
             if IsKeyMapItemEvent(kmi, event):
                 self.cancel(context)
                 return {'CANCELLED'}
-        
+
         try:
             return self._modal(context, event)
         except Exception as e:
@@ -4719,7 +4719,7 @@ class CursorMonitor(bpy.types.Operator):
             context.area.tag_redraw()
 
         settings = find_settings()
-        
+
         propagate_settings_to_all_screens(settings)
 
         # ================== #
@@ -5673,7 +5673,7 @@ def register():
     bpy.types.VIEW3D_MT_snap.append(extra_snap_menu_draw)
 
     bpy.app.handlers.scene_update_post.append(scene_update_post_kmreg)
-    
+
     bpy.app.handlers.load_post.append(scene_load_post)
 
 
@@ -5706,7 +5706,7 @@ def unregister():
     #bpy.types.VIEW3D_PT_view3d_properties.remove(draw_cursor_tools)
 
     bpy.types.VIEW3D_MT_snap.remove(extra_snap_menu_draw)
-    
+
     bpy.app.handlers.load_post.remove(scene_load_post)
 
 

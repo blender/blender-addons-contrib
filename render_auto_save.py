@@ -5,13 +5,13 @@
 #All rights reserved.
 #
 #Redistribution and use in source and binary forms, with or without
-#modification, are permitted provided that the following conditions are met: 
+#modification, are permitted provided that the following conditions are met:
 #
 #1. Redistributions of source code must retain the above copyright notice, this
-#   list of conditions and the following disclaimer. 
+#   list of conditions and the following disclaimer.
 #2. Redistributions in binary form must reproduce the above copyright notice,
 #   this list of conditions and the following disclaimer in the documentation
-#   and/or other materials provided with the distribution. 
+#   and/or other materials provided with the distribution.
 #
 #THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 #ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -56,13 +56,13 @@ def auto_save_render(scene):
     if format == 'OPEN_EXR_MULTILAYER': extension = '.exr'
     if format == 'JPEG': extension = '.jpg'
     if format == 'PNG': extension = '.png'
-    
+
     blendname = basename(bpy.data.filepath).rpartition('.')[0]
     filepath = dirname(bpy.data.filepath) + '/auto_saves'
-    
+
     if not exists(filepath):
         mkdir(filepath)
-        
+
     if scene.auto_save_subfolders:
         filepath = join(filepath, blendname)
         if not exists(filepath):
@@ -72,7 +72,7 @@ def auto_save_render(scene):
     files = [f for f in listdir(filepath) \
             if f.startswith(blendname) \
             and f.lower().endswith(('.png', '.jpg', '.jpeg', '.exr'))]
-    
+
     highest = 0
     if files:
         for f in files:
@@ -81,37 +81,37 @@ def auto_save_render(scene):
             if suffix:
                 if int(suffix[-1]) > highest:
                     highest = int(suffix[-1])
-    
+
     save_name = join(filepath, blendname) + '_' + str(highest+1).zfill(3) + extension
 
     image = bpy.data.images['Render Result']
     if not image:
         print('Auto Save: Render Result not found. Image not saved')
         return
-    
+
     print('Auto_Save:', save_name)
     image.save_render(save_name, scene=None)
 
     if scene.save_blend:
     	save_name_blend = join(filepath, blendname) + '_' + str(highest+1).zfill(3) + '.blend'
     	print('Blend_Save:',save_name_blend)
-    	bpy.ops.wm.save_as_mainfile(filepath=save_name_blend, copy=True)	
-    
+    	bpy.ops.wm.save_as_mainfile(filepath=save_name_blend, copy=True)
+
     rndr.image_settings.file_format = original_format
 
 ###########################################################################
 def auto_save_UI(self, context):
     layout = self.layout
-    
+
     split=layout.split()
     col = split.column()
     col.prop(context.scene, 'save_after_render', text='Auto Save Image', toggle=False)
-    col.prop(context.scene, 'save_blend', text='with .blend', toggle=False)	
+    col.prop(context.scene, 'save_blend', text='with .blend', toggle=False)
 
-    col = split.column()	
+    col = split.column()
     col.prop(context.scene, 'auto_save_subfolders', toggle=False)
     col.prop(context.scene, 'auto_save_format', text='as', expand=False)
-    
+
 def register():
     bpy.types.Scene.save_after_render = BoolProperty(
                     name='Save after render',
@@ -120,7 +120,7 @@ def register():
     bpy.types.Scene.save_blend = BoolProperty(
 		    name = 'with .blend',
                     default=True,
-                    description='Also save .blend file into: //auto_save/')	
+                    description='Also save .blend file into: //auto_save/')
     bpy.types.Scene.auto_save_format = EnumProperty(
                     name='Auto Save File Format',
                     description='File Format for the auto saves.',
@@ -135,7 +135,7 @@ def register():
                     description='Save into individual subfolders per blend name')
     bpy.app.handlers.render_post.append(auto_save_render)
     bpy.types.RENDER_PT_render.append(auto_save_UI)
-    
+
 def unregister():
     del(bpy.types.Scene.save_after_render)
     del(bpy.types.Scene.auto_save_format)

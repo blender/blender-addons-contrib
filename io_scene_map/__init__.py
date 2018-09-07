@@ -57,7 +57,7 @@ class ExportMAP(bpy.types.Operator, ExportHelper):
             name="Doom 3 Format",
             description="Export to Doom3 MAP Format",
             default=True)
-            
+
     face_thickness = FloatProperty(
             name="Face Thickness",
             description=("Thickness given to geometry which can't be "

@@ -4,7 +4,7 @@ given name < 21
 if material name exists :
 naming_method = 0   blender default (increment name)
 naming_method = 1   do nothing, abort creation and use existing
-naming_method = 2   create new, rename existing, 
+naming_method = 2   create new, rename existing,
 naming_method = 3   create new, replace existing
 '''
 
@@ -53,7 +53,7 @@ def remove(ob,with_data=True) :
                     and_data=False
             except :
                 and_data=False # empties
-                
+
             # odd (pre 2.60) :
             # ob=bpy.data.objects[ob.name]
             # if the ob (board) argument comes from bpy.data.groups['aGroup'].objects,
@@ -72,4 +72,3 @@ def remove(ob,with_data=True) :
             # never wipe data before unlink the ex-user object of the scene else crash (2.58 3 770 2)
             if and_data :
                 wipeOutData(data)
-

@@ -995,7 +995,7 @@ def generateObject(context, muX, sigmaX, scaleX, upperSkewX, muY, sigmaY,
     if scaleDisplace:
 ##        bpy.data.objects[name].scale = Vector((averageX, averageY, averageZ))
         obj.object.scale = Vector((averageX, averageY, averageZ))
-    
+
     # For a slight speed bump / Readability:
 ##    mesh = bpy.data.meshes[name]
     mesh = obj.object.data
