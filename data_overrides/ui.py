@@ -99,7 +99,7 @@ class SCENE_OT_Override_Add(Operator):
 
         id_data = id_data_from_enum(self.id_block)
         add_override(scene, id_data)
-        
+
         return {'FINISHED'}
 
 

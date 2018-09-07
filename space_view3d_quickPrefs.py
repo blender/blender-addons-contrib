@@ -962,8 +962,7 @@ def unregister():
     bpy.utils.unregister_class(gllightpreset)
     bpy.utils.unregister_class(SCENE_OT_gllightpreset)
     bpy.utils.unregister_class(quickprefproperties)
-    bpy.app.handlers.scene_update_pre.remove(setup) 
+    bpy.app.handlers.scene_update_pre.remove(setup)
 
 if __name__ == "__main__":
     register()
-

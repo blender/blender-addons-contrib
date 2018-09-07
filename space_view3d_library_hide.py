@@ -131,7 +131,7 @@ def pick_object(context, event, pick_objects, ray_max=10000.0):
         pick_objects.append((best_obj, best_obj.hide, best_obj.hide_render))
         best_obj.hide = True
         best_obj.hide_render = True
-        
+
         #if best_obj_parent:
         #    best_obj_parent.update_tag(refresh={'OBJECT'})
         #scene.update()
@@ -152,23 +152,23 @@ def pick_finalize(context, pick_objects):
 
     if is_new:
         data = []
-        
+
         data += LIB_HIDE_TEXT_HEADER.split("\n")
     else:
         data = text.as_string().split("\n")
 
     data.append("# ---")
-    
+
     for pick_obj_tuple in pick_objects:
-        
+
         pick_obj = pick_obj_tuple[0]
-        
+
         pick_obj.hide = True
         pick_obj.hide_render = True
 
         line = "hide(%r, %s)" % (pick_obj.name, repr(pick_obj.library.filepath) if pick_obj.library is not None else "None")
         data.append(line)
-    
+
     text.from_string("\n".join(data))
 
 
@@ -218,7 +218,7 @@ class ViewOperatorRayCast(bpy.types.Operator):
                     context.area.header_text_set()
                     self.report({'INFO'}, "Finished")
                     return {'FINISHED'}
-                
+
         elif event.type in {'RIGHTMOUSE', 'ESC'}:
             if event.value == 'RELEASE':
                 for pick_obj in self.pick_objects:
@@ -231,7 +231,7 @@ class ViewOperatorRayCast(bpy.types.Operator):
 
     def invoke(self, context, event):
         if context.space_data.type == 'VIEW_3D':
-            
+
             self.pick_objects = []
             self._update_header(context)
 

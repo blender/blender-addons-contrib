@@ -710,4 +710,3 @@ def display_cursor_badge(co2d, symbol, badge_mode, message_main, message_aux, au
             bgl.glEnd()
         '''
         bgl.glDisable(bgl.GL_BLEND)
-

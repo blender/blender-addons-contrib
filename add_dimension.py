@@ -1724,7 +1724,7 @@ def createCurve(vertArray, self, align_matrix):
         DimensionCurve.rotation_euler[0] = radians(self.Dimension_rotation)
         DimensionCurve.rotation_euler[1] = u1
         DimensionCurve.rotation_euler[2] = u2
-    
+
     # Align to view
     if self.Dimension_align_to_camera :
         obj_camera = bpy.context.scene.camera
@@ -1747,7 +1747,7 @@ def createCurve(vertArray, self, align_matrix):
     group_name = 'Dimensions'
 
     bpy.ops.object.mode_set(mode = 'OBJECT')
-        
+
     if group_name in bpy.data.groups:
         group = bpy.data.groups[group_name]
     else:
@@ -1764,7 +1764,7 @@ def createCurve(vertArray, self, align_matrix):
     if self.Dimension_appoint_parent and not self.Dimension_parent == '':
         const =  DimensionCurve.constraints.new(type='CHILD_OF')
         const.target =  bpy.data.objects[self.Dimension_parent]
-        const.inverse_matrix = bpy.data.objects[self.Dimension_parent].matrix_world.inverted() 
+        const.inverse_matrix = bpy.data.objects[self.Dimension_parent].matrix_world.inverted()
         bpy.context.scene.update()
 
     bpy.ops.object.select_all(action='DESELECT')
@@ -1818,7 +1818,7 @@ def createCurve(vertArray, self, align_matrix):
     #### Parent
     DimensionCurve.Dimension_parent = self.Dimension_parent
     DimensionCurve.Dimension_appoint_parent = self.Dimension_appoint_parent
-    
+
     #### Units
     DimensionCurve.Dimension_units = self.Dimension_units
     DimensionCurve.Dimension_add_units_name = self.Dimension_add_units_name
