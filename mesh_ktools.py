@@ -1315,7 +1315,7 @@ class drawPoly(bpy.types.Operator):
 
             # reset header gui
             context.area.tag_redraw()
-            context.area.header_text_set()
+            context.area.header_text_set("")
 
             # Convert to Quads
             bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
@@ -1344,7 +1344,7 @@ class drawPoly(bpy.types.Operator):
 
             # reset header gui
             context.area.tag_redraw()
-            context.area.header_text_set()
+            context.area.header_text_set("")
 
 
             # restore selection mode and manipulator
