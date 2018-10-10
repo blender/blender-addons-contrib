@@ -108,7 +108,8 @@ class RENDER_PT_render_auto_save(Panel):
     bl_label = "Auto Save Render"
     bl_parent_id = "RENDER_PT_output"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+    COMPAT_ENGINES = {'CYCLES', 'BLENDER_RENDER',
+                      'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     @classmethod
     def poll(cls, context):
