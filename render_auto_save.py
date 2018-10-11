@@ -136,9 +136,6 @@ def auto_save_render(scene):
     save_name += extension
     save_name = join(filepath, save_name)
 
-    # save_name = join(filepath, blendname) + '_' + \
-    # str(highest+1).zfill(3) + extension
-
     image = bpy.data.images['Render Result']
     if not image:
         print('Auto Save: Render Result not found. Image not saved')
