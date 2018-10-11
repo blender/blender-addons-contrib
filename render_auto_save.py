@@ -38,6 +38,34 @@ from bpy.path import basename
 from os import mkdir, listdir
 from re import findall
 
+IMAGE_FORMATS = (
+    'BMP',
+    'IRIS',
+    'PNG',
+    'JPEG',
+    'JPEG2000',
+    'TARGA',
+    'TARGA_RAW',
+    'CINEON',
+    'DPX',
+    'OPEN_EXR_MULTILAYER',
+    'OPEN_EXR',
+    'HDR',
+    'TIFF')
+IMAGE_EXTENSIONS = (
+    'bmp',
+    'rgb',
+    'png',
+    'jpg',
+    'jp2',
+    'tga',
+    'cin',
+    'dpx',
+    'exr',
+    'hdr',
+    'tif'
+)
+
 
 @persistent
 def auto_save_render(scene):
@@ -46,14 +74,19 @@ def auto_save_render(scene):
     rndr = scene.render
     original_format = rndr.image_settings.file_format
 
-    format = rndr.image_settings.file_format = scene.auto_save_format
-    if format == 'OPEN_EXR_MULTILAYER':
-        extension = '.exr'
-    if format == 'JPEG':
-        extension = '.jpg'
-    if format == 'PNG':
-        extension = '.png'
+    if scene.auto_save_format == 'SCENE':
+        if original_format not in IMAGE_FORMATS:
+            print('{} Format is not an image format. Not Saving'.format(
+                original_format))
+            return
+    elif scene.auto_save_format == 'PNG':
+        rndr.image_settings.file_format = 'PNG'
+    elif scene.auto_save_format == 'OPEN_EXR_MULTILAYER':
+        rndr.image_settings.file_format = 'OPEN_EXR_MULTILAYER'
+    elif scene.auto_save_format == 'JPEG':
+        rndr.image_settings.file_format = 'JPEG'
 
+    extension = rndr.file_extension
     blendname = basename(bpy.data.filepath).rpartition('.')[0]
     filepath = dirname(bpy.data.filepath) + '/auto_saves'
 
@@ -68,7 +101,7 @@ def auto_save_render(scene):
     #imagefiles starting with the blendname
     files = [f for f in listdir(filepath)
              if f.startswith(blendname)
-             and f.lower().endswith(('.png', '.jpg', '.jpeg', '.exr'))]
+             and f.lower().endswith(IMAGE_EXTENSIONS)]
 
     highest = 0
     if files:
@@ -151,11 +184,13 @@ def register():
     bpy.types.Scene.auto_save_format = EnumProperty(
         name='Auto Save File Format',
         description='File Format for the auto saves.',
-        items={
+        items=[
+            ('SCENE', 'scene format', 'Format set in output panel'),
             ('PNG', 'png', 'Save as png'),
             ('JPEG', 'jpg', 'Save as jpg'),
-            ('OPEN_EXR_MULTILAYER', 'exr', 'Save as multilayer exr')},
-        default='PNG')
+            ('OPEN_EXR_MULTILAYER', 'exr', 'Save as multilayer exr'),
+            ],
+        default='SCENE')
     bpy.types.Scene.auto_save_subfolders = BoolProperty(
         name='Save into subfolder',
         default=False,
