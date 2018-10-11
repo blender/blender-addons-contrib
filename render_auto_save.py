@@ -148,8 +148,7 @@ def auto_save_render(scene):
     image.save_render(save_name, scene=None)
 
     if scene.auto_save_blend:
-        save_name_blend = join(filepath, blendname) + '_' + \
-            str(highest+1).zfill(3) + '.blend'
+        save_name_blend = join(filepath, save_name) + '.blend'
         print('Blend_Save:', save_name_blend)
         bpy.ops.wm.save_as_mainfile(filepath=save_name_blend, copy=True)
 
