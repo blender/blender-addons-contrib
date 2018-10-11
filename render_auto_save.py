@@ -126,8 +126,11 @@ def auto_save_render(scene):
         return match_files
 
     if scene.auto_save_use_framenumber:
-        frame_files = this_frame_files(files)
-        save_number = save_number_from_files(frame_files)
+        if scene.auto_save_use_continuous:
+            save_number = save_number_from_files(files)
+        else:
+            frame_files = this_frame_files(files)
+            save_number = save_number_from_files(frame_files)
         frame_number = 'f' + str(frame_current).zfill(4)
         save_name = '_'.join([blendname, frame_number, save_number])
     else:
@@ -179,10 +182,13 @@ class RENDER_PT_render_auto_save(Panel):
         layout.use_property_decorate = False  # No animation.
 
         col = layout.column(align=True)
-        col.prop(context.scene, 'auto_save_blend', toggle=False)
-        col.prop(context.scene, 'auto_save_use_framenumber', toggle=False)
-        col.prop(context.scene, 'auto_save_subfolders', toggle=False)
         col.prop(context.scene, 'auto_save_format', text='as', expand=False)
+        col.prop(context.scene, 'auto_save_blend', toggle=False)
+        col.prop(context.scene, 'auto_save_subfolders', toggle=False)
+        col.prop(context.scene, 'auto_save_use_framenumber', toggle=False)
+        # subcol = col.column()
+        # subcol.active = context.scene.auto_save_use_framenumber
+        # subcol.prop(context.scene, 'auto_save_use_continuous', toggle=False)
 
 
 classes = [
@@ -222,6 +228,11 @@ def register():
         default=False,
         description='Insert frame number into file name'
     )
+    bpy.types.Scene.auto_save_use_continuous = BoolProperty(
+        name='Continuous numbering',
+        default=False,
+        description='Use continuous numbering when inserting frame numbers'
+    )
     bpy.app.handlers.render_post.append(auto_save_render)
 
 
@@ -234,6 +245,7 @@ def unregister():
     del(bpy.types.Scene.auto_save_format)
     del(bpy.types.Scene.auto_save_subfolders)
     del(bpy.types.Scene.auto_save_use_framenumber)
+    del(bpy.types.Scene.auto_save_use_continuous)
     bpy.app.handlers.render_post.remove(auto_save_render)
 
 
