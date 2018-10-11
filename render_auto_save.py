@@ -36,7 +36,7 @@ from bpy.app.handlers import persistent
 from os.path import dirname, exists, join
 from bpy.path import basename
 from os import mkdir, listdir
-from re import findall
+from re import findall, search
 
 IMAGE_FORMATS = (
     'BMP',
@@ -86,6 +86,7 @@ def auto_save_render(scene):
     elif scene.auto_save_format == 'JPEG':
         rndr.image_settings.file_format = 'JPEG'
 
+    frame_current = bpy.context.scene.frame_current
     extension = rndr.file_extension
     blendname = basename(bpy.data.filepath).rpartition('.')[0]
     filepath = dirname(bpy.data.filepath) + '/auto_saves'
@@ -103,17 +104,40 @@ def auto_save_render(scene):
              if f.startswith(blendname)
              and f.lower().endswith(IMAGE_EXTENSIONS)]
 
-    highest = 0
-    if files:
-        for f in files:
-            #find last numbers in the filename after the blendname
-            suffix = findall('\d+', f.split(blendname)[-1])
-            if suffix:
-                if int(suffix[-1]) > highest:
-                    highest = int(suffix[-1])
+    def save_number_from_files(files):
+        highest = 0
+        if files:
+            for f in files:
+                #find last numbers in the filename
+                suffix = findall(r'\d+', f.split(blendname)[-1])
+                if suffix:
+                    if int(suffix[-1]) > highest:
+                        highest = int(suffix[-1])
+        return str(highest+1).zfill(3)
 
-    save_name = join(filepath, blendname) + '_' + \
-        str(highest+1).zfill(3) + extension
+    def this_frame_files(files):
+        match_files = []
+        frame_pattern = r'_f[0-9]{4}_'
+        for file in files:
+            res = search(frame_pattern, file)
+            if res:
+                if int(res[0][2:-1]) == frame_current:
+                    match_files.append(file)
+        return match_files
+
+    if scene.auto_save_use_framenumber:
+        frame_files = this_frame_files(files)
+        save_number = save_number_from_files(frame_files)
+        frame_number = 'f' + str(frame_current).zfill(4)
+        save_name = '_'.join([blendname, frame_number, save_number])
+    else:
+        save_number = save_number_from_files(files)
+        save_name = '_'.join([blendname, save_number])
+    save_name += extension
+    save_name = join(filepath, save_name)
+
+    # save_name = join(filepath, blendname) + '_' + \
+    # str(highest+1).zfill(3) + extension
 
     image = bpy.data.images['Render Result']
     if not image:
@@ -159,6 +183,7 @@ class RENDER_PT_render_auto_save(Panel):
 
         col = layout.column(align=True)
         col.prop(context.scene, 'auto_save_blend', toggle=False)
+        col.prop(context.scene, 'auto_save_use_framenumber', toggle=False)
         col.prop(context.scene, 'auto_save_subfolders', toggle=False)
         col.prop(context.scene, 'auto_save_format', text='as', expand=False)
 
@@ -195,6 +220,11 @@ def register():
         name='Save into subfolder',
         default=False,
         description='Save into individual subfolders per blend name')
+    bpy.types.Scene.auto_save_use_framenumber = BoolProperty(
+        name='Insert frame number',
+        default=False,
+        description='Insert frame number into file name'
+    )
     bpy.app.handlers.render_post.append(auto_save_render)
 
 
@@ -206,6 +236,7 @@ def unregister():
     del(bpy.types.Scene.auto_save_after_render)
     del(bpy.types.Scene.auto_save_format)
     del(bpy.types.Scene.auto_save_subfolders)
+    del(bpy.types.Scene.auto_save_use_framenumber)
     bpy.app.handlers.render_post.remove(auto_save_render)
 
 
