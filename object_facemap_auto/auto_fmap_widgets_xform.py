@@ -52,7 +52,7 @@ def calc_view_vector(context):
 
 def pose_bone_calc_transform_orientation(pose_bone):
     ob_pose = pose_bone.id_data
-    return (ob_pose.matrix_world * pose_bone.matrix).inverted().to_3x3()
+    return (ob_pose.matrix_world @ pose_bone.matrix).inverted().to_3x3()
 
 
 def pose_bone_rotation_attr_from_mode(pose_bone):
@@ -190,7 +190,7 @@ def widget_iter_pose_translate(context, mpr, ob, fmap, fmap_target):
         mval = Vector((event.mouse_region_x, event.mouse_region_y))
 
         co_init, co = coords_to_loc_3d(context, (mval_init, mval), depth_location)
-        loc_delta = world_to_local_3x3 * (co - co_init)
+        loc_delta = world_to_local_3x3 @ (co - co_init)
 
         input_scale = 1.0
         is_precise = 'PRECISE' in tweak
