@@ -128,6 +128,8 @@ def widget_iter_template(context, mpr, ob, fmap, fmap_target):
         event, tweak_next = yield
         if event in {True, False}:
             break
+        if event.type == 'INBETWEEN_MOUSEMOVE':
+            continue
         tweak = tweak_next
 
         if USE_VERBOSE:
@@ -182,6 +184,8 @@ def widget_iter_pose_translate(context, mpr, ob, fmap, fmap_target):
         event, tweak_next = yield
         if event in {True, False}:
             break
+        if event.type == 'INBETWEEN_MOUSEMOVE':
+            continue
         tweak = tweak_next
 
         if USE_VERBOSE:
@@ -262,6 +266,8 @@ def widget_iter_pose_rotate(context, mpr, ob, fmap, fmap_target):
         event, tweak_next = yield
         if event in {True, False}:
             break
+        if event.type == 'INBETWEEN_MOUSEMOVE':
+            continue
         tweak = tweak_next
 
         if USE_VERBOSE:
@@ -360,6 +366,8 @@ def widget_iter_pose_scale(context, mpr, ob, fmap, fmap_target):
         event, tweak_next = yield
         if event in {True, False}:
             break
+        if event.type == 'INBETWEEN_MOUSEMOVE':
+            continue
         tweak = tweak_next
 
         if USE_VERBOSE:
@@ -422,6 +430,8 @@ def widget_iter_shapekey(context, mpr, ob, fmap, fmap_target):
         event, tweak_next = yield
         if event in {True, False}:
             break
+        if event.type == 'INBETWEEN_MOUSEMOVE':
+            continue
         tweak = tweak_next
 
         if USE_VERBOSE:
