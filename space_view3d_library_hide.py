@@ -215,7 +215,7 @@ class ViewOperatorRayCast(bpy.types.Operator):
             if event.value == 'RELEASE':
                 if self.pick_objects:  # avoid enter taking effect on startup
                     pick_finalize(context, self.pick_objects)
-                    context.area.header_text_set("")
+                    context.area.header_text_set(None)
                     self.report({'INFO'}, "Finished")
                     return {'FINISHED'}
 
@@ -223,7 +223,7 @@ class ViewOperatorRayCast(bpy.types.Operator):
             if event.value == 'RELEASE':
                 for pick_obj in self.pick_objects:
                     pick_restore(pick_obj)
-                context.area.header_text_set("")
+                context.area.header_text_set(None)
                 self.report({'INFO'}, "Cancelled")
                 return {'CANCELLED'}
 
