@@ -343,6 +343,8 @@ class EnhancedSetCursor(bpy.types.Operator):
     def setup_keymaps(self, context, event=None):
         self.key_map = self.key_map.copy()
 
+        wm = context.window_manager
+
         # There is no such event as 'ACTIONMOUSE',
         # it's always 'LEFTMOUSE' or 'RIGHTMOUSE'
         if event:
@@ -355,7 +357,8 @@ class EnhancedSetCursor(bpy.types.Operator):
             else:
                 event = None
         if event is None:
-            select_mouse = context.user_preferences.inputs.select_mouse
+            keyconfig = wm.keyconfigs.active
+            select_mouse = getattr(keyconfig.preferences, "select_mouse", "LEFT")
             if select_mouse == 'RIGHT':
                 self.key_map["confirm"] = {'LEFTMOUSE'}
                 self.key_map["cancel"] = {'RIGHTMOUSE', 'ESC'}
@@ -364,7 +367,6 @@ class EnhancedSetCursor(bpy.types.Operator):
                 self.key_map["cancel"] = {'LEFTMOUSE', 'ESC'}
 
         # Use user-defined "free mouse" key, if it exists
-        wm = context.window_manager
         if '3D View' in wm.keyconfigs.user.keymaps:
             km = wm.keyconfigs.user.keymaps['3D View']
             for kmi in KeyMapItemSearch(EnhancedSetCursor.bl_idname, km):
