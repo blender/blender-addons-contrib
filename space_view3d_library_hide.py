@@ -75,7 +75,7 @@ def pick_object(context, event, pick_objects, ray_max=10000.0):
             if obj.type == 'MESH':
                 yield (None, obj, obj.matrix_world.copy())
 
-            if obj.dupli_type != 'NONE':
+            if obj.instance_type != 'NONE':
                 print("DupliInst: %r" % obj)
                 obj.dupli_list_create(scene)
                 # matrix = obj.matrix_world.copy()

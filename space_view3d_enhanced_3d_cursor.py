@@ -3186,14 +3186,14 @@ class MeshCache:
             # (though it'd be better to change the logic in the raycasting)
             tmp_obj.show_in_front = src_obj.show_in_front
 
-            tmp_obj.dupli_faces_scale = src_obj.dupli_faces_scale
-            tmp_obj.dupli_frames_end = src_obj.dupli_frames_end
-            tmp_obj.dupli_frames_off = src_obj.dupli_frames_off
-            tmp_obj.dupli_frames_on = src_obj.dupli_frames_on
-            tmp_obj.dupli_frames_start = src_obj.dupli_frames_start
-            tmp_obj.dupli_group = src_obj.dupli_group
+            tmp_obj.instance_faces_scale = src_obj.instance_faces_scale
+            tmp_obj.instance_frames_end = src_obj.instance_frames_end
+            tmp_obj.instance_frames_off = src_obj.instance_frames_off
+            tmp_obj.instance_frames_on = src_obj.instance_frames_on
+            tmp_obj.instance_frames_start = src_obj.instance_frames_start
+            tmp_obj.instance_collection = src_obj.instance_collection
             #tmp_obj.dupli_list = src_obj.dupli_list
-            tmp_obj.dupli_type = src_obj.dupli_type
+            tmp_obj.instance_type = src_obj.instance_type
 
         # Make Blender recognize object as having geometry
         # (is there a simpler way to do this?)
