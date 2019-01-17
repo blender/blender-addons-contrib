@@ -287,17 +287,17 @@ class ImportVoodooCamera(bpy.types.Operator):
     bl_description = "Load a Blender export script from the Voodoo motion tracker"
     bl_options = {'REGISTER', 'UNDO'}
 
-    filepath = StringProperty(name="File Path",
+    filepath: StringProperty(name="File Path",
         description="Filepath used for processing the script",
         maxlen= 1024,default= "")
 
     # filter_python = BoolProperty(name="Filter python",
     # description="",default=True,options={'HIDDEN'})
 
-    load_camera = BoolProperty(name="Load camera",
+    load_camera: BoolProperty(name="Load camera",
         description="Load the camera",
         default=True)
-    load_points = BoolProperty(name="Load points",
+    load_points: BoolProperty(name="Load points",
         description="Load the FP3D point cloud",
         default=True)
 

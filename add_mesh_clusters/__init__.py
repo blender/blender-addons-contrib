@@ -177,22 +177,22 @@ class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
         DEF_atom_cluster_radius_type(scn.radius_type,
                                      scn.radius_how,)
 
-    size = FloatProperty(
+    size: FloatProperty(
         name = "Size", default=30.0, min=0.1,
         description = "Size of cluster in Angstroem")
-    skin = FloatProperty(
+    skin: FloatProperty(
         name = "Skin", default=1.0, min=0.0, max = 1.0,
         description = "Skin of cluster in % of size (skin=1.0: show all atoms, skin=0.1: show only the outer atoms)")
-    parabol_diameter = FloatProperty(
+    parabol_diameter: FloatProperty(
         name = "Diameter", default=30.0, min=0.1,
         description = "Top diameter in Angstroem")
-    parabol_height = FloatProperty(
+    parabol_height: FloatProperty(
         name = "Height", default=30.0, min=0.1,
         description = "Height in Angstroem")
-    icosahedron_size = IntProperty(
+    icosahedron_size: IntProperty(
         name = "Size", default=1, min=1, max=13,
         description = "Size n: 1 (13 atoms), 2 (55 atoms), 3 (147 atoms), 4 (309 atoms), 5 (561 atoms), ..., 13 (8217 atoms)")
-    shape = EnumProperty(
+    shape: EnumProperty(
         name="",
         description="Choose the shape of the cluster",
         items=(('sphere_square',  "Sphere - square",   "Sphere with square lattice"),
@@ -207,44 +207,44 @@ class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
                ('parabolid_ab',     "Paraboloid: hex ab",  "Paraboloid with ab-lattice"),
                ('parabolid_abc',    "Paraboloid: hex abc", "Paraboloid with abc-lattice")),
                default='sphere_square',)
-    lattice_parameter = FloatProperty(
+    lattice_parameter: FloatProperty(
         name = "Lattice", default=4.08, min=1.0,
         description = "Lattice parameter in Angstroem")
-    element = StringProperty(name="Element",
+    element: StringProperty(name="Element",
         default="Gold", description = "Enter the name of the element")
-    radius_type = EnumProperty(
+    radius_type: EnumProperty(
         name="Radius",
         description="Which type of atom radii?",
         items=(('0',"predefined", "Use pre-defined radii"),
                ('1',"atomic", "Use atomic radii"),
                ('2',"van der Waals","Use van der Waals radii")),
                default='0',)
-    scale_radius = FloatProperty(
+    scale_radius: FloatProperty(
         name = "Scale R", default=1.0, min=0.0,
         description = "Scale radius of atoms")
-    scale_distances = FloatProperty(
+    scale_distances: FloatProperty(
         name = "Scale d", default=1.0, min=0.0,
         description = "Scale distances")
 
-    atom_number_total = StringProperty(name="Total",
+    atom_number_total: StringProperty(name="Total",
         default="---", description = "Number of all atoms in the cluster")
-    atom_number_drawn = StringProperty(name="Drawn",
+    atom_number_drawn: StringProperty(name="Drawn",
         default="---", description = "Number of drawn atoms in the cluster")
 
-    radius_how = EnumProperty(
+    radius_how: EnumProperty(
         name="",
         description="Which objects shall be modified?",
         items=(('ALL_ACTIVE',"all active objects", "in the current layer"),
                ('ALL_IN_LAYER',"all"," in active layer(s)")),
                default='ALL_ACTIVE',)
-    radius_type = EnumProperty(
+    radius_type: EnumProperty(
         name="Type",
         description="Which type of atom radii?",
         items=(('0',"predefined", "Use pre-defined radii"),
                ('1',"atomic", "Use atomic radii"),
                ('2',"van der Waals","Use van der Waals radii")),
                default='0',update=Callback_radius_type)
-    radius_all = FloatProperty(
+    radius_all: FloatProperty(
         name="Scale", default = 1.05, min=0.0,
         description="Put in the scale factor")
 

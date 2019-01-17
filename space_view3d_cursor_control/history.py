@@ -56,7 +56,7 @@ from .ui_utils import GUI
 
 class CursorHistoryData(PropertyGroup):
     # History tracker
-    historyDraw = BoolProperty(
+    historyDraw: BoolProperty(
             description="Draw history trace in 3D view",
             default=True
             )
@@ -116,7 +116,7 @@ class VIEW3D_OT_cursor_previous(Operator):
                       "Red color means no further steps are available")
     bl_options = {'REGISTER'}
 
-    no_skip = BoolProperty(
+    no_skip: BoolProperty(
             options={"HIDDEN"},
             default=True
             )
@@ -139,7 +139,7 @@ class VIEW3D_OT_cursor_next(Operator):
                       "Red color means no further steps are available")
     bl_options = {'REGISTER'}
 
-    no_skip = BoolProperty(
+    no_skip: BoolProperty(
             options={"HIDDEN"},
             default=True
             )

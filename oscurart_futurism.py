@@ -112,9 +112,9 @@ class Oscurart_futurism (bpy.types.Operator):
     bl_description = "Duplicate object per frame"
     bl_options = {'REGISTER', 'UNDO'}
 
-    scale = bpy.props.IntProperty(name='Step',default=1, min=1, max=1000)
+    scale: bpy.props.IntProperty(name='Step',default=1, min=1, max=1000)
 
-    hold = bpy.props.IntProperty(name='Hold', default=0, min=0)
+    hold: bpy.props.IntProperty(name='Hold', default=0, min=0)
 
     @classmethod
     def poll(cls, context):

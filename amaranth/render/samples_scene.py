@@ -64,7 +64,7 @@ class AMTH_RENDER_OT_cycles_samples_percentage(bpy.types.Operator):
     bl_idname = "scene.amaranth_cycles_samples_percentage"
     bl_label = "Set Render Samples Percentage"
 
-    percent = IntProperty(
+    percent: IntProperty(
             name="Percentage",
             description="Percentage to divide render samples by",
             subtype="PERCENTAGE", default=0

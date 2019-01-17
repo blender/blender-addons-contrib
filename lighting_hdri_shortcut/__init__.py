@@ -535,9 +535,9 @@ class OBJECT_OT_load_img(bpy.types.Operator):
     bl_description = "Load Image"
     bl_options = {'REGISTER'}
 
-    filter_glob = bpy.props.StringProperty(default="*.tif;*.png;*.jpeg;*.jpg;*.exr;*.hdr", options={'HIDDEN'})
-    filepath = bpy.props.StringProperty(name="File Path", description="Filepath used for importing files", maxlen=1024, default="")
-    files = bpy.props.CollectionProperty(
+    filter_glob: bpy.props.StringProperty(default="*.tif;*.png;*.jpeg;*.jpg;*.exr;*.hdr", options={'HIDDEN'})
+    filepath: bpy.props.StringProperty(name="File Path", description="Filepath used for importing files", maxlen=1024, default="")
+    files: bpy.props.CollectionProperty(
         name="File Path",
         type=bpy.types.OperatorFileListElement,
     )
@@ -604,7 +604,7 @@ class OBJECT_OT_Visible(bpy.types.Operator):
 class HDRI_Preferences(AddonPreferences):
     bl_idname = __name__
 
-    folder_path = bpy.props.StringProperty(
+    folder_path: bpy.props.StringProperty(
         name="HDRI Folder",
         subtype='DIR_PATH',
     )

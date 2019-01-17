@@ -374,30 +374,30 @@ class VIEW3D_PT_CustomMenuPanel(bpy.types.Panel):
 class ImpSoundtoAnim(bpy.types.PropertyGroup):
 
         #Array created
-        bArrayCriado = IntProperty(name="",
+        bArrayCriado: IntProperty(name="",
             description="Avisa que rodou process de som",
             default=0)
 
         #Script Running
-        Working = StringProperty(name="",
+        Working: StringProperty(name="",
             description="Script esta trabalhando",
             maxlen= 1024,
             default="")
 
         #Nome do objeto
-        Info_Import = StringProperty(name="",
+        Info_Import: StringProperty(name="",
             description="Info about Import",
             maxlen= 1024,
             default= "")#this set the initial text
 
         #Mensagem Smart Render
-        Info_check_smartrender = StringProperty(name="",
+        Info_check_smartrender: StringProperty(name="",
             description="Smart Render Message",
             maxlen= 1024,
             default= "")#this set the initial text
 
         #iAudioSensib=0    #sensibilidade volume do audio 0 a 5. Quanto maior, mais sensibilidade
-        audio_sense = IntProperty(name="Audio Sens",
+        audio_sense: IntProperty(name="Audio Sens",
             description="Audio Sensibility.",
             min=1,
             max=6,
@@ -406,14 +406,14 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
 
         #iFramesPorSeg=15  #Frames por segundo para key frame
         #fps= (bpy.types.Scene) bpy.context.scene.render.fps
-        frames_per_second = IntProperty(name="#Frames/s",
+        frames_per_second: IntProperty(name="#Frames/s",
             description="Frames you want per second. Better match your set up in Blender scene.",
             min=1,
             max=120,
             step=1)
 
         #iMovPorSeg=1      #Sensibilidade de movimento. 3= 3 movimentos por segundo
-        action_per_second = IntProperty(name="Act/s",
+        action_per_second: IntProperty(name="Act/s",
             description="Actions per second. From 1 to #Frames/s",
             min=1,
             max=120,
@@ -422,7 +422,7 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
 
         #iDivScala=200
         #scala do valor do movimento. [se =1 - 0 a 255 ] [se=255 - 0,00000 a 1,00000] [se=1000 - 0 a 0.255]
-        action_escale = IntProperty(name="Scale",
+        action_escale: IntProperty(name="Scale",
             description="Scale the result values. See the text at right side of the field",
             min=1,
             max=99999,
@@ -430,7 +430,7 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
             default= 100)#this set the initial text
 
         #iMaxValue=255
-        action_max_value = IntProperty(name="Clip Max",
+        action_max_value: IntProperty(name="Clip Max",
             description="Set the max value (clip higher values).",
             min=1,
             max=255,
@@ -438,7 +438,7 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
             default= 255)#this set the initial text
 
         #iMinValue=0
-        action_min_value = IntProperty(name="Clip Min",
+        action_min_value: IntProperty(name="Clip Min",
             description="Set the min value. (clip lower values)",
             min=0,
             max=255,
@@ -446,42 +446,42 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
             default= 0)#this set the initial text
 
         #iStartFrame=0#
-        frames_initial = IntProperty(name="Frame Ini",
+        frames_initial: IntProperty(name="Frame Ini",
             description="Where to start to put the computed values.",
             min=0,
             max=999999999,
             step=1,
             default= 0)
 
-        audio_channel_select = IntProperty(name="Audio Channel",
+        audio_channel_select: IntProperty(name="Audio Channel",
             description="Choose the audio channel to use",
             min=1,
             max=10,
             step=1,
             default= 1)
 
-        action_offset_x = FloatProperty(name="XOffset",
+        action_offset_x: FloatProperty(name="XOffset",
             description="Offset X Values",
             min=-999999,
             max=999999,
             step=1,
             default= 0)
 
-        action_offset_y = FloatProperty(name="YOffset",
+        action_offset_y: FloatProperty(name="YOffset",
             description="Offset Y Values",
             min=-999999,
             max=999999,
             step=1,
             default= 0)
 
-        action_offset_z = FloatProperty(name="ZOffset",
+        action_offset_z: FloatProperty(name="ZOffset",
             description="Offset Z Values",
             min=-999999,
             max=999999,
             step=1,
             default= 0)
 
-        import_type= EnumProperty(items=(('imp_t_Scale', "Scale", "Apply to Scale"),
+        import_type: EnumProperty(items=(('imp_t_Scale', "Scale", "Apply to Scale"),
                                          ('imp_t_Rotation', "Rotation", "Apply to Rotation"),
                                          ('imp_t_Location', "Location", "Apply to Location")
                                         ),
@@ -489,7 +489,7 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
                                  description= "Property to Import Values",
                                  default='imp_t_Location')
 
-        import_where1= EnumProperty(items=(('imp_w_-z', "-z", "Apply to -z"),
+        import_where1: EnumProperty(items=(('imp_w_-z', "-z", "Apply to -z"),
                                           ('imp_w_-y', "-y", "Apply to -y"),
                                           ('imp_w_-x', "-x", "Apply to -x"),
                                           ('imp_w_z', "z", "Apply to z"),
@@ -500,7 +500,7 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
                                  description= "Where to Import",
                                  default='imp_w_z')
 
-        import_where2= EnumProperty(items=(('imp_w_none', "None", ""),
+        import_where2: EnumProperty(items=(('imp_w_none', "None", ""),
                                           ('imp_w_-z', "-z", "Apply to -z"),
                                           ('imp_w_-y', "-y", "Apply to -y"),
                                           ('imp_w_-x', "-x", "Apply to -x"),
@@ -512,7 +512,7 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
                                  description= "Where to Import",
                                  default='imp_w_none')
 
-        import_where3= EnumProperty(items=(('imp_w_none', "None", ""),
+        import_where3: EnumProperty(items=(('imp_w_none', "None", ""),
                                           ('imp_w_-z', "-z", "Apply to -z"),
                                           ('imp_w_-y', "-y", "Apply to -y"),
                                           ('imp_w_-x', "-x", "Apply to -x"),
@@ -528,56 +528,56 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
         #========== Propriedades boolean  =============#
 
         #  INVERTIDO!!!  bNaoValorIgual=True    # nao deixa repetir valores     INVERTIDO!!!
-        action_valor_igual = BoolProperty(name="Hard Transition",
+        action_valor_igual: BoolProperty(name="Hard Transition",
             description="Use to movements like a mouth, to a arm movement, maybe you will not use this.",
             default=1)
 
-        action_auto_audio_sense = BoolProperty(name="Auto Audio Sensitivity",
+        action_auto_audio_sense: BoolProperty(name="Auto Audio Sensitivity",
             description="Try to discover best audio scale. ",
             default=1)
 
-        use_just_beat=BoolProperty(name="Just Use The Beat",
+        use_just_beat:BoolProperty(name="Just Use The Beat",
             description="Try to use just the beat to extract movement.",
             default=0)
 
-        remove_beat=BoolProperty(name="Remove The Beat",
+        remove_beat:BoolProperty(name="Remove The Beat",
             description="Try to remove the beat to extract movement.",
             default=0)
 
-        beat_more_sensible=BoolProperty(name="More Sensible",
+        beat_more_sensible:BoolProperty(name="More Sensible",
             description="Try To be more sensible about the beat.",
             default=0)
 
-        beat_less_sensible=BoolProperty(name="Less Sensible",
+        beat_less_sensible:BoolProperty(name="Less Sensible",
             description="Try to be less sensible about the beat.",
             default=0)
 
-        check_smartrender_loc_rot_sc=BoolProperty(name="Loc Rot Scale",
+        check_smartrender_loc_rot_sc:BoolProperty(name="Loc Rot Scale",
             description="Find changes in Location, Rotation and Scale Frame by Frame.",
             default=1)
 
-        check_smartrender_material_basic=BoolProperty(name="Basic Material",
+        check_smartrender_material_basic:BoolProperty(name="Basic Material",
             description="Find changes in basic material settings Frame by Frame.",
             default=1)
 
-        check_smartrender_material_transparence=BoolProperty(name="Material Transparence",
+        check_smartrender_material_transparence:BoolProperty(name="Material Transparence",
             description="Find changes in material transparence settings Frame by Frame.",
             default=0)
 
-        check_smartrender_material_mirror=BoolProperty(name="Material Mirror",
+        check_smartrender_material_mirror:BoolProperty(name="Material Mirror",
             description="Find changes in material mirror settings Frame by Frame.",
             default=0)
 
-        timer_reset_func=BoolProperty(name="Reset Counters",
+        timer_reset_func:BoolProperty(name="Reset Counters",
             description="Reset Counters after stop",
             default=0)
 
-        cancel_button_hit=BoolProperty(name="Cancel Hit",
+        cancel_button_hit:BoolProperty(name="Cancel Hit",
             description="Cancel Hit",
             default=0)
 
         #  Optimization
-        optimization_destructive = IntProperty(name="Optimization",
+        optimization_destructive: IntProperty(name="Optimization",
             description="Hi value = Hi optimization -> Hi loss of information.",
             min=0,
             max=254,
@@ -588,16 +588,16 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
         # not defined
         # Direct=1
         # Driver=2
-        bTypeImport = IntProperty(name="",
+        bTypeImport: IntProperty(name="",
             description="Import Direct or Driver",
             default=0)
 
         # globais do dialog open wave
-        filter_glob = StringProperty(default="*.wav", options={'HIDDEN'})
-        path =        StringProperty(name="File Path", description="Filepath used for importing the WAV file", \
+        filter_glob: StringProperty(default="*.wav", options={'HIDDEN'})
+        path:        StringProperty(name="File Path", description="Filepath used for importing the WAV file", \
                                                                                         maxlen= 1024, default= "")
-        filename =    StringProperty(name="File Name", description="Name of the file")
-        directory =   StringProperty(name="Directory", description="Directory of the file")
+        filename:    StringProperty(name="File Name", description="Name of the file")
+        directory:   StringProperty(name="Directory", description="Directory of the file")
 
 from bpy.props import *
 

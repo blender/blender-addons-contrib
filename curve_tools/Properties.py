@@ -40,7 +40,7 @@ class CurveTools2SelectedObjectHeader(bpy.types.Header):
 
 
 class CurveTools2SelectedObject(bpy.types.PropertyGroup):
-    name = StringProperty(name = "name", default = "??")
+    name: StringProperty(name = "name", default = "??")
 
 
     @staticmethod

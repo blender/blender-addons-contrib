@@ -321,21 +321,21 @@ class ImportOSM(Operator, ImportHelper):
 
     # ExportHelper mixin class uses this
     filename_ext = ".osm"
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
             default="*.osm",
             options={'HIDDEN'},
             )
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    scale = FloatProperty(
+    scale: FloatProperty(
             name="Scale",
             default=100.0,
             )
-    utm = BoolProperty(
+    utm: BoolProperty(
             name="in UTM coordinates",
             default=True,
             )
-    tag = BoolProperty(
+    tag: BoolProperty(
             name="retrieve .osm tags as vertex groups",
             default=False,
             )

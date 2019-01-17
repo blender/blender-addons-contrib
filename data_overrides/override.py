@@ -55,10 +55,10 @@ class OverrideCustomProperty(PropertyGroup):
             return
 
 class Override(PropertyGroup):
-    id_name = StringProperty(name="ID Name", description="Name of the overridden ID datablock")
-    id_library = StringProperty(name="ID Library", description="Library file path of the overridden ID datablock")
+    id_name: StringProperty(name="ID Name", description="Name of the overridden ID datablock")
+    id_library: StringProperty(name="ID Library", description="Library file path of the overridden ID datablock")
 
-    show_expanded = BoolProperty(name="Show Expanded", description="Expand override details in the interface", default=True)
+    show_expanded: BoolProperty(name="Show Expanded", description="Expand override details in the interface", default=True)
 
     def add_custom_property(self, name):
         prop = self.custom_properties.get(name, None)

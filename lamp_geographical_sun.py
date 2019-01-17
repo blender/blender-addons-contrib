@@ -419,7 +419,7 @@ class OBJECT_OT_set_geographical_location_preset(Operator):
     bl_label = "Apply location preset"
     bl_description = "Update the settings with the data from the chosen city location"
 
-    index = IntProperty()
+    index: IntProperty()
 
     @classmethod
     def poll(cls, context):
@@ -481,53 +481,53 @@ class OBJECT_MT_geo_sun_location_world_cities(Menu):
 
 
 class SUNGEO_GeoSunProperties(PropertyGroup):
-    minute = IntProperty(
+    minute: IntProperty(
             name="Minute",
             min=0,
             max=59,
             default=today.minute
             )
-    hour = IntProperty(
+    hour: IntProperty(
             name="Hour",
             min=0,
             max=24,
             default=today.hour
             )
-    day = IntProperty(
+    day: IntProperty(
             name="Day",
             min=1,
             max=31,
             default=today.day
             )
-    month = IntProperty(
+    month: IntProperty(
             name="Month",
             min=1,
             max=12,
             default=today.month
             )
-    year = IntProperty(
+    year: IntProperty(
             name="Year",
             min=datetime.MINYEAR,
             max=datetime.MAXYEAR,
             default=today.year
             )
-    tz = IntProperty(
+    tz: IntProperty(
             name="Time Zone",
             min=-13,
             max=13,
             default=time.timezone
             )
-    dst = BoolProperty(
+    dst: BoolProperty(
             name="Daylight saving time",
             default=False
             )
-    lat = FloatProperty(
+    lat: FloatProperty(
             name="Latitude",
             min=-180.0,
             max=180.0,
             default=0.0
             )
-    longt = FloatProperty(
+    longt: FloatProperty(
             name="Longitude",
             min=-90.0,
             max=90.0,

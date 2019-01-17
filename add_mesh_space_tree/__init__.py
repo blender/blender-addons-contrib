@@ -631,7 +631,7 @@ class SCATree(bpy.types.Operator):
     bl_description = "Generate a tree using a space colonization algorithm"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    internodeLength = FloatProperty(
+    internodeLength: FloatProperty(
         name="Internode Length",
         description="Internode length in Blender Units",
         default=0.75,
@@ -640,35 +640,35 @@ class SCATree(bpy.types.Operator):
         subtype='DISTANCE',
         unit='LENGTH'
     )
-    killDistance = FloatProperty(
+    killDistance: FloatProperty(
         name="Kill Distance",
         description="Kill Distance as a multiple of the internode length",
         default=3,
         min=0.01,
         soft_max=100.0
     )
-    influenceRange = FloatProperty(
+    influenceRange: FloatProperty(
         name="Influence Range",
         description="Influence Range as a multiple of the internode length",
         default=15,
         min=0.01,
         soft_max=100.0
     )
-    tropism = FloatProperty(
+    tropism: FloatProperty(
         name="Tropism",
         description="The tendency of branches to bend up or down",
         default=0,
         min=-1.0,
         soft_max=1.0
     )
-    power = FloatProperty(
+    power: FloatProperty(
         name="Power",
         description="Tapering power of branch connections",
         default=0.3,
         min=0.01,
         soft_max=1.0
     )
-    scale = FloatProperty(
+    scale: FloatProperty(
         name="Scale",
         description="Branch size",
         default=0.01,
@@ -677,103 +677,103 @@ class SCATree(bpy.types.Operator):
     )
     # the group related properties are not saved as presets because on reload
     # no groups with the same names might exist, causing an exception
-    useGroups = BoolProperty(
+    useGroups: BoolProperty(
         name="Use object groups",
         options={'ANIMATABLE', 'SKIP_SAVE'},
         description="Use groups of objects to specify marker distribution",
         default=False
     )
-    crownGroup = EnumProperty(
+    crownGroup: EnumProperty(
         items=availableGroups,
         options={'ANIMATABLE', 'SKIP_SAVE'},
         name='Crown Group',
         description='Group of objects that specify crown shape'
     )
-    shadowGroup = EnumProperty(
+    shadowGroup: EnumProperty(
         items=availableGroupsOrNone,
         options={'ANIMATABLE', 'SKIP_SAVE'},
         name='Shadow Group',
         description='Group of objects subtracted from the crown shape'
     )
-    exclusionGroup = EnumProperty(
+    exclusionGroup: EnumProperty(
         items=availableGroupsOrNone,
         options={'ANIMATABLE', 'SKIP_SAVE'},
         name='Exclusion Group',
         description='Group of objects that will not be penetrated by growing branches'
     )
-    useTrunkGroup = BoolProperty(
+    useTrunkGroup: BoolProperty(
         name="Use trunk group",
         options={'ANIMATABLE', 'SKIP_SAVE'},
         description="Use the locations of a group of objects to "
                     "specify trunk starting points instead of 3d cursor",
         default=False
     )
-    trunkGroup = EnumProperty(
+    trunkGroup: EnumProperty(
         items=availableGroups,
         options={'ANIMATABLE', 'SKIP_SAVE'},
         name='Trunk Group',
         description='Group of objects whose locations specify trunk starting points'
     )
-    crownSize = FloatProperty(
+    crownSize: FloatProperty(
         name="Crown Size",
         description="Crown size",
         default=5,
         min=1,
         soft_max=29
     )
-    crownShape = FloatProperty(
+    crownShape: FloatProperty(
         name="Crown Shape",
         description="Crown shape",
         default=1,
         min=0.2,
         soft_max=5
     )
-    crownOffset = FloatProperty(
+    crownOffset: FloatProperty(
         name="Crown Offset",
         description="Crown offset (the length of the bole)",
         default=3,
         min=0,
         soft_max=20.0
     )
-    surfaceBias = FloatProperty(
+    surfaceBias: FloatProperty(
         name="Surface Bias",
         description="Surface bias (how much markers are favored near the surface)",
         default=1,
         min=-10,
         soft_max=10
     )
-    topBias = FloatProperty(
+    topBias: FloatProperty(
         name="Top Bias",
         description="Top bias (how much markers are favored near the top)",
         default=1,
         min=-10,
         soft_max=10
     )
-    randomSeed = IntProperty(
+    randomSeed: IntProperty(
         name="Random Seed",
         description="The seed governing random generation",
         default=0,
         min=0
     )
-    maxIterations = IntProperty(
+    maxIterations: IntProperty(
         name="Maximum Iterations",
         description="The maximum number of iterations allowed for tree generation",
         default=40,
         min=0
     )
-    numberOfEndpoints = IntProperty(
+    numberOfEndpoints: IntProperty(
         name="Number of Endpoints",
         description="The number of endpoints generated in the growing volume",
         default=100,
         min=0
     )
-    newEndPointsPer1000 = IntProperty(
+    newEndPointsPer1000: IntProperty(
         name="Number of new Endpoints",
         description="The number of new endpoints generated in the growing volume per thousand iterations",
         default=0,
         min=0
     )
-    maxTime = FloatProperty(
+    maxTime: FloatProperty(
         name="Maximum Time",
         description=("The maximum time to run the generation for "
                     "in seconds/generation (0.0 = Disabled). Currently ignored"),
@@ -781,139 +781,139 @@ class SCATree(bpy.types.Operator):
         min=0.0,
         soft_max=10
     )
-    pLeaf = FloatProperty(
+    pLeaf: FloatProperty(
         name="Leaves per internode",
         description=("The average number of leaves per internode"),
         default=0.5,
         min=0.0,
         soft_max=4
     )
-    bLeaf = FloatProperty(
+    bLeaf: FloatProperty(
         name="Leaf clustering",
         description=("How much leaves cluster to the end of the internode"),
         default=1,
         min=1,
         soft_max=4
     )
-    leafSize = FloatProperty(
+    leafSize: FloatProperty(
         name="Leaf Size",
         description=("The leaf size"),
         default=0.5,
         min=0.0,
         soft_max=1
     )
-    leafRandomSize = FloatProperty(
+    leafRandomSize: FloatProperty(
         name="Leaf Random Size",
         description=("The amount of randomness to add to the leaf size"),
         default=0.1,
         min=0.0,
         soft_max=10
     )
-    leafRandomRot = FloatProperty(
+    leafRandomRot: FloatProperty(
         name="Leaf Random Rotation",
         description=("The amount of random rotation to add to the leaf"),
         default=0.1,
         min=0.0,
         soft_max=1
     )
-    connectoffset = FloatProperty(
+    connectoffset: FloatProperty(
         name="Connect Offset",
         description=("Offset of leaf to twig"),
         default=-0.1
     )
-    leafMaxConnections = IntProperty(
+    leafMaxConnections: IntProperty(
         name="Max Connections",
         description="The maximum number of connections of an internode elegible for a leaf",
         default=2,
         min=0
     )
-    addLeaves = BoolProperty(
+    addLeaves: BoolProperty(
         name="Add Leaves",
         default=False
     )
-    objectName = EnumProperty(
+    objectName: EnumProperty(
         items=availableObjects,
         options={'ANIMATABLE', 'SKIP_SAVE'},
         name='Object Name',
         description='Name of additional objects to duplicate at the branchpoints'
     )
-    pObject = FloatProperty(
+    pObject: FloatProperty(
         name="Objects per internode",
         description=("The average number of objects per internode"),
         default=0.3,
         min=0.0,
         soft_max=1
     )
-    bObject = FloatProperty(
+    bObject: FloatProperty(
         name="Object clustering",
         description=("How much objects cluster to the end of the internode"),
         default=1,
         min=1,
         soft_max=4
     )
-    objectSize = FloatProperty(
+    objectSize: FloatProperty(
         name="Object Size",
         description=("The object size"),
         default=1,
         min=0.0,
         soft_max=2
     )
-    objectRandomSize = FloatProperty(
+    objectRandomSize: FloatProperty(
         name="Object Random Size",
         description=("The amount of randomness to add to the object size"),
         default=0.1,
         min=0.0,
         soft_max=10
     )
-    objectRandomRot = FloatProperty(
+    objectRandomRot: FloatProperty(
         name="Object Random Rotation",
         description=("The amount of random rotation to add to the object"),
         default=0.1,
         min=0.0,
         soft_max=1
     )
-    objectMaxConnections = IntProperty(
+    objectMaxConnections: IntProperty(
         name="Max Connections for Object",
         description="The maximum number of connections of an internode elegible for a object",
         default=1,
         min=0
     )
-    addObjects = BoolProperty(
+    addObjects: BoolProperty(
         name="Add Objects",
         default=False
     )
-    updateTree = BoolProperty(
+    updateTree: BoolProperty(
         name="Update Tree",
         default=False
     )
-    noModifiers = BoolProperty(
+    noModifiers: BoolProperty(
         name="No Modifers",
         default=True
     )
-    subSurface = BoolProperty(
+    subSurface: BoolProperty(
         name="Sub Surface",
         default=False,
         description="Add subsurface modifier to trunk skin"
     )
-    skinMethod = EnumProperty(
+    skinMethod: EnumProperty(
         items=[('NATIVE', 'Native', 'Built in skinning method', 1),
                ('BLENDER', 'Skin modifier', 'Use Blenders skin modifier', 2)],
         options={'ANIMATABLE', 'SKIP_SAVE'},
         name='Skinning method',
         description='How to add a surface to the trunk skeleton'
     )
-    showMarkers = BoolProperty(
+    showMarkers: BoolProperty(
         name="Show Markers",
         default=False
     )
-    markerScale = FloatProperty(
+    markerScale: FloatProperty(
         name="Marker Scale",
         description=("The size of the markers"),
         default=0.05,
         min=0.001,
         soft_max=0.2
     )
-    timePerformance = BoolProperty(
+    timePerformance: BoolProperty(
         name="Time performance",
         default=False,
         description="Show duration of generation steps on console"

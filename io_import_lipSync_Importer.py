@@ -299,7 +299,7 @@ class btn_blinker(bpy.types.Operator):
 # defining custom enumeratos
 class menuTypes(bpy.types.PropertyGroup):
 
-    enumFileTypes = EnumProperty(
+    enumFileTypes: EnumProperty(
             items=(('0', 'Papagayo', ''),
                     ('1', 'Jlipsync Or Yolo', '')
                     # ('2', 'Retarget', '')
@@ -307,58 +307,58 @@ class menuTypes(bpy.types.PropertyGroup):
             name='Choose FileType',
             default='0'
             )
-    enumBlinkTypes = EnumProperty(
+    enumBlinkTypes: EnumProperty(
             items=(('0', 'Specific', ''),
                     ('1', 'Random', '')),
             name='Choose BlinkType',
             default='0'
             )
-    enumModeTypes = EnumProperty(
+    enumModeTypes: EnumProperty(
             items=(('0', 'Lipsyncer', ''),
                    ('1', 'Blinker', '')),
             name='Choose Mode',
             default='0'
             )
 
-    fpath = StringProperty(
+    fpath: StringProperty(
             name="Import File ",
             description="Select your voice file",
             subtype="FILE_PATH"
             )
-    skscale = FloatProperty(
+    skscale: FloatProperty(
             description="Smoothing shape key values",
             min=0.1, max=1.0,
             default=0.8
             )
-    offset = IntProperty(
+    offset: IntProperty(
             description="Offset your frames",
             default=0
             )
-    easeIn = IntProperty(
+    easeIn: IntProperty(
             description="Smoothing In curve",
             min=1, default=3
             )
-    easeOut = IntProperty(
+    easeOut: IntProperty(
             description="Smoothing Out curve",
             min=1,
             default=3
             )
-    holdGap = IntProperty(
+    holdGap: IntProperty(
             description="Holding for slow keys",
             min=0,
             default=0
             )
-    blinkSp = IntProperty(
+    blinkSp: IntProperty(
             description="Space between blinks",
             min=1,
             default=100
             )
-    blinkNm = IntProperty(
+    blinkNm: IntProperty(
             description="Number of blinks",
             min=1,
             default=10
             )
-    blinkMod = IntProperty(
+    blinkMod: IntProperty(
             description="Randomzing keyframe placment",
             min=1,
             default=10

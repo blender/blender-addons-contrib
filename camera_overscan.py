@@ -141,35 +141,35 @@ def RO_Menu(self, context):
 
 
 class camera_overscan_props(PropertyGroup):
-    RO_Activate = BoolProperty(
+    RO_Activate: BoolProperty(
                         default=False,
                         description="Enable/Disable Camera Overscan\n"
                                     "Affects the active Scene Camera only\n"
                                     "(Objects as cameras are not supported)",
                         update=RO_Update
                         )
-    RO_Custom_Res_X = IntProperty(
+    RO_Custom_Res_X: IntProperty(
                         default=0,
                         min=0,
                         max=65536,
                         update=RO_Update
                         )
-    RO_Custom_Res_Y = IntProperty(
+    RO_Custom_Res_Y: IntProperty(
                         default=0,
                         min=0,
                         max=65536,
                         update=RO_Update
                         )
-    RO_Safe_Res_X = FloatProperty()
-    RO_Safe_Res_Y = FloatProperty()
+    RO_Safe_Res_X: FloatProperty()
+    RO_Safe_Res_Y: FloatProperty()
 
     # the hard limit is sys.max which is too much, used 65536 instead
-    RO_Safe_SensorSize = FloatProperty(
+    RO_Safe_SensorSize: FloatProperty(
                         default=-1,
                         min=-1,
                         max=65536
                         )
-    RO_Safe_SensorFit = StringProperty()
+    RO_Safe_SensorFit: StringProperty()
 
 
 def register():

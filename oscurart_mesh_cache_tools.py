@@ -32,23 +32,23 @@ from bpy.app.handlers import persistent
 
 
 class OscurartMeshCacheModifiersSettings(PropertyGroup):
-    array = BoolProperty(default=True)
-    bevel = BoolProperty(default=True)
-    boolean = BoolProperty(default=True)
-    build = BoolProperty(default=True)
-    decimate = BoolProperty(default=True)
-    edge_split = BoolProperty(default=True)
-    mask = BoolProperty(default=True)
-    mirror = BoolProperty(default=True)
-    multires = BoolProperty(default=True)
-    remesh = BoolProperty(default=True)
-    screw = BoolProperty(default=True)
-    skin = BoolProperty(default=True)
-    solidify = BoolProperty(default=True)
-    subsurf = BoolProperty(default=True)
-    triangulate = BoolProperty(default=True)
-    wireframe = BoolProperty(default=True)
-    cloth = BoolProperty(default=True)
+    array: BoolProperty(default=True)
+    bevel: BoolProperty(default=True)
+    boolean: BoolProperty(default=True)
+    build: BoolProperty(default=True)
+    decimate: BoolProperty(default=True)
+    edge_split: BoolProperty(default=True)
+    mask: BoolProperty(default=True)
+    mirror: BoolProperty(default=True)
+    multires: BoolProperty(default=True)
+    remesh: BoolProperty(default=True)
+    screw: BoolProperty(default=True)
+    skin: BoolProperty(default=True)
+    solidify: BoolProperty(default=True)
+    subsurf: BoolProperty(default=True)
+    triangulate: BoolProperty(default=True)
+    wireframe: BoolProperty(default=True)
+    cloth: BoolProperty(default=True)
 
 
 # ----------------- AUTO LOAD PROXY
@@ -78,11 +78,11 @@ class RemuevePropiedades(Operator):
 
 
 class OscurartMeshCacheSceneAutoLoad(PropertyGroup):
-    name = StringProperty(
+    name: StringProperty(
             name="GroupName",
             default=""
             )
-    use_auto_load = BoolProperty(
+    use_auto_load: BoolProperty(
             name="Bool",
             default=False
             )
@@ -397,7 +397,7 @@ class OscurartMeshCacheToolsAddonPreferences(AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __name__
 
-    category = StringProperty(
+    category: StringProperty(
             name="Category",
             description="Choose a name for the category of the panel",
             default="Tools",

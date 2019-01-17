@@ -402,7 +402,7 @@ class CubeMapSetup(Operator):
     bl_label = "Cube Map Render Setup"
     bl_description = ""
 
-    action = bpy.props.EnumProperty(
+    action: bpy.props.EnumProperty(
         description="",
         items=(("SETUP", "Setup", "Created linked scenes and setup cube map"),
                ("RESET", "Reset", "Delete added scenes"),
@@ -520,54 +520,54 @@ class RENDER_PT_cube_map(Panel):
 # ############################################################
 
 class CubeMapInfo(bpy.types.PropertyGroup):
-    use_cube_map = BoolProperty(
+    use_cube_map: BoolProperty(
             name="Cube Map",
             default=False,
             )
 
-    is_temporary = BoolProperty(
+    is_temporary: BoolProperty(
             name="Temporary",
             default=False,
             )
 
-    is_enabled = BoolProperty(
+    is_enabled: BoolProperty(
             name="Enabled",
             default=False,
             )
 
     # per view settings
-    is_advanced = BoolProperty(
+    is_advanced: BoolProperty(
             name="Advanced",
             default=False,
             description="Decide which views to render",
             )
 
-    use_view_north = BoolProperty(
+    use_view_north: BoolProperty(
             name="North",
             default=True,
             )
 
-    use_view_south = BoolProperty(
+    use_view_south: BoolProperty(
             name="South",
             default=True,
             )
 
-    use_view_west = BoolProperty(
+    use_view_west: BoolProperty(
             name="West",
             default=True,
             )
 
-    use_view_east = BoolProperty(
+    use_view_east: BoolProperty(
             name="East",
             default=True,
             )
 
-    use_view_zenith = BoolProperty(
+    use_view_zenith: BoolProperty(
             name="Zenith",
             default=True,
             )
 
-    use_view_nadir = BoolProperty(
+    use_view_nadir: BoolProperty(
             name="Nadir",
             default=True,
             )

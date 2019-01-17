@@ -658,26 +658,26 @@ def opengl_lamp_buttons(column, lamp):
 class gllightpreset(bpy.types.PropertyGroup):
 
     props=bpy.props
-    name = props.StringProperty(update=gllightpreset_name)
+    name: props.StringProperty(update=gllightpreset_name)
 
-    illuminated0 = props.BoolProperty(default = True)
-    illuminated1 = props.BoolProperty(default = True)
-    illuminated2 = props.BoolProperty(default = True)
+    illuminated0: props.BoolProperty(default = True)
+    illuminated1: props.BoolProperty(default = True)
+    illuminated2: props.BoolProperty(default = True)
 
-    direction0 = props.FloatVectorProperty(name="",  default=(-0.8920, 0.3000, 0.8999))
-    direction1 = props.FloatVectorProperty(name="",  default=(0.5880, 0.4600, 0.2480))
-    direction2 = props.FloatVectorProperty(name="",  default=(0.2159, -0.3920, -0.2159))
+    direction0: props.FloatVectorProperty(name="",  default=(-0.8920, 0.3000, 0.8999))
+    direction1: props.FloatVectorProperty(name="",  default=(0.5880, 0.4600, 0.2480))
+    direction2: props.FloatVectorProperty(name="",  default=(0.2159, -0.3920, -0.2159))
 
-    diffuse0 = props.FloatVectorProperty(name="",  default=(0.8000, 0.8000, 0.8000))
-    diffuse1 = props.FloatVectorProperty(name="",  default=(0.4980, 0.5000, 0.6000))
-    diffuse2 = props.FloatVectorProperty(name="",  default=(0.7980, 0.8379, 1.0))
+    diffuse0: props.FloatVectorProperty(name="",  default=(0.8000, 0.8000, 0.8000))
+    diffuse1: props.FloatVectorProperty(name="",  default=(0.4980, 0.5000, 0.6000))
+    diffuse2: props.FloatVectorProperty(name="",  default=(0.7980, 0.8379, 1.0))
 
-    specular0 = props.FloatVectorProperty(name="",  default=(0.5, 0.5, 0.5))
-    specular1 = props.FloatVectorProperty(name="",  default=(0.2000, 0.2000, 0.2000))
-    specular2 = props.FloatVectorProperty(name="",  default=(0.0659, 0.0, 0.0))
+    specular0: props.FloatVectorProperty(name="",  default=(0.5, 0.5, 0.5))
+    specular1: props.FloatVectorProperty(name="",  default=(0.2000, 0.2000, 0.2000))
+    specular2: props.FloatVectorProperty(name="",  default=(0.0659, 0.0, 0.0))
 
-    count = props.IntProperty(name="", default=0)
-    count2 = props.IntProperty(name="", default=0)
+    count: props.IntProperty(name="", default=0)
+    count2: props.IntProperty(name="", default=0)
 
 class SCENE_OT_gllightpreset(bpy.types.Operator):
     bl_label ="Preset Action"
@@ -686,7 +686,7 @@ class SCENE_OT_gllightpreset(bpy.types.Operator):
     #alias
 
 
-    button=bpy.props.StringProperty(default="")
+    button:bpy.props.StringProperty(default="")
 
     def execute(self, context):
         scn=bpy.context.scene
@@ -867,58 +867,58 @@ class quickprefproperties(bpy.types.PropertyGroup):
                     type=cls,
                     )
             #strings for file IO
-            cls.gllightpreset_importfile = StringProperty(name = "",
+            cls.gllightpreset_importfile: StringProperty(name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
 
-            cls.gllightpreset_importdirectory = StringProperty(name = "",
+            cls.gllightpreset_importdirectory: StringProperty(name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
 
-            cls.gllightpreset_exportfile = StringProperty(name = "",
+            cls.gllightpreset_exportfile: StringProperty(name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
 
-            cls.gllightpreset_exportdirectory = StringProperty(
+            cls.gllightpreset_exportdirectory: StringProperty(
                     name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
 
-            cls.gllights = BoolProperty(
+            cls.gllights: BoolProperty(
                     name='Lights',
                     default=True
                     )
 
-            cls.gllightPresets = BoolProperty(
+            cls.gllightPresets: BoolProperty(
                     name='GL Light Presets',
                     default=True
                     )
 
-            cls.interface = BoolProperty(
+            cls.interface: BoolProperty(
                     name='Interface',
                     default=True
                     )
 
-            cls.importexport = BoolProperty(
+            cls.importexport: BoolProperty(
                     name='Import/Export',
                     default=True
                     )
 
-            cls.gllights = BoolProperty(
+            cls.gllights: BoolProperty(
                     name='Lights',
                     default=True
                     )
 
             #important storage of stuff
-            cls.gllightpreset = CollectionProperty(
+            cls.gllightpreset: CollectionProperty(
                     type=gllightpreset
                     )
 
-            cls.gllightpreset_index = IntProperty(
+            cls.gllightpreset_index: IntProperty(
                     min=0,
                     default=0,
                     update=gllightpreset_index

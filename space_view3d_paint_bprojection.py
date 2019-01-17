@@ -292,12 +292,12 @@ def update_style_clone(self, context):
 
 
 class custom_props(PropertyGroup):
-    custom_fnlevel = IntProperty(
+    custom_fnlevel: IntProperty(
                         name="Fast navigate level",
                         description="Increase or decrease the SubSurf level, decrease make navigation faster",
                         default=0,
                         )
-    custom_location = FloatVectorProperty(
+    custom_location: FloatVectorProperty(
                         name="Location",
                         description="Location of the plane",
                         default=(1.0, 0, -1.0),
@@ -307,13 +307,13 @@ class custom_props(PropertyGroup):
                         step=0.1,
                         size=3,
                         )
-    custom_rotation = FloatProperty(
+    custom_rotation: FloatProperty(
                         name="Rotation",
                         description="Rotate the plane",
                         min=-180, max=180,
                         default=0
                         )
-    custom_scale = FloatVectorProperty(
+    custom_scale: FloatVectorProperty(
                         name="Scales",
                         description="Scale the planes",
                         default=(1.0, 1.0),
@@ -325,7 +325,7 @@ class custom_props(PropertyGroup):
                         step=0.1,
                         size=2,
                         )
-    custom_propscale = FloatProperty(
+    custom_propscale: FloatProperty(
                         name="PropScale",
                         description="Scale the Plane",
                         default=1.0,
@@ -336,12 +336,12 @@ class custom_props(PropertyGroup):
                         step=0.1
                         )
 
-    custom_linkscale = BoolProperty(
+    custom_linkscale: BoolProperty(
                         name="linkscale",
                         default=True
                         )
     # UV properties
-    custom_scaleuv = FloatVectorProperty(
+    custom_scaleuv: FloatVectorProperty(
                         name="ScaleUV",
                         description="Scale the texture's UV",
                         default=(1.0, 1.0),
@@ -349,53 +349,53 @@ class custom_props(PropertyGroup):
                         subtype='XYZ',
                         size=2
                         )
-    custom_propscaleuv = FloatProperty(
+    custom_propscaleuv: FloatProperty(
                         name="PropScaleUV",
                         description="Scale the texture's UV",
                         default=1.0,
                         min=0.01
                         )
-    custom_offsetuv = FloatVectorProperty(
+    custom_offsetuv: FloatVectorProperty(
                         name="OffsetUV",
                         description="Decal the texture's UV",
                         default=(0.0, 0.0),
                         subtype='XYZ',
                         size=2
                         )
-    custom_linkscaleuv = BoolProperty(
+    custom_linkscaleuv: BoolProperty(
                         name="linkscaleUV",
                         default=True)
-    custom_flipuvx = BoolProperty(
+    custom_flipuvx: BoolProperty(
                         name="flipuvx",
                         default=False
                         )
-    custom_flipuvy = BoolProperty(
+    custom_flipuvy: BoolProperty(
                         name="flipuvy",
                         default=False
                         )
     # other properties
-    custom_active = BoolProperty(
+    custom_active: BoolProperty(
                         name="custom_active",
                         default=True
                         )
-    custom_expand = BoolProperty(
+    custom_expand: BoolProperty(
                         name="expand",
                         default=False
                         )
-    custom_style_clone = BoolProperty(
+    custom_style_clone: BoolProperty(
                         name="custom_style_clone",
                         default=False
                         )
-    custom_active_view = StringProperty(
+    custom_active_view: StringProperty(
                         name="custom_active_view",
                         default="View",
                         update=update_activeviewname
                         )
-    custom_image = StringProperty(
+    custom_image: StringProperty(
                         name="custom_image",
                         default=""
                         )
-    custom_index = IntProperty()
+    custom_index: IntProperty()
 
 
 # Function to create custom properties
@@ -633,7 +633,7 @@ class SaveView(Operator):
     bl_idname = "object.save_view"
     bl_label = "copy the view"
 
-    index = IntProperty(default=0)
+    index: IntProperty(default=0)
 
     def execute(self, context):
         em = bpy.data.objects[BProjection_Empty]
@@ -661,7 +661,7 @@ class PasteView(Operator):
     bl_idname = "object.paste_view"
     bl_label = "paste the view"
 
-    index = IntProperty(default=0)
+    index: IntProperty(default=0)
 
     def execute(self, context):
         em = bpy.data.objects[BProjection_Empty]
@@ -696,7 +696,7 @@ class RemoveView(Operator):
     bl_idname = "object.remove_view"
     bl_label = "Rmeove the view"
 
-    index = IntProperty(default=0)
+    index: IntProperty(default=0)
 
     def execute(self, context):
         ob = context.object
@@ -734,7 +734,7 @@ class ActiveView(Operator):
     bl_idname = "object.active_view"
     bl_label = "Active the view"
 
-    index = IntProperty(default=0)
+    index: IntProperty(default=0)
 
     def execute(self, context):
         ob = context.object
@@ -2029,7 +2029,7 @@ class ZoomView3D(Operator):
     bl_idname = "view3d.zoom_view3d"
     bl_label = "Zoom View3D"
 
-    delta = FloatProperty(
+    delta: FloatProperty(
         name="delta",
         description="Delta",
         min=-1.0, max=1,
@@ -2085,7 +2085,7 @@ class PresetView3D(Operator):
     bl_idname = "view3d.preset_view3d"
     bl_label = "Preset View3D"
 
-    view = StringProperty(name="View", description="Select the view", default='TOP')
+    view: StringProperty(name="View", description="Select the view", default='TOP')
 
     def invoke(self, context, event):
         ob = context.object

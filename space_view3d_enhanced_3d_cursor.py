@@ -3273,14 +3273,14 @@ class PseudoIDBlockBase(bpy.types.PropertyGroup):
             self.on_item_select()
         # end def
 
-        collection = bpy.props.CollectionProperty(
+        collection: bpy.props.CollectionProperty(
             type=type)
-        active = bpy.props.StringProperty(
+        active: bpy.props.StringProperty(
             name="Name",
             description="Name of the active {}".format(name),
             options=options,
             update=active_update)
-        enum = bpy.props.EnumProperty(
+        enum: bpy.props.EnumProperty(
             items=[],
             name="Choose",
             description="Choose {}".format(name),
@@ -3419,11 +3419,11 @@ class PseudoIDBlockBase(bpy.types.PropertyGroup):
 
 # ===== TRANSFORM EXTRA OPTIONS ===== #
 class TransformExtraOptionsProp(bpy.types.PropertyGroup):
-    use_relative_coords = bpy.props.BoolProperty(
+    use_relative_coords: bpy.props.BoolProperty(
         name="Relative coordinates",
         description="Consider existing transformation as the starting point",
         default=True)
-    snap_interpolate_normals_mode = bpy.props.EnumProperty(
+    snap_interpolate_normals_mode: bpy.props.EnumProperty(
         items=[('NEVER', "Never", "Don't interpolate normals"),
                ('ALWAYS', "Always", "Always interpolate normals"),
                ('SMOOTH', "Smoothness-based", "Interpolate normals only "\
@@ -3431,17 +3431,17 @@ class TransformExtraOptionsProp(bpy.types.PropertyGroup):
         name="Normal interpolation",
         description="Normal interpolation mode for snapping",
         default='SMOOTH')
-    snap_only_to_solid = bpy.props.BoolProperty(
+    snap_only_to_solid: bpy.props.BoolProperty(
         name="Snap only to solid",
         description="Ignore wireframe/non-solid objects during snapping",
         default=False)
-    snap_element_screen_size = bpy.props.IntProperty(
+    snap_element_screen_size: bpy.props.IntProperty(
         name="Snap distance",
         description="Radius in pixels for snapping to edges/vertices",
         default=8,
         min=2,
         max=64)
-    use_comma_separator = bpy.props.BoolProperty(
+    use_comma_separator: bpy.props.BoolProperty(
         name="Use comma separator",
         description="Use comma separator when copying/pasting"\
                     "coordinate values (instead of Tab character)",
@@ -3450,7 +3450,7 @@ class TransformExtraOptionsProp(bpy.types.PropertyGroup):
 
 # ===== 3D VECTOR LOCATION ===== #
 class LocationProp(bpy.types.PropertyGroup):
-    pos = bpy.props.FloatVectorProperty(
+    pos: bpy.props.FloatVectorProperty(
         name="xyz", description="xyz coords",
         options={'HIDDEN'}, subtype='XYZ')
 
@@ -3537,27 +3537,27 @@ class CursorHistoryProp(bpy.types.PropertyGroup):
 
     update_cursor_on_id_change = True
 
-    show_trace = bpy.props.BoolProperty(
+    show_trace: bpy.props.BoolProperty(
         name="Trace",
         description="Show history trace",
         default=False)
-    max_size = bpy.props.StringProperty(
+    max_size: bpy.props.StringProperty(
         name="Size",
         description="History max size",
         default=str(50),
         update=update_history_max_size)
-    current_id = bpy.props.IntProperty(
+    current_id: bpy.props.IntProperty(
         name="Index",
         description="Current position in cursor location history",
         default=50,
         min=0,
         max=50,
         update=update_history_id)
-    entries = bpy.props.CollectionProperty(
+    entries: bpy.props.CollectionProperty(
         type=LocationProp)
 
-    curr_id = bpy.props.IntProperty(options={'HIDDEN'})
-    last_id = bpy.props.IntProperty(options={'HIDDEN'})
+    curr_id: bpy.props.IntProperty(options={'HIDDEN'})
+    last_id: bpy.props.IntProperty(options={'HIDDEN'})
 
     def get_pos(self, id = None):
         if id is None:
@@ -3609,10 +3609,10 @@ class CursorHistoryProp(bpy.types.PropertyGroup):
 
 # ===== BOOKMARK ===== #
 class BookmarkProp(bpy.types.PropertyGroup):
-    name = bpy.props.StringProperty(
+    name: bpy.props.StringProperty(
         name="name", description="bookmark name",
         options={'HIDDEN'})
-    pos = bpy.props.FloatVectorProperty(
+    pos: bpy.props.FloatVectorProperty(
         name="xyz", description="xyz coords",
         options={'HIDDEN'}, subtype='XYZ')
 
@@ -3635,7 +3635,7 @@ class NewCursor3DBookmark(bpy.types.Operator):
     bl_label = "New Bookmark"
     bl_description = "Add a new bookmark"
 
-    name = bpy.props.StringProperty(
+    name: bpy.props.StringProperty(
         name="Name",
         description="Name of the new bookmark",
         default="Mark")
@@ -3841,13 +3841,13 @@ class AddEmptyAtCursor3DBookmark(bpy.types.Operator):
 
 # ===== BOOKMARK LIBRARY ===== #
 class BookmarkLibraryProp(bpy.types.PropertyGroup):
-    name = bpy.props.StringProperty(
+    name: bpy.props.StringProperty(
         name="Name", description="Name of the bookmark library",
         options={'HIDDEN'})
     bookmarks = bpy.props.PointerProperty(
         type=BookmarkIDBlock,
         options={'HIDDEN'})
-    system = bpy.props.EnumProperty(
+    system: bpy.props.EnumProperty(
         items=[
             ('GLOBAL', "Global", "Global (absolute) coordinates"),
             ('LOCAL', "Local", "Local coordinate system, "\
@@ -3864,7 +3864,7 @@ class BookmarkLibraryProp(bpy.types.PropertyGroup):
         description="Coordinate system in which to store/recall "\
                     "cursor locations",
         options={'HIDDEN'})
-    offset = bpy.props.BoolProperty(
+    offset: bpy.props.BoolProperty(
         name="Offset",
         description="Store/recall relative to the last cursor position",
         default=False,
@@ -4014,7 +4014,7 @@ class NewCursor3DBookmarkLibrary(bpy.types.Operator):
     bl_label = "New Library"
     bl_description = "Add a new bookmark library"
 
-    name = bpy.props.StringProperty(
+    name: bpy.props.StringProperty(
         name="Name",
         description="Name of the new library",
         default="Lib")
@@ -4048,7 +4048,7 @@ class Cursor3DToolsSettings(bpy.types.PropertyGroup):
         type=TransformExtraOptionsProp,
         options={'HIDDEN'})
 
-    cursor_visible = bpy.props.BoolProperty(
+    cursor_visible: bpy.props.BoolProperty(
         name="Cursor visibility",
         description="Show/hide cursor. When hidden, "\
 "Blender continuously redraws itself (eats CPU like crazy, "\
@@ -4120,27 +4120,27 @@ class Cursor3DToolsSettings(bpy.types.PropertyGroup):
         default=True)
 
 class Cursor3DToolsSceneSettings(bpy.types.PropertyGroup):
-    stick_obj_name = bpy.props.StringProperty(
+    stick_obj_name: bpy.props.StringProperty(
         name="Stick-to-object name",
         description="Name of the object to stick cursor to",
         options={'HIDDEN'})
-    stick_obj_pos = bpy.props.FloatVectorProperty(
+    stick_obj_pos: bpy.props.FloatVectorProperty(
         default=(0.0, 0.0, 0.0),
         options={'HIDDEN'},
         subtype='XYZ')
 
 # ===== CURSOR RUNTIME PROPERTIES ===== #
 class CursorRuntimeSettings(bpy.types.PropertyGroup):
-    current_monitor_id = bpy.props.IntProperty(
+    current_monitor_id: bpy.props.IntProperty(
         default=0,
         options={'HIDDEN'})
 
-    surface_pos = bpy.props.FloatVectorProperty(
+    surface_pos: bpy.props.FloatVectorProperty(
         default=(0.0, 0.0, 0.0),
         options={'HIDDEN'},
         subtype='XYZ')
 
-    use_cursor_monitor = bpy.props.BoolProperty(
+    use_cursor_monitor: bpy.props.BoolProperty(
         name="Enable Cursor Monitor",
         description="Record 3D cursor history "\
             "(uses a background modal operator)",
@@ -4293,7 +4293,7 @@ class SetCursorDialog(bpy.types.Operator):
     bl_label = "Set 3D Cursor"
     bl_description = "Set 3D Cursor XYZ values"
 
-    pos = bpy.props.FloatVectorProperty(
+    pos: bpy.props.FloatVectorProperty(
         name="Location",
         description="3D Cursor location in current coordinate system",
         subtype='XYZ',
@@ -4470,13 +4470,13 @@ class AlignOrientationProperties(bpy.types.PropertyGroup):
 
         return orients
 
-    src_axis = bpy.props.EnumProperty(default='Z', items=axes_items,
+    src_axis: bpy.props.EnumProperty(default='Z', items=axes_items,
                                       name="Initial axis")
     #src_orient = bpy.props.EnumProperty(default='GLOBAL', items=get_orients)
 
-    dest_axis = bpy.props.EnumProperty(default=' ', items=axes_items_,
+    dest_axis: bpy.props.EnumProperty(default=' ', items=axes_items_,
                                        name="Final axis")
-    dest_orient = bpy.props.EnumProperty(items=get_orients,
+    dest_orient: bpy.props.EnumProperty(items=get_orients,
                                          name="Final orientation")
 
 class AlignOrientation(bpy.types.Operator):
@@ -4519,13 +4519,13 @@ class AlignOrientation(bpy.types.Operator):
 
         return orients
 
-    src_axis = bpy.props.EnumProperty(default='Z', items=axes_items,
+    src_axis: bpy.props.EnumProperty(default='Z', items=axes_items,
                                       name="Initial axis")
     #src_orient = bpy.props.EnumProperty(default='GLOBAL', items=get_orients)
 
-    dest_axis = bpy.props.EnumProperty(default=' ', items=axes_items_,
+    dest_axis: bpy.props.EnumProperty(default=' ', items=axes_items_,
                                        name="Final axis")
-    dest_orient = bpy.props.EnumProperty(items=get_orients,
+    dest_orient: bpy.props.EnumProperty(items=get_orients,
                                          name="Final orientation")
 
     @classmethod
@@ -5625,11 +5625,11 @@ class ThisAddonPreferences(bpy.types.AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __name__
 
-    auto_register_keymaps = bpy.props.BoolProperty(
+    auto_register_keymaps: bpy.props.BoolProperty(
         name="Auto Register Keymaps",
         default=True)
 
-    use_cursor_monitor = bpy.props.BoolProperty(
+    use_cursor_monitor: bpy.props.BoolProperty(
         name="Enable Cursor Monitor",
         description="Cursor monitor is a background modal operator "\
             "that records 3D cursor history",

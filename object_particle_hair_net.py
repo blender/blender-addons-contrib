@@ -422,7 +422,7 @@ class HairNet (bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Makes hair guides from mesh edges."
 
-    meshKind = StringProperty()
+    meshKind: StringProperty()
 
     targetHead = False
     headObj = 0

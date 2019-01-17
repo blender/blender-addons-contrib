@@ -295,8 +295,8 @@ class XEditMeasureInputPanel(bpy.types.Operator):
     bl_label = "XEdit Measure Input Panel"
     bl_options = {'INTERNAL'}
 
-    float_new_meas = bpy.props.FloatProperty(name="Measurement")
-    prev_meas = bpy.props.EnumProperty(
+    float_new_meas: bpy.props.FloatProperty(name="Measurement")
+    prev_meas: bpy.props.EnumProperty(
                     items=make_popup_enums,
                     name="Last measure",
                     description="Last 5 measurements entered")

@@ -115,7 +115,7 @@ def node_search_path(context):
 class NodeTemplatePrefs(AddonPreferences):
     bl_idname = __name__
 
-    search_path = StringProperty(
+    search_path: StringProperty(
             name="Directory of blend files with node-groups",
             subtype='DIR_PATH',
             )
@@ -132,10 +132,10 @@ class NODE_OT_template_add(Operator):
     bl_description = "Add node group template"
     bl_options = {'REGISTER', 'UNDO'}
 
-    filepath = StringProperty(
+    filepath: StringProperty(
             subtype='FILE_PATH',
             )
-    group_name = StringProperty(
+    group_name: StringProperty(
             )
 
     def execute(self, context):
