@@ -251,14 +251,14 @@ class add_castle(bpy.types.Operator):
     # current wall level parameter value display.
     CLvl: IntProperty(name="Level", min=1, max=LVL_MAX, default=1)
 
-#    curLvl=CLvl
+    #    curLvl=CLvl
 
     # block sizing
     blockX: FloatProperty(name="Width", min=BLOCK_MIN, max=BLOCK_MAX, default=BLOCK_XDEF)
     blockZ: FloatProperty(name="Height", min=BLOCK_MIN, max=BLOCK_MAX, default=BLOCK_XDEF)
     blockD: FloatProperty(name="Depth", min=BLOCK_MIN, max=BLOCK_MAX, default=BLOCK_DDEF)
-# allow 0 for test cases...
-#    blockD=FloatProperty(name="Depth",min=0,max=BLOCK_MAX,default=BLOCK_DDEF)
+    # allow 0 for test cases...
+    #    blockD=FloatProperty(name="Depth",min=0,max=BLOCK_MAX,default=BLOCK_DDEF)
 
     blockVar: BoolProperty(name="Vary", default=True, description="Randomize block sizing")
 
@@ -268,7 +268,7 @@ class add_castle(bpy.types.Operator):
 
     blockMerge: BoolProperty(name="Merge", default=True, description="Merge closely adjoining blocks")
 
-# @todo: fix edgeing for mis-matched row sizing (or just call it a feature).
+    # @todo: fix edgeing for mis-matched row sizing (or just call it a feature).
     EdgeOffset: FloatProperty(name="Edging", min=0, max=HALF_WALL, default=0.25, description="stagger wall ends")
 
     # block spacing
@@ -277,12 +277,12 @@ class add_castle(bpy.types.Operator):
     wallRGB: FloatVectorProperty(min=0, max=1, default=(0.5, 0.5, 0.5), subtype='COLOR', size=3)
 
 
-# track height with each level...?
+    # track height with each level...?
     wallH: FloatProperty(name="Height", min=WALL_MIN, max=WALL_MAX, default=WALL_DEF)
 
     # floor per level - LVL_MAX
-# Base, always true (primary object/parent)
-#    CFloor1=BoolProperty(default=True)
+    # Base, always true (primary object/parent)
+    #    CFloor1=BoolProperty(default=True)
     CFloor2: BoolProperty(default=False)
     CFloor3: BoolProperty(default=False)
     CFloor4: BoolProperty(default=False)
@@ -383,7 +383,7 @@ class add_castle(bpy.types.Operator):
     wallRO9: BoolProperty(default=False)
     wallRO10: BoolProperty(default=False)
 
-#    CRoof=BoolProperty(name="Roof",default=False)
+    #    CRoof=BoolProperty(name="Roof",default=False)
 
     # Select wall modifier option to view/edit
     wallOpView: EnumProperty(items=(
@@ -395,7 +395,7 @@ class add_castle(bpy.types.Operator):
         ("6", "Shelf", ""),
     ),
         name="", description="View/Edit wall modifiers", default="1")
-# could add material selection for step and shelf...
+    # could add material selection for step and shelf...
 
     # Radiating from one point - round (disc), with slope makes dome.
     cDome: BoolProperty(name='Dome', default=False)
@@ -460,7 +460,7 @@ class add_castle(bpy.types.Operator):
     wallDR10: BoolProperty(default=False)
 
     # Slots, embrasure - classical slit for arrow/rifle ports.
-# need to prevent overlap with arch openings - though inversion is an interesting effect.
+    # need to prevent overlap with arch openings - though inversion is an interesting effect.
     SlotVW: FloatProperty(name="Width", min=BLOCK_MIN, max=HALF_WALL, default=0.5)
     SlotVH: FloatProperty(name="Height", min=BLOCK_MIN, max=HALF_WALL, default=3.5)
     SlotVL: FloatProperty(name="Indent", min=-WALL_MAX, max=WALL_MAX, default=0, description="The x position or spacing")
@@ -569,7 +569,7 @@ class add_castle(bpy.types.Operator):
     wallPR10: BoolProperty(default=False)
 
     # Crenel = "gaps" on top of wall.
-# review and determine min for % - should allow less...
+    # review and determine min for % - should allow less...
     CrenelXP: FloatProperty(name="Width %", min=0.10, max=1.0, default=0.15)
     CrenelZP: FloatProperty(name="Height %", min=0.10, max=1.0, default=0.10)
 
@@ -618,12 +618,12 @@ class add_castle(bpy.types.Operator):
     wallCR10: BoolProperty(default=False)
 
     # shelf location and size.
-# see "balcony" options for improved capabilities.
-# should limit x and z to wall boundaries
+    # see "balcony" options for improved capabilities.
+    # should limit x and z to wall boundaries
     ShelfX: FloatProperty(name="XOff", min=-WALL_MAX, max=WALL_MAX, default=-(WALL_DEF / 2), description="x origin")
     ShelfZ: FloatProperty(name="Base", min=-WALL_MAX, max=WALL_MAX, default=WALL_DEF, description="z origin")
     ShelfW: FloatProperty(name="Width", min=BLOCK_MIN, max=WALL_MAX, default=WALL_DEF, description="The Width of shelf area")
-# height seems to be double, check usage
+    # height seems to be double, check usage
     ShelfH: FloatProperty(name="Height", min=BLOCK_MIN, max=HALF_WALL, default=0.5, description="The Height of Shelf area")
     ShelfD: FloatProperty(name="Depth", min=BLOCK_MIN, max=WALL_MAX, default=BLOCK_DDEF, description="Depth of shelf")
     ShelfOut: BoolProperty(name="Out", default=True, description="Position outside of wall")
@@ -729,26 +729,26 @@ class add_castle(bpy.types.Operator):
     wallSR10: BoolProperty(default=False)
 
     # Experimental options
-# allow per wall and level?
+    # allow per wall and level?
     cXTest: BoolProperty(default=False)
     # wall shape modifiers
     # make the wall circular - if not curved it's a flat disc
     # Radiating from one point - round/disc; instead of square
-#    wallDisc=BoolProperty(default=False,description="Make wall disc")
+    #    wallDisc=BoolProperty(default=False,description="Make wall disc")
     # Warp/slope/curve wall - abstract use only (except for dome use)
     wallSlope: BoolProperty(default=False, description="Curve wall")  # top to bottom mid
     CTunnel: BoolProperty(default=False, description="Tunnel wall")  # bottom to top mid
-# rotate tunnel?...
+    # rotate tunnel?...
     CTower: BoolProperty(name='Tower', default=False)
 
-##
-####
-################################################################################
-# Show the UI - present properties to user.
+    ##
+    ####
+    ############################################################################
+    # Show the UI - present properties to user.
     # Display the toolbox options
-################################################################################
-####
-##
+    ############################################################################
+    ####
+    ##
     def draw(self, context):
 
         layout = self.layout
@@ -762,8 +762,9 @@ class add_castle(bpy.types.Operator):
         row = box.row()
         row.prop(self, 'cBaseW')
         row.prop(self, 'cBaseD')
-# this is 0 until more complex settings allowed... like repeat or per-level (like wall) selection.
-#        box.prop(self,'cBaseO') # vert offset from 3D cursor
+        # this is 0 until more complex settings allowed... like repeat or
+        # per-level (like wall) selection.
+        #        box.prop(self,'cBaseO') # vert offset from 3D cursor
 
         box.prop(self, 'cBaseT', text="Thickness")  # height/thickness of floor.
         row = box.row()
@@ -918,11 +919,11 @@ class add_castle(bpy.types.Operator):
             row.prop(self, 'cDomeRGB', text='')
             box.prop(self, 'cDomeH')
             box.prop(self, 'cDomeZ')
-# Oculus - opening in top of dome
-#            box.prop(self,'cDomeO')
+        # Oculus - opening in top of dome
+        #            box.prop(self,'cDomeO')
 
         # abstract/experimental
-# Use "icon="MESH_CONE" for roof
+        # Use "icon="MESH_CONE" for roof
         box = layout.box()
         row = box.row()
         row.prop(self, 'cXTest', text='Experimental')
@@ -930,14 +931,15 @@ class add_castle(bpy.types.Operator):
             box.prop(self, 'wallSlope', text='Curve')
             box.prop(self, 'CTunnel', text='Tunnel', icon="CURVE_DATA")
             box.prop(self, 'CTower', text='Tower', icon="CURVE_DATA")
-##
-####
-################################################################################
-# Respond to UI - process the properties set by user.
-    # Check and process UI settings to generate castle.
-################################################################################
-####
-##
+
+    ##
+    ####
+    ############################################################################
+    # Respond to UI - process the properties set by user.
+        # Check and process UI settings to generate castle.
+    ############################################################################
+    ####
+    ##
 
     def execute(self, context):
 
@@ -975,23 +977,23 @@ class add_castle(bpy.types.Operator):
             self.properties.cBaseD = minWallW
         CastleD = self.properties.cBaseD
         midWallD = (CastleD + blockDepth) / 2
-#        midWallD=CastleD/2
-#        midWallD=(CastleD-blockDepth)/2
+        #        midWallD=CastleD/2
+        #        midWallD=(CastleD-blockDepth)/2
 
         # gap cannot reduce block below minimum.
         if self.properties.Grout > blockHeight / 2 - BLOCK_MIN:
             self.properties.Grout = blockHeight / 2 - BLOCK_MIN
 
         # Variance limit for minimum block height.
-# not quite right, but usuable.
+        # not quite right, but usuable.
         blockHMin = self.properties.Grout + BLOCK_MIN
 
         # floor "thickness" cannot exceed block height
         if self.properties.cBaseT > blockHeight:
             self.properties.cBaseT = blockHeight
 
-############
-#
+        ############
+        #
         if self.properties.cDome:
             # base can't be lower than floor
             # consider limiting base to roof or wall height by levels?
@@ -1017,30 +1019,32 @@ class add_castle(bpy.types.Operator):
             # Dome Oculus (opening) can't be more than half dome height
             if self.properties.cDomeO > domeMaxO:
                 self.properties.cDomeO = domeMaxO
-#
-############
-#####
-#
-# After validating all the properties see if need to create...
-# @todo: fix so last object preserved... (i.e. changing levels).
+
+        #
+        ############
+        #####
+        #
+        # After validating all the properties see if need to create...
+        # @todo: fix so last object preserved... (i.e. changing levels).
         # No build if construct off
         if not self.properties.ConstructTog:
             # No build if construct off or just changing levels
             #        if not self.properties.ConstructTog or self.properties.curLvl!=self.properties.CLvl:
             #            self.properties.curLvl=self.properties.CLvl
             return {'FINISHED'}
-#
-#####
-############
-#
+
+        #
+        #####
+        ############
+        #
         # rowprocessing() front/back wall, modified by sides and Dome.
-# this centers the wall, maybe add flag to center or offset from cursor...
-# if centerwall:
+        # this centers the wall, maybe add flag to center or offset from cursor...
+        # if centerwall:
         dims['s'] = -midWallW
         dims['e'] = midWallW
-# else:
-#        dims['s'] = 0
-#        dims['e'] = CastleX
+        # else:
+        #        dims['s'] = 0
+        #        dims['e'] = CastleX
 
         dims['t'] = planeHL
 
@@ -1064,22 +1068,23 @@ class add_castle(bpy.types.Operator):
 
         settings['eoff'] = self.properties.EdgeOffset
 
-# when openings overlap they create inverse stonework - interesting but not the desired effect
-# if opening width == indent*2 the edge blocks fail (row of blocks cross opening) - bug.
+        # when openings overlap they create inverse stonework - interesting but not the desired effect
+        # if opening width == indent*2 the edge blocks fail (row of blocks cross opening) - bug.
         openingSpecs = []
         archTop = [0, 0]
         archBot = [0, 0]
-#
-############
-#
-# Openings always set info; flag per wall, per level to enable.
-#
-############
-#
-############
-# Door
-        # set locals
-# @todo: fix this....
+
+        #
+        ############
+        #
+        # Openings always set info; flag per wall, per level to enable.
+        #
+        ############
+        #
+        ############
+        # Door
+            # set locals
+        # @todo: fix this....
         openZ = self.properties.cBaseT + 1  # track with floor - else 0
 
         if self.properties.doorArch:
@@ -1093,8 +1098,8 @@ class add_castle(bpy.types.Operator):
                           'n': self.properties.doorRpt, 'bvl': self.properties.doorBvl,
                           'v': archTop[0], 'vl':archBot[0], 't':archTop[1], 'tl':archBot[1]}]
 
-############
-# Window
+        ############
+        # Window
         archTop[0] = 0
         archTop[1] = 0
         archBot[0] = 0
@@ -1115,12 +1120,12 @@ class add_castle(bpy.types.Operator):
                           'n': self.properties.wallPortRpt, 'bvl': self.properties.wallPortBvl,
                           'v': archTop[0], 'vl':archBot[0], 't':archTop[1], 'tl':archBot[1]}]
 
-############
-# crenellation, top wall gaps...
-# if crenel opening overlaps with arch opening it fills with blocks...
+        ############
+        # crenellation, top wall gaps...
+        # if crenel opening overlaps with arch opening it fills with blocks...
         archTop[0] = 0
         archTop[1] = 0
-# add bottom arch option?
+        # add bottom arch option?
         archBot[0] = 0
         archBot[1] = 0
 
@@ -1141,8 +1146,8 @@ class add_castle(bpy.types.Operator):
                           'n': crenelRpt, 'bvl': 0,
                           'v': archTop[0], 'vl':archBot[0], 't':archTop[1], 'tl':archBot[1]}]
 
-############
-# Slots
+        ############
+        # Slots
         archTop[0] = 0
         archTop[1] = 0
         archBot[0] = 0
@@ -1162,25 +1167,25 @@ class add_castle(bpy.types.Operator):
                           'n': self.properties.SlotVRpt, 'bvl': 0,
                           'v': archTop[0], 'vl':archBot[0], 't':archTop[1], 'tl':archBot[1]}]
 
-##
-####
-################################################################################
-# Process the user settings to generate castle.
-################################################################################
-####
-##
+        ##
+        ####
+        ########################################################################
+        # Process the user settings to generate castle.
+        ########################################################################
+        ####
+        ##
         # Deselect all objects.
         bpy.ops.object.select_all(action='DESELECT')
 
-############
-# Base/floor/foundation, main object for Castle, parent to all other elements.
+        ############
+        # Base/floor/foundation, main object for Castle, parent to all other elements.
         wallExtOpts = [False, False]  # no steps or shelf
-# @todo: offset door by floor height/thickness
-# @todo: replicate for "multi-floor" option-shared with roof.
-#  - will need openings (in plane) for stairs and such...
+        # @todo: offset door by floor height/thickness
+        # @todo: replicate for "multi-floor" option-shared with roof.
+        #  - will need openings (in plane) for stairs and such...
         settings['Slope'] = False  # no curve
         settings['eoff'] = 0  # no edgeing
-# need separate flag for floor/roof...
+        # need separate flag for floor/roof...
         settings['Radial'] = False
 
         baseMtl = uMatRGBSet('cBase_mat', self.cBaseRGB, matMod=True)
@@ -1240,8 +1245,8 @@ class add_castle(bpy.types.Operator):
             castleScene.objects.link(castleObj)  # must do for generation/rotation
 
 
-####################
-# Make Floor and Walls
+        ####################
+        # Make Floor and Walls
         wallMtl = uMatRGBSet('cWall_mat', self.wallRGB, matMod=True)
 
         # Block floor uses wall to generate... reset location values.
@@ -1605,8 +1610,8 @@ class add_castle(bpy.types.Operator):
             if self.properties.CBaseB:  # if blocks for floor can make disc.
                 floorDisc = self.properties.CBaseR
 
-############
-# make floor for each level
+            ############
+            # make floor for each level
             if floorLvl:
                 objName = OBJ_CF + str(wallLvl)
 
@@ -1633,8 +1638,8 @@ class add_castle(bpy.types.Operator):
 
                 floorObj.parent = castleObj  # Connect to parent
 
-############
-# make walls for each level
+            ############
+            # make walls for each level
             wallSides = [wallFLvl, wallLLvl, wallBLvl, wallRLvl]
             # Wall modifiers, per level, per wall (FBLR not FLBR order to match wall build sequence).
             wallMods = [[wallDLvlF, wallPLvlF, wallELvlF, wallCLvlF, wallSLvlF, wallBLvlF, wallFOLvl],
@@ -1647,8 +1652,8 @@ class add_castle(bpy.types.Operator):
             makeWalls(self, castleScene, castleObj, wallSides, wallMods, wallLoc, wallMtl, wallLvl, floorDisc)
             wallLvl += 1
 
-####################
-# Make "Tower"
+        ####################
+        # Make "Tower"
         if self.properties.cXTest and self.properties.CTower:
             # no steps or shelf for tower...
             wallExtOpts[0] = False
@@ -1671,17 +1676,17 @@ class add_castle(bpy.types.Operator):
             cTower1Obj = makeWallObj(self, castleScene, wallLoc, "CTower1", blockArea, [], wallExtOpts, wallMtl)
 
             cTower1Obj.select = True  # must select to rotate
-# rotate 90 forward (face plant)...
-#            bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[True,False,False])
-# rotate 90 ccw along side
+            # rotate 90 forward (face plant)...
+            #            bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[True,False,False])
+            # rotate 90 ccw along side
             bpy.ops.transform.rotate(value=-cPieHlf, constraint_axis=[False, True, False])
             bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
             cTower1Obj.select = False  # deselect after rotate else joined with others...
 
             cTower1Obj.parent = castleObj  # Connect to parent
 
-####################
-# Make "Dome"
+        ####################
+        # Make "Dome"
         settings['Radial'] = self.properties.cDome
         if self.properties.cDome:
             # no steps or shelf for dome...
@@ -1700,7 +1705,7 @@ class add_castle(bpy.types.Operator):
             # set block "area": height, width, depth, and spacing.
             blockArea = [self.properties.cDomeH, CastleX, blockDepth, self.properties.blockZ, settings['hv'], self.properties.Grout]
 
-# eliminate to allow user control for start/completion by width setting.
+            # eliminate to allow user control for start/completion by width setting.
             dims['s'] = 0.0  # complete radial
 
             if midWallD < midWallW:  # use shortest dimension for dome.
@@ -1773,7 +1778,7 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
     if floorDisc:  # make a disc shaped floor
         yMod = WobjY
 
-####################
+    ####################
     if objSides[0]:  # Make "front" wall
         objName = OBJ_WF + str(objLvl)
 
@@ -1819,7 +1824,7 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
             cFrontObj.location.z += WobjH / 2  # adjust vertical after rotate for radius
             cFrontObj.select = False  # deselect after rotate else joined with others...
 
-####################
+    ####################
     if objSides[2]:  # Make "back" wall
         objName = OBJ_WB + str(objLvl)
 
@@ -1870,17 +1875,17 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
 
         cBackObj.select = False  # de-select after rotate else joined with others...
 
-####################
+    ####################
     # set block "area": height, width, depth, and spacing for side walls...
     blockArea = [WobjH, WobjY - segWidth * 2, WobjD, sRef.properties.blockZ, settings['hv'], sRef.properties.Grout]
-#    blockArea=[WobjH,WobjY-segWidth,WobjD,sRef.properties.blockZ,settings['hv'],sRef.properties.Grout]
-#    blockArea=[WobjH,WobjY,WobjD,sRef.properties.blockZ,settings['hv'],sRef.properties.Grout]
+    #    blockArea=[WobjH,WobjY-segWidth,WobjD,sRef.properties.blockZ,settings['hv'],sRef.properties.Grout]
+    #    blockArea=[WobjH,WobjY,WobjD,sRef.properties.blockZ,settings['hv'],sRef.properties.Grout]
     # rowprocessing() side walls
     dims['s'] = -midWallD
     dims['e'] = midWallD
-####################
+    ####################
 
-####################
+    ####################
     if objSides[1]:  # Make "Left" wall
         objName = OBJ_WL + str(objLvl)
 
@@ -1901,7 +1906,7 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
         openingSpecs[OP_DOOR]['a'] = objMods[2][0]  # door
         openingSpecs[OP_PORT]['a'] = objMods[2][1]  # window
         openingSpecs[OP_SLOT]['a'] = objMods[2][2]  # slot
-# radius/round sizing wrong when crenel selected...
+        # radius/round sizing wrong when crenel selected...
         openingSpecs[OP_CREN]['a'] = objMods[2][3]  # crenel
         wallExtOpts[0] = objMods[2][4]  # steps
         wallExtOpts[1] = objMods[2][5]  # shelf
@@ -1917,7 +1922,7 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
             objLoc[1] = 0
         else:
             objLoc[1] = midWallD - (WobjD / 2)
-#        objLoc[1]=midWallD
+        #        objLoc[1]=midWallD
 
         # generate wall...
         cSideLObj = makeWallObj(sRef, objScene, objLoc, objName, blockArea, wallHoles, wallExtOpts, objMat)
@@ -1936,15 +1941,15 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
         else:
             # rotate 90 horizontal, cw...
             bpy.ops.transform.rotate(value=-cPieHlf, constraint_axis=[False, False, True])
-# rotate 90 forward (face plant)...
-#            bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[True,False,False])
-# rotate 90 cw along side
-#            bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[False,True,False])
+        # rotate 90 forward (face plant)...
+        #            bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[True,False,False])
+        # rotate 90 cw along side
+        #            bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[False,True,False])
 
         cSideLObj.select = False  # deselect after rotate else joined with others...
 
 
-####################
+    ####################
     if objSides[3]:  # Make "Right" wall
         objName = OBJ_WR + str(objLvl)
 
@@ -1983,7 +1988,7 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
 
         cSideRObj = makeWallObj(sRef, objScene, objLoc, objName, blockArea, wallHoles, wallExtOpts, objMat)
         cSideRObj.parent = objParent  # Connect to parent
-#        objScene.objects.active=cSideRObj
+        #        objScene.objects.active=cSideRObj
 
         cSideRObj.select = True  # must select to rotate
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
@@ -1995,13 +2000,13 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
         if sRef.properties.cXTest and sRef.properties.CTunnel:
             # rotate 90 horizontal, cw...
             bpy.ops.transform.rotate(value=-cPieHlf, constraint_axis=[False, False, True])
-# rotate 90 horizontal, ccw...
+        # rotate 90 horizontal, ccw...
         else:
             bpy.ops.transform.rotate(value=cPieHlf, constraint_axis=[False, False, True])
-# rotate 90 forward (face plant)...
-#        bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[True,False,False])
-# rotate 90 cw along side
-#        bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[False,True,False])
+        # rotate 90 forward (face plant)...
+        #        bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[True,False,False])
+        # rotate 90 cw along side
+        #        bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[False,True,False])
 
         cSideRObj.select = False  # deselect after rotate...
 
@@ -2019,8 +2024,8 @@ def makeWallObj(sRef, objScene, objLoc, objName, blockArea, openList, wallExtOpt
 
     newMesh = bpy.data.meshes.new(objName)
     newMesh.from_pydata(meshVs, [], meshFs)
-# doesn't seem to matter...
-#    newMesh.update(calc_edges=True)
+    # doesn't seem to matter...
+    #    newMesh.update(calc_edges=True)
     newMesh.materials.append(objMat)
 
     newObj = bpy.data.objects.new(objName, newMesh)
@@ -2049,7 +2054,7 @@ def makePlaneObj(objName, objArea, objMat, objDiv):
     objMesh = bpy.data.meshes.new(objName)
     objMesh.from_pydata(objVs, [], objFs)
     objMesh.update()
-#    objMesh.update(calc_edges=True) # doesn't seem to matter...
+    #    objMesh.update(calc_edges=True) # doesn't seem to matter...
     objMesh.materials.append(objMat)
 
     newObj = bpy.data.objects.new(objName, objMesh)
@@ -2104,7 +2109,7 @@ def wallPlan(sRef, blockArea, holeList):
     blockHMax = blockArea[3]
     blockHVar = blockArea[4]
     blockGap = blockArea[5]
-# this is wrong! should be...?
+    # this is wrong! should be...?
     blockHMin = BLOCK_MIN + blockGap
 
     # no variation for slopes so walls match curvature
@@ -2113,7 +2118,7 @@ def wallPlan(sRef, blockArea, holeList):
             blockHVar = 0
 
     rowHMin = blockHMin
-# alternate rowHMin=blockHMax-blockHVar+blockGap
+    # alternate rowHMin=blockHMax-blockHVar+blockGap
 
     # splits are a row division, for openings
     splits = [0]  # split bottom row
@@ -2125,7 +2130,7 @@ def wallPlan(sRef, blockArea, holeList):
     splits.sort()  # needed?
 
     # divs are the normal old row divisions, add them between the top and bottom split
-# what's with "[1:-1]" at end????
+    # what's with "[1:-1]" at end????
     divs = fill(splits[0], splits[-1], blockHMax, blockHMin, blockHVar)[1:-1]
 
     # remove the divisions that are too close to the splits, so we don't get tiny thin rows
@@ -2191,7 +2196,7 @@ def wallBuild(sRef, rows, holeList):
     rowCount = len(rows)
 
     wallTop = rows[rowCount - 1].z
-#    wallTop=sRef.properties.wallH
+    #    wallTop=sRef.properties.wallH
     wallTop2 = wallTop * 2
 
     wallDome = settings['Radial']
@@ -2213,7 +2218,7 @@ def wallBuild(sRef, rows, holeList):
         for rowidx in range(rowCount - 1):
             if wallDome:
                 blockSpace = blockGap / (wallTop * sin(abs(rows[rowidx].z) * cPie / wallTop2))
-#            else: blockSpace=blockGap/(abs(rows[rowidx].z)) # make it flat
+            #            else: blockSpace=blockGap/(abs(rows[rowidx].z)) # make it flat
 
             idxThis = len(rows[rowidx].BlocksNorm[:]) - 1
             idxThat = len(rows[rowidx + 1].BlocksNorm[:]) - 1
@@ -2247,9 +2252,9 @@ def wallBuild(sRef, rows, holeList):
                 else:
                     idxThat -= 1
 
-####
-# Add blocks to create a "shelf/platform".
-# Does not account for openings (crosses gaps - which is a good thing)
+    ####
+    # Add blocks to create a "shelf/platform".
+    # Does not account for openings (crosses gaps - which is a good thing)
     if settings['Shelf']:
 
         # Use wall block settings for shelf
@@ -2279,11 +2284,11 @@ def wallBuild(sRef, rows, holeList):
 
             ShelfBtm += shelfBH + halfGrout  # moving up to next row...
 
-# Set shelf material/color... on wish list.
+    # Set shelf material/color... on wish list.
 
-####
-# Add blocks to create "steps".
-# Does not account for openings (crosses gaps - which is a good thing)
+    ####
+    # Add blocks to create "steps".
+    # Does not account for openings (crosses gaps - which is a good thing)
     if settings['Steps']:
 
         stepsFill = settings['StepsB']
@@ -2342,14 +2347,14 @@ def wallBuild(sRef, rows, holeList):
             else:
                 StepLft += StepXMod  # move from left
 
-####
-# Copy all the blocks out of the rows
+    ####
+    # Copy all the blocks out of the rows
     for row in rows:
         AllBlocks += row.BlocksEdge
         AllBlocks += row.BlocksNorm
 
-####
-# make individual blocks for each block specified in the plan
+    ####
+    # make individual blocks for each block specified in the plan
     subDivision = settings['sdv']
 
     for block in AllBlocks:
@@ -2831,9 +2836,10 @@ class opening:
             r1 = 1
         bevel = self.b / r1
         return bevel
-#
-##
-#
+
+    #
+    ##
+    #
 
     def __init__(self, xpos, zpos, width, height, archHeight=0, archThk=0,
                  archHeightLower=0, archThkLower=0, bevel=0, edgeThk=0):
@@ -2872,6 +2878,7 @@ class opening:
         # self.form = something?
         self.b = float(bevel)
         self.ts = edgeThk
+
 #
 #
 # class for the whole wall boundaries; a sub-class of "opening"
@@ -2914,7 +2921,7 @@ class rowOb:
 
         # initialize internal variables from global settings
         SetH = settings['h']
-# no HVar?
+        # no HVar?
         SetWid = settings['w']
         SetWidVar = settings['wv']
         SetGrt = settings['g']
@@ -2953,7 +2960,7 @@ class rowOb:
         self.h = float(rowheight)
         self.rowEdge = float(rowEdge)
 
-# THIS INITILIZATION IS IMPORTANT!  OTHERWISE ALL OBJECTS WILL HAVE THE SAME LISTS!
+        # THIS INITILIZATION IS IMPORTANT!  OTHERWISE ALL OBJECTS WILL HAVE THE SAME LISTS!
         self.BlocksEdge = []
         self.RowSegments = []
         self.BlocksNorm = []
@@ -2993,7 +3000,7 @@ def arch(ra, rt, x, z, archStart, archEnd, bevel, bevAngle, vll):
     DepthBack = -SetDepth / 2 - rndc() * SetDepthVar
     DepthFront = SetDepth / 2 + rndc() * SetDepthVar
 
-# there's something wrong here...
+    # there's something wrong here...
     if wallDome:
         subdivision = settings['sdv']
     else:
@@ -3042,8 +3049,8 @@ def arch(ra, rt, x, z, archStart, archEnd, bevel, bevAngle, vll):
 
         if wallDome:
             r1 = wallTopZ * (sin(v2 * cPie / (wallTopZ * 2)))
-#            if settings['Slope']: r1 = wallTopZ*(sin(v2*cPie/(wallTopZ*2)))
-#            else: r1 = v2 # disc
+        #            if settings['Slope']: r1 = wallTopZ*(sin(v2*cPie/(wallTopZ*2)))
+        #            else: r1 = v2 # disc
             v0 = v0 / r1
 
         avlist[i] = [v0, v1, v2]
@@ -3077,7 +3084,7 @@ def wedgeBlocks(row, opening, leftPos, rightPos, edgeSide, r1):
         ThisBlockDepth = blockDepth + rndd() * blockDepthV
 
         LVert = -((row.z - ((row.h / 2) * edgeSide)) - opening.edgeV(x - halfBW, edgeSide))
-#        LVert =  -( row.z - (row.h/2)*edgeSide - (opening.edgeV(x-halfBW,edgeSide)))
+        #        LVert =  -( row.z - (row.h/2)*edgeSide - (opening.edgeV(x-halfBW,edgeSide)))
         RightVertOffset = -(row.z - (row.h / 2) * edgeSide - opening.edgeV(x + halfBW, edgeSide))
 
         # Wedges are on top = Voff, blank, Voff, blank
@@ -3125,7 +3132,7 @@ def rowProcessing(row, holeList, WallBoundaries):
     rowH2 = rowH / 2
     rowEdge = row.rowEdge / r1
     rowStart = dims['s'] + rowEdge
-# shouldn't rowEnd be minus rowEdge?
+    # shouldn't rowEnd be minus rowEdge?
     rowEnd = dims['e'] + rowEdge
     rowTop = row.z + rowH2
     rowBtm = row.z - rowH2
@@ -3155,8 +3162,8 @@ def rowProcessing(row, holeList, WallBoundaries):
             edgebtm.append([holeEdge[3], hole])
 
     # make the walls in order, sort the intersects.
-#  remove edge points that are out of order;
-#  else the "oddity" where opening overlap creates blocks inversely.
+    #  remove edge points that are out of order;
+    #  else the "oddity" where opening overlap creates blocks inversely.
     edgetop.sort()
     edgebtm.sort()
 
@@ -3230,7 +3237,7 @@ def rowProcessing(row, holeList, WallBoundaries):
         # check the left and right sides for wedge blocks
         # find the edge of the correct side, offset for minimum block height.  The LEB decides top or bottom
         ZPositionCheck = row.z + (rowH2 - blockHMin) * LEB
-# edgeS may return "None"
+        # edgeS may return "None"
         LeftWedgeEdge = leftOpening.edgeS(ZPositionCheck, 1)
 
         if (abs(LDiff) > blockWidth) or (not LeftWedgeEdge):
@@ -3245,7 +3252,7 @@ def rowProcessing(row, holeList, WallBoundaries):
         # Now do the wedge blocks for the right, same drill... repeated code?
         # find the edge of the correct side, offset for minimum block height.
         ZPositionCheck = row.z + (rowH2 - blockHMin) * rSide
-# edgeS may return "None"
+        # edgeS may return "None"
         RightWedgeEdge = rightOpening.edgeS(ZPositionCheck, -1)
         if (abs(RDiff) > blockWidth) or (not RightWedgeEdge):
             # make wedge blocks
@@ -3491,7 +3498,7 @@ def archGeneration(hole, vlist, flist, sideSign):
             xstart = holeW2
             zstart = z + sideSign * (h / 2 + blockGap / 2)
             woffset = archBWG * (blockHMin) / (c - blockGap / 2)
-#            woffset = archBWG*(BLOCK_MIN + blockGap/2)/(c - blockGap/2)
+            #            woffset = archBWG*(BLOCK_MIN + blockGap/2)/(c - blockGap/2)
             depth = blockDepth + (rndd() * blockDVar)
 
             if sideSign == 1:
@@ -3508,7 +3515,7 @@ def archGeneration(hole, vlist, flist, sideSign):
 
             avlist, aflist = MakeABlock([x - xstart - archBWG, x - xstart - woffset, btmSide, topSide, -depth / 2, depth / 2], subdivision, len(vlist), Offsets=offsets)
 
-# top didn't use radialized in prev version; just noting for clarity - may need to revise for "sideSign == 1"
+            # top didn't use radialized in prev version; just noting for clarity - may need to revise for "sideSign == 1"
             if settings['Radial']:
                 for i, vert in enumerate(avlist):
                     avlist[i] = [((vert[0] - x) / vert[2]) + x, vert[1], vert[2]]
@@ -3530,7 +3537,7 @@ def archGeneration(hole, vlist, flist, sideSign):
 
             avlist, aflist = MakeABlock([x + xstart + woffset, x + xstart + archBWG, btmSide, topSide, -depth / 2, depth / 2], subdivision, len(vlist), Offsets=offsets)
 
-# top didn't use radialized in prev version; just noting for clarity - may need to revise for "sideSign == 1"
+            # top didn't use radialized in prev version; just noting for clarity - may need to revise for "sideSign == 1"
             if settings['Radial']:
                 for i, vert in enumerate(avlist):
                     avlist[i] = [((vert[0] - x) / vert[2]) + x, vert[1], vert[2]]
