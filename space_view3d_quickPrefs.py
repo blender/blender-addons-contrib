@@ -867,58 +867,58 @@ class quickprefproperties(bpy.types.PropertyGroup):
                     type=cls,
                     )
             #strings for file IO
-            cls.gllightpreset_importfile: StringProperty(name = "",
+            cls.gllightpreset_importfile = StringProperty(name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
 
-            cls.gllightpreset_importdirectory: StringProperty(name = "",
+            cls.gllightpreset_importdirectory = StringProperty(name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
 
-            cls.gllightpreset_exportfile: StringProperty(name = "",
+            cls.gllightpreset_exportfile = StringProperty(name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
 
-            cls.gllightpreset_exportdirectory: StringProperty(
+            cls.gllightpreset_exportdirectory = StringProperty(
                     name = "",
                     subtype='FILE_PATH',
                     default=defaultfilepath
                     )
 
-            cls.gllights: BoolProperty(
+            cls.gllights = BoolProperty(
                     name='Lights',
                     default=True
                     )
 
-            cls.gllightPresets: BoolProperty(
+            cls.gllightPresets = BoolProperty(
                     name='GL Light Presets',
                     default=True
                     )
 
-            cls.interface: BoolProperty(
+            cls.interface = BoolProperty(
                     name='Interface',
                     default=True
                     )
 
-            cls.importexport: BoolProperty(
+            cls.importexport = BoolProperty(
                     name='Import/Export',
                     default=True
                     )
 
-            cls.gllights: BoolProperty(
+            cls.gllights = BoolProperty(
                     name='Lights',
                     default=True
                     )
 
             #important storage of stuff
-            cls.gllightpreset: CollectionProperty(
+            cls.gllightpreset = CollectionProperty(
                     type=gllightpreset
                     )
 
-            cls.gllightpreset_index: IntProperty(
+            cls.gllightpreset_index = IntProperty(
                     min=0,
                     default=0,
                     update=gllightpreset_index

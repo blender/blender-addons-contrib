@@ -3273,14 +3273,14 @@ class PseudoIDBlockBase(bpy.types.PropertyGroup):
             self.on_item_select()
         # end def
 
-        collection: bpy.props.CollectionProperty(
+        collection = bpy.props.CollectionProperty(
             type=type)
-        active: bpy.props.StringProperty(
+        active = bpy.props.StringProperty(
             name="Name",
             description="Name of the active {}".format(name),
             options=options,
             update=active_update)
-        enum: bpy.props.EnumProperty(
+        enum = bpy.props.EnumProperty(
             items=[],
             name="Choose",
             description="Choose {}".format(name),
