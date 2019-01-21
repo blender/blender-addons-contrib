@@ -322,7 +322,7 @@ class NPPSPrepareContext(bpy.types.Operator):
                 axis = (False, False, True)
             if flag_con: axis = (False, False, False)
             if flag_cenpivot: curloc = c3d
-            if flag_force: bpy.ops.object.transform_apply(rotation=True,scale=True)
+            if flag_force: bpy.ops.object.transform_apply(location=False,rotation=True,scale=True)
             bpy.context.scene.cursor_location = curloc
             NP020PS.axis = axis
 

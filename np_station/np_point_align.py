@@ -586,7 +586,7 @@ class NPPLAlignSelected(bpy.types.Operator):
                 np_print('fromme.vertices = ', fromme.vertices)
                 bpy.ops.object.select_all(action = 'DESELECT')
                 fromob.select = True
-                bpy.ops.object.transform_apply(rotation=True,scale=True)
+                bpy.ops.object.transform_apply(location=False,rotation=True,scale=True)
                 for ob in selob:
                     ob.select = True
                 scn.update()
@@ -604,7 +604,7 @@ class NPPLAlignSelected(bpy.types.Operator):
                     bpy.ops.transform.rotate(value = -rot_ang, axis = rot_axis)
                     bpy.ops.object.select_all(action = 'DESELECT')
                     fromob.select = True
-                    bpy.ops.object.transform_apply(rotation=True,scale=True)
+                    bpy.ops.object.transform_apply(location=False,rotation=True,scale=True)
                     for ob in selob:
                         ob.select = True
                     if ((tome.vertices[2].co - proj_t)).angle(((fromme.vertices[2].co + fromob.location) - proj_f)) != 0: bpy.ops.transform.rotate(value = 2*rot_ang, axis = rot_axis)
