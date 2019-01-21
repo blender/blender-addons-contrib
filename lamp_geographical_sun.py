@@ -30,7 +30,7 @@ bl_info = {
     "name": "Geographical Sun",
     "author": "Doug Hammond (dougal2)",
     "version": (0, 0, 2),
-    "blender": (2, 7, 0),
+    "blender": (2, 70, 0),
     "category": "Lighting",
     "location": "Lamp data > Geographical Sun",
     "warning": "",

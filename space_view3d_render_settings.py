@@ -20,7 +20,7 @@ bl_info = {
     "name": "Render Settings",
     "author": "meta-androcto, Saidenka",
     "version": (0, 1, 1),
-    "blender": (2, 7, 7),
+    "blender": (2, 77, 0),
     "location": "Render Menu, UV Editor Render Tab",
     "description": "Render Settings BI & Cycles",
     "warning": "",

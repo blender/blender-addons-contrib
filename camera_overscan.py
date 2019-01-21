@@ -20,7 +20,7 @@ bl_info = {
     "name": "Camera Overscan",
     "author": "John Roper, Barnstorm VFX, Luca Scheller",
     "version": (1, 2, 1),
-    "blender": (2, 7, 6),
+    "blender": (2, 76, 0),
     "location": "Render Settings > Camera Overscan",
     "description": "Render Overscan",
     "warning": "",

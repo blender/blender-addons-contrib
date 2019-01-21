@@ -22,7 +22,7 @@ bl_info = {
     "name": "Dynamic Toolshelf Menu",
     "author": "meta-androcto",
     "version": (3, 0, 2),
-    "blender": (2, 7, 7),
+    "blender": (2, 77, 0),
     "location": "View3D > Spacebar Key, Dynamic Tab",
     "description": "Context Sensitive Toolshelf Menu",
     "warning": "",

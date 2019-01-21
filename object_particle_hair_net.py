@@ -18,7 +18,7 @@ bl_info = {
         "name": "HairNet",
         "author": "Rhett Jackson",
         "version": (0, 5, 1),
-        "blender": (2, 7, 4),
+        "blender": (2, 74, 0),
         "location": "Properties",
         "category": "Object",
         "description": "Creates a particle hair system with hair guides from mesh edges which start at marked seams",

@@ -22,7 +22,7 @@ bl_info = {
     "name": "Exact Edit",
     "author": "nBurn",
     "version": (0, 2, 0),
-    "blender": (2, 7, 7),
+    "blender": (2, 77, 0),
     "location": "View3D",
     "description": "Tool for precisely setting distance, scale, and rotation",
     "wiki_url": "https://github.com/n-Burn/Exact_Edit/wiki",

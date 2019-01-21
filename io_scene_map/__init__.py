@@ -22,7 +22,7 @@ bl_info = {
     "name": "Quake/Doom3 MAP format",
     "author": "Campbell Barton, scorpion81, Bastien Montagne, motorstep",
     "version": (2, 1, 0),
-    "blender": (2, 6, 9),
+    "blender": (2, 69, 0),
     "location": "File > Export",
     "description": "Export MAP brushes, nurbs surfaces, "
                    "lamps and empties as map nodes",

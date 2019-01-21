@@ -20,7 +20,7 @@ bl_info = {
     'name': 'Dimension',
     'author': 'Spivak Vladimir (http://cwolf3d.korostyshev.net)',
     'version': (3, 9, 5),
-    'blender': (2, 7, 8),
+    'blender': (2, 78, 0),
     'location': 'View3D > Add > Curve',
     'description': 'Adds Dimension',
     'warning': '', # used for warning icon and text in addons panel

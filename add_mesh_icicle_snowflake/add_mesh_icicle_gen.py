@@ -2,7 +2,7 @@ bl_info = {
     "name": "Icicle Generator",
     "author": "Eoin Brennan (Mayeoin Bread)",
     "version": (2, 2, 1),
-    "blender": (2, 7, 4),
+    "blender": (2, 74, 0),
     "location": "View3D > Add > Mesh",
     "description": "Construct a linear string of icicles of different sizes",
     "warning": "",

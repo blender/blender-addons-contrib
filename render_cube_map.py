@@ -50,7 +50,7 @@ bl_info = {
     "name": "Cube Map",
     "author": "Dalai Felinto",
     "version": (1, 0),
-    "blender": (2, 7, 7),
+    "blender": (2, 77, 0),
     "location": "Render Panel",
     "description": "",
     "warning": "",

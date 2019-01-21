@@ -25,7 +25,7 @@ bl_info = {
         'location': '"Shift+Q" and also in EditMode "W-Specials/ KTools"',
         'description': "Adds my personal collection of small handy scripts (mostly modeling tools)",
         'category': "Mesh",
-        'blender': (2, 7, 6),
+        'blender': (2, 76, 0),
         'version': (0, 2, 8),
         'wiki_url': 'http://www.kjartantysdal.com/scripts',
 }
