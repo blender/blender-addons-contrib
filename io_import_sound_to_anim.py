@@ -24,8 +24,7 @@ bl_info = {
     "version": (0, 80),
     "blender": (2, 80, 0),
     "location": "Select a object > View3D > Tool Shelf > Import Movement From .Wav File",
-    "description": "Extract movement from sound file. "
-        "See the Object Panel at the end.",
+    "description": "Extract movement from .wav sound file.",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/Import_Movement_From_Audio_File",
@@ -38,15 +37,8 @@ bl_info = {
 - NOTES:
 - This script takes a wav file and get sound "movement" to help you in sync the movement to words in the wave file. <br>
 - Supported Audio: .wav (wave) 8 bits and 16 bits - mono and multichanel file<br>
-- At least Blender 2.64.9 is necessary to run this program.
-- Curitiba - Brasil
-
-Credit to:
-Vlassius
-
-- http://vlassius.com.br
-- vlassius@vlassius.eng.br
-- Curitiba - Brasil
+- At least Blender 2.80 is necessary to run this program.
+- Brazil
 
 """
 
