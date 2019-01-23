@@ -75,7 +75,7 @@ class VIEW3D_PT_CustomMenuPanel(bpy.types.Panel):
     bl_region_type = "UI"
     bl_label = "Import Tool"
     bl_category = "Import Movement From Wav File"
-    bl_options = {'DEFAULT_CLOSED'}
+    #bl_options = {'DEFAULT_CLOSED'}
     
     def draw(self, context):
         layout = self.layout
@@ -511,8 +511,8 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
 
 from bpy.props import *
 
-#def WavFileImport(self, context):
-#    self.layout.operator(ImportWavFile.bl_idname, text="Import a wav file", icon='PLUGIN')
+def WavFileImport(self, context):
+    self.layout.operator(ImportWavFile.bl_idname, text="Import a wav file", icon='PLUGIN')
 
 
 #
@@ -972,11 +972,11 @@ class OBJECT_OT_Botao_Go(bpy.types.Operator):
     bl_description = "Process a .wav file, take movement from the sound and import to the scene as Key"
     bl_label = "Process Wav"
 
-    filter_glob = StringProperty(default="*.wav", options={'HIDDEN'})
-    path = StringProperty(name="File Path", description="Filepath used for importing the WAV file", \
+    filter_glob: StringProperty(default="*.wav", options={'HIDDEN'})
+    path:        StringProperty(name="File Path", description="Filepath used for importing the WAV file", \
                                                                             maxlen= 1024, default= "")
-    filename = StringProperty(name="File Name", description="Name of the file")
-    directory = StringProperty(name="Directory", description="Directory of the file")
+    filename:    StringProperty(name="File Name", description="Name of the file")
+    directory:   StringProperty(name="Directory", description="Directory of the file")
 
     RunFrom=0
     Wave_read=0
