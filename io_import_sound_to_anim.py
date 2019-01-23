@@ -266,13 +266,13 @@ class VIEW3D_PT_CustomMenuPanel(bpy.types.Panel):
             if context.object.imp_sound_to_anim.bTypeImport == 2:
 
                 row=layout.row()
-                row.prop(context.object.imp_sound_to_anim,"audio_sense")
-                row=layout.row()
-                row.prop(context.object.imp_sound_to_anim,"frames_per_second")
-                row=layout.row()
-                row.prop(context.object.imp_sound_to_anim,"action_per_second")
-                row=layout.row()
-                layout.operator(ImportWavFile.bl_idname)
+                #row.prop(context.object.imp_sound_to_anim,"audio_sense")
+                #row=layout.row()
+                #row.prop(context.object.imp_sound_to_anim,"frames_per_second")
+                #row=layout.row()
+                #row.prop(context.object.imp_sound_to_anim,"action_per_second")
+                #row=layout.row()
+                #layout.operator(ImportWavFile.bl_idname)
 
 
 #
@@ -511,8 +511,8 @@ class ImpSoundtoAnim(bpy.types.PropertyGroup):
 
 from bpy.props import *
 
-def WavFileImport(self, context):
-    self.layout.operator(ImportWavFile.bl_idname, text="Import a wav file", icon='PLUGIN')
+#def WavFileImport(self, context):
+#    self.layout.operator(ImportWavFile.bl_idname, text="Import a wav file", icon='PLUGIN')
 
 
 #
