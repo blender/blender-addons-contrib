@@ -137,7 +137,7 @@ def RO_Menu(self, context):
             row.enabled = False
         row.operator("scene.co_duplicate_camera", icon="RENDER_STILL")
     else:
-        row.label("No active Camera type in the Scene", icon='INFO')
+        row.label(text="No active Camera type in the Scene", icon='INFO')
 
 
 class camera_overscan_props(PropertyGroup):

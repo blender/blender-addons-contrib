@@ -36,7 +36,7 @@ class CurveTools2SelectedObjectHeader(bpy.types.Header):
 
         layout = self.layout
         row = layout.row()
-        row.label("Sel:", nrSelectedObjects)
+        row.label(text="Sel:", nrSelectedObjects)
 
 
 class CurveTools2SelectedObject(bpy.types.PropertyGroup):

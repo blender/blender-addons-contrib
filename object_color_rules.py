@@ -119,7 +119,7 @@ class rule_draw:
 
     @staticmethod
     def _generic_match_name(layout, rule):
-        layout.label("Match Name:")
+        layout.label(text="Match Name:")
         row = layout.row(align=True)
         row.prop(rule, "match_name", text="")
         row.prop(rule, "use_match_regex", text="", icon='SORTALPHA')
@@ -153,7 +153,7 @@ class rule_draw:
     @staticmethod
     def EXPR(layout, rule):
         col = layout.column()
-        col.label("Scripted Expression:")
+        col.label(text="Scripted Expression:")
         col.prop(rule, "match_expr", text="")
 
 

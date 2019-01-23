@@ -2738,7 +2738,7 @@ class DimensionAdd(bpy.types.Panel):
             endvertex = bpy.context.scene.cursor_location
             layout = self.layout
             col = layout.column()
-            col.label("Note:")
+            col.label(text="Note:")
             row = layout.row()
             props1 = row.operator("curve.dimension", text = 'Add linear note')
             props1.Dimension_Change = False
@@ -2759,7 +2759,7 @@ class DimensionAdd(bpy.types.Panel):
             props2.Dimension_parent = obj.name
 
             col = layout.column()
-            col.label("Distance to 3D cursor:")
+            col.label(text="Distance to 3D cursor:")
             row = layout.row()
             props3 = row.operator("curve.dimension", text = 'Add linear dimension')
             props3.Dimension_Change = False
@@ -2782,7 +2782,7 @@ class DimensionAdd(bpy.types.Panel):
             props4.Dimension_parent = obj.name
 
             col = layout.column()
-            col.label("Radius to 3D cursor:")
+            col.label(text="Radius to 3D cursor:")
             row = layout.row()
             props7 = row.operator("curve.dimension", text = 'Add linear radius')
             props7.Dimension_Change = False
@@ -2805,7 +2805,7 @@ class DimensionAdd(bpy.types.Panel):
             props8.Dimension_parent = obj.name
 
             col = layout.column()
-            col.label("Diameter to 3D cursor:")
+            col.label(text="Diameter to 3D cursor:")
             row = layout.row()
             props9 = row.operator("curve.dimension", text = 'Add linear diameter')
             props9.Dimension_Change = False
@@ -2836,7 +2836,7 @@ class DimensionAdd(bpy.types.Panel):
 
             layout = self.layout
             col = layout.column()
-            col.label("Distance:")
+            col.label(text="Distance:")
             row = layout.row()
             props1 = row.operator("curve.dimension", text = 'Add linear dimension')
             props1.Dimension_Change = False
@@ -2859,7 +2859,7 @@ class DimensionAdd(bpy.types.Panel):
             props2.Dimension_parent = obj.name
 
             col = layout.column()
-            col.label("Radius:")
+            col.label(text="Radius:")
             row = layout.row()
             props3 = row.operator("curve.dimension", text = 'Add linear radius')
             props3.Dimension_Change = False
@@ -2882,7 +2882,7 @@ class DimensionAdd(bpy.types.Panel):
             props4.Dimension_parent = obj.name
 
             col = layout.column()
-            col.label("Diameter:")
+            col.label(text="Diameter:")
             row = layout.row()
             props5 = row.operator("curve.dimension", text = 'Add linear diameter')
             props5.Dimension_Change = False
@@ -2914,7 +2914,7 @@ class DimensionAdd(bpy.types.Panel):
 
             layout = self.layout
             col = layout.column()
-            col.label("Angle:")
+            col.label(text="Angle:")
             row = layout.row()
             props1 = row.operator("curve.dimension", text = 'Add Linear angle dimension')
             props1.Dimension_Change = False

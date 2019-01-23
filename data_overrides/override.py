@@ -79,7 +79,7 @@ class Override(PropertyGroup):
     def draw_custom_props(self, context, layout):
         for prop in self.custom_properties:
             row = layout.row(align=True)
-            row.label(prop.name, icon='DOT')
+            row.label(text=prop.name, icon='DOT')
             row.prop(prop, '["{}"]'.format(escape_identifier("value")), text="")
 
         row = layout.row()

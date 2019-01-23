@@ -256,8 +256,8 @@ class RENDER_PT_print(Panel):
         row5.prop(ps, "height_px")
 
         col.separator()
-        row6.label("Inch Width: %.2f" % (ps.width_cm / 2.54))
-        row6.label("Inch Height: %.2f" % (ps.height_cm / 2.54))
+        row6.label(text="Inch Width: %.2f" % (ps.width_cm / 2.54))
+        row6.label(text="Inch Height: %.2f" % (ps.height_cm / 2.54))
         col.separator()
 
         row7.operator("render.apply_size", icon="RENDER_STILL")

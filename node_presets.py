@@ -179,7 +179,7 @@ class NODE_MT_template_add(Menu):
 
         dirpath = node_search_path(context)
         if dirpath == "":
-            layout.label("Set search dir in the addon-prefs")
+            layout.label(text="Set search dir in the addon-prefs")
             return
 
         for filepath, group_name in node_template_cache(context):

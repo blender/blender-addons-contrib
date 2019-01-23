@@ -1046,7 +1046,7 @@ class AlignUi(Panel):
             row = layout.row()
             row.label(text="Active object is: ", icon='OBJECT_DATA')
             box = layout.box()
-            box.label(obj.name, icon='EDITMODE_HLT')
+            box.label(text=obj.name, icon='EDITMODE_HLT')
 
         col = layout.column()
         col.label(text="Align Loc + Rot:", icon='MANIPUL')

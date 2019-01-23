@@ -142,10 +142,10 @@ class FpxUI:
 
 def NotImplemented(layout):
     box = layout.box()
-    box.label(fpx_str['LABEL_NAME_NOT_IMPLEMENTED'], icon='ERROR')
+    box.label(text=fpx_str['LABEL_NAME_NOT_IMPLEMENTED'], icon='ERROR')
     flow = box.column_flow()
-    flow.label(fpx_str['LABEL_NAME_NOT_IMPLEMENTED_1'])
-    flow.label(fpx_str['LABEL_NAME_NOT_IMPLEMENTED_2'])
+    flow.label(text=fpx_str['LABEL_NAME_NOT_IMPLEMENTED_1'])
+    flow.label(text=fpx_str['LABEL_NAME_NOT_IMPLEMENTED_2'])
 
 ###############################################################################
 class FptEmptyItemProperties(PropertyGroup):
@@ -355,7 +355,7 @@ class FpmImportOperator(Operator, ImportHelper):
         layout = self.layout
 
         box = layout.box()
-        box.label(fpx_str['LABEL_NAME_OPTIONS'], icon=FpxUI.ICON_OPTIONS)
+        box.label(text=fpx_str['LABEL_NAME_OPTIONS'], icon=FpxUI.ICON_OPTIONS)
         flow = box.column_flow()
         flow.prop(self, 'verbose', icon='SPEAKER')
         flow = box.column_flow()
@@ -409,7 +409,7 @@ class FpmImportOperator(Operator, ImportHelper):
     @staticmethod
     def draw_model_options(cls, layout):
         box = layout.box()
-        box.label(fpx_str['LABEL_NAME_MODEL_OPTIONS'], icon=FpxUI.ICON_MODEL)
+        box.label(text=fpx_str['LABEL_NAME_MODEL_OPTIONS'], icon=FpxUI.ICON_MODEL)
         if FpxUI.USE_MODEL_FILTER_COLLISION in cls.use_model_filter:
             NotImplemented(box)
         flow = box.column_flow()
@@ -568,7 +568,7 @@ class FplImportOperator(Operator, ImportHelper):
         layout = self.layout
 
         box = layout.box()
-        box.label(fpx_str['LABEL_NAME_OPTIONS'], icon=FpxUI.ICON_OPTIONS)
+        box.label(text=fpx_str['LABEL_NAME_OPTIONS'], icon=FpxUI.ICON_OPTIONS)
         flow = box.column_flow()
         flow.prop(self, 'verbose', icon='SPEAKER')
         flow = box.column_flow()
@@ -620,7 +620,7 @@ class FplImportOperator(Operator, ImportHelper):
     @staticmethod
     def draw_library_options(cls, layout):
         box = layout.box()
-        box.label(fpx_str['LABEL_NAME_LIBRARYL_OPTIONS'], icon='IMPORT')
+        box.label(text=fpx_str['LABEL_NAME_LIBRARYL_OPTIONS'], icon='IMPORT')
         if FpxUI.USE_LIBRARY_FILTER_DMDFONT in cls.use_library_filter \
                 or FpxUI.USE_LIBRARY_FILTER_SOUND in cls.use_library_filter \
                 or FpxUI.USE_LIBRARY_FILTER_MUSIC in cls.use_library_filter \
@@ -853,20 +853,20 @@ class FptImportOperator(Operator, ImportHelper):
         layout = self.layout
 
         box = layout.box()
-        box.label(fpx_str['LABEL_NAME_OPTIONS'], icon=FpxUI.ICON_OPTIONS)
+        box.label(text=fpx_str['LABEL_NAME_OPTIONS'], icon=FpxUI.ICON_OPTIONS)
         flow = box.column_flow()
         flow.prop(self, 'verbose', icon='SPEAKER')
         flow = box.column_flow()
         flow.prop(self, 'keep_temp', icon='GHOST')
 
-        box.label(fpx_str['LABEL_NAME_EXTERNAL_DATA'], icon=FpxUI.ICON_EXTERNAL_DATA)
+        box.label(text=fpx_str['LABEL_NAME_EXTERNAL_DATA'], icon=FpxUI.ICON_EXTERNAL_DATA)
         flow = box.column_flow()
         flow.prop(self, 'path_libraries', icon='FILEBROWSER', text="")
         flow.prop(self, 'path_dmdfonts', icon='IMASEL', text="")
         flow.prop(self, 'path_tables', icon='FILE_FOLDER', text="")
 
         box = layout.box()
-        box.label(fpx_str['LABEL_NAME_TABLE_OPTIONS'], icon=FpxUI.ICON_MODEL)
+        box.label(text=fpx_str['LABEL_NAME_TABLE_OPTIONS'], icon=FpxUI.ICON_MODEL)
         #if self.convert_to_mesh:
         #    NotImplemented(box)
         flow = box.column_flow()

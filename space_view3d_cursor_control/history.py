@@ -229,7 +229,7 @@ class VIEW3D_PT_cursor_history(Panel):
         cc = context.scene.cursor_history
 
         row = layout.row()
-        row.label("Navigation: ")
+        row.label(text="Navigation: ")
 
         GUI.drawIconButton_poll(
                 cc.historyPosition[0] > 0, row, 'PLAY_REVERSE',

@@ -1022,12 +1022,12 @@ class SCATree(bpy.types.Operator):
         col2 = columns.column()
 
         box = col1.box()
-        box.label("Generation Settings:")
+        box.label(text="Generation Settings:")
         box.prop(self, 'randomSeed')
         box.prop(self, 'maxIterations')
 
         box = col1.box()
-        box.label("Shape Settings:")
+        box.label(text="Shape Settings:")
         box.prop(self, 'numberOfEndpoints')
         box.prop(self, 'internodeLength')
         box.prop(self, 'influenceRange')
@@ -1037,10 +1037,10 @@ class SCATree(bpy.types.Operator):
         box.prop(self, 'tropism')
 
         newbox = col2.box()
-        newbox.label("Crown shape")
+        newbox.label(text="Crown shape")
         newbox.prop(self, 'useGroups')
         if self.useGroups:
-            newbox.label("Object groups defining crown shape")
+            newbox.label(text="Object groups defining crown shape")
             groupbox = newbox.box()
             groupbox.prop(self, 'crownGroup')
             groupbox = newbox.box()
@@ -1050,7 +1050,7 @@ class SCATree(bpy.types.Operator):
             groupbox.alert = (self.exclusionGroup == self.crownGroup)
             groupbox.prop(self, 'exclusionGroup')
         else:
-            newbox.label("Simple ellipsoid defining crown shape")
+            newbox.label(text="Simple ellipsoid defining crown shape")
             newbox.prop(self, 'crownSize')
             newbox.prop(self, 'crownShape')
             newbox.prop(self, 'crownOffset')
@@ -1064,7 +1064,7 @@ class SCATree(bpy.types.Operator):
         box.prop(self, 'newEndPointsPer1000')
 
         box = col2.box()
-        box.label("Skin options:")
+        box.label(text="Skin options:")
         box.prop(self, 'noModifiers')
         if not self.noModifiers:
             box.prop(self, 'skinMethod')
@@ -1073,7 +1073,7 @@ class SCATree(bpy.types.Operator):
         layout.prop(self, 'addLeaves', icon='MESH_DATA')
         if self.addLeaves:
             box = layout.box()
-            box.label("Leaf Settings:")
+            box.label(text="Leaf Settings:")
             box.prop(self, 'pLeaf')
             box.prop(self, 'bLeaf')
             box.prop(self, 'leafSize')
@@ -1085,7 +1085,7 @@ class SCATree(bpy.types.Operator):
         layout.prop(self, 'addObjects', icon='MESH_DATA')
         if self.addObjects:
             box = layout.box()
-            box.label("Object Settings:")
+            box.label(text="Object Settings:")
             box.prop(self, 'objectName')
             box.prop(self, 'pObject')
             box.prop(self, 'bObject')
@@ -1095,7 +1095,7 @@ class SCATree(bpy.types.Operator):
             box.prop(self, 'objectMaxConnections')
 
         box = layout.box()
-        box.label("Debug Settings:")
+        box.label(text="Debug Settings:")
         box.prop(self, 'showMarkers')
         if self.showMarkers:
             box.prop(self, 'markerScale')

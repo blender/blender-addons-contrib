@@ -508,7 +508,7 @@ class hdri_map(bpy.types.Panel):
             row = layout.row()
             box = layout.box()
             row = box.row()
-            row.label("Light sources")
+            row.label(text="Light sources")
             row = box.row()
             row.prop(scene, "light_strength")
             row.prop(scene, "main_light_strength")

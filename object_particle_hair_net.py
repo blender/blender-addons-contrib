@@ -917,13 +917,13 @@ class HairNetPanel(bpy.types.Panel):
         if not self.headObj.hnIsEmitter:
             box = layout.box()
             row = box.row()
-            row.label("Hair Object:")
-            row.label("Master Hair System:")
+            row.label(text="Hair Object:")
+            row.label(text="Master Hair System:")
             for thisHairObject in self.hairObjList:
                 row = box.row()
                 row.prop_search(thisHairObject, 'hnMasterHairSystem',  bpy.data, "particles", text = thisHairObject.name)
                 row = box.row()
-                row.label("Guide Subdivisions:")
+                row.label(text="Guide Subdivisions:")
                 row.prop(thisHairObject, 'hnSproutHairs', text = "Subdivide U")
 #                 row.prop(thisHairObject, 'hnSubdivideHairSections', text = "Subdivide V")
 
@@ -937,14 +937,14 @@ class HairNetPanel(bpy.types.Panel):
 
 
                 row = box.row()
-                row.label("Master Hair System")
+                row.label(text="Master Hair System")
                 row = box.row()
                 row.prop_search(self.headObj, 'hnMasterHairSystem',  bpy.data, "particles", text = self.headObj.name)
 
             except:
                 pass
             row = box.row()
-            row.label("Guide Subdivisions:")
+            row.label(text="Guide Subdivisions:")
             row.prop(self.headObj, 'hnSproutHairs', text = "Subdivide U")
 
         row = layout.row()

@@ -2123,15 +2123,15 @@ class Shortcuts_Pref(AddonPreferences):
             row = layout.row()
             col = row.column()
 
-            col.label("Hotkey List:")
-            col.label("Shift + left mouse - Intuitive Scale")
-            col.label("G + mouse move to translate the projection plane")
-            col.label("R + mouse move to rotate the projection plane")
-            col.label("Ctrl + S + mouse move to scale the projection plane")
-            col.label("U + mouse move to scale the projection plane UV")
-            col.label("Y + mouse move to offset the projection plane UV")
-            col.label("C - clear all")
-            col.label("Q - toggle alpha of the projection plane")
+            col.label(text="Hotkey List:")
+            col.label(text="Shift + left mouse - Intuitive Scale")
+            col.label(text="G + mouse move to translate the projection plane")
+            col.label(text="R + mouse move to rotate the projection plane")
+            col.label(text="Ctrl + S + mouse move to scale the projection plane")
+            col.label(text="U + mouse move to scale the projection plane UV")
+            col.label(text="Y + mouse move to offset the projection plane UV")
+            col.label(text="C - clear all")
+            col.label(text="Q - toggle alpha of the projection plane")
 
 
 @persistent

@@ -1645,7 +1645,7 @@ class MotionTrailPanel(bpy.types.Panel):
             row.prop(context.window_manager.motion_trail, "path_display",
                 icon="RIGHTARROW", text="", emboss=False)
 
-        row.label("Path options")
+        row.label(text="Path options")
 
         if context.window_manager.motion_trail.path_display:
             col.prop(context.window_manager.motion_trail, "path_style",

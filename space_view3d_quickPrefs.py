@@ -808,20 +808,20 @@ class PANEL(bpy.types.Panel):
                 if scn.importexport:
                     split = box.split(percentage=0.5)
                     col = split.column()
-                    col.label("Import Directory or File")
+                    col.label(text="Import Directory or File")
                     col.prop(scn, 'gllightpreset_importfile')
                     col.prop(scn, 'gllightpreset_importdirectory')
-                    col.label("Export Directory or File")
+                    col.label(text="Export Directory or File")
                     col.prop(scn, 'gllightpreset_exportfile')
                     col.prop(scn, 'gllightpreset_exportdirectory')
 
                     split = split.split()
                     col = split.column()
 
-                    col.label("")
+                    col.label(text="")
                     col.operator("gllightpreset.action", icon="IMPORT", text="Import File").button="import"
                     col.operator("gllightpreset.action", icon="IMPORT", text="Import All").button="importall"
-                    col.label("")
+                    col.label(text="")
                     col.operator("gllightpreset.action", icon="EXPORT", text="Export Selection").button="export"
                     col.operator("gllightpreset.action", icon="EXPORT", text="Export All").button="exportall"
 

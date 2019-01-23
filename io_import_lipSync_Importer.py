@@ -426,13 +426,13 @@ class LipSyncUI(bpy.types.Panel):
             if obj.type == "MESH":
                 split = col.split(align=True)
                 split.label(text="The active object is: ", icon="OBJECT_DATA")
-                split.label(obj.name, icon="EDITMODE_HLT")
+                split.label(text=obj.name, icon="EDITMODE_HLT")
 
             elif obj.type == "ARMATURE":  # bone needs to be selected
                 if obj.mode == "POSE":    # mode needs to be pose
                     split = col.split(align=True)
                     split.label(text="The active object is: ", icon="ARMATURE_DATA")
-                    split.label(obj.name, icon="EDITMODE_HLT")
+                    split.label(text=obj.name, icon="EDITMODE_HLT")
                 else:
                     col.label(text="You need to select Pose mode!", icon="OBJECT_DATA")
             else:
@@ -453,11 +453,11 @@ class LipSyncUI(bpy.types.Panel):
                 col.prop(scn.regMenuTypes, "fpath")
 
                 split = col.split(align=True)
-                split.label("Key Value :")
+                split.label(text="Key Value :")
                 split.prop(scn.regMenuTypes, "skscale")
 
                 split = col.split(align=True)
-                split.label("Frame Offset :")
+                split.label(text="Frame Offset :")
                 split.prop(scn.regMenuTypes, "offset")
 
                 split = col.split(align=True)
@@ -471,11 +471,11 @@ class LipSyncUI(bpy.types.Panel):
             elif scn.regMenuTypes.enumFileTypes == '1':
                 col.prop(scn.regMenuTypes, "fpath")
                 split = col.split(align=True)
-                split.label("Key Value :")
+                split.label(text="Key Value :")
                 split.prop(scn.regMenuTypes, "skscale")
 
                 split = col.split(align=True)
-                split.label("Frame Offset :")
+                split.label(text="Frame Offset :")
                 split.prop(scn.regMenuTypes, "offset")
 
                 col.operator('lipsync.go', text='Plot Keys to the Timeline')
@@ -488,11 +488,11 @@ class LipSyncUI(bpy.types.Panel):
             # specific panel
             if scn.regMenuTypes.enumBlinkTypes == '0':
                 split = col.split(align=True)
-                split.label("Key Value :")
+                split.label(text="Key Value :")
                 split.prop(scn.regMenuTypes, "skscale")
 
                 split = col.split(align=True)
-                split.label("Frame Offset :")
+                split.label(text="Frame Offset :")
                 split.prop(scn.regMenuTypes, "offset")
 
                 split = col.split(align=True)
@@ -506,11 +506,11 @@ class LipSyncUI(bpy.types.Panel):
             # Random panel
             elif scn.regMenuTypes.enumBlinkTypes == '1':
                 split = col.split(align=True)
-                split.label("Key Value :")
+                split.label(text="Key Value :")
                 split.prop(scn.regMenuTypes, "skscale")
 
                 split = col.split(align=True)
-                split.label("Frame Start :")
+                split.label(text="Frame Start :")
                 split.prop(scn.regMenuTypes, "offset")
 
                 split = col.split(align=True)

@@ -76,7 +76,7 @@ class NP020BasePanel(bpy.types.Panel):
 
         row = self.layout.row(True)
         col = row.column(True)
-        col.label(" Create:",icon = "MESH_CUBE")
+        col.label(text=" Create:",icon = "MESH_CUBE")
         col.separator()
         col.operator('object.np_020_float_poly', icon='MESH_DATA', text='float_poly')
         col.operator('object.np_020_float_rectangle', icon='MESH_PLANE', text='float_rectangle')
@@ -85,7 +85,7 @@ class NP020BasePanel(bpy.types.Panel):
         self.layout.separator()
         row = self.layout.row(True)
         col = row.column(True)
-        col.label(" Modify:",icon = "MODIFIER")
+        col.label(text=" Modify:",icon = "MODIFIER")
         col.separator()
         col.operator('object.np_020_point_move', icon='MAN_TRANS', text='point_move')
         col.operator('object.np_020_point_copy', icon='ROTACTIVE', text='point_copy')
@@ -99,7 +99,7 @@ class NP020BasePanel(bpy.types.Panel):
         self.layout.separator()
         row = self.layout.row(True)
         col = row.column(True)
-        col.label(" Transfer:",icon = 'BRUSH_DATA')
+        col.label(text=" Transfer:",icon = 'BRUSH_DATA')
         col.separator()
         col.operator('object.np_020_shader_brush', icon='MOD_DYNAMICPAINT', text='shader_brush')
 
@@ -107,7 +107,7 @@ class NP020BasePanel(bpy.types.Panel):
         self.layout.separator()
         row = self.layout.row(True)
         col = row.column(True)
-        col.label(" Measure:",icon = "ALIGN")
+        col.label(text=" Measure:",icon = "ALIGN")
         col.separator()
         col.operator('object.np_020_point_distance', icon='ARROW_LEFTRIGHT', text='point_distance')
 

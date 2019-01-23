@@ -110,15 +110,15 @@ class IcicleGenerator(bpy.types.Operator):
         layout = self.layout
         col = layout.column(align=True)
 
-        col.label("Radius:")
+        col.label(text="Radius:")
         col.prop(self, "minR")
         col.prop(self, "maxR")
 
-        col.label("Depth:")
+        col.label(text="Depth:")
         col.prop(self, "minD")
         col.prop(self, "maxD")
 
-        col.label("Base:")
+        col.label(text="Base:")
         col.prop(self, "verts")
         col.prop(self, "addCap", text="")
 

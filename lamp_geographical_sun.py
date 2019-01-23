@@ -551,7 +551,7 @@ class SUNGEO_PT_lamp_settings(Panel):
 
         cl = context.lamp
         if not (cl and cl.type == 'SUN'):
-            layout.label("Sun lamp is not active", icon="INFO")
+            layout.label(text="Sun lamp is not active", icon="INFO")
             return
 
         geosunproperties = cl.GeoSunProperties

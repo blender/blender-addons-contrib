@@ -278,7 +278,7 @@ class ExportXmodel(bpy.types.Operator, ExportHelper):
             sub.prop(self, "use_vertex_colors_alpha")
 
         col = layout.column(align=True)
-        col.label("Advanced:")
+        col.label(text="Advanced:")
 
         col = layout.column(align=True)
         col.prop(self, "use_vertex_cleanup")
@@ -414,7 +414,7 @@ class ExportXanim(bpy.types.Operator, ExportHelper):
             icon = 'ERROR'
 
         col = layout.column(align=True)
-        col.label("Armature: %s" % armature_info, icon)
+        col.label(text="Armature: %s" % armature_info, icon)
 
         col = layout.column(align=True)
         col.prop(self, "use_selection", "Selection only (%i bones)" % bones_selected)
