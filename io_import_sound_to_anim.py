@@ -144,7 +144,7 @@ class VIEW3D_PT_CustomMenuPanel(bpy.types.Panel):
                 row=layout.row()
                 row.label(text="2)Click Button \"Import Key Frames\",")
                 row=layout.row()
-                row.label(text="Run the animation (alt A) and Enjoy!")
+                row.label(text="Run the animation and Enjoy!")
                 row=layout.row()
                 row.prop(context.object.imp_sound_to_anim,"action_auto_audio_sense")
                 row=layout.row()
