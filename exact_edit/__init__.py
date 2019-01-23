@@ -51,7 +51,7 @@ class XEditPanel(bpy.types.Panel):
 
     def draw(self, context):
         #layout = self.layout
-        row = self.layout.row(True)
+        row = self.layout.row(align=True)
         col = row.column()
         col.operator("view3d.xedit_set_meas_op", text="Set Measure", icon="EDIT")
         col.operator("view3d.xedit_free_rotate_op", text="Free Rotate", icon="FORCE_MAGNETIC")

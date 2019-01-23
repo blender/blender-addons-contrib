@@ -74,8 +74,8 @@ class NP020BasePanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        row = self.layout.row(True)
-        col = row.column(True)
+        row = self.layout.row(align=True)
+        col = row.column(align=True)
         col.label(text=" Create:",icon = "MESH_CUBE")
         col.separator()
         col.operator('object.np_020_float_poly', icon='MESH_DATA', text='float_poly')
@@ -83,8 +83,8 @@ class NP020BasePanel(bpy.types.Panel):
         col.operator('object.np_020_float_box', icon='MESH_CUBE', text='float_box')
 
         self.layout.separator()
-        row = self.layout.row(True)
-        col = row.column(True)
+        row = self.layout.row(align=True)
+        col = row.column(align=True)
         col.label(text=" Modify:",icon = "MODIFIER")
         col.separator()
         col.operator('object.np_020_point_move', icon='MAN_TRANS', text='point_move')
@@ -97,16 +97,16 @@ class NP020BasePanel(bpy.types.Panel):
 
 
         self.layout.separator()
-        row = self.layout.row(True)
-        col = row.column(True)
+        row = self.layout.row(align=True)
+        col = row.column(align=True)
         col.label(text=" Transfer:",icon = 'BRUSH_DATA')
         col.separator()
         col.operator('object.np_020_shader_brush', icon='MOD_DYNAMICPAINT', text='shader_brush')
 
 
         self.layout.separator()
-        row = self.layout.row(True)
-        col = row.column(True)
+        row = self.layout.row(align=True)
+        col = row.column(align=True)
         col.label(text=" Measure:",icon = "ALIGN")
         col.separator()
         col.operator('object.np_020_point_distance', icon='ARROW_LEFTRIGHT', text='point_distance')

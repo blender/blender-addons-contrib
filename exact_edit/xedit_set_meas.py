@@ -332,14 +332,14 @@ class XEditMeasureInputPanel(bpy.types.Operator):
             self.float_new_meas = float(prev_popup_inputs[int_prev_meas])
             self.prev_meas = '-'
 
-        row = self.layout.row(True)
+        row = self.layout.row(align=True)
         # split row into 3 cells: 1st 1/3, 2nd 75% of 2/3, 3rd 25% of 2/3
         split = row.split(align=False)
         split.label(text="Measurement")
         split = row.split(percentage=0.75, align=False)
         split.prop(self, 'float_new_meas', text="")
         split.operator("object.store_meas_inp_op", text="Store")
-        row = self.layout.row(True)
+        row = self.layout.row(align=True)
         row.prop(self, 'prev_meas')
 
 
