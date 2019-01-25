@@ -567,8 +567,8 @@ def createGeometry(tree, power=0.5, scale=0.01, addleaves=False, pleaf=0.5,
     obj_new = bpy.data.objects.new(mesh.name, mesh)
     base = bpy.context.scene.objects.link(obj_new)
     for ob in bpy.context.scene.objects:
-        ob.select = False
-    base.select = True
+        ob.select_set(False)
+    base.select_set(True)
     bpy.context.scene.objects.active = obj_new
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
 

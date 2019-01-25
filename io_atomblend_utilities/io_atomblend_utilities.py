@@ -372,7 +372,7 @@ def modify_objects(action_type,
 
         # Delete the old object.
         bpy.ops.object.select_all(action='DESELECT')
-        atom.select = True
+        atom.select_set(True)
         bpy.ops.object.delete()
         del(atom)
 
@@ -409,7 +409,7 @@ def modify_objects(action_type,
 
         # Finally, delete the old object
         bpy.ops.object.select_all(action='DESELECT')
-        atom.select = True
+        atom.select_set(True)
         bpy.ops.object.delete()
 
 
@@ -442,7 +442,7 @@ def separate_atoms(scn):
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     # ... delete the new mesh including the separated vertex
     bpy.ops.object.select_all(action='DESELECT')
-    new_object.select = True
+    new_object.select_set(True)
     bpy.ops.object.delete()
 
     # Create new atoms/vacancies at the position of the old atoms
@@ -452,7 +452,7 @@ def separate_atoms(scn):
         # structure. <= this is done 'len(locations)' times. After each
         # duplication, move the new object onto the positions
         bpy.ops.object.select_all(action='DESELECT')
-        atom.children[0].select = True
+        atom.children[0].select_set(True)
         bpy.context.scene.objects.active = atom.children[0]
         bpy.ops.object.duplicate_move()
         new_atom = bpy.context.scene.objects.active
@@ -639,7 +639,7 @@ def draw_obj(atom_shape, atom):
     new_atom = bpy.context.scene.objects.active
     new_atom.scale = atom.scale + Vector((0.0,0.0,0.0))
     new_atom.name = atom.name + "_tmp"
-    new_atom.select = True
+    new_atom.select_set(True)
 
     return new_atom
 
@@ -667,7 +667,7 @@ def draw_obj_special(atom_shape, atom):
         material_new.halo.add = 0.0
         new_atom.active_material = material_new
         new_atom.name = atom.name
-        new_atom.select = True
+        new_atom.select_set(True)
     # F2+ center
     if atom_shape == '2':
         # Create first a cube
@@ -679,7 +679,7 @@ def draw_obj_special(atom_shape, atom):
         cube = bpy.context.scene.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
         cube.name = atom.name + "_F2+-center"
-        cube.select = True
+        cube.select_set(True)
         # New material for this cube
         material_cube = bpy.data.materials.new(atom.name + "_F2+-center")
         material_cube.diffuse_color = [0.8,0.0,0.0]
@@ -713,7 +713,7 @@ def draw_obj_special(atom_shape, atom):
         cube = bpy.context.scene.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
         cube.name = atom.name + "_F+-center"
-        cube.select = True
+        cube.select_set(True)
         # New material for this cube
         material_cube = bpy.data.materials.new(atom.name + "_F+-center")
         material_cube.diffuse_color = [0.8,0.8,0.0]
@@ -770,7 +770,7 @@ def draw_obj_special(atom_shape, atom):
         cube = bpy.context.scene.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
         cube.name = atom.name + "_F0-center"
-        cube.select = True
+        cube.select_set(True)
         # New material for this cube
         material_cube = bpy.data.materials.new(atom.name + "_F0-center")
         material_cube.diffuse_color = [0.8,0.8,0.8]

@@ -187,12 +187,12 @@ class NPRMPrepareContext(bpy.types.Operator):
             rot_ang = Vector ((0.0, 0.0, 1.0)).angle(ndef)
             np_print('rot_axis, rot_ang =', rot_axis, degrees(rot_ang))
             bpy.ops.object.select_all(action = 'DESELECT')
-            helper.select = True
+            helper.select_set(True)
             bpy.ops.transform.rotate(value = rot_ang ,axis = rot_axis)
             bpy.ops.transform.create_orientation(use = True)
             #bpy.ops.transform.rotate(value = -rot_ang ,axis = rot_axis)
             for ob in selob:
-                ob.select = True
+                ob.select_set(True)
             bpy.context.scene.objects.active = helper
             bpy.context.tool_settings.use_snap = False
             bpy.context.tool_settings.snap_element = 'VERTEX'
@@ -202,8 +202,8 @@ class NPRMPrepareContext(bpy.types.Operator):
             bpy.context.scene.cursor_location = centerloc
         else:
             for ob in selob:
-                ob.select = False
-            helper.select = True
+                ob.select_set(False)
+            helper.select_set(True)
             bpy.context.scene.objects.active = helper
             bpy.context.tool_settings.use_snap = False
             bpy.context.tool_settings.snap_element = 'VERTEX'
@@ -924,10 +924,10 @@ class NPRMRestoreContext(bpy.types.Operator):
         helper = NP020RM.helper
         helper.hide = False
         bpy.ops.object.select_all(action = 'DESELECT')
-        helper.select = True
+        helper.select_set(True)
         bpy.ops.object.delete('EXEC_DEFAULT')
         for ob in selob:
-            ob.select = True
+            ob.select_set(True)
 
         bpy.context.tool_settings.use_snap = NP020RM.use_snap
         bpy.context.tool_settings.snap_element = NP020RM.snap_element

@@ -361,7 +361,7 @@ def DEF_atom_draw_atoms(prop_element,
     # ------------------------------------------------------------------------
     # SELECT ALL LOADED OBJECTS
     bpy.ops.object.select_all(action='DESELECT')
-    new_atom_mesh.select = True
+    new_atom_mesh.select_set(True)
     bpy.context.scene.objects.active = new_atom_mesh
 
     return True

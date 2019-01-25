@@ -321,7 +321,7 @@ class AMTH_SCENE_OT_amaranth_object_select(Operator):
         obj = bpy.data.objects[self.object_name]
 
         bpy.ops.object.select_all(action="DESELECT")
-        obj.select = True
+        obj.select_set(True)
         context.scene.objects.active = obj
 
         return {"FINISHED"}

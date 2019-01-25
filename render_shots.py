@@ -258,7 +258,7 @@ def frames_from_verts(ob, end, shape, mode):
 
 def keyframes_handler(scn, ob, shape, mode):
     bpy.ops.object.select_all(action='DESELECT')
-    ob.select = True
+    ob.select_set(True)
 
     start = ob.rs_shotshape_nav if ob.rs_shotshape_nav_start else 0
 

@@ -212,8 +212,8 @@ class NPPMPrepareContext(bpy.types.Operator):
         selob = NP020PM.selob
         helper = NP020PM.helper
         for ob in selob:
-            ob.select = False
-        helper.select = True
+            ob.select_set(False)
+        helper.select_set(True)
         bpy.context.scene.objects.active = helper
         bpy.context.tool_settings.use_snap = False
         bpy.context.tool_settings.snap_element = 'VERTEX'
@@ -267,7 +267,7 @@ class NPPMRunTranslate(bpy.types.Operator):
                 return {'FINISHED'}
             elif flag == 'PLACE':
                 for ob in selob:
-                    ob.select = True
+                    ob.select_set(True)
                 bpy.context.scene.objects.active = helper
             args = (self, context)
             self._handle = bpy.types.SpaceView3D.draw_handler_add(DRAW_RunTranslate, args, 'WINDOW', 'POST_PIXEL')
@@ -358,10 +358,10 @@ class NPPMRestoreContext(bpy.types.Operator):
         selob = NP020PM.selob
         helper = NP020PM.helper
         bpy.ops.object.select_all(action = 'DESELECT')
-        helper.select = True
+        helper.select_set(True)
         bpy.ops.object.delete('EXEC_DEFAULT')
         for ob in selob:
-            ob.select = True
+            ob.select_set(True)
             bpy.context.scene.objects.active = ob
         bpy.context.tool_settings.use_snap = NP020PM.use_snap
         bpy.context.tool_settings.snap_element = NP020PM.snap_element

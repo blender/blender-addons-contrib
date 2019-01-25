@@ -1223,11 +1223,11 @@ class add_castle(bpy.types.Operator):
             castleObj = makeWallObj(self, castleScene, wallLoc, OBJ_N, blockArea, [], wallExtOpts, baseMtl)
 
             if baseRotate:
-                castleObj.select = True  # must select to rotate
+                castleObj.select_set(True)  # must select to rotate
                 # rotate 90 backward
                 bpy.ops.transform.rotate(value=-cPieHlf, constraint_axis=[True, False, False])
                 bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-                castleObj.select = False  # deselect after rotate else joined with others...
+                castleObj.select_set(False)  # deselect after rotate else joined with others...
 
             settings['d'] = saveBD  # restore block values
             settings['dv'] = saveBDV
@@ -1675,13 +1675,13 @@ class add_castle(bpy.types.Operator):
             # generate tower...
             cTower1Obj = makeWallObj(self, castleScene, wallLoc, "CTower1", blockArea, [], wallExtOpts, wallMtl)
 
-            cTower1Obj.select = True  # must select to rotate
+            cTower1Obj.select_set(True)  # must select to rotate
             # rotate 90 forward (face plant)...
             #            bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[True,False,False])
             # rotate 90 ccw along side
             bpy.ops.transform.rotate(value=-cPieHlf, constraint_axis=[False, True, False])
             bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-            cTower1Obj.select = False  # deselect after rotate else joined with others...
+            cTower1Obj.select_set(False)  # deselect after rotate else joined with others...
 
             cTower1Obj.parent = castleObj  # Connect to parent
 
@@ -1723,7 +1723,7 @@ class add_castle(bpy.types.Operator):
 
             cDomeObj.parent = castleObj  # Connect to parent
 
-        castleObj.select = True
+        castleObj.select_set(True)
         context.scene.objects.active = castleObj
 
         return {'FINISHED'}
@@ -1818,11 +1818,11 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
         cFrontObj.parent = objParent  # Connect to parent
 
         if wallRound:  # rotate 90 forward if round/disc
-            cFrontObj.select = True  # must select to rotate
+            cFrontObj.select_set(True)  # must select to rotate
             bpy.ops.transform.rotate(value=cPieHlf, constraint_axis=[True, False, False])
             bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
             cFrontObj.location.z += WobjH / 2  # adjust vertical after rotate for radius
-            cFrontObj.select = False  # deselect after rotate else joined with others...
+            cFrontObj.select_set(False)  # deselect after rotate else joined with others...
 
     ####################
     if objSides[2]:  # Make "back" wall
@@ -1863,7 +1863,7 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
         cBackObj = makeWallObj(sRef, objScene, objLoc, objName, blockArea, wallHoles, wallExtOpts, objMat)
         cBackObj.parent = objParent  # Connect to parent
 
-        cBackObj.select = True  # must select to rotate
+        cBackObj.select_set(True)  # must select to rotate
 
         # rotate to "reverse" face of wall, else just a mirror of front.
         bpy.ops.transform.rotate(value=cPie, constraint_axis=[False, False, True])
@@ -1873,7 +1873,7 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
             bpy.ops.transform.rotate(value=cPieHlf, constraint_axis=[True, False, False])
             cBackObj.location.z += WobjH / 2  # adjust vertical after rotate for radius
 
-        cBackObj.select = False  # de-select after rotate else joined with others...
+        cBackObj.select_set(False)  # de-select after rotate else joined with others...
 
     ####################
     # set block "area": height, width, depth, and spacing for side walls...
@@ -1928,7 +1928,7 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
         cSideLObj = makeWallObj(sRef, objScene, objLoc, objName, blockArea, wallHoles, wallExtOpts, objMat)
         cSideLObj.parent = objParent  # Connect to parent
 
-        cSideLObj.select = True  # must select to rotate
+        cSideLObj.select_set(True)  # must select to rotate
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
 
         if wallRound:  # rotate 90 forward
@@ -1946,7 +1946,7 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
         # rotate 90 cw along side
         #            bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[False,True,False])
 
-        cSideLObj.select = False  # deselect after rotate else joined with others...
+        cSideLObj.select_set(False)  # deselect after rotate else joined with others...
 
 
     ####################
@@ -1990,7 +1990,7 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
         cSideRObj.parent = objParent  # Connect to parent
         #        objScene.objects.active=cSideRObj
 
-        cSideRObj.select = True  # must select to rotate
+        cSideRObj.select_set(True)  # must select to rotate
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
 
         if wallRound:  # rotate 90 forward
@@ -2008,7 +2008,7 @@ def makeWalls(sRef, objScene, objParent, objSides, objMods, objLoc, objMat, objL
         # rotate 90 cw along side
         #        bpy.ops.transform.rotate(value=cPieHlf,constraint_axis=[False,True,False])
 
-        cSideRObj.select = False  # deselect after rotate...
+        cSideRObj.select_set(False)  # deselect after rotate...
 
         return  # all done, is automatic, just a matter of detail/protocol.
 

@@ -575,7 +575,7 @@ class SunPos_OT_ClearObjectGroup(bpy.types.Operator):
         Sun.verify_ObjectGroup()
         try:
             for x in Sun.Selected_objects:
-                x.select = True
+                x.select_set(True)
         except:
             pass
         del Sun.Selected_objects[:]

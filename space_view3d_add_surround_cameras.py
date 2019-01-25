@@ -138,7 +138,7 @@ class AddSurroundCamerasOperator(bpy.types.Operator):
 
         # sel/activate origin
         bpy.ops.object.select_all(action='DESELECT')
-        obj_origin.select = True
+        obj_origin.select_set(True)
         scene.objects.active = obj_origin
 
         context.window_manager.previous_num_surround_screens = numScreens

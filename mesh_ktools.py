@@ -117,7 +117,7 @@ class lattice_to_selection(bpy.types.Operator):
                     # check if object type is not MESH and then deselect it
                     for x in bpy.context.selected_objects:
                         if bpy.data.objects[x.name].type != 'MESH':
-                            bpy.data.objects[x.name].select = False
+                            bpy.data.objects[x.name].select_set(False)
 
 
                     org_objs = bpy.context.selected_objects
@@ -153,14 +153,14 @@ class lattice_to_selection(bpy.types.Operator):
                     bpy.ops.object.select_all(action='DESELECT')
 
                     # select and delete the tmp_object
-                    bpy.data.objects[tmp_obj].select = True
+                    bpy.data.objects[tmp_obj].select_set(True)
                     bpy.ops.object.delete(use_global=False)
 
                     # select all the original objects and assign the lattice deformer
                     for i in org_objs:
                        if bpy.data.objects[i.name].type == 'MESH' :
                            bpy.context.scene.objects.active = bpy.data.objects[i.name]
-                           bpy.data.objects[i.name].select = True
+                           bpy.data.objects[i.name].select_set(True)
 
                            bpy.ops.object.modifier_add(type='LATTICE')
                            lattice_name = bpy.context.object.modifiers[len(bpy.context.object.modifiers)-1].name
@@ -169,19 +169,19 @@ class lattice_to_selection(bpy.types.Operator):
                                for x in bpy.context.object.modifiers:
                                    bpy.ops.object.modifier_move_up(modifier=lattice_name)
                        else:
-                           bpy.data.objects[i.name].select = True
+                           bpy.data.objects[i.name].select_set(True)
 
 
                     if parent_to:
 
-                        bpy.data.objects[lattice_obj.name].select = True
+                        bpy.data.objects[lattice_obj.name].select_set(True)
                         bpy.context.scene.objects.active = bpy.data.objects[lattice_obj.name]
 
                         bpy.ops.object.parent_set(type='OBJECT', keep_transform=True)
                     else:
 
                         bpy.ops.object.select_all(action='DESELECT')
-                        bpy.data.objects[lattice_obj.name].select = True
+                        bpy.data.objects[lattice_obj.name].select_set(True)
                         bpy.context.scene.objects.active = bpy.data.objects[lattice_obj.name]
 
 
@@ -222,7 +222,7 @@ class lattice_to_selection(bpy.types.Operator):
                     bpy.ops.object.select_all(action='DESELECT')
 
                     bpy.context.scene.objects.active = bpy.data.objects[tmp_obj]
-                    bpy.data.objects[tmp_obj].select = True
+                    bpy.data.objects[tmp_obj].select_set(True)
 
 
                     if bpy.context.object.modifiers:
@@ -248,12 +248,12 @@ class lattice_to_selection(bpy.types.Operator):
                     bpy.ops.object.select_all(action='DESELECT')
 
 
-                    bpy.data.objects[tmp_obj].select = True
+                    bpy.data.objects[tmp_obj].select_set(True)
 
                     bpy.ops.object.delete(use_global=False)
 
                     bpy.context.scene.objects.active = bpy.data.objects[active_obj]
-                    bpy.data.objects[active_obj].select = True
+                    bpy.data.objects[active_obj].select_set(True)
 
                     bpy.ops.object.modifier_add(type='LATTICE')
                     lattice_name = bpy.context.object.modifiers[len(bpy.context.object.modifiers)-1].name
@@ -267,7 +267,7 @@ class lattice_to_selection(bpy.types.Operator):
 
                     bpy.ops.object.select_all(action='DESELECT')
 
-                    bpy.data.objects[lattice_obj.name].select = True
+                    bpy.data.objects[lattice_obj.name].select_set(True)
                     bpy.context.scene.objects.active = bpy.data.objects[lattice_obj.name]
 
                     bpy.context.object.data.interpolation_type_u = interpolation

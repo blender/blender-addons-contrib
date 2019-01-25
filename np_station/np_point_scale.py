@@ -283,7 +283,7 @@ class NPPSPrepareContext(bpy.types.Operator):
             bpy.context.space_data.pivot_point = 'CURSOR'
             bpy.context.space_data.transform_orientation = 'GLOBAL'
             for ob in selob:
-                ob.select = True
+                ob.select_set(True)
                 bpy.context.scene.objects.active = ob
             axis = (False, False, False)
             if mode == 0:
@@ -862,7 +862,7 @@ class NPPSRestoreContext(bpy.types.Operator):
         selob = NP020PS.selob
         bpy.ops.object.select_all(action = 'DESELECT')
         for ob in selob:
-            ob.select = True
+            ob.select_set(True)
             bpy.context.scene.objects.active = ob
         bpy.context.tool_settings.use_snap = NP020PS.use_snap
         bpy.context.tool_settings.snap_element = NP020PS.snap_element

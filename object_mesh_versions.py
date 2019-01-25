@@ -83,7 +83,7 @@ class KTX_Cleanup(bpy.types.Operator):
 
     def execute(self, context):
         for o in bpy.data.objects:
-            o.select = False
+            o.select_set(False)
         context.scene.objects.active = None
         return {'FINISHED'}
 

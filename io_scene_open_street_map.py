@@ -241,7 +241,7 @@ def read(context, filepath, scale=100.0, tag=False, utm=False):
     scene = context.scene
     scene.objects.link(obj)
     scene.objects.active = obj
-    obj.select = True
+    obj.select_set(True)
 
     # entry points for other addons
     obj['osmfile'] = filepath

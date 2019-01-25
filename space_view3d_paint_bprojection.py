@@ -982,7 +982,7 @@ class AddBProjectionPlane(Operator):
             em.name = BProjection_Empty
 
             context.scene.objects.active = ob
-            ob.select = True
+            ob.select_set(True)
 
             bpy.ops.object.editmode_toggle()
 
@@ -1005,9 +1005,9 @@ class AddBProjectionPlane(Operator):
             if em.custom_sub > 0:
                 bpy.ops.mesh.subdivide(number_cuts=em.custom_sub)
 
-            em.select = True
+            em.select_set(True)
             bpy.ops.object.hook_add_selob()
-            em.select = False
+            em.select_set(False)
             em.hide = True
 
             self.creatematerial(context)
@@ -1117,16 +1117,16 @@ class RemoveBProjectionPlane(Operator):
 
             bpy.ops.object.editmode_toggle()
 
-            ob.select = False
+            ob.select_set(False)
 
             em = bpy.data.objects[BProjection_Empty]
             context.scene.objects.active = em
             em.hide = False
-            em.select = True
+            em.select_set(True)
             bpy.ops.object.delete()
 
             context.scene.objects.active = ob
-            ob.select = True
+            ob.select_set(True)
 
             reinitkey()
             ob = context.object
@@ -1239,9 +1239,9 @@ class ChangeObject(Operator):
                     bpy.ops.object.shape_key_remove()
                 bpy.ops.object.shape_key_remove()
 
-                ob.select = False
+                ob.select_set(False)
 
-                bplane.select = True
+                bplane.select_set(True)
                 context.scene.objects.active = bplane
                 for ms in (ms for ms in bplane.material_slots if ms.name != BProjection_Material):
                     bplane.active_material = ms.material
@@ -1257,8 +1257,8 @@ class ChangeObject(Operator):
                 bpy.ops.object.join()
 
                 em.hide = False
-                em.select = True
-                new_ob.select = False
+                em.select_set(True)
+                new_ob.select_set(False)
                 bpy.ops.object.location_clear()
                 bpy.ops.object.rotation_clear()
                 bpy.ops.object.scale_clear()
@@ -1267,8 +1267,8 @@ class ChangeObject(Operator):
                 bpy.ops.object.hook_add_selob()
                 bpy.ops.object.editmode_toggle()
                 em.hide = True
-                em.select = False
-                new_ob.select = True
+                em.select_set(False)
+                new_ob.select_set(True)
                 em.custom_active_object = new_ob.name
                 tmp = em.custom_c3d
                 em.custom_c3d = False

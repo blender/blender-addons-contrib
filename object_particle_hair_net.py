@@ -293,7 +293,7 @@ def changeSelection(thisObject):
 
     bpy.ops.object.select_all(action='DESELECT')
     bpy.context.scene.objects.active=thisObject
-    thisObject.select=True
+    thisObject.select_set(True)
 
     return storedActive, storedSelected
 
@@ -302,7 +302,7 @@ def restoreSelection(storedActive, storedSelected):
     bpy.context.scene.objects.active=storedActive
     bpy.ops.object.select_all(action='DESELECT')
     for sel in storedSelected:
-        sel.select = True
+        sel.select_set(True)
 
 def removeParticleSystem(object, particleSystem):
     override = {"object": object, "particle_system": particleSystem}

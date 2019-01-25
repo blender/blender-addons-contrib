@@ -195,7 +195,7 @@ class NPFPGetSelection(bpy.types.Operator):
         NP020FP.selob = selob
         # De-selecting objects in prepare for other processes in the script:
         for ob in selob:
-            ob.select = False
+            ob.select_set(False)
         np_print('01_get_selection_END')
         return {'FINISHED'}
 
@@ -250,8 +250,8 @@ class NPFPAddPoints(bpy.types.Operator):
         end = bpy.context.object
         end.name = 'NP_FP_end'
         NP020FP.end = end
-        start.select = True
-        end.select = True
+        start.select_set(True)
+        end.select_set(True)
         bpy.context.tool_settings.use_snap = False
         bpy.context.tool_settings.snap_element = NP020FP.snap
         bpy.context.tool_settings.snap_target = 'ACTIVE'
@@ -668,12 +668,12 @@ class NPFPRunTranslate(bpy.types.Operator):
             # PRESS is taken by transform.translate operator
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             bpy.ops.object.select_all(action='DESELECT')
-            start.select = True
-            end.select = True
+            start.select_set(True)
+            end.select_set(True)
             bpy.ops.object.delete('EXEC_DEFAULT')
             if selob is not polyob:
                 for ob in selob:
-                    ob.select = True
+                    ob.select_set(True)
             else:
                 polyob.select = True
             NP020FP.startloc3d = (0.0, 0.0, 0.0)
@@ -699,12 +699,12 @@ class NPFPRunTranslate(bpy.types.Operator):
             # PRESS is taken by transform.translate operator
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             bpy.ops.object.select_all(action='DESELECT')
-            start.select = True
-            end.select = True
+            start.select_set(True)
+            end.select_set(True)
             bpy.ops.object.delete('EXEC_DEFAULT')
             if selob is not polyob:
                 for ob in selob:
-                    ob.select = True
+                    ob.select_set(True)
             else:
                 polyob.select = True
             NP020FP.startloc3d = (0.0, 0.0, 0.0)
@@ -1176,12 +1176,12 @@ class NPFPRunNavigate(bpy.types.Operator):
             bpy.ops.object.select_all(action='DESELECT')
             start.hide = False
             end.hide = False
-            start.select = True
-            end.select = True
+            start.select_set(True)
+            end.select_set(True)
             bpy.ops.object.delete('EXEC_DEFAULT')
             if selob is not polyob:
                 for ob in selob:
-                    ob.select = True
+                    ob.select_set(True)
             else:
                 polyob.select = True
             NP020FP.startloc3d = (0.0, 0.0, 0.0)
@@ -1255,7 +1255,7 @@ class NPFPChangePhase(bpy.types.Operator):
         NP020FP.startloc3d = startloc3d
         NP020FP.endloc3d = endloc3d
         bpy.ops.object.select_all(action='DESELECT')
-        end.select = True
+        end.select_set(True)
         NP020FP.snap = NP020FP.snap
         bpy.context.tool_settings.use_snap = False
         bpy.context.tool_settings.snap_element = NP020FP.snap
@@ -1353,7 +1353,7 @@ class NPFPMakeSegment(bpy.types.Operator):
         start.location = endloc3d
         end.location = endloc3d
         bpy.ops.object.select_all(action='DESELECT')
-        end.select = True
+        end.select_set(True)
         NP020FP.start = start
         NP020FP.end = end
         NP020FP.phase = 2
@@ -1389,12 +1389,12 @@ class NPFPDeletePoints(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         start.hide = False
         end.hide = False
-        start.select = True
-        end.select = True
+        start.select_set(True)
+        end.select_set(True)
         bpy.ops.object.delete('EXEC_DEFAULT')
         if selob is not polyob:
             for ob in selob:
-                ob.select = True
+                ob.select_set(True)
         else:
             polyob.select = True
         NP020FP.startloc3d = (0.0, 0.0, 0.0)
@@ -1797,7 +1797,7 @@ class NPFPRunNavEx(bpy.types.Operator):
             # XXX selob and polyob are undefined
             if selob is not polyob:
                 for ob in selob:
-                    ob.select = True
+                    ob.select_set(True)
             else:
                 polyob.select = True
 
@@ -2140,7 +2140,7 @@ class NPFPRunExtrude(bpy.types.Operator):
             bpy.ops.object.select_all(action='DESELECT')
             if selob is not polyob:
                 for ob in selob:
-                    ob.select = True
+                    ob.select_set(True)
             else:
                 polyob.select = True
             NP020FP.startloc3d = (0.0, 0.0, 0.0)
@@ -2174,7 +2174,7 @@ class NPFPRunExtrude(bpy.types.Operator):
             bpy.ops.object.select_all(action='DESELECT')
             if selob is not polyob:
                 for ob in selob:
-                    ob.select = True
+                    ob.select_set(True)
             else:
                 polyob.select = True
             NP020FP.startloc3d = (0.0, 0.0, 0.0)
@@ -2274,7 +2274,7 @@ class NPFPRunBevel(bpy.types.Operator):
             bpy.ops.object.select_all(action='DESELECT')
             if selob is not polyob:
                 for ob in selob:
-                    ob.select = True
+                    ob.select_set(True)
             else:
                 polyob.select = True
             NP020FP.startloc3d = (0.0, 0.0, 0.0)
@@ -2304,7 +2304,7 @@ class NPFPRunBevel(bpy.types.Operator):
             bpy.ops.object.select_all(action='DESELECT')
             if selob is not polyob:
                 for ob in selob:
-                    ob.select = True
+                    ob.select_set(True)
             else:
                 polyob.select = True
             NP020FP.startloc3d = (0.0, 0.0, 0.0)
@@ -2360,7 +2360,7 @@ class NPFPRunBevel(bpy.types.Operator):
             bpy.ops.object.select_all(action='DESELECT')
             if selob is not polyob:
                 for ob in selob:
-                    ob.select = True
+                    ob.select_set(True)
             else:
                 polyob.select = True
             NP020FP.startloc3d = (0.0, 0.0, 0.0)

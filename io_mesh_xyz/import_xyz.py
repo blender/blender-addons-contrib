@@ -544,7 +544,7 @@ def import_xyz(Ball_type,
         # Rotate the camera around its axis by 90° such that we have a nice
         # camera position and view onto the object.
         bpy.ops.object.select_all(action='DESELECT')
-        camera.select = True
+        camera.select_set(True)
         bpy.ops.transform.rotate(value=(90.0*2*pi/360.0),
                                  axis=object_camera_vec,
                                  constraint_axis=(False, False, False),
@@ -658,7 +658,7 @@ def import_xyz(Ball_type,
     bpy.ops.object.select_all(action='DESELECT')
     obj = None
     for obj in STRUCTURE:
-        obj.select = True
+        obj.select_set(True)
     # activate the last selected object (perhaps another should be active?)
     if obj:
         bpy.context.scene.objects.active = obj
@@ -674,7 +674,7 @@ def build_frames(frame_delta, frame_skip):
 
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.scene.objects.active = element
-        element.select = True
+        element.select_set(True)
         bpy.ops.object.shape_key_add(True)
 
     frame_skip += 1

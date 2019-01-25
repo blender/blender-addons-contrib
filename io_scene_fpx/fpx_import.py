@@ -979,7 +979,7 @@ class FptImporter():
         width = fpx_table_data.get_value("width", default=0.0)
         obj.location = (width / 2.0, -1600.0, 550.0)
         obj.rotation_euler = (radians(63.0), 0.0, 0.0)
-        obj.select = True
+        obj.select_set(True)
         obj.layers = FptImporter.LAYERS_AO
         camera.lens_unit = 'FOV'
         camera.clip_start = 1.0 # 1.0mm
@@ -1414,7 +1414,7 @@ class FptImporter():
         offset_x = tex_size_width - 2.0 * (tex_loc_x - box_x)
         offset_y = tex_size_length - 2.0 * (tex_loc_y - box_y)
 
-        blender_object.select = True
+        blender_object.select_set(True)
         self.__scene.objects.active = blender_object
         self.__scene.update()
         if ops.object.convert.poll():
@@ -2660,7 +2660,7 @@ class FptImporter():
             #blender_empty_object_new.instance_type = 'COLLECTION'
             #blender_empty_object_new.instance_collection = blender_group
             blender_empty_object_new.layers = layers
-            blender_empty_object_new.select = True
+            blender_empty_object_new.select_set(True)
             """
             active_object = self.__scene.objects.active
             self.__scene.objects.active = blender_empty_object_new

@@ -390,7 +390,7 @@ def split_objects(context, objects):
 
     bpy.ops.object.select_all(action='DESELECT')
     for ob in objects:
-        ob.select = True
+        ob.select_set(True)
 
     bpy.ops.object.duplicate()
     objects = bpy.context.selected_objects
@@ -400,7 +400,7 @@ def split_objects(context, objects):
     tot_ob = len(objects)
     for i, ob in enumerate(objects):
         print("Splitting object: %d/%d" % (i, tot_ob))
-        ob.select = True
+        ob.select_set(True)
 
         if ob.type == "MESH":
             scene.objects.active = ob
@@ -442,7 +442,7 @@ def split_objects(context, objects):
                 bpy.ops.object.mode_set(mode='OBJECT')
             final_objects += split_objects
 
-        ob.select = False
+        ob.select_set(False)
 
     print(final_objects)
     return final_objects

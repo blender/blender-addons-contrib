@@ -443,7 +443,7 @@ class Import(bpy.types.Operator):
         scene = bpy.context.scene
         scene.objects.link(ob_new)
         scene.objects.active = ob_new
-        ob_new.select = True
+        ob_new.select_set(True)
         print ('*** End draw   ***')
         print('*** Start Smooth ***')
         bpy.ops.object.shade_smooth()
