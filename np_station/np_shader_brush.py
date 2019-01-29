@@ -86,7 +86,7 @@ def draw_callback1_px(self, context):
             if self.shader is not None:
                 hitob.data.materials.append(self.shader)
             np_print(hitob.select)
-            if hitob.select == True:
+            if hitob.select_get() is True:
                 np_print('true')
                 for ob in self.selob:
                     bpy.context.scene.objects.active = ob
