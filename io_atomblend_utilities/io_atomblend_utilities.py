@@ -319,7 +319,7 @@ def modify_objects(action_type,
                                                'Sticks_Cylinder' in atom.name or
                                                'Stick_Cylinder' in atom.name):
 
-        bpy.context.scene.objects.active = atom
+        bpy.context.view_layer.objects.active = atom
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
         bm = bmesh.from_edit_mesh(atom.data)
 
@@ -339,7 +339,7 @@ def modify_objects(action_type,
             v.co[1] = ((v.co[1] - center[1]) / radius) * radius_new + center[1]
 
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-        bpy.context.scene.objects.active = None
+        bpy.context.view_layer.objects.active = None
 
     # Replace atom objects
     if action_type == "ATOM_REPLACE_OBJ" and "Stick" not in atom.name:
@@ -453,14 +453,14 @@ def separate_atoms(scn):
         # duplication, move the new object onto the positions
         bpy.ops.object.select_all(action='DESELECT')
         atom.children[0].select_set(True)
-        bpy.context.scene.objects.active = atom.children[0]
+        bpy.context.view_layer.objects.active = atom.children[0]
         bpy.ops.object.duplicate_move()
-        new_atom = bpy.context.scene.objects.active
+        new_atom = bpy.context.view_layer.objects.active
         new_atom.parent = None
         new_atom.location = location
         new_atom.name = atom.name + "_sep"
 
-    bpy.context.scene.objects.active = atom
+    bpy.context.view_layer.objects.active = atom
 
 
 # Prepare a new material
@@ -636,7 +636,7 @@ def draw_obj(atom_shape, atom):
             rotation=(0, 0, 0),
             layers=current_layers)
 
-    new_atom = bpy.context.scene.objects.active
+    new_atom = bpy.context.view_layer.objects.active
     new_atom.scale = atom.scale + Vector((0.0,0.0,0.0))
     new_atom.name = atom.name + "_tmp"
     new_atom.select_set(True)
@@ -676,7 +676,7 @@ def draw_obj_special(atom_shape, atom):
                                         location=atom.location,
                                         rotation=(0.0, 0.0, 0.0),
                                         layers=current_layers)
-        cube = bpy.context.scene.objects.active
+        cube = bpy.context.view_layer.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
         cube.name = atom.name + "_F2+-center"
         cube.select_set(True)
@@ -710,7 +710,7 @@ def draw_obj_special(atom_shape, atom):
                                         location=atom.location,
                                         rotation=(0.0, 0.0, 0.0),
                                         layers=current_layers)
-        cube = bpy.context.scene.objects.active
+        cube = bpy.context.view_layer.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
         cube.name = atom.name + "_F+-center"
         cube.select_set(True)
@@ -731,7 +731,7 @@ def draw_obj_special(atom_shape, atom):
                                         location=(0.0, 0.0, 0.0),
                                         rotation=(0.0, 0.0, 0.0),
                                         layers=current_layers)
-        electron = bpy.context.scene.objects.active
+        electron = bpy.context.view_layer.objects.active
         electron.scale = scale
         electron.name = atom.name + "_F+_electron"
         electron.parent = cube
@@ -767,7 +767,7 @@ def draw_obj_special(atom_shape, atom):
                                         location=atom.location,
                                         rotation=(0.0, 0.0, 0.0),
                                         layers=current_layers)
-        cube = bpy.context.scene.objects.active
+        cube = bpy.context.view_layer.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
         cube.name = atom.name + "_F0-center"
         cube.select_set(True)
@@ -788,7 +788,7 @@ def draw_obj_special(atom_shape, atom):
                                         location=(scale[0]*1.5,0.0,0.0),
                                         rotation=(0.0, 0.0, 0.0),
                                         layers=current_layers)
-        electron1 = bpy.context.scene.objects.active
+        electron1 = bpy.context.view_layer.objects.active
         electron1.scale = scale
         electron1.name = atom.name + "_F0_electron1"
         electron1.parent = cube
@@ -798,7 +798,7 @@ def draw_obj_special(atom_shape, atom):
                                         location=(-scale[0]*1.5,0.0,0.0),
                                         rotation=(0.0, 0.0, 0.0),
                                         layers=current_layers)
-        electron2 = bpy.context.scene.objects.active
+        electron2 = bpy.context.view_layer.objects.active
         electron2.scale = scale
         electron2.name = atom.name + "_F0_electron2"
         electron2.parent = cube

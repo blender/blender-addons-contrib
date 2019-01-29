@@ -193,7 +193,7 @@ class NPRMPrepareContext(bpy.types.Operator):
             #bpy.ops.transform.rotate(value = -rot_ang ,axis = rot_axis)
             for ob in selob:
                 ob.select_set(True)
-            bpy.context.scene.objects.active = helper
+            bpy.context.view_layer.objects.active = helper
             bpy.context.tool_settings.use_snap = False
             bpy.context.tool_settings.snap_element = 'VERTEX'
             bpy.context.tool_settings.snap_target = 'ACTIVE'
@@ -204,7 +204,7 @@ class NPRMPrepareContext(bpy.types.Operator):
             for ob in selob:
                 ob.select_set(False)
             helper.select_set(True)
-            bpy.context.scene.objects.active = helper
+            bpy.context.view_layer.objects.active = helper
             bpy.context.tool_settings.use_snap = False
             bpy.context.tool_settings.snap_element = 'VERTEX'
             bpy.context.tool_settings.snap_target = 'ACTIVE'
@@ -936,7 +936,7 @@ class NPRMRestoreContext(bpy.types.Operator):
         bpy.context.space_data.transform_orientation = NP020RM.trans_orient
         bpy.context.scene.cursor_location = NP020RM.curloc
         if NP020RM.acob is not None:
-            bpy.context.scene.objects.active = NP020RM.acob
+            bpy.context.view_layer.objects.active = NP020RM.acob
             bpy.ops.object.mode_set(mode = NP020RM.edit_mode)
         NP020RM.flag = 'RUNTRANSCENTER'
         return {'FINISHED'}

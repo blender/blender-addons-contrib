@@ -218,7 +218,7 @@ class NPFRPrepareContext(bpy.types.Operator):
             helper = NP020FR.helper
             bpy.ops.object.select_all(action = 'DESELECT')
             helper.select_set(True)
-            bpy.context.scene.objects.active = helper
+            bpy.context.view_layer.objects.active = helper
             bpy.context.tool_settings.use_snap = False
             bpy.context.tool_settings.snap_element = 'VERTEX'
             bpy.context.tool_settings.snap_target = 'ACTIVE'
@@ -269,7 +269,7 @@ class NPFRPrepareContext(bpy.types.Operator):
             bpy.ops.transform.rotate(value = rot_ang ,axis = rot_axis)
             NP020FR.trans_custom = True
             bpy.ops.transform.create_orientation(use = True)
-            bpy.context.scene.objects.active = helper
+            bpy.context.view_layer.objects.active = helper
             bpy.context.tool_settings.use_snap = False
             bpy.context.tool_settings.snap_element = 'VERTEX'
             bpy.context.tool_settings.snap_target = 'ACTIVE'
@@ -278,7 +278,7 @@ class NPFRPrepareContext(bpy.types.Operator):
         elif flag == 'RUNTRANS2':
             helper = NP020FR.helper
             ndef = NP020FR.ndef
-            bpy.context.scene.objects.active = helper
+            bpy.context.view_layer.objects.active = helper
             bpy.context.tool_settings.use_snap = False
             bpy.context.tool_settings.snap_element = 'VERTEX'
             bpy.context.tool_settings.snap_target = 'ACTIVE'
@@ -685,11 +685,11 @@ class NPFRRestoreContext(bpy.types.Operator):
             for ob in selob:
                 ob.select_set(True)
             if NP020FR.acob is not None:
-                bpy.context.scene.objects.active = NP020FR.acob
+                bpy.context.view_layer.objects.active = NP020FR.acob
                 bpy.ops.object.mode_set(mode = NP020FR.edit_mode)
         else:
             recob.select_set(True)
-            bpy.context.scene.objects.active = recob
+            bpy.context.view_layer.objects.active = recob
             bpy.ops.object.mode_set(mode = NP020FR.edit_mode)
         if NP020FR.trans_custom: bpy.ops.transform.delete_orientation()
         bpy.context.tool_settings.use_snap = NP020FR.use_snap

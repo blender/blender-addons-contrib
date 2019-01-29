@@ -214,7 +214,7 @@ class NPPMPrepareContext(bpy.types.Operator):
         for ob in selob:
             ob.select_set(False)
         helper.select_set(True)
-        bpy.context.scene.objects.active = helper
+        bpy.context.view_layer.objects.active = helper
         bpy.context.tool_settings.use_snap = False
         bpy.context.tool_settings.snap_element = 'VERTEX'
         bpy.context.tool_settings.snap_target = 'ACTIVE'
@@ -268,7 +268,7 @@ class NPPMRunTranslate(bpy.types.Operator):
             elif flag == 'PLACE':
                 for ob in selob:
                     ob.select_set(True)
-                bpy.context.scene.objects.active = helper
+                bpy.context.view_layer.objects.active = helper
             args = (self, context)
             self._handle = bpy.types.SpaceView3D.draw_handler_add(DRAW_RunTranslate, args, 'WINDOW', 'POST_PIXEL')
             context.window_manager.modal_handler_add(self)
@@ -362,14 +362,14 @@ class NPPMRestoreContext(bpy.types.Operator):
         bpy.ops.object.delete('EXEC_DEFAULT')
         for ob in selob:
             ob.select_set(True)
-            bpy.context.scene.objects.active = ob
+            bpy.context.view_layer.objects.active = ob
         bpy.context.tool_settings.use_snap = NP020PM.use_snap
         bpy.context.tool_settings.snap_element = NP020PM.snap_element
         bpy.context.tool_settings.snap_target = NP020PM.snap_target
         bpy.context.space_data.pivot_point = NP020PM.pivot_point
         bpy.context.space_data.transform_orientation = NP020PM.trans_orient
         if NP020PM.acob is not None:
-            bpy.context.scene.objects.active = NP020PM.acob
+            bpy.context.view_layer.objects.active = NP020PM.acob
             bpy.ops.object.mode_set(mode = NP020PM.edit_mode)
         NP020PM.flag = 'TAKE'
         return {'FINISHED'}

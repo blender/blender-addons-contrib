@@ -40,9 +40,9 @@ class AMTH_OBJECT_OT_select_meshlights(bpy.types.Operator):
         for ob in context.scene.objects:
             if utils.cycles_is_emission(context, ob):
                 ob.select_set(True)
-                context.scene.objects.active = ob
+                context.view_layer.objects.active = ob
 
-        if not context.selected_objects and not context.scene.objects.active:
+        if not context.selected_objects and not context.view_layer.objects.active:
             self.report({"INFO"}, "No meshlights to select")
 
         return {"FINISHED"}

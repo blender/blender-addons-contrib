@@ -593,7 +593,7 @@ BINARY FORMAT
             arm = bpy.data.objects.new(armname,armdata)
             bpy.context.scene.objects.link(arm)
             arm.select_set(True)
-            bpy.context.scene.objects.active = arm
+            bpy.context.view_layer.objects.active = arm
             bpy.ops.object.mode_set(mode='EDIT')
             parent_matrix = Matrix()
 

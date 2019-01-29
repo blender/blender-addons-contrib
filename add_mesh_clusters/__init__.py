@@ -351,7 +351,7 @@ def DEF_atom_draw_atoms(prop_element,
                             location=(0,0,0), rotation=(0.0, 0.0, 0.0),
                             layers=current_layers)
 
-    ball = bpy.context.scene.objects.active
+    ball = bpy.context.view_layer.objects.active
     ball.scale  = (radii[int(prop_radius_type)]*prop_scale_radius,) * 3
 
     ball.active_material = material
@@ -362,7 +362,7 @@ def DEF_atom_draw_atoms(prop_element,
     # SELECT ALL LOADED OBJECTS
     bpy.ops.object.select_all(action='DESELECT')
     new_atom_mesh.select_set(True)
-    bpy.context.scene.objects.active = new_atom_mesh
+    bpy.context.view_layer.objects.active = new_atom_mesh
 
     return True
 

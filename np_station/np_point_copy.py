@@ -248,7 +248,7 @@ class NPPCPrepareContext(bpy.types.Operator):
         place = NP020PC.place
         take.select_set(True)
         place.select_set(True)
-        bpy.context.scene.objects.active = place
+        bpy.context.view_layer.objects.active = place
         bpy.context.tool_settings.use_snap = False
         bpy.context.tool_settings.snap_element = 'VERTEX'
         bpy.context.tool_settings.snap_target = 'ACTIVE'
@@ -1144,7 +1144,7 @@ class NPPCRestoreContext(bpy.types.Operator):
         for i, ob in enumerate(selob):
             ob.select_set(True)
             if i == lenselob-1:
-                bpy.context.scene.objects.active = ob
+                bpy.context.view_layer.objects.active = ob
         NP020PC.take = None
         NP020PC.place = None
         NP020PC.takeloc3d = (0.0,0.0,0.0)

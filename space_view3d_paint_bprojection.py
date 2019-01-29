@@ -981,7 +981,7 @@ class AddBProjectionPlane(Operator):
             em = context.object
             em.name = BProjection_Empty
 
-            context.scene.objects.active = ob
+            context.view_layer.objects.active = ob
             ob.select_set(True)
 
             bpy.ops.object.editmode_toggle()
@@ -1120,12 +1120,12 @@ class RemoveBProjectionPlane(Operator):
             ob.select_set(False)
 
             em = bpy.data.objects[BProjection_Empty]
-            context.scene.objects.active = em
+            context.view_layer.objects.active = em
             em.hide = False
             em.select_set(True)
             bpy.ops.object.delete()
 
-            context.scene.objects.active = ob
+            context.view_layer.objects.active = ob
             ob.select_set(True)
 
             reinitkey()
@@ -1201,7 +1201,7 @@ class ChangeObject(Operator):
     def execute(self, context):
             new_ob = context.object
             em = bpy.data.objects[BProjection_Empty]
-            context.scene.objects.active = bpy.data.objects[em.custom_active_object]
+            context.view_layer.objects.active = bpy.data.objects[em.custom_active_object]
             ob = context.object
             if ob != new_ob:
                 cm = bpy.context.object.mode
@@ -1242,7 +1242,7 @@ class ChangeObject(Operator):
                 ob.select_set(False)
 
                 bplane.select_set(True)
-                context.scene.objects.active = bplane
+                context.view_layer.objects.active = bplane
                 for ms in (ms for ms in bplane.material_slots if ms.name != BProjection_Material):
                     bplane.active_material = ms.material
                     bpy.ops.object.material_slot_remove()
@@ -1251,7 +1251,7 @@ class ChangeObject(Operator):
                     bplane.vertex_groups.active_index = gs.index
                     bpy.ops.object.vertex_group_remove()
 
-                context.scene.objects.active = new_ob
+                context.view_layer.objects.active = new_ob
                 cm = new_ob.mode
                 bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
                 bpy.ops.object.join()
@@ -1262,7 +1262,7 @@ class ChangeObject(Operator):
                 bpy.ops.object.location_clear()
                 bpy.ops.object.rotation_clear()
                 bpy.ops.object.scale_clear()
-                context.scene.objects.active = new_ob
+                context.view_layer.objects.active = new_ob
                 bpy.ops.object.editmode_toggle()
                 bpy.ops.object.hook_add_selob()
                 bpy.ops.object.editmode_toggle()

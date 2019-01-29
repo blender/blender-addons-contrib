@@ -569,7 +569,7 @@ def createGeometry(tree, power=0.5, scale=0.01, addleaves=False, pleaf=0.5,
     for ob in bpy.context.scene.objects:
         ob.select_set(False)
     base.select_set(True)
-    bpy.context.scene.objects.active = obj_new
+    bpy.context.view_layer.objects.active = obj_new
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
 
     timings.add('createmesh')
@@ -613,9 +613,9 @@ def createGeometry(tree, power=0.5, scale=0.01, addleaves=False, pleaf=0.5,
         obj_leaves = bpy.data.objects.new(mesh.name, mesh)
         base = bpy.context.scene.objects.link(obj_leaves)
         obj_leaves.parent = obj_new
-        bpy.context.scene.objects.active = obj_leaves
+        bpy.context.view_layer.objects.active = obj_leaves
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-        bpy.context.scene.objects.active = obj_new
+        bpy.context.view_layer.objects.active = obj_new
 
     timings.add('leaves')
 

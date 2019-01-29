@@ -958,7 +958,7 @@ class NP020PDRunTranslate(bpy.types.Operator):
             bpy.context.space_data.transform_orientation = NP020PD.trans_orient
             bpy.context.space_data.show_manipulator = NP020PD.show_manipulator
             if NP020PD.acob is not None:
-                bpy.context.scene.objects.active = NP020PD.acob
+                bpy.context.view_layer.objects.active = NP020PD.acob
                 bpy.ops.object.mode_set(mode=NP020PD.edit_mode)
             np_print('04_run_TRANS_esc_right_CANCELLED')
             return{'CANCELLED'}
@@ -1329,7 +1329,7 @@ class NP020PDRunNavigate(bpy.types.Operator):
             bpy.context.space_data.transform_orientation = NP020PD.trans_orient
             bpy.context.space_data.show_manipulator = NP020PD.show_manipulator
             if NP020PD.acob is not None:
-                bpy.context.scene.objects.active = NP020PD.acob
+                bpy.context.view_layer.objects.active = NP020PD.acob
                 bpy.ops.object.mode_set(mode=NP020PD.edit_mode)
             np_print('05_run_NAV_esc_right_any_CANCELLED')
             return{'CANCELLED'}
@@ -1436,7 +1436,7 @@ class NP020PDHoldResult(bpy.types.Operator):
             bpy.context.space_data.transform_orientation = NP020PD.trans_orient
             bpy.context.space_data.show_manipulator = NP020PD.show_manipulator
             if NP020PD.acob is not None:
-                bpy.context.scene.objects.active = NP020PD.acob
+                bpy.context.view_layer.objects.active = NP020PD.acob
                 bpy.ops.object.mode_set(mode=NP020PD.edit_mode)
             np_print('07_HOLD_esc_right_CANCELLED')
             return{'CANCELLED'}
@@ -1522,7 +1522,7 @@ class NP020PDDeletePoints(bpy.types.Operator):
         bpy.context.space_data.transform_orientation = NP020PD.trans_orient
         bpy.context.space_data.show_manipulator = NP020PD.show_manipulator
         if NP020PD.acob is not None:
-            bpy.context.scene.objects.active = NP020PD.acob
+            bpy.context.view_layer.objects.active = NP020PD.acob
             bpy.ops.object.mode_set(mode=NP020PD.edit_mode)
 
         if step == 'simple':

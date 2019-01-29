@@ -248,7 +248,7 @@ class NPPIPrepareContext(bpy.types.Operator):
         place = NP020PI.place
         take.select_set(True)
         place.select_set(True)
-        bpy.context.scene.objects.active = place
+        bpy.context.view_layer.objects.active = place
         bpy.context.tool_settings.use_snap = False
         bpy.context.tool_settings.snap_element = 'VERTEX'
         bpy.context.tool_settings.snap_target = 'ACTIVE'
@@ -313,7 +313,7 @@ class NPPIRunTranslate(bpy.types.Operator):
                 NP020PI.nextob = bpy.context.selected_objects
                 take.location = copy.deepcopy(place.location)
                 place.select_set(True)
-                bpy.context.scene.objects.active = place
+                bpy.context.view_layer.objects.active = place
                 NP020PI.flag = 'RUNTRANSNEXT_break'
             elif flag == 'RUNTRANSNEXT':
                 NP020PI.deltavec_safe = copy.deepcopy(NP020PI.deltavec)
@@ -1154,7 +1154,7 @@ class NPPIRestoreContext(bpy.types.Operator):
         for i, ob in enumerate(selob):
             ob.select_set(True)
             if i == lenselob-1:
-                bpy.context.scene.objects.active = ob
+                bpy.context.view_layer.objects.active = ob
         NP020PI.take = None
         NP020PI.place = None
         NP020PI.takeloc3d = (0.0,0.0,0.0)

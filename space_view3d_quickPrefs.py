@@ -801,8 +801,8 @@ class PANEL(bpy.types.Panel):
                     col.prop(entry, "name", text="")
                 if entry.count> 0:
                     col.prop(entry, "name", text="")
-                if bpy.context.scene.objects.active != None:
-                    name=bpy.context.scene.objects.active.get("gllightpreset", "Default")
+                if bpy.context.view_layer.objects.active != None:
+                    name=bpy.context.view_layer.objects.active.get("gllightpreset", "Default")
 #Draw the import/export part of the box
                 col.prop(scn,'importexport')
                 if scn.importexport:

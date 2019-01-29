@@ -1770,7 +1770,7 @@ def createCurve(vertArray, self, align_matrix):
     bpy.ops.object.select_all(action='DESELECT')
     DimensionCurve.select_set(True)
     DimensionText.select_set(True)
-    bpy.context.scene.objects.active = DimensionCurve
+    bpy.context.view_layer.objects.active = DimensionCurve
     bpy.context.scene.update()
 
     DimensionCurve.Dimension_Name = self.Dimension_Name

@@ -322,7 +322,7 @@ class AMTH_SCENE_OT_amaranth_object_select(Operator):
 
         bpy.ops.object.select_all(action="DESELECT")
         obj.select_set(True)
-        context.scene.objects.active = obj
+        context.view_layer.objects.active = obj
 
         return {"FINISHED"}
 

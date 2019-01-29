@@ -179,7 +179,7 @@ class NPPLPrepareContext(bpy.types.Operator):
 
         bpy.ops.object.select_all(action = 'DESELECT')
         helper.select_set(True)
-        bpy.context.scene.objects.active = helper
+        bpy.context.view_layer.objects.active = helper
         bpy.context.tool_settings.use_snap = False
         bpy.context.tool_settings.snap_element = 'VERTEX'
         bpy.context.tool_settings.snap_target = 'ACTIVE'
@@ -629,7 +629,7 @@ class NPPLRestoreContext(bpy.types.Operator):
         for ob in selob:
             ob.select_set(True)
         if NP020PL.acob is not None:
-            bpy.context.scene.objects.active = NP020PL.acob
+            bpy.context.view_layer.objects.active = NP020PL.acob
             bpy.ops.object.mode_set(mode = NP020PL.edit_mode)
         bpy.context.tool_settings.use_snap = NP020PL.use_snap
         bpy.context.tool_settings.snap_element = NP020PL.snap_element

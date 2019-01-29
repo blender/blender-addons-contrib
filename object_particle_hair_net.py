@@ -292,14 +292,14 @@ def changeSelection(thisObject):
     storedActive, storedSelected = preserveSelection()
 
     bpy.ops.object.select_all(action='DESELECT')
-    bpy.context.scene.objects.active=thisObject
+    bpy.context.view_layer.objects.active=thisObject
     thisObject.select_set(True)
 
     return storedActive, storedSelected
 
 def restoreSelection(storedActive, storedSelected):
     #Restore active object and selection
-    bpy.context.scene.objects.active=storedActive
+    bpy.context.view_layer.objects.active=storedActive
     bpy.ops.object.select_all(action='DESELECT')
     for sel in storedSelected:
         sel.select_set(True)

@@ -1724,7 +1724,7 @@ class add_castle(bpy.types.Operator):
             cDomeObj.parent = castleObj  # Connect to parent
 
         castleObj.select_set(True)
-        context.scene.objects.active = castleObj
+        context.view_layer.objects.active = castleObj
 
         return {'FINISHED'}
 

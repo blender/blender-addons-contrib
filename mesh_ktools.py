@@ -93,13 +93,13 @@ class lattice_to_selection(bpy.types.Operator):
                 interpolation = self.interpolation
 
                 # check if there exists an active object
-                if bpy.context.scene.objects.active:
-                    active_obj = bpy.context.scene.objects.active.name
+                if bpy.context.view_layer.objects.active:
+                    active_obj = bpy.context.view_layer.objects.active.name
                 else:
                     for x in bpy.context.selected_objects:
                         if bpy.data.objects[x.name].type == 'MESH':
-                            bpy.context.scene.objects.active = bpy.data.objects[x.name]
-                            active_obj = bpy.context.scene.objects.active.name
+                            bpy.context.view_layer.objects.active = bpy.data.objects[x.name]
+                            active_obj = bpy.context.view_layer.objects.active.name
                             break
 
 
@@ -159,7 +159,7 @@ class lattice_to_selection(bpy.types.Operator):
                     # select all the original objects and assign the lattice deformer
                     for i in org_objs:
                        if bpy.data.objects[i.name].type == 'MESH' :
-                           bpy.context.scene.objects.active = bpy.data.objects[i.name]
+                           bpy.context.view_layer.objects.active = bpy.data.objects[i.name]
                            bpy.data.objects[i.name].select_set(True)
 
                            bpy.ops.object.modifier_add(type='LATTICE')
@@ -175,14 +175,14 @@ class lattice_to_selection(bpy.types.Operator):
                     if parent_to:
 
                         bpy.data.objects[lattice_obj.name].select_set(True)
-                        bpy.context.scene.objects.active = bpy.data.objects[lattice_obj.name]
+                        bpy.context.view_layer.objects.active = bpy.data.objects[lattice_obj.name]
 
                         bpy.ops.object.parent_set(type='OBJECT', keep_transform=True)
                     else:
 
                         bpy.ops.object.select_all(action='DESELECT')
                         bpy.data.objects[lattice_obj.name].select_set(True)
-                        bpy.context.scene.objects.active = bpy.data.objects[lattice_obj.name]
+                        bpy.context.view_layer.objects.active = bpy.data.objects[lattice_obj.name]
 
 
                     bpy.context.object.data.interpolation_type_u = interpolation
@@ -221,7 +221,7 @@ class lattice_to_selection(bpy.types.Operator):
 
                     bpy.ops.object.select_all(action='DESELECT')
 
-                    bpy.context.scene.objects.active = bpy.data.objects[tmp_obj]
+                    bpy.context.view_layer.objects.active = bpy.data.objects[tmp_obj]
                     bpy.data.objects[tmp_obj].select_set(True)
 
 
@@ -252,7 +252,7 @@ class lattice_to_selection(bpy.types.Operator):
 
                     bpy.ops.object.delete(use_global=False)
 
-                    bpy.context.scene.objects.active = bpy.data.objects[active_obj]
+                    bpy.context.view_layer.objects.active = bpy.data.objects[active_obj]
                     bpy.data.objects[active_obj].select_set(True)
 
                     bpy.ops.object.modifier_add(type='LATTICE')
@@ -268,7 +268,7 @@ class lattice_to_selection(bpy.types.Operator):
                     bpy.ops.object.select_all(action='DESELECT')
 
                     bpy.data.objects[lattice_obj.name].select_set(True)
-                    bpy.context.scene.objects.active = bpy.data.objects[lattice_obj.name]
+                    bpy.context.view_layer.objects.active = bpy.data.objects[lattice_obj.name]
 
                     bpy.context.object.data.interpolation_type_u = interpolation
                     bpy.context.object.data.interpolation_type_v = interpolation
@@ -308,20 +308,20 @@ class calc_normals(bpy.types.Operator):
                 if mode == 'OBJECT':
 
                         sel = bpy.context.selected_objects
-                        active = bpy.context.scene.objects.active.name
+                        active = bpy.context.view_layer.objects.active.name
 
                         bpy.ops.object.shade_smooth()
 
 
                         for ob in sel:
                                 ob = ob.name
-                                bpy.context.scene.objects.active = bpy.data.objects[ob]
+                                bpy.context.view_layer.objects.active = bpy.data.objects[ob]
                                 bpy.ops.object.editmode_toggle()
                                 bpy.ops.mesh.select_all(action='SELECT')
                                 bpy.ops.mesh.normals_make_consistent(inside=invert)
                                 bpy.ops.object.editmode_toggle()
 
-                        bpy.context.scene.objects.active = bpy.data.objects[active]
+                        bpy.context.view_layer.objects.active = bpy.data.objects[active]
 
                 elif mode == 'EDIT':
                         bpy.ops.mesh.normals_make_consistent(inside=invert)
@@ -506,7 +506,7 @@ class quickbool(bpy.types.Operator):
                     bpy.ops.object.select_all(action='DESELECT')
                     bpy.ops.object.select_pattern(pattern=bool)
 
-                    bpy.context.scene.objects.active = bpy.data.objects[bool]
+                    bpy.context.view_layer.objects.active = bpy.data.objects[bool]
 
                     #Delete all geo inside Shrink_Object
                     bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)
@@ -517,7 +517,7 @@ class quickbool(bpy.types.Operator):
                     bpy.ops.object.delete()
 
                     #re-enter edit mode on Original object
-                    bpy.context.scene.objects.active = bpy.data.objects[original]
+                    bpy.context.view_layer.objects.active = bpy.data.objects[original]
                     bpy.ops.object.select_pattern(pattern=original)
                     bpy.ops.object.editmode_toggle()
 
@@ -549,7 +549,7 @@ class quickbool(bpy.types.Operator):
 
                                         bpy.ops.object.select_all(action='DESELECT')
                                         bpy.ops.object.select_pattern(pattern=name)
-                                        bpy.context.scene.objects.active = bpy.data.objects[name]
+                                        bpy.context.view_layer.objects.active = bpy.data.objects[name]
 
                             #Delete all geo inside Shrink_Object
                                         bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)
@@ -558,11 +558,11 @@ class quickbool(bpy.types.Operator):
                                         bpy.ops.object.mode_set(mode = 'OBJECT', toggle = False)
 
                                         bpy.ops.object.delete(use_global=False)
-                                        bpy.context.scene.objects.active = bpy.data.objects[original]
+                                        bpy.context.view_layer.objects.active = bpy.data.objects[original]
                                 else:
                                         bpy.ops.object.select_all(action='DESELECT')
                                         bpy.ops.object.select_pattern(pattern=name)
-                                        bpy.context.scene.objects.active = bpy.data.objects[name]
+                                        bpy.context.view_layer.objects.active = bpy.data.objects[name]
 
                                         bpy.context.object.display_type = 'WIRE'
 
@@ -570,7 +570,7 @@ class quickbool(bpy.types.Operator):
                                         if move_to == True:
                                                 bpy.ops.object.move_to_layer(layers=(False, False, False, False, False, False, False, False, False, True, False, False, False, False, False, False, False, False, False, False))
 
-                                        bpy.context.scene.objects.active = bpy.data.objects[original]
+                                        bpy.context.view_layer.objects.active = bpy.data.objects[original]
 
 
                         bpy.ops.object.mode_set(mode=mode, toggle=False)
@@ -965,7 +965,7 @@ class shrinkwrapSmooth(bpy.types.Operator):
 
                 bpy.ops.object.select_all(action='DESELECT')
                 bpy.ops.object.select_pattern(pattern=tmp_ob)
-                bpy.context.scene.objects.active = bpy.data.objects[tmp_ob]
+                bpy.context.view_layer.objects.active = bpy.data.objects[tmp_ob]
 
                 bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)
                 bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
@@ -1029,7 +1029,7 @@ class shrinkwrapSmooth(bpy.types.Operator):
 
                 bpy.ops.object.select_all(action='DESELECT')
                 bpy.ops.object.select_pattern(pattern=shrink_ob)
-                bpy.context.scene.objects.active = bpy.data.objects[shrink_ob]
+                bpy.context.view_layer.objects.active = bpy.data.objects[shrink_ob]
 
                 #Delete all geo inside Shrink_Object
                 bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)
@@ -1040,7 +1040,7 @@ class shrinkwrapSmooth(bpy.types.Operator):
                 bpy.ops.object.delete(use_global=True)
 
                 bpy.ops.object.select_pattern(pattern=tmp_ob)
-                bpy.context.scene.objects.active = bpy.data.objects[tmp_ob]
+                bpy.context.view_layer.objects.active = bpy.data.objects[tmp_ob]
 
 
                 bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)
@@ -1055,7 +1055,7 @@ class shrinkwrapSmooth(bpy.types.Operator):
 
 
                 bpy.ops.object.select_pattern(pattern=org_ob)
-                bpy.context.scene.objects.active = bpy.data.objects[org_ob]
+                bpy.context.view_layer.objects.active = bpy.data.objects[org_ob]
 
                 bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)
 

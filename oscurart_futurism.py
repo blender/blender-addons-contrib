@@ -52,7 +52,7 @@ def object_osc_futurism (self, context,STEP, HOLD):
     EMPTY["FUTURISM_HOLDIN"] = 0
     EMPTY["FUTURISM_HOLDOUT"] = 0
 
-    bpy.context.scene.objects.active = OBACT  # RECUPERO OBJETO ACTIVO
+    bpy.context.view_layer.objects.active = OBACT  # RECUPERO OBJETO ACTIVO
 
     for OBJETO in range((FE+1)-FS):
         if STEPINC == STEP:

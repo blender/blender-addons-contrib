@@ -690,7 +690,7 @@ class NPFPRunTranslate(bpy.types.Operator):
             bpy.context.tool_settings.snap_target = NP020FP.snap_target
             bpy.context.space_data.pivot_point = NP020FP.pivot_point
             if NP020FP.acob is not None:
-                bpy.context.scene.objects.active = NP020FP.acob
+                bpy.context.view_layer.objects.active = NP020FP.acob
                 bpy.ops.object.mode_set(mode=NP020FP.edit_mode)
             np_print('04_run_TRANS_esc_right_CANCELLED')
 
@@ -722,7 +722,7 @@ class NPFPRunTranslate(bpy.types.Operator):
             bpy.context.space_data.pivot_point = NP020FP.pivot_point
             bpy.context.space_data.transform_orientation = NP020FP.trans_orient
             if NP020FP.acob is not None:
-                bpy.context.scene.objects.active = NP020FP.acob
+                bpy.context.view_layer.objects.active = NP020FP.acob
                 bpy.ops.object.mode_set(mode=NP020FP.edit_mode)
             np_print('04_run_TRANS_esc_right_CANCELLED')
             return{'CANCELLED'}
@@ -1200,7 +1200,7 @@ class NPFPRunNavigate(bpy.types.Operator):
             bpy.context.space_data.transform_orientation = NP020FP.trans_orient
 
             if NP020FP.acob is not None:
-                bpy.context.scene.objects.active = NP020FP.acob
+                bpy.context.view_layer.objects.active = NP020FP.acob
                 bpy.ops.object.mode_set(mode=NP020FP.edit_mode)
             np_print('05_run_NAV_esc_right_any_CANCELLED')
             return{'CANCELLED'}
@@ -1344,12 +1344,12 @@ class NPFPMakeSegment(bpy.types.Operator):
             polyob.select = True
             bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
             NP020FP.polyob = polyob
-        bpy.context.scene.objects.active = polyob
+        bpy.context.view_layer.objects.active = polyob
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.remove_doubles()
         bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.context.scene.objects.active = end
+        bpy.context.view_layer.objects.active = end
         start.location = endloc3d
         end.location = endloc3d
         bpy.ops.object.select_all(action='DESELECT')
@@ -1413,7 +1413,7 @@ class NPFPDeletePoints(bpy.types.Operator):
         bpy.context.space_data.pivot_point = NP020FP.pivot_point
         bpy.context.space_data.transform_orientation = NP020FP.trans_orient
         if NP020FP.acob is not None:
-            bpy.context.scene.objects.active = NP020FP.acob
+            bpy.context.view_layer.objects.active = NP020FP.acob
             bpy.ops.object.mode_set(mode=NP020FP.edit_mode)
         return {'FINISHED'}
 
@@ -1816,7 +1816,7 @@ class NPFPRunNavEx(bpy.types.Operator):
             bpy.context.space_data.pivot_point = NP020FP.pivot_point
             bpy.context.space_data.transform_orientation = NP020FP.trans_orient
             if NP020FP.acob is not None:
-                bpy.context.scene.objects.active = NP020FP.acob
+                bpy.context.view_layer.objects.active = NP020FP.acob
                 bpy.ops.object.mode_set(mode=NP020FP.edit_mode)
             np_print('05_run_NAVEX_esc_right_any_CANCELLED')
             return{'CANCELLED'}
@@ -2158,7 +2158,7 @@ class NPFPRunExtrude(bpy.types.Operator):
             bpy.context.space_data.pivot_point = NP020FP.pivot_point
             bpy.context.space_data.transform_orientation = NP020FP.trans_orient
             if NP020FP.acob is not None:
-                bpy.context.scene.objects.active = NP020FP.acob
+                bpy.context.view_layer.objects.active = NP020FP.acob
                 bpy.ops.object.mode_set(mode=NP020FP.edit_mode)
             np_print('10_run_EXTRUDE_space_FINISHED_flag_TRANSLATE')
             return{'FINISHED'}
@@ -2192,7 +2192,7 @@ class NPFPRunExtrude(bpy.types.Operator):
             bpy.context.space_data.pivot_point = NP020FP.pivot_point
             bpy.context.space_data.transform_orientation = NP020FP.trans_orient
             if NP020FP.acob is not None:
-                bpy.context.scene.objects.active = NP020FP.acob
+                bpy.context.view_layer.objects.active = NP020FP.acob
                 bpy.ops.object.mode_set(mode=NP020FP.edit_mode)
             np_print('10_run_EXTRUDE_space_CANCELLED_flag_TRANSLATE')
             return{'CANCELLED'}
@@ -2212,7 +2212,7 @@ class NPFPRunExtrude(bpy.types.Operator):
             if context.area.type == 'VIEW_3D':
                 if bpy.context.mode == 'OBJECT':
                     bpy.ops.object.select_all(action='DESELECT')
-                    bpy.context.scene.objects.active = polyob
+                    bpy.context.view_layer.objects.active = polyob
                     polyob.select = True
                     bpy.ops.object.mode_set(mode='EDIT')
                     polyme = polyob.data
@@ -2291,7 +2291,7 @@ class NPFPRunBevel(bpy.types.Operator):
             bpy.context.space_data.pivot_point = NP020FP.pivot_point
             bpy.context.space_data.transform_orientation = NP020FP.trans_orient
             if NP020FP.acob is not None:
-                bpy.context.scene.objects.active = NP020FP.acob
+                bpy.context.view_layer.objects.active = NP020FP.acob
                 bpy.ops.object.mode_set(mode=NP020FP.edit_mode)
             np_print('10_run_EXTRUDE_left_release_FINISHED')
             return{'FINISHED'}
@@ -2322,7 +2322,7 @@ class NPFPRunBevel(bpy.types.Operator):
             bpy.context.space_data.pivot_point = NP020FP.pivot_point
             bpy.context.space_data.transform_orientation = NP020FP.trans_orient
             if NP020FP.acob is not None:
-                bpy.context.scene.objects.active = NP020FP.acob
+                bpy.context.view_layer.objects.active = NP020FP.acob
                 bpy.ops.object.mode_set(mode=NP020FP.edit_mode)
             np_print('11_run_BEVEL_esc_CANCELLED')
             return{'CANCELLED'}
@@ -2341,7 +2341,7 @@ class NPFPRunBevel(bpy.types.Operator):
 
         if flag == 'BEVEL' and bevel:
             if context.area.type == 'VIEW_3D':
-                bpy.context.scene.objects.active = polyob
+                bpy.context.view_layer.objects.active = polyob
                 bpy.ops.mesh.select_all(action='SELECT')
                 args = (self, context)
                 NP020FP.main_BEVEL = 'DESIGNATE BEVEL AMOUNT'
@@ -2378,7 +2378,7 @@ class NPFPRunBevel(bpy.types.Operator):
             bpy.context.space_data.pivot_point = NP020FP.pivot_point
             bpy.context.space_data.transform_orientation = NP020FP.trans_orient
             if NP020FP.acob is not None:
-                bpy.context.scene.objects.active = NP020FP.acob
+                bpy.context.view_layer.objects.active = NP020FP.acob
                 bpy.ops.object.mode_set(mode=NP020FP.edit_mode)
             np_print('11_run_BEVEL_INVOKE_a_FINISHED')
             return {'FINISHED'}

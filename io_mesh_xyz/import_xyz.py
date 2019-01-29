@@ -638,7 +638,7 @@ def import_xyz(Ball_type,
                             enter_editmode=False, location=(0, 0, 0),
                             rotation=(0, 0, 0), layers=current_layers)
 
-        ball = bpy.context.scene.objects.active
+        ball = bpy.context.view_layer.objects.active
         ball.scale  = (atom.radius*Ball_radius_factor,) * 3
 
         if atom.name == "Vacancy":
@@ -661,7 +661,7 @@ def import_xyz(Ball_type,
         obj.select_set(True)
     # activate the last selected object (perhaps another should be active?)
     if obj:
-        bpy.context.scene.objects.active = obj
+        bpy.context.view_layer.objects.active = obj
 
 
 
@@ -673,7 +673,7 @@ def build_frames(frame_delta, frame_skip):
     for element in STRUCTURE:
 
         bpy.ops.object.select_all(action='DESELECT')
-        bpy.context.scene.objects.active = element
+        bpy.context.view_layer.objects.active = element
         element.select_set(True)
         bpy.ops.object.shape_key_add(True)
 

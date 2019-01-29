@@ -248,7 +248,7 @@ class NPPAPrepareContext(bpy.types.Operator):
         place = NP020PA.place
         take.select_set(True)
         place.select_set(True)
-        bpy.context.scene.objects.active = place
+        bpy.context.view_layer.objects.active = place
         bpy.context.tool_settings.use_snap = False
         bpy.context.tool_settings.snap_element = 'VERTEX'
         bpy.context.tool_settings.snap_target = 'ACTIVE'
@@ -879,7 +879,7 @@ class NPPAArrayTranslate(bpy.types.Operator):
             for i, ob in enumerate(selob):
                 ob.select_set(True)
                 if i == lenselob-1:
-                    bpy.context.scene.objects.active = ob
+                    bpy.context.view_layer.objects.active = ob
             args = (self, context)
             self._handle = bpy.types.SpaceView3D.draw_handler_add(DRAW_ArrayTranslate, args, 'WINDOW', 'POST_PIXEL')
             context.window_manager.modal_handler_add(self)
@@ -1058,7 +1058,7 @@ class NPPARestoreContext(bpy.types.Operator):
         for i, ob in enumerate(selob):
             ob.select_set(True)
             if i == lenselob-1:
-                bpy.context.scene.objects.active = ob
+                bpy.context.view_layer.objects.active = ob
         NP020PA.take = None
         NP020PA.place = None
         NP020PA.takeloc3d = (0.0,0.0,0.0)
@@ -1077,7 +1077,7 @@ class NPPARestoreContext(bpy.types.Operator):
         bpy.context.space_data.pivot_point = NP020PA.pivot_point
         bpy.context.space_data.transform_orientation = NP020PA.trans_orient
         if NP020PA.acob is not None:
-            bpy.context.scene.objects.active = NP020PA.acob
+            bpy.context.view_layer.objects.active = NP020PA.acob
             bpy.ops.object.mode_set(mode = NP020PA.edit_mode)
 
         np_print('07_CleanExit_FINISHED',';','flag = ', NP020PA.flag)

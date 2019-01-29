@@ -354,16 +354,16 @@ class OscMeshCacheUp(Operator):
 
     def execute(self, context):
 
-        actob = bpy.context.scene.objects.active
+        actob = bpy.context.view_layer.objects.active
 
         for ob in bpy.context.selected_objects[:]:
-            bpy.context.scene.objects.active = ob
+            bpy.context.view_layer.objects.active = ob
             for mod in ob.modifiers[:]:
                 if mod.type == "MESH_CACHE":
                     for up in range(ob.modifiers.keys().index(mod.name)):
                         bpy.ops.object.modifier_move_up(modifier=mod.name)
 
-        bpy.context.scene.objects.active = actob
+        bpy.context.view_layer.objects.active = actob
 
         return {'FINISHED'}
 
