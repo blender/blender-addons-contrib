@@ -386,6 +386,7 @@ def write_node_map(fw, ob):
 
 def split_objects(context, objects):
     scene = context.scene
+    view_layer = context.view_layer
     final_objects = []
 
     bpy.ops.object.select_all(action='DESELECT')
@@ -403,7 +404,7 @@ def split_objects(context, objects):
         ob.select_set(True)
 
         if ob.type == "MESH":
-            scene.objects.active = ob
+            view_layer.objects.active = ob
             bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.select_all(action='DESELECT')
             bpy.ops.mesh.select_mode(type='EDGE')
@@ -420,7 +421,7 @@ def split_objects(context, objects):
             for split_ob in split_objects:
                 assert(split_ob.type == "MESH")
 
-                scene.objects.active = split_ob
+                view_layer.objects.active = split_ob
                 bpy.ops.object.mode_set(mode='EDIT')
                 bpy.ops.mesh.select_mode(type='EDGE')
                 bpy.ops.mesh.select_all(action="SELECT")

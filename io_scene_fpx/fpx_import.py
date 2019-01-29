@@ -661,6 +661,7 @@ class FptImporter():
         self.__context = blender_context
         self.__data = blender_context.blend_data
         self.__scene = blender_context.scene
+        self.__view_layer = blender_context.view_layer
 
         try:
             try:
@@ -963,6 +964,7 @@ class FptImporter():
             self.__context = None
             self.__data = None
             self.__scene = None
+            self.__view_layer = None
 
         t3 = time()
         if self.verbose in FpxUI.VERBOSE_NORMAL:
@@ -1415,7 +1417,7 @@ class FptImporter():
         offset_y = tex_size_length - 2.0 * (tex_loc_y - box_y)
 
         blender_object.select_set(True)
-        self.__scene.objects.active = blender_object
+        self.__view_layer.objects.active = blender_object
         self.__scene.update()
         if ops.object.convert.poll():
             ops.object.convert()
@@ -1776,7 +1778,7 @@ class FptImporter():
         self.create_wire_pole(cu.splines, co2, h_right2, h_left2, surface, width)
 
         # merge wire curve with pole caps
-        self.__scene.objects.active = obj
+        self.__view_layer.objects.active = obj
         self.merge_caps(cu.splines, width)
 
         cu.splines[0].type = 'NURBS' # looks better for wires
@@ -3009,6 +3011,7 @@ def adjust_position(blender_context, blender_scene, fpx_model, fpx_model_type=No
 
     blender_object = blender_context.active_object
     blender_parent = blender_object.parent
+    blender_view_layer = blender_context.blender_view_layer
 
     # Fpm_Model_Type.OBJECT_OBJECT = 0
     ## Fpm_Model_Type.OBJECT_PEG = 1
@@ -3153,8 +3156,8 @@ def adjust_position(blender_context, blender_scene, fpx_model, fpx_model_type=No
         pass
 
     if blender_location:
-        blender_scene.objects.active = blender_parent
-        blender_scene.objects.active.location = blender_location
+        blender_view_layer.objects.active = blender_parent
+        blender_view_layer.objects.active.location = blender_location
         blender_scene.update()
 
 def remove_material(blender_context):

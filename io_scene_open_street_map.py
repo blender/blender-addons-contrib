@@ -239,8 +239,9 @@ def read(context, filepath, scale=100.0, tag=False, utm=False):
 
     # create the object in the scene
     scene = context.scene
+    view_layer = context.view_layer
     scene.objects.link(obj)
-    scene.objects.active = obj
+    view_layer.objects.active = obj
     obj.select_set(True)
 
     # entry points for other addons

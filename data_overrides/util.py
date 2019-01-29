@@ -80,9 +80,10 @@ class OperatorCallContext():
     def __enter__(self):
         scene = bpy.context.scene
         prefs = bpy.context.preferences
+        view_layer = bpy.context.view_layer
 
         # store active/selected state to restore it after operator execution
-        self.curact = scene.objects.active
+        self.curact = view_layer.objects.active
         self.cursel = { ob : ob.select for ob in scene.objects }
 
         # undo can store files a lot when running operators internally,
@@ -95,9 +96,10 @@ class OperatorCallContext():
     def __exit__(self, exc_type, exc_value, traceback):
         scene = bpy.context.scene
         prefs = bpy.context.preferences
+        view_layer = bpy.context.view_layer
 
         # restore active/selected state
-        scene.objects.active = self.curact
+        view_layer.objects.active = self.curact
         for ob in scene.objects:
             ob.select = self.cursel.get(ob, False)
 
@@ -105,7 +107,8 @@ class OperatorCallContext():
 
 def select_single_object(ob):
     scene = bpy.context.scene
+    view_layer = bpy.context.view_layer
 
-    scene.objects.active = ob
+    view_layer.objects.active = ob
     for tob in scene.objects:
         tob.select = (tob == ob)

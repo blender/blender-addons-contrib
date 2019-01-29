@@ -1546,6 +1546,8 @@ def gather_particles(**kwargs):
     area_type = kwargs.get("area_type", context.area.type)
 
     scene = kwargs.get("scene", context.scene)
+	
+    view_layer = kwargs.get("view_layer", context.view_layer)
 
     space_data = kwargs.get("space_data", context.space_data)
     region_data = kwargs.get("region_data", context.region_data)
@@ -1798,7 +1800,7 @@ def gather_particles(**kwargs):
         pivots['CENTER'] = bbox_center.copy()
 
     csu = CoordinateSystemUtility(scene, space_data, region_data, \
-        pivots, normal_system)
+        pivots, normal_system, view_layer)
 
     return particles, csu
 
@@ -1852,7 +1854,7 @@ class CoordinateSystemUtility:
     }
 
     def __init__(self, scene, space_data, region_data, \
-                 pivots, normal_system):
+                 pivots, normal_system, view_layer):
         self.space_data = space_data
         self.region_data = region_data
 
@@ -1860,7 +1862,7 @@ class CoordinateSystemUtility:
             self.pivot_map_inv = self.pivot_v3d_map
 
         self.tou = TransformOrientationUtility(
-            scene, space_data, region_data)
+            scene, space_data, region_data, view_layer)
         self.tou.normal_system = normal_system
 
         self.pivots = pivots
@@ -1943,10 +1945,11 @@ class TransformOrientationUtility:
         "Scaled", "Surface",
     }
 
-    def __init__(self, scene, v3d, rv3d):
+    def __init__(self, scene, v3d, rv3d, vwly):
         self.scene = scene
         self.v3d = v3d
         self.rv3d = rv3d
+        self.view_layer = vwly
 
         self.custom_systems = [item for item in scene.orientations \
             if item.name not in self.special_systems]
@@ -2002,7 +2005,7 @@ class TransformOrientationUtility:
             self.v3d.transform_orientation = name
 
     def get_matrix(self, name=None):
-        active_obj = self.scene.objects.active
+        active_obj = self.view_layer.objects.active
 
         if not name:
             name = self.transform_orientation
@@ -2038,7 +2041,7 @@ class TransformOrientationUtility:
 
 # Is there a less cumbersome way to create transform orientation?
 def create_transform_orientation(scene, name=None, matrix=None):
-    active_obj = scene.objects.active
+    active_obj = view_layer.objects.active
     prev_mode = None
 
     if active_obj:
@@ -3891,7 +3894,7 @@ class BookmarkLibraryProp(bpy.types.PropertyGroup):
         else:
             csu.source_pos = Vector()
 
-        active_obj = csu.tou.scene.objects.active
+        active_obj = csu.tou.view_layer.objects.active
 
         if self.system == 'GLOBAL':
             sys_name = 'GLOBAL'

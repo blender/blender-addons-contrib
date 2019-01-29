@@ -1462,10 +1462,10 @@ def align_matrix(context, location):
 # sets bezierhandles to auto
 def setBezierHandles(obj, mode = 'VECTOR'):
 
-    scene = bpy.context.scene
+    view_layer = bpy.context.view_layer
     if obj.type !=  'CURVE':
         return
-    scene.objects.active = obj
+    view_layer.objects.active = obj
     bpy.ops.object.mode_set(mode = 'EDIT', toggle = True)
     bpy.ops.curve.select_all(action = 'SELECT')
     bpy.ops.curve.handle_type_set(type = mode)
