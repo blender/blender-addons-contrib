@@ -58,7 +58,7 @@ class OperatorCallContext():
         # restore active/selected state
         view_layer.objects.active = self.curact
         for ob in scene.objects:
-            ob.select = self.cursel.get(ob, False)
+            ob.select_set(self.cursel.get(ob, False))
 
         prefs.edit.use_global_undo = self.use_global_undo
 
@@ -68,4 +68,4 @@ def select_single_object(ob):
 
     view_layer.objects.active = ob
     for tob in scene.objects:
-        tob.select = (tob == ob)
+        tob.select_set((tob == ob))

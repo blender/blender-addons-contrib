@@ -3011,7 +3011,7 @@ def adjust_position(blender_context, blender_scene, fpx_model, fpx_model_type=No
 
     blender_object = blender_context.active_object
     blender_parent = blender_object.parent
-    blender_view_layer = blender_context.blender_view_layer
+    blender_view_layer = blender_context.view_layer
 
     # Fpm_Model_Type.OBJECT_OBJECT = 0
     ## Fpm_Model_Type.OBJECT_PEG = 1
