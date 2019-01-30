@@ -60,7 +60,7 @@ class CODuplicateCamera(Operator):
                 cam_obj = active_cam.copy()
                 cam_obj.data = active_cam.data.copy()
                 cam_obj.name = "Camera_Overscan"
-                context.scene.objects.link(cam_obj)
+                context.collection.objects.link(cam_obj)
         except:
             self.report({'WARNING'}, "Setting up a new Overscan Camera has failed")
             return {'CANCELLED'}

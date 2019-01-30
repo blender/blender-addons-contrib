@@ -477,6 +477,7 @@ def export_map(context, filepath):
     print("Map Exporter 0.0")
 
     scene = context.scene
+    collection = context.collection
     objects = context.selected_objects
 
     obs_mesh = []
@@ -657,7 +658,7 @@ def export_map(context, filepath):
                 print("\t\tignoring %s" % ob.name)
 
     for ob in obs_mesh:
-        scene.objects.unlink(ob)
+        collection.objects.unlink(ob)
         bpy.data.objects.remove(ob)
 
     print("Exported Map in %.4fsec" % (time.time() - t))

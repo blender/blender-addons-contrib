@@ -38,10 +38,8 @@ def create_and_link_mesh(name, points):
     mesh.validate()
     mesh.update()
 
-    scene = bpy.context.scene
-
     obj = bpy.data.objects.new(name, mesh)
-    scene.objects.link(obj)
+    bpy.context.collection.objects.link(obj)
     obj.select_set(True)
 
 

@@ -148,6 +148,7 @@ class NodeTree:
 class View:
     def __init__(self, name, euler_rotation):
         self._name = name
+        self._collection = None
         self._scene = None
         self._scene_camera = None
         self._node = None
@@ -190,7 +191,7 @@ class View:
         self._scene_camera = self._scene.camera
 
         self._camera = bpy.data.objects.new(self._name, data)
-        self._scene.objects.link(self._camera)
+        self._collection.objects.link(self._camera)
 
         rotation = self._euler_rotation.copy()
         rotation.z += zed
@@ -202,7 +203,7 @@ class View:
         self._scene.camera = self._camera
 
     def resetCamera(self):
-        self._scene.objects.unlink(self._camera)
+        self._collection.objects.unlink(self._camera)
         bpy.data.objects.remove(self._camera)
         self._camera = None
 
@@ -281,6 +282,8 @@ def cube_map_render_init(scene, use_force=False):
 
         hashes.append(hash(scene))
         view.setScene(scene)
+        # have Dalai to look at this?
+        view._collection = bpy.context.collection  # XXX TODO better fix
 
     # create a scene from scratch
     node_tree_data = NodeTree(main_scene)

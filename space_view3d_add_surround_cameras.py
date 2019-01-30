@@ -225,12 +225,13 @@ class RemoveSurroundCamerasOperator(bpy.types.Operator):
     def execute(self, context):
 
         scene = context.scene
+        collection = context.collection
 
         # XXX. shouldnt there be some less general way to do this?
         # like check if they are the child of origin? - campbell
         for obj in scene.objects[:]:
             if obj.type == 'CAMERA':
-                scene.objects.unlink(obj)
+                collection.objects.unlink(obj)
 
         context.window_manager.previous_num_surround_screens = -1
         return {'FINISHED'}

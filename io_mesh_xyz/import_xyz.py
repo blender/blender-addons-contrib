@@ -528,7 +528,7 @@ def import_xyz(Ball_type,
         camera = bpy.data.objects.new("A_camera", camera_data)
         camera.location = camera_xyz_vec
         camera.layers = current_layers
-        bpy.context.scene.objects.link(camera)
+        bpy.context.collection.objects.link(camera)
 
         # Here the camera is rotated such it looks towards the center of
         # the object. The [0.0, 0.0, 1.0] vector along the z axis
@@ -579,7 +579,7 @@ def import_xyz(Ball_type,
         lamp = bpy.data.objects.new("A_lamp", lamp_data)
         lamp.location = lamp_xyz_vec
         lamp.layers = current_layers
-        bpy.context.scene.objects.link(lamp)
+        bpy.context.collection.objects.link(lamp)
 
         bpy.context.scene.world.light_settings.use_ambient_occlusion = True
         bpy.context.scene.world.light_settings.ao_factor = 0.2
@@ -607,7 +607,7 @@ def import_xyz(Ball_type,
         atom_mesh.from_pydata(atom_vertices, [], [])
         atom_mesh.update()
         new_atom_mesh = bpy.data.objects.new(atom.name, atom_mesh)
-        bpy.context.scene.objects.link(new_atom_mesh)
+        bpy.context.collection.objects.link(new_atom_mesh)
 
         # Now, build a representative sphere (atom)
         current_layers=bpy.context.scene.layers

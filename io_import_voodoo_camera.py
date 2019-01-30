@@ -58,6 +58,7 @@ def voodoo_import(infile,ld_cam,ld_points):
 
     file = open(infile,'rU')
     scene = bpy.context.scene
+    collection = bpy.context.collection
     initfr = scene.frame_current
     b24= True
     voodoo_import.frwas= False
@@ -66,7 +67,7 @@ def voodoo_import(infile,ld_cam,ld_points):
     dummy.location = (0.0, 0.0, 0.0)
     dummy.rotation_euler = ( -3.141593/2, 0.0, 0.0)
     dummy.scale = (0.2, 0.2, 0.2)
-    scene.objects.link(dummy)
+    collection.objects.link(dummy)
 
     if ld_cam:
         data = bpy.data.cameras.new('voodoo_render_cam')
@@ -82,7 +83,7 @@ def voodoo_import(infile,ld_cam,ld_points):
         data.clip_start = 0.1
         data.clip_end = 1000.0
         data.display_size = 0.5
-        scene.objects.link(vcam)
+        collection.objects.link(vcam)
         vcam.parent = dummy
 
     if ld_points:
@@ -94,7 +95,7 @@ def voodoo_import(infile,ld_cam,ld_points):
         # mesh.scale = (5.0, 5.0, 5.0)
         mesh.rotation_euler = (0.0, 0.0, 0.0)
         mesh.scale = (1.0, 1.0, 1.0)
-        scene.objects.link(mesh)
+        collection.objects.link(mesh)
         mesh.parent = dummy
 
     verts = []

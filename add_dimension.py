@@ -52,7 +52,7 @@ def addText(string = '', loc = ((0, 0, 0)), textsize = 1, align = 'CENTER', offs
         fnt = bpy.data.fonts.load(font)
     tcu.font = fnt
     text.location = loc
-    bpy.context.scene.objects.link(text)
+    bpy.context.collection.objects.link(text)
 
     return text
 
@@ -1514,7 +1514,6 @@ def createCurve(vertArray, self, align_matrix):
     name = self.Dimension_Type         # Type as name
 
     # create curve
-    scene = bpy.context.scene
     newCurve = bpy.data.curves.new(name, type = 'CURVE') # curvedatablock
     newSpline = newCurve.splines.new('BEZIER') # spline
 
@@ -1528,7 +1527,7 @@ def createCurve(vertArray, self, align_matrix):
 
     # create object with newCurve
     DimensionCurve = bpy.data.objects.new(name, newCurve) # object
-    scene.objects.link(DimensionCurve) # place in active scene
+    bpy.context.collection.objects.link(DimensionCurve) # place in active scene
     DimensionCurve.Dimension = True
     DimensionCurve.matrix_world = align_matrix # apply matrix
     self.Dimension_Name = DimensionCurve.name

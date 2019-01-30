@@ -320,7 +320,7 @@ def createObjects(tree, parent=None, objectname=None, probability=0.5, size=0.5,
                 obj.rotation_euler = rot[:]
                 obj.scale = [scale, scale, scale]
                 obj.parent = parent
-                bpy.context.scene.objects.link(obj)
+                bpy.context.collection.objects.link(obj)
                 # this is not the best choice of distribution because we might
                 # get negative values especially if sigma is large
                 t += gauss(1.0 / probability, 0.1)
@@ -565,7 +565,7 @@ def createGeometry(tree, power=0.5, scale=0.01, addleaves=False, pleaf=0.5,
 
     # create the tree object an make it the only selected and active object in the scene
     obj_new = bpy.data.objects.new(mesh.name, mesh)
-    base = bpy.context.scene.objects.link(obj_new)
+    base = bpy.context.collection.objects.link(obj_new)
     for ob in bpy.context.scene.objects:
         ob.select_set(False)
     base.select_set(True)
@@ -611,7 +611,7 @@ def createGeometry(tree, power=0.5, scale=0.01, addleaves=False, pleaf=0.5,
                     bleaf, connectoffset
                 )
         obj_leaves = bpy.data.objects.new(mesh.name, mesh)
-        base = bpy.context.scene.objects.link(obj_leaves)
+        base = bpy.context.collection.objects.link(obj_leaves)
         obj_leaves.parent = obj_new
         bpy.context.view_layer.objects.active = obj_leaves
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
@@ -975,7 +975,7 @@ class SCATree(bpy.types.Operator):
         if self.showMarkers:
             mesh = createMarkers(sca, self.markerScale)
             obj_markers = bpy.data.objects.new(mesh.name, mesh)
-            base = bpy.context.scene.objects.link(obj_markers)
+            base = bpy.context.collection.objects.link(obj_markers)
         timings.add('showmarkers')
 
         sca.iterate2(newendpointsper1000=self.newEndPointsPer1000, maxtime=self.maxTime)

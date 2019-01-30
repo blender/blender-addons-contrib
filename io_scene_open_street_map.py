@@ -238,10 +238,8 @@ def read(context, filepath, scale=100.0, tag=False, utm=False):
         me.transform(global_matrix)
 
     # create the object in the scene
-    scene = context.scene
-    view_layer = context.view_layer
-    scene.objects.link(obj)
-    view_layer.objects.active = obj
+    context.collection.objects.link(obj)
+    context.view_layer.objects.active = obj
     obj.select_set(True)
 
     # entry points for other addons

@@ -656,7 +656,7 @@ def draw_obj_special(atom_shape, atom):
         new_mesh.from_pydata([Vector((0.0,0.0,0.0))], [], [])
         new_mesh.update()
         new_atom = bpy.data.objects.new(atom.name + "_sep", new_mesh)
-        bpy.context.scene.objects.link(new_atom)
+        bpy.context.collection.objects.link(new_atom)
         new_atom.location = atom.location
         material_new = bpy.data.materials.new(atom.active_material.name + "_sep")
         material_new.name = atom.name + "_halo"
@@ -698,7 +698,7 @@ def draw_obj_special(atom_shape, atom):
         lamp = bpy.data.objects.new("F2+_lamp", lamp_data)
         lamp.location = Vector((0.0, 0.0, 0.0))
         lamp.layers = current_layers
-        bpy.context.scene.objects.link(lamp)
+        bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
         # The new 'atom' is the F2+ defect
         new_atom = cube
@@ -755,7 +755,7 @@ def draw_obj_special(atom_shape, atom):
         lamp = bpy.data.objects.new("F+_lamp", lamp_data)
         lamp.location = Vector((0.0, 0.0, 0.0))
         lamp.layers = current_layers
-        bpy.context.scene.objects.link(lamp)
+        bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
         # The new 'atom' is the F+ defect complex + lamp
         new_atom = cube
@@ -823,7 +823,7 @@ def draw_obj_special(atom_shape, atom):
         lamp1 = bpy.data.objects.new("F0_lamp", lamp1_data)
         lamp1.location = Vector((scale[0]*1.5, 0.0, 0.0))
         lamp1.layers = current_layers
-        bpy.context.scene.objects.link(lamp1)
+        bpy.context.collection.objects.link(lamp1)
         lamp1.parent = cube
         lamp2_data = bpy.data.lamps.new(name="F0_lamp2", type="POINT")
         lamp2_data.distance = atom.scale[0] * 2.0
@@ -833,7 +833,7 @@ def draw_obj_special(atom_shape, atom):
         lamp2 = bpy.data.objects.new("F0_lamp", lamp2_data)
         lamp2.location = Vector((-scale[0]*1.5, 0.0, 0.0))
         lamp2.layers = current_layers
-        bpy.context.scene.objects.link(lamp2)
+        bpy.context.collection.objects.link(lamp2)
         lamp2.parent = cube
         # The new 'atom' is the F0 defect complex + lamps
         new_atom = cube

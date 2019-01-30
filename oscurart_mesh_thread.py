@@ -37,7 +37,7 @@ def func_osc_screw(self, STRETCH,TURNS,DIAMETER,RESOLUTION):
     # DATA PARA EL MESH
     me = bpy.data.meshes.new("threadData")
     obj = bpy.data.objects.new("Thread", me)
-    bpy.context.scene.objects.link(obj)
+    bpy.context.collection.objects.link(obj)
 
     # VARIABLES
     vertexlist=[]

@@ -591,7 +591,7 @@ class EnhancedSetCursor(bpy.types.Operator):
             transform_func(particle)
 
         if make_snapshot:
-            self.make_normal_snapshot(context.scene, tangential_snapshot)
+            self.make_normal_snapshot(context.collection, tangential_snapshot)
 
         return {'RUNNING_MODAL'}
 
@@ -1416,7 +1416,7 @@ class EnhancedSetCursor(bpy.types.Operator):
 
         return p0, x * scl, y * scl, z * scl, _x * scl, _z * scl
 
-    def make_normal_snapshot(self, scene, tangential=False):
+    def make_normal_snapshot(self, collection, tangential=False):
         settings = find_settings()
         tfm_opts = settings.transform_options
 
@@ -1437,7 +1437,7 @@ class EnhancedSetCursor(bpy.types.Operator):
             snapshot.empty_display_type = 'SINGLE_ARROW'
             #snapshot.empty_display_type = 'ARROWS'
             #snapshot.layers = [True] * 20 # ?
-            scene.objects.link(snapshot)
+            collection.objects.link(snapshot)
 #============================================================================#
 
 
@@ -2273,7 +2273,7 @@ class SnapUtility:
         if context.area.type == 'VIEW_3D':
             v3d = context.space_data
             shade = v3d.viewport_shade
-            self.implementation = Snap3DUtility(context.scene, shade)
+            self.implementation = Snap3DUtility(context, shade)
             self.implementation.update_targets(
                 context.visible_objects, [])
 
@@ -2489,11 +2489,11 @@ class Snap3DUtility(SnapUtilityBase):
         for j in (-1, 1)
         for k in (-1, 1)]
 
-    def __init__(self, scene, shade):
+    def __init__(self, context, shade):
         SnapUtilityBase.__init__(self)
 
         convert_types = {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}
-        self.cache = MeshCache(scene, convert_types)
+        self.cache = MeshCache(context, convert_types)
 
         # ? seems that dict is enough
         self.bbox_cache = {}#collections.OrderedDict()
@@ -2547,9 +2547,9 @@ class Snap3DUtility(SnapUtilityBase):
         # because otherwise outliner will blink each
         # time cursor is clicked
         if hide:
-            self.cache.scene.objects.unlink(self.bbox_obj)
+            self.cache.collection.objects.unlink(self.bbox_obj)
         else:
-            self.cache.scene.objects.link(self.bbox_obj)
+            self.cache.collection.objects.link(self.bbox_obj)
 
     def get_bbox_obj(self, obj, sys_matrix, sys_matrix_inv, is_local):
         if is_local:
@@ -3016,8 +3016,9 @@ class MeshCache:
                          'META', 'ARMATURE', 'LATTICE'}
     convert_types = conversible_types
 
-    def __init__(self, scene, convert_types=None):
-        self.scene = scene
+    def __init__(self, context, convert_types=None):
+        self.collection = context.collection
+        self.scene = context.scene
         if convert_types:
             self.convert_types = convert_types
         self.cached = {}
@@ -3200,10 +3201,10 @@ class MeshCache:
 
         # Make Blender recognize object as having geometry
         # (is there a simpler way to do this?)
-        self.scene.objects.link(tmp_obj)
+        self.collection.objects.link(tmp_obj)
         self.scene.update()
         # We don't need this object in scene
-        self.scene.objects.unlink(tmp_obj)
+        self.collection.objects.unlink(tmp_obj)
 
         return tmp_obj
 
@@ -3822,7 +3823,7 @@ class AddEmptyAtCursor3DBookmark(bpy.types.Operator):
         name = "{}.{}".format(library.name, bookmark.name)
         obj = bpy.data.objects.new(name, None)
         obj.matrix_world = to_matrix4x4(matrix, bookmark_pos)
-        context.scene.objects.link(obj)
+        context.collection.objects.link(obj)
 
         """
         for sel_obj in list(context.selected_objects):

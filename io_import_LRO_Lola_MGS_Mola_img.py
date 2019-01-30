@@ -440,10 +440,8 @@ class Import(bpy.types.Operator):
         mesh.update()
         ob_new = bpy.data.objects.new(TARGET_NAME, mesh)
         ob_new.data = mesh
-        scene = bpy.context.scene
-        view_layer = bpy.context.view_layer
-        scene.objects.link(ob_new)
-        view_layer.objects.active = ob_new
+        bpy.context.collection.objects.link(ob_new)
+        bpy.context.view_layer.objects.active = ob_new
         ob_new.select_set(True)
         print ('*** End draw   ***')
         print('*** Start Smooth ***')

@@ -344,7 +344,7 @@ def DEF_atom_draw_atoms(prop_element,
     atom_mesh.from_pydata(atom_vertices, [], [])
     atom_mesh.update()
     new_atom_mesh = bpy.data.objects.new(name, atom_mesh)
-    bpy.context.scene.objects.link(new_atom_mesh)
+    bpy.context.collection.objects.link(new_atom_mesh)
 
     bpy.ops.surface.primitive_nurbs_surface_sphere_add(
                             view_align=False, enter_editmode=False,

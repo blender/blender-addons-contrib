@@ -312,9 +312,9 @@ def OscLinkedGroupToLocal():
         GROBJS = [ob for ob in ACTOBJ.id_data.instance_collection.objects[:] if ob.type == "MESH"]
 
         for ob in ACTOBJ.id_data.instance_collection.objects[:]:
-            bpy.context.scene.objects.link(ob)
+            bpy.context.collection.objects.link(ob)
         NEWGROUP = bpy.data.collections.new("%s_CLEAN" % (ACTOBJ.name))
-        bpy.context.scene.objects.unlink(ACTOBJ)
+        bpy.context.collection.objects.unlink(ACTOBJ)
         NEWOBJ = []
         for ob in GROBJS:
             NEWGROUP.objects.link(ob)

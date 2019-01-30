@@ -61,7 +61,7 @@ def object_osc_futurism (self, context,STEP, HOLD):
             # CREO OBJETO
             OBJECT=bpy.data.objects.new(ACTOBJ.name[:3]+str(FC), MESH)
             # CONECTO A LA ESCENA
-            bpy.context.scene.objects.link(OBJECT)
+            bpy.context.collection.objects.link(OBJECT)
             # SETEO FRAME CURRENT
             bpy.context.scene.frame_set(FC)
             # MARCO EXPRESIONES PARA VIEW
