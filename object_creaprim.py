@@ -214,7 +214,7 @@ def register():
             default=False
             )
     #bpy.types.VIEW3D_PT_tools_object.append(panel_func)
-    bpy.types.VIEW3D_PT_overlay_object.append(panel_func)
+    bpy.types.OBJECT_PT_context_object.append(panel_func)
     #bpy.app.handlers.scene_update_post.append(setname)
     bpy.app.handlers.depsgraph_update_post.append(setname)
 
@@ -224,7 +224,7 @@ def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
     #bpy.types.VIEW3D_PT_tools_object.remove(panel_func)
-    bpy.types.VIEW3D_PT_overlay_object.remove(panel_func)
+    bpy.types.OBJECT_PT_context_object.remove(panel_func)
     #bpy.app.handlers.scene_update_post.remove(setname)
     bpy.app.handlers.depsgraph_update_post.remove(setname)
     del bpy.types.Scene.Creaprim_Name
