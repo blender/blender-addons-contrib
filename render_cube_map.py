@@ -272,6 +272,7 @@ def cube_map_render_init(scene, use_force=False):
 
     for view in views:
         # create a scene per view
+        # XXX : line below crashes Blender 2.80
         bpy.ops.scene.new(type='LINK_OBJECTS')
         scene = [
                 scene for scene in bpy.data.scenes if
