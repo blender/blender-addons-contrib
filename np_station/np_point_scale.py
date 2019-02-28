@@ -830,7 +830,7 @@ class NPPSRunResize(bpy.types.Operator):
             args = (self, context)
             self._handle = bpy.types.SpaceView3D.draw_handler_add(DRAW_RunResize, args, 'WINDOW', 'POST_PIXEL')
             context.window_manager.modal_handler_add(self)
-            bpy.ops.transform.resize('INVOKE_DEFAULT', constraint_axis = axis, constraint_orientation = 'GLOBAL')
+            bpy.ops.transform.resize('INVOKE_DEFAULT', constraint_axis = axis, orient_type = 'GLOBAL')
 
             np_print('RunResize_INVOKE_a_RUNNING_MODAL')
             return {'RUNNING_MODAL'}
