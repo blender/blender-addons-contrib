@@ -151,9 +151,9 @@ class CreaPrim(bpy.types.Operator):
 
         if len(txtlist) > 1:
             makeinit(txtlist, namelist, groupname, addondir)
-            bpy.ops.wm.addon_enable(module="add_mesh_" + groupname)
+            bpy.ops.preferences.addon_enable(module="add_mesh_" + groupname)
         else:
-            bpy.ops.wm.addon_enable(module="add_mesh_" + str.lower(objname))
+            bpy.ops.preferences.addon_enable(module="add_mesh_" + str.lower(objname))
 
         if scriptdir == 1:
             message = "Add Mesh addon " + groupname + " saved to user scripts directory."
