@@ -29,9 +29,21 @@
 #  Acknowledgements
 #  ================
 #
-#  Blender: ideasman, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG,
-#           Valter, ...
-#  Other: Frank Palmino
+#  Blender developers
+#  ------------------
+#  Campbell Barton      (ideasman) 
+#  Brendon Murphy       (meta_androcto) 
+#  Truman Melton (?)    (truman)
+#  Kilon Alios          (kilon)
+#  ??                   (CoDEmanX)
+#  Dima Glib            (dairin0d)
+#  Peter K.H. Gragert   (PKHG)
+#  Valter Battioli (?)  (valter)
+#
+#  Other
+#  -----
+#  Frank Palmino
+#
 #
 
 bl_info = {
