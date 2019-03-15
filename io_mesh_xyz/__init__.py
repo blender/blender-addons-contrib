@@ -64,7 +64,7 @@ from . import export_xyz
 
 
 # This is the class for the file dialog.
-class ImportXYZ(Operator, ImportHelper):
+class IMPORT_OT_xyz(Operator, ImportHelper):
     bl_idname = "import_mesh.xyz"
     bl_label  = "Import XYZ (*.xyz)"
     bl_options = {'PRESET', 'UNDO'}
@@ -197,7 +197,7 @@ class ImportXYZ(Operator, ImportHelper):
 
 
 # This is the class for the file dialog of the exporter.
-class ExportXYZ(Operator, ExportHelper):
+class EXPORT_OT_xyz(Operator, ExportHelper):
     bl_idname = "export_mesh.xyz"
     bl_label  = "Export XYZ (*.xyz)"
     filename_ext = ".xyz"
@@ -227,13 +227,14 @@ class ExportXYZ(Operator, ExportHelper):
 
 # The entry into the menu 'file -> import'
 def menu_func(self, context):
-    self.layout.operator(ImportXYZ.bl_idname, text="XYZ (.xyz)")
+    self.layout.operator(IMPORT_OT_xyz.bl_idname, text="XYZ (.xyz)")
 
 # The entry into the menu 'file -> export'
 def menu_func_export(self, context):
-    self.layout.operator(ExportXYZ.bl_idname, text="XYZ (.xyz)")
+    self.layout.operator(EXPORT_OT_xyz.bl_idname, text="XYZ (.xyz)")
 
-classes = (ImportXYZ, ExportXYZ)
+classes = (IMPORT_OT_xyz, 
+           EXPORT_OT_xyz)
 
 def register():
     from bpy.utils import register_class
