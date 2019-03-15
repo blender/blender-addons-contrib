@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-12-01 by Clemens Barth
 #  First publication in Blender  : 2011-12-18
-#  Last modified                 : 2014-08-19
+#  Last modified                 : 2019-03-15
 #
 #  Acknowledgements
 #  ================
@@ -36,14 +36,13 @@
 
 bl_info = {
     "name": "Atomic Blender - XYZ",
-    "description": "Import/export of atoms described in .xyz files",
+    "description": "Importing atoms described in XYZ files as balls into Blender",
     "author": "Clemens Barth",
-    "version": (1, 0),
-    "blender": (2, 71, 0),
+    "version": (1, 1),
+    "blender": (2, 80, 0),
     "location": "File -> Import -> XYZ (.xyz)",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Import-Export/XYZ",
+    "wiki_url": "... will be updated asap ...",
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Import-Export"}
 
@@ -234,13 +233,21 @@ def menu_func(self, context):
 def menu_func_export(self, context):
     self.layout.operator(ExportXYZ.bl_idname, text="XYZ (.xyz)")
 
+classes = (ImportXYZ, ExportXYZ)
+
 def register():
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+        
     bpy.types.TOPBAR_MT_file_import.append(menu_func)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        unregister_class(cls)
+        
     bpy.types.TOPBAR_MT_file_import.remove(menu_func)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
