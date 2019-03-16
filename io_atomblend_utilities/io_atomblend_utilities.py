@@ -527,8 +527,6 @@ def draw_obj(atom_shape, atom):
     if atom_shape == '0':
         return None
 
-    current_layers=bpy.context.scene.layers
-
     if atom_shape == '1a': #Sphere mesh
         bpy.ops.mesh.primitive_uv_sphere_add(
             segments=32,
@@ -537,29 +535,25 @@ def draw_obj(atom_shape, atom):
             view_align=False,
             enter_editmode=False,
             location=atom.location,
-            rotation=(0, 0, 0),
-            layers=current_layers)
+            rotation=(0, 0, 0))
     if atom_shape == '1b': #Sphere NURBS
         bpy.ops.surface.primitive_nurbs_surface_sphere_add(
             view_align=False,
             enter_editmode=False,
             location=atom.location,
-            rotation=(0.0, 0.0, 0.0),
-            layers=current_layers)
+            rotation=(0.0, 0.0, 0.0))
     if atom_shape == '2': #Cube
         bpy.ops.mesh.primitive_cube_add(
             view_align=False,
             enter_editmode=False,
             location=atom.location,
-            rotation=(0.0, 0.0, 0.0),
-            layers=current_layers)
+            rotation=(0.0, 0.0, 0.0))
     if atom_shape == '3': #Plane
         bpy.ops.mesh.primitive_plane_add(
             view_align=False,
             enter_editmode=False,
             location=atom.location,
-            rotation=(0.0, 0.0, 0.0),
-            layers=current_layers)
+            rotation=(0.0, 0.0, 0.0))
     if atom_shape == '4a': #Circle
         bpy.ops.mesh.primitive_circle_add(
             vertices=32,
@@ -568,15 +562,13 @@ def draw_obj(atom_shape, atom):
             view_align=False,
             enter_editmode=False,
             location=atom.location,
-            rotation=(0, 0, 0),
-            layers=current_layers)
+            rotation=(0, 0, 0))
     if atom_shape == '4b': #Circle NURBS
         bpy.ops.surface.primitive_nurbs_surface_circle_add(
             view_align=False,
             enter_editmode=False,
             location=atom.location,
-            rotation=(0, 0, 0),
-            layers=current_layers)
+            rotation=(0, 0, 0))
     if atom_shape in {'5a','5b','5c','5d','5e'}: #Icosphere
         index = {'5a':1,'5b':2,'5c':3,'5d':4,'5e':5}
         bpy.ops.mesh.primitive_ico_sphere_add(
@@ -585,8 +577,7 @@ def draw_obj(atom_shape, atom):
             view_align=False,
             enter_editmode=False,
             location=atom.location,
-            rotation=(0, 0, 0),
-            layers=current_layers)
+            rotation=(0, 0, 0))
     if atom_shape == '6a': #Cylinder
         bpy.ops.mesh.primitive_cylinder_add(
             vertices=32,
@@ -596,15 +587,13 @@ def draw_obj(atom_shape, atom):
             view_align=False,
             enter_editmode=False,
             location=atom.location,
-            rotation=(0, 0, 0),
-            layers=current_layers)
+            rotation=(0, 0, 0))
     if atom_shape == '6b': #Cylinder NURBS
         bpy.ops.surface.primitive_nurbs_surface_cylinder_add(
             view_align=False,
             enter_editmode=False,
             location=atom.location,
-            rotation=(0, 0, 0),
-            layers=current_layers)
+            rotation=(0, 0, 0))
     if atom_shape == '7': #Cone
         bpy.ops.mesh.primitive_cone_add(
             vertices=32,
@@ -615,8 +604,7 @@ def draw_obj(atom_shape, atom):
             view_align=False,
             enter_editmode=False,
             location=atom.location,
-            rotation=(0, 0, 0),
-            layers=current_layers)
+            rotation=(0, 0, 0))
     if atom_shape == '8a': #Torus
         bpy.ops.mesh.primitive_torus_add(
             rotation=(0, 0, 0),
@@ -633,8 +621,7 @@ def draw_obj(atom_shape, atom):
             view_align=False,
             enter_editmode=False,
             location=atom.location,
-            rotation=(0, 0, 0),
-            layers=current_layers)
+            rotation=(0, 0, 0))
 
     new_atom = bpy.context.view_layer.objects.active
     new_atom.scale = atom.scale + Vector((0.0,0.0,0.0))
@@ -646,8 +633,6 @@ def draw_obj(atom_shape, atom):
 
 # Draw a special object (e.g. halo, etc. ...)
 def draw_obj_special(atom_shape, atom):
-
-    current_layers=bpy.context.scene.layers
 
     # Halo cloud
     if atom_shape == '1':
@@ -674,8 +659,7 @@ def draw_obj_special(atom_shape, atom):
         bpy.ops.mesh.primitive_cube_add(view_align=False,
                                         enter_editmode=False,
                                         location=atom.location,
-                                        rotation=(0.0, 0.0, 0.0),
-                                        layers=current_layers)
+                                        rotation=(0.0, 0.0, 0.0))
         cube = bpy.context.view_layer.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
         cube.name = atom.name + "_F2+-center"
@@ -697,7 +681,6 @@ def draw_obj_special(atom_shape, atom):
         lamp_data.color = [0.8, 0.8, 0.8, 1.0]
         lamp = bpy.data.objects.new("F2+_lamp", lamp_data)
         lamp.location = Vector((0.0, 0.0, 0.0))
-        lamp.layers = current_layers
         bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
         # The new 'atom' is the F2+ defect
@@ -708,8 +691,7 @@ def draw_obj_special(atom_shape, atom):
         bpy.ops.mesh.primitive_cube_add(view_align=False,
                                         enter_editmode=False,
                                         location=atom.location,
-                                        rotation=(0.0, 0.0, 0.0),
-                                        layers=current_layers)
+                                        rotation=(0.0, 0.0, 0.0))
         cube = bpy.context.view_layer.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
         cube.name = atom.name + "_F+-center"
@@ -729,8 +711,7 @@ def draw_obj_special(atom_shape, atom):
                                         view_align=False,
                                         enter_editmode=False,
                                         location=(0.0, 0.0, 0.0),
-                                        rotation=(0.0, 0.0, 0.0),
-                                        layers=current_layers)
+                                        rotation=(0.0, 0.0, 0.0))
         electron = bpy.context.view_layer.objects.active
         electron.scale = scale
         electron.name = atom.name + "_F+_electron"
@@ -754,7 +735,6 @@ def draw_obj_special(atom_shape, atom):
         lamp_data.color = [0.8, 0.8, 0.8, 1.0]
         lamp = bpy.data.objects.new("F+_lamp", lamp_data)
         lamp.location = Vector((0.0, 0.0, 0.0))
-        lamp.layers = current_layers
         bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
         # The new 'atom' is the F+ defect complex + lamp
@@ -765,8 +745,7 @@ def draw_obj_special(atom_shape, atom):
         bpy.ops.mesh.primitive_cube_add(view_align=False,
                                         enter_editmode=False,
                                         location=atom.location,
-                                        rotation=(0.0, 0.0, 0.0),
-                                        layers=current_layers)
+                                        rotation=(0.0, 0.0, 0.0))
         cube = bpy.context.view_layer.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
         cube.name = atom.name + "_F0-center"
@@ -786,8 +765,7 @@ def draw_obj_special(atom_shape, atom):
                                         view_align=False,
                                         enter_editmode=False,
                                         location=(scale[0]*1.5,0.0,0.0),
-                                        rotation=(0.0, 0.0, 0.0),
-                                        layers=current_layers)
+                                        rotation=(0.0, 0.0, 0.0))
         electron1 = bpy.context.view_layer.objects.active
         electron1.scale = scale
         electron1.name = atom.name + "_F0_electron1"
@@ -796,8 +774,7 @@ def draw_obj_special(atom_shape, atom):
                                         view_align=False,
                                         enter_editmode=False,
                                         location=(-scale[0]*1.5,0.0,0.0),
-                                        rotation=(0.0, 0.0, 0.0),
-                                        layers=current_layers)
+                                        rotation=(0.0, 0.0, 0.0))
         electron2 = bpy.context.view_layer.objects.active
         electron2.scale = scale
         electron2.name = atom.name + "_F0_electron2"
@@ -822,7 +799,6 @@ def draw_obj_special(atom_shape, atom):
         lamp1_data.color = [0.8, 0.8, 0.8, 1.0]
         lamp1 = bpy.data.objects.new("F0_lamp", lamp1_data)
         lamp1.location = Vector((scale[0]*1.5, 0.0, 0.0))
-        lamp1.layers = current_layers
         bpy.context.collection.objects.link(lamp1)
         lamp1.parent = cube
         lamp2_data = bpy.data.lamps.new(name="F0_lamp2", type="POINT")
@@ -832,7 +808,6 @@ def draw_obj_special(atom_shape, atom):
         lamp2_data.color = [0.8, 0.8, 0.8, 1.0]
         lamp2 = bpy.data.objects.new("F0_lamp", lamp2_data)
         lamp2.location = Vector((-scale[0]*1.5, 0.0, 0.0))
-        lamp2.layers = current_layers
         bpy.context.collection.objects.link(lamp2)
         lamp2.parent = cube
         # The new 'atom' is the F0 defect complex + lamps
