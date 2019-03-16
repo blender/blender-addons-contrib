@@ -603,7 +603,7 @@ def import_xyz(Ball_type,
         atom_mesh = bpy.data.meshes.new("Mesh_"+atom.name)
         atom_mesh.from_pydata(atom_vertices, [], [])
         atom_mesh.update()
-        new_atom_mesh = bpy.data.objects.new(atom.name, atom_mesh)
+        new_atom_mesh = bpy.data.objects.new(atom.name + "_mesh", atom_mesh)
         bpy.context.collection.objects.link(new_atom_mesh)
 
         # Now, build a representative sphere (atom)
@@ -635,9 +635,9 @@ def import_xyz(Ball_type,
         ball.scale  = (atom.radius*Ball_radius_factor,) * 3
 
         if atom.name == "Vacancy":
-            ball.name = "Cube_"+atom.name
+            ball.name = atom.name + "_cube"
         else:
-            ball.name = "Ball (NURBS)_"+atom.name
+            ball.name = atom.name + "_ball"
         ball.active_material = atom.material
         ball.parent = new_atom_mesh
         new_atom_mesh.instance_type = 'VERTS'
