@@ -92,10 +92,13 @@ class PANEL_PT_prepare(Panel):
         col.operator("atom_blend.button_distance")
         col.prop(scn, "distance")
 
-        box = layout.box()
-        col = box.column(align=True)
-        col.label(text="All changes concern:")
-        col.prop(scn, "action_type")
+        # This is from Blender 2.79 and does not work in 2.80. However, it  
+        # might be useful later on if changed.
+        #
+        #box = layout.box()
+        #col = box.column(align=True)
+        #col.label(text="All changes concern:")
+        #col.prop(scn, "action_type")
 
         box = layout.box()
         col = box.column(align=True)

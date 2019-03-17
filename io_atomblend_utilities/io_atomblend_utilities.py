@@ -180,7 +180,7 @@ def distance():
 
         for v in bm.verts:
             if v.select:
-                locations.append(atom.matrix_world * v.co)
+                locations.append(atom.matrix_world @ v.co)
 
         if len(locations) > 1:
             location1 = locations[0]
@@ -283,16 +283,16 @@ def modify_objects(action_type,
                    sticks_all):
 
     # Modify atom radius (in pm)
-    if action_type == "ATOM_RADIUS_PM" and "Stick" not in atom.name:
+    if action_type == "ATOM_RADIUS_PM" and "STICK" not in atom.name.upper():
         if radius_pm[0] in atom.name:
             atom.scale = (radius_pm[1]/100,) * 3
 
     # Modify atom radius (all selected)
-    if action_type == "ATOM_RADIUS_ALL" and "Stick" not in atom.name:
+    if action_type == "ATOM_RADIUS_ALL" and "STICK" not in atom.name.upper():
         atom.scale *= radius_all
 
     # Modify atom radius (type, van der Waals, atomic or ionic)
-    if action_type == "ATOM_RADIUS_TYPE" and "Stick" not in atom.name:
+    if action_type == "ATOM_RADIUS_TYPE" and "STICK" not in atom.name.upper():
         for element in ELEMENTS:
             if element.name in atom.name:
                 # For ionic radii
@@ -315,9 +315,10 @@ def modify_objects(action_type,
                     atom.scale = (element.radii[int(radius_type)],) * 3
 
     # Modify atom sticks
-    if action_type == "STICKS_RADIUS_ALL" and ('Sticks_Cups' in atom.name or
-                                               'Sticks_Cylinder' in atom.name or
-                                               'Stick_Cylinder' in atom.name):
+    if (action_type == "STICKS_RADIUS_ALL" and 
+                                    ('STICKS_CUPS' in atom.name.upper() or
+                                     'STICKS_CYLINDER' in atom.name.upper() or
+                                     'STICK_CYLINDER' in atom.name.upper())):
 
         bpy.context.view_layer.objects.active = atom
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -342,7 +343,7 @@ def modify_objects(action_type,
         bpy.context.view_layer.objects.active = None
 
     # Replace atom objects
-    if action_type == "ATOM_REPLACE_OBJ" and "Stick" not in atom.name:
+    if action_type == "ATOM_REPLACE_OBJ" and "STICK" not in atom.name.upper():
 
         scn = bpy.context.scene.atom_blend
 
@@ -377,7 +378,7 @@ def modify_objects(action_type,
         del(atom)
 
     # Default shapes and colors for atoms
-    if action_type == "ATOM_DEFAULT_OBJ" and "Stick" not in atom.name:
+    if action_type == "ATOM_DEFAULT_OBJ" and "STICK" not in atom.name.upper():
 
         scn = bpy.context.scene.atom_blend
 
@@ -426,7 +427,7 @@ def separate_atoms(scn):
     locations = []
     for v in bm.verts:
         if v.select:
-            locations.append(atom.matrix_world * v.co)
+            locations.append(atom.matrix_world @ v.co)
 
     bm.free()
     del(bm)
