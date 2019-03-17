@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+import os
 import bpy
 from math import pi, sqrt
 from mathutils import Vector, Matrix
@@ -458,8 +459,7 @@ def import_xyz(Ball_type,
     # ------------------------------------------------------------------------
     # READING DATA OF ATOMS
 
-    Number_of_total_atoms = read_xyz_file(filepath_xyz,
-                                                       radiustype)
+    Number_of_total_atoms = read_xyz_file(filepath_xyz, radiustype)
 
     # We show the atoms of the first frame.
     first_frame = ALL_FRAMES[0]
@@ -587,6 +587,16 @@ def import_xyz(Ball_type,
 
     object_size = 0.0
     object_size = max(object_size_vec).length
+    
+    # ------------------------------------------------------------------------
+    # COLLECTION
+
+    # Before we start to draw the atoms, we first create a collection for the 
+    # atomic structure. All atoms (balls) are put into this collection.
+    coll_structure_name = os.path.basename(filepath_xyz)
+    scene = bpy.context.scene
+    coll_structure = bpy.data.collections.new(coll_structure_name)
+    scene.collection.children.link(coll_structure)
 
     # ------------------------------------------------------------------------
     # DRAWING THE ATOMS
@@ -605,15 +615,34 @@ def import_xyz(Ball_type,
             # the whole object is translated back to 'object_center_vec'.
             atom_vertices.append( atom.location - object_center_vec )
 
+        # First, we create a collection of the element, which  
+        # contains the atoms (balls + mesh)!  
+        coll_element_name = atom.name # the element name
+        # Create the new collection and ...
+        coll_element = bpy.data.collections.new(coll_element_name)
+        # ... link it to the collection, which contains all parts of the 
+        # structure.
+        coll_structure.children.link(coll_element)
+
+        # Now, create a collection for the atoms, which includes the 
+        # representative ball and the mesh.
+        coll_atom_name = atom.name + "_atom"
+        # Create the new collection and ...
+        coll_atom = bpy.data.collections.new(coll_atom_name)
+        # ... link it to the collection, which contains all parts of the 
+        # element (ball and mesh).
+        coll_element.children.link(coll_atom)
+
         # Build the mesh
         atom_mesh = bpy.data.meshes.new("Mesh_"+atom.name)
         atom_mesh.from_pydata(atom_vertices, [], [])
         atom_mesh.update()
         new_atom_mesh = bpy.data.objects.new(atom.name + "_mesh", atom_mesh)
-        bpy.context.collection.objects.link(new_atom_mesh)
+
+        # Link active object to the new collection
+        coll_atom.objects.link(new_atom_mesh)
 
         # Now, build a representative sphere (atom)
-
         if atom.name == "Vacancy":
             bpy.ops.mesh.primitive_cube_add(
                             view_align=False, enter_editmode=False,
@@ -650,6 +679,18 @@ def import_xyz(Ball_type,
         # The object is back translated to 'object_center_vec'.
         new_atom_mesh.location = object_center_vec
         STRUCTURE.append(new_atom_mesh)
+
+        # Note the collection where the ball was placed into.
+        coll_all = ball.users_collection
+        if len(coll_all) > 0:
+            coll_past = coll_all[0]
+        else:
+            coll_past = bpy.context.scene.collection
+        
+        # Put the atom into the new collection 'atom' and ...
+        coll_atom.objects.link(ball)
+        # ... unlink the atom from the other collection.
+        coll_past.objects.unlink(ball)
 
     # ------------------------------------------------------------------------
     # CAMERA and LIGHT SOURCES
