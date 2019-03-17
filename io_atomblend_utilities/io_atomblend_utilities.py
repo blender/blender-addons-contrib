@@ -891,7 +891,8 @@ def custom_datafile(path_datafile):
             color_value = line[19:-1].split(',')
             color = [float(color_value[0]),
                      float(color_value[1]),
-                     float(color_value[2])]
+                     float(color_value[2]),
+                     float(color_value[3])]
             # Used radius
             line = data_file_p.readline()
             radius_used = float(line[19:-1])
