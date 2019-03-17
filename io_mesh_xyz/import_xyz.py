@@ -347,6 +347,91 @@ def read_xyz_file(filepath_xyz,radiustype):
     return total_number_atoms
 
 
+# Function, which puts a camera and light source into the 3D scene
+def camera_light_source(use_camera,
+                        use_light,
+                        object_center_vec,
+                        object_size):
+
+    camera_factor = 15.0
+
+    # If chosen a camera is put into the scene.
+    if use_camera == True:
+
+        # Assume that the object is put into the global origin. Then, the
+        # camera is moved in x and z direction, not in y. The object has its
+        # size at distance sqrt(object_size) from the origin. So, move the
+        # camera by this distance times a factor of camera_factor in x and z.
+        # Then add x, y and z of the origin of the object.
+        object_camera_vec = Vector((sqrt(object_size) * camera_factor,
+                                    0.0,
+                                    sqrt(object_size) * camera_factor))
+        camera_xyz_vec = object_center_vec + object_camera_vec
+
+        # Create the camera
+        camera_data = bpy.data.cameras.new("A_camera")
+        camera_data.lens = 45
+        camera_data.clip_end = 500.0
+        camera = bpy.data.objects.new("A_camera", camera_data)
+        camera.location = camera_xyz_vec
+        bpy.context.collection.objects.link(camera)
+
+        # Here the camera is rotated such it looks towards the center of
+        # the object. The [0.0, 0.0, 1.0] vector along the z axis
+        z_axis_vec             = Vector((0.0, 0.0, 1.0))
+        # The angle between the last two vectors
+        angle                  = object_camera_vec.angle(z_axis_vec, 0)
+        # The cross-product of z_axis_vec and object_camera_vec
+        axis_vec               = z_axis_vec.cross(object_camera_vec)
+        # Rotate 'axis_vec' by 'angle' and convert this to euler parameters.
+        # 4 is the size of the matrix.
+        camera.rotation_euler  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
+
+        # Rotate the camera around its axis by 90° such that we have a nice
+        # camera position and view onto the object.
+        bpy.ops.object.select_all(action='DESELECT')
+        camera.select_set(True)
+        
+        # This will be done at some point ...
+        #
+        #bpy.ops.transform.rotate(value=(90.0*2*pi/360.0),
+        #                         axis=object_camera_vec,
+        #                         orient_matrix=camera.rotation_euler,
+        #                         constraint_axis=(False, False, False),
+        #                         orient_type='GLOBAL',
+        #                         mirror=False, proportional='DISABLED',
+        #                         proportional_edit_falloff='SMOOTH',
+        #                         proportional_size=1, snap=False,
+        #                         snap_target='CLOSEST', snap_point=(0, 0, 0),
+        #                         snap_align=False, snap_normal=(0, 0, 0),
+        #                         release_confirm=False)
+
+    # Here a lamp is put into the scene, if chosen.
+    if use_light == True:
+
+        # This is the distance from the object measured in terms of %
+        # of the camera distance. It is set onto 50% (1/2) distance.
+        light_dl = sqrt(object_size) * 15 * 0.5
+        # This is a factor to which extend the lamp shall go to the right
+        # (from the camera  point of view).
+        light_dy_right = light_dl * (3.0/4.0)
+
+        # Create x, y and z for the lamp.
+        object_light_vec = Vector((light_dl,light_dy_right,light_dl))
+        light_xyz_vec = object_center_vec + object_light_vec
+
+        # Create the lamp
+        light_data = bpy.data.lights.new(name="A_light", type="SUN")
+        light_data.distance = 500.0
+        light_data.energy = 3.0
+        lamp = bpy.data.objects.new("A_light", light_data)
+        lamp.location = light_xyz_vec
+        bpy.context.collection.objects.link(lamp)
+
+        # Some settings for the World: a bit ambient occlusion
+        bpy.context.scene.world.light_settings.use_ambient_occlusion = True
+        bpy.context.scene.world.light_settings.ao_factor = 0.2
+
 # -----------------------------------------------------------------------------
 #                                                            The main routine
 
@@ -504,85 +589,6 @@ def import_xyz(Ball_type,
     object_size = max(object_size_vec).length
 
     # ------------------------------------------------------------------------
-    # CAMERA AND LAMP
-    camera_factor = 20.0
-
-    # If chosen a camera is put into the scene.
-    if use_camera == True:
-
-        # Assume that the object is put into the global origin. Then, the
-        # camera is moved in x and z direction, not in y. The object has its
-        # size at distance sqrt(object_size) from the origin. So, move the
-        # camera by this distance times a factor of camera_factor in x and z.
-        # Then add x, y and z of the origin of the object.
-        object_camera_vec = Vector((sqrt(object_size) * camera_factor,
-                                    0.0,
-                                    sqrt(object_size) * camera_factor))
-        camera_xyz_vec = object_center_vec + object_camera_vec
-
-        # Create the camera
-        camera_data = bpy.data.cameras.new("A_camera")
-        camera_data.lens = 45
-        camera_data.clip_end = 500.0
-        camera = bpy.data.objects.new("A_camera", camera_data)
-        camera.location = camera_xyz_vec
-        bpy.context.collection.objects.link(camera)
-
-        # Here the camera is rotated such it looks towards the center of
-        # the object. The [0.0, 0.0, 1.0] vector along the z axis
-        z_axis_vec             = Vector((0.0, 0.0, 1.0))
-        # The angle between the last two vectors
-        angle                  = object_camera_vec.angle(z_axis_vec, 0)
-        # The cross-product of z_axis_vec and object_camera_vec
-        axis_vec               = z_axis_vec.cross(object_camera_vec)
-        # Rotate 'axis_vec' by 'angle' and convert this to euler parameters.
-        # 4 is the size of the matrix.
-        camera.rotation_euler  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
-
-        # This will be done at some point ...
-        #
-        ## Rotate the camera around its axis by 90° such that we have a nice
-        ## camera position and view onto the object.
-        #bpy.ops.object.select_all(action='DESELECT')
-        #camera.select_set(True)
-        #bpy.ops.transform.rotate(value=(90.0*2*pi/360.0),
-        #                         axis=object_camera_vec,
-        #                         constraint_axis=(False, False, False),
-        #                         orient_type='GLOBAL',
-        #                         mirror=False, proportional='DISABLED',
-        #                         proportional_edit_falloff='SMOOTH',
-        #                         proportional_size=1, snap=False,
-        #                         snap_target='CLOSEST', snap_point=(0, 0, 0),
-        #                         snap_align=False, snap_normal=(0, 0, 0),
-        #                         release_confirm=False)
-
-    # Here a lamp is put into the scene, if chosen.
-    if use_light == True:
-
-        # This is the distance from the object measured in terms of %
-        # of the camera distance. It is set onto 50% (1/2) distance.
-        light_dl = sqrt(object_size) * 15 * 0.5
-        # This is a factor to which extend the lamp shall go to the right
-        # (from the camera  point of view).
-        light_dy_right = light_dl * (3.0/4.0)
-
-        # Create x, y and z for the lamp.
-        object_light_vec = Vector((light_dl,light_dy_right,light_dl))
-        light_xyz_vec = object_center_vec + object_light_vec
-
-        # Create the lamp
-        light_data = bpy.data.lights.new(name="A_lamp", type="SUN")
-        light_data.distance = 500.0
-        light_data.energy = 3.0
-        light = bpy.data.objects.new("A_lamp", light_data)
-        light.location = light_xyz_vec
-        bpy.context.collection.objects.link(light)
-
-        bpy.context.scene.world.light_settings.use_ambient_occlusion = True
-        bpy.context.scene.world.light_settings.ao_factor = 0.2
-
-
-    # ------------------------------------------------------------------------
     # DRAWING THE ATOMS
 
     bpy.ops.object.select_all(action='DESELECT')
@@ -644,6 +650,14 @@ def import_xyz(Ball_type,
         # The object is back translated to 'object_center_vec'.
         new_atom_mesh.location = object_center_vec
         STRUCTURE.append(new_atom_mesh)
+
+    # ------------------------------------------------------------------------
+    # CAMERA and LIGHT SOURCES
+
+    camera_light_source(use_camera,
+                        use_light,
+                        object_center_vec,
+                        object_size)
 
     # ------------------------------------------------------------------------
     # SELECT ALL LOADED OBJECTS
