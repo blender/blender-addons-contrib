@@ -33,7 +33,7 @@ def export_xyz(obj_type, filepath_xyz):
     counter = 0
     for obj in bpy.context.selected_objects:
 
-        if "Stick" in obj.name:
+        if "STICK" in obj.name.upper():
             continue
 
         if obj.type not in {'MESH', 'SURFACE', 'META'}:
@@ -55,7 +55,7 @@ def export_xyz(obj_type, filepath_xyz):
 
         if len(obj.children) != 0:
             for vertex in obj.data.vertices:
-                location = obj.matrix_world*vertex.co
+                location = obj.matrix_world @ vertex.co
                 list_atoms.append(AtomsExport(name, location))
                 counter += 1
         else:
@@ -68,8 +68,7 @@ def export_xyz(obj_type, filepath_xyz):
     xyz_file_p.write("%d\n" % counter)
     xyz_file_p.write("This XYZ file has been created with Blender "
                      "and the addon Atomic Blender - XYZ. "
-                     "For more details see: wiki.blender.org/index.php/"
-                     "Extensions:2.6/Py/Scripts/Import-Export/XYZ\n")
+                     "For more details see the wiki pages of Blender.\n")
 
     for i, atom in enumerate(list_atoms):
         string = "%3s%15.5f%15.5f%15.5f\n" % (
