@@ -315,11 +315,14 @@ def modify_objects(action_type,
                     atom.scale = (element.radii[int(radius_type)],) * 3
 
     # Modify atom sticks
-    if (action_type == "STICKS_RADIUS_ALL" and 
-                                    ('STICKS_CUPS' in atom.name.upper() or
-                                     'STICKS_CYLINDER' in atom.name.upper() or
-                                     'STICK_CYLINDER' in atom.name.upper())):
-                                         
+    if (action_type == "STICKS_RADIUS_ALL" and 'STICK' in atom.name.upper() and
+                                    ('CUP'      in atom.name.upper() or
+                                     'CYLINDER' in atom.name.upper())):
+        
+        # Make the cylinder or cup visible first, otherwise one cannot
+        # go into EDIT mode. Note that 'atom' here is in fact a 'stick' 
+        # (cylinder or cup).
+        atom.hide_set(False)
         bpy.context.view_layer.objects.active = atom
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
         bm = bmesh.from_edit_mesh(atom.data)
@@ -340,6 +343,8 @@ def modify_objects(action_type,
             v.co[1] = ((v.co[1] - center[1]) / radius) * radius_new + center[1]
 
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        # Hide again the representative stick (cylinder or cup).
+        atom.hide_set(True)
         bpy.context.view_layer.objects.active = None
 
     # Replace atom objects
