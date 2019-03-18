@@ -265,12 +265,12 @@ def choose_objects(action_type,
         else:
             if atom.type in {'SURFACE', 'MESH', 'META'}:
                 modify_objects(action_type,
-                                   atom,
-                                   radius_all,
-                                   radius_pm,
-                                   radius_type,
-                                   radius_type_ionic,
-                                   sticks_all)
+                               atom,
+                               radius_all,
+                               radius_pm,
+                               radius_type,
+                               radius_type_ionic,
+                               sticks_all)
 
 
 # Modifying the radius of a selected atom or stick
@@ -319,7 +319,7 @@ def modify_objects(action_type,
                                     ('STICKS_CUPS' in atom.name.upper() or
                                      'STICKS_CYLINDER' in atom.name.upper() or
                                      'STICK_CYLINDER' in atom.name.upper())):
-
+                                         
         bpy.context.view_layer.objects.active = atom
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
         bm = bmesh.from_edit_mesh(atom.data)
@@ -531,7 +531,7 @@ def draw_obj(atom_shape, atom):
         bpy.ops.mesh.primitive_uv_sphere_add(
             segments=32,
             ring_count=32,
-            size=1,
+            radius=1,
             view_align=False,
             enter_editmode=False,
             location=atom.location,
@@ -573,7 +573,7 @@ def draw_obj(atom_shape, atom):
         index = {'5a':1,'5b':2,'5c':3,'5d':4,'5e':5}
         bpy.ops.mesh.primitive_ico_sphere_add(
             subdivisions=int(index[atom_shape]),
-            size=1,
+            radius=1,
             view_align=False,
             enter_editmode=False,
             location=atom.location,
