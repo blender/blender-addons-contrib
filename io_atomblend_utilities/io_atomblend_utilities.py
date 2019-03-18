@@ -417,51 +417,50 @@ def modify_objects(action_type,
 # Separating atoms from a dupliverts strucutre.
 def separate_atoms(scn):
 
-    atom = bpy.context.edit_object
+    # Get the mesh.
+    mesh = bpy.context.edit_object
 
     # Do nothing if it is not a dupliverts structure.
-    if not atom.instance_type == "VERTS":
+    if not mesh.instance_type == "VERTS":
        return {'FINISHED'}
 
-    bm = bmesh.from_edit_mesh(atom.data)
+    # This is the name of the mesh
+    mesh_name = mesh.name
+    # Get the collection
+    coll = mesh.users_collection[0]
+
+    # Get the coordinates of the selected vertices (atoms)
+    bm = bmesh.from_edit_mesh(mesh.data)
     locations = []
     for v in bm.verts:
         if v.select:
-            locations.append(atom.matrix_world @ v.co)
+            locations.append(mesh.matrix_world @ v.co)
 
+    # Free memory
     bm.free()
     del(bm)
 
-    name  = atom.name
-    scale = atom.children[0].scale
-    material = atom.children[0].active_material
+    # Delete already the selected vertices    
+    bpy.ops.mesh.delete(type='VERT')
+    
+    # Find the representative ball within the collection.
+    for obj in coll.objects:
+        if obj.parent != None:
+            if obj.parent.name == mesh_name:
+                break
 
-    # Separate the vertex from the main mesh and create a new mesh.
-    bpy.ops.mesh.separate()
-    new_object = bpy.context.scene.objects[0]
-    # And now, switch to the OBJECT mode such that we can ...
-    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-    # ... delete the new mesh including the separated vertex
-    bpy.ops.object.select_all(action='DESELECT')
-    new_object.select_set(True)
-    bpy.ops.object.delete()
-
-    # Create new atoms/vacancies at the position of the old atoms
-    # For all selected positions do:
+    # Create balls and put them at the places where the vertices (atoms) have
+    # been before.
     for location in locations:
-        # Create a new object by duplication of the child of the dupliverts
-        # structure. <= this is done 'len(locations)' times. After each
-        # duplication, move the new object onto the positions
-        bpy.ops.object.select_all(action='DESELECT')
-        atom.children[0].select_set(True)
-        bpy.context.view_layer.objects.active = atom.children[0]
-        bpy.ops.object.duplicate_move()
-        new_atom = bpy.context.view_layer.objects.active
-        new_atom.parent = None
-        new_atom.location = location
-        new_atom.name = atom.name + "_sep"
+        obj_dupli = obj.copy()
+        obj_dupli.data = obj.data.copy()
+        obj_dupli.parent = None
+        coll.objects.link(obj_dupli)
+        obj_dupli.location = location
+        obj_dupli.name = obj.name + "_sep"
 
-    bpy.context.view_layer.objects.active = atom
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+    bpy.context.view_layer.objects.active = mesh
 
 
 # Prepare a new material
