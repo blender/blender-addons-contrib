@@ -667,6 +667,11 @@ def import_xyz(Ball_type,
                             rotation=(0, 0, 0))
 
         ball = bpy.context.view_layer.objects.active
+        # Hide this ball because its appearance has no meaning. It is just the
+        # representative ball. The ball is visible at the vertices of the mesh.
+        # Rememmber, this is a dupliverts construct!
+        ball.hide_set(True)
+        # Scale up/down the ball radius.
         ball.scale  = (atom.radius*Ball_radius_factor,) * 3
 
         if atom.name == "Vacancy":
