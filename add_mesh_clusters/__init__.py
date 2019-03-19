@@ -143,29 +143,6 @@ class CLASS_PT_atom_cluster_panel(Panel):
         row = box.row()
         row.prop(scn, "atom_number_drawn")
 
-        # This is not needed because all such functions are available
-        # in the Atomic Blender Utilities panel.
-        #
-        #row = layout.row()
-        #row.label(text="Modify cluster")
-        #box = layout.box()
-        #row = box.row()
-        #row.label(text="All changes concern:")
-        #row = box.row()
-        #row.prop(scn, "radius_how")
-        #row = box.row()
-        #row.label(text="1. Change type of radii")
-        #row = box.row()
-        #row.prop(scn, "radius_type")
-        #row = box.row()
-        #row.label(text="2. Change atom radii by scale")
-        #row = box.row()
-        #col = row.column()
-        #col.prop(scn, "radius_all")
-        #col = row.column(align=True)
-        #col.operator( "atom_cluster.radius_all_bigger" )
-        #col.operator( "atom_cluster.radius_all_smaller" )
-
 
 # The properties (gadgets) in the panel. They all go to scene
 # during initialization (see end)
@@ -229,23 +206,6 @@ class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
         default="---", description = "Number of all atoms in the cluster")
     atom_number_drawn: StringProperty(name="Drawn",
         default="---", description = "Number of drawn atoms in the cluster")
-
-    #radius_how: EnumProperty(
-    #    name="",
-    #    description="Which objects shall be modified?",
-    #    items=(('ALL_ACTIVE',"all active objects", "in the current layer"),
-    #           ('ALL_IN_LAYER',"all"," in active layer(s)")),
-    #           default='ALL_ACTIVE',)
-    #radius_type: EnumProperty(
-    #    name="Type",
-    #    description="Which type of atom radii?",
-    #    items=(('0',"predefined", "Use pre-defined radii"),
-    #           ('1',"atomic", "Use atomic radii"),
-    #           ('2',"van der Waals","Use van der Waals radii")),
-    #           default='0',update=Callback_radius_type)
-    #radius_all: FloatProperty(
-    #    name="Scale", default = 1.05, min=0.0,
-    #    description="Put in the scale factor")
 
 
 # The button for reloading the atoms and creating the scene
@@ -361,144 +321,6 @@ def DEF_atom_draw_atoms(prop_element,
     bpy.context.view_layer.objects.active = new_atom_mesh
 
     return True
-
-
-# Routine to modify the radii via the type: predefined, atomic or van der Waals
-# Explanations here are also valid for the next 3 DEFs.
-def DEF_atom_cluster_radius_type(rtype,how):
-
-    if how == "ALL_IN_LAYER":
-
-        # Note all layers that are active.
-        layers = []
-        for i in range(20):
-            if bpy.context.scene.layers[i] == True:
-                layers.append(i)
-
-        # Put all objects, which are in the layers, into a list.
-        change_objects = []
-        for obj in bpy.context.scene.objects:
-            for layer in layers:
-                if obj.layers[layer] == True:
-                    change_objects.append(obj)
-
-        # Consider all objects, which are in the list 'change_objects'.
-        for obj in change_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
-                    for element in add_mesh_cluster.ATOM_CLUSTER_ELEMENTS:
-                        if element.name in obj.name:
-                            obj.children[0].scale = (element.radii[int(rtype)],) * 3
-            else:
-                if obj.type == "SURFACE" or obj.type == "MESH":
-                    for element in add_mesh_cluster.ATOM_CLUSTER_ELEMENTS:
-                        if element.name in obj.name:
-                            obj.scale = (element.radii[int(rtype)],) * 3
-
-
-# Routine to scale the radii of all atoms
-def DEF_atom_cluster_radius_all(scale, how):
-
-    if how == "ALL_IN_LAYER":
-
-        layers = []
-        for i in range(20):
-            if bpy.context.scene.layers[i] == True:
-                layers.append(i)
-
-        change_objects = []
-        for obj in bpy.context.scene.objects:
-            for layer in layers:
-                if obj.layers[layer] == True:
-                    change_objects.append(obj)
-
-        for obj in change_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
-                    if "Stick" not in obj.name:
-                        obj.children[0].scale *= scale
-            else:
-                if obj.type == "SURFACE" or obj.type == "MESH":
-                    if "Stick" not in obj.name:
-                        obj.scale *= scale
-
-    if how == "ALL_ACTIVE":
-        for obj in bpy.context.selected_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
-                    if "Stick" not in obj.name:
-                        obj.children[0].scale *= scale
-            else:
-                if obj.type == "SURFACE" or obj.type == "MESH":
-                    if "Stick" not in obj.name:
-                        obj.scale *= scale
-
-
-## Button for increasing the radii of all atoms
-#class CLASS_atom_cluster_radius_all_bigger_button(Operator):
-#    bl_idname = "atom_cluster.radius_all_bigger"
-#    bl_label = "Bigger ..."
-#    bl_description = "Increase the radii of the atoms"
-#
-#    def execute(self, context):
-#        scn = bpy.context.scene.atom_cluster
-#        DEF_atom_cluster_radius_all(
-#                scn.radius_all,
-#                scn.radius_how,)
-#        return {'FINISHED'}
-#
-#
-## Button for decreasing the radii of all atoms
-#class CLASS_atom_cluster_radius_all_smaller_button(Operator):
-#    bl_idname = "atom_cluster.radius_all_smaller"
-#    bl_label = "Smaller ..."
-#    bl_description = "Decrease the radii of the atoms"
-#
-#    def execute(self, context):
-#        scn = bpy.context.scene.atom_cluster
-#        DEF_atom_cluster_radius_all(
-#                1.0/scn.radius_all,
-#                scn.radius_how,)
-#        return {'FINISHED'}
-
-
-# Routine to scale the radii of all atoms
-def DEF_atom_cluster_radius_all(scale, how):
-
-    if how == "ALL_IN_LAYER":
-
-        layers = []
-        for i in range(20):
-            if bpy.context.scene.layers[i] == True:
-                layers.append(i)
-
-        change_objects = []
-        for obj in bpy.context.scene.objects:
-            for layer in layers:
-                if obj.layers[layer] == True:
-                    change_objects.append(obj)
-
-
-        for obj in change_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
-                    if "Stick" not in obj.name:
-                        obj.children[0].scale *= scale
-            else:
-                if obj.type == "SURFACE" or obj.type == "MESH":
-                    if "Stick" not in obj.name:
-                        obj.scale *= scale
-
-    if how == "ALL_ACTIVE":
-        for obj in bpy.context.selected_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
-                    if "Stick" not in obj.name:
-                        obj.children[0].scale *= scale
-            else:
-                if obj.type == "SURFACE" or obj.type == "MESH":
-                    if "Stick" not in obj.name:
-                        obj.scale *= scale
 
 
 # The entry into the menu 'file -> import'
