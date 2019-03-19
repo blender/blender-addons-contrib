@@ -358,8 +358,7 @@ def modify_objects(action_type,
         # Special object (like halo, etc.)
         if scn.replace_objs_special != '0':
             new_atom = draw_obj_special(scn.replace_objs_special, atom)
-            new_atom.parent = atom.parent
-        # Standard geomtrical objects
+        # Standard geometrical objects
         else:
             # If the atom shape shall not be changed, then:
             if scn.replace_objs == '0':
@@ -378,18 +377,17 @@ def modify_objects(action_type,
         new_material = bpy.data.materials.new("tmp")
 
         # Create new object (NURBS sphere = '1b')
-        new_atom = draw_obj('1b', atom)
+        new_atom = draw_obj('1b', atom, new_material)
         new_atom.active_material = new_material
-        new_atom.parent = atom.parent
 
         # Change size and color of the new object
         for element in ELEMENTS:
-            if element.name in atom.name:
+            if element.name in new_atom.name:
                 new_atom.scale = (element.radii[0],) * 3
                 new_atom.active_material.diffuse_color = element.color
                 new_atom.name = element.name
 
-                name = atom.active_material.name
+                name = new_atom.active_material.name
                 if element.name+"_standard" in name:
                     pos = name.rfind("_standard")
                     if name[pos+9:].isdigit():
@@ -399,11 +397,6 @@ def modify_objects(action_type,
                         new_material.name = name+"_standard1"
                 else:
                     new_material.name = name+"_standard1"
-
-        # Finally, delete the old object
-        bpy.ops.object.select_all(action='DESELECT')
-        atom.select_set(True)
-        bpy.ops.object.delete()
 
 
 # Separating atoms from a dupliverts strucutre.
@@ -619,11 +612,18 @@ def draw_obj(atom_shape, atom, new_material):
 
     new_atom = bpy.context.view_layer.objects.active
     new_atom.scale = atom.scale + Vector((0.0,0.0,0.0))
-    new_atom.name = atom.name + "_tmp"
+    name = atom.name
+    atom.name = atom.name + "_tmp"
+    new_atom.name = name
     new_atom.select_set(True)
 
     new_atom.active_material = new_material
-    new_atom.parent = atom.parent
+
+    # If it is the representative object of a duplivert structure then 
+    # transfer the parent and hide the new object.
+    if atom.parent != None:
+        new_atom.parent = atom.parent
+        new_atom.hide_set(True)
 
     if "_repl" not in atom.name:
         new_atom.name = atom.name + "_repl"
@@ -642,11 +642,6 @@ def draw_obj(atom_shape, atom, new_material):
         coll_old_atom.objects.link(new_atom)
         # ... unlink the new atom from its original collection.
         coll_new_atom_past.objects.unlink(new_atom)
-    
-    # If it is the representative object of a duplivert structure then 
-    # hide the new object
-    if new_atom.parent != None:
-        new_atom.hide_set(True)
     
     # Deselect everything
     bpy.ops.object.select_all(action='DESELECT')
@@ -727,6 +722,11 @@ def draw_obj_special(atom_shape, atom):
             
         coll_new.name = atom.name + "_F2+-center"
         
+        if atom.parent != None:
+            cube.parent = atom.parent
+            cube.hide_set(True)
+            lamp.hide_set(True)
+            
     # F+ center
     if atom_shape == '2':
         # Create first a cube
@@ -796,6 +796,12 @@ def draw_obj_special(atom_shape, atom):
             coll_ori.objects.unlink(lamp)
 
         coll_new.name = atom.name + "_F+-center"
+        
+        if atom.parent != None:
+            cube.parent = atom.parent
+            cube.hide_set(True)
+            electron.hide_set(True)
+            lamp.hide_set(True)
 
     # F0 center
     if atom_shape == '3':
@@ -887,9 +893,17 @@ def draw_obj_special(atom_shape, atom):
             coll_ori.objects.unlink(electron2)
             coll_ori.objects.unlink(lamp1)
             coll_ori.objects.unlink(lamp2)
-            
+
         coll_new.name = atom.name + "_F0-center"
-    
+
+        if atom.parent != None:
+            cube.parent = atom.parent
+            cube.hide_set(True)
+            electron1.hide_set(True)
+            electron2.hide_set(True)
+            lamp1.hide_set(True)
+            lamp2.hide_set(True)
+        
     # Deselect everything
     bpy.ops.object.select_all(action='DESELECT')
     # Make the old atom visible.
@@ -903,7 +917,7 @@ def draw_obj_special(atom_shape, atom):
     # Delete the old atom
     bpy.ops.object.delete()
     del(atom)        
-
+    
     return new_atom
 
 
