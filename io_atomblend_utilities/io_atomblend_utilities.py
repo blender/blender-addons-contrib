@@ -671,6 +671,14 @@ def draw_obj_special(atom_shape, atom):
     # Note the collection where 'atom' is placed into.
     coll_atom = get_collection_object(atom)
 
+    # Now, create a collection for the new objects
+    coll_new = atom.name
+    # Create the new collection and ...
+    coll_new = bpy.data.collections.new(coll_new)
+    # ... link it to the collection, which contains 'atom'.
+    coll_atom.children.link(coll_new)
+
+
     # F2+ center
     if atom_shape == '1':
         # Create first a cube
@@ -680,10 +688,10 @@ def draw_obj_special(atom_shape, atom):
                                         rotation=(0.0, 0.0, 0.0))
         cube = bpy.context.view_layer.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
-        cube.name = atom.name + "_F2+-center"
+        cube.name = atom.name + "_F2+_vac"
         cube.select_set(True)
         # New material for this cube
-        material_cube = bpy.data.materials.new(atom.name + "_F2+-center")
+        material_cube = bpy.data.materials.new(atom.name + "_F2+_vac")
         material_cube.diffuse_color = [0.8, 0.0, 0.0, 1.0]
         material_cube.metallic = 0.8
         material_cube.specular_intensity = 0.5
@@ -692,11 +700,12 @@ def draw_obj_special(atom_shape, atom):
         material_cube.show_transparent_back = True
         cube.active_material = material_cube
         # Put a nice point lamp inside the defect
-        lamp_data = bpy.data.lights.new(name="F2+_lamp", type="POINT")
+        lamp_data = bpy.data.lights.new(name=atom.name + "_F2+_lamp", 
+                                        type="POINT")
         lamp_data.distance = atom.scale[0] * 2.0
         lamp_data.energy = 8.0
         lamp_data.color = (0.8, 0.8, 0.8)
-        lamp = bpy.data.objects.new("F2+_lamp", lamp_data)
+        lamp = bpy.data.objects.new(atom.name + "_F2+_lamp", lamp_data)
         lamp.location = Vector((0.0, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
@@ -705,16 +714,18 @@ def draw_obj_special(atom_shape, atom):
         
         # Note the collection where all the new objects were placed into.
         # We use only one object, the cube
-        coll_new_obj = get_collection_object(cube)
+        coll_ori = get_collection_object(cube)
        
         # If it is not the same collection then ...
-        if coll_new_obj != coll_atom:
-            # Put all new objects into the collection of 'atom' and ...
-            coll_atom.objects.link(cube)
-            coll_atom.objects.link(lamp)
+        if coll_ori != coll_new:
+            # Put all new objects into the new collection and ...
+            coll_new.objects.link(cube)
+            coll_new.objects.link(lamp)
             # ... unlink them from their original collection.
-            coll_new_obj.objects.unlink(cube)
-            coll_new_obj.objects.unlink(lamp)
+            coll_ori.objects.unlink(cube)
+            coll_ori.objects.unlink(lamp)
+            
+        coll_new.name = atom.name + "_F2+-center"
         
     # F+ center
     if atom_shape == '2':
@@ -725,10 +736,10 @@ def draw_obj_special(atom_shape, atom):
                                         rotation=(0.0, 0.0, 0.0))
         cube = bpy.context.view_layer.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
-        cube.name = atom.name + "_F+-center"
+        cube.name = atom.name + "_F+_vac"
         cube.select_set(True)
         # New material for this cube
-        material_cube = bpy.data.materials.new(atom.name + "_F+-center")
+        material_cube = bpy.data.materials.new(atom.name + "_F+_vac")
         material_cube.diffuse_color = [0.0, 0.0, 0.8, 1.0]
         material_cube.metallic = 0.8
         material_cube.specular_intensity = 0.5
@@ -757,11 +768,12 @@ def draw_obj_special(atom_shape, atom):
         material_electron.show_transparent_back = False
         electron.active_material = material_electron
         # Put a nice point lamp inside the electron
-        lamp_data = bpy.data.lights.new(name="F+_lamp", type="POINT")
+        lamp_data = bpy.data.lights.new(name=atom.name + "_F+_lamp", 
+                                        type="POINT")
         lamp_data.distance = atom.scale[0] * 2.0
         lamp_data.energy = 8.0
         lamp_data.color = (0.8, 0.8, 0.8)
-        lamp = bpy.data.objects.new("F+_lamp", lamp_data)
+        lamp = bpy.data.objects.new(atom.name + "_F+_lamp", lamp_data)
         lamp.location = Vector((scale[0]*1.5, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
@@ -770,18 +782,20 @@ def draw_obj_special(atom_shape, atom):
 
         # Note the collection where all the new objects were placed into.
         # We use only one object, the cube
-        coll_new_obj = get_collection_object(cube)
+        coll_ori = get_collection_object(cube)
        
         # If it is not the same collection then ...
-        if coll_new_obj != coll_atom:
-            # Put all new objects into the collection of 'atom' and ...
-            coll_atom.objects.link(cube)
-            coll_atom.objects.link(electron)
-            coll_atom.objects.link(lamp)
+        if coll_ori != coll_new:
+            # Put all new objects into the new collection and ...
+            coll_new.objects.link(cube)
+            coll_new.objects.link(electron)
+            coll_new.objects.link(lamp)
             # ... unlink them from their original collection.
-            coll_new_obj.objects.unlink(cube)
-            coll_new_obj.objects.unlink(electron)
-            coll_new_obj.objects.unlink(lamp)
+            coll_ori.objects.unlink(cube)
+            coll_ori.objects.unlink(electron)
+            coll_ori.objects.unlink(lamp)
+
+        coll_new.name = atom.name + "_F+-center"
 
     # F0 center
     if atom_shape == '3':
@@ -792,10 +806,10 @@ def draw_obj_special(atom_shape, atom):
                                         rotation=(0.0, 0.0, 0.0))
         cube = bpy.context.view_layer.objects.active
         cube.scale = atom.scale + Vector((0.0,0.0,0.0))
-        cube.name = atom.name + "_F0-center"
+        cube.name = atom.name + "_F0_vac"
         cube.select_set(True)
         # New material for this cube
-        material_cube = bpy.data.materials.new(atom.name + "_F0-center")
+        material_cube = bpy.data.materials.new(atom.name + "_F0_vac")
         material_cube.diffuse_color = [0.8, 0.8, 0.8, 1.0]
         material_cube.metallic = 0.8
         material_cube.specular_intensity = 0.5
@@ -834,19 +848,21 @@ def draw_obj_special(atom_shape, atom):
         electron1.active_material = material_electron
         electron2.active_material = material_electron
         # Put two nice point lamps inside the electrons
-        lamp1_data = bpy.data.lights.new(name="F0_lamp1", type="POINT")
+        lamp1_data = bpy.data.lights.new(name=atom.name + "_F0_lamp1", 
+                                         type="POINT")
         lamp1_data.distance = atom.scale[0] * 2.0
         lamp1_data.energy = 1.0
         lamp1_data.color = (0.8, 0.8, 0.8)
-        lamp1 = bpy.data.objects.new("F0_lamp", lamp1_data)
+        lamp1 = bpy.data.objects.new(atom.name + "_F0_lamp", lamp1_data)
         lamp1.location = Vector((scale[0]*1.5, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp1)
         lamp1.parent = cube
-        lamp2_data = bpy.data.lights.new(name="F0_lamp2", type="POINT") 
+        lamp2_data = bpy.data.lights.new(name=atom.name + "_F0_lamp2", 
+                                         type="POINT") 
         lamp2_data.distance = atom.scale[0] * 2.0
         lamp2_data.energy = 1.0
         lamp2_data.color = (0.8, 0.8, 0.8)
-        lamp2 = bpy.data.objects.new("F0_lamp", lamp2_data)
+        lamp2 = bpy.data.objects.new(atom.name + "_F0_lamp", lamp2_data)
         lamp2.location = Vector((-scale[0]*1.5, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp2)
         lamp2.parent = cube
@@ -855,22 +871,24 @@ def draw_obj_special(atom_shape, atom):
 
         # Note the collection where all the new objects were placed into.
         # We use only one object, the cube
-        coll_new_obj = get_collection_object(cube)
+        coll_ori = get_collection_object(cube)
        
         # If it is not the same collection then ...
-        if coll_new_obj != coll_atom:
+        if coll_ori != coll_new:
             # Put all new objects into the collection of 'atom' and ...
-            coll_atom.objects.link(cube)
-            coll_atom.objects.link(electron1)
-            coll_atom.objects.link(electron2)
-            coll_atom.objects.link(lamp1)
-            coll_atom.objects.link(lamp2)
+            coll_new.objects.link(cube)
+            coll_new.objects.link(electron1)
+            coll_new.objects.link(electron2)
+            coll_new.objects.link(lamp1)
+            coll_new.objects.link(lamp2)
             # ... unlink them from their original collection.
-            coll_new_obj.objects.unlink(cube)
-            coll_new_obj.objects.unlink(electron1)
-            coll_new_obj.objects.unlink(electron2)
-            coll_new_obj.objects.unlink(lamp1)
-            coll_new_obj.objects.unlink(lamp2)
+            coll_ori.objects.unlink(cube)
+            coll_ori.objects.unlink(electron1)
+            coll_ori.objects.unlink(electron2)
+            coll_ori.objects.unlink(lamp1)
+            coll_ori.objects.unlink(lamp2)
+            
+        coll_new.name = atom.name + "_F0-center"
     
     # Deselect everything
     bpy.ops.object.select_all(action='DESELECT')
