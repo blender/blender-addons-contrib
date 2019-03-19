@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2012-03-25 by Clemens Barth
 #  First publication in Blender  : 2012-05-27 by Clemens Barth
-#  Last modified                 : 2014-08-19
+#  Last modified                 : 2019-03-19
 #
 #
 #
@@ -39,15 +39,13 @@
 
 bl_info = {
     "name": "Atomic Blender - Cluster",
-    "description": "Creating cluster formed by atoms",
+    "description": "Creating nanoparticles/clusters formed by atoms",
     "author": "Clemens Barth",
     "version": (0, 5),
-    "blender": (2, 71, 0),
-    "location": "Panel: View 3D - Tools (left side)",
+    "blender": (2, 80, 0),
+    "location": "Panel: View 3D - Tools (right side)",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Add_Mesh/Cluster",
-    "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
+    "wiki_url": "... will be updated asap ...",
     "category": "Add Mesh"}
 
 
@@ -83,11 +81,10 @@ class CLASS_ImportCluster(bpy.types.Operator):
         return {'FINISHED'}
 
 
-
-class CLASS_atom_cluster_panel(Panel):
+class CLASS_PT_atom_cluster_panel(Panel):
     bl_label       = "Atomic Blender - Cluster"
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOL_PROPS"
+    bl_region_type = "UI"
 
 
     @classmethod
@@ -321,8 +318,6 @@ def DEF_atom_draw_atoms(prop_element,
                         prop_scale_radius,
                         prop_scale_distances):
 
-    current_layers=bpy.context.scene.layers
-
     for element in add_mesh_cluster.ATOM_CLUSTER_ELEMENTS:
         if prop_element in element.name:
             number = element.number
@@ -348,8 +343,7 @@ def DEF_atom_draw_atoms(prop_element,
 
     bpy.ops.surface.primitive_nurbs_surface_sphere_add(
                             view_align=False, enter_editmode=False,
-                            location=(0,0,0), rotation=(0.0, 0.0, 0.0),
-                            layers=current_layers)
+                            location=(0,0,0), rotation=(0.0, 0.0, 0.0))
 
     ball = bpy.context.view_layer.objects.active
     ball.scale  = (radii[int(prop_radius_type)]*prop_scale_radius,) * 3
@@ -509,15 +503,32 @@ def DEF_atom_cluster_radius_all(scale, how):
 def DEF_menu_func(self, context):
     self.layout.operator(CLASS_ImportCluster.bl_idname, icon='PLUGIN')
 
+
+classes = (CLASS_ImportCluster, 
+           CLASS_PT_atom_cluster_panel, 
+           CLASS_atom_cluster_Properties, 
+           CLASS_atom_cluster_load_button,
+           CLASS_atom_cluster_radius_all_bigger_button,
+           CLASS_atom_cluster_radius_all_smaller_button,)
+
+
 def register():
-    bpy.utils.register_module(__name__)
+    from bpy.utils import register_class    
+    for cls in classes:
+        register_class(cls)
+        
     bpy.types.Scene.atom_cluster = bpy.props.PointerProperty(type=
                                                   CLASS_atom_cluster_Properties)
     bpy.types.VIEW3D_MT_mesh_add.append(DEF_menu_func)
+    
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    from bpy.utils import register_class
+    for cls in classes:
+        unregister_class(cls)
+        
     bpy.types.VIEW3D_MT_mesh_add.remove(DEF_menu_func)
+
 
 if __name__ == "__main__":
 
