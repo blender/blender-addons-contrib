@@ -48,7 +48,6 @@ bl_info = {
     "wiki_url": "... will be updated asap ...",
     "category": "Add Mesh"}
 
-
 import os
 import io
 import bpy
@@ -144,25 +143,28 @@ class CLASS_PT_atom_cluster_panel(Panel):
         row = box.row()
         row.prop(scn, "atom_number_drawn")
 
-        row = layout.row()
-        row.label(text="Modify cluster")
-        box = layout.box()
-        row = box.row()
-        row.label(text="All changes concern:")
-        row = box.row()
-        row.prop(scn, "radius_how")
-        row = box.row()
-        row.label(text="1. Change type of radii")
-        row = box.row()
-        row.prop(scn, "radius_type")
-        row = box.row()
-        row.label(text="2. Change atom radii by scale")
-        row = box.row()
-        col = row.column()
-        col.prop(scn, "radius_all")
-        col = row.column(align=True)
-        col.operator( "atom_cluster.radius_all_bigger" )
-        col.operator( "atom_cluster.radius_all_smaller" )
+        # This is not needed because all such functions are available
+        # in the Atomic Blender Utilities panel.
+        #
+        #row = layout.row()
+        #row.label(text="Modify cluster")
+        #box = layout.box()
+        #row = box.row()
+        #row.label(text="All changes concern:")
+        #row = box.row()
+        #row.prop(scn, "radius_how")
+        #row = box.row()
+        #row.label(text="1. Change type of radii")
+        #row = box.row()
+        #row.prop(scn, "radius_type")
+        #row = box.row()
+        #row.label(text="2. Change atom radii by scale")
+        #row = box.row()
+        #col = row.column()
+        #col.prop(scn, "radius_all")
+        #col = row.column(align=True)
+        #col.operator( "atom_cluster.radius_all_bigger" )
+        #col.operator( "atom_cluster.radius_all_smaller" )
 
 
 # The properties (gadgets) in the panel. They all go to scene
@@ -228,22 +230,22 @@ class CLASS_atom_cluster_Properties(bpy.types.PropertyGroup):
     atom_number_drawn: StringProperty(name="Drawn",
         default="---", description = "Number of drawn atoms in the cluster")
 
-    radius_how: EnumProperty(
-        name="",
-        description="Which objects shall be modified?",
-        items=(('ALL_ACTIVE',"all active objects", "in the current layer"),
-               ('ALL_IN_LAYER',"all"," in active layer(s)")),
-               default='ALL_ACTIVE',)
-    radius_type: EnumProperty(
-        name="Type",
-        description="Which type of atom radii?",
-        items=(('0',"predefined", "Use pre-defined radii"),
-               ('1',"atomic", "Use atomic radii"),
-               ('2',"van der Waals","Use van der Waals radii")),
-               default='0',update=Callback_radius_type)
-    radius_all: FloatProperty(
-        name="Scale", default = 1.05, min=0.0,
-        description="Put in the scale factor")
+    #radius_how: EnumProperty(
+    #    name="",
+    #    description="Which objects shall be modified?",
+    #    items=(('ALL_ACTIVE',"all active objects", "in the current layer"),
+    #           ('ALL_IN_LAYER',"all"," in active layer(s)")),
+    #           default='ALL_ACTIVE',)
+    #radius_type: EnumProperty(
+    #    name="Type",
+    #    description="Which type of atom radii?",
+    #    items=(('0',"predefined", "Use pre-defined radii"),
+    #           ('1',"atomic", "Use atomic radii"),
+    #           ('2',"van der Waals","Use van der Waals radii")),
+    #           default='0',update=Callback_radius_type)
+    #radius_all: FloatProperty(
+    #    name="Scale", default = 1.05, min=0.0,
+    #    description="Put in the scale factor")
 
 
 # The button for reloading the atoms and creating the scene
@@ -432,32 +434,32 @@ def DEF_atom_cluster_radius_all(scale, how):
                         obj.scale *= scale
 
 
-# Button for increasing the radii of all atoms
-class CLASS_atom_cluster_radius_all_bigger_button(Operator):
-    bl_idname = "atom_cluster.radius_all_bigger"
-    bl_label = "Bigger ..."
-    bl_description = "Increase the radii of the atoms"
-
-    def execute(self, context):
-        scn = bpy.context.scene.atom_cluster
-        DEF_atom_cluster_radius_all(
-                scn.radius_all,
-                scn.radius_how,)
-        return {'FINISHED'}
-
-
-# Button for decreasing the radii of all atoms
-class CLASS_atom_cluster_radius_all_smaller_button(Operator):
-    bl_idname = "atom_cluster.radius_all_smaller"
-    bl_label = "Smaller ..."
-    bl_description = "Decrease the radii of the atoms"
-
-    def execute(self, context):
-        scn = bpy.context.scene.atom_cluster
-        DEF_atom_cluster_radius_all(
-                1.0/scn.radius_all,
-                scn.radius_how,)
-        return {'FINISHED'}
+## Button for increasing the radii of all atoms
+#class CLASS_atom_cluster_radius_all_bigger_button(Operator):
+#    bl_idname = "atom_cluster.radius_all_bigger"
+#    bl_label = "Bigger ..."
+#    bl_description = "Increase the radii of the atoms"
+#
+#    def execute(self, context):
+#        scn = bpy.context.scene.atom_cluster
+#        DEF_atom_cluster_radius_all(
+#                scn.radius_all,
+#                scn.radius_how,)
+#        return {'FINISHED'}
+#
+#
+## Button for decreasing the radii of all atoms
+#class CLASS_atom_cluster_radius_all_smaller_button(Operator):
+#    bl_idname = "atom_cluster.radius_all_smaller"
+#    bl_label = "Smaller ..."
+#    bl_description = "Decrease the radii of the atoms"
+#
+#    def execute(self, context):
+#        scn = bpy.context.scene.atom_cluster
+#        DEF_atom_cluster_radius_all(
+#                1.0/scn.radius_all,
+#                scn.radius_how,)
+#        return {'FINISHED'}
 
 
 # Routine to scale the radii of all atoms
@@ -507,9 +509,7 @@ def DEF_menu_func(self, context):
 classes = (CLASS_ImportCluster, 
            CLASS_PT_atom_cluster_panel, 
            CLASS_atom_cluster_Properties, 
-           CLASS_atom_cluster_load_button,
-           CLASS_atom_cluster_radius_all_bigger_button,
-           CLASS_atom_cluster_radius_all_smaller_button,)
+           CLASS_atom_cluster_load_button)
 
 
 def register():
