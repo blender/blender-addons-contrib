@@ -267,7 +267,8 @@ class CLASS_atom_cluster_load_button(Operator):
         DEF_atom_draw_atoms(scn.element,
                             scn.radius_type,
                             scn.scale_radius,
-                            scn.scale_distances)
+                            scn.scale_distances,
+                            scn.shape)
 
         scn.atom_number_total = str(numbers[0])
         scn.atom_number_drawn = str(numbers[1])
@@ -278,7 +279,8 @@ class CLASS_atom_cluster_load_button(Operator):
 def DEF_atom_draw_atoms(prop_element,
                         prop_radius_type,
                         prop_scale_radius,
-                        prop_scale_distances):
+                        prop_scale_distances,
+                        coll_name):
 
     for element in add_mesh_cluster.ATOM_CLUSTER_ELEMENTS:
         if prop_element in element.name:
@@ -288,6 +290,17 @@ def DEF_atom_draw_atoms(prop_element,
             radii = element.radii
             break
 
+    # First, we create a collection for the atoms, which includes the 
+    # representative ball and the mesh.
+    coll_atom_name = "Cluster (" + coll_name + ")_" + name.lower()
+    # Create the new collection and ...
+    coll_atom = bpy.data.collections.new(coll_atom_name)
+    # ... link it to the collection, which contains all parts of the 
+    # element (ball and mesh).
+    bpy.data.collections.new(coll_atom_name)
+    bpy.context.scene.collection.children.link(coll_atom)
+
+    # Create the material.
     material = bpy.data.materials.new(name)
     material.name = name
     material.diffuse_color = color
@@ -300,19 +313,40 @@ def DEF_atom_draw_atoms(prop_element,
     atom_mesh = bpy.data.meshes.new("Mesh_"+name)
     atom_mesh.from_pydata(atom_vertices, [], [])
     atom_mesh.update()
-    new_atom_mesh = bpy.data.objects.new(name, atom_mesh)
-    bpy.context.collection.objects.link(new_atom_mesh)
+    new_atom_mesh = bpy.data.objects.new(name+ "_mesh", atom_mesh)
+
+    # Link active object to the new collection
+    coll_atom.objects.link(new_atom_mesh)
 
     bpy.ops.surface.primitive_nurbs_surface_sphere_add(
                             view_align=False, enter_editmode=False,
                             location=(0,0,0), rotation=(0.0, 0.0, 0.0))
 
     ball = bpy.context.view_layer.objects.active
+    ball.name = name + "_ball"
+    # Hide this ball because its appearance has no meaning. It is just the
+    # representative ball. The ball is visible at the vertices of the mesh.
+    # Rememmber, this is a dupliverts construct!
+    ball.hide_set(True)
+
+    # Scale the radius.
     ball.scale  = (radii[int(prop_radius_type)]*prop_scale_radius,) * 3
 
     ball.active_material = material
     ball.parent = new_atom_mesh
     new_atom_mesh.instance_type = 'VERTS'
+
+    # Note the collection where the ball was placed into.
+    coll_all = ball.users_collection
+    if len(coll_all) > 0:
+        coll_past = coll_all[0]
+    else:
+        coll_past = bpy.context.scene.collection
+    
+    # Put the atom into the new collection 'atom' and ...
+    coll_atom.objects.link(ball)
+    # ... unlink the atom from the other collection.
+    coll_past.objects.unlink(ball)
 
     # ------------------------------------------------------------------------
     # SELECT ALL LOADED OBJECTS
