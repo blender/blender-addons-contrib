@@ -376,9 +376,43 @@ def modify_objects(action_type,
                 else:
                     new_atom.name = atom.name
 
-        # Delete the old object.
+        # Note the collection where the old object was placed into.
+        coll_old_atom_all = atom.users_collection
+        if len(coll_old_atom_all) > 0:
+            coll_old_atom = coll_old_atom_all[0]
+        else:
+            coll_old_atom = bpy.context.scene.collection
+
+        # Note the collection where the new object was placed into.
+        coll_new_atom_past_all = new_atom.users_collection
+        if len(coll_new_atom_past_all) > 0:
+            coll_new_atom_past = coll_new_atom_past_all[0]
+        else:
+            coll_new_atom_past = bpy.context.scene.collection
+
+        # If it is not the same collection then ...
+        if coll_new_atom_past != coll_old_atom:
+            # Put the new object into the collection of the old object and ...
+            coll_old_atom.objects.link(new_atom)
+            # ... unlink the new atom from its original collection.
+            coll_new_atom_past.objects.unlink(new_atom)
+        
+        # If it is the representative object of a duplivert structure then 
+        # hide the new object
+        if new_atom.parent != None:
+            new_atom.hide_set(True)
+
+        # Deselect everything
         bpy.ops.object.select_all(action='DESELECT')
+        # Make the old atom visible.
+        atom.hide_set(True)
+        # Select the old atom.
         atom.select_set(True)
+        # Remove the parent if necessary.
+        atom.parent = None
+        # Unlink the old object from the collection.
+        coll_old_atom.objects.unlink(atom)
+        # Delete the old atom
         bpy.ops.object.delete()
         del(atom)
 
