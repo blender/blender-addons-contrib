@@ -364,57 +364,10 @@ def modify_objects(action_type,
             # If the atom shape shall not be changed, then:
             if scn.replace_objs == '0':
                 atom.active_material = new_material
-                return {'FINISHED'}
+                #return {'FINISHED'}
             # If the atom shape shall change, then:
             else:
-                new_atom = draw_obj(scn.replace_objs, atom)
-                new_atom.active_material = new_material
-                new_atom.parent = atom.parent
-
-                if "_repl" not in atom.name:
-                    new_atom.name = atom.name + "_repl"
-                else:
-                    new_atom.name = atom.name
-
-        # Note the collection where the old object was placed into.
-        coll_old_atom_all = atom.users_collection
-        if len(coll_old_atom_all) > 0:
-            coll_old_atom = coll_old_atom_all[0]
-        else:
-            coll_old_atom = bpy.context.scene.collection
-
-        # Note the collection where the new object was placed into.
-        coll_new_atom_past_all = new_atom.users_collection
-        if len(coll_new_atom_past_all) > 0:
-            coll_new_atom_past = coll_new_atom_past_all[0]
-        else:
-            coll_new_atom_past = bpy.context.scene.collection
-
-        # If it is not the same collection then ...
-        if coll_new_atom_past != coll_old_atom:
-            # Put the new object into the collection of the old object and ...
-            coll_old_atom.objects.link(new_atom)
-            # ... unlink the new atom from its original collection.
-            coll_new_atom_past.objects.unlink(new_atom)
-        
-        # If it is the representative object of a duplivert structure then 
-        # hide the new object
-        if new_atom.parent != None:
-            new_atom.hide_set(True)
-
-        # Deselect everything
-        bpy.ops.object.select_all(action='DESELECT')
-        # Make the old atom visible.
-        atom.hide_set(True)
-        # Select the old atom.
-        atom.select_set(True)
-        # Remove the parent if necessary.
-        atom.parent = None
-        # Unlink the old object from the collection.
-        coll_old_atom.objects.unlink(atom)
-        # Delete the old atom
-        bpy.ops.object.delete()
-        del(atom)
+                new_atom = draw_obj(scn.replace_objs, atom, new_material)
 
     # Default shapes and colors for atoms
     if action_type == "ATOM_DEFAULT_OBJ" and "STICK" not in atom.name.upper():
@@ -511,34 +464,24 @@ def draw_obj_material(material_type, material):
         material_new = bpy.data.materials.new(material.name + "_normal")
     if material_type == '2': # Transparent
         material_new = bpy.data.materials.new(material.name + "_transparent")
-        material_new.use_transparency = True
-        material_new.transparency_method = 'Z_TRANSPARENCY'
-        material_new.alpha = 1.3
-        material_new.raytrace_transparency.fresnel = 1.6
-        material_new.raytrace_transparency.fresnel_factor = 1.6
+        material_new.metallic = 0.8
+        material_new.specular_intensity = 0.5
+        material_new.roughness = 0.3
+        material_new.blend_method = 'ADD'
+        material_new.show_transparent_back = False
     if material_type == '3': # Reflecting
         material_new = bpy.data.materials.new(material.name + "_reflecting")
-        material_new.raytrace_mirror.use = True
-        material_new.raytrace_mirror.reflect_factor = 0.6
-        material_new.raytrace_mirror.fresnel = 0.0
-        material_new.raytrace_mirror.fresnel_factor = 1.250
-        material_new.raytrace_mirror.depth = 2
-        material_new.raytrace_mirror.distance = 0.0
-        material_new.raytrace_mirror.gloss_factor = 1.0
+        material_new.metallic = 0.5
+        material_new.specular_intensity = 0.5
+        material_new.roughness = 0.0
+        material_new.blend_method = 'OPAQUE'
     if material_type == '4': # Transparent + reflecting
         material_new = bpy.data.materials.new(material.name + "_trans+refl")
-        material_new.use_transparency = True
-        material_new.transparency_method = 'Z_TRANSPARENCY'
-        material_new.alpha = 1.3
-        material_new.raytrace_transparency.fresnel = 1.6
-        material_new.raytrace_transparency.fresnel_factor = 1.6
-        material_new.raytrace_mirror.use = True
-        material_new.raytrace_mirror.reflect_factor = 0.6
-        material_new.raytrace_mirror.fresnel = 0.0
-        material_new.raytrace_mirror.fresnel_factor = 1.250
-        material_new.raytrace_mirror.depth = 2
-        material_new.raytrace_mirror.distance = 0.0
-        material_new.raytrace_mirror.gloss_factor = 1.0
+        material_new.metallic = 0.3
+        material_new.specular_intensity = 0.5
+        material_new.roughness = 0.3
+        material_new.blend_method = 'ADD'
+        material_new.show_transparent_back = False
 
     # Always, when the material is changed, a new name is created. Note that
     # this makes sense: Imagine, an other object uses the same material as the
@@ -559,8 +502,20 @@ def draw_obj_material(material_type, material):
     return material_new
 
 
+# Get the collection of an object.
+def get_collection_object(obj):
+    
+    coll_all = obj.users_collection
+    if len(coll_all) > 0:
+        coll = coll_all[0]
+    else:
+        coll = bpy.context.scene.collection
+
+    return coll
+    
+
 # Draw an object (e.g. cube, sphere, cylinder, ...)
-def draw_obj(atom_shape, atom):
+def draw_obj(atom_shape, atom, new_material):
 
     # No change
     if atom_shape == '0':
@@ -667,33 +622,57 @@ def draw_obj(atom_shape, atom):
     new_atom.name = atom.name + "_tmp"
     new_atom.select_set(True)
 
+    new_atom.active_material = new_material
+    new_atom.parent = atom.parent
+
+    if "_repl" not in atom.name:
+        new_atom.name = atom.name + "_repl"
+    else:
+        new_atom.name = atom.name
+
+    # Note the collection where the old object was placed into.
+    coll_old_atom = get_collection_object(atom)
+    
+    # Note the collection where the new object was placed into.
+    coll_new_atom_past = get_collection_object(new_atom)
+    
+    # If it is not the same collection then ...
+    if coll_new_atom_past != coll_old_atom:
+        # Put the new object into the collection of the old object and ...
+        coll_old_atom.objects.link(new_atom)
+        # ... unlink the new atom from its original collection.
+        coll_new_atom_past.objects.unlink(new_atom)
+    
+    # If it is the representative object of a duplivert structure then 
+    # hide the new object
+    if new_atom.parent != None:
+        new_atom.hide_set(True)
+    
+    # Deselect everything
+    bpy.ops.object.select_all(action='DESELECT')
+    # Make the old atom visible.
+    atom.hide_set(True)
+    # Select the old atom.
+    atom.select_set(True)
+    # Remove the parent if necessary.
+    atom.parent = None
+    # Unlink the old object from the collection.
+    coll_old_atom.objects.unlink(atom)
+    # Delete the old atom
+    bpy.ops.object.delete()
+    del(atom)
+
     return new_atom
 
 
 # Draw a special object (e.g. halo, etc. ...)
 def draw_obj_special(atom_shape, atom):
 
-    # Halo cloud
-    if atom_shape == '1':
-        # Build one mesh point
-        new_mesh = bpy.data.meshes.new("Mesh_"+atom.name)
-        new_mesh.from_pydata([Vector((0.0,0.0,0.0))], [], [])
-        new_mesh.update()
-        new_atom = bpy.data.objects.new(atom.name + "_sep", new_mesh)
-        bpy.context.collection.objects.link(new_atom)
-        new_atom.location = atom.location
-        material_new = bpy.data.materials.new(atom.active_material.name + "_sep")
-        material_new.name = atom.name + "_halo"
-        material_new.diffuse_color = atom.active_material.diffuse_color
-        material_new.type = 'HALO'
-        material_new.halo.size = atom.scale[0]*1.5
-        material_new.halo.hardness = 25
-        material_new.halo.add = 0.0
-        new_atom.active_material = material_new
-        new_atom.name = atom.name
-        new_atom.select_set(True)
+    # Note the collection where 'atom' is placed into.
+    coll_atom = get_collection_object(atom)
+
     # F2+ center
-    if atom_shape == '2':
+    if atom_shape == '1':
         # Create first a cube
         bpy.ops.mesh.primitive_cube_add(view_align=False,
                                         enter_editmode=False,
@@ -706,26 +685,39 @@ def draw_obj_special(atom_shape, atom):
         # New material for this cube
         material_cube = bpy.data.materials.new(atom.name + "_F2+-center")
         material_cube.diffuse_color = [0.8, 0.0, 0.0, 1.0]
-        material_cube.use_transparency = True
-        material_cube.transparency_method = 'Z_TRANSPARENCY'
-        material_cube.alpha = 1.0
-        material_cube.raytrace_transparency.fresnel = 1.6
-        material_cube.raytrace_transparency.fresnel_factor = 1.1
+        material_cube.metallic = 0.8
+        material_cube.specular_intensity = 0.5
+        material_cube.roughness = 0.3
+        material_cube.blend_method = 'ADD'
+        material_cube.show_transparent_back = True
         cube.active_material = material_cube
         # Put a nice point lamp inside the defect
-        lamp_data = bpy.data.lamps.new(name="F2+_lamp", type="POINT")
+        lamp_data = bpy.data.lights.new(name="F2+_lamp", type="POINT")
         lamp_data.distance = atom.scale[0] * 2.0
-        lamp_data.energy = 20.0
-        lamp_data.use_sphere = True
-        lamp_data.color = [0.8, 0.8, 0.8, 1.0]
+        lamp_data.energy = 8.0
+        lamp_data.color = (0.8, 0.8, 0.8)
         lamp = bpy.data.objects.new("F2+_lamp", lamp_data)
         lamp.location = Vector((0.0, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
         # The new 'atom' is the F2+ defect
         new_atom = cube
+        
+        # Note the collection where all the new objects were placed into.
+        # We use only one object, the cube
+        coll_new_obj = get_collection_object(cube)
+       
+        # If it is not the same collection then ...
+        if coll_new_obj != coll_atom:
+            # Put all new objects into the collection of 'atom' and ...
+            coll_atom.objects.link(cube)
+            coll_atom.objects.link(lamp)
+            # ... unlink them from their original collection.
+            coll_new_obj.objects.unlink(cube)
+            coll_new_obj.objects.unlink(lamp)
+        
     # F+ center
-    if atom_shape == '3':
+    if atom_shape == '2':
         # Create first a cube
         bpy.ops.mesh.primitive_cube_add(view_align=False,
                                         enter_editmode=False,
@@ -737,12 +729,12 @@ def draw_obj_special(atom_shape, atom):
         cube.select_set(True)
         # New material for this cube
         material_cube = bpy.data.materials.new(atom.name + "_F+-center")
-        material_cube.diffuse_color = [0.8, 0.8, 0.0, 1.0]
-        material_cube.use_transparency = True
-        material_cube.transparency_method = 'Z_TRANSPARENCY'
-        material_cube.alpha = 1.0
-        material_cube.raytrace_transparency.fresnel = 1.6
-        material_cube.raytrace_transparency.fresnel_factor = 1.1
+        material_cube.diffuse_color = [0.0, 0.0, 0.8, 1.0]
+        material_cube.metallic = 0.8
+        material_cube.specular_intensity = 0.5
+        material_cube.roughness = 0.3
+        material_cube.blend_method = 'ADD'
+        material_cube.show_transparent_back = True
         cube.active_material = material_cube
         # Create now an electron
         scale = atom.scale / 10.0
@@ -758,28 +750,41 @@ def draw_obj_special(atom_shape, atom):
         # New material for the electron
         material_electron = bpy.data.materials.new(atom.name + "_F+-center")
         material_electron.diffuse_color = [0.0, 0.0, 0.8, 1.0]
-        material_electron.specular_hardness = 200
-        material_electron.emit = 1.0
-        material_electron.use_transparency = True
-        material_electron.transparency_method = 'Z_TRANSPARENCY'
-        material_electron.alpha = 1.3
-        material_electron.raytrace_transparency.fresnel = 1.2
-        material_electron.raytrace_transparency.fresnel_factor = 1.2
+        material_electron.metallic = 0.8
+        material_electron.specular_intensity = 0.5
+        material_electron.roughness = 0.3
+        material_electron.blend_method = 'OPAQUE'
+        material_electron.show_transparent_back = False
         electron.active_material = material_electron
         # Put a nice point lamp inside the electron
-        lamp_data = bpy.data.lamps.new(name="F+_lamp", type="POINT")
+        lamp_data = bpy.data.lights.new(name="F+_lamp", type="POINT")
         lamp_data.distance = atom.scale[0] * 2.0
-        lamp_data.energy = 20.0
-        lamp_data.use_sphere = True
-        lamp_data.color = [0.8, 0.8, 0.8, 1.0]
+        lamp_data.energy = 8.0
+        lamp_data.color = (0.8, 0.8, 0.8)
         lamp = bpy.data.objects.new("F+_lamp", lamp_data)
-        lamp.location = Vector((0.0, 0.0, 0.0))
+        lamp.location = Vector((scale[0]*1.5, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
         # The new 'atom' is the F+ defect complex + lamp
         new_atom = cube
+
+        # Note the collection where all the new objects were placed into.
+        # We use only one object, the cube
+        coll_new_obj = get_collection_object(cube)
+       
+        # If it is not the same collection then ...
+        if coll_new_obj != coll_atom:
+            # Put all new objects into the collection of 'atom' and ...
+            coll_atom.objects.link(cube)
+            coll_atom.objects.link(electron)
+            coll_atom.objects.link(lamp)
+            # ... unlink them from their original collection.
+            coll_new_obj.objects.unlink(cube)
+            coll_new_obj.objects.unlink(electron)
+            coll_new_obj.objects.unlink(lamp)
+
     # F0 center
-    if atom_shape == '4':
+    if atom_shape == '3':
         # Create first a cube
         bpy.ops.mesh.primitive_cube_add(view_align=False,
                                         enter_editmode=False,
@@ -792,11 +797,11 @@ def draw_obj_special(atom_shape, atom):
         # New material for this cube
         material_cube = bpy.data.materials.new(atom.name + "_F0-center")
         material_cube.diffuse_color = [0.8, 0.8, 0.8, 1.0]
-        material_cube.use_transparency = True
-        material_cube.transparency_method = 'Z_TRANSPARENCY'
-        material_cube.alpha = 1.0
-        material_cube.raytrace_transparency.fresnel = 1.6
-        material_cube.raytrace_transparency.fresnel_factor = 1.1
+        material_cube.metallic = 0.8
+        material_cube.specular_intensity = 0.5
+        material_cube.roughness = 0.83
+        material_cube.blend_method = 'ADD'
+        material_cube.show_transparent_back = True
         cube.active_material = material_cube
         # Create now two electrons
         scale = atom.scale / 10.0
@@ -821,36 +826,65 @@ def draw_obj_special(atom_shape, atom):
         # New material for the electrons
         material_electron = bpy.data.materials.new(atom.name + "_F0-center")
         material_electron.diffuse_color = [0.0, 0.0, 0.8, 1.0]
-        material_electron.specular_hardness = 200
-        material_electron.emit = 1.0
-        material_electron.use_transparency = True
-        material_electron.transparency_method = 'Z_TRANSPARENCY'
-        material_electron.alpha = 1.3
-        material_electron.raytrace_transparency.fresnel = 1.2
-        material_electron.raytrace_transparency.fresnel_factor = 1.2
+        material_electron.metallic = 0.8
+        material_electron.specular_intensity = 0.5
+        material_electron.roughness = 0.3
+        material_electron.blend_method = 'OPAQUE'
+        material_electron.show_transparent_back = False
         electron1.active_material = material_electron
         electron2.active_material = material_electron
         # Put two nice point lamps inside the electrons
-        lamp1_data = bpy.data.lamps.new(name="F0_lamp1", type="POINT")
+        lamp1_data = bpy.data.lights.new(name="F0_lamp1", type="POINT")
         lamp1_data.distance = atom.scale[0] * 2.0
-        lamp1_data.energy = 8.0
-        lamp1_data.use_sphere = True
-        lamp1_data.color = [0.8, 0.8, 0.8, 1.0]
+        lamp1_data.energy = 1.0
+        lamp1_data.color = (0.8, 0.8, 0.8)
         lamp1 = bpy.data.objects.new("F0_lamp", lamp1_data)
         lamp1.location = Vector((scale[0]*1.5, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp1)
         lamp1.parent = cube
-        lamp2_data = bpy.data.lamps.new(name="F0_lamp2", type="POINT")
+        lamp2_data = bpy.data.lights.new(name="F0_lamp2", type="POINT") 
         lamp2_data.distance = atom.scale[0] * 2.0
-        lamp2_data.energy = 8.0
-        lamp2_data.use_sphere = True
-        lamp2_data.color = [0.8, 0.8, 0.8, 1.0]
+        lamp2_data.energy = 1.0
+        lamp2_data.color = (0.8, 0.8, 0.8)
         lamp2 = bpy.data.objects.new("F0_lamp", lamp2_data)
         lamp2.location = Vector((-scale[0]*1.5, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp2)
         lamp2.parent = cube
         # The new 'atom' is the F0 defect complex + lamps
         new_atom = cube
+
+        # Note the collection where all the new objects were placed into.
+        # We use only one object, the cube
+        coll_new_obj = get_collection_object(cube)
+       
+        # If it is not the same collection then ...
+        if coll_new_obj != coll_atom:
+            # Put all new objects into the collection of 'atom' and ...
+            coll_atom.objects.link(cube)
+            coll_atom.objects.link(electron1)
+            coll_atom.objects.link(electron2)
+            coll_atom.objects.link(lamp1)
+            coll_atom.objects.link(lamp2)
+            # ... unlink them from their original collection.
+            coll_new_obj.objects.unlink(cube)
+            coll_new_obj.objects.unlink(electron1)
+            coll_new_obj.objects.unlink(electron2)
+            coll_new_obj.objects.unlink(lamp1)
+            coll_new_obj.objects.unlink(lamp2)
+    
+    # Deselect everything
+    bpy.ops.object.select_all(action='DESELECT')
+    # Make the old atom visible.
+    atom.hide_set(True)
+    # Select the old atom.
+    atom.select_set(True)
+    # Remove the parent if necessary.
+    atom.parent = None
+    # Unlink the old object from the collection.
+    coll_atom.objects.unlink(atom)
+    # Delete the old atom
+    bpy.ops.object.delete()
+    del(atom)        
 
     return new_atom
 

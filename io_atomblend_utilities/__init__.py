@@ -216,10 +216,9 @@ class PanelProperties(bpy.types.PropertyGroup):
         name="Special",
         description="Choose a special atom shape.",
         items=(('0',"None", "Use no special shape."),
-               ('1',"Halo cloud", "Replace with a halo cloud"),
-               ('2',"F2+ center", "Replace with a F2+ center"),
-               ('3',"F+ center", "Replace with a F+ center"),
-               ('4',"F0 center", "Replace with a F0 center")),
+               ('1',"F2+ center", "Replace with a F2+ center"),
+               ('2',"F+ center", "Replace with a F+ center"),
+               ('3',"F0 center", "Replace with a F0 center")),
                default='0',)
     action_type: EnumProperty(
         name="",
