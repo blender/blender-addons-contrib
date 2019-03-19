@@ -282,13 +282,24 @@ def DEF_atom_draw_atoms(prop_element,
                         prop_scale_distances,
                         coll_name):
 
+    FLAG = False
+    # Get the details about the atom (Name, radius, color, etc.).
     for element in add_mesh_cluster.ATOM_CLUSTER_ELEMENTS:
         if prop_element in element.name:
             number = element.number
             name = element.name
             color = element.color
             radii = element.radii
+            FLAG = True
             break
+
+    # If no element could be found, use gold. This may happen if the user does
+    # not correctly wrote the name of the atom.
+    if not FLAG:
+        number = 79
+        name = "Gold"
+        color = (1.0,  0.81,  0.13, 1.0)
+        radii = [1.34]
 
     # First, we create a collection for the atoms, which includes the 
     # representative ball and the mesh.
