@@ -375,28 +375,19 @@ def modify_objects(action_type,
 
         # Create new material
         new_material = bpy.data.materials.new("tmp")
-
         # Create new object (NURBS sphere = '1b')
         new_atom = draw_obj('1b', atom, new_material)
         new_atom.active_material = new_material
+        new_material = draw_obj_material('0', new_material)
 
         # Change size and color of the new object
         for element in ELEMENTS:
             if element.name in new_atom.name:
                 new_atom.scale = (element.radii[0],) * 3
                 new_atom.active_material.diffuse_color = element.color
-                new_atom.name = element.name
-
-                name = new_atom.active_material.name
-                if element.name+"_standard" in name:
-                    pos = name.rfind("_standard")
-                    if name[pos+9:].isdigit():
-                        counter = int(name[pos+9:])
-                        new_material.name = name[:pos]+"_standard"+str(counter+1)
-                    else:
-                        new_material.name = name+"_standard1"
-                else:
-                    new_material.name = name+"_standard1"
+                new_atom.name = element.name + "_ball"
+                new_atom.active_material.name = element.name
+                break
 
 
 # Separating atoms from a dupliverts strucutre.
@@ -505,7 +496,7 @@ def get_collection_object(obj):
         coll = bpy.context.scene.collection
 
     return coll
-    
+
 
 # Draw an object (e.g. cube, sphere, cylinder, ...)
 def draw_obj(atom_shape, atom, new_material):
@@ -612,9 +603,7 @@ def draw_obj(atom_shape, atom, new_material):
 
     new_atom = bpy.context.view_layer.objects.active
     new_atom.scale = atom.scale + Vector((0.0,0.0,0.0))
-    name = atom.name
-    atom.name = atom.name + "_tmp"
-    new_atom.name = name
+    new_atom.name = atom.name
     new_atom.select_set(True)
 
     new_atom.active_material = new_material
@@ -624,11 +613,6 @@ def draw_obj(atom_shape, atom, new_material):
     if atom.parent != None:
         new_atom.parent = atom.parent
         new_atom.hide_set(True)
-
-    if "_repl" not in atom.name:
-        new_atom.name = atom.name + "_repl"
-    else:
-        new_atom.name = atom.name
 
     # Note the collection where the old object was placed into.
     coll_old_atom = get_collection_object(atom)
@@ -642,7 +626,18 @@ def draw_obj(atom_shape, atom, new_material):
         coll_old_atom.objects.link(new_atom)
         # ... unlink the new atom from its original collection.
         coll_new_atom_past.objects.unlink(new_atom)
-    
+
+    # If necessary, remove the childrens of the old object.
+    for child in atom.children:
+        bpy.ops.object.select_all(action='DESELECT')
+        child.hide_set(True)
+        child.select_set(True)
+        child.parent = None
+        coll_child = get_collection_object(child)
+        coll_child.objects.unlink(child)
+        bpy.ops.object.delete()
+        del(child)               
+
     # Deselect everything
     bpy.ops.object.select_all(action='DESELECT')
     # Make the old atom visible.
@@ -655,7 +650,10 @@ def draw_obj(atom_shape, atom, new_material):
     coll_old_atom.objects.unlink(atom)
     # Delete the old atom
     bpy.ops.object.delete()
-    del(atom)
+    del(atom)   
+
+    #if "_F2+_center" or "_F+_center" or "_F0_center" in coll_old_atom:
+    #    print("Delete the collection")
 
     return new_atom
 
@@ -720,7 +718,7 @@ def draw_obj_special(atom_shape, atom):
             coll_ori.objects.unlink(cube)
             coll_ori.objects.unlink(lamp)
             
-        coll_new.name = atom.name + "_F2+-center"
+        coll_new.name = atom.name + "_F2+_center"
         
         if atom.parent != None:
             cube.parent = atom.parent
@@ -795,7 +793,7 @@ def draw_obj_special(atom_shape, atom):
             coll_ori.objects.unlink(electron)
             coll_ori.objects.unlink(lamp)
 
-        coll_new.name = atom.name + "_F+-center"
+        coll_new.name = atom.name + "_F+_center"
         
         if atom.parent != None:
             cube.parent = atom.parent
@@ -894,7 +892,7 @@ def draw_obj_special(atom_shape, atom):
             coll_ori.objects.unlink(lamp1)
             coll_ori.objects.unlink(lamp2)
 
-        coll_new.name = atom.name + "_F0-center"
+        coll_new.name = atom.name + "_F0_center"
 
         if atom.parent != None:
             cube.parent = atom.parent
