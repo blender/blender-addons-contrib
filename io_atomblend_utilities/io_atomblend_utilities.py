@@ -453,12 +453,26 @@ def draw_obj_material(material_type, material):
         material_new.roughness = 0.3
         material_new.blend_method = 'ADD'
         material_new.show_transparent_back = False
+        # Some properties for cycles
+        material_new.use_nodes = True
+        mat_P_BSDF = material_new.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.1
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.2
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.9
+        mat_P_BSDF.inputs['IOR'].default_value = 0.8
     if material_type == '3': # Reflecting
         material_new = bpy.data.materials.new(material.name + "_reflecting")
         material_new.metallic = 0.5
         material_new.specular_intensity = 0.5
         material_new.roughness = 0.0
         material_new.blend_method = 'OPAQUE'
+        # Some properties for cycles
+        material_new.use_nodes = True
+        mat_P_BSDF = material_new.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.95
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.1
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.0
+        mat_P_BSDF.inputs['IOR'].default_value = 1.0
     if material_type == '4': # Transparent + reflecting
         material_new = bpy.data.materials.new(material.name + "_trans+refl")
         material_new.metallic = 0.3
@@ -466,7 +480,14 @@ def draw_obj_material(material_type, material):
         material_new.roughness = 0.3
         material_new.blend_method = 'ADD'
         material_new.show_transparent_back = False
-
+        # Some properties for cycles
+        material_new.use_nodes = True
+        mat_P_BSDF = material_new.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.5
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.2
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.5
+        mat_P_BSDF.inputs['IOR'].default_value = 0.8
+        
     # Always, when the material is changed, a new name is created. Note that
     # this makes sense: Imagine, an other object uses the same material as the
     # selected one. After changing the material of the selected object the old
@@ -691,17 +712,28 @@ def draw_obj_special(atom_shape, atom):
         material_cube.roughness = 0.3
         material_cube.blend_method = 'ADD'
         material_cube.show_transparent_back = True
+        # Some properties for cycles
+        material_cube.use_nodes = True
+        mat_P_BSDF = material_cube.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.1
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.2
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.9
+        mat_P_BSDF.inputs['IOR'].default_value = 0.8
         cube.active_material = material_cube
         # Put a nice point lamp inside the defect
         lamp_data = bpy.data.lights.new(name=atom.name + "_F2+_lamp", 
                                         type="POINT")
         lamp_data.distance = atom.scale[0] * 2.0
-        lamp_data.energy = 8.0
+        lamp_data.energy = 1.0
         lamp_data.color = (0.8, 0.8, 0.8)
         lamp = bpy.data.objects.new(atom.name + "_F2+_lamp", lamp_data)
         lamp.location = Vector((0.0, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
+        # Some properties for cycles
+        lamp.data.use_nodes = True
+        lmp_P_BSDF = lamp.data.node_tree.nodes['Emission']
+        lmp_P_BSDF.inputs['Strength'].default_value = 2000
         # The new 'atom' is the F2+ defect
         new_atom = cube
         
@@ -744,6 +776,13 @@ def draw_obj_special(atom_shape, atom):
         material_cube.roughness = 0.3
         material_cube.blend_method = 'ADD'
         material_cube.show_transparent_back = True
+        # Some properties for cycles
+        material_cube.use_nodes = True
+        mat_P_BSDF = material_cube.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.1
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.2
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.9
+        mat_P_BSDF.inputs['IOR'].default_value = 0.8
         cube.active_material = material_cube
         # Create now an electron
         scale = atom.scale / 10.0
@@ -769,12 +808,16 @@ def draw_obj_special(atom_shape, atom):
         lamp_data = bpy.data.lights.new(name=atom.name + "_F+_lamp", 
                                         type="POINT")
         lamp_data.distance = atom.scale[0] * 2.0
-        lamp_data.energy = 8.0
+        lamp_data.energy = 1.0
         lamp_data.color = (0.8, 0.8, 0.8)
         lamp = bpy.data.objects.new(atom.name + "_F+_lamp", lamp_data)
         lamp.location = Vector((scale[0]*1.5, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp)
         lamp.parent = cube
+        # Some properties for cycles
+        lamp.data.use_nodes = True
+        lmp_P_BSDF = lamp.data.node_tree.nodes['Emission']
+        lmp_P_BSDF.inputs['Strength'].default_value = 2000
         # The new 'atom' is the F+ defect complex + lamp
         new_atom = cube
 
@@ -820,6 +863,13 @@ def draw_obj_special(atom_shape, atom):
         material_cube.roughness = 0.83
         material_cube.blend_method = 'ADD'
         material_cube.show_transparent_back = True
+        # Some properties for cycles
+        material_cube.use_nodes = True
+        mat_P_BSDF = material_cube.node_tree.nodes['Principled BSDF']
+        mat_P_BSDF.inputs['Metallic'].default_value = 0.1
+        mat_P_BSDF.inputs['Roughness'].default_value = 0.2
+        mat_P_BSDF.inputs['Transmission'].default_value = 0.9
+        mat_P_BSDF.inputs['IOR'].default_value = 0.8
         cube.active_material = material_cube
         # Create now two electrons
         scale = atom.scale / 10.0
@@ -870,6 +920,13 @@ def draw_obj_special(atom_shape, atom):
         lamp2.location = Vector((-scale[0]*1.5, 0.0, 0.0))
         bpy.context.collection.objects.link(lamp2)
         lamp2.parent = cube
+        # Some properties for cycles
+        lamp1.data.use_nodes = True
+        lamp2.data.use_nodes = True
+        lmp1_P_BSDF = lamp1.data.node_tree.nodes['Emission']
+        lmp2_P_BSDF = lamp1.data.node_tree.nodes['Emission']
+        lmp1_P_BSDF.inputs['Strength'].default_value = 200
+        lmp2_P_BSDF.inputs['Strength'].default_value = 200
         # The new 'atom' is the F0 defect complex + lamps
         new_atom = cube
 
