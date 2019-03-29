@@ -251,8 +251,9 @@ class MenuHandler:
                 bgl.glVertex2f(*p)
             bgl.glEnd()
             '''
+            indices = ((0, 1), (1, 2), (2, 0))
             shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-            batch = batch_for_shader(shader, 'LINES', {"pos": menu.arrows[menu.active]})
+            batch = batch_for_shader(shader, 'LINES', {"pos": menu.arrows[menu.active]}, indices=indices)
             shader.bind()
             shader.uniform_float("color", self.act_colr)
             batch.draw(shader)
@@ -437,8 +438,9 @@ class ViewButton():
             bgl.glVertex2f(self.coords[0][0], self.coords[0][1])
             bgl.glEnd()
             '''
+            indices = ((0, 1), (1, 2), (2, 3), (3, 0))
             shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-            batch = batch_for_shader(shader, 'LINES', {"pos": self.coords})
+            batch = batch_for_shader(shader, 'LINES', {"pos": self.coords}, indices=indices)
             shader.bind()
             shader.uniform_float("color", colr)
             batch.draw(shader)
