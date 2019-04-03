@@ -40,7 +40,7 @@ else:
 import bpy
 
 
-class XEditPanel(bpy.types.Panel):
+class XEDIT_PT_ui_pan(bpy.types.Panel):
     # Creates a panel in the 3d view N Panel
     bl_label = 'Exact Edit'
     bl_idname = 'xedit_base_panel'
@@ -50,7 +50,6 @@ class XEditPanel(bpy.types.Panel):
     bl_category = 'Tools'
 
     def draw(self, context):
-        #layout = self.layout
         row = self.layout.row(align=True)
         col = row.column()
         col.operator("view3d.xedit_set_meas_op", text="Set Measure", icon="EDIT")
@@ -58,11 +57,11 @@ class XEditPanel(bpy.types.Panel):
 
 
 classes = (
-    xedit_set_meas.XEditStoreMeasBtn,
-    xedit_set_meas.XEditMeasureInputPanel,
-    xedit_set_meas.XEditSetMeas,
-    xedit_free_rotate.XEditFreeRotate,
-    XEditPanel
+    xedit_set_meas.XEDIT_OT_store_meas_btn,
+    xedit_set_meas.XEDIT_OT_meas_inp_dlg,
+    xedit_set_meas.XEDIT_OT_set_meas,
+    xedit_free_rotate.XEDIT_OT_free_rotate,
+    XEDIT_PT_ui_pan
 )
 
 
@@ -83,11 +82,11 @@ def unregister():
         bpy.utils.unregister_class(c)
     #
     '''
-    bpy.utils.unregister_class(xedit_set_meas.XEditStoreMeasBtn)
-    bpy.utils.unregister_class(xedit_set_meas.XEditMeasureInputPanel)
-    bpy.utils.unregister_class(xedit_set_meas.XEditSetMeas)
+    bpy.utils.unregister_class(xedit_set_meas.XEDIT_OT_store_meas_btn)
+    bpy.utils.unregister_class(xedit_set_meas.XEDIT_OT_meas_inp_dlg)
+    bpy.utils.unregister_class(xedit_set_meas.XEDIT_OT_set_meas)
     bpy.utils.unregister_class(xedit_free_rotate.XEditFreeRotate)
-    bpy.utils.unregister_class(XEditPanel)
+    bpy.utils.unregister_class(XEDIT_PT_ui_pan)
     '''
 
 if __name__ == "__main__":

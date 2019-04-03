@@ -113,7 +113,7 @@ def restore_blender_settings(backup):
     bpy.context.tool_settings.snap_elements = deepcopy(backup[1])
     bpy.context.tool_settings.snap_target = deepcopy(backup[2])
     bpy.context.tool_settings.transform_pivot_point = deepcopy(backup[3])
-    bpy.context.scene. transform_orientation_slots[0].type = deepcopy(backup[4])
+    bpy.context.scene.transform_orientation_slots[0].type = deepcopy(backup[4])
     #bpy.context.space_data.show_manipulator = deepcopy(backup[5])
     bpy.context.scene.cursor.location = deepcopy(backup[5])
     return
@@ -286,9 +286,9 @@ def make_popup_enums(self, context):
     return prev_popup_inp_strings
 
 
-class XEditStoreMeasBtn(bpy.types.Operator):
+class XEDIT_OT_store_meas_btn(bpy.types.Operator):
     bl_idname = "object.store_meas_inp_op"
-    bl_label = "XEdit Store Measure Button"
+    bl_label = "Exact Edit Store Measure Button"
     bl_description = "Add current measure to stored measures"
     bl_options = {'INTERNAL'}
 
@@ -300,9 +300,9 @@ class XEditStoreMeasBtn(bpy.types.Operator):
 
 # == pop-up dialog code ==
 # todo: update with newer menu code if it can ever be made to work
-class XEditMeasureInputPanel(bpy.types.Operator):
+class XEDIT_OT_meas_inp_dlg(bpy.types.Operator):
     bl_idname = "object.ms_input_dialog_op"
-    bl_label = "XEdit Measure Input Panel"
+    bl_label = "Exact Edit Measure Input Dialog"
     bl_options = {'INTERNAL'}
 
     float_new_meas: bpy.props.FloatProperty(name="Measurement")
@@ -417,7 +417,7 @@ class ViewButton():
         if my < self.ms_chk[2] or my > self.ms_chk[3]:
             return False
         return True
-    
+
     def draw_btn(self, btn_loc, mouse_co, highlight_mouse=False):
         if btn_loc is not None:
             offs_loc = btn_loc + self.offset
@@ -438,9 +438,9 @@ class ViewButton():
             bgl.glVertex2f(self.coords[0][0], self.coords[0][1])
             bgl.glEnd()
             '''
-            indices = ((0, 1), (1, 2), (2, 3), (3, 0))
+            indc = ((0, 1), (1, 2), (2, 3), (3, 0))
             shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-            batch = batch_for_shader(shader, 'LINES', {"pos": self.coords}, indices=indices)
+            batch = batch_for_shader(shader, 'LINES', {"pos": self.coords}, indices=indc)
             shader.bind()
             shader.uniform_float("color", colr)
             batch.draw(shader)
@@ -467,6 +467,7 @@ class ViewButton():
             blf.size(font_id, self.txt_sz, self.dpi)
             blf.color(font_id, *self.txt_colr)
             blf.draw(font_id, self.txt)
+
         else:
             self.ms_over = False
 
@@ -1093,8 +1094,8 @@ def set_lock_pts(ref_pts, pt_cnt):
 # difference between the 3D locations in new_co and old_co to determine
 # the translation to apply to the selected geometry.
 def do_translation(new_co, old_co):
-    co_chg = -(old_co - new_co)  # co_chg = coordinate change
-    bpy.ops.transform.translate(value=(co_chg[0], co_chg[1], co_chg[2]))
+    co_chg = -(old_co - new_co)
+    bpy.ops.transform.translate(value=co_chg)
 
 
 # Performs a scale transformation using the provided s_fac (scale factor)
@@ -1344,6 +1345,7 @@ def do_transform(self):
 
     # Onto Transformations...
     if self.transf_type == MOVE:
+        #print("  MOVE!!")  # debug
         new_coor = get_new_3d_co(self, curr_meas_stor, new_meas_stor)
         if new_coor is not None:
             do_translation(new_coor, self.pts[0].co3d)
@@ -1351,7 +1353,7 @@ def do_transform(self):
         reset_settings(self)
 
     elif self.transf_type == SCALE:
-        #print("SCALE!!")  # debug
+        #print("  SCALE!!")  # debug
         new_coor = get_new_3d_co(self, curr_meas_stor, new_meas_stor)
         if new_coor is not None:
             scale_factor = new_meas_stor / curr_meas_stor
@@ -1366,9 +1368,9 @@ def do_transform(self):
         reset_settings(self)
 
 
-# Run after for XEditMeasureInputPanel pop-up disables popup_active.
+# Run after XEDIT_OT_meas_inp_dlg pop-up disables popup_active.
 # Checks to see if a valid number was input into the pop-up dialog and
-# determines what to do based on what the pop-up was supplied (if anything).
+# determines what to do based on what value was supplied to the pop-up.
 def process_popup_input(self):
     global curr_meas_stor, new_meas_stor
     #print("process_popup_input")  # debug
@@ -1564,7 +1566,7 @@ def exit_addon(self):
     #print("\n\nAdd-On Exited\n")  # debug
 
 
-# Sees if "use_region_overlap" is enabled and X offset is needed.
+# Checks if "use_region_overlap" is enabled and X offset is needed.
 def get_reg_overlap():
     rtoolsw = 0  # region tools (toolbar) width
     #ruiw = 0  # region ui (Number/n-panel) width
@@ -1879,8 +1881,8 @@ class XEditSetMeas(bpy.types.Operator):
 
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-            self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px,
-                    args, 'WINDOW', 'POST_PIXEL')
+            self._handle = bpy.types.SpaceView3D.draw_handler_add(
+                    draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
 
             self.settings_backup = backup_blender_settings()
             self.mouse_co = Vector((event.mouse_region_x, event.mouse_region_y))
@@ -1906,8 +1908,8 @@ class XEditSetMeas(bpy.types.Operator):
             #self.pt_find_md = SLOW3DTO2D  # point find mode
             self.lmb_held = False
 
-            self.menu = MenuHandler("Set Measaure", 18, Colr.yellow, Colr.white, \
-                    self.rtoolsw, context.region)
+            self.menu = MenuHandler("Set Measaure", 18, Colr.yellow, \
+                    Colr.white, self.rtoolsw, context.region)
             self.menu.add_menu(["Move", "Scale"])
             self.menu.add_menu(["Rotate"])
 
