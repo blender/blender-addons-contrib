@@ -1259,7 +1259,7 @@ def do_rotate(self):
                 if v.select:
                     v.co = pivot + (rot_matr @ (v.co - pivot))
 
-            bmesh.update_edit_mesh(bm)
+            bmesh.update_edit_mesh(bpy.context.edit_object.data)
 
         elif mode == "OBJECT":
             for ob in bpy.context.selected_objects:
@@ -1313,7 +1313,6 @@ def do_rotate_old(self):
     elif axis_lock == 'Y':  ops_lock = 0, 1, 0
     elif axis_lock == 'Z':  ops_lock = 0, 0, 1
 
-    #if bpy.context.mode == "OBJECT":
     bpy.ops.transform.rotate(value=RotDat.ang_diff_r, axis=ops_lock,
             constraint_axis=(False, False, False))
 
