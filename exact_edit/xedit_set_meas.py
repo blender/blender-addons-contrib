@@ -1243,7 +1243,7 @@ def prep_rotation_info(curr_ms_stor, new_ms_stor):
 # Then rotates selected objects or selected vertices around the
 # 3D cursor using RotDat's ang_diff_r radian value.
 def do_rotate(self):
-    print("def do_rotate(self):")
+    #print("def do_rotate(self):")
 
     axis_lock = RotDat.axis_lock
     pivot = self.pts[2].co3d.copy()
