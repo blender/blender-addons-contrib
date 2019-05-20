@@ -4051,8 +4051,8 @@ class Cursor3DToolsSettings(bpy.types.PropertyGroup):
     cursor_visible: bpy.props.BoolProperty(
         name="Cursor visibility",
         description="Show/hide cursor. When hidden, "\
-"Blender continuously redraws itself (eats CPU like crazy, "\
-"and becomes the less responsive the more complex scene you have)!",
+            "Blender continuously redraws itself (eats CPU like crazy, "\
+            "and becomes the less responsive the more complex scene you have)!",
         default=True)
 
     cursor_lock = bpy.props.BoolProperty(
