@@ -397,7 +397,7 @@ class PanelShowWeights(bpy.types.Panel):
                             for k in ob.vertex_groups:
                                 if k.index == i.groups[j].group:
                                     has_groups = True
-                                    split = col.split(percentage = 0.90, align = True)
+                                    split = col.split(factor = 0.90, align = True)
                                     vgroup_weights.append((k.index, i.groups[j].weight))
                                     row = split.row(align = True)
                                     row.prop(i.groups[j], "weight", text = k.name, slider = True, emboss = not k.lock_weight)
@@ -437,7 +437,7 @@ class PanelShowWeights(bpy.types.Panel):
                                     for k in ob.vertex_groups:
                                         if k.index == i.groups[j].group:
                                             has_groups = True
-                                            split = col.split(percentage = 0.90, align = True)
+                                            split = col.split(factor = 0.90, align = True)
                                             vgroup_weights.append((k.index, i.groups[j].weight))
                                             row = split.row(align = True)
                                             row.prop(i.groups[j], "weight", text = k.name, slider = True, emboss = not k.lock_weight)

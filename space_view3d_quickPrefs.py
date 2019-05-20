@@ -638,7 +638,7 @@ def gllightpreset_loadpresets(context):
 
 #This function defines the layout of the openGL lamps
 def opengl_lamp_buttons(column, lamp):
-    split = column.split(percentage=0.1)
+    split = column.split(factor=0.1)
 
     split.prop(lamp, "use", text="", icon='OUTLINER_OB_LAMP' if lamp.use else 'LAMP_DATA')
 
@@ -758,7 +758,7 @@ class PANEL(bpy.types.Panel):
         box.prop(scn,'gllights')
         if scn.gllights:
 
-            split = box.split(percentage=0.1)
+            split = box.split(factor=0.1)
             split.label()
             split.label(text="Colors:")
             split.label(text="Direction:")
@@ -775,7 +775,7 @@ class PANEL(bpy.types.Panel):
             box.separator()
 
 #Draw the selection box
-            split = box.split(percentage=0.7)
+            split = box.split(factor=0.7)
             col = split.row()
 			#original
             col.template_list("UI_UL_list", "gl_light_presets", scn, "gllightpreset",
@@ -806,7 +806,7 @@ class PANEL(bpy.types.Panel):
 #Draw the import/export part of the box
                 col.prop(scn,'importexport')
                 if scn.importexport:
-                    split = box.split(percentage=0.5)
+                    split = box.split(factor=0.5)
                     col = split.column()
                     col.label(text="Import Directory or File")
                     col.prop(scn, 'gllightpreset_importfile')

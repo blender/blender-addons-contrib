@@ -149,7 +149,7 @@ def ui_userpreferences_edit(self, context):
     preferences = context.preferences.addons["amaranth"].preferences
 
     col = self.layout.column()
-    split = col.split(percentage=0.21)
+    split = col.split(factor=0.21)
     split.prop(preferences, "frames_jump",
                text="Frames to Jump")
 

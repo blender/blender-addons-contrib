@@ -907,7 +907,7 @@ class AMTH_SCENE_PT_scene_debug(Panel):
 
         # List Missing Images
         box = layout.box()
-        split = box.split(percentage=0.8, align=True)
+        split = box.split(factor=0.8, align=True)
         row = split.row()
 
         if has_images:
@@ -1142,14 +1142,14 @@ class AMTH_PT_LightersCorner(Panel):
             row.label(text=message, icon="INFO")
         else:
             row = box.row(align=True)
-            split = row.split(percentage=0.5, align=True)
+            split = row.split(factor=0.5, align=True)
             col = split.column(align=True)
 
             col.label(text="Name/Library link")
 
             if engine in ["CYCLES", "BLENDER_RENDER"]:
                 splits = 0.6 if engine == "BLENDER_RENDER" else 0.4
-                splita = split.split(percentage=splits, align=True)
+                splita = split.split(factor=splits, align=True)
                 col = splita.column(align=True)
                 col.alignment = "LEFT"
                 col.label(text="Samples")
@@ -1181,14 +1181,14 @@ class AMTH_UL_MissingImages_UI(UIList):
         has_filepath = item.has_filepath
         is_library = item.is_library
 
-        split = layout.split(percentage=0.4)
+        split = layout.split(factor=0.4)
         row = split.row(align=True)
         row.alignment = "LEFT"
         row.label(text=text_lib, icon="IMAGE_DATA")
         image = bpy.data.images.get(item.name, None)
 
         subrow = split.row(align=True)
-        splitp = subrow.split(percentage=0.8, align=True).row(align=True)
+        splitp = subrow.split(factor=0.8, align=True).row(align=True)
         splitp.alignment = "LEFT"
         row_lib = subrow.row(align=True)
         row_lib.alignment = "RIGHT"
@@ -1211,7 +1211,7 @@ class AMTH_UL_LightersCorner_UI(UIList):
         text_lib = item.text_lib
         is_library = item.is_library
 
-        split = layout.split(percentage=0.35)
+        split = layout.split(factor=0.35)
         row = split.row(align=True)
         row.alignment = "LEFT"
         row.label(text=text_lib, icon=icon_type)
@@ -1227,7 +1227,7 @@ class AMTH_UL_LightersCorner_UI(UIList):
 
             rows = split.row(align=True)
             splits = 0.9 if engine == "BLENDER_RENDER" else 0.4
-            splitlamp = rows.split(percentage=splits, align=True)
+            splitlamp = rows.split(factor=splits, align=True)
             splitlampb = splitlamp.row(align=True)
             splitlampc = splitlamp.row(align=True)
             splitlampd = rows.row(align=True)
