@@ -23,9 +23,9 @@ class AdjustableOperatorFromTexture(bpy.types.Operator):
 
     # Variables used for storing the filepath given by blender's file manager
 
-    filepath = bpy.props.StringProperty(subtype="FILE_PATH")
-    filename = bpy.props.StringProperty()
-    directory = bpy.props.StringProperty(subtype="FILE_PATH")
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+    filename: bpy.props.StringProperty()
+    directory: bpy.props.StringProperty(subtype="FILE_PATH")
 
 
 
