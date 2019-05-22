@@ -173,8 +173,8 @@ def label(self, context):
 def register():
     bpy.utils.register_class(AMTH_SCREEN_OT_frame_jump)
     bpy.utils.register_class(AMTH_SCREEN_OT_keyframe_jump_inbetween)
-    bpy.types.USERPREF_PT_edit.append(ui_userpreferences_edit)
-    bpy.types.USERPREF_PT_edit.append(label)
+    bpy.types.USERPREF_PT_animation_timeline.append(ui_userpreferences_edit)
+    bpy.types.USERPREF_PT_animation_timeline.append(label)
 
     # register keyboard shortcuts
     wm = bpy.context.window_manager
@@ -203,7 +203,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(AMTH_SCREEN_OT_frame_jump)
     bpy.utils.unregister_class(AMTH_SCREEN_OT_keyframe_jump_inbetween)
-    bpy.types.USERPREF_PT_edit.remove(ui_userpreferences_edit)
+    bpy.types.USERPREF_PT_animation_timeline.remove(ui_userpreferences_edit)
     for km, kmi in KEYMAPS:
         km.keymap_items.remove(kmi)
     KEYMAPS.clear()
