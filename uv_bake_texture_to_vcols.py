@@ -35,7 +35,7 @@ bl_info = {
         "to a Vertex Color layer.",
     "author": "Patrick Boelens, CoDEmanX",
     "version": (0, 6),
-    "blender": (2, 63, 0),
+    "blender": (2, 79, 0),
     "location": "3D View > Vertex Paint > Toolshelf > Bake",
     "warning": "Requires image texture, generated textures aren't supported.",
     "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/"
@@ -329,7 +329,8 @@ class UV_OT_bake_texture_to_vcols(bpy.types.Operator):
 class VIEW3D_PT_tools_uv_bake_texture_to_vcols(bpy.types.Panel):
     bl_label = "Bake"
     bl_space_type = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
+    bl_category = "Paint"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -343,8 +344,15 @@ class VIEW3D_PT_tools_uv_bake_texture_to_vcols(bpy.types.Panel):
         col.separator()
         col.operator("uv.bake_texture_to_vcols", text="UV Texture to VCols")
 
+classes = (
+    UV_OT_bake_texture_to_vcols,
+    VIEW3D_PT_tools_uv_bake_texture_to_vcols
+)
+
 def register():
-    bpy.utils.register_module(__name__)
+    for cls in classes:
+        bpy.utils.register_class(cls)
+
     bpy.types.Scene.uv_bake_alpha_color = FloatVectorProperty(
         name="Alpha Color",
         description="Color to be used for transparency",
@@ -353,7 +361,8 @@ def register():
         max=1.0)
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
     del bpy.types.Scene.uv_bake_alpha_color
 
 if __name__ == "__main__":
