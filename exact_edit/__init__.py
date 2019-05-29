@@ -47,13 +47,12 @@ class XEDIT_PT_ui_pan(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     #bl_context = 'objectmode'
-    bl_category = 'Tools'
+    bl_category = 'Edit'
 
     def draw(self, context):
         row = self.layout.row(align=True)
         col = row.column()
-        #col.operator("view3d.xedit_set_meas_op", text="Set Measure", icon="EDIT")
-        col.operator("view3d.xedit_set_meas_op", text="Set Measure")
+        col.operator("view3d.xedit_set_meas_op", text="Set Measure", icon="EDITMODE_HLT")
         col.operator("view3d.xedit_free_rotate_op", text="Free Rotate", icon="FORCE_MAGNETIC")  # not working yet
 
 

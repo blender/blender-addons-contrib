@@ -93,7 +93,7 @@ def backup_blender_settings():
         deepcopy(bpy.context.tool_settings.snap_target),
         deepcopy(bpy.context.tool_settings.transform_pivot_point),
         deepcopy(bpy.context.scene.transform_orientation_slots[0].type),
-        #deepcopy(bpy.context.space_data.show_manipulator),
+        deepcopy(bpy.context.space_data.show_gizmo),
         deepcopy(bpy.context.scene.cursor.location)]
     return backup
 
@@ -104,7 +104,7 @@ def init_blender_settings():
     bpy.context.tool_settings.snap_target = 'CLOSEST'
     bpy.context.tool_settings.transform_pivot_point = 'ACTIVE_ELEMENT'
     bpy.context.scene.transform_orientation_slots[0].type = 'GLOBAL'
-    #bpy.context.space_data.show_manipulator = False
+    bpy.context.space_data.show_gizmo = False
     return
 
 
@@ -114,8 +114,8 @@ def restore_blender_settings(backup):
     bpy.context.tool_settings.snap_target = deepcopy(backup[2])
     bpy.context.tool_settings.transform_pivot_point = deepcopy(backup[3])
     bpy.context.scene.transform_orientation_slots[0].type = deepcopy(backup[4])
-    #bpy.context.space_data.show_manipulator = deepcopy(backup[5])
-    bpy.context.scene.cursor.location = deepcopy(backup[5])
+    bpy.context.space_data.show_gizmo = deepcopy(backup[5])
+    bpy.context.scene.cursor.location = deepcopy(backup[6])
     return
 
 
@@ -1019,7 +1019,7 @@ def set_arc_pts(ref_pts):
         mid_piv_free = piv.lerp(fre, ratio)
         arc_pts = [mid_piv_free]
         steps = 36
-        ang_step = pi*2 / steps
+        ang_step = pi * 2 / steps
         mid_align = mid_piv_free - piv
         for a in range(1, steps+1):
             rot_val = Quaternion(piv_norm, ang_step * a)
@@ -1264,11 +1264,10 @@ def create_z_orient(rot_vec):
 # Then rotates selected objects or selected vertices around the
 # 3D cursor using RotDat's ang_diff_r radian value.
 def do_rotate(self):
-    #print("def do_rotate(self):")
+    #print("def do_rotate(self):")  # debug
 
     axis_lock = RotDat.axis_lock
     pivot = self.pts[2].co3d.copy()
-    mode = bpy.context.mode
     if axis_lock is None:
         #rot_matr = Matrix.Rotation(RotDat.ang_diff_r, 4, RotDat.piv_norm)
         norml = RotDat.piv_norm
@@ -1283,30 +1282,6 @@ def do_rotate(self):
             orient_matrix_type='LOCAL',
             center_override=pivot,
             constraint_axis=(False, False, False))
-
-        '''
-        if mode == "EDIT_MESH":
-            bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
-            if hasattr(bm.verts, "ensure_lookup_table"):
-                bm.verts.ensure_lookup_table()
-            for v in bm.verts:
-                if v.select:
-                    v.co = pivot + (rot_matr @ (v.co - pivot))
-
-            bmesh.update_edit_mesh(bpy.context.edit_object.data)
-
-        elif mode == "OBJECT":
-            for ob in bpy.context.selected_objects:
-                ob_loc, ob_rot, ob_scale = ob.matrix_world.decompose()
-                ob_loc_mult  = pivot + (rot_matr @ (ob_loc - pivot))
-                ob_loc_mat   = Matrix.Translation(ob_loc_mult)
-                ob_rot_mat   = ob_rot.to_matrix().to_4x4()
-                ob_scale_mat = (Matrix.Scale(ob_scale[0],4,(1,0,0)) @ 
-                                Matrix.Scale(ob_scale[1],4,(0,1,0)) @ 
-                                Matrix.Scale(ob_scale[2],4,(0,0,1)))
-
-                ob.matrix_world = ob_loc_mat @ rot_matr @ ob_rot_mat @ ob_scale_mat
-        '''
 
     else:
         const_ax = False, False, False

@@ -164,7 +164,7 @@ class MenuHandler:
         self.dis_colr = dis_colr  # disabled color
         self.reg = reg  # region
 
-        view_offset = 36, 45  # box left top start
+        self.view_offset = 20, 95  # box left top start
         self.box_y_pad = 8  # vertical space between boxes
 
         fontid = 0
@@ -172,18 +172,19 @@ class MenuHandler:
         lcase_wid, lcase_hgt = blf.dimensions(fontid, "n")
         ucase_wid, ucase_hgt = blf.dimensions(fontid, "N")
         bot_space = blf.dimensions(fontid, "gp")[1] - lcase_hgt
-        self.full_hgt = blf.dimensions(fontid, "NTgp")[1]
+        self.full_txt_hgt = blf.dimensions(fontid, "NTgp")[1]
 
         arr_wid, arr_hgt = 12, 16
         arrow_base = (0, 0), (0, arr_hgt), (arr_wid, arr_hgt/2)
-        aw_adj, ah_adj = arr_wid * 1.5, (arr_hgt - ucase_hgt) / 2
+        aw_adj, ah_adj = arr_wid * 0.50, (arr_hgt - ucase_hgt) / 2
         self.arrow_pts = []
         for a in arrow_base:
             self.arrow_pts.append((a[0] - aw_adj, a[1] - ah_adj))
 
-        self.blef = view_offset[0] + toolwid  # box left start
-        self.titlco = self.blef // 2, self.reg.height - view_offset[1]
-        self.btop = self.titlco[1] - (self.full_hgt // 1.5)
+        self.blef = self.view_offset[0] + toolwid  # box left start
+        #self.titlco = self.blef // 2, self.reg.height - self.view_offset[1]
+        self.titlco = self.blef, self.reg.height - self.view_offset[1]
+        self.btop = self.titlco[1] - (self.full_txt_hgt // 1.5)
         self.txt_y_pad = bot_space * 2
 
     def add_menu(self, strings):
@@ -195,8 +196,8 @@ class MenuHandler:
         for i in range(new.cnt):
             new.txtcolrs.append(self.dis_colr)
             new.texts.append(strings[i])
-            bbot = btop - self.full_hgt
-            new.tcoords.append((tlef, bbot))
+            bbot = btop - self.full_txt_hgt
+            new.tcoords.append((tlef + self.view_offset[0], bbot))
             btop = bbot - self.box_y_pad
             new.arrows.append((
                 (self.arrow_pts[0][0] + tlef, self.arrow_pts[0][1] + bbot),
@@ -853,7 +854,7 @@ def set_arc_pts(ref_pts):
         mid_piv_free = piv.lerp(fre, ratio)
         arc_pts = [mid_piv_free]
         steps = 36
-        ang_step = pi*2 / steps
+        ang_step = pi * 2 / steps
         mid_align = mid_piv_free - piv
         for a in range(1, steps+1):
             rot_val = Quaternion(piv_norm, ang_step * a)
@@ -1040,10 +1041,10 @@ def draw_callback_px(self, context):
                 if RotDat.axis_lock == 'X':
                     test = self.pts[0].co3d + Vector((1, 0, 0))
                     colr = Colr.red
-                if RotDat.axis_lock == 'Y':
+                elif RotDat.axis_lock == 'Y':
                     test = self.pts[0].co3d + Vector((0, 1, 0))
                     colr = Colr.green
-                if RotDat.axis_lock == 'Z':
+                elif RotDat.axis_lock == 'Z':
                     test = self.pts[0].co3d + Vector((0, 0, 1))
                     colr = Colr.blue
 
@@ -1258,13 +1259,13 @@ class XEDIT_OT_free_rotate(bpy.types.Operator):
                             if not self.shift_held:
                                 for sel in bm.select_history:
                                     if type(sel) is bmesh.types.BMVert:
-                                        co3d = m_w * sel.co
+                                        co3d = m_w @ sel.co
                                         break
                                     elif type(sel) is bmesh.types.BMEdge or \
                                             type(sel) is bmesh.types.BMFace:
                                         co3d = Vector()
                                         for v in sel.verts:
-                                            co3d += m_w * v.co
+                                            co3d += m_w @ v.co
                                         co3d = co3d / len(sel.verts)
                                         break
                             else:
