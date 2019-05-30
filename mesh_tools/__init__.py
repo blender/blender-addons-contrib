@@ -22,7 +22,7 @@
 # Pistiwique, Jimmy Hazevoet #
 
 bl_info = {
-    "name": "Edit Tools",
+    "name": "Mesh Tools",
     "author": "Meta-Androcto",
     "version": (0, 3, 5),
     "blender": (2, 80, 0),
@@ -44,6 +44,7 @@ if "bpy" in locals():
     importlib.reload(random_vertices)
     importlib.reload(mesh_extrude_and_reshape)
     importlib.reload(mesh_edge_roundifier)
+    importlib.reload(mesh_edgetools)
 
 else:
     from . import mesh_offset_edges
@@ -53,6 +54,7 @@ else:
     from . import random_vertices
     from . import mesh_extrude_and_reshape
     from . import mesh_edge_roundifier
+    from . import mesh_edgetools
 
 import bmesh
 import bpy
@@ -704,49 +706,9 @@ class VIEW3D_MT_Edit_MultiMET(Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex Select",
-                               icon='VERTEXSEL')
-        prop.value = "(True, False, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Edge Select",
-                               icon='EDGESEL')
-        prop.value = "(False, True, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Face Select",
-                               icon='FACESEL')
-        prop.value = "(False, False, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        layout.separator()
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex and Edge Select",
-                               icon='EDITMODE_HLT')
-        prop.value = "(True, True, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex and Face Select",
-                               icon='UV_VERTEXSEL')
-        prop.value = "(True, False, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Edge and Face Select",
-                               icon='SNAP_FACE')
-        prop.value = "(False, True, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex, Edge and Face Select",
-                               icon='SNAP_VOLUME')
-        prop.value = "(True, True, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
+        layout.operator("multiedit.vertexselect", text="Vertex", icon='VERTEXSEL')
+        layout.operator("multiedit.edgeselect", text="Edge", icon='EDGESEL')
+        layout.operator("multiedit.faceselect", text="Face", icon='FACESEL')
 
 
 # Select Tools
@@ -758,23 +720,7 @@ class VIEW3D_MT_Select_Vert(Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex Select",
-                               icon='VERTEXSEL')
-        prop.value = "(True, False, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex and Edge Select",
-                               icon='EDITMODE_HLT')
-        prop.value = "(True, True, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex and Face Select",
-                               icon='UV_VERTEXSEL')
-        prop.value = "(True, False, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
+        layout.operator("multiedit.vertexselect", text="Vertex Select Mode", icon='VERTEXSEL')
 
 
 class VIEW3D_MT_Select_Edge(Menu):
@@ -785,23 +731,7 @@ class VIEW3D_MT_Select_Edge(Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        prop = layout.operator("wm.context_set_value",
-                               text="Edge Select",
-                               icon='EDGESEL')
-        prop.value = "(False, True, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex and Edge Select",
-                               icon='EDITMODE_HLT')
-        prop.value = "(True, True, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
-
-        prop = layout.operator("wm.context_set_value",
-                               text="Edge and Face Select",
-                               icon='SNAP_FACE')
-        prop.value = "(False, True, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
+        layout.operator("multiedit.edgeselect", text="Edge Select Mode", icon='EDGESEL')
 
 
 class VIEW3D_MT_Select_Face(Menu):
@@ -812,22 +742,53 @@ class VIEW3D_MT_Select_Face(Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        prop = layout.operator("wm.context_set_value",
-                               text="Face Select",
-                               icon='FACESEL')
-        prop.value = "(False, False, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
+        layout.operator("multiedit.faceselect", text="Face Select Mode", icon='FACESEL')
 
-        prop = layout.operator("wm.context_set_value",
-                               text="Vertex and Face Select",
-                               icon='UV_VERTEXSEL')
-        prop.data_path = "tool_settings.mesh_select_mode"
+ # multiple edit select modes.
+class VIEW3D_OT_multieditvertex(Operator):
+    bl_idname = "multiedit.vertexselect"
+    bl_label = "Vertex Mode"
+    bl_description = "Vert Select"
+    bl_options = {'REGISTER', 'UNDO'}
 
-        prop = layout.operator("wm.context_set_value",
-                               text="Edge and Face Select",
-                               icon='SNAP_FACE')
-        prop.value = "(False, True, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+        if bpy.ops.mesh.select_mode != "EDGE, FACE":
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+            return {'FINISHED'}
+
+
+class VIEW3D_OT_multieditedge(Operator):
+    bl_idname = "multiedit.edgeselect"
+    bl_label = "Edge Mode"
+    bl_description = "Edge Select"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+        if bpy.ops.mesh.select_mode != "VERT, FACE":
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+            return {'FINISHED'}
+
+
+class VIEW3D_OT_multieditface(Operator):
+    bl_idname = "multiedit.faceselect"
+    bl_label = "Multiedit Face"
+    bl_description = "Face Mode"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object.mode != "EDIT":
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
+        if bpy.ops.mesh.select_mode != "VERT, EDGE":
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
+            return {'FINISHED'}
+
 
 # ########################################
 # ##### GUI and registration #############
@@ -835,7 +796,7 @@ class VIEW3D_MT_Select_Face(Menu):
 
 # menu containing all tools
 class VIEW3D_MT_edit_mesh_tools(Menu):
-    bl_label = " Edit Tools"
+    bl_label = "Mesh Tools"
 
     def draw(self, context):
         layout = self.layout
@@ -863,9 +824,9 @@ class VIEW3D_MT_edit_mesh_tools(Menu):
 class VIEW3D_PT_edit_mesh_tools(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'View'
+    bl_category = 'Edit'
     bl_context = "mesh_edit"
-    bl_label = "Edit Tools"
+    bl_label = "Mesh Tools"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -1001,7 +962,6 @@ def menu_func(self, context):
     self.layout.menu("VIEW3D_MT_edit_mesh_tools")
     self.layout.separator()
 
-
 # Add-ons Preferences Update Panel
 
 # Define Panel classes for updating
@@ -1034,7 +994,7 @@ class EditToolsPreferences(AddonPreferences):
     category: StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
-            default="Tools",
+            default="Edit",
             update=update_panel
             )
 
@@ -1058,7 +1018,10 @@ classes = (
     EditToolsProps,
     EditToolsPreferences,
     MESH_OT_face_inset_fillet,
-    ME_OT_MExtrude
+    ME_OT_MExtrude,
+    VIEW3D_OT_multieditvertex,
+    VIEW3D_OT_multieditedge,
+    VIEW3D_OT_multieditface
     )
 
 
@@ -1077,6 +1040,7 @@ def register():
     random_vertices.register()
     mesh_extrude_and_reshape.register()
     mesh_edge_roundifier.register()
+    mesh_edgetools.register()
 
 # unregistering and removing menus
 def unregister():
@@ -1096,6 +1060,7 @@ def unregister():
     random_vertices.unregister()
     mesh_extrude_and_reshape.unregister()
     mesh_edge_roundifier.unregister()
+    mesh_edgetools.unregister()
 
 if __name__ == "__main__":
     register()
