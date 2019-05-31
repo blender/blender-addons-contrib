@@ -909,9 +909,7 @@ def create_z_orient(rot_vec):
             flt_lists_alm_eq(rot_vec, z_dir_p):
         return Matrix((x_dir_p, y_dir_p, z_dir_p))  # 3x3 identity
     new_z = rot_vec.copy()  # rot_vec already normalized
-    guide = z_dir_p
-    new_y = new_z.cross(guide)
-    tmp = Vector()
+    new_y = new_z.cross(z_dir_p)
     if flt_lists_alm_eq(new_y, (0.0, 0.0, 0.0)):
         new_y = y_dir_p
     new_x = new_y.cross(new_z)
