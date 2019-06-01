@@ -46,6 +46,7 @@ if "bpy" in locals():
     importlib.reload(mesh_edge_roundifier)
     importlib.reload(mesh_edgetools)
 
+
 else:
     from . import mesh_offset_edges
     from . import split_solidify
@@ -55,6 +56,7 @@ else:
     from . import mesh_extrude_and_reshape
     from . import mesh_edge_roundifier
     from . import mesh_edgetools
+
 
 import bmesh
 import bpy
@@ -903,12 +905,12 @@ class VIEW3D_PT_edit_mesh_tools(Panel):
         et = context.window_manager.edittools
 
         # vert - first line
-        split = col.split(factor=0.15, align=True)
+        split = col.split(factor=0.80, align=True)
         if et.display_vert:
-            split.prop(et, "display_vert", text="", icon='DOWNARROW_HLT')
+            split.prop(et, "display_vert", text="Vert Tools", icon='DOWNARROW_HLT')
         else:
-            split.prop(et, "display_vert", text="", icon='RIGHTARROW')
-        split.menu("VIEW3D_MT_Select_Vert", text="Vert Tools")
+            split.prop(et, "display_vert", text="Vert tools", icon='RIGHTARROW')
+        split.menu("VIEW3D_MT_Select_Vert", text="", icon='VERTEXSEL')
         # vert - settings
         if et.display_vert:
             box = col.column(align=True).box().column()
@@ -923,12 +925,12 @@ class VIEW3D_PT_edit_mesh_tools(Panel):
             row.operator("mesh.bevel", text="Bevel Vertices").vertex_only = True
 
         # edge - first line
-        split = col.split(factor=0.15, align=True)
+        split = col.split(factor=0.80, align=True)
         if et.display_edge:
-            split.prop(et, "display_edge", text="", icon='DOWNARROW_HLT')
+            split.prop(et, "display_edge", text="Edge Tools", icon='DOWNARROW_HLT')
         else:
-            split.prop(et, "display_edge", text="", icon='RIGHTARROW')
-        split.menu("VIEW3D_MT_Select_Edge", text="Edge Tools")
+            split.prop(et, "display_edge", text="Edge Tools", icon='RIGHTARROW')
+        split.menu("VIEW3D_MT_Select_Edge", text="", icon='EDGESEL')
         # Edge - settings
         if et.display_edge:
             box = col.column(align=True).box().column()
@@ -945,12 +947,12 @@ class VIEW3D_PT_edit_mesh_tools(Panel):
             row.operator("mesh.bevel", text="Bevel Edges").vertex_only = False
 
         # face - first line
-        split = col.split(factor=0.15, align=True)
+        split = col.split(factor=0.80, align=True)
         if et.display_face:
-            split.prop(et, "display_face", text="", icon='DOWNARROW_HLT')
+            split.prop(et, "display_face", text="Face Tools", icon='DOWNARROW_HLT')
         else:
-            split.prop(et, "display_face", text="", icon='RIGHTARROW')
-        split.menu("VIEW3D_MT_Select_Face", text="Face Tools")
+            split.prop(et, "display_face", text="Face Tools", icon='RIGHTARROW')
+        split.menu("VIEW3D_MT_Select_Face", text="", icon='FACESEL')
         # face - settings
         if et.display_face:
             box = col.column(align=True).box().column()
@@ -973,12 +975,12 @@ class VIEW3D_PT_edit_mesh_tools(Panel):
 
 
         # util - first line
-        split = col.split(factor=0.15, align=True)
+        split = col.split(factor=0.80, align=True)
         if et.display_util:
-            split.prop(et, "display_util", text="", icon='DOWNARROW_HLT')
+            split.prop(et, "display_util", text="Utility Tools", icon='DOWNARROW_HLT')
         else:
-            split.prop(et, "display_util", text="", icon='RIGHTARROW')
-        split.menu("VIEW3D_MT_Edit_MultiMET", text="Utility Tools")
+            split.prop(et, "display_util", text="Utility Tools", icon='RIGHTARROW')
+        split.menu("VIEW3D_MT_Edit_MultiMET", text="", icon='RESTRICT_SELECT_OFF')
         # face - settings
         if et.display_util:
             box = col.column(align=True).box().column()
