@@ -801,6 +801,7 @@ class VIEW3D_OT_multieditvertedge(Operator):
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
         if bpy.ops.mesh.select_mode != "VERT, EDGE, FACE":
+            bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
             bpy.ops.mesh.select_mode(use_extend=True, use_expand=False, type='EDGE')
             return {'FINISHED'}
@@ -816,6 +817,7 @@ class VIEW3D_OT_multieditvertface(Operator):
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
         if bpy.ops.mesh.select_mode != "VERT, EDGE, FACE":
+            bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
             bpy.ops.mesh.select_mode(use_extend=True, use_expand=False, type='FACE')
             return {'FINISHED'}
@@ -832,6 +834,7 @@ class VIEW3D_OT_multieditedgeface(Operator):
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
         if bpy.ops.mesh.select_mode != "VERT, EDGE, FACE":
+            bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
             bpy.ops.mesh.select_mode(use_extend=True, use_expand=False, type='FACE')
             return {'FINISHED'}
@@ -848,6 +851,7 @@ class VIEW3D_OT_multieditall(Operator):
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
         if bpy.ops.mesh.select_mode != "VERT, EDGE, FACE":
+            bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
             bpy.ops.mesh.select_mode(use_extend=True, use_expand=False, type='EDGE')
             bpy.ops.mesh.select_mode(use_extend=True, use_expand=False, type='FACE')
