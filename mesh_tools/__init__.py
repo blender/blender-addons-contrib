@@ -47,6 +47,7 @@ if "bpy" in locals():
     importlib.reload(mesh_edgetools)
     importlib.reload(mesh_edges_floor_plan)
     importlib.reload(mesh_edges_length)
+    importlib.reload(pkhg_faces)
 
 else:
     from . import mesh_offset_edges
@@ -59,6 +60,7 @@ else:
     from . import mesh_edgetools
     from . import mesh_edges_floor_plan
     from . import mesh_edges_length
+    from . import pkhg_faces
 
 
 import bmesh
@@ -971,15 +973,16 @@ class VIEW3D_PT_edit_mesh_tools(Panel):
             row.operator("mesh.extrude_reshape",
                             text="Push/Pull Faces")
             row = col_top.row(align=True)
-            row.operator("mesh.inset")
-            row = col_top.row(align=True)
-            row.operator("mesh.extrude_faces_move", text="Extrude Individual Faces")
-            row = col_top.row(align=True)
             row.operator("object.mextrude",
                             text="Multi Extrude")
             row = col_top.row(align=True)
             row.operator('mesh.split_solidify', text="Split Solidify")
-
+            row = col_top.row(align=True)
+            row.operator('mesh.add_faces_to_object', text="Face Shape")
+            row = col_top.row(align=True)
+            row.operator("mesh.inset")
+            row = col_top.row(align=True)
+            row.operator("mesh.extrude_faces_move", text="Extrude Individual Faces")
 
         # util - first line
         split = col.split(factor=0.80, align=True)
@@ -1124,6 +1127,8 @@ def register():
     mesh_edgetools.register()
     mesh_edges_floor_plan.register()
     mesh_edges_length.register()
+    pkhg_faces.register()
+
 
 # unregistering and removing menus
 def unregister():
@@ -1146,6 +1151,7 @@ def unregister():
     mesh_edgetools.unregister()
     mesh_edges_floor_plan.unregister()
     mesh_edges_length.unregister()
+    pkhg_faces.unregister()
 
 if __name__ == "__main__":
     register()
