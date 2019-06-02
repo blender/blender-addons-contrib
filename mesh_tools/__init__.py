@@ -46,7 +46,7 @@ if "bpy" in locals():
     importlib.reload(mesh_edge_roundifier)
     importlib.reload(mesh_edgetools)
     importlib.reload(mesh_edges_floor_plan)
-
+    importlib.reload(mesh_edges_length)
 
 else:
     from . import mesh_offset_edges
@@ -58,6 +58,7 @@ else:
     from . import mesh_edge_roundifier
     from . import mesh_edgetools
     from . import mesh_edges_floor_plan
+    from . import mesh_edges_length
 
 
 import bmesh
@@ -944,6 +945,8 @@ class VIEW3D_PT_edit_mesh_tools(Panel):
             row = col_top.row(align=True)
             row.operator('mesh.edge_roundifier', text="Edge Roundify")
             row = col_top.row(align=True)
+            row.operator('object.mesh_edge_length_set', text="Set Edge Length")
+            row = col_top.row(align=True)
             row.operator('mesh.edges_floor_plan', text="Edges Floor Plan")
             row = col_top.row(align=True)
             row.operator("mesh.extrude_edges_move", text="Extrude Edges")
@@ -1120,7 +1123,7 @@ def register():
     mesh_edge_roundifier.register()
     mesh_edgetools.register()
     mesh_edges_floor_plan.register()
-
+    mesh_edges_length.register()
 
 # unregistering and removing menus
 def unregister():
@@ -1142,6 +1145,7 @@ def unregister():
     mesh_edge_roundifier.unregister()
     mesh_edgetools.unregister()
     mesh_edges_floor_plan.unregister()
+    mesh_edges_length.unregister()
 
 if __name__ == "__main__":
     register()
