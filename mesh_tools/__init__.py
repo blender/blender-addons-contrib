@@ -48,6 +48,7 @@ if "bpy" in locals():
     importlib.reload(mesh_edges_floor_plan)
     importlib.reload(mesh_edges_length)
     importlib.reload(pkhg_faces)
+    importlib.reload(mesh_cut_faces)
 
 else:
     from . import mesh_offset_edges
@@ -61,6 +62,7 @@ else:
     from . import mesh_edges_floor_plan
     from . import mesh_edges_length
     from . import pkhg_faces
+    from . import mesh_cut_faces
 
 
 import bmesh
@@ -970,6 +972,9 @@ class VIEW3D_PT_edit_mesh_tools(Panel):
             row.operator("mesh.face_inset_fillet",
                             text="Face Inset Fillet")
             row = col_top.row(align=True)
+            row.operator("mesh.ext_cut_faces",
+                            text="Cut Faces")
+            row = col_top.row(align=True)
             row.operator("mesh.extrude_reshape",
                             text="Push/Pull Faces")
             row = col_top.row(align=True)
@@ -991,7 +996,7 @@ class VIEW3D_PT_edit_mesh_tools(Panel):
         else:
             split.prop(et, "display_util", text="Utility Tools", icon='RIGHTARROW')
         split.menu("VIEW3D_MT_Edit_MultiMET", text="", icon='RESTRICT_SELECT_OFF')
-        # face - settings
+        # util - settings
         if et.display_util:
             box = col.column(align=True).box().column()
             col_top = box.column(align=True)
@@ -1128,6 +1133,7 @@ def register():
     mesh_edges_floor_plan.register()
     mesh_edges_length.register()
     pkhg_faces.register()
+    mesh_cut_faces.register()
 
 
 # unregistering and removing menus
@@ -1152,6 +1158,8 @@ def unregister():
     mesh_edges_floor_plan.unregister()
     mesh_edges_length.unregister()
     pkhg_faces.unregister()
+    mesh_cut_faces.unregister()
+
 
 if __name__ == "__main__":
     register()
