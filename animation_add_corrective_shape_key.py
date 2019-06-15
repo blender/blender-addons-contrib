@@ -19,9 +19,9 @@
 # <pep8-80 compliant>
 
 bl_info = {
-    "name": "Corrective shape keys 2.8 plus",
+    "name": "Corrective Shape Keys",
     "author": "Ivo Grigull (loolarge), Tal Trachtman", "Tokikake"
-    "version": (1, 1),
+    "version": (1, 1, 0),
     "blender": (2, 80, 0),
     "location": "Object Data > Shape Keys (Search: corrective) ",
     "description": "Creates a corrective shape key for the current pose",
