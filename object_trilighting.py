@@ -1,11 +1,11 @@
-# gpl: author Daniel Schalla
+# gpl: author Daniel Schalla, maintained by meta-androcto
 
 bl_info = {
     "name": "Trilighting",
     "author": "Daniel Schalla",
-    "version": (0, 1, 3),
+    "version": (0, 1, 4),
     "blender": (2, 80, 0),
-    "location": "View3D > Sidebar > Create",
+    "location": "View3D > Add > Lights",
     "description": "Simple 3 Point Lighting Set",
     "warning": "",
     "wiki_url": "",
@@ -142,7 +142,7 @@ class OBJECT_OT_TriLighting(Operator):
                 scene.camera = cam_obj
                 bpy.ops.view3d.camera_to_view()
                 camera = cam_obj
-                bpy.ops.view3d.viewnumpad(type='TOP')
+                bpy.ops.view3d.view_axis(type='TOP')
 
             obj = bpy.context.view_layer.objects.active
 
