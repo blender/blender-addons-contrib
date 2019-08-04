@@ -23,7 +23,7 @@ bl_info = {
     "description": "Export cameras, selected objects & camera solution "
         "3D Markers to Adobe After Effects CS3 and above",
     "author": "Bartek Skorupa, (Adi Samsonoff)",
-    "version": (0, 66),
+    "version": (0, 0, 66),
     "blender": (2, 80, 0),
     "location": "File > Export > Adobe After Effects (.jsx)",
     "warning": "",
