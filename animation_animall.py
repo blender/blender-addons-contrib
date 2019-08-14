@@ -239,21 +239,30 @@ class ANIM_OT_insert_keyframe_animall(Operator):
             data = obj.data
 
         if obj.type == 'MESH':
-            for v_i, vert in enumerate(data.vertices):
-                if not animall_properties.key_selected or vert.select:
-                    if animall_properties.key_points:
+            if animall_properties.key_points:
+                for v_i, vert in enumerate(data.vertices):
+                    if not animall_properties.key_selected or vert.select:
                         insert_key(vert, 'co', group="vertex %s" % v_i)
-                    if animall_properties.key_vbevel:
+
+            if animall_properties.key_vbevel:
+                for v_i, vert in enumerate(data.vertices):
+                    if not animall_properties.key_selected or vert.select:
                         insert_key(vert, 'bevel_weight', group="vertex %s" % v_i)
-                    if animall_properties.key_vgroups:
+
+            if animall_properties.key_vgroups:
+                for v_i, vert in enumerate(data.vertices):
+                    if not animall_properties.key_selected or vert.select:
                         for group in vert.groups:
                             insert_key(group, 'weight', group="vertex %s" % v_i)
 
-            for e_i, edge in enumerate(data.edges):
-                if not animall_properties.key_selected or edge.select:
-                    if animall_properties.key_ebevel:
+            if animall_properties.key_ebevel:
+                for e_i, edge in enumerate(data.edges):
+                    if not animall_properties.key_selected or edge.select:
                         insert_key(edge, 'bevel_weight', group="edge %s" % e_i)
-                    if animall_properties.key_crease:
+
+            if animall_properties.key_crease:
+                for e_i, edge in enumerate(data.edges):
+                    if not animall_properties.key_selected or edge.select:
                         insert_key(edge, 'crease', group="edge %s" % e_i)
 
             if animall_properties.key_shape:
@@ -294,7 +303,6 @@ class ANIM_OT_insert_keyframe_animall(Operator):
 
             for s_i, spline in enumerate(data.splines):
                 if spline.type == 'BEZIER':
-
                     for v_i, CV in enumerate(spline.bezier_points):
                         if (not animall_properties.key_selected
                                 or CV.select_control_point
