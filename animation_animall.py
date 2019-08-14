@@ -231,14 +231,21 @@ class ANIM_OT_insert_keyframe_animall(Operator):
         obj = context.active_object
         animall_properties = context.window_manager.animall_properties
 
-        # Set object mode
-        if obj.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
-            mode = obj.mode
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-            data = obj.data
+        # Maybe this should be done for all object types,
+        # but keys can only be inserted in Edit Mode for CURVEs and SURFACEs,
+        # and Object Mode for MESHes and LATTICEs.
+        # Putting it inside if blocks for now
+        # # Set object mode
+        # if obj.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
+        #     mode = obj.mode
+        #     bpy.ops.object.mode_set(mode='OBJECT')
+        #     data = obj.data
 
         if obj.type == 'MESH':
+            mode = obj.mode
+            bpy.ops.object.mode_set(mode='OBJECT')
+            data = obj.data
+
             if animall_properties.key_points:
                 for v_i, vert in enumerate(data.vertices):
                     if not animall_properties.key_selected or vert.select:
@@ -281,7 +288,13 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                         for v_i, data in enumerate(v_col_layer.data):
                             insert_key(data, 'color', group="Loop %s" % v_i)
 
+            bpy.ops.object.mode_set(mode=mode)
+
         elif obj.type == 'LATTICE':
+            mode = obj.mode
+            bpy.ops.object.mode_set(mode='OBJECT')
+            data = obj.data
+
             if animall_properties.key_shape:
                 if obj.active_shape_key_index > 0:
                     for p_i, point in enumerate(obj.active_shape_key.data):
@@ -292,7 +305,11 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                     if not animall_properties.key_selected or point.select:
                         insert_key(point, 'co_deform', group="Point %s" % p_i)
 
+            bpy.ops.object.mode_set(mode=mode)
+
         elif obj.type in {'CURVE', 'SURFACE'}:
+            data = obj.data
+
             # run this outside the splines loop (only once)
             if animall_properties.key_shape:
                 if obj.active_shape_key_index > 0:
@@ -331,9 +348,10 @@ class ANIM_OT_insert_keyframe_animall(Operator):
                             if animall_properties.key_tilt:
                                 insert_key(CV, 'tilt', group="spline %s CV %s" % (s_i, v_i))
 
-        # Set previous mode
-        if obj.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
-            bpy.ops.object.mode_set(mode=mode)
+        # See previous remark
+        # # Set previous mode
+        # if obj.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
+        #     bpy.ops.object.mode_set(mode=mode)
 
         refresh_ui_keyframes()
 
