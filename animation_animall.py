@@ -233,7 +233,7 @@ class ANIM_OT_insert_keyframe_animall(Operator):
 
         # Set object mode
         if obj.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
-            mode = context.mode.split("_")[0]
+            mode = obj.mode
             bpy.ops.object.mode_set(mode='OBJECT')
 
             data = obj.data
@@ -349,7 +349,7 @@ class ANIM_OT_delete_keyframe_animall(Operator):
 
         # Set object mode
         if obj.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
-            mode = context.mode.split("_")[0]
+            mode = obj.mode
             bpy.ops.object.mode_set(mode='OBJECT')
 
             data = obj.data
