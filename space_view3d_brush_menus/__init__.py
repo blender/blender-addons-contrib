@@ -20,12 +20,12 @@
 """ Copyright 2011 GPL licence applies"""
 
 bl_info = {
-    "name": "Sculpt/Paint Brush Menus",
+    "name": "Dynamic Brush Menus",
     "description": "Fast access to brushes & tools in Sculpt and Paint Modes",
     "author": "Ryan Inch (Imaginer)",
-    "version": (1, 1, 6),
+    "version": (1, 1, 7),
     "blender": (2, 80, 0),
-    "location": "Alt V in Sculpt/Paint Modes",
+    "location": "Spacebar in Sculpt/Paint Modes",
     "warning": '',
     "wiki_url": "https://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D_interaction/Advanced_UI_Menus",
@@ -113,7 +113,7 @@ def register():
 
     for mode in modes:
         km = wm.keyconfigs.addon.keymaps.new(name=mode)
-        kmi = km.keymap_items.new('wm.call_menu', 'V', 'PRESS', alt=True)
+        kmi = km.keymap_items.new('wm.call_menu', 'SPACE', 'PRESS')
         kmi.properties.name = "VIEW3D_MT_sv3_brush_options"
         addon_keymaps.append((km, kmi))
 

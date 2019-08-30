@@ -42,7 +42,7 @@ class BrushOptionsMenu(Menu):
         has_brush = utils_core.get_brush_link(context, types="brush")
         icons = brushes.brush_icon[mode][has_brush.sculpt_tool] if \
                 has_brush else "BRUSH_DATA"
-
+        layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
         layout.row().menu("VIEW3D_MT_sv3_brushes_menu",
                             icon=icons)
 
@@ -66,6 +66,7 @@ class BrushOptionsMenu(Menu):
                 has_brush else "BRUSH_DATA"
 
         if mode == 'VERTEX_PAINT':
+            layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')		
             layout.row().operator(ColorPickerPopup.bl_idname, icon="COLOR")
             layout.row().separator()
 
@@ -84,6 +85,7 @@ class BrushOptionsMenu(Menu):
                 layout.row().menu("VIEW3D_MT_sv3_brush_curve_menu")
 
         if mode == 'WEIGHT_PAINT':
+            layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
             layout.row().menu(BrushWeightMenu.bl_idname)
             layout.row().menu(BrushRadiusMenu.bl_idname)
 
@@ -104,6 +106,7 @@ class BrushOptionsMenu(Menu):
         if context.image_paint_object and not toolsettings.detect_data():
             if toolsettings.missing_uvs or toolsettings.missing_materials or \
                toolsettings.missing_texture:
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.row().label(text="Missing Data", icon='ERROR')
                 layout.row().operator_menu_enum("paint.add_texture_paint_slot", \
                                                   "type", \
@@ -129,7 +132,7 @@ class BrushOptionsMenu(Menu):
                has_brush.blend not in {'ERASE_ALPHA', 'ADD_ALPHA'}:
                 layout.row().operator(ColorPickerPopup.bl_idname, icon="COLOR")
                 layout.row().separator()
-
+            layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
             layout.row().menu("VIEW3D_MT_sv3_brushes_menu",
                                 icon=icons)
 
