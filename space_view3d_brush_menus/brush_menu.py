@@ -65,8 +65,9 @@ class BrushOptionsMenu(Menu):
         icons = brushes.brush_icon[mode][has_brush.vertex_tool] if \
                 has_brush else "BRUSH_DATA"
 
-        if mode == 'VERTEX_PAINT':
-            layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')		
+        layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
+        
+        if mode == 'VERTEX_PAINT':		
             layout.row().operator(ColorPickerPopup.bl_idname, icon="COLOR")
             layout.row().separator()
 
@@ -85,7 +86,6 @@ class BrushOptionsMenu(Menu):
                 layout.row().menu("VIEW3D_MT_sv3_brush_curve_menu")
 
         if mode == 'WEIGHT_PAINT':
-            layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
             layout.row().menu(BrushWeightMenu.bl_idname)
             layout.row().menu(BrushRadiusMenu.bl_idname)
 
@@ -106,7 +106,6 @@ class BrushOptionsMenu(Menu):
         if context.image_paint_object and not toolsettings.detect_data():
             if toolsettings.missing_uvs or toolsettings.missing_materials or \
                toolsettings.missing_texture:
-                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.row().label(text="Missing Data", icon='ERROR')
                 layout.row().operator_menu_enum("paint.add_texture_paint_slot", \
                                                   "type", \
@@ -119,6 +118,7 @@ class BrushOptionsMenu(Menu):
                 layout.row().label(text="Missing Data", icon='ERROR')
                 layout.row().label(text="See Mask Properties", icon='FORWARD')
                 layout.row().separator()
+                layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
                 layout.row().menu("VIEW3D_MT_sv3_brushes_menu",
                                     icon=icons)
                 
@@ -128,11 +128,13 @@ class BrushOptionsMenu(Menu):
                 layout.row().label(text="Missing Data", icon="INFO")
         
         else:
+            layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
+            
             if has_brush and has_brush.image_tool in {'DRAW', 'FILL'} and \
                has_brush.blend not in {'ERASE_ALPHA', 'ADD_ALPHA'}:
                 layout.row().operator(ColorPickerPopup.bl_idname, icon="COLOR")
                 layout.row().separator()
-            layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
+            
             layout.row().menu("VIEW3D_MT_sv3_brushes_menu",
                                 icon=icons)
 
@@ -157,6 +159,8 @@ class BrushOptionsMenu(Menu):
 
     def particle(self, layout, context):
         particle_edit = context.tool_settings.particle_edit
+        
+        layout.operator("wm.toolbar", text="Tools", icon='TOOL_SETTINGS')
 
         layout.row().menu("VIEW3D_MT_sv3_brushes_menu",
                             icon="BRUSH_DATA")
