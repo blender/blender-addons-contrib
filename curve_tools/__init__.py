@@ -304,27 +304,10 @@ class VIEW3D_PT_CurvePanel(Panel):
             row = col.row(align=True)
             row.operator("curve.remove_doubles", text="Remove Doubles")
             row = col.row(align=True)
-            vertex = []
-            selected = []
-            n = 0
-            obj = context.active_object
-            if obj is not None:
-                if obj.type == 'CURVE':
-                    for i in obj.data.splines:
-                        for j in i.bezier_points:
-                            n += 1
-                            if j.select_control_point:
-                                selected.append(n)
-                                vertex.append(obj.matrix_world @ j.co)
-
-                if len(vertex) > 0 and n > 2:
-                    row = col.row(align=True)
-                    row.operator("curve.bezier_points_fillet", text='Fillet')
-
-                if len(vertex) == 2 and abs(selected[0] - selected[1]) == 1:
-                    row = col.row(align=True)
-                    row.operator("curve.bezier_spline_divide", text='Divide')
-
+            row = col.row(align=True)
+            row.operator("curve.bezier_points_fillet", text='Fillet')
+            row = col.row(align=True)
+            row.operator("curve.bezier_spline_divide", text='Divide')
             row = col.row(align=True)
             row.operator("curvetools2.operatorbirail", text="Birail")
         # Utils Curve options

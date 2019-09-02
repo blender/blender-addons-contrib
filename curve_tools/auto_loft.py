@@ -11,11 +11,9 @@ class OperatorAutoLoftCurves(Operator):
     bl_label = "Loft"
     bl_description = "Lofts selected curves"
 
-
     @classmethod
     def poll(cls, context):
         return Util.Selected2Curves()
-
 
     def execute(self, context):
         #print("### TODO: OperatorLoftCurves.execute()")
@@ -43,7 +41,6 @@ class OperatorAutoLoftCurves(Operator):
         #self.report({'INFO'}, "OperatorAutoLoftCurves.execute()")
 
         return {'FINISHED'}
-
 
 class AutoLoftModalOperator(Operator):
     """Auto Loft"""
@@ -73,17 +70,6 @@ class AutoLoftModalOperator(Operator):
                 ls.bMesh.to_mesh(loftmesh.data)
         return {'FINISHED'}
 
-    def cancel(self, context):
-        wm = context.window_manager
-        wm.event_timer_remove(self._timer)
-
-
-
-def run_auto_loft(self, context):
-    if self.auto_loft:
-        bpy.ops.wm.auto_loft_curve()
-    return None
-
 def register():
     bpy.utils.register_class(AutoLoftModalOperator)
     bpy.utils.register_class(OperatorAutoLoftCurves)
@@ -97,7 +83,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
-
-    # test call
-    #bpy.ops.wm.modal_timer_operator()
