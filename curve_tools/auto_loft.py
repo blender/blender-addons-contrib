@@ -39,17 +39,17 @@ class OperatorAutoLoftCurves(Operator):
                            "description": "Auto loft from %s to %s" % (curve0.name, curve1.name),
                            "curve0": curve0.name,
                            "curve1": curve1.name}
-        print(loftobj['_RNA_UI'].to_dict())
-        self.report({'INFO'}, "OperatorAutoLoftCurves.execute()")
+        #print(loftobj['_RNA_UI'].to_dict())
+        #self.report({'INFO'}, "OperatorAutoLoftCurves.execute()")
 
         return {'FINISHED'}
 
 
 class AutoLoftModalOperator(Operator):
     """Auto Loft"""
-    bl_idname = "wm.auto_loft_curve"
-    bl_label = "Auto Loft"
-    bl_description = "Lofts selected curves"
+    bl_idname = "curvetools2.update_auto_loft_curves"
+    bl_label = "Update Auto Loft"
+    bl_description = "Update Lofts selected curves"
 
     _timer = None
     @classmethod
@@ -57,37 +57,21 @@ class AutoLoftModalOperator(Operator):
         # two curves selected.
         return True
 
-    def modal(self, context, event):
-        scene = context.scene
-        wm = context.window_manager
-        if event.type in {'ESC'}:
-            wm.auto_loft = False
-
-        if not wm.auto_loft:
-            self.cancel(context)
-            return {'CANCELLED'}
-
-        if event.type == 'TIMER':
-            lofters = [o for o in scene.objects if "autoloft" in o.keys()]
-            # quick hack
-            #print("TIMER", lofters)
-
-            for loftmesh in lofters:
-                loftmesh.hide_select = True
-                rna = loftmesh['_RNA_UI']["autoloft"].to_dict()
-                curve0 = scene.objects.get(rna["curve0"])
-                curve1 = scene.objects.get(rna["curve1"])
-                if curve0 and curve1:
-                    ls = LoftedSurface(Curve(curve0), Curve(curve1), loftmesh.name)
-                    ls.bMesh.to_mesh(loftmesh.data)
-
-        return {'PASS_THROUGH'}
-
     def execute(self, context):
-        wm = context.window_manager
-        self._timer = wm.event_timer_add(0.1, context.window)
-        wm.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
+        scene = context.scene
+        lofters = [o for o in scene.objects if "autoloft" in o.keys()]
+        # quick hack
+        #print("TIMER", lofters)
+
+        for loftmesh in lofters:
+            loftmesh.hide_select = True
+            rna = loftmesh['_RNA_UI']["autoloft"].to_dict()
+            curve0 = scene.objects.get(rna["curve0"])
+            curve1 = scene.objects.get(rna["curve1"])
+            if curve0 and curve1:
+                ls = LoftedSurface(Curve(curve0), Curve(curve1), loftmesh.name)
+                ls.bMesh.to_mesh(loftmesh.data)
+        return {'FINISHED'}
 
     def cancel(self, context):
         wm = context.window_manager
@@ -104,8 +88,7 @@ def register():
     bpy.utils.register_class(AutoLoftModalOperator)
     bpy.utils.register_class(OperatorAutoLoftCurves)
     bpy.types.WindowManager.auto_loft = BoolProperty(default=False,
-                                                     name="Auto Loft",
-                                                     update=run_auto_loft)
+                                                     name="Auto Loft")
     bpy.context.window_manager.auto_loft = False
 
 def unregister():

@@ -288,6 +288,7 @@ class VIEW3D_PT_CurvePanel(Panel):
                 layout.label(text=o.name)
             # layout.prop(o, '["autoloft"]', toggle=True)
             layout.prop(wm, "auto_loft", toggle=True)
+            layout.operator("curvetools2.update_auto_loft_curves")
 
         # Advanced options
         box1 = self.layout.box()
