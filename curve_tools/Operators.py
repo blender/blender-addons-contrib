@@ -3,6 +3,7 @@ import threading
 
 import bpy
 from bpy.props import *
+from bpy_extras import object_utils
 
 from . import Properties
 from . import Curves
@@ -424,3 +425,97 @@ class OperatorSplinesJoinNeighbouring(bpy.types.Operator):
             self.report({'INFO'}, "Applied %d joins on %d splines; resulting nrSplines: %d" % (nrJoins, nrSplines, curve.nrSplines))
 
         return {'FINISHED'}
+
+
+class ConvertBezierRectangleToSurface(bpy.types.Operator):
+    bl_idname = "curvetools2.convert_bezier_rectangle_to_surface"
+    bl_label = "Convert Bezier Rectangle To Surface"
+    bl_description = "Convert Bezier Rectangle To Surface"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return Util.Selected1Curve()
+
+    def execute(self, context):
+        # main function
+        active_object = context.active_object
+        splines = active_object.data.splines
+        surfacedata = bpy.data.curves.new('Surface', type='SURFACE')
+        surfaceobject = object_utils.object_data_add(context, surfacedata)
+        surfaceobject.matrix_world = active_object.matrix_world
+        surfaceobject.rotation_euler = active_object.rotation_euler
+        surfacedata.dimensions = '3D'
+        
+        n = 0
+        pp = []
+        for s in splines:
+            for p in s.bezier_points:
+                pp.append(p)
+                n += 1
+        
+        # 1
+        surfacespline1 = surfacedata.splines.new(type='NURBS')
+        surfacespline1.use_endpoint_u = True
+        surfacespline1.use_endpoint_v = True
+        surfacespline1.points.add(3)
+        surfacespline1.points[0].co = [pp[0].co.x, pp[0].co.y, pp[0].co.z, 1]
+        surfacespline1.points[1].co = [pp[0].handle_left.x, pp[0].handle_left.y, pp[0].handle_left.z, 1]
+        surfacespline1.points[2].co = [pp[3].handle_right.x, pp[3].handle_right.y, pp[3].handle_right.z, 1]
+        surfacespline1.points[3].co = [pp[3].co.x, pp[3].co.y, pp[3].co.z, 1]
+        
+        # 2
+        surfacespline2 = surfacedata.splines.new(type='NURBS')
+        surfacespline2.use_endpoint_u = True
+        surfacespline2.use_endpoint_v = True
+        surfacespline2.points.add(3)
+        surfacespline2.points[0].co = [pp[0].handle_right.x, pp[0].handle_right.y, pp[0].handle_right.z, 1]
+        surfacespline2.points[1].co = [(pp[0].handle_right.x + pp[3].handle_left.x)/2,
+                                       (pp[0].handle_right.y + pp[3].handle_left.y)/2,
+                                       (pp[0].handle_right.z + pp[3].handle_left.z)/2, 1]
+        surfacespline2.points[2].co = [(pp[3].handle_left.x + pp[0].handle_right.x)/2,
+                                       (pp[3].handle_left.y + pp[0].handle_right.y)/2,
+                                       (pp[3].handle_left.z + pp[0].handle_right.z)/2, 1]
+        surfacespline2.points[3].co = [pp[3].handle_left.x, pp[3].handle_left.y, pp[3].handle_left.z, 1]
+
+        # 3
+        surfacespline3 = surfacedata.splines.new(type='NURBS')
+        surfacespline3.use_endpoint_u = True
+        surfacespline3.use_endpoint_v = True
+        surfacespline3.points.add(3)
+        surfacespline3.points[0].co = [pp[1].handle_left.x, pp[1].handle_left.y, pp[1].handle_left.z, 1]
+        surfacespline3.points[1].co = [(pp[1].handle_left.x + pp[2].handle_right.x)/2,
+                                       (pp[1].handle_left.y + pp[2].handle_right.y)/2,
+                                       (pp[1].handle_left.z + pp[2].handle_right.z)/2, 1]
+        surfacespline3.points[2].co = [(pp[2].handle_right.x + pp[1].handle_left.x)/2,
+                                       (pp[2].handle_right.y + pp[1].handle_left.y)/2,
+                                       (pp[2].handle_right.z + pp[1].handle_left.z)/2, 1]
+        surfacespline3.points[3].co = [pp[2].handle_right.x, pp[2].handle_right.y, pp[2].handle_right.z, 1]
+
+        # 4
+        surfacespline4 = surfacedata.splines.new(type='NURBS')
+        surfacespline4.use_endpoint_u = True
+        surfacespline4.use_endpoint_v = True
+        surfacespline4.points.add(3)
+        surfacespline4.points[0].co = [pp[1].co.x, pp[1].co.y, pp[1].co.z, 1]
+        surfacespline4.points[1].co = [pp[1].handle_right.x, pp[1].handle_right.y, pp[1].handle_right.z, 1]
+        surfacespline4.points[2].co = [pp[2].handle_left.x, pp[2].handle_left.y, pp[2].handle_left.z, 1]
+        surfacespline4.points[3].co = [pp[2].co.x, pp[2].co.y, pp[2].co.z, 1]
+        
+        splines = surfaceobject.data.splines
+        for s in splines:
+            for p in s.points:
+                p.select = True
+
+        bpy.context.view_layer.objects.active = surfaceobject
+        bpy.ops.object.mode_set(mode = 'EDIT') 
+        bpy.ops.curve.make_segment()
+        splines = surfaceobject.data.splines
+        for s in splines:
+            s.order_u = 4
+            s.order_v = 4
+            s.resolution_u = 4
+            s.resolution_v = 4
+
+        return {'FINISHED'}
+

@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Curve Tools 2",
     "description": "Adds some functionality for bezier/nurbs curve/surface modeling",
-    "author": "Mackraken, guy lateur",
-    "version": (0, 3, 0),
+    "author": "Mackraken, guy lateur, Spivak Vladimir (cwolf3d)",
+    "version": (0, 3, 1),
     "blender": (2, 80, 0),
     "location": "View3D > Tool Shelf > Addons Tab",
     "warning": "WIP",
@@ -304,12 +304,13 @@ class VIEW3D_PT_CurvePanel(Panel):
             row = col.row(align=True)
             row.operator("curve.remove_doubles", text="Remove Doubles")
             row = col.row(align=True)
-            row = col.row(align=True)
             row.operator("curve.bezier_points_fillet", text='Fillet')
             row = col.row(align=True)
             row.operator("curve.bezier_spline_divide", text='Divide')
             row = col.row(align=True)
             row.operator("curvetools2.operatorbirail", text="Birail")
+            row = col.row(align=True)
+            row.operator("curvetools2.convert_bezier_rectangle_to_surface", text="Convert Bezier Rectangle To Surface")
         # Utils Curve options
         box1 = self.layout.box()
         col = box1.column(align=True)
@@ -410,7 +411,8 @@ classes = (
     Operators.OperatorSplinesRemoveShort,
     Operators.OperatorSplinesJoinNeighbouring,
     VIEW3D_PT_CurvePanel,
-    SeparateOutline
+    SeparateOutline,
+    Operators.ConvertBezierRectangleToSurface,
     )
 
 def register():

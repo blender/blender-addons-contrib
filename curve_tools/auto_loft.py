@@ -61,7 +61,7 @@ class AutoLoftModalOperator(Operator):
         #print("TIMER", lofters)
 
         for loftmesh in lofters:
-            loftmesh.hide_select = True
+            #loftmesh.hide_select = True
             rna = loftmesh['_RNA_UI']["autoloft"].to_dict()
             curve0 = scene.objects.get(rna["curve0"])
             curve1 = scene.objects.get(rna["curve1"])
