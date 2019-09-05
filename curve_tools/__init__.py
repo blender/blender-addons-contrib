@@ -195,9 +195,7 @@ class VIEW3D_PT_CurvePanel(Panel):
 
     @classmethod
     def poll(cls, context):
-        if len(context.selected_objects) > 0:
-            obj = context.active_object
-            return (obj and obj.type == "CURVE")
+        return context.scene is not None
 
     def draw(self, context):
         scene = context.scene
@@ -207,12 +205,6 @@ class VIEW3D_PT_CurvePanel(Panel):
         TRIPLEDROP = scene.UTTripleDrop
         UTILSDROP = scene.UTUtilsDrop
         layout = self.layout
-
-        # Z. selection
-        boxSelection = self.layout.box()
-        row = boxSelection.row(align=True)
-        row.operator("curvetools2.operatorselectioninfo", text="Selection Info")
-        row.prop(context.scene.curvetools, "NrSelectedObjects", text="")
 
         # Single Curve options
         box1 = self.layout.box()
@@ -311,6 +303,10 @@ class VIEW3D_PT_CurvePanel(Panel):
             row.operator("curvetools2.operatorbirail", text="Birail")
             row = col.row(align=True)
             row.operator("curvetools2.convert_bezier_rectangle_to_surface", text="Convert Bezier Rectangle To Surface")
+            row = col.row(align=True)        
+            row.operator("curvetools2.convert_mesh_to_bezier", text="Convert Mesh to Bezier")
+            row = col.row(align=True)        
+            row.operator("curvetools2.convert_bezier_to_surface", text="Convert Bezier to Surface")
         # Utils Curve options
         box1 = self.layout.box()
         col = box1.column(align=True)
@@ -345,7 +341,6 @@ class VIEW3D_PT_CurvePanel(Panel):
 
             row = col.row(align=True)
             row.prop(context.scene.curvetools, "SplineJoinMode", text="Join mode")
-
 
 # Add-ons Preferences Update Panel
 
@@ -396,7 +391,6 @@ classes = (
     Properties.CurveTools2SelectedObject,
     CurveAddonPreferences,
     CurveTools2Settings,
-    Operators.OperatorSelectionInfo,
     Operators.OperatorCurveInfo,
     Operators.OperatorCurveLength,
     Operators.OperatorSplinesInfo,
@@ -413,6 +407,8 @@ classes = (
     VIEW3D_PT_CurvePanel,
     SeparateOutline,
     Operators.ConvertBezierRectangleToSurface,
+    Operators.ConvertMeshToBezier,
+    Operators.ConvertBezierToSurface,
     )
 
 def register():
