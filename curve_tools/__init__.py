@@ -95,13 +95,6 @@ class CurveTools2Settings(PropertyGroup):
             description="Number of selected objects",
             update=UpdateDummy
             )
-    """
-    NrSelectedObjects = IntProperty(
-            name="NrSelectedObjects",
-            default=0,
-            description="Number of selected objects"
-            )
-    """
     # curve
     CurveLength: FloatProperty(
             name="CurveLength",
@@ -301,11 +294,9 @@ class VIEW3D_PT_CurvePanel(Panel):
             row.operator("curve.bezier_spline_divide", text='Divide')
             row = col.row(align=True)
             row.operator("curvetools2.operatorbirail", text="Birail")
+            row = col.row(align=True)        
+            row.operator("curvetools2.convert_selected_face_to_bezier", text="Convert selected faces to Bezier")
             row = col.row(align=True)
-            row.operator("curvetools2.convert_bezier_rectangle_to_surface", text="Convert Bezier Rectangle To Surface")
-            row = col.row(align=True)        
-            row.operator("curvetools2.convert_mesh_to_bezier", text="Convert Mesh to Bezier")
-            row = col.row(align=True)        
             row.operator("curvetools2.convert_bezier_to_surface", text="Convert Bezier to Surface")
         # Utils Curve options
         box1 = self.layout.box()
@@ -406,8 +397,7 @@ classes = (
     Operators.OperatorSplinesJoinNeighbouring,
     VIEW3D_PT_CurvePanel,
     SeparateOutline,
-    Operators.ConvertBezierRectangleToSurface,
-    Operators.ConvertMeshToBezier,
+    Operators.ConvertSelectedFacesToBezier,
     Operators.ConvertBezierToSurface,
     )
 
@@ -429,12 +419,12 @@ def register():
             )
     bpy.types.Scene.UTTripleDrop = BoolProperty(
             name="Advanced",
-            default=False,
+            default=True,
             description="Advanced"
             )
     bpy.types.Scene.UTUtilsDrop = BoolProperty(
             name="Curves Utils",
-            default=False,
+            default=True,
             description="Curves Utils"
             )
     
@@ -456,8 +446,6 @@ def unregister():
     del bpy.types.Scene.UTLoftDrop
     del bpy.types.Scene.UTTripleDrop
     del bpy.types.Scene.UTUtilsDrop
-
-    # bpy.app.handlers.scene_update_pre.remove(SceneUpdatePreHandler)
     
     auto_loft.unregister()
     
