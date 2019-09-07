@@ -612,16 +612,16 @@ class ConvertBezierToSurface(bpy.types.Operator):
         for spline in curvedata.splines:
             SurfaceFromBezier(surfacedata, spline.bezier_points, self.Center)
             
-        len_p = len(surfacedata.splines[0].points)
-        len_devide_4 = round(len_p / 4) + 1
-        len_devide_2 = round(len_p / 2)
-        for point_index in range(len_devide_4, len_p - len_devide_4):
-            if point_index != len_devide_2 and point_index != len_devide_2 - 1:
-                surfacedata.splines[0].points[point_index].select = True
-                print(point_index)
-                print(surfacedata.splines[0].points[point_index].co)
+        for spline in surfacedata.splines:
+            len_p = len(spline.points)
+            len_devide_4 = round(len_p / 4) + 1
+            len_devide_2 = round(len_p / 2)
+            bpy.ops.object.mode_set(mode = 'EDIT')
+            for point_index in range(len_devide_4, len_p - len_devide_4):
+                if point_index != len_devide_2 and point_index != len_devide_2 - 1:
+                    spline.points[point_index].select = True
                 
-        surfacedata.resolution_u = self.Resolution_U
-        surfacedata.resolution_v = self.Resolution_V
+            surfacedata.resolution_u = self.Resolution_U
+            surfacedata.resolution_v = self.Resolution_V
 
         return {'FINISHED'}
