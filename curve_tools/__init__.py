@@ -296,6 +296,8 @@ class VIEW3D_PT_CurvePanel(Panel):
             row = col.row(align=True)
             row.operator("curve.bezier_spline_divide", text='Divide')
             row = col.row(align=True)
+            row.operator("curve.scale_reset", text='Scale Reset')
+            row = col.row(align=True)
             row.operator("curvetools2.operatorbirail", text="Birail")
             row = col.row(align=True)        
             row.operator("curvetools2.convert_selected_face_to_bezier", text="Convert selected faces to Bezier")
