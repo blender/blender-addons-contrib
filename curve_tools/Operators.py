@@ -3,7 +3,7 @@ import threading
 
 import bpy
 from bpy.props import *
-from bpy_extras import object_utils
+from bpy_extras import object_utils, view3d_utils
 
 from . import Properties
 from . import Curves
@@ -175,7 +175,7 @@ class OperatorIntersectCurves(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return Util.Selected2Curves()
+        return Util.Selected2OrMoreCurves()
 
 
     def execute(self, context):
@@ -194,14 +194,26 @@ class OperatorIntersectCurves(bpy.types.Operator):
         affect = context.scene.curvetools.IntersectCurvesAffect
         print("-- affect:", affect)
 
+        selected_objects = context.selected_objects
+        lenodjs = len(selected_objects)
+        print('lenodjs:', lenodjs)
+        for i in range(0, lenodjs):
+            for j in range(0, lenodjs):
+                if j != i:
+                    bpy.ops.object.select_all(action='DESELECT')
+                    selected_objects[i].select_set(True)
+                    selected_objects[j].select_set(True)
+        
+                    if selected_objects[i].type == 'CURVE' and selected_objects[j].type == 'CURVE':
+                        curveIntersector = CurveIntersections.CurvesIntersector.FromSelection()
+                        rvIntersectionNrs = curveIntersector.CalcAndApplyIntersections()
 
-        curveIntersector = CurveIntersections.CurvesIntersector.FromSelection()
-        rvIntersectionNrs = curveIntersector.CalcAndApplyIntersections()
-
-        self.report({'INFO'}, "Active curve points: %d; other curve points: %d" % (rvIntersectionNrs[0], rvIntersectionNrs[1]))
-
+                        self.report({'INFO'}, "Active curve points: %d; other curve points: %d" % (rvIntersectionNrs[0], rvIntersectionNrs[1]))
+        
+        for obj in selected_objects:
+            obj.select_set(True)
+        
         return {'FINISHED'}
-
 
 
 class OperatorLoftCurves(bpy.types.Operator):
@@ -625,3 +637,123 @@ class ConvertBezierToSurface(bpy.types.Operator):
             surfacedata.resolution_v = self.Resolution_V
 
         return {'FINISHED'}
+
+def click(self, context, event, select):
+    bpy.ops.object.mode_set(mode = 'EDIT')
+    for object in context.selected_objects:
+        matrix_world = object.matrix_world
+        if object.type == 'CURVE':
+            curvedata = object.data
+            
+            radius = bpy.context.scene.curvetools.PathFinderRadius
+            
+            for spline in curvedata.splines:
+                for bezier_point in spline.bezier_points:
+                    factor = 0
+                    co = matrix_world @ bezier_point.co
+                    if co.x > (self.location3D.x - radius):
+                        factor += 1
+                    if co.x < (self.location3D.x + radius):
+                        factor += 1
+                    if co.y > (self.location3D.y - radius):
+                        factor += 1
+                    if co.y < (self.location3D.y + radius):
+                        factor += 1
+                    if co.z > (self.location3D.z - radius):
+                        factor += 1
+                    if co.z < (self.location3D.z + radius):
+                        factor += 1
+                    if factor == 6:
+                        for bezier_point in spline.bezier_points:
+                            bezier_point.select_control_point = select
+                            bezier_point.select_left_handle = select
+                            bezier_point.select_right_handle = select
+                            
+            for spline in curvedata.splines:
+                for point in spline.points:
+                    factor = 0
+                    co = matrix_world @ point.co
+                    if co.x > (self.location3D.x - radius):
+                        factor += 1
+                    if co.x < (self.location3D.x + radius):
+                        factor += 1
+                    if co.y > (self.location3D.y - radius):
+                        factor += 1
+                    if co.y < (self.location3D.y + radius):
+                        factor += 1
+                    if co.z > (self.location3D.z - radius):
+                        factor += 1
+                    if co.z < (self.location3D.z + radius):
+                        factor += 1
+                    if factor == 6:
+                        for point in spline.points:
+                            point = select    
+
+class PathFinder(bpy.types.Operator):
+    bl_idname = "curvetools2.pathfinder"
+    bl_label = "Path Finder"
+    bl_description = "Path Finder"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    x: IntProperty(name="x", description="x")
+    y: IntProperty(name="y", description="y")
+    location3D: FloatVectorProperty(name = "",
+                description = "Start location",
+                default = (0.0, 0.0, 0.0),
+                subtype = 'XYZ')
+    
+    def __init__(self):
+        bpy.context.space_data.overlay.show_curve_handles = False
+        self.report({'INFO'}, "ESC or TAB - cancel")
+        print("Start PathFinder")
+
+    def __del__(self):
+        bpy.context.space_data.overlay.show_curve_handles = True
+        self.report({'INFO'}, "PathFinder deactivated")
+        print("End PathFinder")
+
+    def modal(self, context, event):
+        if event.type in {'DEL', 'X'}:
+            bpy.ops.curve.delete(type='VERT')
+        
+        #if event.ctrl and event.type == 'Z':
+        #    bpy.ops.ed.undo()
+
+        #if event.shift and event.type == 'Z':
+        #    bpy.ops.ed.redo()
+
+        elif event.type == 'LEFTMOUSE':
+            click(self, context, event, True)
+                                    
+        elif event.type == 'RIGHTMOUSE':
+            click(self, context, event, False)
+            
+        elif event.type == 'A':
+            bpy.ops.curve.select_all(action='DESELECT')
+            
+        elif event.type == 'MOUSEMOVE':  # 
+            self.x = event.mouse_x
+            self.y = event.mouse_y
+            region = bpy.context.region
+            rv3d = bpy.context.space_data.region_3d
+            self.location3D = view3d_utils.region_2d_to_location_3d(
+                region,
+                rv3d,
+                (event.mouse_region_x, event.mouse_region_y),
+                (0.0, 0.0, 0.0)
+                )
+        
+        elif event.type == 'WHEELUPMOUSE':  # 
+            bpy.ops.curve.select_more()
+        
+        elif event.type == 'WHEELDOWNMOUSE':  #
+            bpy.ops.curve.select_less()        
+        
+        elif event.type in {'ESC', 'TAB'}:  # Cancel
+            return {'CANCELLED'}
+
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
