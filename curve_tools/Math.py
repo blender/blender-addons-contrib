@@ -133,3 +133,13 @@ def CalcRotationMatrix(v3From, v3To):
     except: return Matrix.Identity(4)
 
     return Matrix.Rotation(angle, 4, cross)        # normalize axis?
+
+
+def subdivide_cubic_bezier(p1, p2, p3, p4, t):
+    p12 = (p2 - p1) * t + p1
+    p23 = (p3 - p2) * t + p2
+    p34 = (p4 - p3) * t + p3
+    p123 = (p23 - p12) * t + p12
+    p234 = (p34 - p23) * t + p23
+    p1234 = (p234 - p123) * t + p123
+    return [p12, p123, p1234, p234, p34]

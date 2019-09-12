@@ -15,12 +15,17 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+# Contributed to by guy lateur, Alexander Meißner (Lichtso),
+# Dealga McArdle (zeffii), Marvin.K.Breuer (MKB),
+# Spivak Vladimir (cwolf3d)
+# Origunally an addon by Mackraken
+
 
 bl_info = {
     "name": "Curve Tools 2",
     "description": "Adds some functionality for bezier/nurbs curve/surface modeling",
-    "author": "Mackraken, guy lateur, Spivak Vladimir (cwolf3d)",
-    "version": (0, 3, 2),
+    "author": "Mackraken",
+    "version": (0, 3, 3),
     "blender": (2, 80, 0),
     "location": "View3D > Tool Shelf > Addons Tab",
     "warning": "WIP",
@@ -30,7 +35,7 @@ bl_info = {
     "category": "Add Curve"}
 
 
-import bpy
+import os, bpy, importlib, math
 from bpy.types import (
         Operator,
         Panel,
@@ -43,12 +48,22 @@ from bpy.props import (
         EnumProperty,
         CollectionProperty,
         StringProperty,
+        FloatVectorProperty,
         )
 from . import Properties
 from . import Operators
 from . import auto_loft
 from . import curve_outline
 from . import curve_remove_doubles
+from . import PathFinder
+from . import ShowCurveResolution
+from . import internal, cad, toolpath, exports
+
+if 'internal' in locals():
+    importlib.reload(internal)
+    importlib.reload(cad)
+    importlib.reload(toolpath)
+    importlib.reload(exports)
 
 
 from bpy.types import (
@@ -61,7 +76,8 @@ def UpdateDummy(object, context):
     SINGLEDROP = scene.UTSingleDrop
     MOREDROP = scene.UTMOREDROP
     LOFTDROP = scene.UTLoftDrop
-    TRIPLEDROP = scene.UTTripleDrop
+    ADVANCEDDROP = scene.UTAdvancedDrop
+    EXTENDEDDROP = scene.UTExtendedDrop
     UTILSDROP = scene.UTUtilsDrop
 
 
@@ -183,6 +199,22 @@ class CurveTools2Settings(PropertyGroup):
             precision=6,
             description="PathFinder detection radius"
             )
+    curve_vertcolor: FloatVectorProperty(
+            name="OUT",
+            default=(0.2, 0.9, 0.9, 1),
+            size=4,
+            subtype="COLOR",
+            min=0,
+            max=1
+            )
+    path_color: FloatVectorProperty(
+            name="OUT",
+            default=(0.2, 0.9, 0.9, 1),
+            size=4,
+            subtype="COLOR",
+            min=0,
+            max=1
+            )
 
 
 class VIEW3D_PT_CurvePanel(Panel):
@@ -201,7 +233,8 @@ class VIEW3D_PT_CurvePanel(Panel):
         SINGLEDROP = scene.UTSingleDrop
         MOREDROP = scene.UTMOREDROP
         LOFTDROP = scene.UTLoftDrop
-        TRIPLEDROP = scene.UTTripleDrop
+        ADVANCEDDROP = scene.UTAdvancedDrop
+        EXTENDEDDROP = scene.UTExtendedDrop
         UTILSDROP = scene.UTUtilsDrop
         layout = self.layout
 
@@ -282,8 +315,8 @@ class VIEW3D_PT_CurvePanel(Panel):
         box1 = self.layout.box()
         col = box1.column(align=True)
         row = col.row(align=True)
-        row.prop(scene, "UTTripleDrop", icon="TRIA_DOWN")
-        if TRIPLEDROP:
+        row.prop(scene, "UTAdvancedDrop", icon="TRIA_DOWN")
+        if ADVANCEDDROP:
             # C. 3 curves
             row = col.row(align=True)
             row.operator("object._curve_outline", text="Curve Outline")
@@ -303,59 +336,76 @@ class VIEW3D_PT_CurvePanel(Panel):
             row.operator("curvetools2.convert_selected_face_to_bezier", text="Convert selected faces to Bezier")
             row = col.row(align=True)
             row.operator("curvetools2.convert_bezier_to_surface", text="Convert Bezier to Surface")
+        
+        # Extended options
+        box1 = self.layout.box()
+        col = box1.column(align=True)
+        row = col.row(align=True)
+        row.prop(scene, "UTExtendedDrop", icon="TRIA_DOWN")
+        if EXTENDEDDROP:
+            for operator in cad.operators:
+                row = col.row(align=True)
+                row.operator(operator.bl_idname)
+            
+            for operator in toolpath.operators:
+                row = col.row(align=True)
+                row.operator(operator.bl_idname)
+
         # Utils Curve options
         box1 = self.layout.box()
         col = box1.column(align=True)
         row = col.row(align=True)
         row.prop(scene, "UTUtilsDrop", icon="TRIA_DOWN")
-
         if UTILSDROP:
             # D.1 set spline resolution
             row = col.row(align=True)
+            row.label(text="Show point Resolution:")
+            row = col.row(align=True)
             row.operator("curvetools2.operatorsplinessetresolution", text="Set resolution")
             row.prop(context.scene.curvetools, "SplineResolution", text="")
+            row = col.row(align=True)
+            row.prop(context.scene.curvetools, "curve_vertcolor", text="")
+            row = col.row(align=True)
+            row.operator("curve.show_resolution", text="Run [ESC]")
 
             # D.2 remove splines
             row = col.row(align=True)
+            row.label(text="Remove splines:")
+            row = col.row(align=True)
             row.operator("curvetools2.operatorsplinesremovezerosegment", text="Remove 0-segments splines")
-
             row = col.row(align=True)
             row.operator("curvetools2.operatorsplinesremoveshort", text="Remove short splines")
-
             row = col.row(align=True)
             row.prop(context.scene.curvetools, "SplineRemoveLength", text="Threshold remove")
 
             # D.3 join splines
             row = col.row(align=True)
+            row.label(text="Join splines:")
+            row = col.row(align=True)
             row.operator("curvetools2.operatorsplinesjoinneighbouring", text="Join neighbouring splines")
-
             row = col.row(align=True)
             row.prop(context.scene.curvetools, "SplineJoinDistance", text="Threshold join")
-
             row = col.row(align=True)
             row.prop(context.scene.curvetools, "SplineJoinStartEnd", text="Only at start & end")
-
             row = col.row(align=True)
             row.prop(context.scene.curvetools, "SplineJoinMode", text="Join mode")
-            
+
+            row = col.row(align=True)
+            row.label(text="PathFinder:")
             row = col.row(align=True)
             row.prop(context.scene.curvetools, "PathFinderRadius", text="PathFinder Radius")
             row = col.row(align=True)
-            row.operator("curvetools2.pathfinder", text="Path Finder")
+            row.prop(context.scene.curvetools, "path_color", text="")
+            row = col.row(align=True)
+            row.operator("curvetools2.pathfinder", text="Run Path Finder [ESC]")
             row = col.row(align=True)
             row.label(text="ESC or TAB - exit from PathFinder")
             row = col.row(align=True)
             row.label(text="X or DEL - delete")
             row = col.row(align=True)
-            row.label(text="left mouse click - select spline")
-            row = col.row(align=True)
-            row.label(text="right mouse click - deselect spline")
+            row.label(text="Alt + mouse click - select spline")
             row = col.row(align=True)
             row.label(text="A - deselect all")
-            #row = col.row(align=True)
-            #row.label(text="Ctrl + Z - undo")
-            #row = col.row(align=True)
-            #row.label(text="Shift + Z - redo")
             
 
 # Add-ons Preferences Update Panel
@@ -402,8 +452,16 @@ class CurveAddonPreferences(AddonPreferences):
         col.label(text="Tab Category:")
         col.prop(self, "category", text="")
 
+def menu_file_export(self, context):
+    for operator in exports.operators:
+        self.layout.operator(operator.bl_idname)
+
+def menu_file_import(self, context):
+    for operator in imports.operators:
+        self.layout.operator(operator.bl_idname)
+
 # REGISTER
-classes = (
+classes = cad.operators + toolpath.operators + exports.operators + [
     Properties.CurveTools2SelectedObject,
     CurveAddonPreferences,
     CurveTools2Settings,
@@ -424,14 +482,15 @@ classes = (
     SeparateOutline,
     Operators.ConvertSelectedFacesToBezier,
     Operators.ConvertBezierToSurface,
-    Operators.PathFinder,
-    )
+    PathFinder.PathFinder,
+    ShowCurveResolution.ShowCurveResolution,
+    ]
 
 def register():
     bpy.types.Scene.UTSingleDrop = BoolProperty(
-            name="Curve",
+            name="One Curve",
             default=False,
-            description="Curve"
+            description="One Curve"
             )
     bpy.types.Scene.UTMOREDROP = BoolProperty(
             name="Curves",
@@ -443,10 +502,15 @@ def register():
             default=False,
             description="Two Curves Loft"
             )
-    bpy.types.Scene.UTTripleDrop = BoolProperty(
+    bpy.types.Scene.UTAdvancedDrop = BoolProperty(
             name="Advanced",
             default=True,
             description="Advanced"
+            )
+    bpy.types.Scene.UTExtendedDrop = BoolProperty(
+            name="Extended",
+            default=False,
+            description="Extended"
             )
     bpy.types.Scene.UTUtilsDrop = BoolProperty(
             name="Curves Utils",
@@ -463,6 +527,8 @@ def register():
     
     curve_remove_doubles.register()
     
+    bpy.types.TOPBAR_MT_file_export.append(menu_file_export)
+    
     bpy.types.Scene.curvetools = bpy.props.PointerProperty(type=CurveTools2Settings)
 
 
@@ -470,7 +536,8 @@ def unregister():
     del bpy.types.Scene.UTSingleDrop
     del bpy.types.Scene.UTMOREDROP
     del bpy.types.Scene.UTLoftDrop
-    del bpy.types.Scene.UTTripleDrop
+    del bpy.types.Scene.UTAdvancedDrop
+    del bpy.types.Scene.UTExtendedDrop
     del bpy.types.Scene.UTUtilsDrop
     
     auto_loft.unregister()
@@ -478,6 +545,8 @@ def unregister():
     curve_outline.unregister()
     
     curve_remove_doubles.unregister()
+    
+    bpy.types.TOPBAR_MT_file_export.remove(menu_file_export)
     
     for cls in classes:
         bpy.utils.unregister_class(cls)

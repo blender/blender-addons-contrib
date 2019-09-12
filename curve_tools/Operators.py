@@ -12,6 +12,7 @@ from . import Curves
 from . import CurveIntersections
 from . import Util
 from . import Surfaces
+from . import Math
 
 # 1 CURVE SELECTED
 # ################
@@ -402,21 +403,12 @@ class OperatorSplinesJoinNeighbouring(bpy.types.Operator):
 
         return {'FINISHED'}
         
-def subdivide_cubic_bezier(p1, p2, p3, p4, t):
-    p12 = (p2 - p1) * t + p1
-    p23 = (p3 - p2) * t + p2
-    p34 = (p4 - p3) * t + p3
-    p123 = (p23 - p12) * t + p12
-    p234 = (p34 - p23) * t + p23
-    p1234 = (p234 - p123) * t + p123
-    return [p12, p123, p1234, p234, p34]
-        
 def SurfaceFromBezier(surfacedata, points, center):
     
     len_points = len(points) - 1
     
     if len_points % 2 == 0:
-        h = subdivide_cubic_bezier(
+        h = Math.subdivide_cubic_bezier(
                         points[len_points].co, points[len_points].handle_right,
                         points[0].handle_left, points[0].co, 0.5
                         )
@@ -607,7 +599,8 @@ class ConvertBezierToSurface(bpy.types.Operator):
     
     @classmethod
     def poll(cls, context):
-        return context.scene is not None
+        return (context.object is not None and
+                context.object.type == 'CURVE')
 
     def execute(self, context):
         # main function
@@ -639,194 +632,3 @@ class ConvertBezierToSurface(bpy.types.Operator):
             surfacedata.resolution_v = self.Resolution_V
 
         return {'FINISHED'}
-
-
-def draw_annotation_bezier_spline(frame, spline, matrix_world, select):
-    stroke = frame.strokes.new()
-    stroke.display_mode = '3DSPACE'
-    len_points = len(spline.bezier_points)
-    for i in range(0, len_points - 1):
-        stroke.points.add(1)
-        stroke.points[-1].co = matrix_world @ spline.bezier_points[i].co
-        for t in range(0, 100, 2):
-            h = subdivide_cubic_bezier(spline.bezier_points[i].co,
-                                       spline.bezier_points[i].handle_right,
-                                       spline.bezier_points[i + 1].handle_left,
-                                       spline.bezier_points[i + 1].co,
-                                       t/100)
-            stroke.points.add(1)
-            stroke.points[-1].co = matrix_world @ h[2]
-    if spline.use_cyclic_u:
-        stroke.points.add(1)
-        stroke.points[-1].co = matrix_world @ spline.bezier_points[len_points - 1].co
-        for t in range(0, 100, 2):
-            h = subdivide_cubic_bezier(spline.bezier_points[len_points - 1].co,
-                                       spline.bezier_points[len_points - 1].handle_right,
-                                       spline.bezier_points[0].handle_left,
-                                       spline.bezier_points[0].co,
-                                       t/100)
-            stroke.points.add(1)
-            stroke.points[-1].co = matrix_world @ h[2]
-        stroke.points.add(1)
-        stroke.points[-1].co = matrix_world @ spline.bezier_points[0].co
-
-def draw_annotation_spline(frame, spline, matrix_world, select):
-    stroke = frame.strokes.new()
-    stroke.display_mode = '3DSPACE'
-    len_points = len(spline.points)
-    for i in range(0, len_points - 1):
-        stroke.points.add(1)
-        stroke.points[-1].co = matrix_world @ Vector((spline.points[i].co.x, spline.points[i].co.y, spline.points[i].co.z))
-        for t in range(0, 100, 2):
-            x = (spline.points[i].co.x + t / 100 * spline.points[i + 1].co.x) / (1 + t / 100)
-            y = (spline.points[i].co.y + t / 100 * spline.points[i + 1].co.y) / (1 + t / 100)
-            z = (spline.points[i].co.z + t / 100 * spline.points[i + 1].co.z) / (1 + t / 100)
-            stroke.points.add(1)
-            stroke.points[-1].co = matrix_world @ Vector((x, y, z))
-    if spline.use_cyclic_u:
-        stroke.points.add(1)
-        stroke.points[-1].co = matrix_world @ Vector((spline.points[len_points - 1].co.x, spline.points[len_points - 1].co.y, spline.points[len_points - 1].co.z))
-        for t in range(0, 100, 2):
-            x = (spline.points[len_points - 1].co.x + t / 100 * spline.points[0].co.x) / (1 + t / 100)
-            y = (spline.points[len_points - 1].co.y + t / 100 * spline.points[0].co.y) / (1 + t / 100)
-            z = (spline.points[len_points - 1].co.z + t / 100 * spline.points[0].co.z) / (1 + t / 100)
-            stroke.points.add(1)
-            stroke.points[-1].co = matrix_world @ Vector((x, y, z))
-        stroke.points.add(1)
-        stroke.points[-1].co = matrix_world @ Vector((spline.points[0].co.x, spline.points[0].co.y, spline.points[0].co.z))
-
-def click(self, context, event, select):
-    bpy.ops.object.mode_set(mode = 'EDIT')
-    for object in context.selected_objects:
-        matrix_world = object.matrix_world
-        if object.type == 'CURVE':
-            curvedata = object.data
-            
-            radius = bpy.context.scene.curvetools.PathFinderRadius
-            
-            for spline in curvedata.splines:
-                for bezier_point in spline.bezier_points:
-                    factor = 0
-                    co = matrix_world @ bezier_point.co
-                    if co.x > (self.location3D.x - radius):
-                        factor += 1
-                    if co.x < (self.location3D.x + radius):
-                        factor += 1
-                    if co.y > (self.location3D.y - radius):
-                        factor += 1
-                    if co.y < (self.location3D.y + radius):
-                        factor += 1
-                    if co.z > (self.location3D.z - radius):
-                        factor += 1
-                    if co.z < (self.location3D.z + radius):
-                        factor += 1
-                    if factor == 6:
-                        
-                        draw_annotation_bezier_spline(self.frame, spline, matrix_world, select)
-
-                        for bezier_point in spline.bezier_points:
-                            bezier_point.select_control_point = select
-                            bezier_point.select_left_handle = select
-                            bezier_point.select_right_handle = select
-                            
-            for spline in curvedata.splines:
-                for point in spline.points:
-                    factor = 0
-                    co = matrix_world @ Vector((point.co.x, point.co.y, point.co.z))
-                    if co.x > (self.location3D.x - radius):
-                        factor += 1
-                    if co.x < (self.location3D.x + radius):
-                        factor += 1
-                    if co.y > (self.location3D.y - radius):
-                        factor += 1
-                    if co.y < (self.location3D.y + radius):
-                        factor += 1
-                    if co.z > (self.location3D.z - radius):
-                        factor += 1
-                    if co.z < (self.location3D.z + radius):
-                        factor += 1
-                    if factor == 6:
-                        
-                        draw_annotation_spline(self.frame, spline, matrix_world, select)
-                        
-                        for point in spline.points:
-                            point.select = select    
-
-class PathFinder(bpy.types.Operator):
-    bl_idname = "curvetools2.pathfinder"
-    bl_label = "Path Finder"
-    bl_description = "Path Finder"
-    bl_options = {'REGISTER', 'UNDO'}
-    
-    x: IntProperty(name="x", description="x")
-    y: IntProperty(name="y", description="y")
-    location3D: FloatVectorProperty(name = "",
-                description = "Start location",
-                default = (0.0, 0.0, 0.0),
-                subtype = 'XYZ')
-    
-    frame : object
-    gpencil : object
-    layer : object
-    
-    def __init__(self):
-        bpy.context.space_data.overlay.show_curve_handles = False
-        self.report({'INFO'}, "ESC or TAB - cancel")
-        print("Start PathFinder")
-
-    def __del__(self):
-        bpy.context.space_data.overlay.show_curve_handles = True
-        self.layer.clear()
-        self.report({'INFO'}, "PathFinder deactivated")
-        print("End PathFinder")
-        
-    def execute(self, context):
-        bpy.ops.object.mode_set(mode = 'EDIT')
-        
-        self.gpencil = bpy.data.grease_pencils[0]
-
-        self.layer = self.gpencil.layers.new("PathFinder", set_active=True)
-        self.frame = self.layer.frames.new(bpy.context.scene.frame_current)
-    
-    def modal(self, context, event):
-        if event.type in {'DEL', 'X'}:
-            bpy.ops.curve.delete(type='VERT')
-            self.frame.clear()
-        
-        #if event.ctrl and event.type == 'Z':
-        #    bpy.ops.ed.undo()
-
-        #if event.shift and event.type == 'Z':
-        #    bpy.ops.ed.redo()
-
-        elif event.type == 'LEFTMOUSE':
-            click(self, context, event, True)
-                                    
-        #elif event.type == 'RIGHTMOUSE':
-        #   click(self, context, event, False)
-            
-        elif event.type == 'A':
-            bpy.ops.curve.select_all(action='DESELECT')
-            self.frame.clear()
-            
-        elif event.type == 'MOUSEMOVE':  # 
-            self.x = event.mouse_x
-            self.y = event.mouse_y
-            region = bpy.context.region
-            rv3d = bpy.context.space_data.region_3d
-            self.location3D = view3d_utils.region_2d_to_location_3d(
-                region,
-                rv3d,
-                (event.mouse_region_x, event.mouse_region_y),
-                (0.0, 0.0, 0.0)
-                )       
-        
-        elif event.type in {'ESC', 'TAB'}:  # Cancel
-            return {'CANCELLED'}
-
-        return {'RUNNING_MODAL'}
-
-    def invoke(self, context, event):
-        self.execute(context)
-        context.window_manager.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
