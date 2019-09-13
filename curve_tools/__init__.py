@@ -93,9 +93,8 @@ class SeparateOutline(Operator):
                 context.object.type == 'CURVE')
 
     def execute(self, context):
-        bpy.ops.object.editmode_toggle()
+        bpy.ops.object.mode_set(mode = 'EDIT')
         bpy.ops.curve.separate()
-        bpy.ops.object.editmode_toggle()
 
         return {'FINISHED'}
 
@@ -209,11 +208,18 @@ class CurveTools2Settings(PropertyGroup):
             )
     path_color: FloatVectorProperty(
             name="OUT",
-            default=(0.2, 0.9, 0.9, 1),
+            default=(0.2, 0.9, 0.9, 0.1),
             size=4,
             subtype="COLOR",
             min=0,
             max=1
+            )
+    path_thickness: IntProperty(
+            name="Path thickness",
+            default=10,
+            min=1, max=1024,
+            soft_min=2,
+            description="Path thickness (px)"
             )
 
 
@@ -396,6 +402,7 @@ class VIEW3D_PT_CurvePanel(Panel):
             row.prop(context.scene.curvetools, "PathFinderRadius", text="PathFinder Radius")
             row = col.row(align=True)
             row.prop(context.scene.curvetools, "path_color", text="")
+            row.prop(context.scene.curvetools, "path_thickness", text="")
             row = col.row(align=True)
             row.operator("curvetools2.pathfinder", text="Run Path Finder [ESC]")
             row = col.row(align=True)
