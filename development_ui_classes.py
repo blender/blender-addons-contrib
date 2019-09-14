@@ -22,7 +22,7 @@ bl_info = {
     "name": "UI Classes Overview",
     "author": "lijenstina",
     "version": (1, 0, 2),
-    "blender": (2, 78, 0),
+    "blender": (2, 80, 0),
     "location": "Text Editor > Properties",
     "description": "Print the UI classes in a text-block",
     "warning": "",
