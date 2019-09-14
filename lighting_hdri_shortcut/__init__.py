@@ -5,8 +5,7 @@ bl_info = {
     "name": "HDRI lighting Shortcut",
     "author": "Nicolas Priniotakis (Nikos)",
     "version": (1, 3, 2, 0),
-    "blender": (2, 76, 0),
-    "api": 44539,
+    "blender": (2, 80, 0),
     "category": "Material",
     "location": "Properties > World",
     "description": "Easy setup for HDRI global lightings",
@@ -474,7 +473,7 @@ bpy.types.Scene.blur = bpy.props.FloatProperty(name="Blur", update=update_blur, 
 
 
 # ---------------------- GUI -----------------------
-class hdri_map(bpy.types.Panel):
+class LIGHT_PT_hdri_map(bpy.types.Panel):
     bl_idname = "OBJECT_PT_sample"
     bl_label = "HDRI Lighting Shortcut"
     bl_space_type = 'PROPERTIES'
@@ -632,13 +631,24 @@ class OBJECT_OT_addon_prefs(Operator):
         return {'FINISHED'}
 
 
+classes = (
+    LIGHT_PT_hdri_map,
+    OBJECT_OT_load_img,
+    OBJECT_OT_Remove_setup,
+    OBJECT_OT_Visible,
+    HDRI_Preferences,
+    OBJECT_OT_addon_prefs
+)
+
 # ----------------- Registration -------------------
 def register():
-    bpy.utils.register_module(__name__)
+    for cls in classes:
+        bpy.utils.register_class(cls)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
 
 if __name__ == "__main__":
     register()
