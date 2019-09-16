@@ -42,7 +42,7 @@ class ControlClass:
 
     def add_handler(self, context):
         self.handler = bpy.types.SpaceView3D.draw_handler_add(self.callback,
-                                                              (self, context), 'WINDOW', 'POST_PIXEL')
+                              (self, context), 'WINDOW', 'POST_PIXEL')
 
     def remove_handler(self):
         if self.handler:
@@ -55,15 +55,14 @@ class ControlClass:
 
         if not Sun.UseDayMonth and sp.Day_of_year != Sun.Day_of_year:
             dt = (datetime.date(sp.Year, 1, 1) +
-                  datetime.timedelta(sp.Day_of_year - 1))
+                    datetime.timedelta(sp.Day_of_year - 1))
             Sun.Day = dt.day
             Sun.Month = dt.month
             Sun.Day_of_year = sp.Day_of_year
             sp.Day = dt.day
             sp.Month = dt.month
             rv = True
-        elif (sp.Day != Sun.Day or
-              sp.Month != Sun.Month):
+        elif (sp.Day != Sun.Day or sp.Month != Sun.Month):
             try:
                 dt = datetime.date(sp.Year, sp.Month, sp.Day)
                 sp.Day_of_year = dt.timetuple().tm_yday
@@ -84,7 +83,7 @@ class ControlClass:
                         if envTex.type == "TEX_ENVIRONMENT":
                             Sun.Bind.tex_location = envTex.texture_mapping.rotation
                             Sun.Bind.azStart = sp.HDR_azimuth
-                            obj = bpy.context.scene.objects.get(Sun.SunObject)
+                            obj = bpy.context.view_layer.objects.get(Sun.SunObject)
                 Sun.HDR_texture = sp.HDR_texture
                 Sun.Elevation = sp.HDR_elevation
                 Sun.Azimuth = sp.HDR_azimuth
@@ -158,10 +157,10 @@ class SunPos_OT_Controller(bpy.types.Operator):
         Stop_all_handlers()
         Controller.remove_handler()
         Display.setAction('ENABLE')
-        try:
-            Sun.SP.IsActive = False
-        except:
-            pass
+        #try:
+        Sun.SP.IsActive = False  # indent?
+        #except:
+        #    pass
 
     def modal(self, context, event):
 
@@ -272,16 +271,16 @@ def Cleanup_callback(self, context):
 
 def Cleanup_objects():
     try:
-        if Sun.SP:
-            Sun.SP.UseObjectGroup = False
+        #if Sun.SP:  # why removed?
+        Sun.SP.UseObjectGroup = False  # indent?
         Sun.UseObjectGroup = False
     except:
         pass
     del Sun.Selected_objects[:]
     del Sun.Selected_names[:]
     Display.setAction('ENABLE')
-    if Sun.SP:
-        Sun.SP.IsActive = False
+    #if Sun.SP:  # why removed?
+    Sun.SP.IsActive = False  # indent?
 
 
 def Stop_all_handlers():

@@ -4,7 +4,7 @@ import datetime
 from . properties import *
 from . operators import *
 from . sun_calc import Degrees, format_lat_long, degToRad, \
-    format_time, format_hms, Move_sun
+                       format_time, format_hms, Move_sun
 
 #---------------------------------------------------------------------------
 #
@@ -12,10 +12,9 @@ from . sun_calc import Degrees, format_lat_long, degToRad, \
 #
 #---------------------------------------------------------------------------
 
+class SPOS_PT_Panel(bpy.types.Panel):
 
-class SunPos_Panel(bpy.types.Panel):
-
-    bl_idname = "panel.SunPos_world"
+    #bl_idname = "panel.SunPos_world"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "world"
@@ -35,17 +34,17 @@ class SunPos_Panel(bpy.types.Panel):
         colL.alignment = 'LEFT'
         colR = split.column()
         colR.alignment = 'RIGHT'
-        colL.operator('world.sunpos_controller', 'Enable', icon='PLAY')
-        colR.operator('world.sunpos_preferences', '', icon='PREFERENCES')
+        colL.operator('world.sunpos_controller', text='Enable', icon='PLAY')
+        colR.operator('world.sunpos_preferences', text='', icon='PREFERENCES')
         Map.init_zoom_preference = True
 
     def disable(self, context, layout):
         p = context.scene.SunPos_pref_property
         if Map.init_zoom_preference:
             Map.zoom_preferences(bpy.context.preferences.inputs.invert_zoom_wheel,
-                                 bpy.context.preferences.inputs.invert_mouse_zoom)
+                             bpy.context.preferences.inputs.invert_mouse_zoom)
             Hdr.zoom_preferences(bpy.context.preferences.inputs.invert_zoom_wheel,
-                                 bpy.context.preferences.inputs.invert_mouse_zoom)
+                             bpy.context.preferences.inputs.invert_mouse_zoom)
         row = self.layout.row()
         if p.UseOneColumn:
             col1 = row.column()
@@ -57,10 +56,10 @@ class SunPos_Panel(bpy.types.Panel):
         else:
             col1 = row.column()
 
-        col1.operator('world.sunpos_controller', 'Disable', icon='X')
+        col1.operator('world.sunpos_controller', text='Disable', icon='X')
         if p.UseTimePlace:
             col2.operator_menu_enum('world.pdp_operator',
-                                    'timePlacePresets', text=Sun.PlaceLabel)
+                'timePlacePresets', text=Sun.PlaceLabel)
 
     def show_preferences(self, context, layout):
         p = context.scene.SunPos_pref_property
@@ -83,7 +82,7 @@ class SunPos_Panel(bpy.types.Panel):
 
             cl.label(text="World map options:")
             cl.operator_menu_enum('world.wmp_operator',
-                                  'mapPresets', text=Sun.MapName)
+                              'mapPresets', text=Sun.MapName)
             cr.label(text="Display map in:")
             cr.props_enum(p, "MapLocation")
             col.separator()
@@ -99,7 +98,7 @@ class SunPos_Panel(bpy.types.Panel):
             col.prop(p, "ShowDST", text="Daylight savings time")
             col.prop(p, "ShowRiseSet", text="Sunrise, sunset")
             col.separator()
-        col.operator('world.sunpos_pref_done', 'Done', icon='QUIT')
+        col.operator('world.sunpos_pref_done', text='Done', icon='QUIT')
         Sun.ShowRiseSet = p.ShowRiseSet
 
     def draw(self, context):
@@ -142,7 +141,7 @@ class SunPos_Panel(bpy.types.Panel):
             col.separator()
             col.label(text="Use environment texture:")
             col.prop_search(sp, "HDR_texture",
-                            context.scene.world.node_tree, "nodes", text="")
+                    context.scene.world.node_tree, "nodes", text="")
             col.separator()
             try:
                 nt = bpy.context.scene.world.node_tree.nodes
@@ -161,11 +160,12 @@ class SunPos_Panel(bpy.types.Panel):
         try:
             col.label(text="Use sun object:")
             col.prop_search(sp, "SunObject",
-                            context.scene, "objects", text="")
-            Sun.SunObject = sp.SunObject
+                    context.view_layer, "objects", text="")
+            #Sun.SunObject = sp.SunObject  # why removed?
         except:
             pass
 
+        
         col.separator()
         col.prop(sp, "SunDistance")
         if not sp.BindToSun:
@@ -177,15 +177,15 @@ class SunPos_Panel(bpy.types.Panel):
         row1.alignment = 'CENTER'
         if not sp.BindToSun:
             row1.prop(sp, "BindToSun", toggle=True, icon="CONSTRAINT",
-                      text="Bind Texture to Sun ")
+                    text="Bind Texture to Sun ")
         else:
             row1.prop(sp, "BindToSun", toggle=True, icon="CONSTRAINT",
-                      text="Release binding")
+                    text="Release binding")
 
         toprow2 = box.row()
         row2 = toprow2.row(align=False)
         row2.alignment = 'CENTER'
-        row2.prop(sp, "ShowHdr", text="Sync Sun to Texture", toggle=True, icon='LAMP_SUN')
+        row2.prop(sp, "ShowHdr", text="Sync Sun to Texture", toggle=True, icon='LIGHT_SUN')
         if have_texture == False:
             row2.enabled = False
         elif sp.BindToSun:
@@ -198,6 +198,7 @@ class SunPos_Panel(bpy.types.Panel):
             row1.enabled = False
         else:
             row1.enabled = True
+        
 
     def draw_one_column(self, context, sp, p, layout):
         box = self.layout.box()
@@ -210,14 +211,14 @@ class SunPos_Panel(bpy.types.Panel):
         if sp.UseSkyTexture:
             try:
                 col.prop_search(sp, "SkyTexture",
-                                context.scene.world.node_tree, "nodes", text="")
+                        context.scene.world.node_tree, "nodes", text="")
             except:
                 pass
         col.prop(sp, "UseSunObject", text="Use object")
         if(sp.UseSunObject):
             try:
                 col.prop_search(sp, "SunObject",
-                                context.scene, "objects", text="")
+                        context.view_layer, "objects", text="")
             except:
                 pass
 
@@ -234,7 +235,7 @@ class SunPos_Panel(bpy.types.Panel):
                     col.props_enum(sp, "ObjectGroup")
                 else:
                     col.operator('world.sunpos_set_objects',
-                                 'Set Object Group')
+                                 text='Set Object Group')
             else:
                 Sun.ObjectGroup_verified = False
 
@@ -289,8 +290,8 @@ class SunPos_Panel(bpy.types.Panel):
             cr = cs.column()
             cr.alignment = 'RIGHT'
             cl.prop(sp, "Month")
-            cr.operator('world.sunpos_day_range', '',
-                        icon='SORTTIME')
+            cr.operator('world.sunpos_day_range',text= '',
+                          icon='SORTTIME')
             col.prop(sp, "Day")
         else:
             cs = rr.split(factor=.90)
@@ -300,7 +301,7 @@ class SunPos_Panel(bpy.types.Panel):
             cr.alignment = 'RIGHT'
             cl.prop(sp, "Day_of_year")
             cr.operator('world.sunpos_day_range', '',
-                        icon='SORTTIME')
+                          icon='SORTTIME')
 
         col.prop(sp, "Year")
         col.prop(sp, "UTCzone", slider=True)
@@ -322,7 +323,7 @@ class SunPos_Panel(bpy.types.Panel):
                 ss = format_hms(Sun.Sunset.time)
                 tsr = "Sunrise: " + sr
                 tss = " Sunset: " + ss
-            col.label(text=tsr, icon='LAMP_SUN')
+            col.label(text=tsr, icon='LIGHT_SUN')
             col.label(text=tss, icon='SOLO_ON')
 
         if p.ShowDST:
@@ -345,7 +346,7 @@ class SunPos_Panel(bpy.types.Panel):
         if sp.UseSkyTexture:
             try:
                 cL.prop_search(sp, "SkyTexture",
-                               context.scene.world.node_tree, "nodes", text="")
+                        context.scene.world.node_tree, "nodes", text="")
                 cLi += 1
             except:
                 pass
@@ -353,7 +354,7 @@ class SunPos_Panel(bpy.types.Panel):
         if(sp.UseSunObject):
             try:
                 cR.prop_search(sp, "SunObject",
-                               context.scene, "objects", text="")
+                    context.view_layer, "objects", text="")
                 cRi += 1
             except:
                 pass
@@ -368,14 +369,14 @@ class SunPos_Panel(bpy.types.Panel):
                         cR.label(text=" ")
                         cRi += 1
                     cL.operator('world.sunpos_clear_objects',
-                                'Release Group')
+                                text='Release Group')
                     cL.label(text=" ")
                     if(sp.ObjectGroup == 'ECLIPTIC'):
                         cR.prop(sp, "TimeSpread")
                     cR.props_enum(sp, "ObjectGroup")
                 else:
                     cL.operator('world.sunpos_set_objects',
-                                'Set Object Group')
+                                text='Set Object Group')
             else:
                 Sun.ObjectGroup_verified = False
 
@@ -384,7 +385,7 @@ class SunPos_Panel(bpy.types.Panel):
         row = toprow.row(align=False)
         row.alignment = 'CENTER'
         col = row.column(align=False)
-        col.prop(sp, "ShowMap", text="Show Map", toggle=True, icon='WORLD')
+        #col.prop(sp, "ShowMap", text="Show Map", toggle=True, icon='WORLD')  # why commented out?
         distanceSet = False
 
         if p.ShowDMS:
@@ -403,9 +404,9 @@ class SunPos_Panel(bpy.types.Panel):
                 cR.prop(sp, "NorthOffset")
             if p.ShowAzEl:
                 cL.label(text="Azimuth: " +
-                         str(round(Sun.Azimuth, 3)) + Degrees)
+                        str(round(Sun.Azimuth, 3)) + Degrees)
                 cR.label(text="Elevation: " +
-                         str(round(Sun.Elevation, 3)) + Degrees)
+                        str(round(Sun.Elevation, 3)) + Degrees)
             if p.ShowRefraction:
                 cL.prop(sp, "ShowRefraction", text="Show refraction")
                 cR.prop(sp, "SunDistance")
@@ -448,7 +449,7 @@ class SunPos_Panel(bpy.types.Panel):
             colR = colMsplit.column()
             colL.prop(sp, "Month")
             colM.prop(sp, "Day")
-            colR.operator('world.sunpos_day_range', '',
+            colR.operator('world.sunpos_day_range', text= '',
                           icon='SORTTIME')
         else:
             split = row.split(factor=.50)
@@ -460,7 +461,7 @@ class SunPos_Panel(bpy.types.Panel):
             colR = colM.column()
             colR.alignment = 'RIGHT'
             colL.prop(sp, "Day_of_year")
-            colR.operator('world.sunpos_day_range', '',
+            colR.operator('world.sunpos_day_range',text= '',
                           icon='SORTTIME')
 
         colL.prop(sp, "Year")
@@ -486,7 +487,7 @@ class SunPos_Panel(bpy.types.Panel):
                 ss = format_hms(Sun.Sunset.time)
                 tsr = "Sunrise: " + sr
                 tss = " Sunset: " + ss
-            colL.label(text=tsr, icon='LAMP_SUN')
+            colL.label(text=tsr, icon='LIGHT_SUN')
             if p.ShowDST:
                 colM.label(text=tss, icon='SOLO_ON')
             else:
@@ -540,7 +541,7 @@ class SunPos_OT_DayRange(bpy.types.Operator):
         else:
             Sun.UseDayMonth = True
             dt = (datetime.date(sp.Year, 1, 1) +
-                  datetime.timedelta(sp.Day_of_year - 1))
+                 datetime.timedelta(sp.Day_of_year - 1))
             sp.Day = dt.day
             sp.Month = dt.month
         return {'FINISHED'}
@@ -591,15 +592,15 @@ class SunPos_OT_TimePlace(bpy.types.Operator):
     bl_idname = "world.pdp_operator"
     bl_label = "Place & Day Presets"
 
-    #-----------  Description  --------- M   D UTC    Lat      Long   DaySav
-    pdp = [["North Pole, Summer Solstice", 6, 21, 0, 90.000, 0.0000, False],
-           ["Equator, Vernal Equinox", 3, 20, 0, 0.0000, 0.0000, False],
-           ["Rio de Janeiro, May 10th", 5, 10, 3, -22.9002, -43.2334, False],
-           ["Tokyo, August 20th", 8, 20, 9, 35.7002, 139.7669, False],
-           ["Boston, Autumnal Equinox", 9, 22, 5, 42.3502, -71.0500, True],
-           ["Boston, Vernal Equinox", 3, 20, 5, 42.3502, -71.0500, True],
-           ["Honolulu, Winter Solstice", 12, 21, 10, 21.3001, -157.850, False],
-           ["Honolulu, Summer Solstice", 6, 21, 10, 21.3001, -157.850, False]]
+    #-----------  Description  ---------     M   D  UTC    Lat        Long   DaySav
+    pdp = [["North Pole, Summer Solstice",   6, 21,  0,   90.000,    0.0000, False],
+         ["Equator, Vernal Equinox",         3, 20,  0,   0.0000,    0.0000, False],
+         ["Rio de Janeiro, May 10th",        5, 10,  3, -22.9002,  -43.2334, False],
+         ["Tokyo, August 20th",              8, 20,  9,  35.7002,  139.7669, False],
+         ["Boston, Autumnal Equinox",        9, 22,  5,  42.3502,  -71.0500,  True],
+         ["Boston, Vernal Equinox",          3, 20,  5,  42.3502,  -71.0500,  True],
+         ["Honolulu, Winter Solstice",      12, 21, 10,  21.3001, -157.850, False],
+         ["Honolulu, Summer Solstice",       6, 21, 10,  21.3001, -157.850, False]]
 
     from bpy.props import EnumProperty
 
@@ -615,7 +616,7 @@ class SunPos_OT_TimePlace(bpy.types.Operator):
             ("2", pdp[2][0], ""),
             ("1", pdp[1][0], ""),
             ("0", pdp[0][0], ""),
-        ),
+            ),
         default="4")
 
     def execute(self, context):

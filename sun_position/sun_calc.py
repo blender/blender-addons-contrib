@@ -59,7 +59,7 @@ def format_lat_long(latLong, isLatitude):
 
 ############################################################################
 #
-# PlaceSun() will cycle through all the selected objects of type LAMP or
+# PlaceSun() will cycle through all the selected objects of type LIGHT or
 # MESH and call setSunPosition to place them in the sky.
 #
 ############################################################################
@@ -89,14 +89,16 @@ def Move_sun():
                 envTex.texture_mapping.rotation.z += taz
                 Sun.Bind.azStart = az
 
-            obj = bpy.context.scene.objects.get(Sun.SunObject)
+            string = Sun.SunObject
+            newString = string[3:1000]
+            obj = bpy.context.view_layer.objects.get(newString)
 
             try:
                 obj.location = locX, locY, locZ
             except:
                 pass
 
-            if obj.type == 'LAMP':
+            if obj.type == 'LIGHT':
                 obj.rotation_euler = (
                     (math.radians(Sun.Elevation - 90), 0, -Sun.Azimuth))
         except:
@@ -106,7 +108,7 @@ def Move_sun():
     totalObjects = len(Sun.Selected_objects)
 
     localTime = Sun.Time
-    if Sun.Longitude > 0:
+    if Sun.Longitude > 0.0:
         zone = Sun.UTCzone * -1
     else:
         zone = Sun.UTCzone
@@ -120,8 +122,8 @@ def Move_sun():
         calcSunrise_Sunset(0)
 
     getSunPosition(None, localTime, Sun.Latitude, Sun.Longitude,
-                   northOffset, zone, Sun.Month, Sun.Day, Sun.Year,
-                   Sun.SunDistance)
+            northOffset, zone, Sun.Month, Sun.Day, Sun.Year,
+            Sun.SunDistance)
 
     if Sun.UseSkyTexture:
         try:
@@ -139,12 +141,12 @@ def Move_sun():
 
     if Sun.UseSunObject:
         try:
-            obj = bpy.context.scene.objects.get(Sun.SunObject)
+            obj = bpy.context.view_layer.objects.get(Sun.SunObject)
             setSunPosition(obj, Sun.SunDistance)
-            if obj.type == 'LAMP':
+            if obj.type == 'LIGHT':
                 obj.rotation_euler = (
                     (math.radians(Sun.Elevation - 90), 0,
-                     math.radians(-Sun.AzNorth)))
+                    math.radians(-Sun.AzNorth)))
         except:
             pass
 
@@ -161,38 +163,38 @@ def Move_sun():
 
         for obj in Sun.Selected_objects:
             mesh = obj.type
-            if mesh == 'LAMP' or mesh == 'MESH':
+            if mesh == 'LIGHT' or mesh == 'MESH':
                 getSunPosition(obj,
-                               localTime,
-                               Sun.Latitude, Sun.Longitude,
-                               northOffset, zone,
-                               Sun.Month, Sun.Day, Sun.Year,
-                               Sun.SunDistance)
+                        localTime,
+                        Sun.Latitude, Sun.Longitude,
+                        northOffset, zone,
+                        Sun.Month, Sun.Day, Sun.Year,
+                        Sun.SunDistance)
                 setSunPosition(obj, Sun.SunDistance)
                 localTime = localTime - timeIncrement
-                if mesh == 'LAMP':
+                if mesh == 'LIGHT':
                     obj.rotation_euler = (
                         (math.radians(Sun.Elevation - 90), 0,
-                         math.radians(-Sun.AzNorth)))
+                        math.radians(-Sun.AzNorth)))
     else:
         # Analemma
         dayIncrement = 365 / totalObjects
         day = Sun.Day_of_year + dayIncrement * (totalObjects - 1)
         for obj in Sun.Selected_objects:
             mesh = obj.type
-            if mesh == 'LAMP' or mesh == 'MESH':
+            if mesh == 'LIGHT' or mesh == 'MESH':
                 dt = (datetime.date(Sun.Year, 1, 1) +
                       datetime.timedelta(day - 1))
                 getSunPosition(obj, localTime,
-                               Sun.Latitude, Sun.Longitude,
-                               northOffset, zone, dt.month, dt.day,
-                               Sun.Year, Sun.SunDistance)
+                        Sun.Latitude, Sun.Longitude,
+                        northOffset, zone, dt.month, dt.day,
+                        Sun.Year, Sun.SunDistance)
                 setSunPosition(obj, Sun.SunDistance)
                 day -= dayIncrement
-                if mesh == 'LAMP':
+                if mesh == 'LIGHT':
                     obj.rotation_euler = (
                         (math.radians(Sun.Elevation - 90), 0,
-                         math.radians(-Sun.AzNorth)))
+                        math.radians(-Sun.AzNorth)))
 
     return True
 
@@ -369,12 +371,12 @@ def calcSunrise_Sunset(rise):
     jd = getJulianDay(Sun.Year, Sun.Month, Sun.Day)
     timeUTC = calcSunriseSetUTC(rise, jd, Sun.Latitude, Sun.Longitude)
     newTimeUTC = calcSunriseSetUTC(rise, jd + timeUTC / 1440.0,
-                                   Sun.Latitude, Sun.Longitude)
+                     Sun.Latitude, Sun.Longitude)
     timeLocal = newTimeUTC + (-zone * 60.0)
     tl = timeLocal / 60.0
     getSunPosition(None, tl, Sun.Latitude, Sun.Longitude, 0.0,
-                   zone, Sun.Month, Sun.Day, Sun.Year,
-                   Sun.SunDistance)
+            zone, Sun.Month, Sun.Day, Sun.Year,
+            Sun.SunDistance)
     if Sun.DaylightSavings:
         timeLocal += 60.0
         tl = timeLocal / 60.0
@@ -388,8 +390,8 @@ def calcSunrise_Sunset(rise):
         Sun.Sunrise.elevation = Sun.Elevation
         calcSolarNoon(jd, Sun.Longitude, -zone, Sun.DaylightSavings)
         getSunPosition(None, Sun.SolarNoon.time, Sun.Latitude, Sun.Longitude,
-                       0.0, zone, Sun.Month, Sun.Day, Sun.Year,
-                       Sun.SunDistance)
+                    0.0, zone, Sun.Month, Sun.Day, Sun.Year,
+                    Sun.SunDistance)
         Sun.SolarNoon.elevation = Sun.Elevation
     else:
         Sun.Sunset.time = tl
@@ -397,8 +399,8 @@ def calcSunrise_Sunset(rise):
         Sun.Sunset.elevation = Sun.Elevation
 
 ##########################################################################
-# Get the elapsed julian time since 1/1/2000 12:00 gmt
-# Y2k epoch (1/1/2000 12:00 gmt) is Julian day 2451545.0
+## Get the elapsed julian time since 1/1/2000 12:00 gmt
+## Y2k epoch (1/1/2000 12:00 gmt) is Julian day 2451545.0
 ##########################################################################
 
 
@@ -416,7 +418,7 @@ def getJulianDay(year, month, day):
     A = math.floor(year / 100)
     B = 2 - A + math.floor(A / 4.0)
     jd = (math.floor((365.25 * (year + 4716.0))) +
-          math.floor(30.6001 * (month + 1)) + day + B - 1524.5)
+         math.floor(30.6001 * (month + 1)) + day + B - 1524.5)
     return jd
 
 
@@ -454,7 +456,7 @@ def obliquityCorrection(t):
 
 def obliquityOfEcliptic(t):
     return ((23.0 + 26.0 / 60 + (21.4480 - 46.8150) / 3600 * t -
-             (0.00059 / 3600) * t ** 2 + (0.001813 / 3600) * t ** 3))
+            (0.00059 / 3600) * t ** 2 + (0.001813 / 3600) * t ** 3))
 
 
 def trueLongitudeOfSun(t):
@@ -470,7 +472,7 @@ def calcSunApparentLong(t):
 
 def apparentLongitudeOfSun(t):
     return (degToRad(trueLongitudeOfSun(t) - 0.00569 - 0.00478 *
-                     math.sin(degToRad(125.04 - 1934.136 * t))))
+            math.sin(degToRad(125.04 - 1934.136 * t))))
 
 
 def meanLongitudeSun(t):
@@ -480,7 +482,7 @@ def meanLongitudeSun(t):
 def equationOfSunCenter(t):
     m = degToRad(meanAnomalySun(t))
     c = ((1.914602 - 0.004817 * t - 0.000014 * t ** 2) * math.sin(m) +
-         (0.019993 - 0.000101 * t) * math.sin(m * 2) +
+        (0.019993 - 0.000101 * t) * math.sin(m * 2) +
          0.000289 * math.sin(m * 3))
     return c
 

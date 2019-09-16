@@ -192,8 +192,8 @@ class HdrClass:
             self.set_view3d_area(self.view3d_area)
             self.start = True
             self.handler1 = bpy.types.SpaceView3D.draw_handler_add(
-                Hdr_load_callback,
-                (self, context), 'WINDOW', 'POST_PIXEL')
+                                   Hdr_load_callback,
+                                   (self, context), 'WINDOW', 'POST_PIXEL')
             self.isActive = True
             return True
         else:
@@ -201,7 +201,7 @@ class HdrClass:
 
     def activateBGLcallback(self, context):
         self.handler2 = bpy.types.SpaceView3D.draw_handler_add(
-            Draw_hdr_callback, (self, context), 'WINDOW', 'POST_PIXEL')
+                    Draw_hdr_callback, (self, context), 'WINDOW', 'POST_PIXEL')
         self.view3d_area = context.area
         self.set_view3d_area(self.view3d_area)
         bpy.ops.sunpos.hdr('INVOKE_DEFAULT')
@@ -222,9 +222,9 @@ class HdrClass:
         self.glImage = None
         self.image.bindcode = 0
         self.isActive = False
-        if Sun.SP:
-            Sun.SP.ShowHdr = False
-            Sun.SP.BindToSun = True
+        #if Sun.SP:  # why removed?
+        Sun.SP.ShowHdr = False  # indent?
+        Sun.SP.BindToSun = True  # indent?
         Sun.BindToSun = False
         Display.refresh()
 
@@ -465,11 +465,11 @@ def hdr_G(event):
 ############################################################################
 
 Key_function = dict([('LEFT_CTRL', key_Ctrl), ('LEFT_ALT', key_Alt),
-                     ('RIGHT_CTRL', key_Ctrl), ('RIGHT_ALT', key_Alt),
-                     ('MIDDLEMOUSE', key_MiddleMouse),
-                     ('LEFTMOUSE', key_LeftMouse),
-                     ('RIGHTMOUSE', key_Esc), ('ESC', key_Esc),
-                     ('G', key_G), ('H', key_H), ('F1', key_H)])
+                    ('RIGHT_CTRL', key_Ctrl), ('RIGHT_ALT', key_Alt),
+                    ('MIDDLEMOUSE', key_MiddleMouse),
+                    ('LEFTMOUSE', key_LeftMouse),
+                    ('RIGHTMOUSE', key_Esc), ('ESC', key_Esc),
+                    ('G', key_G), ('H', key_H), ('F1', key_H)])
 
 # ---------------------------------------------------------------------------
 
@@ -918,11 +918,11 @@ class SunPos_HdrHelp(bpy.types.Operator):
         colL = split.column()
         colR = split.column()
         colL.label(text="Esc or Right Mouse ")
-        colR.label("Close map or text.")
+        colR.label(text="Close map or text.")
         colL.label(text="Left Mouse")
         colR.label(text="Move crosshair.")
         colL.label(text="G or MiddleMouse")
-        colR.label("Pan mode. Grab and move map or text.")
+        colR.label(text="Pan mode. Grab and move map or text.")
         colL.label(text="Ctrl Middlemouse")
         colR.label(text="Mouse zoom to point.")
         self.layout.label("--- The following are changed by moving " +

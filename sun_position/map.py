@@ -199,12 +199,12 @@ class MapClass:
             self.start = True
             if self.mapLocation == 'PANEL':
                 self.handler1 = bpy.types.SpaceProperties.draw_handler_add(
-                    Map_load_callback,
-                    (self, context), 'WINDOW', 'POST_PIXEL')
+                                   Map_load_callback,
+                                   (self, context), 'WINDOW', 'POST_PIXEL')
             else:
                 self.handler1 = bpy.types.SpaceView3D.draw_handler_add(
-                    Map_load_callback,
-                    (self, context), 'WINDOW', 'POST_PIXEL')
+                                   Map_load_callback,
+                                   (self, context), 'WINDOW', 'POST_PIXEL')
             self.isActive = True
             return True
         else:
@@ -213,12 +213,12 @@ class MapClass:
     def activateBGLcallback(self, context):
         if self.mapLocation == 'PANEL':
             self.handler2 = bpy.types.SpaceProperties.draw_handler_add(
-                Draw_map_callback,
-                (self, context), 'WINDOW', 'POST_PIXEL')
+                                Draw_map_callback,
+                                (self, context), 'WINDOW', 'POST_PIXEL')
         else:
             self.handler2 = bpy.types.SpaceView3D.draw_handler_add(
-                Draw_map_callback,
-                (self, context), 'WINDOW', 'POST_PIXEL')
+                                Draw_map_callback,
+                                (self, context), 'WINDOW', 'POST_PIXEL')
         self.view3d_area = context.area
         self.set_view3d_area(self.view3d_area)
         bpy.ops.sunpos.map('INVOKE_DEFAULT')
@@ -239,8 +239,8 @@ class MapClass:
         self.glImage = None
         self.image.bindcode = 0
         self.isActive = False
-        if Sun.SP:
-            Sun.SP.ShowMap = False
+        #if Sun.SP:  # why removed?
+        Sun.SP.ShowMap = False  # indent?
 
     def load_blender_image(self, file_name):
         if file_name == "None":
@@ -249,23 +249,23 @@ class MapClass:
             return True
         else:
             self.textureless = False
-
-        # S.L. fix to use any relative path
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.image.name = dir_path + os.path.sep + file_name
-        if os.path.exists(self.image.name):
-            try:
-                self.glImage = bpy.data.images.load(self.image.name)
-                if self.glImage is not None:
-                    self.image.loaded = True
-                    self.glImage.user_clear()
-                    self.object[0].heightFactor = \
-                        self.glImage.size[1] / self.glImage.size[0]
-                    return True
-                else:
-                    return False
-            except:
-                pass
+        for path in sys.path:
+            if path.endswith("addons"):
+                fn = path + "\\sun_position\\" + file_name
+                self.image.name = fn.replace("\\", "/")
+                if os.path.exists(self.image.name):
+                    try:
+                        self.glImage = bpy.data.images.load(self.image.name)
+                        if self.glImage is not None:
+                            self.image.loaded = True
+                            self.glImage.user_clear()
+                            self.object[0].heightFactor = \
+                                self.glImage.size[1] / self.glImage.size[0]
+                            return True
+                        else:
+                            return False
+                    except:
+                        pass
         return False
 
     def load_gl_image(self):
@@ -365,7 +365,7 @@ class MapClass:
             if val:
                 return val
         elif event.type in ('RIGHTMOUSE', 'ESC',
-                            'T', 'D', 'X', 'Y', 'R', 'S', 'E', 'A', 'O', 'C', 'H', 'F1'):
+                    'T', 'D', 'X', 'Y', 'R', 'S', 'E', 'A', 'O', 'C', 'H', 'F1'):
             Display.refresh()
             return Key_function[event.type](event)
 
@@ -680,15 +680,15 @@ def map_Y(event):
 ############################################################################
 
 Key_function = dict([('LEFT_CTRL', key_Ctrl), ('LEFT_ALT', key_Alt),
-                     ('RIGHT_CTRL', key_Ctrl), ('RIGHT_ALT', key_Alt),
-                     ('MIDDLEMOUSE', key_MiddleMouse),
-                     ('LEFTMOUSE', key_LeftMouse),
-                     ('RIGHTMOUSE', key_Esc), ('ESC', key_Esc),
-                     ('A', key_A), ('E', key_E), ('G', key_G), ('C', key_C),
-                     ('H', key_H), ('F1', key_H),
-                     ('R', key_R), ('S', key_S),
-                     ('T', key_TDOXY), ('D', key_TDOXY), ('O', key_TDOXY),
-                     ('X', key_TDOXY), ('Y', key_TDOXY)])
+                    ('RIGHT_CTRL', key_Ctrl), ('RIGHT_ALT', key_Alt),
+                    ('MIDDLEMOUSE', key_MiddleMouse),
+                    ('LEFTMOUSE', key_LeftMouse),
+                    ('RIGHTMOUSE', key_Esc), ('ESC', key_Esc),
+                    ('A', key_A), ('E', key_E), ('G', key_G), ('C', key_C),
+                    ('H', key_H), ('F1', key_H),
+                    ('R', key_R), ('S', key_S),
+                    ('T', key_TDOXY), ('D', key_TDOXY), ('O', key_TDOXY),
+                    ('X', key_TDOXY), ('Y', key_TDOXY)])
 
 # ---------------------------------------------------------------------------
 
@@ -808,7 +808,7 @@ def day_change_bounds(wf):
     else:
         Sun.SP.Day_of_year += wf
     dt = (datetime.date(Sun.SP.Year, 1, 1) +
-          datetime.timedelta(Sun.SP.Day_of_year - 1))
+             datetime.timedelta(Sun.SP.Day_of_year - 1))
     Sun.SP.Day = dt.day
     Sun.SP.Month = dt.month
     Display.refresh()
@@ -1248,16 +1248,16 @@ class SunPos_Help(bpy.types.Operator):
         colL.label(text="Left Mouse")
         colR.label(text="Move crosshair.")
         colL.label(text="G or MiddleMouse")
-        colR.label("Pan mode. Grab and move map or text.")
+        colR.label(text="Pan mode. Grab and move map or text.")
         colL.label(text="Ctrl Middlemouse")
         colR.label(text="Mouse zoom to point.")
         colL.label(text="C")
-        colR.label("Invert text color.")
+        colR.label(text="Invert text color.")
         colL.label(text="R")
         colR.label(text="Toggle through thickness of the radiating rise/set lines.")
         colL.label(text="S")
         colR.label(text="Show statistics data. Move with pan command.")
-        self.layout.label("----- The following are changed by moving " +
+        self.layout.label(text="----- The following are changed by moving " +
                           "the mouse or using the scroll wheel.")
         self.layout.label(text="----- Use Ctrl for coarse increments or Alt for fine.")
         row = self.layout.row()

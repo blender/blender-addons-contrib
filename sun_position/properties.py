@@ -30,7 +30,8 @@ class DisplayAction:
 
     def refresh(self):
         # Touching the cursor forces a screen refresh
-        bpy.context.scene.cursor.location.x += 0.0
+        #bpy.context.scene.cursor.location.x += 0.0
+        bpy.context.area.tag_redraw()
 
 
 Display = DisplayAction()
@@ -65,7 +66,7 @@ class SunClass:
     BindToSun = False
     PlaceLabel = "Time & Place"
     PanelLabel = "Panel Location"
-    MapName = "World.jpg"
+    MapName = "WorldMapLR.jpg"
     MapLocation = 'VIEWPORT'
 
     Latitude = 0.0
@@ -226,7 +227,7 @@ class SunPosSettings(PropertyGroup):
         soft_min=1, soft_max=3000.00, step=10.00, default=50.00)
 
     UseSunObject: BoolProperty(
-        description="Enable sun positioning of named lamp or mesh",
+        description="Enable sun positioning of named light or mesh",
         default=False)
 
     SunObject: StringProperty(

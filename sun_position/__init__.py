@@ -32,19 +32,17 @@
 # <pep8 compliant>
 
 bl_info = {
-    "name": "Sun Position",
-    "author": "Michael Martin",
+    "name": "Sun Position 2.8",
+    "author": "Michael Martin, Kevan Cress",
     "version": (3, 0, 1),
-    "blender": (2, 65, 0),
-    "api": 53207,
+    "blender": (2, 80, 0),
     "location": "World > Sun Position",
     "description": "Show sun position with objects and/or sky texture",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-    "Scripts/3D_interaction/Sun_Position",
-    "tracker_url": "https://projects.blender.org/tracker/"
-    "index.php?func=detail&aid=29714",
-    "category": "Lighting"}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/" \
+        "Scripts/3D_interaction/Sun_Position",
+        "tracker_url": "https://projects.blender.org/tracker/" \
+        "index.php?func=detail&aid=29714",
+    "category": "3D View"}  #  "Lighting"} ?
 
 import bpy
 from . properties import *
@@ -54,48 +52,42 @@ from . hdr import SunPos_HdrHelp
 
 ############################################################################
 
+classes = (
+    SunPos_OT_Controller,
+    SunPos_OT_Preferences,
+    SunPos_OT_PreferencesDone,
+    SunPos_OT_DayRange,
+    SunPos_OT_SetObjectGroup,
+    SunPos_OT_ClearObjectGroup,
+    SunPos_OT_TimePlace,
+    SunPos_OT_Map,
+    SunPos_OT_Hdr,
+    SPOS_PT_Panel,
+    SunPos_OT_MapChoice,
+    SunPos_Help,
+    SunPos_HdrHelp,
+)
 
 def register():
     bpy.utils.register_class(SunPosSettings)
     bpy.types.Scene.SunPos_property = (
         bpy.props.PointerProperty(type=SunPosSettings,
-                                  name="Sun Position",
-                                  description="Sun Position Settings"))
+                        name="Sun Position",
+                        description="Sun Position Settings"))
     bpy.utils.register_class(SunPosPreferences)
     bpy.types.Scene.SunPos_pref_property = (
         bpy.props.PointerProperty(type=SunPosPreferences,
-                                  name="Sun Position Preferences",
-                                  description="SP Preferences"))
+                        name="Sun Position Preferences",
+                        description="SP Preferences"))
 
-    bpy.utils.register_class(SunPos_OT_Controller)
-    bpy.utils.register_class(SunPos_OT_Preferences)
-    bpy.utils.register_class(SunPos_OT_PreferencesDone)
-    bpy.utils.register_class(SunPos_OT_DayRange)
-    bpy.utils.register_class(SunPos_OT_SetObjectGroup)
-    bpy.utils.register_class(SunPos_OT_ClearObjectGroup)
-    bpy.utils.register_class(SunPos_OT_TimePlace)
-    bpy.utils.register_class(SunPos_OT_Map)
-    bpy.utils.register_class(SunPos_OT_Hdr)
-    bpy.utils.register_class(SunPos_Panel)
-    bpy.utils.register_class(SunPos_OT_MapChoice)
-    bpy.utils.register_class(SunPos_Help)
-    bpy.utils.register_class(SunPos_HdrHelp)
+    for c in classes:
+        bpy.utils.register_class(c)
 
 
 def unregister():
-    bpy.utils.unregister_class(SunPos_HdrHelp)
-    bpy.utils.unregister_class(SunPos_Help)
-    bpy.utils.unregister_class(SunPos_OT_MapChoice)
-    bpy.utils.unregister_class(SunPos_Panel)
-    bpy.utils.unregister_class(SunPos_OT_Hdr)
-    bpy.utils.unregister_class(SunPos_OT_Map)
-    bpy.utils.unregister_class(SunPos_OT_TimePlace)
-    bpy.utils.unregister_class(SunPos_OT_ClearObjectGroup)
-    bpy.utils.unregister_class(SunPos_OT_SetObjectGroup)
-    bpy.utils.unregister_class(SunPos_OT_DayRange)
-    bpy.utils.unregister_class(SunPos_OT_PreferencesDone)
-    bpy.utils.unregister_class(SunPos_OT_Preferences)
-    bpy.utils.unregister_class(SunPos_OT_Controller)
+    for c in reversed(classes):
+        bpy.utils.unregister_class(c)
+
     del bpy.types.Scene.SunPos_pref_property
     bpy.utils.unregister_class(SunPosPreferences)
     del bpy.types.Scene.SunPos_property
