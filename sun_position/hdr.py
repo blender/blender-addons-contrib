@@ -23,7 +23,6 @@ import gpu
 import bgl
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
-from gpu_extras.presets import draw_texture_2d
 from math import sqrt, pi, atan2, asin
 
 
@@ -68,7 +67,6 @@ def draw_callback_px(self, context):
     if image.gl_load():
         raise Exception()
 
-    left = 0
     bottom = 0
     top = context.area.height
     right = context.area.width

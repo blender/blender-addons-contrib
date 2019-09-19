@@ -20,11 +20,8 @@ import bpy
 from bpy.types import Operator, Menu
 from bl_operators.presets import AddPresetBase
 import os
-import datetime
-from math import radians
 
-from .sun_calc import (format_lat_long, format_time, format_hms,
-                        move_sun, sun)
+from .sun_calc import (format_lat_long, format_time, format_hms, sun)
 
 
 # -------------------------------------------------------------------
@@ -57,7 +54,7 @@ class SUNPOS_OT_AddPreset(AddPresetBase, Operator):
         "sun_props.time",
         "sun_props.year",
         "sun_props.UTC_zone",
-        "sun_props.daylight_savings",
+        "sun_props.use_daylight_savings",
         "sun_props.latitude",
         "sun_props.longitude",
     ]
@@ -92,7 +89,7 @@ sun_props.time = {:f}
 sun_props.UTC_zone = {:d}
 sun_props.latitude = {:f}
 sun_props.longitude = {:f}
-sun_props.daylight_savings = {}
+sun_props.use_daylight_savings = {}
 '''
 
         for path, p in presets.items():
@@ -134,7 +131,6 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         box = self.layout.box()
         flow = box.grid_flow(row_major=True, columns=0, even_columns=True,
                              even_rows=False, align=False)
-        have_texture = False
 
         col = flow.column()
         col.label(text="Environment texture:")
@@ -169,7 +165,7 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         row.operator("world.sunpos_show_hdr", icon='LIGHT_SUN')
 
     def draw_normal_mode_panel(self, context, sp, p, layout):
-        if p.use_time_place:
+        if p.show_time_place:
             row = layout.row(align=True)
             row.menu(SUNPOS_MT_Presets.__name__, text=SUNPOS_MT_Presets.bl_label)
             row.operator(SUNPOS_OT_AddPreset.bl_idname, text="", icon='ADD')
@@ -193,7 +189,7 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         col.separator()
 
         col = flow.column()
-        if p.use_object_collection:
+        if p.show_object_collection:
             col.prop(sp, "use_object_collection", text="Use collection")
             if sp.use_object_collection:
                 col.prop(sp, "object_collection", text="")
@@ -203,7 +199,7 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
                         col.prop(sp, "time_spread")
 
         box = self.layout.box()
-        box.prop(sp, "show_map", text="Show Map", toggle=True, icon='WORLD')
+        # box.prop(sp, "show_map", text="Show Map", toggle=True, icon='WORLD')
 
         col = box.column(align=True)
         col.label(text="Enter coordinates:")
@@ -248,7 +244,7 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
 
         if p.show_refraction:
             col = flow.column()
-            col.prop(sp, "show_refraction", text="Show refraction")
+            col.prop(sp, "use_refraction", text="Show refraction")
             col.separator()
 
         col = flow.column()
@@ -272,12 +268,12 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         col = flow.column(align=True)
         lt, ut = format_time(sp.time,
                              sp.UTC_zone,
-                             sp.daylight_savings,
+                             p.show_daylight_savings and sp.use_daylight_savings,
                              sp.longitude)
         col.prop(sp, "time")
         col.prop(sp, "UTC_zone")
-        if p.show_dst:
-            col.prop(sp, "daylight_savings", text="Daylight Savings")
+        if p.show_daylight_savings:
+            col.prop(sp, "use_daylight_savings", text="Daylight Savings")
         col.separator()
 
         col = flow.column(align=True)

@@ -52,11 +52,11 @@ if "bpy" in locals():
     import importlib
     importlib.reload(properties)
     importlib.reload(ui_sun)
-    importlib.reload(map)
+    # importlib.reload(map)
     importlib.reload(hdr)
 
 else:
-    from . import properties, ui_sun, map, hdr
+    from . import properties, ui_sun, hdr#, map
 
 import bpy
 

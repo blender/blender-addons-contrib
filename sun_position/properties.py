@@ -46,12 +46,12 @@ class SunPosProperties(PropertyGroup):
         default=False,
         update=sun_update)
 
-    daylight_savings: BoolProperty(
+    use_daylight_savings: BoolProperty(
         description="Daylight savings time adds 1 hour to standard time.",
         default=0,
         update=sun_update)
 
-    show_refraction: BoolProperty(
+    use_refraction: BoolProperty(
         description="Show apparent sun position due to refraction.",
         default=1,
         update=sun_update)
@@ -61,12 +61,22 @@ class SunPosProperties(PropertyGroup):
         default=0,
         update=north_update)
 
+    north_offset: FloatProperty(
+        attr="",
+        name="",
+        description="North offset in degrees or radians "
+                    "from scene's units settings",
+        unit="ROTATION",
+        soft_min=-3.14159265, soft_max=3.14159265, step=10.00, default=0.00,
+        update=sun_update)
+
     latitude: FloatProperty(
         attr="",
         name="Latitude",
         description="Latitude: (+) Northern (-) Southern",
-        soft_min=-90.000, soft_max=90.000, step=3.001,
-        default=40.000, precision=3,
+        soft_min=-90.000, soft_max=90.000,
+        step=5, precision=3,
+        default=0.000,
         update=sun_update)
 
     longitude: FloatProperty(
@@ -74,7 +84,8 @@ class SunPosProperties(PropertyGroup):
         name="Longitude",
         description="Longitude: (-) West of Greenwich  (+) East of Greenwich",
         soft_min=-180.000, soft_max=180.000,
-        step=3.001, default=1.000, precision=3,
+        step=5, precision=3,
+        default=0.000,
         update=sun_update)
 
     co_parser: StringProperty(
@@ -130,15 +141,6 @@ class SunPosProperties(PropertyGroup):
         description="",
         precision=4,
         soft_min=0.00, soft_max=23.9999, step=1.00, default=12.00,
-        update=sun_update)
-
-    north_offset: FloatProperty(
-        attr="",
-        name="",
-        description="North offset in degrees or radians "
-                    "from scene's units settings",
-        unit="ROTATION",
-        soft_min=-3.14159265, soft_max=3.14159265, step=10.00, default=0.00,
         update=sun_update)
 
     sun_distance: FloatProperty(
@@ -233,12 +235,6 @@ class SunPosProperties(PropertyGroup):
         soft_min=1.00, soft_max=24.00, step=1.00, default=23.00,
         update=sun_update)
 
-    location: StringProperty(
-        default="view3d",
-        name="location",
-        description="panel location",
-        update=sun_update)
-
 
 ############################################################################
 # Preference panel properties
@@ -248,22 +244,23 @@ class SunPosProperties(PropertyGroup):
 class SunPosAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
-    map_location: EnumProperty(
-        name="Map location",
-        description="Display map in viewport or world panel",
-        items=(
-            ('VIEWPORT', "Viewport", ""),
-            ('PANEL', "Panel", ""),
-        ),
-        default='VIEWPORT')
+    # map_location: EnumProperty(
+    #     name="Map location",
+    #     description="Display map in viewport or world panel",
+    #     items=(
+    #         ('VIEWPORT', "Viewport", ""),
+    #         ('PANEL', "Panel", ""),
+    #     ),
+    #     default='VIEWPORT')
 
-    use_time_place: BoolProperty(
+    show_time_place: BoolProperty(
         description="Show time/place presets",
         default=False)
 
-    use_object_collection: BoolProperty(
+    show_object_collection: BoolProperty(
         description="Use object collection",
-        default=True)
+        default=True,
+        update=sun_update)
 
     show_dms: BoolProperty(
         description="Show lat/long degrees, minutes, seconds labels",
@@ -283,9 +280,10 @@ class SunPosAddonPreferences(AddonPreferences):
         description="Show azimuth and solar elevation info",
         default=True)
 
-    show_dst: BoolProperty(
+    show_daylight_savings: BoolProperty(
         description="Show daylight savings time choice",
-        default=True)
+        default=True,
+        update=sun_update)
 
     show_rise_set: BoolProperty(
         description="Show sunrise and sunset",
@@ -310,16 +308,16 @@ class SunPosAddonPreferences(AddonPreferences):
         #                        'map_presets', text=Sun.map_name)
         # col.separator()
 
-        col.prop(self, "map_location")
-        col.separator()
+        # col.prop(self, "map_location")
+        # col.separator()
 
         col.label(text="Show or use:")
         flow = col.grid_flow(columns=0, even_columns=True, even_rows=False, align=False)
-        flow.prop(self, "use_time_place", text="Time/place presets")
-        flow.prop(self, "use_object_collection", text="Use collection")
+        flow.prop(self, "show_time_place", text="Time/place presets")
+        flow.prop(self, "show_object_collection", text="Use collection")
         flow.prop(self, "show_dms", text="D° M' S\"")
         flow.prop(self, "show_north", text="North offset")
         flow.prop(self, "show_refraction", text="Refraction")
         flow.prop(self, "show_az_el", text="Azimuth, elevation")
-        flow.prop(self, "show_dst", text="Daylight savings time")
+        flow.prop(self, "show_daylight_savings", text="Daylight savings time")
         flow.prop(self, "show_rise_set", text="Sunrise, sunset")

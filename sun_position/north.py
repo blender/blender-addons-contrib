@@ -73,7 +73,6 @@ else:
         # less 90 degrees.  This forces the unit circle to begin at the
         # 12 O'clock instead of 3 O'clock position.
         # ------------------------------------------------------------------
-        addon_prefs = bpy.context.preferences.addons[__package__].preferences
         sun_props = bpy.context.scene.sun_pos_properties
 
         color = (0.2, 0.6, 1.0, 0.7)

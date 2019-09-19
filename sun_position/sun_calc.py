@@ -18,7 +18,6 @@
 
 import bpy
 from bpy.app.handlers import persistent
-from mathutils import *
 import math
 from math import degrees, radians, pi
 import datetime
@@ -65,7 +64,7 @@ class SunClass:
 
     UTC_zone = 0
     sun_distance = 0.0
-    daylight_savings = False
+    use_daylight_savings = False
 
 
 sun = SunClass()
@@ -141,7 +140,9 @@ def move_sun(context):
         zone = sun_props.UTC_zone * -1
     else:
         zone = sun_props.UTC_zone
-    if sun_props.daylight_savings:
+        sun.use_daylight_savings = (addon_prefs.show_daylight_savings and
+                                    sun_props.use_daylight_savings)
+    if sun.use_daylight_savings:
         zone -= 1
 
     north_offset = degrees(sun_props.north_offset)
@@ -175,7 +176,7 @@ def move_sun(context):
                  math.radians(-sun.az_north)))
 
     # Sun collection
-    if (addon_prefs.use_object_collection
+    if (addon_prefs.show_object_collection
             and sun_props.use_object_collection
             and sun_props.object_collection):
         sun_objects = sun_props.object_collection.objects
@@ -216,7 +217,6 @@ def move_sun(context):
                      math.radians(-sun.az_north)))
 
 def update_time(context):
-    addon_prefs = context.preferences.addons[__package__].preferences
     sun_props = context.scene.sun_pos_properties
 
     if not sun_props.use_day_of_year:
@@ -368,7 +368,7 @@ def get_sun_position(local_time, latitude, longitude, north_offset,
 
     exoatm_elevation = 90.0 - degrees(zenith)
 
-    if addon_prefs.show_refraction and sun_props.show_refraction:
+    if addon_prefs.show_refraction and sun_props.use_refraction:
         if exoatm_elevation > 85.0:
             refraction_correction = 0.0
         else:
@@ -472,7 +472,7 @@ def calc_sunrise_sunset(rise):
     get_sun_position(tl, sun.latitude, sun.longitude, 0.0,
             zone, sun.month, sun.day, sun.year,
             sun.sun_distance)
-    if sun.daylight_savings:
+    if sun.use_daylight_savings:
         time_local += 60.0
         tl = time_local / 60.0
     if tl < 0.0:
@@ -483,7 +483,7 @@ def calc_sunrise_sunset(rise):
         sun.sunrise.time = tl
         sun.sunrise.azimuth = sun.azimuth
         sun.sunrise.elevation = sun.elevation
-        calc_solar_noon(jd, sun.longitude, -zone, sun.daylight_savings)
+        calc_solar_noon(jd, sun.longitude, -zone, sun.use_daylight_savings)
         get_sun_position(sun.solar_noon.time, sun.latitude, sun.longitude,
             0.0, zone, sun.month, sun.day, sun.year,
             sun.sun_distance)
