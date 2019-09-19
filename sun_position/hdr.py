@@ -184,7 +184,7 @@ class SUNPOS_OT_ShowHdr(bpy.types.Operator):
 
                 # Convert vector to euler
                 el = asin(dir.z)
-                az = atan2(dir.x, dir.y)
+                az = atan2(dir.x, dir.y) + env_tex.texture_mapping.rotation.z
                 sun_props.hdr_elevation = el
                 sun_props.hdr_azimuth = az
 
