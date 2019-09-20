@@ -1,87 +1,111 @@
+### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 import bpy
 import bgl
 import math
 import gpu
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
-from .shader import Dashed_Shader_3D
-from . properties import Sun
-
-dashedLineShader = gpu.types.GPUShader(Dashed_Shader_3D.vertex_shader, Dashed_Shader_3D.fragment_shader)
-
-class NorthClass:
-
-    def __init__(self):
-        self.handler = None
-        self.isActive = False
-
-    def refresh_screen(self):
-        #bpy.context.scene.cursor.location.x += 0.0
-        bpy.context.area.tag_redraw()
-
-    def activate(self, context):
-
-        if context.area.type == 'PROPERTIES':
-            self.handler = bpy.types.SpaceView3D.draw_handler_add(
-                               DrawNorth_callback,
-                               #(self, context), 'WINDOW', 'POST_PIXEL')  # why changed?
-                               (self, context), 'WINDOW', 'POST_VIEW')
-            self.isActive = True
-            self.refresh_screen()
-            return True
-        return False
-
-    def deactivate(self):
-        if self.handler is not None:
-            bpy.types.SpaceView3D.draw_handler_remove(self.handler, 'WINDOW')
-            self.handler = None
-        self.isActive = False
-        self.refresh_screen()
-        #if Sun.SP:  # why removed?
-        Sun.SP.ShowNorth = False  # indent?
-        Sun.ShowNorth = False
 
 
-North = NorthClass()
+if bpy.app.background:  # ignore north line in background mode
+    def north_update(self, context):
+        pass
+else:
+    vertex_shader = '''
+        uniform mat4 u_ViewProjectionMatrix;
+
+        in vec3 position;
+
+        flat out vec2 v_StartPos;
+        out vec4 v_VertPos;
+
+        void main()
+        {
+            vec4 pos    = u_ViewProjectionMatrix * vec4(position, 1.0f);
+            gl_Position = pos;
+            v_StartPos    = (pos / pos.w).xy;
+            v_VertPos     = pos;
+        }
+    '''
+
+    fragment_shader = '''
+        uniform vec4 u_Color;
+
+        flat in vec2 v_StartPos;
+        in vec4 v_VertPos;
+
+        uniform vec2 u_Resolution;
+
+        void main()
+        {
+            vec4 vertPos_2d = v_VertPos / v_VertPos.w;
+            vec2 dir  = (vertPos_2d.xy - v_StartPos.xy) * u_Resolution;
+            float dist = length(dir);
+
+            if (step(sin(dist / 5.0f), 0.0) == 1) discard;
+
+            gl_FragColor = u_Color;
+        }
+    '''
+
+    shader = gpu.types.GPUShader(vertex_shader, fragment_shader)
+
+    def draw_north_callback():
+        # ------------------------------------------------------------------
+        # Set up the compass needle using the current north offset angle
+        # less 90 degrees.  This forces the unit circle to begin at the
+        # 12 O'clock instead of 3 O'clock position.
+        # ------------------------------------------------------------------
+        addon_prefs = bpy.context.preferences.addons[__package__].preferences
+        sun_props = bpy.context.scene.sun_pos_properties
+
+        color = (0.2, 0.6, 1.0, 0.7)
+        radius = 100
+        angle = -(sun_props.north_offset - math.pi / 2)
+        x = math.cos(angle) * radius
+        y = math.sin(angle) * radius
+
+        coords = Vector((x, y, 0)), Vector((0, 0, 0))   # Start & end of needle
+
+        batch = batch_for_shader(
+            shader, 'LINE_STRIP',
+            {"position": coords},
+        )
+        shader.bind()
+
+        matrix = bpy.context.region_data.perspective_matrix
+        shader.uniform_float("u_ViewProjectionMatrix", matrix)
+        shader.uniform_float("u_Resolution", (bpy.context.region.width, bpy.context.region.height))
+        shader.uniform_float("u_Color", color)
+        bgl.glLineWidth(2.0)
+        batch.draw(shader)
 
 
-def DrawNorth_callback(self, context):
-
-    if not Sun.SP.ShowNorth and North.isActive:
-        North.deactivate()
-        return
-
-    # ------------------------------------------------------------------
-    # Set up the compass needle using the current north offset angle
-    # less 90 degrees.  This forces the unit circle to begin at the
-    # 12 O'clock instead of 3 O'clock position.
-    # ------------------------------------------------------------------
-    #color = (0.2, 0.6, 1.0, 0.7)
-    color = (0.2, 0.6, 1.0, 1)
-    radius = 100
-    angle = -(Sun.NorthOffset - math.pi / 2)
-    x = math.cos(angle) * radius
-    y = math.sin(angle) * radius
-
-    #p1, p2 = (0, 0, 0), (x, y, 0)   # Start & end of needle
-    # much removed / changed from original below
-    bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_LINE_SMOOTH)
-    bgl.glEnable(bgl.GL_BLEND)
-
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthMask(False)
-
-    bgl.glLineWidth(2)
+    _handle = None
 
 
-    p1 = (0, 0, 0)
-    p2 = (x/20 , y/20, 0)
-    coords = [p1, p2]   # Start & end of needle
-    arclengths = [0,(Vector(p1)-Vector(p2)).length]
-    batch = batch_for_shader(dashedLineShader, 'LINES', {"pos": coords,"arcLength":arclengths})
-
-    dashedLineShader.bind()
-    dashedLineShader.uniform_float("finalColor", color)
-    dashedLineShader.uniform_float("u_Scale", 10)
-    batch.draw(dashedLineShader)
+    def north_update(self, context):
+        global _handle
+        if self.show_north and _handle is None:
+            _handle = bpy.types.SpaceView3D.draw_handler_add(draw_north_callback, (), 'WINDOW', 'POST_VIEW')
+        elif _handle is not None:
+            bpy.types.SpaceView3D.draw_handler_remove(_handle, 'WINDOW')
+            _handle = None
+        context.area.tag_redraw()

@@ -28,67 +28,65 @@
 # NASA's image use policy can be found at:
 # http://www.nasa.gov/audience/formedia/features/MP_Photo_Guidelines.html
 # --------------------------------------------------------------------------
+# The geo parser script is by Maximilian Högner, released
+# under the GNU GPL license:
+# http://hoegners.de/Maxi/geo/
+# --------------------------------------------------------------------------
 
 # <pep8 compliant>
 
 bl_info = {
-    "name": "Sun Position 2.8",
-    "author": "Michael Martin, Kevan Cress",
-    "version": (3, 0, 1),
+    "name": "Sun Position",
+    "author": "Michael Martin",
+    "version": (3, 1, 0),
     "blender": (2, 80, 0),
     "location": "World > Sun Position",
     "description": "Show sun position with objects and/or sky texture",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/" \
-        "Scripts/3D_interaction/Sun_Position",
-        "tracker_url": "https://projects.blender.org/tracker/" \
-        "index.php?func=detail&aid=29714",
-    "category": "3D View"}  #  "Lighting"} ?
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    "Scripts/3D_interaction/Sun_Position",
+    "tracker_url": "https://projects.blender.org/tracker/"
+    "index.php?func=detail&aid=29714",
+    "category": "Lighting"}
+
+if "bpy" in locals():
+    import importlib
+    importlib.reload(properties)
+    importlib.reload(ui_sun)
+    importlib.reload(map)
+    importlib.reload(hdr)
+
+else:
+    from . import properties, ui_sun, map, hdr
 
 import bpy
-from . properties import *
-from . ui_sun import *
-from . map import SunPos_Help
-from . hdr import SunPos_HdrHelp
 
-############################################################################
-
-classes = (
-    SunPos_OT_Controller,
-    SunPos_OT_Preferences,
-    SunPos_OT_PreferencesDone,
-    SunPos_OT_DayRange,
-    SunPos_OT_SetObjectGroup,
-    SunPos_OT_ClearObjectGroup,
-    SunPos_OT_TimePlace,
-    SunPos_OT_Map,
-    SunPos_OT_Hdr,
-    SPOS_PT_Panel,
-    SunPos_OT_MapChoice,
-    SunPos_Help,
-    SunPos_HdrHelp,
-)
 
 def register():
-    bpy.utils.register_class(SunPosSettings)
-    bpy.types.Scene.SunPos_property = (
-        bpy.props.PointerProperty(type=SunPosSettings,
+    bpy.utils.register_class(properties.SunPosProperties)
+    bpy.types.Scene.sun_pos_properties = (
+        bpy.props.PointerProperty(type=properties.SunPosProperties,
                         name="Sun Position",
                         description="Sun Position Settings"))
-    bpy.utils.register_class(SunPosPreferences)
-    bpy.types.Scene.SunPos_pref_property = (
-        bpy.props.PointerProperty(type=SunPosPreferences,
-                        name="Sun Position Preferences",
-                        description="SP Preferences"))
+    bpy.utils.register_class(properties.SunPosAddonPreferences)
+    bpy.utils.register_class(ui_sun.SUNPOS_OT_AddPreset)
+    bpy.utils.register_class(ui_sun.SUNPOS_OT_DefaultPresets)
+    bpy.utils.register_class(ui_sun.SUNPOS_MT_Presets)
+    bpy.utils.register_class(ui_sun.SUNPOS_PT_Panel)
+    bpy.utils.register_class(hdr.SUNPOS_OT_ShowHdr)
+    # bpy.utils.register_class(map.SunPos_Help)
 
-    for c in classes:
-        bpy.utils.register_class(c)
+    bpy.app.handlers.frame_change_post.append(sun_calc.sun_handler)
 
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
+    # bpy.utils.unregister_class(map.SunPos_Help)
+    bpy.utils.unregister_class(hdr.SUNPOS_OT_ShowHdr)
+    bpy.utils.unregister_class(ui_sun.SUNPOS_PT_Panel)
+    bpy.utils.unregister_class(ui_sun.SUNPOS_MT_Presets)
+    bpy.utils.unregister_class(ui_sun.SUNPOS_OT_DefaultPresets)
+    bpy.utils.unregister_class(ui_sun.SUNPOS_OT_AddPreset)
+    bpy.utils.unregister_class(properties.SunPosAddonPreferences)
+    del bpy.types.Scene.sun_pos_properties
+    bpy.utils.unregister_class(properties.SunPosProperties)
 
-    del bpy.types.Scene.SunPos_pref_property
-    bpy.utils.unregister_class(SunPosPreferences)
-    del bpy.types.Scene.SunPos_property
-    bpy.utils.unregister_class(SunPosSettings)
+    bpy.app.handlers.frame_change_post.remove(sun_calc.sun_handler)
