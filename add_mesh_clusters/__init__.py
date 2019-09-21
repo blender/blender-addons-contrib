@@ -391,8 +391,8 @@ def register():
     
 
 def unregister():
-    from bpy.utils import register_class
-    for cls in classes:
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
         unregister_class(cls)
         
     bpy.types.VIEW3D_MT_mesh_add.remove(DEF_menu_func)
