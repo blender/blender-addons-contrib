@@ -6,7 +6,7 @@ bl_info = {
     "author": "Nicolas Priniotakis (Nikos)",
     "version": (1, 3, 2, 0),
     "blender": (2, 80, 0),
-    "category": "Material",
+    "category": "Lighting",
     "location": "Properties > World",
     "description": "Easy setup for HDRI global lightings",
     "warning": "",
