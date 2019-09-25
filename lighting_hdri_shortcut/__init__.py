@@ -479,6 +479,7 @@ class LIGHT_PT_hdri_map(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         global adjustments, img_path

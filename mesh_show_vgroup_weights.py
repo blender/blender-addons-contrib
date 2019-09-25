@@ -358,6 +358,7 @@ class MESH_PT_ShowWeights(bpy.types.Panel):
     bl_label = "Show Weights"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
+    bl_category = "Edit"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod

@@ -98,6 +98,7 @@ class KTXSELECTBUFFER_PT_Panel(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = 'Edit'
     bl_context = "mesh_edit"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         obj = bpy.context.object

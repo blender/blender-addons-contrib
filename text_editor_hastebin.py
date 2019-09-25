@@ -35,6 +35,8 @@ class TEXT_PT_hastebin(bpy.types.Panel):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
     bl_label = "hastebin.com"
+    bl_category = 'Dev'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout

@@ -48,6 +48,7 @@ class TEXT_PT_ui_cheat_sheet(Panel):
     bl_space_type = "TEXT_EDITOR"
     bl_region_type = "UI"
     bl_label = "UI Cheat Sheet"
+    bl_category = 'Dev'
     bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
