@@ -122,12 +122,11 @@ class CollectionManager(Operator):
         #context.scene.CMListIndex = 0
         update_property_group(context)
         
-        if get_max_lvl() > 5:
-            lvl = get_max_lvl() - 5
+        lvl = get_max_lvl()
         
         if lvl > 25:
             lvl = 25
-        
+
         self.view_layer = context.view_layer.name
         
         return wm.invoke_popup(self, width=(400+(lvl*20)))
@@ -143,7 +142,8 @@ class CM_UL_items(UIList):
         laycol = layer_collections[item.name]
         collection = laycol["ptr"].collection
         
-        row = layout.row(align=True)
+        split = layout.split(factor=0.96)
+        row = split.row(align=True)
         row.alignment = 'LEFT'
         
         # indent child items
@@ -220,11 +220,10 @@ class CM_UL_items(UIList):
             icon = 'RESTRICT_RENDER_ON' if laycol["ptr"].collection.hide_render else 'RESTRICT_RENDER_OFF'
             row.operator("view3d.disable_render_collection", text="", icon=icon, emboss=False).name = item.name
         
-        row.separator()
-        #row.label(text="|")
-        row.separator()
         
-        row.operator("view3d.remove_collection", text="", icon='X', emboss=False).collection_name = item.name
+        rm_op = split.row()
+        rm_op.alignment = 'RIGHT'
+        rm_op.operator("view3d.remove_collection", text="", icon='X', emboss=False).collection_name = item.name
     
     
     def filter_items(self, context, data, propname):
