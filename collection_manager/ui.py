@@ -12,6 +12,7 @@ from .operators import (
     hideall_history,
     disableviewall_history,
     disablerenderall_history,
+    rename,
     )
 
 
@@ -118,7 +119,7 @@ class CollectionManager(Operator):
         #disablerenderall_history.clear()
         
         
-        context.scene.CMListIndex = 0
+        #context.scene.CMListIndex = 0
         update_property_group(context)
         
         if get_max_lvl() > 5:
@@ -170,7 +171,13 @@ class CM_UL_items(UIList):
         
         row.label(icon='GROUP')
         
-        row.prop(collection, "name", text="", expand=True)
+        name_row = row.row()
+        
+        #if rename[0] and index == scn.CMListIndex:
+            #name_row.activate_init = True
+            #rename[0] = False
+            
+        name_row.prop(collection, "name", text="", expand=True)
         
         # used as a separator (actual separator not wide enough)
         row.label()
@@ -213,6 +220,9 @@ class CM_UL_items(UIList):
             icon = 'RESTRICT_RENDER_ON' if laycol["ptr"].collection.hide_render else 'RESTRICT_RENDER_OFF'
             row.operator("view3d.disable_render_collection", text="", icon=icon, emboss=False).name = item.name
         
+        row.separator()
+        #row.label(text="|")
+        row.separator()
         
         row.operator("view3d.remove_collection", text="", icon='X', emboss=False).collection_name = item.name
     

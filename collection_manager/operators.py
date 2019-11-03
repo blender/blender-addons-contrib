@@ -713,7 +713,7 @@ class CMRemoveCollectionOperator(bpy.types.Operator):
         
         return {'FINISHED'}
 
-
+rename = [False]
 class CMNewCollectionOperator(bpy.types.Operator):
     '''Add New Collection'''
     bl_label = "Add New Collection"
@@ -735,16 +735,30 @@ class CMNewCollectionOperator(bpy.types.Operator):
                 laycol["ptr"].collection.children.link(new_collection)
                 expanded.append(laycol["name"])
                 
+                # update tree view property
+                update_property_group(context)
+                
+                scn.CMListIndex = layer_collections[new_collection.name]["row_index"]
+                
             else:
                 laycol["parent"]["ptr"].collection.children.link(new_collection)
+                
+                # update tree view property
+                update_property_group(context)
+                
+                scn.CMListIndex = layer_collections[new_collection.name]["row_index"]
                 
         # if no collections add top level collection and select it
         else:
             scn.collection.children.link(new_collection)
+            
+            # update tree view property
+            update_property_group(context)
+            
             scn.CMListIndex = 0
         
-        # update tree view
-        update_property_group(context)
+        global rename
+        rename[0] = True
         
         # reset history
         exclude_history.clear()
