@@ -129,7 +129,19 @@ class CollectionManager(Operator):
 
         self.view_layer = context.view_layer.name
         
+        # sync selection in ui list with active layer collection
+        active_laycol_name = context.view_layer.active_layer_collection.name
+        active_laycol_row_index = layer_collections[active_laycol_name]["row_index"]
+        context.scene.CMListIndex = active_laycol_row_index
+        
         return wm.invoke_popup(self, width=(400+(lvl*20)))
+
+
+def update_selection(self, context):
+    selected_item = context.scene.CMListCollection[context.scene.CMListIndex]
+    layer_collection = layer_collections[selected_item.name]["ptr"]
+    
+    context.view_layer.active_layer_collection = layer_collection
 
 
 class CM_UL_items(UIList):

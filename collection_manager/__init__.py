@@ -23,7 +23,7 @@ bl_info = {
     "name": "Collection Manager",
     "description": "Manage collections and their objects",
     "author": "Ryan Inch",
-    "version": (1,1,2),
+    "version": (1,2,0),
     "blender": (2, 80, 0),
     "location": "View3D - Object Mode (Shortcut - M)",
     "warning": '',  # used for warning icon and text in addons panel
@@ -79,7 +79,7 @@ def register():
         bpy.utils.register_class(cls)
     
     bpy.types.Scene.CMListCollection = CollectionProperty(type=internals.CMListCollection)
-    bpy.types.Scene.CMListIndex = IntProperty()
+    bpy.types.Scene.CMListIndex = IntProperty(update=ui.update_selection)
     
     bpy.types.Scene.show_exclude = BoolProperty(default=True, name="Exclude from View Layer")
     bpy.types.Scene.show_selectable = BoolProperty(default=True, name="Selectable")

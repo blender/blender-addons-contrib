@@ -21,8 +21,7 @@ class ExpandAllOperator(bpy.types.Operator):
                 if laycol["ptr"].children:
                     expanded.append(laycol["name"])
         
-        # set selected row to the first row and update tree view
-        context.scene.CMListIndex = 0
+        # update tree view
         update_property_group(context)
         
         return {'FINISHED'}
