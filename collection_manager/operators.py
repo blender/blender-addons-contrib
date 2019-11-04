@@ -12,6 +12,7 @@ class ExpandAllOperator(bpy.types.Operator):
     '''Expand/Collapse all collections'''
     bl_label = "Expand All Items"
     bl_idname = "view3d.expand_all_items"
+    bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         if len(expanded) > 0:
@@ -31,6 +32,7 @@ class ExpandSublevelOperator(bpy.types.Operator):
     '''Expand/Collapse sublevel. Shift-Click to expand/collapse all sublevels'''
     bl_label = "Expand Sublevel Items"
     bl_idname = "view3d.expand_sublevel"
+    bl_options = {'REGISTER', 'UNDO'}
     
     expand: BoolProperty()
     name: StringProperty()
@@ -83,6 +85,7 @@ class CMSetCollectionOperator(bpy.types.Operator):
     '''Click moves object to collection.  Shift-Click adds/removes from collection'''
     bl_label = "Set Collection"
     bl_idname = "view3d.set_collection"
+    bl_options = {'REGISTER', 'UNDO'}
     
     collection_index: IntProperty()
     collection_name: StringProperty()
@@ -127,6 +130,7 @@ class CMExcludeOperator(bpy.types.Operator):
     '''Exclude collection. Shift-Click to isolate/restore collection'''
     bl_label = "Exclude Collection"
     bl_idname = "view3d.exclude_collection"
+    bl_options = {'REGISTER', 'UNDO'}
     
     name: StringProperty()
     
@@ -232,6 +236,7 @@ class CMUnExcludeAllOperator(bpy.types.Operator):
     '''Toggle excluded status of all collections'''
     bl_label = "Toggle Exclude Collections"
     bl_idname = "view3d.un_exclude_all_collections"
+    bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         global excludeall_history
@@ -266,6 +271,7 @@ class CMRestrictSelectOperator(bpy.types.Operator):
     '''Change selectability. Shift-Click to isolate/restore selectability'''
     bl_label = "Change Collection Selectability"
     bl_idname = "view3d.restrict_select_collection"
+    bl_options = {'REGISTER', 'UNDO'}
     
     name: StringProperty()
     
@@ -322,6 +328,7 @@ class CMUnRestrictSelectAllOperator(bpy.types.Operator):
     '''Toggle selectable status of all collections'''
     bl_label = "Toggle Selectable Collections"
     bl_idname = "view3d.un_restrict_select_all_collections"
+    bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         global restrictselectall_history
@@ -354,6 +361,7 @@ class CMHideOperator(bpy.types.Operator):
     '''Hide collection. Shift-Click to isolate/restore collection chain'''
     bl_label = "Hide Collection"
     bl_idname = "view3d.hide_collection"
+    bl_options = {'REGISTER', 'UNDO'}
     
     name: StringProperty()
     
@@ -422,6 +430,7 @@ class CMUnHideAllOperator(bpy.types.Operator):
     '''Toggle hidden status of all collections'''
     bl_label = "Toggle Hidden Collections"
     bl_idname = "view3d.un_hide_all_collections"
+    bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         global hideall_history
@@ -454,6 +463,7 @@ class CMDisableViewportOperator(bpy.types.Operator):
     '''Disable collection in viewport. Shift-Click to isolate/restore collection chain'''
     bl_label = "Disable Collection in Viewport"
     bl_idname = "view3d.disable_viewport_collection"
+    bl_options = {'REGISTER', 'UNDO'}
     
     name: StringProperty()
     
@@ -522,6 +532,7 @@ class CMUnDisableViewportAllOperator(bpy.types.Operator):
     '''Toggle viewport status of all collections'''
     bl_label = "Toggle Viewport Display of Collections"
     bl_idname = "view3d.un_disable_viewport_all_collections"
+    bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         global disableviewall_history
@@ -554,6 +565,7 @@ class CMDisableRenderOperator(bpy.types.Operator):
     '''Disable collection in renders. Shift-Click to isolate/restore collection chain'''
     bl_label = "Disable Collection in Render"
     bl_idname = "view3d.disable_render_collection"
+    bl_options = {'REGISTER', 'UNDO'}
     
     name: StringProperty()
     
@@ -622,6 +634,7 @@ class CMUnDisableRenderAllOperator(bpy.types.Operator):
     '''Toggle render status of all collections'''
     bl_label = "Toggle Render Display of Collections"
     bl_idname = "view3d.un_disable_render_all_collections"
+    bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         global disablerenderall_history
@@ -653,6 +666,7 @@ class CMRemoveCollectionOperator(bpy.types.Operator):
     '''Remove Collection'''
     bl_label = "Remove Collection"
     bl_idname = "view3d.remove_collection"
+    bl_options = {'UNDO'}
     
     collection_name: StringProperty()
     
@@ -755,6 +769,7 @@ class CMNewCollectionOperator(bpy.types.Operator):
     '''Add New Collection'''
     bl_label = "Add New Collection"
     bl_idname = "view3d.add_collection"
+    bl_options = {'UNDO'}
     
     child: BoolProperty()
     
