@@ -117,9 +117,7 @@ class CollectionManager(Operator):
         #hideall_history.clear()
         #disableviewall_history.clear()
         #disablerenderall_history.clear()
-        
-        
-        #context.scene.CMListIndex = 0
+
         update_property_group(context)
         
         lvl = get_max_lvl()
@@ -130,9 +128,12 @@ class CollectionManager(Operator):
         self.view_layer = context.view_layer.name
         
         # sync selection in ui list with active layer collection
-        active_laycol_name = context.view_layer.active_layer_collection.name
-        active_laycol_row_index = layer_collections[active_laycol_name]["row_index"]
-        context.scene.CMListIndex = active_laycol_row_index
+        try:
+            active_laycol_name = context.view_layer.active_layer_collection.name
+            active_laycol_row_index = layer_collections[active_laycol_name]["row_index"]
+            context.scene.CMListIndex = active_laycol_row_index
+        except:
+            context.scene.CMListIndex = 0
         
         return wm.invoke_popup(self, width=(400+(lvl*20)))
 
