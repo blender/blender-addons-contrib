@@ -13,6 +13,7 @@ from .operators import (
     disableviewall_history,
     disablerenderall_history,
     rename,
+    phantom_history,
     )
 
 
@@ -105,6 +106,14 @@ class CollectionManager(Operator):
         
         addcollec_row.operator("view3d.add_collection", text="Add SubCollection", icon='COLLECTION_NEW').child = True
         
+        phantom_row = layout.row()
+        toggle_text = "Disable " if scn.CM_Phantom_Mode else "Enable "
+        phantom_row.operator("view3d.toggle_phantom_mode", text=toggle_text+"Phantom Mode")
+        
+        if scn.CM_Phantom_Mode:
+            view.enabled = False
+            addcollec_row.enabled = False
+        
         
     def execute(self, context):
         wm = context.window_manager
@@ -134,6 +143,13 @@ class CollectionManager(Operator):
             context.scene.CMListIndex = active_laycol_row_index
         except:
             context.scene.CMListIndex = 0
+        
+        if context.scene.CM_Phantom_Mode:
+            if set(layer_collections.keys()) != set(phantom_history["initial_state"].keys()):
+                context.scene.CM_Phantom_Mode = False
+            
+            if context.view_layer.name != phantom_history["view_layer"]:
+                context.scene.CM_Phantom_Mode = False
         
         return wm.invoke_popup(self, width=(400+(lvl*20)))
 
@@ -237,6 +253,11 @@ class CM_UL_items(UIList):
         rm_op = split.row()
         rm_op.alignment = 'RIGHT'
         rm_op.operator("view3d.remove_collection", text="", icon='X', emboss=False).collection_name = item.name
+        
+        if scn.CM_Phantom_Mode:
+            name_row.enabled = False
+            row_setcol.enabled = False
+            rm_op.enabled = False
     
     
     def filter_items(self, context, data, propname):

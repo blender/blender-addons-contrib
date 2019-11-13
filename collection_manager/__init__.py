@@ -23,7 +23,7 @@ bl_info = {
     "name": "Collection Manager",
     "description": "Manage collections and their objects",
     "author": "Ryan Inch",
-    "version": (1,2,2),
+    "version": (1,3,0),
     "blender": (2, 80, 0),
     "location": "View3D - Object Mode (Shortcut - M)",
     "warning": '',  # used for warning icon and text in addons panel
@@ -69,6 +69,7 @@ classes = (
     operators.CMNewCollectionOperator,
     operators.CMRemoveCollectionOperator,
     operators.CMSetCollectionOperator,
+    operators.CMPhantomModeOperator,
     ui.CM_UL_items,
     ui.CollectionManager,
     ui.CMRestrictionTogglesPanel,
@@ -86,6 +87,8 @@ def register():
     bpy.types.Scene.show_hideviewport = BoolProperty(default=True, name="Hide in Viewport")
     bpy.types.Scene.show_disableviewport = BoolProperty(default=False, name="Disable in Viewports")
     bpy.types.Scene.show_render = BoolProperty(default=False, name="Disable in Renders")
+    
+    bpy.types.Scene.CM_Phantom_Mode = BoolProperty(default=False)
 
 
     # create the global menu hotkey
@@ -106,6 +109,8 @@ def unregister():
     del bpy.types.Scene.show_hideviewport
     del bpy.types.Scene.show_disableviewport
     del bpy.types.Scene.show_render
+    
+    del bpy.types.Scene.CM_Phantom_Mode
     
     # remove keymaps when add-on is deactivated
     for km, kmi in addon_keymaps:

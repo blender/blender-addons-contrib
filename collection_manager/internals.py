@@ -13,6 +13,11 @@ row_index = 0
 def get_max_lvl():
     return max_lvl
 
+def clone_list(l1, l2):
+    l1.clear()
+    for x in l2:
+        l1.append(x)
+
 class CMListCollection(PropertyGroup):
     name: StringProperty()
 

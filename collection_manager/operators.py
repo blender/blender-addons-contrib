@@ -825,3 +825,119 @@ class CMNewCollectionOperator(bpy.types.Operator):
         disablerenderall_history.clear()
         
         return {'FINISHED'}
+    
+
+phantom_history = {"view_layer": "",
+                   "initial_state": {},
+                   
+                   "excludeall_history": [],
+                   "restrictselectall_history": [],
+                   "hideall_history": [],
+                   "disableviewall_history": [],
+                   "disablerenderall_history": [],
+                   
+                   "exclude_history": [],
+                   "restrictselect_history": [],
+                   "hide_history": [],
+                   "disableview_history": [],
+                   "disablerender_history": []
+                   }
+
+phantom_view_layer = []
+class CMPhantomModeOperator(bpy.types.Operator):
+    '''Toggle Phantom Mode'''
+    bl_label = "Toggle Phantom Mode"
+    bl_idname = "view3d.toggle_phantom_mode"
+    
+    def execute(self, context):
+        global phantom_history
+        
+        scn = context.scene
+        
+        # enter Phantom Mode
+        if not scn.CM_Phantom_Mode:
+            
+            scn.CM_Phantom_Mode = True
+            
+            # save current visibility state
+            phantom_history["view_layer"] = context.view_layer.name
+            
+            laycol_iter_list = [context.view_layer.layer_collection.children]
+            while len(laycol_iter_list) > 0:
+                new_laycol_iter_list = []
+                for laycol_iter in laycol_iter_list:
+                    for layer_collection in laycol_iter:
+                        phantom_history["initial_state"][layer_collection.name] = {
+                            "exclude": layer_collection.exclude,
+                            "selectable": layer_collection.collection.hide_select,
+                            "hide_viewport": layer_collection.hide_viewport,
+                            "disable_viewport": layer_collection.collection.hide_viewport,
+                            "renderable": layer_collection.collection.hide_render,
+                                }
+                        
+                        if len(layer_collection.children) > 0:
+                            new_laycol_iter_list.append(layer_collection.children)
+                
+                laycol_iter_list = new_laycol_iter_list
+            
+            
+            phantom_history["excludeall_history"] = excludeall_history[:]
+            phantom_history["restrictselectall_history"] = restrictselectall_history[:]
+            phantom_history["hideall_history"] = hideall_history[:]
+            phantom_history["disableviewall_history"] = disableviewall_history[:]
+            phantom_history["disablerenderall_history"] = disablerenderall_history[:]
+            
+            phantom_history["exclude_history"] = exclude_history[:]
+            phantom_history["restrictselect_history"] = restrictselect_history[:]
+            phantom_history["hide_history"] = hide_history[:]
+            phantom_history["disableview_history"] = disableview_history[:]
+            phantom_history["disablerender_history"] = disablerender_history[:]
+        
+        
+        # return to normal mode
+        else:
+            laycol_iter_list = [context.view_layer.layer_collection.children]
+            while len(laycol_iter_list) > 0:
+                new_laycol_iter_list = []
+                for laycol_iter in laycol_iter_list:
+                    for layer_collection in laycol_iter:
+                        phantom_laycol = phantom_history["initial_state"][layer_collection.name]
+                        
+                        layer_collection.exclude = \
+                            phantom_laycol["exclude"]
+                        
+                        layer_collection.collection.hide_select = \
+                            phantom_laycol["selectable"]
+                        
+                        layer_collection.hide_viewport = \
+                            phantom_laycol["hide_viewport"]
+                        
+                        layer_collection.collection.hide_viewport = \
+                            phantom_laycol["disable_viewport"]
+                        
+                        layer_collection.collection.hide_render = \
+                            phantom_laycol["renderable"]
+                                
+                        
+                        if len(layer_collection.children) > 0:
+                            new_laycol_iter_list.append(layer_collection.children)
+                
+                laycol_iter_list = new_laycol_iter_list
+                
+            
+            clone_list(excludeall_history, phantom_history["excludeall_history"])
+            clone_list(restrictselectall_history, phantom_history["restrictselectall_history"])
+            clone_list(hideall_history,phantom_history["hideall_history"])
+            clone_list(disableviewall_history, phantom_history["disableviewall_history"])
+            clone_list(disablerenderall_history, phantom_history["disablerenderall_history"])
+            
+            clone_list(exclude_history, phantom_history["exclude_history"])
+            clone_list(restrictselect_history, phantom_history["restrictselect_history"])
+            clone_list(hide_history, phantom_history["hide_history"])
+            clone_list(disableview_history, phantom_history["disableview_history"])
+            clone_list(disablerender_history, phantom_history["disablerender_history"])
+            
+            scn.CM_Phantom_Mode = False
+            
+        
+        return {'FINISHED'}
