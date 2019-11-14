@@ -206,7 +206,7 @@ class CM_UL_items(UIList):
             #name_row.activate_init = True
             #rename[0] = False
             
-        name_row.prop(collection, "name", text="", expand=True)
+        name_row.prop(item, "name", text="", expand=True)
         
         # used as a separator (actual separator not wide enough)
         row.label()
