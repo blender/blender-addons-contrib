@@ -161,6 +161,42 @@ def update_selection(self, context):
     context.view_layer.active_layer_collection = layer_collection
 
 
+def filter_items_by_name_insensitive(pattern, bitflag, items, propname="name", flags=None, reverse=False):
+        """
+        Set FILTER_ITEM for items which name matches filter_name one (case-insensitive).
+        pattern is the filtering pattern.
+        propname is the name of the string property to use for filtering.
+        flags must be a list of integers the same length as items, or None!
+        return a list of flags (based on given flags if not None),
+        or an empty list if no flags were given and no filtering has been done.
+        """
+        import fnmatch
+
+        if not pattern or not items:  # Empty pattern or list = no filtering!
+            return flags or []
+
+        if flags is None:
+            flags = [0] * len(items)
+        
+        # Make pattern case-insensitive
+        pattern = pattern.lower()
+
+        # Implicitly add heading/trailing wildcards.
+        pattern = "*" + pattern + "*"
+
+        for i, item in enumerate(items):
+            name = getattr(item, propname, None)
+            
+            # Make name case-insensitive
+            name = name.lower()
+            
+            # This is similar to a logical xor
+            if bool(name and fnmatch.fnmatch(name, pattern)) is not bool(reverse):
+                flags[i] |= bitflag
+            
+        return flags
+
+
 class CM_UL_items(UIList):
     last_filter_value = ""
     
@@ -267,7 +303,7 @@ class CM_UL_items(UIList):
         list_items = getattr(data, propname)
         
         if self.filter_name:
-            flt_flags = UI_UL_list.filter_items_by_name(self.filter_name, self.bitflag_filter_item, list_items)
+            flt_flags = filter_items_by_name_insensitive(self.filter_name, self.bitflag_filter_item, list_items)
         
         else:
             flt_flags = [self.bitflag_filter_item] * len(list_items)
