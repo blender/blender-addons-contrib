@@ -252,12 +252,12 @@ class CMExcludeOperator(bpy.types.Operator):
 
 
 class CMUnExcludeAllOperator(bpy.types.Operator):
-    '''Toggle excluded status of all collections'''
-    bl_label = "Toggle Exclude Collections"
+    '''Click to toggle between current excluded state and all included.\nShift-Click to invert excluded status of all collections'''
+    bl_label = "Toggle Excluded Status Of All Collections"
     bl_idname = "view3d.un_exclude_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
     
-    def execute(self, context):
+    def invoke(self, context, event):
         global rto_history
         
         view_layer = context.view_layer.name
@@ -267,18 +267,30 @@ class CMUnExcludeAllOperator(bpy.types.Operator):
         
         exclude_all_history = rto_history["exclude_all"][view_layer]
         
-        if len(exclude_all_history) == 0 or len([l["ptr"].exclude for l in layer_collections.values() if l["ptr"].exclude == True]):
+        if len(exclude_all_history) == 0:
             exclude_all_history.clear()
-            keep_history = 0
+            keep_history = False
             
-            for item in reversed(list(layer_collections.values())):
-                if item["ptr"].exclude:
-                    keep_history += 1
+            if event.shift:
+                for item in layer_collections.values():
+                    keep_history = True
+                    exclude_all_history.append(item["ptr"].exclude)
                 
-                exclude_all_history.append(item["ptr"].exclude)
-                item["ptr"].exclude = False
+                for x, item in enumerate(layer_collections.values()):
+                    item["ptr"].exclude = not exclude_all_history[x]
+                
+                print([not i for i in exclude_all_history])
             
-            exclude_all_history.reverse()
+            else:
+                for item in reversed(list(layer_collections.values())):
+                    if item["ptr"].exclude:
+                        keep_history = True
+                    
+                    exclude_all_history.append(item["ptr"].exclude)
+                    
+                    item["ptr"].exclude = False
+                    
+                exclude_all_history.reverse()
             
             if not keep_history:
                 del rto_history["exclude_all"][view_layer]
@@ -367,12 +379,12 @@ class CMRestrictSelectOperator(bpy.types.Operator):
 
 
 class CMUnRestrictSelectAllOperator(bpy.types.Operator):
-    '''Toggle selectable status of all collections'''
-    bl_label = "Toggle Selectable Collections"
+    '''Click to toggle between current selectable state and all selectable.\nShift-Click to invert selectable status of all collections'''
+    bl_label = "Toggle Selectable Status Of All Collections"
     bl_idname = "view3d.un_restrict_select_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
     
-    def execute(self, context):
+    def invoke(self, context, event):
         global rto_history
         
         view_layer = context.view_layer.name
@@ -382,16 +394,22 @@ class CMUnRestrictSelectAllOperator(bpy.types.Operator):
 
         select_all_history = rto_history["select_all"][view_layer]
         
-        if len(select_all_history) == 0 or len([l["ptr"].collection.hide_select for l in layer_collections.values() if l["ptr"].collection.hide_select == True]):
+        if len(select_all_history) == 0:
             select_all_history.clear()
-            keep_history = 0
+            keep_history = False
             
             for item in layer_collections.values():
-                if item["ptr"].collection.hide_select:
-                    keep_history += 1
-                    
-                select_all_history.append(item["ptr"].collection.hide_select)
-                item["ptr"].collection.hide_select = False
+                if event.shift:
+                    keep_history = True
+                    select_all_history.append(item["ptr"].collection.hide_select)
+                    item["ptr"].collection.hide_select = not item["ptr"].collection.hide_select
+                
+                else:
+                    if item["ptr"].collection.hide_select:
+                        keep_history = True
+                        
+                    select_all_history.append(item["ptr"].collection.hide_select)
+                    item["ptr"].collection.hide_select = False
             
             if not keep_history:
                 del rto_history["select_all"][view_layer]
@@ -492,12 +510,12 @@ class CMHideOperator(bpy.types.Operator):
 
 
 class CMUnHideAllOperator(bpy.types.Operator):
-    '''Toggle hidden status of all collections'''
-    bl_label = "Toggle Hidden Collections"
+    '''Click to toggle between current visibility state and all visible.\nShift-Click to invert visibility status of all collections'''
+    bl_label = "Toggle Hidden Status Of All Collections"
     bl_idname = "view3d.un_hide_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
     
-    def execute(self, context):
+    def invoke(self, context, event):
         global rto_history
         
         view_layer = context.view_layer.name
@@ -507,16 +525,22 @@ class CMUnHideAllOperator(bpy.types.Operator):
 
         hide_all_history = rto_history["hide_all"][view_layer]
         
-        if len(hide_all_history) == 0 or len([l["ptr"].hide_viewport for l in layer_collections.values() if l["ptr"].hide_viewport == True]):
+        if len(hide_all_history) == 0:
             hide_all_history.clear()
-            keep_history = 0
+            keep_history = False
             
             for item in layer_collections.values():
-                if item["ptr"].hide_viewport:
-                    keep_history += 1
-                    
-                hide_all_history.append(item["ptr"].hide_viewport)
-                item["ptr"].hide_viewport = False
+                if event.shift:
+                    keep_history = True
+                    hide_all_history.append(item["ptr"].hide_viewport)
+                    item["ptr"].hide_viewport = not item["ptr"].hide_viewport
+                
+                else:
+                    if item["ptr"].hide_viewport:
+                        keep_history = True
+                        
+                    hide_all_history.append(item["ptr"].hide_viewport)
+                    item["ptr"].hide_viewport = False
             
             if not keep_history:
                 del rto_history["hide_all"][view_layer]
@@ -617,12 +641,12 @@ class CMDisableViewportOperator(bpy.types.Operator):
 
 
 class CMUnDisableViewportAllOperator(bpy.types.Operator):
-    '''Toggle viewport status of all collections'''
-    bl_label = "Toggle Viewport Display of Collections"
+    '''Click to toggle between current viewport display and all enabled.\nShift-Click to invert viewport display of all collections'''
+    bl_label = "Toggle Viewport Display of All Collections"
     bl_idname = "view3d.un_disable_viewport_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
     
-    def execute(self, context):
+    def invoke(self, context, event):
         global rto_history
         
         view_layer = context.view_layer.name
@@ -632,16 +656,23 @@ class CMUnDisableViewportAllOperator(bpy.types.Operator):
 
         disable_all_history = rto_history["disable_all"][view_layer]
         
-        if len(disable_all_history) == 0 or len([l["ptr"].collection.hide_viewport for l in layer_collections.values() if l["ptr"].collection.hide_viewport == True]):
+        if len(disable_all_history) == 0:
             disable_all_history.clear()
-            keep_history = 0
+            keep_history = False
             
             for item in layer_collections.values():
-                if item["ptr"].collection.hide_viewport:
-                    keep_history += 1
-                    
-                disable_all_history.append(item["ptr"].collection.hide_viewport)
-                item["ptr"].collection.hide_viewport = False
+                if event.shift:
+                    keep_history = True
+                    disable_all_history.append(item["ptr"].collection.hide_viewport)
+                    item["ptr"].collection.hide_viewport = not \
+                        item["ptr"].collection.hide_viewport
+                
+                else:
+                    if item["ptr"].collection.hide_viewport:
+                        keep_history = True
+                        
+                    disable_all_history.append(item["ptr"].collection.hide_viewport)
+                    item["ptr"].collection.hide_viewport = False
             
             if not keep_history:
                 del rto_history["disable_all"][view_layer]
@@ -742,12 +773,12 @@ class CMDisableRenderOperator(bpy.types.Operator):
 
 
 class CMUnDisableRenderAllOperator(bpy.types.Operator):
-    '''Toggle render status of all collections'''
-    bl_label = "Toggle Render Display of Collections"
+    '''Click to toggle between current render status and all rendered.\nShift-Click to invert render status of all collections'''
+    bl_label = "Toggle Render Status of All Collections"
     bl_idname = "view3d.un_disable_render_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
     
-    def execute(self, context):
+    def invoke(self, context, event):
         global rto_history
         
         view_layer = context.view_layer.name
@@ -757,16 +788,23 @@ class CMUnDisableRenderAllOperator(bpy.types.Operator):
 
         render_all_history = rto_history["render_all"][view_layer]
         
-        if len(render_all_history) == 0 or len([l["ptr"].collection.hide_render for l in layer_collections.values() if l["ptr"].collection.hide_render == True]):
+        if len(render_all_history) == 0:
             render_all_history.clear()
-            keep_history = 0
+            keep_history = False
             
             for item in layer_collections.values():
-                if item["ptr"].collection.hide_render:
-                    keep_history += 1
-                    
-                render_all_history.append(item["ptr"].collection.hide_render)
-                item["ptr"].collection.hide_render = False
+                if event.shift:
+                    keep_history = True
+                    render_all_history.append(item["ptr"].collection.hide_render)
+                    item["ptr"].collection.hide_render = not \
+                        item["ptr"].collection.hide_render
+                
+                else:
+                    if item["ptr"].collection.hide_render:
+                        keep_history = True
+                        
+                    render_all_history.append(item["ptr"].collection.hide_render)
+                    item["ptr"].collection.hide_render = False
             
             if not keep_history:
                 del rto_history["render_all"][view_layer]
