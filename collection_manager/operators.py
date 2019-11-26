@@ -41,7 +41,7 @@ class ExpandAllOperator(bpy.types.Operator):
 
 
 class ExpandSublevelOperator(bpy.types.Operator):
-    '''Expand/Collapse sublevel. Shift-Click to expand/collapse all sublevels'''
+    '''  * Shift-Click to expand/collapse all sublevels'''
     bl_label = "Expand Sublevel Items"
     bl_idname = "view3d.expand_sublevel"
     bl_options = {'REGISTER', 'UNDO'}
@@ -94,8 +94,8 @@ class ExpandSublevelOperator(bpy.types.Operator):
 
 
 class CMSetCollectionOperator(bpy.types.Operator):
-    '''Click moves object to collection.  Shift-Click adds/removes from collection'''
-    bl_label = "Set Collection"
+    '''  * Click to move object to collection.\n  * Shift-Click to add/remove object from collection'''
+    bl_label = "Set Object Collection"
     bl_idname = "view3d.set_collection"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -138,8 +138,8 @@ class CMSetCollectionOperator(bpy.types.Operator):
 
 
 class CMExcludeOperator(bpy.types.Operator):
-    '''Exclude collection. Shift-Click to isolate/restore collection'''
-    bl_label = "Exclude Collection"
+    '''  * Shift-Click to isolate/restore previous state'''
+    bl_label = "Exclude Collection from View Layer"
     bl_idname = "view3d.exclude_collection"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -252,7 +252,7 @@ class CMExcludeOperator(bpy.types.Operator):
 
 
 class CMUnExcludeAllOperator(bpy.types.Operator):
-    '''Click to toggle between current excluded state and all included.\nShift-Click to invert excluded status of all collections'''
+    '''  * Click to toggle between current excluded state and all included.\n  * Shift-Click to invert excluded status of all collections'''
     bl_label = "Toggle Excluded Status Of All Collections"
     bl_idname = "view3d.un_exclude_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -305,8 +305,8 @@ class CMUnExcludeAllOperator(bpy.types.Operator):
 
 
 class CMRestrictSelectOperator(bpy.types.Operator):
-    '''Change selectability. Shift-Click to isolate/restore selectability'''
-    bl_label = "Change Collection Selectability"
+    '''  * Shift-Click to isolate/restore previous state'''
+    bl_label = "Disable Selection of Collection"
     bl_idname = "view3d.restrict_select_collection"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -379,7 +379,7 @@ class CMRestrictSelectOperator(bpy.types.Operator):
 
 
 class CMUnRestrictSelectAllOperator(bpy.types.Operator):
-    '''Click to toggle between current selectable state and all selectable.\nShift-Click to invert selectable status of all collections'''
+    '''  * Click to toggle between current selectable state and all selectable.\n  * Shift-Click to invert selectable status of all collections'''
     bl_label = "Toggle Selectable Status Of All Collections"
     bl_idname = "view3d.un_restrict_select_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -424,7 +424,7 @@ class CMUnRestrictSelectAllOperator(bpy.types.Operator):
 
 
 class CMHideOperator(bpy.types.Operator):
-    '''Hide collection. Shift-Click to isolate/restore collection chain'''
+    '''  * Shift-Click to isolate/restore previous state'''
     bl_label = "Hide Collection"
     bl_idname = "view3d.hide_collection"
     bl_options = {'REGISTER', 'UNDO'}
@@ -510,7 +510,7 @@ class CMHideOperator(bpy.types.Operator):
 
 
 class CMUnHideAllOperator(bpy.types.Operator):
-    '''Click to toggle between current visibility state and all visible.\nShift-Click to invert visibility status of all collections'''
+    '''  * Click to toggle between current visibility state and all visible.\n  * Shift-Click to invert visibility status of all collections'''
     bl_label = "Toggle Hidden Status Of All Collections"
     bl_idname = "view3d.un_hide_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -555,7 +555,7 @@ class CMUnHideAllOperator(bpy.types.Operator):
 
 
 class CMDisableViewportOperator(bpy.types.Operator):
-    '''Disable collection in viewport. Shift-Click to isolate/restore collection chain'''
+    '''  * Shift-Click to isolate/restore previous state'''
     bl_label = "Disable Collection in Viewport"
     bl_idname = "view3d.disable_viewport_collection"
     bl_options = {'REGISTER', 'UNDO'}
@@ -641,7 +641,7 @@ class CMDisableViewportOperator(bpy.types.Operator):
 
 
 class CMUnDisableViewportAllOperator(bpy.types.Operator):
-    '''Click to toggle between current viewport display and all enabled.\nShift-Click to invert viewport display of all collections'''
+    '''  * Click to toggle between current viewport display and all enabled.\n  * Shift-Click to invert viewport display of all collections'''
     bl_label = "Toggle Viewport Display of All Collections"
     bl_idname = "view3d.un_disable_viewport_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
@@ -687,7 +687,7 @@ class CMUnDisableViewportAllOperator(bpy.types.Operator):
 
 
 class CMDisableRenderOperator(bpy.types.Operator):
-    '''Disable collection in renders. Shift-Click to isolate/restore collection chain'''
+    '''  * Shift-Click to isolate/restore previous state'''
     bl_label = "Disable Collection in Render"
     bl_idname = "view3d.disable_render_collection"
     bl_options = {'REGISTER', 'UNDO'}
@@ -773,7 +773,7 @@ class CMDisableRenderOperator(bpy.types.Operator):
 
 
 class CMUnDisableRenderAllOperator(bpy.types.Operator):
-    '''Click to toggle between current render status and all rendered.\nShift-Click to invert render status of all collections'''
+    '''  * Click to toggle between current render status and all rendered.\n  * Shift-Click to invert render status of all collections'''
     bl_label = "Toggle Render Status of All Collections"
     bl_idname = "view3d.un_disable_render_all_collections"
     bl_options = {'REGISTER', 'UNDO'}
