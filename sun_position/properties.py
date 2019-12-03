@@ -24,6 +24,8 @@ from bpy.props import (StringProperty, EnumProperty, IntProperty,
 from .sun_calc import sun_update, parse_coordinates
 from .north import north_update
 
+from datetime import datetime
+TODAY = datetime.today()
 
 ############################################################################
 # Sun panel properties
@@ -93,21 +95,21 @@ class SunPosProperties(PropertyGroup):
         attr="",
         name="Month",
         description="",
-        min=1, max=12, default=6,
+        min=1, max=12, default=TODAY.month,
         update=sun_update)
 
     day: IntProperty(
         attr="",
         name="Day",
         description="",
-        min=1, max=31, default=21,
+        min=1, max=31, default=TODAY.day,
         update=sun_update)
 
     year: IntProperty(
         attr="",
         name="Year",
         description="",
-        min=1800, max=4000, default=2012,
+        min=1800, max=4000, default=TODAY.year,
         update=sun_update)
 
     use_day_of_year: BoolProperty(
