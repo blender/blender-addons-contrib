@@ -199,7 +199,6 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
                         col.prop(sp, "time_spread")
 
         box = self.layout.box()
-        # box.prop(sp, "show_map", text="Show Map", toggle=True, icon='WORLD')
 
         col = box.column(align=True)
         col.label(text="Enter coordinates:")
@@ -299,45 +298,3 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
                 tss = " Sunset: " + ss
             col.label(text=tsr, icon='LIGHT_SUN')
             col.label(text=tss, icon='SOLO_ON')
-
-
-# -------------------------------------------------------------------
-# Choice List of world maps
-#
-# Uncomment this if you add other map images
-# -------------------------------------------------------------------
-
-
-# class SUNPOS_OT_MapChoice(bpy.types.Operator):
-#     bl_idname = "world.wmp_operator"
-#     bl_label = "World map files"
-#     """
-#     wmp = [["1536 x 768", "WorldMap.jpg"],
-#            ["768 x 384", "WorldMapLR.jpg"],
-#            ["512 x 256", "WorldMapLLR.jpg"],
-#            ["Textureless", "None"]]
-#     """
-#     # S.L. provide one single optimized map < 100k
-#     wmp = [["1536 x 768", "World.jpg"],
-#            ["Textureless", "None"]]
-#     from bpy.props import EnumProperty
-
-#     mapPresets: EnumProperty(
-#         name="World map presets",
-#         description="world map files",
-#         items=(
-#             # ("3", wmp[3][0], ""),
-#             #("2", wmp[2][0], ""),
-#             ("1", wmp[1][0], ""),
-#             ("0", wmp[0][0], ""),
-#         ),
-#         default="1")
-
-#     def execute(self, context):
-#         sp = context.scene.sun_pos_properties
-#         wmp = self.wmp
-#         i = int(self.properties.mapPresets)
-#         sp.map_name = wmp[i]
-#         Sun.MapName = wmp[i][1]
-
-#         return {'FINISHED'}

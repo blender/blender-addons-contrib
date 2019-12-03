@@ -41,11 +41,6 @@ class SunPosProperties(PropertyGroup):
         default='NORMAL',
         update=sun_update)
 
-    show_map: BoolProperty(
-        description="Show world map.",
-        default=False,
-        update=sun_update)
-
     use_daylight_savings: BoolProperty(
         description="Daylight savings time adds 1 hour to standard time.",
         default=0,
@@ -244,15 +239,6 @@ class SunPosProperties(PropertyGroup):
 class SunPosAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
-    # map_location: EnumProperty(
-    #     name="Map location",
-    #     description="Display map in viewport or world panel",
-    #     items=(
-    #         ('VIEWPORT', "Viewport", ""),
-    #         ('PANEL', "Panel", ""),
-    #     ),
-    #     default='VIEWPORT')
-
     show_time_place: BoolProperty(
         description="Show time/place presets",
         default=False)
@@ -289,27 +275,11 @@ class SunPosAddonPreferences(AddonPreferences):
         description="Show sunrise and sunset",
         default=True)
 
-    # Uncomment this if you add other map images
-    # map_name: StringProperty(
-    #     default="WorldMap.jpg",
-    #     name="WorldMap",
-    #     description="Name of world map")
-
     def draw(self, context):
         layout = self.layout
 
         box = layout.box()
         col = box.column()
-
-        # Uncomment this if you add other map images
-        # row = col.row()
-        # row.label(text="World map options:")
-        # row.operator_menu_enum('world.wmp_operator',
-        #                        'map_presets', text=Sun.map_name)
-        # col.separator()
-
-        # col.prop(self, "map_location")
-        # col.separator()
 
         col.label(text="Show or use:")
         flow = col.grid_flow(columns=0, even_columns=True, even_rows=False, align=False)
