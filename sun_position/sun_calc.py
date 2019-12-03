@@ -18,6 +18,7 @@
 
 import bpy
 from bpy.app.handlers import persistent
+from mathutils import Euler
 import math
 from math import degrees, radians, pi
 import datetime
@@ -99,7 +100,8 @@ def sun_handler(scene):
 ############################################################################
 #
 # move_sun() will cycle through all the selected objects
-# and call set_sun_position to place them in the sky.
+# and call set_sun_position and set_sun_rotations
+# to place them in the sky.
 #
 ############################################################################
 
@@ -127,12 +129,12 @@ def move_sun(context):
             sun.theta = math.pi / 2 - sun_props.hdr_elevation
             sun.phi = -sun_props.hdr_azimuth
 
-            locX = math.sin(sun.phi) * math.sin(-sun.theta) * sun_props.sun_distance
-            locY = math.sin(sun.theta) * math.cos(sun.phi) * sun_props.sun_distance
-            locZ = math.cos(sun.theta) * sun_props.sun_distance
-            sun_props.sun_object.location = locX, locY, locZ
-            sun_props.sun_object.rotation_euler = (sun_props.hdr_elevation - pi/2,
-                                                   0, -sun_props.hdr_azimuth)
+            obj = sun_props.sun_object
+            set_sun_position(obj, sun_props.sun_distance)
+            rotation_euler = Euler((sun_props.hdr_elevation - pi/2,
+                                    0, -sun_props.hdr_azimuth))
+
+            set_sun_rotations(obj, rotation_euler)
         return
 
     local_time = sun_props.time
@@ -170,10 +172,9 @@ def move_sun(context):
             and sun_props.sun_object.name in context.view_layer.objects):
         obj = sun_props.sun_object
         set_sun_position(obj, sun_props.sun_distance)
-        if obj.type == 'LIGHT':
-            obj.rotation_euler = (
-                (math.radians(sun.elevation - 90), 0,
-                 math.radians(-sun.az_north)))
+        rotation_euler = Euler((math.radians(sun.elevation - 90), 0,
+                                math.radians(-sun.az_north)))
+        set_sun_rotations(obj, rotation_euler)
 
     # Sun collection
     if (addon_prefs.show_object_collection
@@ -411,6 +412,20 @@ def set_sun_position(obj, distance):
     # Update selected object in viewport
     #----------------------------------------------
     obj.location = locX, locY, locZ
+
+
+def set_sun_rotations(obj, rotation_euler):
+    rotation_quaternion = rotation_euler.to_quaternion()
+    obj.rotation_quaternion = rotation_quaternion
+
+    if obj.rotation_mode in {'XZY', 'YXZ', 'YZX', 'ZXY','ZYX'}:
+        obj.rotation_euler = rotation_quaternion.to_euler(obj.rotation_mode)
+    else:
+        obj.rotation_euler = rotation_euler
+
+    rotation_axis_angle = obj.rotation_quaternion.to_axis_angle()
+    obj.rotation_axis_angle = (rotation_axis_angle[1],
+                               *rotation_axis_angle[0])
 
 
 def calc_sunrise_set_UTC(rise, jd, latitude, longitude):
