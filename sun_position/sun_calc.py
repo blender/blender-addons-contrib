@@ -142,16 +142,15 @@ def move_sun(context):
         zone = sun_props.UTC_zone * -1
     else:
         zone = sun_props.UTC_zone
-        sun.use_daylight_savings = (addon_prefs.show_daylight_savings and
-                                    sun_props.use_daylight_savings)
+    sun.use_daylight_savings = sun_props.use_daylight_savings
     if sun.use_daylight_savings:
         zone -= 1
 
     north_offset = degrees(sun_props.north_offset)
 
     if addon_prefs.show_rise_set:
-        calc_sunrise_sunset(1)
-        calc_sunrise_sunset(0)
+        calc_sunrise_sunset(rise=True)
+        calc_sunrise_sunset(rise=False)
 
     get_sun_position(local_time, sun_props.latitude, sun_props.longitude,
             north_offset, zone, sun_props.month, sun_props.day, sun_props.year,
@@ -369,7 +368,7 @@ def get_sun_position(local_time, latitude, longitude, north_offset,
 
     exoatm_elevation = 90.0 - degrees(zenith)
 
-    if addon_prefs.show_refraction and sun_props.use_refraction:
+    if sun_props.use_refraction:
         if exoatm_elevation > 85.0:
             refraction_correction = 0.0
         else:
@@ -392,8 +391,7 @@ def get_sun_position(local_time, latitude, longitude, north_offset,
         solar_elevation = 90.0 - degrees(zenith)
 
     solar_azimuth = azimuth
-    if addon_prefs.show_north:
-        solar_azimuth += north_offset
+    solar_azimuth += north_offset
 
     sun.az_north = solar_azimuth
 
