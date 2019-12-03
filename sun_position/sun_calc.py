@@ -138,10 +138,7 @@ def move_sun(context):
         return
 
     local_time = sun_props.time
-    if sun_props.longitude > 0.0:
-        zone = sun_props.UTC_zone * -1
-    else:
-        zone = sun_props.UTC_zone
+    zone = -sun_props.UTC_zone
     sun.use_daylight_savings = sun_props.use_daylight_savings
     if sun.use_daylight_savings:
         zone -= 1
@@ -237,6 +234,10 @@ def update_time(context):
             sun_props.day = dt.day
         if sun_props.month != dt.month:
             sun_props.month = dt.month
+    sun.year = sun_props.year
+    sun.longitude = sun_props.longitude
+    sun.latitude = sun_props.latitude
+    sun.UTC_zone = sun_props.UTC_zone
 
 
 def format_time(the_time, UTC_zone, daylight_savings, longitude):
@@ -247,17 +248,11 @@ def format_time(the_time, UTC_zone, daylight_savings, longitude):
     ss = "0" + str(sec) if sec < 10 else str(sec)
 
     zone = UTC_zone
-    if(longitude < 0):
-        zone *= -1
     if daylight_savings:
         zone += 1
     gt = int(the_time) - zone
 
-    if gt < 0:
-        gt = 24 + gt
-    elif gt > 23:
-        gt = gt - 24
-    gt = str(gt)
+    gt = str(gt % 24)
 
     return ("Local: " + hh + ":" + mm + ":" + ss,
             "UTC: " + gt + ":" + mm + ":" + ss)
@@ -471,10 +466,7 @@ def calc_solar_noon(jd, longitude, timezone, dst):
 
 
 def calc_sunrise_sunset(rise):
-    if sun.longitude > 0:
-        zone = sun.UTC_zone * -1
-    else:
-        zone = sun.UTC_zone
+    zone = -sun.UTC_zone
 
     jd = get_julian_day(sun.year, sun.month, sun.day)
     time_UTC = calc_sunrise_set_UTC(rise, jd, sun.latitude, sun.longitude)
@@ -488,10 +480,7 @@ def calc_sunrise_sunset(rise):
     if sun.use_daylight_savings:
         time_local += 60.0
         tl = time_local / 60.0
-    if tl < 0.0:
-        tl += 24.0
-    elif tl > 24.0:
-        tl -= 24.0
+    tl %= 24.0
     if rise:
         sun.sunrise.time = tl
         sun.sunrise.azimuth = sun.azimuth

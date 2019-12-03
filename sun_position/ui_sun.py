@@ -282,17 +282,9 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         col = flow.column(align=True)
         col.alignment = 'CENTER'
         if p.show_rise_set:
-            if (sun.sunrise.time == sun.sunset.time
-                    or sun.sunrise.elevation > -0.4
-                    or sun.sunset.elevation  > -0.4):
-                sun.rise_set_ok = False
-                tsr = "sunrise: --------"
-                tss = " sunset: --------"
-            else:
-                sun.rise_set_ok = True
-                sr = format_hms(sun.sunrise.time)
-                ss = format_hms(sun.sunset.time)
-                tsr = "Sunrise: " + sr
-                tss = " Sunset: " + ss
+            sr = format_hms(sun.sunrise.time)
+            ss = format_hms(sun.sunset.time)
+            tsr = "Sunrise: " + sr
+            tss = " Sunset: " + ss
             col.label(text=tsr, icon='LIGHT_SUN')
             col.label(text=tss, icon='SOLO_ON')
