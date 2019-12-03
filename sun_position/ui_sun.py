@@ -70,15 +70,13 @@ class SUNPOS_OT_DefaultPresets(Operator):
 
     def execute(self, context):
         preset_dirpath = bpy.utils.user_resource('SCRIPTS', path="presets/operator/sun_position", create=True)
-        # Why these in particular?
-        presets = {"north_pole.py": [6, 21, 12.0, 0, 90.000, 0.0000, False],
-                   "equator_vernal_equinox.py":   [3, 20, 12.0, 0, 0.0000, 0.0000, False],
-                   "rio_de_janeiro_may_10th.py":  [5, 10, 12.0, 3, -22.9002, -43.2334, False],
-                   "tokyo_august_20th.py":        [8, 20, 12.0, 9, 35.7002, 139.7669, False],
-                   "boston_autumnal_equinox.py":  [9, 22, 12.0, 5, 42.3502, -71.0500, True],
-                   "boston_vernal_equinox.py":    [3, 20, 12.0, 5, 42.3502, -71.0500, True],
-                   "honolulu_winter_solstice.py": [12, 21, 12.0, 10, 21.3001, -157.850, False],
-                   "honolulu_summer_solstice.py": [6, 21, 12.0, 10, 21.3001, -157.850, False]}
+        #                       [month, day, time, UTC, lat, lon, dst]
+        presets = {"chongqing.py": [10, 1,  7.18,  8, 29.5583,  106.567, False],
+                   "sao_paulo.py": [9,  7,  12.0, -3,  -23.55, -46.6333, False],
+                   "kinshasa.py":  [6,  30, 12.0,  1,  -4.325,  15.3222, False],
+                   "london.py":    [6,  11, 12.0,  0, 51.5072,  -0.1275, True],
+                   "new_york.py":  [7,  4,  12.0, -5, 40.6611, -73.9439, True],
+                   "sydney.py":    [1,  26, 17.6, 10, -33.865,  151.209, False]}
 
         script = '''import bpy
 sun_props = bpy.context.scene.sun_pos_properties
