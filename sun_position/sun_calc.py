@@ -155,7 +155,7 @@ def move_sun(context):
 
     if sun_props.use_sky_texture and sun_props.sky_texture:
         sky_node = bpy.context.scene.world.node_tree.nodes.get(sun_props.sky_texture)
-        if sky_node is not None:
+        if sky_node is not None and sky_node.type == "TEX_SKY":
             locX = math.sin(sun.phi) * math.sin(-sun.theta)
             locY = math.sin(sun.theta) * math.cos(sun.phi)
             locZ = math.cos(sun.theta)
