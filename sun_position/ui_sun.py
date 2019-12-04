@@ -263,20 +263,23 @@ class SUNPOS_PT_Panel(bpy.types.Panel):
         col.separator()
 
         col = flow.column(align=True)
-        lt, ut = format_time(sp.time,
-                             sp.UTC_zone,
-                             p.show_daylight_savings and sp.use_daylight_savings,
-                             sp.longitude)
         col.prop(sp, "time")
         col.prop(sp, "UTC_zone")
         if p.show_daylight_savings:
             col.prop(sp, "use_daylight_savings", text="Daylight Savings")
         col.separator()
 
+        lt = format_time(sp.time,
+                         p.show_daylight_savings and sp.use_daylight_savings,
+                         sp.longitude)
+        ut = format_time(sp.time,
+                         p.show_daylight_savings and sp.use_daylight_savings,
+                         sp.longitude,
+                         sp.UTC_zone)
         col = flow.column(align=True)
         col.alignment = 'CENTER'
-        col.label(text=lt, icon='TIME')
-        col.label(text="  " + ut, icon='PREVIEW_RANGE')
+        col.label(text="Local: " + lt, icon='TIME')
+        col.label(text="  UTC: " + ut, icon='PREVIEW_RANGE')
         col.separator()
 
         col = flow.column(align=True)

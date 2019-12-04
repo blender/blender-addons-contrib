@@ -240,22 +240,19 @@ def update_time(context):
     sun.UTC_zone = sun_props.UTC_zone
 
 
-def format_time(the_time, UTC_zone, daylight_savings, longitude):
-    hh = str(int(the_time))
-    min = (the_time - int(the_time)) * 60
-    sec = int((min - int(min)) * 60)
-    mm = "0" + str(int(min)) if min < 10 else str(int(min))
-    ss = "0" + str(sec) if sec < 10 else str(sec)
+def format_time(the_time, daylight_savings, longitude, UTC_zone=None):
+    if UTC_zone is not None:
+        if daylight_savings:
+            UTC_zone += 1
+        the_time -= UTC_zone
 
-    zone = UTC_zone
-    if daylight_savings:
-        zone += 1
-    gt = int(the_time) - zone
+    the_time %= 24
 
-    gt = str(gt % 24)
+    hh = int(the_time)
+    mm = (the_time - int(the_time)) * 60
+    ss = int((mm - int(mm)) * 60)
 
-    return ("Local: " + hh + ":" + mm + ":" + ss,
-            "UTC: " + gt + ":" + mm + ":" + ss)
+    return ("%02i:%02i:%02i" % (hh, mm, ss))
 
 
 def format_hms(the_time):

@@ -113,10 +113,11 @@ class SunPosProperties(PropertyGroup):
         min=1, max=366, default=1,
         update=sun_update)
 
-    UTC_zone: IntProperty(
+    UTC_zone: FloatProperty(
         name="UTC zone",
         description="Time zone: Difference from Greenwich, England in hours",
-        min=-12, max=12, default=0,
+        precision=1,
+        min=-14.0, max=13, step=50, default=0.0,
         update=sun_update)
 
     time: FloatProperty(
