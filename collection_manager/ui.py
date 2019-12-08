@@ -5,6 +5,8 @@ from bpy.types import (
     UI_UL_list,
     )
 
+from bpy.props import BoolProperty
+
 from .internals import *
 from .operators import (
     rto_history,
@@ -207,6 +209,12 @@ def filter_items_by_name_insensitive(pattern, bitflag, items, propname="name", f
 class CM_UL_items(UIList):
     last_filter_value = ""
     
+    filter_by_selected: BoolProperty(
+                        name="Filter By Selected",
+                        default=False,
+                        description="Filter collections by selected items"
+                        )
+    
     def draw_item(self, context, layout, data, item, icon, active_data,active_propname, index):
         self.use_filter_show = True
         
@@ -303,6 +311,18 @@ class CM_UL_items(UIList):
             rm_op.enabled = False
     
     
+    def draw_filter(self, context, layout):
+        row = layout.row()
+
+        subrow = row.row(align=True)
+        subrow.prop(self, "filter_name", text="")
+        
+        icon = 'ZOOM_OUT' if self.use_filter_invert else 'ZOOM_IN'
+        subrow.prop(self, "use_filter_invert", text="", icon=icon)
+        
+        subrow = row.row(align=True)
+        subrow.prop(self, "filter_by_selected", text="", icon='SNAP_VOLUME')
+    
     def filter_items(self, context, data, propname):
         flt_flags = []
         flt_neworder = []
@@ -312,7 +332,17 @@ class CM_UL_items(UIList):
         if self.filter_name:
             flt_flags = filter_items_by_name_insensitive(self.filter_name, self.bitflag_filter_item, list_items)
         
-        else:
+        elif self.filter_by_selected:
+            flt_flags = [0] * len(list_items)
+            
+            for idx, item in enumerate(list_items):
+                collection = layer_collections[item.name]["ptr"].collection
+                
+                # check if any of the selected objects are in the collection
+                if not set(context.selected_objects).isdisjoint(collection.objects):
+                    flt_flags[idx] |= self.bitflag_filter_item
+                    
+        else: # display as treeview
             flt_flags = [self.bitflag_filter_item] * len(list_items)
         
             for idx, item in enumerate(list_items):
