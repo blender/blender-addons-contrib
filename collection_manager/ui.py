@@ -219,6 +219,7 @@ class CM_UL_items(UIList):
         self.use_filter_show = True
         
         scn = context.scene
+        view_layer = context.view_layer.name
         laycol = layer_collections[item.name]
         collection = laycol["ptr"].collection
         
@@ -281,24 +282,59 @@ class CM_UL_items(UIList):
         
         
         if scn.show_exclude:
+            exclude_history_base = rto_history["exclude"].get(view_layer, {})
+            exclude_target = exclude_history_base.get("target", "")
+            exclude_history = exclude_history_base.get("history", [])
+            
+            depress = True if len(exclude_history) and exclude_target == item.name else False
+            emboss = True if len(exclude_history) and exclude_target == item.name else False
             icon = 'CHECKBOX_DEHLT' if laycol["ptr"].exclude else 'CHECKBOX_HLT'
-            row.operator("view3d.exclude_collection", text="", icon=icon, emboss=False).name = item.name
+            
+            row.operator("view3d.exclude_collection", text="", icon=icon, emboss=emboss, depress=depress).name = item.name
             
         if scn.show_selectable:
+            select_history_base = rto_history["select"].get(view_layer, {})
+            select_target = select_history_base.get("target", "")
+            select_history = select_history_base.get("history", [])
+            
+            depress = True if len(select_history) and select_target == item.name else False
+            emboss = True if len(select_history) and select_target == item.name else False
             icon = 'RESTRICT_SELECT_ON' if laycol["ptr"].collection.hide_select else 'RESTRICT_SELECT_OFF'
-            row.operator("view3d.restrict_select_collection", text="", icon=icon, emboss=False).name = item.name
+            
+            row.operator("view3d.restrict_select_collection", text="", icon=icon, emboss=emboss, depress=depress).name = item.name
         
         if scn.show_hideviewport:
+            hide_history_base = rto_history["hide"].get(view_layer, {})
+            hide_target = hide_history_base.get("target", "")
+            hide_history = hide_history_base.get("history", [])
+            
+            depress = True if len(hide_history) and hide_target == item.name else False
+            emboss = True if len(hide_history) and hide_target == item.name else False
             icon = 'HIDE_ON' if laycol["ptr"].hide_viewport else 'HIDE_OFF'
-            row.operator("view3d.hide_collection", text="", icon=icon, emboss=False).name = item.name
+            
+            row.operator("view3d.hide_collection", text="", icon=icon, emboss=emboss, depress=depress).name = item.name
         
         if scn.show_disableviewport:
+            disable_history_base = rto_history["disable"].get(view_layer, {})
+            disable_target = disable_history_base.get("target", "")
+            disable_history = disable_history_base.get("history", [])
+            
+            depress = True if len(disable_history) and disable_target == item.name else False
+            emboss = True if len(disable_history) and disable_target == item.name else False
             icon = 'RESTRICT_VIEW_ON' if laycol["ptr"].collection.hide_viewport else 'RESTRICT_VIEW_OFF'
-            row.operator("view3d.disable_viewport_collection", text="", icon=icon, emboss=False).name = item.name
+            
+            row.operator("view3d.disable_viewport_collection", text="", icon=icon, emboss=emboss, depress=depress).name = item.name
         
         if scn.show_render:
+            render_history_base = rto_history["render"].get(view_layer, {})
+            render_target = render_history_base.get("target", "")
+            render_history = render_history_base.get("history", [])
+            
+            depress = True if len(render_history) and render_target == item.name else False
+            emboss = True if len(render_history) and render_target == item.name else False
             icon = 'RESTRICT_RENDER_ON' if laycol["ptr"].collection.hide_render else 'RESTRICT_RENDER_OFF'
-            row.operator("view3d.disable_render_collection", text="", icon=icon, emboss=False).name = item.name
+            
+            row.operator("view3d.disable_render_collection", text="", icon=icon, emboss=emboss, depress=depress).name = item.name
         
         
         rm_op = split.row()

@@ -152,9 +152,10 @@ class CMExcludeOperator(bpy.types.Operator):
         laycol_ptr = layer_collections[self.name]["ptr"]
         
         if not view_layer in rto_history["exclude"]:
-            rto_history["exclude"][view_layer] = []
+            rto_history["exclude"][view_layer] = {"target": "", "history": []}
         
-        exclude_history = rto_history["exclude"][view_layer]
+        rto_history["exclude"][view_layer]["target"] = self.name
+        exclude_history = rto_history["exclude"][view_layer]["history"]
         
         if event.shift:
             # isolate/de-isolate exclusion of collections
@@ -174,6 +175,9 @@ class CMExcludeOperator(bpy.types.Operator):
                     # enable all collections
                     for item in layer_collections.values():
                         item["ptr"].exclude = False
+                
+                # reset exclude history
+                del rto_history["exclude"][view_layer]
             
             else:
                 # isolate collection
@@ -328,9 +332,10 @@ class CMRestrictSelectOperator(bpy.types.Operator):
         laycol_ptr = layer_collections[self.name]["ptr"]
         
         if not view_layer in rto_history["select"]:
-            rto_history["select"][view_layer] = []
-
-        select_history = rto_history["select"][view_layer]
+            rto_history["select"][view_layer] = {"target": "", "history": []}
+        
+        rto_history["select"][view_layer]["target"] = self.name
+        select_history = rto_history["select"][view_layer]["history"]
         
         if event.shift:
             # isolate/de-isolate selectability of collections
@@ -339,8 +344,16 @@ class CMRestrictSelectOperator(bpy.types.Operator):
             active_layer_collections = [x for x in layer_collections.values() \
                                           if x["ptr"].collection.hide_select == False]
             
-            # check if selectable isolated
-            if len(active_layer_collections) == 1 and active_layer_collections[0]["name"] == self.name:
+            layerchain = []
+            laycol = layer_collections[self.name]
+            
+            # get chain of parents up to top level collection
+            while laycol["id"] != 0:
+                    layerchain.append(laycol)
+                    laycol = laycol["parent"]
+                    
+            # check if reversed layerchain matches active collections
+            if layerchain[::-1] == active_layer_collections:
                 if len(select_history) > 1:
                     # restore previous state
                     for x, item in enumerate(layer_collections.values()):
@@ -350,6 +363,9 @@ class CMRestrictSelectOperator(bpy.types.Operator):
                     # make all collections selectable
                     for item in layer_collections.values():
                         item["ptr"].collection.hide_select = False
+            
+                # reset select history
+                del rto_history["select"][view_layer]
             
             else:
                 # reset select history
@@ -366,18 +382,23 @@ class CMRestrictSelectOperator(bpy.types.Operator):
                 if not keep_history:
                     del rto_history["select"][view_layer]
                 
-                # isolate selectable collection
+                # make all collections unselectable
                 for item in layer_collections.values():
-                    if item["name"] != laycol_ptr.name:
-                        item["ptr"].collection.hide_select = True
+                    item["ptr"].collection.hide_select = True
                 
+                # allow selection of active collection plus parents
                 laycol_ptr.collection.hide_select = False
+                
+                laycol = layer_collections[self.name]
+                while laycol["id"] != 0:
+                    laycol["ptr"].collection.hide_select = False
+                    laycol = laycol["parent"]
                             
         
         elif event.ctrl:
             # toggle children
             
-            # reset selectable history
+            # reset select history
             del rto_history["select"][view_layer]
             
             # toggle selectability of collection
@@ -397,14 +418,14 @@ class CMRestrictSelectOperator(bpy.types.Operator):
                 laycol_iter_list = new_laycol_iter_list
         
         else:
-            # reset selectable history
+            # reset select history
             del rto_history["select"][view_layer]
             
             # toggle selectability of collection
             laycol_ptr.collection.hide_select = not laycol_ptr.collection.hide_select
         
         
-        # reset selectable all history
+        # reset select all history
         if view_layer in rto_history["select_all"]:
             del rto_history["select_all"][view_layer]
         
@@ -471,9 +492,10 @@ class CMHideOperator(bpy.types.Operator):
         laycol_ptr = layer_collections[self.name]["ptr"]
         
         if not view_layer in rto_history["hide"]:
-            rto_history["hide"][view_layer] = []
-
-        hide_history = rto_history["hide"][view_layer]
+            rto_history["hide"][view_layer] = {"target": "", "history": []}
+        
+        rto_history["hide"][view_layer]["target"] = self.name
+        hide_history = rto_history["hide"][view_layer]["history"]
         
         if event.shift:
             # isolate/de-isolate view of collections
@@ -502,6 +524,9 @@ class CMHideOperator(bpy.types.Operator):
                     for laycol in layer_collections.values():
                         laycol["ptr"].hide_viewport = False
                     
+                # reset hide history
+                del rto_history["hide"][view_layer]
+                
             else:
                 # reset hide history
                 hide_history.clear()
@@ -626,9 +651,10 @@ class CMDisableViewportOperator(bpy.types.Operator):
         laycol_ptr = layer_collections[self.name]["ptr"]
         
         if not view_layer in rto_history["disable"]:
-            rto_history["disable"][view_layer] = []
-
-        disable_history = rto_history["disable"][view_layer]
+            rto_history["disable"][view_layer] = {"target": "", "history": []}
+        
+        rto_history["disable"][view_layer]["target"] = self.name
+        disable_history = rto_history["disable"][view_layer]["history"]
         
         if event.shift:
             # isolate/de-isolate disablement of collections in viewport
@@ -656,7 +682,10 @@ class CMDisableViewportOperator(bpy.types.Operator):
                     # enable all collections in viewport
                     for laycol in layer_collections.values():
                         laycol["ptr"].collection.hide_viewport = False
-                    
+                
+                # reset disable history
+                del rto_history["disable"][view_layer]
+                
             else:
                 # reset disable history
                 disable_history.clear()
@@ -687,7 +716,7 @@ class CMDisableViewportOperator(bpy.types.Operator):
         elif event.ctrl:
             # toggle children
             
-            # reset viewport history
+            # reset disable history
             del rto_history["disable"][view_layer]
             
             # toggle view of collection
@@ -707,14 +736,14 @@ class CMDisableViewportOperator(bpy.types.Operator):
                 laycol_iter_list = new_laycol_iter_list
         
         else:
-            # reset viewport history
+            # reset disable history
             del rto_history["disable"][view_layer]
             
             # toggle disable of collection in viewport
             laycol_ptr.collection.hide_viewport = not laycol_ptr.collection.hide_viewport
         
         
-        # reset viewport all history
+        # reset disable all history
         if view_layer in rto_history["disable_all"]:
             del rto_history["disable_all"][view_layer]
         
@@ -782,9 +811,10 @@ class CMDisableRenderOperator(bpy.types.Operator):
         laycol_ptr = layer_collections[self.name]["ptr"]
         
         if not view_layer in rto_history["render"]:
-            rto_history["render"][view_layer] = []
+            rto_history["render"][view_layer] = {"target": "", "history": []}
 
-        render_history = rto_history["render"][view_layer]
+        rto_history["render"][view_layer]["target"] = self.name
+        render_history = rto_history["render"][view_layer]["history"]
         
         if event.shift:
             # isolate/de-isolate render of collections
@@ -812,7 +842,10 @@ class CMDisableRenderOperator(bpy.types.Operator):
                     # allow render of all collections
                     for laycol in layer_collections.values():
                         laycol["ptr"].collection.hide_render = False
-                    
+                
+                # reset render history
+                del rto_history["render"][view_layer]
+                
             else:
                 # reset render history
                 render_history.clear()
@@ -1133,7 +1166,7 @@ class CMPhantomModeOperator(bpy.types.Operator):
             
             # save current rto history
             for rto, history, in rto_history.items():
-                phantom_history[rto+"_history"] = history.get(view_layer, []).copy()
+                phantom_history[rto+"_history"] = history.get(view_layer, {}).copy()
         
         
         # return to normal mode
