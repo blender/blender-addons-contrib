@@ -8,7 +8,7 @@ bl_info = {
 	"location": "Space > Automatic / Adjustable Material from Image",
 	"description": "One-click material setup from texture for Cycles. Blur from b°wide node pack.",
 	"warning": "Still a work in progress",
-	"wiki_url": "",
+	"doc_url": "",
 	"tracker_url": "mailto:theo.friberg@gmail.com?subject="
 	"Bug report for Cycles Automatic Materials addon&body="
 	"I have come across the following error while using the Cycles automatic"
@@ -17,7 +17,8 @@ bl_info = {
 	" action of yours is related to the error, please include a description"
 	" of it too.):",
 	"support": "COMMUNITY",
-	"category": "Render"}
+	"category": "Render"
+}
 
 if "bpy" in locals():
 	import importlib

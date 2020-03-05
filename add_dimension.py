@@ -24,7 +24,7 @@ bl_info = {
     'location': 'View3D > Add > Curve',
     'description': 'Adds Dimension',
     'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Curve/Dimension',
+    'doc_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Curve/Dimension',
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     'category': 'Add Curve'}
 

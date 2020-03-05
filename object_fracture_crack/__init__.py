@@ -24,9 +24,10 @@ bl_info = {
     "location": "View3D > Sidebar > Create Tab",
     "description": "Fractured Object, or Cracked Surface",
     "warning": "Developmental",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Object/CellFracture",
-    "category": "Object"}
+    "doc_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+               "Scripts/Object/CellFracture",
+    "category": "Object",
+}
 
 
 if "bpy" in locals():

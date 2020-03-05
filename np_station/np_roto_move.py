@@ -26,7 +26,7 @@ bl_info = {
     'location': 'View3D',
     'warning': '',
     'description': 'Rotates selected objects using snap points',
-    'wiki_url': '',
+    'doc_url': '',
     'category': '3D View'}
 
 import bpy

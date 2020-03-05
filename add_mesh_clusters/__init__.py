@@ -45,7 +45,7 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "Panel: View 3D - Tools (right side)",
     "warning": "",
-    "wiki_url": "... will be updated asap ...",
+    "doc_url": "... will be updated asap ...",
     "category": "Add Mesh"}
 
 import os

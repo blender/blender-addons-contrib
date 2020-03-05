@@ -26,7 +26,7 @@ bl_info = {
     "location": "Select a object > View3D > Tool Shelf > Import Movement From .Wav File",
     "description": "Extract movement from .wav sound file.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    "doc_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/Import_Movement_From_Audio_File",
     "tracker_url": "https://developer.blender.org/maniphest/task/edit/form/2/",
     "category": "Import-Export"}
