@@ -330,9 +330,9 @@ class RENDER_OT_apply_size(Operator):
         return {'FINISHED'}
 
 
-classes = ( 
-            RENDER_OT_apply_size, 
-            RENDER_PT_print, 
+classes = (
+            RENDER_OT_apply_size,
+            RENDER_PT_print,
             RenderPrintSertings
             )
 
@@ -350,7 +350,7 @@ def unregister():
 
     for cls in classes:
         unregister_class(cls)
-        
+
     del Scene.print_settings
 
 

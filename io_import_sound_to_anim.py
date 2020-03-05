@@ -67,7 +67,7 @@ def _Interna_Globals(BytesDadosTotProcess, context):
     bl_context = "object"
     bl_label = "Import Movement From Wav File"
     bl_options = {'DEFAULT_CLOSED'}"""
-    
+
 class VIEW3D_PT_SoundPanel(bpy.types.Panel):
     bl_idname = "IMPORTWAVTOOL_PT_tools"
     bl_space_type = "VIEW_3D"
@@ -76,7 +76,7 @@ class VIEW3D_PT_SoundPanel(bpy.types.Panel):
     bl_label = "Import Tool"
     bl_category = "Animate"
     bl_options = {'DEFAULT_CLOSED'}
-    
+
     def draw(self, context):
         layout = self.layout
 
@@ -189,7 +189,7 @@ class VIEW3D_PT_SoundPanel(bpy.types.Panel):
                 row=layout.row()
                 row.label(text='Optional Configurations:')
                 row=layout.row()
-                
+
                 row.prop(context.object.imp_sound_to_anim,"frames_per_second")
                 row=layout.row()
                 #coluna
@@ -564,7 +564,7 @@ class OBJECT_OT_Botao_Import(bpy.types.Operator):
             obi.iSumOptimizerP3=0
             obi.iSumImportFrames=0
             context.object.imp_sound_to_anim.timer_reset_func=False
-            
+
         #limita o loop se estiver no fim
         tot=len(array)-1
         if obi.RunFrom+loop > tot:
@@ -981,7 +981,7 @@ class OBJECT_OT_Botao_Go(bpy.types.Operator):
     RunFrom=0
     Wave_read=0
     MaxAudio=0
-        
+
     def SoundConv(File, DivSens, Sensibil, Resol, context, bAutoSense, bRemoveBeat, bUseBeat, bMoreSensible, \
                                                                             bLessSensible, AudioChannel, loop):
         obg= OBJECT_OT_Botao_Go
@@ -1534,8 +1534,8 @@ def register():
 
 def unregister():
     for cls in reversed(classes):
-        bpy.utils.unregister_class(cls)  
-    #bpy.types.VIEW3D_MT_mesh_add.remove(WavFileImport)  
+        bpy.utils.unregister_class(cls)
+    #bpy.types.VIEW3D_MT_mesh_add.remove(WavFileImport)
     bpy.types.TOPBAR_MT_file_import.remove(WavFileImport)
 
 
