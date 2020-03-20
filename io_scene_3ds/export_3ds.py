@@ -72,9 +72,9 @@ MAT_MAP_UOFFSET = 0xA358  # U axis offset
 MAT_MAP_VOFFSET = 0xA35A  # V axis offset
 MAT_MAP_ANG = 0xA35C      # UV rotation around the z-axis in rad
 
-MATTRANS                = 0xA050  # Transparency value (100-OpacityValue) (percent)
-PCT                     = 0x0030  # Percent chunk
-MASTERSCALE             = 0x0100  # Master scale factor
+MATTRANS = 0xA050  # Transparency value (100-OpacityValue) (percent)
+PCT = 0x0030  # Percent chunk
+MASTERSCALE = 0x0100  # Master scale factor
 
 RGB1 = 0x0011
 RGB2 = 0x0012
@@ -212,9 +212,9 @@ class _3ds_string(object):
         file.write(struct.pack(binary_format, self.value))
 
     def __str__(self):
-        return self.value
+        return str(self.value)
 
-
+    
 class _3ds_point_3d(object):
     """Class representing a three-dimensional point for a 3ds file."""
     __slots__ = "x", "y", "z"
@@ -1029,7 +1029,7 @@ def save(operator,
 
     scene = context.scene
     layer = context.view_layer
-    depsgraph = context.evaluated_depsgraph_get()
+    #depsgraph = context.evaluated_depsgraph_get()
 
     if use_selection:
         objects = (ob for ob in scene.objects if not ob.hide_viewport and ob.select_get(view_layer=layer))
@@ -1047,9 +1047,9 @@ def save(operator,
             if ob.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
                 continue
 
-            ob_derived_eval = ob_derived.evaluated_get(depsgraph)
+            #ob_derived_eval = ob_derived.evaluated_get(depsgraph)
             try:
-                data = ob_derived_eval.to_mesh()
+                data = ob_derived.to_mesh()
             except:
                 data = None
 
@@ -1090,7 +1090,7 @@ def save(operator,
                         if f.material_index >= ma_ls_len:
                             f.material_index = 0
 
-                ob_derived_eval.to_mesh_clear()
+                #ob_derived_eval.to_mesh_clear()
 
         if free:
             free_derived_objects(ob)
@@ -1138,8 +1138,8 @@ def save(operator,
         kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
         '''
 
-        if not blender_mesh.users:
-            bpy.data.meshes.remove(blender_mesh)
+        #if not blender_mesh.users:
+            #bpy.data.meshes.remove(blender_mesh)
         #blender_mesh.vertices = None
 
         i += i
