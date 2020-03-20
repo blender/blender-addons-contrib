@@ -47,8 +47,9 @@ OBJECT = 16384  # 0x4000 // This stores the faces, vertices, etc...
 MATNAME = 0xA000  # This holds the material name
 MATAMBIENT = 0xA010  # Ambient color of the object/material
 MATDIFFUSE = 0xA020  # This holds the color of the object/material
-MATSPECULAR = 0xA030  # SPecular color of the object/material
-MATSHINESS = 0xA040  # ??
+MATSPECULAR = 0xA030  # Specular color of the object/material (percent)
+MATSHINESS = 0xA040  # Specular intensity of the object/material (percent)
+MATSHIN2 = 0xA041  # Reflection of the object/material (percent)
 
 MAT_DIFFUSEMAP = 0xA200  # This is a header for a new diffuse texture
 MAT_OPACMAP = 0xA210  # head for opacity map
@@ -98,7 +99,9 @@ POS_TRACK_TAG = 0xB020
 ROT_TRACK_TAG = 0xB021
 SCL_TRACK_TAG = 0xB022
 
+import bpy
 import struct
+import mathutils
 
 # So 3ds max can open files, limit names to 12 in length
 # this is very annoying for filenames!
@@ -439,21 +442,9 @@ class _3ds_chunk(object):
 def get_material_image_texslots(material):
     # blender utility func.
     if material:
-        return [s for s in material.texture_slots if s and s.texture.type == 'IMAGE' and s.texture.image]
+        return [s for s in material.texture_paint_slots if s and s.texture.type == 'IMAGE' and s.texture.image]
 
     return []
-
-    """
-    images = []
-    if material:
-        for mtex in material.getTextures():
-            if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
-                image = mtex.tex.image
-                if image:
-                    images.append(image) # maye want to include info like diffuse, spec here.
-    return images
-    """
-
 
 def make_material_subchunk(chunk_id, color):
     """Make a material subchunk.
@@ -469,6 +460,13 @@ def make_material_subchunk(chunk_id, color):
     #mat_sub.add_subchunk(col2)
     return mat_sub
 
+def make_percent_subchunk(id, percent):
+    """Make a percentage based subchunk."""
+    pct_sub = _3ds_chunk(id)
+    pct1 = _3ds_chunk(PCT)
+    pct1.add_variable("percent", _3ds_ushort(int(round(percent * 100,0))))
+    pct_sub.add_subchunk(pct1)
+    return pct_sub
 
 def make_material_texture_chunk(chunk_id, texslots, tess_uv_image=None):
     """Make Material Map texture chunk given a seq. of `MaterialTextureSlot`'s
@@ -480,8 +478,6 @@ def make_material_texture_chunk(chunk_id, texslots, tess_uv_image=None):
 
     mat_sub = _3ds_chunk(chunk_id)
     has_entry = False
-
-    import bpy
 
     def add_texslot(texslot):
         texture = texslot.texture
@@ -559,12 +555,16 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, (0.0, 0.0, 0.0)))
         material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, (0.8, 0.8, 0.8)))
         material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1.0, 1.0, 1.0)))
-
+        material_chunk.add_subchunk(make_percent_subchunk(MATSHINESS, .2))
+        material_chunk.add_subchunk(make_percent_subchunk(MATREFLECT, 1))
+        
     else:
-        material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, (material.ambient * material.diffuse_color)[:]))
-        material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.diffuse_color[:]))
+        material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, material.line_color[:3]))
+        material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.diffuse_color[:3]))
         material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specular_color[:]))
-
+        material_chunk.add_subchunk(make_percent_subchunk(MATSHINESS, material.specular_intensity))
+        material_chunk.add_subchunk(make_percent_subchunk(MATREFLECT, material.metallic))
+        
         slots = get_material_image_texslots(material)  # can be None
 
         if slots:
@@ -623,19 +623,20 @@ def extract_triangles(mesh):
 
     If the mesh contains quads, they will be split into triangles."""
     tri_list = []
-    do_uv = bool(mesh.tessface_uv_textures)
+    do_uv = bool(mesh.uv_layers)
 
     img = None
-    for i, face in enumerate(mesh.tessfaces):
+    for i, face in enumerate(mesh.loop_triangles):
         f_v = face.vertices
 
-        uf = mesh.tessface_uv_textures.active.data[i] if do_uv else None
+        uf = mesh.uv_layers.active.data[i] if do_uv else None
 
         if do_uv:
             f_uv = uf.uv
-            img = uf.image if uf else None
-            if img is not None:
-                img = img.name
+            # image is no longer property of meshUV
+            #img = uf.image if uf else None
+            #if img is not None:
+                #img = img.name
 
         # if f_v[3] == 0:
         if len(f_v) == 3:
@@ -731,12 +732,12 @@ def make_faces_chunk(tri_list, mesh, materialDict):
 
     materials = mesh.materials
     if not materials:
-        mat = None
+        ma = None
 
     face_chunk = _3ds_chunk(OBJECT_FACES)
     face_list = _3ds_array()
 
-    if mesh.tessface_uv_textures:
+    if mesh.uv_layers:
         # Gather materials used in this mesh - mat/image pairs
         unique_mats = {}
         for i, tri in enumerate(tri_list):
@@ -744,30 +745,30 @@ def make_faces_chunk(tri_list, mesh, materialDict):
             face_list.add(_3ds_face(tri.vertex_index))
 
             if materials:
-                mat = materials[tri.mat]
-                if mat:
-                    mat = mat.name
+                ma = materials[tri.ma]
+                if ma:
+                    ma = ma.name
 
             img = tri.image
 
             try:
-                context_mat_face_array = unique_mats[mat, img][1]
+                context_ma_face_array = unique_mats[ma, img][1]
             except:
-                name_str = mat if mat else "None"
+                name_str = ma if ma else "None"
                 if img:
                     name_str += img
 
-                context_mat_face_array = _3ds_array()
-                unique_mats[mat, img] = _3ds_string(sane_name(name_str)), context_mat_face_array
+                context_ma_face_array = _3ds_array()
+                unique_mats[ma, img] = _3ds_string(sane_name(name_str)), context_ma_face_array
 
-            context_mat_face_array.add(_3ds_ushort(i))
-            # obj_material_faces[tri.mat].add(_3ds_ushort(i))
+            context_ma_face_array.add(_3ds_ushort(i))
+            # obj_material_faces[tri.ma].add(_3ds_ushort(i))
 
         face_chunk.add_variable("faces", face_list)
-        for mat_name, mat_faces in unique_mats.values():
+        for ma_name, ma_faces in unique_mats.values():
             obj_material_chunk = _3ds_chunk(OBJECT_MATERIAL)
-            obj_material_chunk.add_variable("name", mat_name)
-            obj_material_chunk.add_variable("face_list", mat_faces)
+            obj_material_chunk.add_variable("name", ma_name)
+            obj_material_chunk.add_variable("face_list", ma_faces)
             face_chunk.add_subchunk(obj_material_chunk)
 
     else:
@@ -782,8 +783,8 @@ def make_faces_chunk(tri_list, mesh, materialDict):
 
         for i, tri in enumerate(tri_list):
             face_list.add(_3ds_face(tri.vertex_index))
-            if (tri.mat < n_materials):
-                obj_material_faces[tri.mat].add(_3ds_ushort(i))
+            if (tri.ma < n_materials):
+                obj_material_faces[tri.ma].add(_3ds_ushort(i))
 
         face_chunk.add_variable("faces", face_list)
         for i in range(n_materials):
@@ -823,7 +824,7 @@ def make_mesh_chunk(mesh, matrix, materialDict):
     # Extract the triangles from the mesh:
     tri_list = extract_triangles(mesh)
 
-    if mesh.tessface_uv_textures:
+    if mesh.uv_layers:
         # Remove the face UVs and convert it to vertex UV:
         vert_array, uv_array, tri_list = remove_face_uv(mesh.vertices, tri_list)
     else:
@@ -982,9 +983,6 @@ def save(operator,
          global_matrix=None,
          ):
 
-    import bpy
-    import mathutils
-
     import time
     from bpy_extras.io_utils import create_derived_objects, free_derived_objects
 
@@ -1021,12 +1019,13 @@ def save(operator,
     mesh_objects = []
 
     scene = context.scene
+    layer = context.view_layer
     depsgraph = context.evaluated_depsgraph_get()
 
     if use_selection:
-        objects = (ob for ob in scene.objects if ob.is_visible(scene) and ob.select)
+        objects = (ob for ob in scene.objects if not ob.hide_viewport and ob.select_get(view_layer=layer))
     else:
-        objects = (ob for ob in scene.objects if ob.is_visible(scene))
+        objects = (ob for ob in scene.objects if not ob.hide_viewport)
 
     for ob in objects:
         # get derived objects
@@ -1035,7 +1034,7 @@ def save(operator,
         if derived is None:
             continue
 
-        for ob_derived, mat in derived:
+        for ob_derived, ma in derived:
             if ob.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
                 continue
 
@@ -1046,39 +1045,40 @@ def save(operator,
                 data = None
 
             if data:
-                matrix = global_matrix * mat
+                matrix = global_matrix @ ma
                 data.transform(matrix)
                 mesh_objects.append((ob_derived, data, matrix))
-                mat_ls = data.materials
-                mat_ls_len = len(mat_ls)
+                ma_ls = data.materials
+                ma_ls_len = len(ma_ls)
 
                 # get material/image tuples.
-                if data.tessface_uv_textures:
-                    if not mat_ls:
-                        mat = mat_name = None
+                if data.uv_layers:
+                    if not ma_ls:
+                        ma = ma_name = None
 
-                    for f, uf in zip(data.tessfaces, data.tessface_uv_textures.active.data):
-                        if mat_ls:
-                            mat_index = f.material_index
-                            if mat_index >= mat_ls_len:
-                                mat_index = f.mat = 0
-                            mat = mat_ls[mat_index]
-                            mat_name = None if mat is None else mat.name
+                    for f, uf in zip(data.polygons, data.uv_layers.active.data):
+                        if ma_ls:
+                            ma_index = f.material_index
+                            if ma_index >= ma_ls_len:
+                                ma_index = f.material_index = 0
+                            ma = ma_ls[ma_index]
+                            ma_name = None if ma is None else ma.name
                         # else there already set to none
+                        
+                        # image is no longer property of meshUV
+                        #img = uf.image
+                        #img_name = None if img is None else img.name
 
-                        img = uf.image
-                        img_name = None if img is None else img.name
-
-                        materialDict.setdefault((mat_name, img_name), (mat, img))
+                        materialDict.setdefault((ma_name, None), (ma, None))
 
                 else:
-                    for mat in mat_ls:
-                        if mat:  # material may be None so check its not.
-                            materialDict.setdefault((mat.name, None), (mat, None))
+                    for ma in ma_ls:
+                        if ma:  # material may be None so check its not.
+                            materialDict.setdefault((ma.name, None), (ma, None))
 
                     # Why 0 Why!
-                    for f in data.tessfaces:
-                        if f.material_index >= mat_ls_len:
+                    for f in data.polygons:
+                        if f.material_index >= ma_ls_len:
                             f.material_index = 0
 
                 ob_derived_eval.to_mesh_clear()
@@ -1087,8 +1087,8 @@ def save(operator,
             free_derived_objects(ob)
 
     # Make material chunks for all materials used in the meshes:
-    for mat_and_image in materialDict.values():
-        object_info.add_subchunk(make_material_chunk(mat_and_image[0], mat_and_image[1]))
+    for ma_image in materialDict.values():
+        object_info.add_subchunk(make_material_chunk(ma_image[0], ma_image[1]))
 
     # Give all objects a unique ID and build a dictionary from object name to object id:
     """
