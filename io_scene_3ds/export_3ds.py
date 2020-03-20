@@ -26,6 +26,11 @@ Exporting is based on 3ds loader from www.gametutorials.com(Thanks DigiBen) and 
 from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 """
 
+import bpy
+import math
+import struct
+import mathutils
+
 ######################################################
 # Data Structures
 ######################################################
@@ -47,7 +52,7 @@ OBJECT = 16384  # 0x4000 // This stores the faces, vertices, etc...
 MATNAME = 0xA000  # This holds the material name
 MATAMBIENT = 0xA010  # Ambient color of the object/material
 MATDIFFUSE = 0xA020  # This holds the color of the object/material
-MATSPECULAR = 0xA030  # Specular color of the object/material (percent)
+MATSPECULAR = 0xA030  # Specular color of the object/material
 MATSHINESS = 0xA040  # Specular intensity of the object/material (percent)
 MATSHIN2 = 0xA041  # Reflection of the object/material (percent)
 
@@ -56,7 +61,7 @@ MAT_OPACMAP = 0xA210  # head for opacity map
 MAT_BUMPMAP = 0xA230  # read for normal map
 MAT_SPECMAP = 0xA204  # read for specularity map
 
-#>------ sub defines of MAT_???MAP
+#>------ sub defines of MAT_MAP
 MATMAPFILE = 0xA300  # This holds the file name of a texture
 
 MAT_MAP_TILING = 0xa351   # 2nd bit (from LSB) is mirror UV flag
@@ -65,6 +70,10 @@ MAT_MAP_VSCALE = 0xA356   # V axis scaling
 MAT_MAP_UOFFSET = 0xA358  # U axis offset
 MAT_MAP_VOFFSET = 0xA35A  # V axis offset
 MAT_MAP_ANG = 0xA35C      # UV rotation around the z-axis in rad
+
+MATTRANS                = 0xA050  # Transparency value (100-OpacityValue) (percent)
+PCT                     = 0x0030  # Percent chunk
+MASTERSCALE             = 0x0100  # Master scale factor
 
 RGB1 = 0x0011
 RGB2 = 0x0012
@@ -99,9 +108,6 @@ POS_TRACK_TAG = 0xB020
 ROT_TRACK_TAG = 0xB021
 SCL_TRACK_TAG = 0xB022
 
-import bpy
-import struct
-import mathutils
 
 # So 3ds max can open files, limit names to 12 in length
 # this is very annoying for filenames!
@@ -557,6 +563,7 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1.0, 1.0, 1.0)))
         material_chunk.add_subchunk(make_percent_subchunk(MATSHINESS, .2))
         material_chunk.add_subchunk(make_percent_subchunk(MATREFLECT, 1))
+        material_chunk.add_subchunk(make_percent_subchunk(MATTRANS, 0))
         
     else:
         material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, material.line_color[:3]))
@@ -564,6 +571,7 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specular_color[:]))
         material_chunk.add_subchunk(make_percent_subchunk(MATSHINESS, material.specular_intensity))
         material_chunk.add_subchunk(make_percent_subchunk(MATREFLECT, material.metallic))
+        material_chunk.add_subchunk(make_percent_subchunk(MATTRANS, 1-material.diffuse_color[3]))
         
         slots = get_material_image_texslots(material)  # can be None
 
