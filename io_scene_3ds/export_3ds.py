@@ -1097,6 +1097,11 @@ def save(operator,
     # Make material chunks for all materials used in the meshes:
     for ma_image in materialDict.values():
         object_info.add_subchunk(make_material_chunk(ma_image[0], ma_image[1]))
+    
+    # Added MASTERSCALE element
+    mscale = _3ds_chunk(MASTERSCALE)
+    mscale.add_variable("scale", _3ds_float(1))
+    object_info.add_subchunk(mscale)
 
     # Give all objects a unique ID and build a dictionary from object name to object id:
     """
