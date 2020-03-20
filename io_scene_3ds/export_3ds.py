@@ -30,6 +30,7 @@ import bpy
 import math
 import struct
 import mathutils
+import bmesh
 
 ######################################################
 # Data Structures
@@ -562,7 +563,7 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, (0.8, 0.8, 0.8)))
         material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1.0, 1.0, 1.0)))
         material_chunk.add_subchunk(make_percent_subchunk(MATSHINESS, .2))
-        material_chunk.add_subchunk(make_percent_subchunk(MATREFLECT, 1))
+        material_chunk.add_subchunk(make_percent_subchunk(MATSHIN2, 1))
         material_chunk.add_subchunk(make_percent_subchunk(MATTRANS, 0))
         
     else:
@@ -570,7 +571,7 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.diffuse_color[:3]))
         material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specular_color[:]))
         material_chunk.add_subchunk(make_percent_subchunk(MATSHINESS, material.specular_intensity))
-        material_chunk.add_subchunk(make_percent_subchunk(MATREFLECT, material.metallic))
+        material_chunk.add_subchunk(make_percent_subchunk(MATSHIN2, material.metallic))
         material_chunk.add_subchunk(make_percent_subchunk(MATTRANS, 1-material.diffuse_color[3]))
         
         slots = get_material_image_texslots(material)  # can be None
@@ -628,8 +629,8 @@ class tri_wrapper(object):
 
 def extract_triangles(mesh):
     """Extract triangles from a mesh.
-
     If the mesh contains quads, they will be split into triangles."""
+    
     tri_list = []
     do_uv = bool(mesh.uv_layers)
 
