@@ -20,9 +20,9 @@
 
 bl_info = {
     "name": "Autodesk 3DS format",
-    "author": "Bob Holcomb, Campbell Barton, Andreas Atteneder",
-    "version": (2, 0, 0),
-    "blender": (2, 80, 0),
+    "author": "Bob Holcomb, Campbell Barton, Andreas Atteneder, Sebastian Schrand",
+    "version": (2, 1, 0),
+    "blender": (2, 82, 0),
     "location": "File > Import",
     "description": "Import 3DS, meshes, uvs, materials, textures, "
                    "cameras & lamps",
@@ -83,6 +83,12 @@ class Import3DS(bpy.types.Operator, ImportHelper):
             name="Apply Transform",
             description="Workaround for object transformations "
                         "importing incorrectly",
+            default=True,
+            )
+
+    read_keyframe: bpy.props.BoolProperty(
+            name="Read Keyframe",
+            description="Read the keyframe data",
             default=True,
             )
 
@@ -147,8 +153,7 @@ def menu_func_import(self, context):
 
 def register():
     bpy.utils.register_class(Import3DS)
-#     TODO: Restore export
-#     bpy.utils.register_class(Export3DS)
+    bpy.utils.register_class(Export3DS)
 
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
@@ -156,8 +161,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(Import3DS)
-#    TODO: Restore export
-#     bpy.utils.unregister_class(Export3DS)
+    bpy.utils.unregister_class(Export3DS)
 
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
