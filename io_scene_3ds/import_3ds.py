@@ -308,7 +308,7 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
     contextWrapper._grid_to_location(1, 0, dst_node=contextWrapper.node_out, ref_node=shader)
 
 
-def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEARCH, KEYFRAME):
+def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SEARCH, KEYFRAME):
     from bpy_extras.image_utils import load_image
 
     contextObName = None
@@ -339,8 +339,14 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
     object_parent = []  # index of parent in hierarchy, 0xFFFF = no parent
     pivot_list = []  # pivots with hierarchy handling
 
-    def putContextMesh(context, myContextMesh_vertls, myContextMesh_facels,
-                       myContextMeshMaterials, myContextMeshSmooth):
+    def putContextMesh(
+            context,
+            myContextMesh_vertls,
+            myContextMesh_facels,
+
+            myContextMeshMaterials,
+            myContextMesh_smooth,
+    ):
         bmesh = bpy.data.meshes.new(contextObName)
 
         if myContextMesh_facels is None:
@@ -412,7 +418,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
         ob = bpy.data.objects.new(contextObName, bmesh)
         object_dictionary[contextObName] = ob
         context.view_layer.active_layer_collection.collection.objects.link(ob)
-        importedObjects.append(ob)
+        imported_objects.append(ob)
 
         if myContextMesh_smooth:
             for f, pl in enumerate(bmesh.polygons):
@@ -540,7 +546,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
 
         # is it an object info chunk?
         elif new_chunk.ID == OBJECTINFO:
-            process_next_chunk(context, file, new_chunk, importedObjects, IMAGE_SEARCH, KEYFRAME)
+            process_next_chunk(context, file, new_chunk, imported_objects, IMAGE_SEARCH, KEYFRAME)
 
             # keep track of how much we read in the main chunk
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -554,7 +560,8 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
                     contextMesh_vertls,
                     contextMesh_facels,
                     contextMeshMaterials,
-                    contextMesh_smooth)
+                    contextMesh_smooth,
+                )
                 contextMesh_vertls = []
                 contextMesh_facels = []
                 contextMeshMaterials = []
@@ -699,7 +706,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             newLamp = bpy.data.lights.new("Lamp", 'POINT')
             contextLamp = bpy.data.objects.new(contextObName, newLamp)
             context.view_layer.active_layer_collection.collection.objects.link(contextLamp)
-            importedObjects.append(contextLamp)
+            imported_objects.append(contextLamp)
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.location = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
@@ -861,7 +868,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             if child is None and object_name != '$AMBIENT$':
                 child = bpy.data.objects.new(object_name, None)  # create an empty object
                 context.view_layer.active_layer_collection.collection.objects.link(child)
-                importedObjects.append(child)
+                imported_objects.append(child)
 
             object_list.append(child)
             object_parent.append(hierarchy)
@@ -1054,7 +1061,7 @@ def load_3ds(filepath,
     if bpy.ops.object.select_all.poll():
         bpy.ops.object.select_all(action='DESELECT')
 
-    time1 = time.clock()
+    time1 = time.time()
 #   time1 = Blender.sys.time()
 
     current_chunk = Chunk()
@@ -1082,8 +1089,8 @@ def load_3ds(filepath,
 
     scn = context.scene
 
-    importedObjects = []  # Fill this list with objects
-    process_next_chunk(context, file, current_chunk, importedObjects, IMAGE_SEARCH, KEYFRAME)
+    imported_objects = []  # Fill this list with objects
+    process_next_chunk(context, file, current_chunk, imported_objects, IMAGE_SEARCH, KEYFRAME)
 
     # fixme, make unglobal
     object_dictionary.clear()
@@ -1095,18 +1102,18 @@ def load_3ds(filepath,
     # REMOVE DUMMYVERT, - remove this in the next release when blenders internal are fixed.
 
     if APPLY_MATRIX:
-        for ob in importedObjects:
+        for ob in imported_objects:
             if ob.type == 'MESH':
                 me = ob.data
                 me.transform(ob.matrix_local.inverted())
 
-    # print(importedObjects)
+    # print(imported_objects)
     if global_matrix:
-        for ob in importedObjects:
+        for ob in imported_objects:
             if ob.type == 'MESH' and ob.parent is None:
                 ob.matrix_world = ob.matrix_world @ global_matrix
 
-    for ob in importedObjects:
+    for ob in imported_objects:
         ob.select_set(True)
 
     # Done DUMMYVERT
@@ -1115,11 +1122,11 @@ def load_3ds(filepath,
         name = filepath.split('\\')[-1].split('/')[-1]
         # Create a group for this import.
         group_scn = Scene.New(name)
-        for ob in importedObjects:
+        for ob in imported_objects:
             group_scn.link(ob) # dont worry about the layers
 
         grp = Blender.Group.New(name)
-        grp.objects = importedObjects
+        grp.objects = imported_objects
 
         grp_ob = Object.New('Empty', name)
         grp_ob.enableDupGroup = True
@@ -1129,7 +1136,7 @@ def load_3ds(filepath,
         grp_ob.sel = 1
     else:
         # Select all imported objects.
-        for ob in importedObjects:
+        for ob in imported_objects:
             scn.link(ob)
             ob.Layers = Layers
             ob.sel = 1
@@ -1142,7 +1149,7 @@ def load_3ds(filepath,
     global_clight_size = IMPORT_CONSTRAIN_BOUNDS
     if global_clight_size != 0.0:
         # Get all object bounds
-        for ob in importedObjects:
+        for ob in imported_objects:
             for v in ob.bound_box:
                 for axis, value in enumerate(v):
                     if axis_min[axis] > value:
@@ -1161,12 +1168,12 @@ def load_3ds(filepath,
 
         scale_mat = mathutils.Matrix.Scale(scale, 4)
 
-        for obj in importedObjects:
+        for obj in imported_objects:
             if obj.parent is None:
                 obj.matrix_world = scale_mat @ obj.matrix_world
 
     # Select all new objects.
-    print(" done in %.4f sec." % (time.clock() - time1))
+    print(" done in %.4f sec." % (time.time() - time1))
     file.close()
 
 

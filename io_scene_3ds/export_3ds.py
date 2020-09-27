@@ -675,7 +675,7 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(shading)
 
         if wrap.base_color_texture:
-            d_pct = 0.7 + sum(wrap.base_color[:]) * .1
+            d_pct = 0.7 + sum(wrap.base_color[:]) * 0.1
             color = [wrap.base_color_texture]
             matmap = make_material_texture_chunk(MAT_DIFFUSEMAP, color, d_pct)
             if matmap:
