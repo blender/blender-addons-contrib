@@ -37,25 +37,25 @@ BOUNDS_3DS = []
 # Data Structures
 ######################################################
 
-#Some of the chunks that we will see
-#----- Primary Chunk, at the beginning of each file
+# Some of the chunks that we will see
+# ----- Primary Chunk, at the beginning of each file
 PRIMARY = 0x4D4D
 
-#------ Main Chunks
+# ------ Main Chunks
 OBJECTINFO = 0x3D3D  # This gives the version of the mesh and is found right before the material and object information
 VERSION = 0x0002  # This gives the version of the .3ds file
 EDITKEYFRAME = 0xB000  # This is the header for all of the key frame info
 
-#------ Data Chunks, used for various attributes
+# ------ Data Chunks, used for various attributes
 PERCENTAGE_SHORT = 0x30
 PERCENTAGE_FLOAT = 0x31
 
-#------ sub defines of OBJECTINFO
+# ------ sub defines of OBJECTINFO
 MATERIAL = 0xAFFF  # This stored the texture info
 OBJECT = 0x4000  # This stores the faces, vertices, etc...
 
-#>------ sub defines of MATERIAL
-#------ sub defines of MATERIAL_BLOCK
+# >------ sub defines of MATERIAL
+# ------ sub defines of MATERIAL_BLOCK
 MAT_NAME = 0xA000  # This holds the material name
 MAT_AMBIENT = 0xA010  # Ambient color of the object/material
 MAT_DIFFUSE = 0xA020  # This holds the color of the object/material
@@ -92,7 +92,7 @@ MAT_MAP_BCOL = 0xA368  # Blue mapping
 MAT_FLOAT_COLOR = 0x0010  # color defined as 3 floats
 MAT_24BIT_COLOR = 0x0011  # color defined as 3 bytes
 
-#>------ sub defines of OBJECT
+# >------ sub defines of OBJECT
 OBJECT_MESH = 0x4100  # This lets us know that we are reading a new object
 OBJECT_LIGHT = 0x4600  # This lets un know we are reading a light object
 OBJECT_LIGHT_SPOT = 0x4610  # The light is a spotloght.
@@ -118,10 +118,10 @@ OBJECT_LIGHT_AMBIENT_LIGHT = 0x4680
 
 OBJECT_CAMERA = 0x4700  # This lets un know we are reading a camera object
 
-#>------ sub defines of CAMERA
+# >------ sub defines of CAMERA
 OBJECT_CAM_RANGES = 0x4720  # The camera range values
 
-#>------ sub defines of OBJECT_MESH
+# >------ sub defines of OBJECT_MESH
 OBJECT_VERTICES = 0x4110  # The objects vertices
 OBJECT_FACES = 0x4120  # The objects faces
 OBJECT_MATERIAL = 0x4130  # This is found if the object has a material, either texture map or color
@@ -129,7 +129,7 @@ OBJECT_UV = 0x4140  # The UV texture coordinates
 OBJECT_SMOOTH = 0x4150  # The Object smooth groups
 OBJECT_TRANS_MATRIX = 0x4160  # The Object Matrix
 
-#>------ sub defines of EDITKEYFRAME
+# >------ sub defines of EDITKEYFRAME
 KFDATA_AMBIENT = 0xB001
 KFDATA_OBJECT = 0xB002
 KFDATA_CAMERA = 0xB003
@@ -140,7 +140,7 @@ KFDATA_SPOTLIGHT = 0xB007
 KFDATA_KFSEG = 0xB008
 # KFDATA_CURTIME = 0xB009
 # KFDATA_KFHDR = 0xB00A
-#>------ sub defines of KEYFRAME_NODE
+# >------ sub defines of KEYFRAME_NODE
 OBJECT_NODE_HDR = 0xB010
 OBJECT_INSTANCE_NAME = 0xB011
 # OBJECT_PRESCALE = 0xB012
@@ -194,15 +194,15 @@ def read_chunk(file, chunk):
     data = struct.unpack(chunk.binary_format, temp_data)
     chunk.ID = data[0]
     chunk.length = data[1]
-    #update the bytes read function
+    # update the bytes read function
     chunk.bytes_read = 6
 
-    #if debugging
-    #chunk.dump()
+    # if debugging
+    # chunk.dump()
 
 
 def read_string(file):
-    #read in the characters till we get a null character
+    # read in the characters till we get a null character
     s = []
     while True:
         c = file.read(1)
@@ -224,7 +224,7 @@ def process_next_object_chunk(file, previous_chunk):
     new_chunk = Chunk()
 
     while (previous_chunk.bytes_read < previous_chunk.length):
-        #read the next chunk
+        # read the next chunk
         read_chunk(file, new_chunk)
 
 
@@ -238,40 +238,40 @@ def skip_to_end(file, skip_chunk):
 def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, offset, angle, tintcolor, mapto):
     shader = contextWrapper.node_principled_bsdf
     nodetree = contextWrapper.material.node_tree
-    shader.location = (-300,0)
+    shader.location = (-300, 0)
     nodes = nodetree.nodes
     links = nodetree.links
 
     if mapto == 'COLOR':
         mixer = nodes.new(type='ShaderNodeMixRGB')
         mixer.label = "Mixer"
-        mixer.inputs[0].default_value = pct/100
-        mixer.inputs[1].default_value = tintcolor[:3]+[1] if tintcolor else (0,0,0,0)
-        contextWrapper._grid_to_location(1,2, dst_node=mixer, ref_node=shader)
+        mixer.inputs[0].default_value = pct / 100
+        mixer.inputs[1].default_value = tintcolor[:3] + [1] if tintcolor else (0, 0, 0, 0)
+        contextWrapper._grid_to_location(1, 2, dst_node=mixer, ref_node=shader)
         img_wrap = contextWrapper.base_color_texture
         links.new(img_wrap.node_image.outputs['Color'], mixer.inputs[2])
         links.new(mixer.outputs['Color'], shader.inputs['Base Color'])
     elif mapto == 'SPECULARITY':
         img_wrap = contextWrapper.specular_texture
     elif mapto == 'ALPHA':
-        shader.location = (0,-300)
+        shader.location = (0, -300)
         img_wrap = contextWrapper.alpha_texture
     elif mapto == 'METALLIC':
-        shader.location = (300,300)
+        shader.location = (300, 300)
         img_wrap = contextWrapper.metallic_texture
     elif mapto == 'ROUGHNESS':
-        shader.location = (300,0)
+        shader.location = (300, 0)
         img_wrap = contextWrapper.roughness_texture
     elif mapto == 'EMISSION':
-        shader.location = (-300,-600)
+        shader.location = (-300, -600)
         img_wrap = contextWrapper.emission_color_texture
     elif mapto == 'NORMAL':
-        shader.location = (300,300)
+        shader.location = (300, 300)
         img_wrap = contextWrapper.normalmap_texture
     elif mapto == 'TEXTURE':
         img_wrap = nodes.new(type='ShaderNodeTexImage')
         img_wrap.label = image.name
-        contextWrapper._grid_to_location(0,2, dst_node=img_wrap, ref_node=shader)
+        contextWrapper._grid_to_location(0, 2, dst_node=img_wrap, ref_node=shader)
         for node in nodes:
             if node.label == 'Mixer':
                 spare = node.inputs[1] if node.inputs[1].is_linked is False else node.inputs[2]
@@ -284,7 +284,7 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
 
     img_wrap.image = image
     img_wrap.extension = 'REPEAT'
-    
+
     if mapto != 'TEXTURE':
         img_wrap.scale = scale
         img_wrap.translation = offset
@@ -304,8 +304,8 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
     if alpha == 'alpha':
         links.new(img_wrap.node_image.outputs['Alpha'], img_wrap.socket_dst)
 
-    shader.location = (300,300)
-    contextWrapper._grid_to_location(1,0, dst_node=contextWrapper.node_out, ref_node=shader)
+    shader.location = (300, 300)
+    contextWrapper._grid_to_location(1, 0, dst_node=contextWrapper.node_out, ref_node=shader)
 
 
 def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEARCH, KEYFRAME):
@@ -339,7 +339,8 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
     object_parent = []  # index of parent in hierarchy, 0xFFFF = no parent
     pivot_list = []  # pivots with hierarchy handling
 
-    def putContextMesh(context, myContextMesh_vertls, myContextMesh_facels, myContextMeshMaterials, myContextMeshSmooth):
+    def putContextMesh(context, myContextMesh_vertls, myContextMesh_facels,
+                       myContextMeshMaterials, myContextMeshSmooth):
         bmesh = bpy.data.meshes.new(contextObName)
 
         if myContextMesh_facels is None:
@@ -381,7 +382,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
 
                 bmesh.materials.append(bmat)  # can be None
 
-                if uv_faces  and img:
+                if uv_faces and img:
                     for fidx in faces:
                         bmesh.polygons[fidx].material_index = mat_idx
                         # TODO: How to restore this?
@@ -423,7 +424,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             ob.matrix_local = contextMatrix
             object_matrix[ob] = contextMatrix.copy()
 
-    #a spare chunk
+    # a spare chunk
     new_chunk = Chunk()
     temp_chunk = Chunk()
 
@@ -458,14 +459,14 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
         extend = 'wrap'
         alpha = False
         pct = 50
-        
+
         contextWrapper.emission_color = contextMaterial.line_color[:3]
         contextWrapper.base_color = contextMaterial.diffuse_color[:3]
         contextWrapper.specular = contextMaterial.specular_intensity
         contextWrapper.roughness = contextMaterial.roughness
         contextWrapper.metallic = contextMaterial.metallic
         contextWrapper.alpha = contextMaterial.diffuse_color[3]
-        
+
         while (new_chunk.bytes_read < new_chunk.length):
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == PERCENTAGE_SHORT:
@@ -523,32 +524,37 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
 
     dirname = os.path.dirname(file.name)
 
-    #loop through all the data for this chunk (previous chunk) and see what it is
+    # loop through all the data for this chunk (previous chunk) and see what it is
     while (previous_chunk.bytes_read < previous_chunk.length):
         read_chunk(file, new_chunk)
 
-        #is it a Version chunk?
+        # is it a Version chunk?
         if new_chunk.ID == VERSION:
-            #read in the version of the file
+            # read in the version of the file
             temp_data = file.read(struct.calcsize('I'))
             version = struct.unpack('<I', temp_data)[0]
             new_chunk.bytes_read += 4  # read the 4 bytes for the version number
-            #this loader works with version 3 and below, but may not with 4 and above
+            # this loader works with version 3 and below, but may not with 4 and above
             if version > 3:
                 print('\tNon-Fatal Error:  Version greater than 3, may not load correctly: ', version)
 
-        #is it an object info chunk?
+        # is it an object info chunk?
         elif new_chunk.ID == OBJECTINFO:
             process_next_chunk(context, file, new_chunk, importedObjects, IMAGE_SEARCH, KEYFRAME)
 
-            #keep track of how much we read in the main chunk
+            # keep track of how much we read in the main chunk
             new_chunk.bytes_read += temp_chunk.bytes_read
 
-        #is it an object chunk?
+        # is it an object chunk?
         elif new_chunk.ID == OBJECT:
 
             if CreateBlenderObject:
-                putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMeshMaterials, contextMesh_smooth)
+                putContextMesh(
+                    context,
+                    contextMesh_vertls,
+                    contextMesh_facels,
+                    contextMeshMaterials,
+                    contextMesh_smooth)
                 contextMesh_vertls = []
                 contextMesh_facels = []
                 contextMeshMaterials = []
@@ -561,7 +567,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             contextObName, read_str_len = read_string(file)
             new_chunk.bytes_read += read_str_len
 
-        #is it a material chunk?
+        # is it a material chunk?
         elif new_chunk.ID == MATERIAL:
             contextMaterial = bpy.data.materials.new('Material')
             contextWrapper = PrincipledBSDFWrapper(contextMaterial, is_readonly=False, use_nodes=False)
@@ -569,7 +575,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
         elif new_chunk.ID == MAT_NAME:
             material_name, read_str_len = read_string(file)
 
-            #plus one for the null character that ended the string
+            # plus one for the null character that ended the string
             new_chunk.bytes_read += read_str_len
             contextMaterial.name = material_name.rstrip()  # remove trailing  whitespace
             MATDICT[material_name] = contextMaterial
@@ -653,7 +659,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextMaterial.diffuse_color[3] = 1 - float(struct.unpack('f', temp_data)[0])
             else:
-                print( "Cannot read material transparency")
+                print("Cannot read material transparency")
             new_chunk.bytes_read += temp_chunk.bytes_read
 
         elif new_chunk.ID == MAT_TEXTURE_MAP:
@@ -709,17 +715,17 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             temp_data = file.read(SZ_FLOAT)
             contextLamp.data.energy = float(struct.unpack('f', temp_data)[0])
             new_chunk.bytes_read += SZ_FLOAT
-            
+
         elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_SPOT:  # spotlight
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.data.type = 'SPOT'
             spot = mathutils.Vector(struct.unpack('<3f', temp_data))
             aim = contextLamp.location + spot
-            hypo = math.copysign(math.sqrt(pow(aim[1],2)+pow(aim[0],2)),aim[1])
-            track = math.copysign(math.sqrt(pow(hypo,2)+pow(spot[2],2)),aim[1])
-            angle = math.radians(90)-math.copysign(math.acos(hypo/track),aim[2])
-            contextLamp.rotation_euler[0] = -1*math.copysign(angle, aim[1])
-            contextLamp.rotation_euler[2] = -1*(math.radians(90)-math.acos(aim[0]/hypo))
+            hypo = math.copysign(math.sqrt(pow(aim[1], 2) + pow(aim[0], 2)), aim[1])
+            track = math.copysign(math.sqrt(pow(hypo, 2) + pow(spot[2], 2)), aim[1])
+            angle = math.radians(90) - math.copysign(math.acos(hypo / track), aim[2])
+            contextLamp.rotation_euler[0] = -1 * math.copysign(angle, aim[1])
+            contextLamp.rotation_euler[2] = -1 * (math.radians(90) - math.acos(aim[0] / hypo))
             new_chunk.bytes_read += SZ_3FLOAT
             temp_data = file.read(SZ_FLOAT)  # hotspot
             hotspot = float(struct.unpack('f', temp_data)[0])
@@ -727,13 +733,13 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             temp_data = file.read(SZ_FLOAT)  # angle
             beam_angle = float(struct.unpack('f', temp_data)[0])
             contextLamp.data.spot_size = math.radians(beam_angle)
-            contextLamp.data.spot_blend = (1.0 - (hotspot/beam_angle))*2
+            contextLamp.data.spot_blend = (1.0 - (hotspot / beam_angle)) * 2
             new_chunk.bytes_read += SZ_FLOAT
         elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_ROLL:  # roll
             temp_data = file.read(SZ_FLOAT)
             contextLamp.rotation_euler[1] = float(struct.unpack('f', temp_data)[0])
             new_chunk.bytes_read += SZ_FLOAT
-            
+
         elif contextObName and new_chunk.ID == OBJECT_CAMERA and CreateCameraObject is False:  # Basic camera support
             camera = bpy.data.cameras.new("Camera")
             contextCamera = bpy.data.objects.new(contextObName, camera)
@@ -745,14 +751,14 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             temp_data = file.read(SZ_3FLOAT)
             target = mathutils.Vector(struct.unpack('<3f', temp_data))
             cam = contextCamera.location + target
-            focus = math.copysign(math.sqrt(pow(cam[1],2)+pow(cam[0],2)),cam[1])
+            focus = math.copysign(math.sqrt(pow(cam[1], 2) + pow(cam[0], 2)), cam[1])
             new_chunk.bytes_read += SZ_3FLOAT
             temp_data = file.read(SZ_FLOAT)   # triangulating camera angles
-            direction = math.copysign(math.sqrt(pow(focus,2)+pow(target[2],2)),cam[1])
-            pitch = math.radians(90)-math.copysign(math.acos(focus/direction),cam[2])
-            contextCamera.rotation_euler[0] = -1*math.copysign(pitch, cam[1])
+            direction = math.copysign(math.sqrt(pow(focus, 2) + pow(target[2], 2)), cam[1])
+            pitch = math.radians(90) - math.copysign(math.acos(focus / direction), cam[2])
+            contextCamera.rotation_euler[0] = -1 * math.copysign(pitch, cam[1])
             contextCamera.rotation_euler[1] = float(struct.unpack('f', temp_data)[0])
-            contextCamera.rotation_euler[2] = -1*(math.radians(90)-math.acos(cam[0]/focus))
+            contextCamera.rotation_euler[2] = -1 * (math.radians(90) - math.acos(cam[0] / focus))
             new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_FLOAT)
             contextCamera.data.lens = (float(struct.unpack('f', temp_data)[0]) * 10)
@@ -763,10 +769,10 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
 
         elif new_chunk.ID == OBJECT_MESH:
             pass
-        
+
         elif new_chunk.ID == OBJECT_VERTICES:
             """Worldspace vertex locations"""
-            
+
             temp_data = file.read(SZ_U_SHORT)
             num_verts = struct.unpack('<H', temp_data)[0]
             new_chunk.bytes_read += 2
@@ -793,7 +799,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             new_chunk.bytes_read += SZ_U_SHORT * num_faces_using_mat
             temp_data = struct.unpack("<%dH" % (num_faces_using_mat), temp_data)
             contextMeshMaterials.append((material_name, temp_data))
-            #look up the material in all the materials
+            # look up the material in all the materials
 
         elif new_chunk.ID == OBJECT_SMOOTH:
             temp_data = file.read(struct.calcsize('I') * num_faces)
@@ -814,17 +820,19 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             temp_data = file.read(SZ_4x3MAT)
             data = list(struct.unpack('<ffffffffffff', temp_data))
             new_chunk.bytes_read += SZ_4x3MAT
-            contextMatrix = mathutils.Matrix((data[:3]+[0], data[3:6]+[0], data[6:9]+[0], data[9:]+[1])).transposed()
+            contextMatrix = mathutils.Matrix(
+                (data[:3] + [0], data[3:6] + [0], data[6:9] + [0], data[9:] + [1])).transposed()
 
-        elif  (new_chunk.ID == MAT_MAP_FILEPATH):
+        elif (new_chunk.ID == MAT_MAP_FILEPATH):
             texture_name, read_str_len = read_string(file)
             if contextMaterial.name not in TEXTURE_DICT:
-                TEXTURE_DICT[contextMaterial.name] = load_image(texture_name, dirname, place_holder=False, recursive=IMAGE_SEARCH)
+                TEXTURE_DICT[contextMaterial.name] = load_image(
+                    texture_name, dirname, place_holder=False, recursive=IMAGE_SEARCH)
 
             new_chunk.bytes_read += read_str_len  # plus one for the null character that gets removed
         elif new_chunk.ID == EDITKEYFRAME:
             pass
-        
+
         elif new_chunk.ID == KFDATA_KFSEG:
             temp_data = file.read(struct.calcsize('I'))
             start = struct.unpack('<I', temp_data)[0]
@@ -836,7 +844,8 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             context.scene.frame_end = stop
 
         # including these here means their EK_OB_NODE_HEADER are scanned
-        elif new_chunk.ID in {KFDATA_AMBIENT, KFDATA_CAMERA, KFDATA_OBJECT, KFDATA_TARGET, KFDATA_LIGHT, KFDATA_L_TARGET,}:  # another object is being processed
+        # another object is being processed
+        elif new_chunk.ID in {KFDATA_AMBIENT, KFDATA_CAMERA, KFDATA_OBJECT, KFDATA_TARGET, KFDATA_LIGHT, KFDATA_L_TARGET, }:
             child = None
 
         elif new_chunk.ID == OBJECT_NODE_HDR:
@@ -862,7 +871,8 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             object_name, read_str_len = read_string(file)
             if child.name == '$$$DUMMY':
                 child.name = object_name
-            else: child.name += "." + object_name
+            else:
+                child.name += "." + object_name
             object_dictionary[object_name] = child
             new_chunk.bytes_read += read_str_len
 
@@ -908,7 +918,8 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
                 rad, axis_x, axis_y, axis_z = struct.unpack("<4f", temp_data)
                 new_chunk.bytes_read += SZ_4FLOAT
                 if nframe == 0:
-                    child.rotation_euler = mathutils.Quaternion((axis_x, axis_y, axis_z), -rad).to_euler()   # why negative?
+                    child.rotation_euler = mathutils.Quaternion(
+                        (axis_x, axis_y, axis_z), -rad).to_euler()   # why negative?
 
         elif KEYFRAME and new_chunk.ID == SCL_TRACK_TAG and child.type == 'MESH':  # scale
             new_chunk.bytes_read += SZ_U_SHORT * 5
@@ -966,7 +977,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
                 new_chunk.bytes_read += SZ_FLOAT
                 if nframe == 0:
                     child.data.angle = math.radians(fov)
-                    
+
         elif new_chunk.ID == ROLL_TRACK_TAG and child.type == 'CAMERA':  # Roll angle
             new_chunk.bytes_read += SZ_U_SHORT * 5
             temp_data = file.read(SZ_U_SHORT * 5)
@@ -992,7 +1003,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
             temp_data = file.read(struct.calcsize(binary_format))
             new_chunk.bytes_read += buffer_size
 
-        #update the previous chunk bytes read
+        # update the previous chunk bytes read
         previous_chunk.bytes_read += new_chunk.bytes_read
 
     # FINISHED LOOP
@@ -1020,7 +1031,7 @@ def process_next_chunk(context, file, previous_chunk, importedObjects, IMAGE_SEA
         if ob.type == 'MESH':
             pivot = pivot_list[ind]
             pivot_matrix = object_matrix.get(ob, mathutils.Matrix())  # unlikely to fail
-            pivot_matrix = mathutils.Matrix.Translation(-1*pivot)
+            pivot_matrix = mathutils.Matrix.Translation(-1 * pivot)
             #pivot_matrix = mathutils.Matrix.Translation(pivot_matrix.to_3x3() @ -pivot)
             ob.data.transform(pivot_matrix)
 
@@ -1032,11 +1043,11 @@ def load_3ds(filepath,
              KEYFRAME=True,
              APPLY_MATRIX=True,
              global_matrix=None):
-#    global SCN
+    #    global SCN
 
     # XXX
-#   if BPyMessages.Error_NoFile(filepath):
-#       return
+    #   if BPyMessages.Error_NoFile(filepath):
+    #       return
 
     print("importing 3DS: %r..." % (filepath), end="")
 
@@ -1050,7 +1061,7 @@ def load_3ds(filepath,
 
     file = open(filepath, 'rb')
 
-    #here we go!
+    # here we go!
     # print 'reading the first chunk'
     read_chunk(file, current_chunk)
     if current_chunk.ID != PRIMARY:
@@ -1063,7 +1074,7 @@ def load_3ds(filepath,
     else:
         del BOUNDS_3DS[:]
 
-    ##IMAGE_SEARCH
+    # IMAGE_SEARCH
 
     # fixme, make unglobal, clear in case
     object_dictionary.clear()

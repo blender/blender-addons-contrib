@@ -18,6 +18,19 @@
 
 # <pep8-80 compliant>
 
+from bpy_extras.io_utils import (
+    ImportHelper,
+    ExportHelper,
+    orientation_helper,
+    axis_conversion,
+)
+from bpy.props import (
+    BoolProperty,
+    EnumProperty,
+    FloatProperty,
+    StringProperty,
+)
+import bpy
 bl_info = {
     "name": "Autodesk 3DS format",
     "author": "Bob Holcomb, Campbell Barton, Andreas Atteneder, Sebastian Schrand",
@@ -40,21 +53,6 @@ if "bpy" in locals():
         importlib.reload(export_3ds)
 
 
-import bpy
-from bpy.props import (
-        BoolProperty,
-        EnumProperty,
-        FloatProperty,
-        StringProperty,
-        )
-from bpy_extras.io_utils import (
-        ImportHelper,
-        ExportHelper,
-        orientation_helper,
-        axis_conversion,
-        )
-
-
 @orientation_helper(axis_forward='Y', axis_up='Z')
 class Import3DS(bpy.types.Operator, ImportHelper):
     """Import from 3DS file format (.3ds)"""
@@ -66,31 +64,31 @@ class Import3DS(bpy.types.Operator, ImportHelper):
     filter_glob: StringProperty(default="*.3ds", options={'HIDDEN'})
 
     constrain_size: FloatProperty(
-            name="Size Constraint",
-            description="Scale the model by 10 until it reaches the "
-                        "size constraint (0 to disable)",
-            min=0.0, max=1000.0,
-            soft_min=0.0, soft_max=1000.0,
-            default=10.0,
-            )
+        name="Size Constraint",
+        description="Scale the model by 10 until it reaches the "
+        "size constraint (0 to disable)",
+        min=0.0, max=1000.0,
+        soft_min=0.0, soft_max=1000.0,
+        default=10.0,
+    )
     use_image_search: BoolProperty(
-            name="Image Search",
-            description="Search subdirectories for any associated images "
-                        "(Warning, may be slow)",
-            default=True,
-            )
+        name="Image Search",
+        description="Search subdirectories for any associated images "
+        "(Warning, may be slow)",
+        default=True,
+    )
     use_apply_transform: BoolProperty(
-            name="Apply Transform",
-            description="Workaround for object transformations "
-                        "importing incorrectly",
-            default=True,
-            )
+        name="Apply Transform",
+        description="Workaround for object transformations "
+        "importing incorrectly",
+        default=True,
+    )
 
     read_keyframe: bpy.props.BoolProperty(
-            name="Read Keyframe",
-            description="Read the keyframe data",
-            default=True,
-            )
+        name="Read Keyframe",
+        description="Read the keyframe data",
+        default=True,
+    )
 
     def execute(self, context):
         from . import import_3ds
@@ -116,15 +114,15 @@ class Export3DS(bpy.types.Operator, ExportHelper):
 
     filename_ext = ".3ds"
     filter_glob: StringProperty(
-            default="*.3ds",
-            options={'HIDDEN'},
-            )
+        default="*.3ds",
+        options={'HIDDEN'},
+    )
 
     use_selection: BoolProperty(
-            name="Selection Only",
-            description="Export selected objects only",
-            default=False,
-            )
+        name="Selection Only",
+        description="Export selected objects only",
+        default=False,
+    )
 
     def execute(self, context):
         from . import export_3ds
@@ -173,6 +171,7 @@ def unregister():
 #
 # disabled scaling to size, this requires exposing bb (easy) and understanding
 # how it works (needs some time)
+
 
 if __name__ == "__main__":
     register()
