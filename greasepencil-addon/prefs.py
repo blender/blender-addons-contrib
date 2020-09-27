@@ -21,9 +21,11 @@ import os
 from bpy.props import (
         BoolProperty,
         EnumProperty,
+        StringProperty,
         # IntProperty,
         )
 
+from .ui_panels import GP_PT_sidebarPanel
 
 def get_addon_prefs():
     import os
@@ -31,14 +33,29 @@ def get_addon_prefs():
     addon_prefs = bpy.context.preferences.addons[addon_name].preferences
     return (addon_prefs)
 
+## Addons Preferences Update Panel
+def update_panel(self, context):
+    try:
+        bpy.utils.unregister_class(GP_PT_sidebarPanel)
+    except:
+        pass
+    GP_PT_sidebarPanel.bl_category = get_addon_prefs().category
+    bpy.utils.register_class(GP_PT_sidebarPanel)
+
 ## keymap binder for rotate canvas
 def auto_rebind(self, context):
     unregister_keymaps()
     register_keymaps()
 
 class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
-    bl_idname = os.path.splitext(__name__)[0]#'greasepencil-addon'#can be called 'master'
+    bl_idname = os.path.splitext(__name__)[0]#'greasepencil-addon' ... __package__ ?
     # bl_idname = __name__
+
+    category : StringProperty(
+            name="Category",
+            description="Choose a name for the category of the panel",
+            default="Grease pencil",
+            update=update_panel)
 
     pref_tabs : EnumProperty(
         items=(('PREF', "Preferences", "Preferences properties of GP"),
@@ -116,6 +133,13 @@ class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
             row.prop(self, "pref_tabs", expand=True)
 
             if self.pref_tabs == 'PREF':
+                
+                ## TAB CATEGORY 
+                box = layout.box()
+                row = box.row(align=True)
+                row.label(text="Panel Category:")
+                row.prop(self, "category", text="")
+
                 ## BOX DEFORM
                 layout.label(text='Box deform tool preferences')
                 layout.prop(self, "use_clic_drag")

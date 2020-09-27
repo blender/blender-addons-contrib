@@ -21,7 +21,7 @@ bl_info = {
 "name": "Grease Pencil Tools",
 "description": "Pack of tools for Grease pencil drawing",
 "author": "Samuel Bernou",
-"version": (1, 0, 3),
+"version": (1, 1, 0),
 "blender": (2, 83, 0),
 "location": "sidebar (N) > Grease pencil > Grease pencil",
 "warning": "",
@@ -31,6 +31,7 @@ bl_info = {
 # "support": "COMMUNITY",
 }
 
+import bpy
 from .  import (prefs,
                 box_deform,
                 line_reshape,
@@ -46,6 +47,9 @@ def register():
     rotate_canvas.register()
     import_brush_pack.register()
     ui_panels.register()
+
+    ## update panel name with update in pref file (passing addon_prefs)
+    prefs.update_panel(prefs.get_addon_prefs(), bpy.context)
 
 def unregister():
     ui_panels.unregister()
