@@ -100,7 +100,7 @@ class GreasePencilAddonPrefs(bpy.types.AddonPreferences):
 
     mouse_click : EnumProperty(
         name="Mouse button", description="click on right/left/middle mouse button in combination with a modifier to trigger alignement",
-        default='RIGHTMOUSE',
+        default='MIDDLEMOUSE',
         items=(
             ('RIGHTMOUSE', 'Right click', 'Use click on Right mouse button', 'MOUSE_RMB', 0),
             ('LEFTMOUSE', 'Left click', 'Use click on Left mouse button', 'MOUSE_LMB', 1),

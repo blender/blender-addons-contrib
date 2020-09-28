@@ -17,7 +17,10 @@ class GP_OT_install_brush_pack(bpy.types.Operator):
         with bpy.data.libraries.load(str(blend_fp), link=False) as (data_from, data_to):
             # load brushes starting with 'tex' prefix if there are not already there
             data_to.brushes = [b for b in data_from.brushes if b.startswith('tex_') and not b in cur_brushes]
-        
+            # Add holdout
+            if 'z_holdout' in data_from.brushes:
+                data_to.brushes.append('z_holdout')
+
         brush_count = len(data_to.brushes)
         ## force fake user for the brushes
         for b in data_to.brushes:
