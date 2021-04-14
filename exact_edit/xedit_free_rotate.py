@@ -70,7 +70,8 @@ class Colr:
     brown  = 0.15, 0.15, 0.15, 0.20
 
 
-class RotDat:
+# Transformation Data
+class TransDat:
     placeholder = True
 
 
@@ -471,21 +472,21 @@ def init_ref_pts(self):
         ReferencePoint("piv", Colr.yellow)
     ]
     # todo : move this part of initialization elsewhere?
-    RotDat.piv_norm = None
-    RotDat.new_ang_r = None
-    RotDat.ang_diff_r = None
-    RotDat.axis_lock = None
-    RotDat.lock_pts = None
-    RotDat.rot_pt_pos = None
-    RotDat.rot_pt_neg = None
-    RotDat.arc_pts = None
+    TransDat.piv_norm = None
+    TransDat.new_ang_r = None
+    TransDat.ang_diff_r = None
+    TransDat.axis_lock = None
+    TransDat.lock_pts = None
+    TransDat.rot_pt_pos = None
+    TransDat.rot_pt_neg = None
+    TransDat.arc_pts = None
 
 
 def set_piv(self):
     #if self.pt_cnt == 2:
     if self.pt_cnt == 3:
         rpts = [p.co3d for p in self.pts]
-        RotDat.piv_norm = geometry.normal(*rpts)
+        TransDat.piv_norm = geometry.normal(*rpts)
 
 def set_mouse_highlight(self):
     if self.pt_cnt < 3:
@@ -541,7 +542,7 @@ def rem_ref_pt(self, idx):
     if self.pt_cnt > 1:
         updatelock_pts(self, self.pts)
     else:
-        RotDat.axis_lock = None
+        TransDat.axis_lock = None
     self.highlight_mouse = True
 
 
@@ -836,14 +837,14 @@ def set_arc_pts(ref_pts):
         temp.rotate(rot_val)
         arc_pts.append(temp + piv)
 
-    elif RotDat.axis_lock is not None:
-        #if RotDat.axis_lock == 'X':
+    elif TransDat.axis_lock is not None:
+        #if TransDat.axis_lock == 'X':
         #    rot_val = Euler((pi*2, 0.0, 0.0), 'XYZ')
-        if RotDat.axis_lock == 'X':
+        if TransDat.axis_lock == 'X':
             piv_norm = 1.0, 0.0, 0.0
-        elif RotDat.axis_lock == 'Y':
+        elif TransDat.axis_lock == 'Y':
             piv_norm = 0.0, 1.0, 0.0
-        elif RotDat.axis_lock == 'Z':
+        elif TransDat.axis_lock == 'Z':
             piv_norm = 0.0, 0.0, 1.0
         dis_p_f = (piv - fre).length
         dis_p_a = (piv - anc).length
@@ -862,7 +863,7 @@ def set_arc_pts(ref_pts):
             temp.rotate(rot_val)
             arc_pts.append(temp + piv)
 
-    RotDat.arc_pts = arc_pts
+    TransDat.arc_pts = arc_pts
 
 
 # Takes a ref_pts (ReferencePoints class) argument and modifies its member
@@ -873,9 +874,9 @@ def set_arc_pts(ref_pts):
 # todo : move inside ReferencePoints class ?
 def set_lock_pts(ref_pts, pt_cnt):
     if pt_cnt < 2:
-        RotDat.lock_pts = []
-    elif RotDat.axis_lock is None:
-        RotDat.lock_pts = ref_pts
+        TransDat.lock_pts = []
+    elif TransDat.axis_lock is None:
+        TransDat.lock_pts = ref_pts
         if pt_cnt == 3:
             set_arc_pts(ref_pts)
 
@@ -925,30 +926,30 @@ def create_z_orient(rot_vec):
 def updatelock_pts(self, ref_pts):
     global curr_meas_stor
     set_lock_pts(ref_pts, self.pt_cnt)
-    if RotDat.lock_pts == []:
-        if RotDat.axis_lock is not None:
-            self.report({'ERROR'}, 'Axis lock \''+ RotDat.axis_lock+
+    if TransDat.lock_pts == []:
+        if TransDat.axis_lock is not None:
+            self.report({'ERROR'}, 'Axis lock \''+ TransDat.axis_lock+
                     '\' creates identical points')
-        RotDat.lock_pts = ref_pts
-        RotDat.axis_lock = None
+        TransDat.lock_pts = ref_pts
+        TransDat.axis_lock = None
 
 
 # See if key was pressed that would require updating the axis lock info.
 # If one was, update the lock points to use new info.
 def axis_key_check(self, new_axis):
     if self.pt_cnt == 1:
-        if new_axis != RotDat.axis_lock:
-            RotDat.axis_lock = new_axis
+        if new_axis != TransDat.axis_lock:
+            TransDat.axis_lock = new_axis
 
 
 def draw_rot_arc(colr):
     reg = bpy.context.region
     rv3d = bpy.context.region_data
-    len_arc_pts = len(RotDat.arc_pts)
+    len_arc_pts = len(TransDat.arc_pts)
     if len_arc_pts > 1:
-        last = loc3d_to_reg2d(reg, rv3d, RotDat.arc_pts[0])
+        last = loc3d_to_reg2d(reg, rv3d, TransDat.arc_pts[0])
         for p in range(1, len_arc_pts):
-            p2d = loc3d_to_reg2d(reg, rv3d, RotDat.arc_pts[p])
+            p2d = loc3d_to_reg2d(reg, rv3d, TransDat.arc_pts[p])
             draw_line_2d(last, p2d, Colr.white)
             last = p2d
 
@@ -1031,18 +1032,18 @@ def draw_callback_px(self, context):
         rwid = context.region.width
         rhgt = context.region.height
         if self.pt_cnt == 1:
-            if RotDat.axis_lock is not None:
+            if TransDat.axis_lock is not None:
                 if self.running_transf is False:
                     self.rotate_btn.draw_btn(pts2d[0], self.mouse_co)
                     self.rotate_btn.is_drawn = True
 
-                if RotDat.axis_lock == 'X':
+                if TransDat.axis_lock == 'X':
                     test = self.pts[0].co3d + Vector((1, 0, 0))
                     colr = Colr.red
-                elif RotDat.axis_lock == 'Y':
+                elif TransDat.axis_lock == 'Y':
                     test = self.pts[0].co3d + Vector((0, 1, 0))
                     colr = Colr.green
-                elif RotDat.axis_lock == 'Z':
+                elif TransDat.axis_lock == 'Z':
                     test = self.pts[0].co3d + Vector((0, 0, 1))
                     colr = Colr.blue
 
@@ -1058,7 +1059,7 @@ def draw_callback_px(self, context):
                 blf.color(font_id, *colr)
                 blf.size(font_id, txt_sz, dpi)
                 blf.position(font_id, x_pos, y_pos, 0)
-                blf.draw(font_id, RotDat.axis_lock)
+                blf.draw(font_id, TransDat.axis_lock)
 
         elif self.pt_cnt == 2:
             axis_pts = get_axis_line_co(pts2d[0], pts2d[1], rwid, rhgt)
@@ -1073,7 +1074,7 @@ def draw_callback_px(self, context):
                     self.rotate_btn.draw_btn(btn_co, self.mouse_co)
                     self.rotate_btn.is_drawn = True
         elif self.pt_cnt == 3:
-            test = self.pts[2].co3d + RotDat.piv_norm
+            test = self.pts[2].co3d + TransDat.piv_norm
             t2d = loc3d_to_reg2d(reg, rv3d, test)
             axis_pts = get_axis_line_co(pts2d[2], t2d, rwid, rhgt)
             if axis_pts is not None:
@@ -1203,23 +1204,23 @@ class XEDIT_OT_free_rotate(bpy.types.Operator):
                 curs_loc = None
                 #bpy.ops.object.ms_input_dialog_op('INVOKE_DEFAULT')
                 if self.pt_cnt == 1:
-                    if RotDat.axis_lock == 'X':
+                    if TransDat.axis_lock == 'X':
                         rot_axis = Vector((1.0, 0.0, 0.0))
-                    elif RotDat.axis_lock == 'Y':
+                    elif TransDat.axis_lock == 'Y':
                         rot_axis = Vector((0.0, 1.0, 0.0))
-                    elif RotDat.axis_lock == 'Z':
+                    elif TransDat.axis_lock == 'Z':
                         # -1 because it is assumed most rotations
                         # will have negative z pointing down
                         rot_axis = Vector((0.0, 0.0, -1.0))
                     curs_loc = self.pts[0].co3d.copy()
                 elif self.pt_cnt == 2:
-                    #if RotDat.axis_lock is None:
+                    #if TransDat.axis_lock is None:
                     rot_vec = self.pts[1].co3d - self.pts[0].co3d
                     rot_axis = rot_vec.normalized()
                     curs_loc = self.pts[0].co3d.lerp(self.pts[1].co3d, 0.5)
                 elif self.pt_cnt == 3:
-                    #if RotDat.axis_lock is None:
-                    rot_axis = RotDat.piv_norm
+                    #if TransDat.axis_lock is None:
+                    rot_axis = TransDat.piv_norm
                     curs_loc = self.pts[2].co3d.copy()
                 o_mat = create_z_orient(rot_axis)
                 self.running_transf = True
@@ -1321,7 +1322,7 @@ class XEDIT_OT_free_rotate(bpy.types.Operator):
                                     self.pt_cnt += 1
                                     self.menu.change_menu(self.pt_cnt)
                                     if self.pt_cnt > 1:
-                                        RotDat.axis_lock = None
+                                        TransDat.axis_lock = None
                                         updatelock_pts(self, self.pts)
                                         set_piv(self)
                                         #if self.pt_cnt
