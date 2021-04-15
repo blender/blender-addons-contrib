@@ -1271,6 +1271,7 @@ def do_rotate(pivot_co):
     pivot = pivot_co.copy()
     constr_ax = False, False, False
     if axis_lock is None:
+        constr_ax = False, False, True
         #rot_matr = Matrix.Rotation(TransDat.ang_diff_r, 4, TransDat.piv_norm)
         norml = TransDat.piv_norm
         o_mat = create_z_orient(norml)

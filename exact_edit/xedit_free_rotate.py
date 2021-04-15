@@ -1228,7 +1228,8 @@ class XEDIT_OT_free_rotate(bpy.types.Operator):
                 bpy.context.tool_settings.transform_pivot_point = 'CURSOR'
                 bpy.context.scene.cursor.location = curs_loc
                 #bpy.ops.transform.rotate('INVOKE_DEFAULT', axis=rot_axis)
-                bpy.ops.transform.rotate('INVOKE_DEFAULT', orient_matrix=o_mat)
+                bpy.ops.transform.rotate('INVOKE_DEFAULT', orient_matrix=o_mat,
+                        orient_axis='Z', constraint_axis=(False, False, True))
 
             #===========================================
             # Check for click on "Add Selected" Button
