@@ -1034,7 +1034,7 @@ def draw_callback_px(self, context):
         rhgt = context.region.height
         if self.pt_cnt == 1:
             if TransDat.axis_lock is not None:
-                if self.running_transf is False:
+                if not self.running_transf:
                     self.rotate_btn.draw_btn(pts2d[0], self.mouse_co)
                     self.rotate_btn.is_drawn = True
 
@@ -1199,8 +1199,8 @@ class XEDIT_OT_free_rotate(bpy.types.Operator):
             #===================================
             # Check for click on Rotate Button
             #===================================
-            elif self.rotate_btn.is_drawn is True and \
-                    self.rotate_btn.ms_over is True:
+            elif self.rotate_btn.is_drawn and \
+                    self.rotate_btn.ms_over:
                 #print("Button Clicked")
                 curs_loc = None
                 rot_axis = None
