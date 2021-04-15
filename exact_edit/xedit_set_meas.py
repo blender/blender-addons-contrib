@@ -77,6 +77,17 @@ class TransDat:
     placeholder = True
 
 
+def set_transform_data_none():
+    TransDat.piv_norm = None  # Vector
+    TransDat.new_ang_r = None
+    TransDat.ang_diff_r = None  # float
+    TransDat.axis_lock = None  # 'X', 'Y', 'Z'
+    TransDat.lock_pts = None
+    TransDat.rot_pt_pos = None
+    TransDat.rot_pt_neg = None
+    TransDat.arc_pts = None
+
+
 # Refreshes mesh drawing in 3D view and updates mesh coordinate
 # data so ref_pts are drawn at correct locations.
 # Using editmode_toggle to do this seems hackish, but editmode_toggle seems
@@ -564,17 +575,6 @@ def init_ref_pts(self):
         ReferencePoint("anc", Colr.red),
         ReferencePoint("piv", Colr.yellow)
     ]
-
-
-def set_transform_data_none():
-    TransDat.piv_norm = None  # Vector
-    TransDat.new_ang_r = None
-    TransDat.ang_diff_r = None  # float
-    TransDat.axis_lock = None  # 'X', 'Y', 'Z'
-    TransDat.lock_pts = None
-    TransDat.rot_pt_pos = None
-    TransDat.rot_pt_neg = None
-    TransDat.arc_pts = None
 
 
 def set_mouse_highlight(self):
