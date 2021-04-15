@@ -69,7 +69,6 @@ class Colr:
     grey   = 1.0, 1.0, 1.0, 0.4
     black  = 0.0, 0.0, 0.0, 1.0
     yellow = 1.0, 1.0, 0.0, 0.6
-    brown  = 0.15, 0.15, 0.15, 0.20
 
 
 # Transformation Data
@@ -283,8 +282,8 @@ def push_temp_meas():
 
 def make_popup_enums(self, context):
     global prev_popup_inputs, prev_popup_inp_strings
-    prev_popup_inp_strings[:] = [('-', '--', '')]
-    for i, val in enumerate(prev_popup_inputs):
+    prev_popup_inp_strings[:] = [('-', '--', '')]  # reset data
+    for i, val in enumerate(prev_popup_inputs):  # gen enum vals
         prev_popup_inp_strings.append(( str(i), str(val), '' ))
     return prev_popup_inp_strings
 
@@ -565,11 +564,13 @@ def init_ref_pts(self):
         ReferencePoint("anc", Colr.red),
         ReferencePoint("piv", Colr.yellow)
     ]
-    # todo : move this part of initialization elsewhere?
-    TransDat.piv_norm = None
+
+
+def set_transform_data_none():
+    TransDat.piv_norm = None  # Vector
     TransDat.new_ang_r = None
-    TransDat.ang_diff_r = None
-    TransDat.axis_lock = None
+    TransDat.ang_diff_r = None  # float
+    TransDat.axis_lock = None  # 'X', 'Y', 'Z'
     TransDat.lock_pts = None
     TransDat.rot_pt_pos = None
     TransDat.rot_pt_neg = None
@@ -897,10 +898,8 @@ def can_transf(self):
         # arbitrary axis / spherical rotation
         elif not flts_alm_eq(curr_meas_stor, 0.0) and \
         not flts_alm_eq(curr_meas_stor, 180.0):
-            fre_co = self.pts[0].co3d
-            anc_co = self.pts[1].co3d
-            piv_co = self.pts[2].co3d
-            TransDat.piv_norm = geometry.normal(anc_co, piv_co, fre_co)
+            rpts = tuple(p.co3d for p in self.pts)
+            TransDat.piv_norm = geometry.normal(rpts)
             success = True
         else:
             # would need complex angle processing workaround to get
@@ -1159,6 +1158,8 @@ def get_rotated_pt(piv_co, ang_diff_rad, mov_co):
     mov_aligned = mov_co - piv_co
     rot_val, axis_lock = [], TransDat.axis_lock
     if   axis_lock is None:  # arbitrary axis / spherical rotations
+        #print('  RotDat.piv_norm', RotDat.piv_norm,  # debug
+        #        '\n  ang_diff_rad', ang_diff_rad)  # debug
         rot_val = Quaternion(TransDat.piv_norm, ang_diff_rad)
     elif axis_lock == 'X':
         rot_val = Euler((ang_diff_rad, 0.0, 0.0), 'XYZ')
@@ -1263,11 +1264,12 @@ def create_z_orient(rot_vec):
 # Uses axis_lock or piv_norm from TransDat to obtain rotation axis.
 # Then rotates selected objects or selected vertices around the
 # 3D cursor using TransDat's ang_diff_r radian value.
-def do_rotate(self):
+def do_rotate(pivot_co):
     #print("def do_rotate(self):")  # debug
 
     axis_lock = TransDat.axis_lock
-    pivot = self.pts[2].co3d.copy()
+    pivot = pivot_co.copy()
+    constr_ax = False, False, False
     if axis_lock is None:
         #rot_matr = Matrix.Rotation(TransDat.ang_diff_r, 4, TransDat.piv_norm)
         norml = TransDat.piv_norm
@@ -1281,23 +1283,21 @@ def do_rotate(self):
             orient_matrix=o_mat,
             orient_matrix_type='LOCAL',
             center_override=pivot,
-            constraint_axis=(False, False, False))
+            constraint_axis=constr_ax)
 
     else:
-        const_ax = False, False, False
-
         # back up settings before changing them
         piv_back = deepcopy(bpy.context.tool_settings.transform_pivot_point)
         bpy.context.tool_settings.transform_pivot_point = 'CURSOR'
         curs_loc_back = bpy.context.scene.cursor.location.copy()
         bpy.context.scene.cursor.location = pivot.copy()
         '''
-        if   axis_lock == 'X':  const_ax = True, False, False
-        elif axis_lock == 'Y':  const_ax = False, True, False
-        elif axis_lock == 'Z':  const_ax = False, False, True
+        if   axis_lock == 'X':  constr_ax = True, False, False
+        elif axis_lock == 'Y':  constr_ax = False, True, False
+        elif axis_lock == 'Z':  constr_ax = False, False, True
         '''
         bpy.ops.transform.rotate(value=-TransDat.ang_diff_r, orient_axis=axis_lock,
-            center_override=pivot.copy(), constraint_axis=const_ax)
+            center_override=pivot.copy(), constraint_axis=constr_ax)
 
         # restore settings back to their pre "do_rotate" state
         bpy.context.scene.cursor.location = curs_loc_back.copy()
@@ -1394,6 +1394,7 @@ def reset_settings(self):
         self.pt_cnt = 0
         self.menu.change_menu(self.pt_cnt)
         init_ref_pts(self)
+        set_transform_data_none()
         self.highlight_mouse = True
 
     #if self.pt_find_md == GRABONLY:
@@ -1426,8 +1427,9 @@ def do_transform(self):
         reset_settings(self)
 
     elif self.transf_type == ROTATE:
+        #print("  ROTATE!!")  # debug
         if self.new_free_co != ():
-            do_rotate(self)
+            do_rotate(self.pts[2].co3d)
             self.pts[0].co3d = self.new_free_co.copy()
         reset_settings(self)
 
@@ -1896,9 +1898,9 @@ class XEDIT_OT_set_meas(bpy.types.Operator):
             axis_key_check(self, 'Z')
 
             '''
-            elif event.type == 'D' and event.value == 'RELEASE':
-                # open debug console
-                __import__('code').interact(local=dict(globals(), **locals()))
+        elif event.type == 'D' and event.value == 'RELEASE':
+            # open debug console
+            __import__('code').interact(local=dict(globals(), **locals()))
             '''
 
         elif event.type == 'G' and event.value == 'RELEASE':
@@ -1979,8 +1981,9 @@ class XEDIT_OT_set_meas(bpy.types.Operator):
 
             context.window_manager.modal_handler_add(self)
 
-            init_ref_pts(self)
             init_blender_settings()
+            init_ref_pts(self)
+            set_transform_data_none()
             editmode_refresh()
             #print("Add-on started")  # debug
             self.add_rm_btn.set_text("Add Selected")

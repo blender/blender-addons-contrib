@@ -67,7 +67,6 @@ class Colr:
     grey   = 1.0, 1.0, 1.0, 0.4
     black  = 0.0, 0.0, 0.0, 1.0
     yellow = 1.0, 1.0, 0.0, 0.6
-    brown  = 0.15, 0.15, 0.15, 0.20
 
 
 # Transformation Data
@@ -471,11 +470,13 @@ def init_ref_pts(self):
         ReferencePoint("anc", Colr.red),
         ReferencePoint("piv", Colr.yellow)
     ]
-    # todo : move this part of initialization elsewhere?
-    TransDat.piv_norm = None
+
+
+def set_transform_data_none():
+    TransDat.piv_norm = None  # Vector
     TransDat.new_ang_r = None
-    TransDat.ang_diff_r = None
-    TransDat.axis_lock = None
+    TransDat.ang_diff_r = None  # float
+    TransDat.axis_lock = None  # 'X', 'Y', 'Z'
     TransDat.lock_pts = None
     TransDat.rot_pt_pos = None
     TransDat.rot_pt_neg = None
@@ -485,8 +486,8 @@ def init_ref_pts(self):
 def set_piv(self):
     #if self.pt_cnt == 2:
     if self.pt_cnt == 3:
-        rpts = [p.co3d for p in self.pts]
-        TransDat.piv_norm = geometry.normal(*rpts)
+        rpts = tuple(p.co3d for p in self.pts)
+        TransDat.piv_norm = geometry.normal(rpts)
 
 def set_mouse_highlight(self):
     if self.pt_cnt < 3:
@@ -1192,7 +1193,7 @@ class XEDIT_OT_free_rotate(bpy.types.Operator):
             #===========================
             # Safely exit transform
             #===========================
-            if self.running_transf is True:
+            if self.running_transf:
                 self.running_transf = False
 
             #===================================
@@ -1202,6 +1203,7 @@ class XEDIT_OT_free_rotate(bpy.types.Operator):
                     self.rotate_btn.ms_over is True:
                 #print("Button Clicked")
                 curs_loc = None
+                rot_axis = None
                 #bpy.ops.object.ms_input_dialog_op('INVOKE_DEFAULT')
                 if self.pt_cnt == 1:
                     if TransDat.axis_lock == 'X':
@@ -1411,9 +1413,9 @@ class XEDIT_OT_free_rotate(bpy.types.Operator):
             axis_key_check(self, 'Z')
 
             '''
-            elif event.type == 'D' and event.value == 'RELEASE':
-                # open debug console
-                __import__('code').interact(local=dict(globals(), **locals()))
+        elif event.type == 'D' and event.value == 'RELEASE':
+            # open debug console
+            __import__('code').interact(local=dict(globals(), **locals()))
             '''
 
         elif event.type == 'G' and event.value == 'RELEASE':
@@ -1447,8 +1449,8 @@ class XEDIT_OT_free_rotate(bpy.types.Operator):
 
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-            self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px,
-                    args, 'WINDOW', 'POST_PIXEL')
+            self._handle = bpy.types.SpaceView3D.draw_handler_add(
+                    draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
 
             self.settings_backup = backup_blender_settings()
             self.mouse_co = Vector((event.mouse_region_x, event.mouse_region_y))
@@ -1482,8 +1484,9 @@ class XEDIT_OT_free_rotate(bpy.types.Operator):
 
             context.window_manager.modal_handler_add(self)
 
-            init_ref_pts(self)
             init_blender_settings()
+            init_ref_pts(self)
+            set_transform_data_none()
             editmode_refresh()
             #print("Add-on started")  # debug
             self.add_rm_btn.set_text("Add Selected")
