@@ -487,6 +487,9 @@ def write_jsx_file(file, data, selection, include_animation,
             'scale': '',
             'scale_static': '',
             'scale_anim': False,
+            'opacity': '',
+            'opacity_static': '',
+            'opacity_anim': False,
             }
 
     # Create structure for images
@@ -502,6 +505,9 @@ def write_jsx_file(file, data, selection, include_animation,
             'scale': '',
             'scale_static': '',
             'scale_anim': False,
+            'opacity': '',
+            'opacity_static': '',
+            'opacity_anim': False,
             'filepath': '',
         }
 
@@ -529,6 +535,9 @@ def write_jsx_file(file, data, selection, include_animation,
                 'orientation': '',
                 'orientation_static': '',
                 'orientation_anim': False,
+                'opacity': '',
+                'opacity_static': '',
+                'opacity_anim': False,
                 }
 
     # Create structure for nulls
@@ -708,6 +717,7 @@ def write_jsx_file(file, data, selection, include_animation,
                 scale = '[%f,%f,%f],' % (ae_transform[6],
                                          ae_transform[7] * data['width'] / data['height'],
                                          ae_transform[8])
+                opacity = '0.0,' if obj.hide_render else '100.0,'
                 js_solid = js_data['solids'][name_ae]
                 js_solid['color'] = get_plane_color(obj)
                 js_solid['width'] = data['width']
@@ -715,6 +725,7 @@ def write_jsx_file(file, data, selection, include_animation,
                 js_solid['position'] += position
                 js_solid['orientation'] += orientation
                 js_solid['scale'] += scale
+                js_solid['opacity'] += opacity
                 # Check if properties change values compared to previous frame
                 # If property don't change through out the whole animation,
                 # keyframes won't be added
@@ -725,9 +736,12 @@ def write_jsx_file(file, data, selection, include_animation,
                         js_solid['orientation_anim'] = True
                     if scale != js_solid['scale_static']:
                         js_solid['scale_anim'] = True
+                    if opacity != js_solid['opacity_static']:
+                        js_solid['opacity_anim'] = True
                 js_solid['position_static'] = position
                 js_solid['orientation_static'] = orientation
                 js_solid['scale_static'] = scale
+                js_solid['opacity_static'] = opacity
 
         # Keyframes for all lights.
         if include_selected_objects:
@@ -748,11 +762,13 @@ def write_jsx_file(file, data, selection, include_animation,
                                                ae_transform[5])
                 energy = '[%f],' % (obj.data.energy * 100.0)
                 color = '[%f,%f,%f],' % (color[0], color[1], color[2])
+                opacity = '0.0,' if obj.hide_render else '100.0,'
                 js_light = js_data['lights'][name_ae]
                 js_light['position'] += position
                 js_light['orientation'] += orientation
                 js_light['intensity'] += energy
                 js_light['Color'] += color
+                js_light['opacity'] += opacity
                 # Check if properties change values compared to previous frame
                 # If property don't change through out the whole animation,
                 # keyframes won't be added
@@ -765,10 +781,13 @@ def write_jsx_file(file, data, selection, include_animation,
                         js_light['intensity_anim'] = True
                     if color != js_light['Color_static']:
                         js_light['Color_anim'] = True
+                    if opacity != js_light['opacity_static']:
+                        js_light['opacity_anim'] = True
                 js_light['position_static'] = position
                 js_light['orientation_static'] = orientation
                 js_light['intensity_static'] = energy
                 js_light['Color_static'] = color
+                js_light['opacity_static'] = opacity
                 if type == 'SPOT':
                     cone_angle = '[%f],' % (degrees(obj.data.spot_size))
                     cone_feather = '[%f],' % (obj.data.spot_blend * 100.0)
@@ -842,10 +861,12 @@ def write_jsx_file(file, data, selection, include_animation,
                                          ae_transform[7] / ratio_to_comp
                                          * image_width / image_height,
                                          ae_transform[8])
+                opacity = '0.0,' if obj.hide_render else '100.0,'
                 js_image = js_data['images'][name_ae]
                 js_image['position'] += position
                 js_image['orientation'] += orientation
                 js_image['scale'] += scale
+                js_image['opacity'] += opacity
                 # Check if properties change values compared to previous frame
                 # If property don't change through out the whole animation,
                 # keyframes won't be added
@@ -856,9 +877,12 @@ def write_jsx_file(file, data, selection, include_animation,
                         js_image['orientation_anim'] = True
                     if scale != js_image['scale_static']:
                         js_image['scale_anim'] = True
+                    if opacity != js_image['opacity_static']:
+                        js_image['opacity_anim'] = True
                 js_image['position_static'] = position
                 js_image['orientation_static'] = orientation
                 js_image['scale_static'] = scale
+                js_image['opacity_static'] = opacity
                 js_image['filepath'] = get_image_filepath(obj)
 
         # keyframes for all object bundles. Not ready yet.
@@ -946,7 +970,7 @@ def write_jsx_file(file, data, selection, include_animation,
         jsx_file.write(
             '%s.source.name = "%s";\n' % (name_ae, name_ae))
         # Set values of properties, add keyframes only where needed
-        for prop in ("position", "orientation", "scale"):
+        for prop in ("position", "orientation", "scale", "opacity"):
             if include_animation and obj[prop + '_anim']:
                 jsx_file.write(
                     '%s.property("%s").setValuesAtTimes([%s],[%s]);\n'
@@ -971,7 +995,7 @@ def write_jsx_file(file, data, selection, include_animation,
         jsx_file.write(
             '%s.source.name = "%s";\n' % (name_ae, name_ae))
         # Set values of properties, add keyframes only where needed
-        for prop in ("position", "orientation", "scale"):
+        for prop in ("position", "orientation", "scale", "opacity"):
             if include_animation and obj[prop + '_anim']:
                 jsx_file.write(
                     '%s.property("%s").setValuesAtTimes([%s],[%s]);\n'
@@ -993,7 +1017,7 @@ def write_jsx_file(file, data, selection, include_animation,
             '%s.autoOrient = AutoOrientType.NO_AUTO_ORIENT;\n'
             % name_ae)
         # Set values of properties, add keyframes only where needed
-        props = ["position", "orientation", "intensity", "Color"]
+        props = ["position", "orientation", "intensity", "Color", "opacity"]
         if obj['type'] == 'SPOT':
             props.extend(("Cone Angle", "Cone Feather"))
         for prop in props:
