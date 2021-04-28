@@ -920,8 +920,10 @@ def write_jsx_file(file, data, selection, include_animation,
         '\nvar newComp = app.project.items.addComp(compName, %i, %i, %f, %f, %f);'
         % (data['width'], data['height'], data['aspect'],
            data['duration'], data['fps']))
-    jsx_file.write('\nnewComp.displayStartTime = %f;\n\n\n'
+    jsx_file.write('\nnewComp.displayStartTime = %f;\n\n'
                    % ((data['start'] + 1.0) / data['fps']))
+
+    jsx_file.write('var footageFolder = app.project.items.addFolder(compName + "_layers")\n\n\n')
 
     # Create camera bundles (nulls)
     jsx_file.write('// **************  CAMERA 3D MARKERS  **************\n\n')
@@ -965,10 +967,9 @@ def write_jsx_file(file, data, selection, include_animation,
                 obj['width'],
                 obj['height'],
                 1.0))
-        jsx_file.write(
-            '%s.threeDLayer = true;\n' % name_ae)
-        jsx_file.write(
-            '%s.source.name = "%s";\n' % (name_ae, name_ae))
+        jsx_file.write('%s.source.name = "%s";\n' % (name_ae, name_ae))
+        jsx_file.write('%s.source.parentFolder = footageFolder;\n' % (name_ae))
+        jsx_file.write('%s.threeDLayer = true;\n' % name_ae)
         # Set values of properties, add keyframes only where needed
         for prop in ("position", "orientation", "scale", "opacity"):
             if include_animation and obj[prop + '_anim']:
@@ -986,8 +987,9 @@ def write_jsx_file(file, data, selection, include_animation,
     jsx_file.write('// **************  IMAGES  **************\n\n')
     for name_ae, obj in js_data['images'].items():
         jsx_file.write(
-            'var newFootage = app.project.importFile(new ImportOptions(File("%s")))\n'
+            'var newFootage = app.project.importFile(new ImportOptions(File("%s")));\n'
             % (obj['filepath']))
+        jsx_file.write('newFootage.parentFolder = footageFolder;\n')
         jsx_file.write(
             'var %s = newComp.layers.add(newFootage);\n' % (name_ae))
         jsx_file.write(
