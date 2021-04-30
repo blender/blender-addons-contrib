@@ -1711,13 +1711,13 @@ class XEDIT_OT_set_meas(bpy.types.Operator):
                 self.shift_held = False
                 #print("\nShift released")  # debug
 
-        if event.type == 'RIGHTMOUSE' and event.value == 'PRESS':
-            if self.lmb_held:
-                bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-                exit_addon(self)
-                return {'CANCELLED'}
-            else:
-                return {'PASS_THROUGH'}
+        if event.type == 'RIGHTMOUSE':
+            if event.value == 'PRESS':
+                if self.lmb_held:
+                    bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+                    exit_addon(self)
+                    return {'CANCELLED'}
+            return {'PASS_THROUGH'}
 
         if event.type == 'LEFTMOUSE' and event.value == 'PRESS':
             self.lmb_held = True
