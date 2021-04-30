@@ -1572,6 +1572,20 @@ def draw_callback_px(self, context):
     lk_pts2d = None  # lock points 2D
     self.meas_btn.is_drawn = False  # todo : cleaner btn activation
 
+    # if the addon_mode is WAIT_FOR_POPUP, wait on POPUP to disable
+    # popup_active, then run process_popup_input
+    # would prefer not to do pop-up check inside draw_callback, but not sure
+    # how else to check for input. need higher level "input handler" class?
+    if self.addon_mode == WAIT_FOR_POPUP:
+        global popup_active
+        if not popup_active:
+            process_popup_input(self)
+            set_help_text(self, "CLICK")
+
+    elif self.addon_mode == GET_0_OR_180:
+        choose_0_or_180(TransDat.lock_pts[2], TransDat.rot_pt_pos,
+                TransDat.rot_pt_neg, TransDat.ang_diff_r, self.mouse_co)
+
     # note, can't chain above if-elif block in with one below as
     # it breaks axis lock drawing
     if self.grab_pt is not None:  # not enabled if mod_pt active
@@ -1973,19 +1987,6 @@ class XEDIT_OT_set_meas(bpy.types.Operator):
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             exit_addon(self)
             return {'FINISHED'}
-
-        # if the addon_mode is WAIT_FOR_POPUP, wait on POPUP to disable
-        # popup_active, then run process_popup_input
-        # would prefer not to do pop-up check inside draw_callback, but not sure
-        # how else to check for input. need higher level "input handler" class?
-        if self.addon_mode == WAIT_FOR_POPUP:
-            if not popup_active:
-                process_popup_input(self)
-                set_help_text(self, "CLICK")
-
-        elif self.addon_mode == GET_0_OR_180:
-            choose_0_or_180(TransDat.lock_pts[2], TransDat.rot_pt_pos,
-                    TransDat.rot_pt_neg, TransDat.ang_diff_r, self.mouse_co)
 
         return {'RUNNING_MODAL'}
 
