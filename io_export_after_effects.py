@@ -23,7 +23,7 @@ bl_info = {
     "description": "Export cameras, selected objects & camera solution "
         "3D Markers to Adobe After Effects CS3 and above",
     "author": "Bartek Skorupa",
-    "version": (0, 0, 69),
+    "version": (0, 0, 70),
     "blender": (2, 80, 0),
     "location": "File > Export > Adobe After Effects (.jsx)",
     "warning": "",
@@ -154,7 +154,7 @@ def get_plane_color(obj):
         wrapper = node_shader_utils.PrincipledBSDFWrapper(obj.active_material)
         color = Color(wrapper.base_color[:3]) + wrapper.emission_color
 
-    return '[%f,%f,%f]' % (color[0], color[1], color[2])
+    return str(list(color))
 
 
 def is_plane(obj):
@@ -601,7 +601,7 @@ def write_jsx_file(file, data, selection, include_animation,
                             ae_transform = (convert_transform_matrix(
                                 matrix, data['width'], data['height'],
                                 data['aspect'], False, ae_size))
-                            js_data['bundles_cam'][name_ae]['position'] += ('[%f,%f,%f],' % (ae_transform[0], ae_transform[1], ae_transform[2]))
+                            js_data['bundles_cam'][name_ae]['position'] += f'[{ae_transform[0]},{ae_transform[1]},{ae_transform[2]}],'
 
     # Get all keyframes for each object and store in dico
     if include_animation:
@@ -613,7 +613,7 @@ def write_jsx_file(file, data, selection, include_animation,
         data['scn'].frame_set(frame)
 
         # Get time for this loop
-        js_data['times'] += '%f,' % ((frame - data['start']) / data['fps'])
+        js_data['times'] += str((frame - data['start']) / data['fps']) + ','
 
         # Keyframes for active camera/cameras
         if include_active_cam and data['active_cam_frames'] != []:
@@ -632,11 +632,10 @@ def write_jsx_file(file, data, selection, include_animation,
             zoom = convert_lens(active_cam, data['width'], data['height'],
                                 data['aspect'])
             # Store all values in dico
-            position = '[%f,%f,%f],' % (ae_transform[0], ae_transform[1],
-                                        ae_transform[2])
-            orientation = '[%f,%f,%f],' % (ae_transform[3], ae_transform[4],
-                                           ae_transform[5])
-            zoom = '%f,' % (zoom)
+
+            position = f'[{ae_transform[0]},{ae_transform[1]},{ae_transform[2]}],'
+            orientation = f'[{ae_transform[3]},{ae_transform[4]},{ae_transform[5]}],'
+            zoom = str(zoom) + ','
             js_camera = js_data['cameras'][name_ae]
             js_camera['position'] += position
             js_camera['orientation'] += orientation
@@ -669,13 +668,9 @@ def write_jsx_file(file, data, selection, include_animation,
                     zoom = convert_lens(obj, data['width'], data['height'],
                                         data['aspect'])
                     # Store all values in dico
-                    position = '[%f,%f,%f],' % (ae_transform[0],
-                                                ae_transform[1],
-                                                ae_transform[2])
-                    orientation = '[%f,%f,%f],' % (ae_transform[3],
-                                                   ae_transform[4],
-                                                   ae_transform[5])
-                    zoom = '%f,' % (zoom)
+                    position = f'[{ae_transform[0]},{ae_transform[1]},{ae_transform[2]}],'
+                    orientation = f'[{ae_transform[3]},{ae_transform[4]},{ae_transform[5]}],'
+                    zoom = str(zoom) + ','
                     js_camera = js_data['cameras'][name_ae]
                     js_camera['position'] += position
                     js_camera['orientation'] += orientation
@@ -707,16 +702,9 @@ def write_jsx_file(file, data, selection, include_animation,
                     plane_matrix, data['width'], data['height'],
                     data['aspect'], True, ae_size)
                 # Store all values in dico
-                position = '[%f,%f,%f],' % (ae_transform[0],
-                                            ae_transform[1],
-                                            ae_transform[2])
-                orientation = '[%f,%f,%f],' % (ae_transform[3],
-                                               ae_transform[4],
-                                               ae_transform[5])
-                # plane_width, plane_height, _ = plane_matrix.to_scale()
-                scale = '[%f,%f,%f],' % (ae_transform[6],
-                                         ae_transform[7] * data['width'] / data['height'],
-                                         ae_transform[8])
+                position = f'[{ae_transform[0]},{ae_transform[1]},{ae_transform[2]}],'
+                orientation = f'[{ae_transform[3]},{ae_transform[4]},{ae_transform[5]}],'
+                scale = f'[{ae_transform[6]},{ae_transform[7] * data["width"] / data["height"]},{ae_transform[8]}],'
                 opacity = '0.0,' if obj.hide_render else '100.0,'
                 js_solid = js_data['solids'][name_ae]
                 js_solid['color'] = get_plane_color(obj)
@@ -755,13 +743,10 @@ def write_jsx_file(file, data, selection, include_animation,
                     data['aspect'], True, ae_size)
                 color = obj.data.color
                 # Store all values in dico
-                position = '[%f,%f,%f],' % (ae_transform[0], ae_transform[1],
-                                            ae_transform[2])
-                orientation = '[%f,%f,%f],' % (ae_transform[3],
-                                               ae_transform[4],
-                                               ae_transform[5])
-                energy = '[%f],' % (obj.data.energy * 100.0)
-                color = '[%f,%f,%f],' % (color[0], color[1], color[2])
+                position = f'[{ae_transform[0]},{ae_transform[1]},{ae_transform[2]}],'
+                orientation = f'[{ae_transform[3]},{ae_transform[4]},{ae_transform[5]}],'
+                energy = f'[{obj.data.energy * 100.0}],'
+                color = f'[{color[0]},{color[1]},{color[2]}],'
                 opacity = '0.0,' if obj.hide_render else '100.0,'
                 js_light = js_data['lights'][name_ae]
                 js_light['position'] += position
@@ -789,8 +774,8 @@ def write_jsx_file(file, data, selection, include_animation,
                 js_light['Color_static'] = color
                 js_light['opacity_static'] = opacity
                 if type == 'SPOT':
-                    cone_angle = '[%f],' % (degrees(obj.data.spot_size))
-                    cone_feather = '[%f],' % (obj.data.spot_blend * 100.0)
+                    cone_angle = f'[{degrees(obj.data.spot_size)}],'
+                    cone_feather = f'[obj.data.spot_blend * 100.0],'
                     js_light['Cone Angle'] += cone_angle
                     js_light['Cone Feather'] += cone_feather
                     # Check if properties change values compared to previous frame
@@ -812,12 +797,9 @@ def write_jsx_file(file, data, selection, include_animation,
                 # Convert obj transform properties to AE space
                 ae_transform = convert_transform_matrix(obj.matrix_world.copy(), data['width'], data['height'], data['aspect'], True, ae_size)
                 # Store all values in dico
-                position = '[%f,%f,%f],' % (ae_transform[0], ae_transform[1],
-                                            ae_transform[2])
-                orientation = '[%f,%f,%f],' % (ae_transform[3], ae_transform[4],
-                                               ae_transform[5])
-                scale = '[%f,%f,%f],' % (ae_transform[6], ae_transform[7],
-                                         ae_transform[8])
+                position = f'[{ae_transform[0]},{ae_transform[1]},{ae_transform[2]}],'
+                orientation = f'[{ae_transform[3]},{ae_transform[4]},{ae_transform[5]}],'
+                scale = f'[{ae_transform[6]},{ae_transform[7]},{ae_transform[8]}],'
                 js_null = js_data['nulls'][name_ae]
                 js_null['position'] += position
                 js_null['orientation'] += orientation
@@ -849,18 +831,11 @@ def write_jsx_file(file, data, selection, include_animation,
                     plane_matrix, data['width'], data['height'],
                     data['aspect'], True, ae_size)
                 # Store all values in dico
-                position = '[%f,%f,%f],' % (ae_transform[0],
-                                            ae_transform[1],
-                                            ae_transform[2])
-                orientation = '[%f,%f,%f],' % (ae_transform[3],
-                                               ae_transform[4],
-                                               ae_transform[5])
+                position = f'[{ae_transform[0]},{ae_transform[1]},{ae_transform[2]}],'
+                orientation = f'[{ae_transform[3]},{ae_transform[4]},{ae_transform[5]}],'
                 image_width, image_height = get_image_size(obj)
                 ratio_to_comp = image_width / data['width']
-                scale = '[%f,%f,%f],' % (ae_transform[6] / ratio_to_comp,
-                                         ae_transform[7] / ratio_to_comp
-                                         * image_width / image_height,
-                                         ae_transform[8])
+                scale = f'[{ae_transform[6] / ratio_to_comp},{ae_transform[7] / ratio_to_comp * image_width / image_height},{ae_transform[8]}],'
                 opacity = '0.0,' if obj.hide_render else '100.0,'
                 js_image = js_data['images'][name_ae]
                 js_image['position'] += position
@@ -897,13 +872,13 @@ def write_jsx_file(file, data, selection, include_animation,
     jsx_file.write('#target AfterEffects\n\n')
     # Script's header
     jsx_file.write('/**************************************\n')
-    jsx_file.write('Scene : %s\n' % data['scn'].name)
-    jsx_file.write('Resolution : %i x %i\n' % (data['width'], data['height']))
-    jsx_file.write('Duration : %f\n' % (data['duration']))
-    jsx_file.write('FPS : %f\n' % (data['fps']))
-    jsx_file.write('Date : %s\n' % datetime.datetime.now())
-    jsx_file.write('Exported with io_export_after_effects.py\n')
-    jsx_file.write('**************************************/\n\n\n\n')
+    jsx_file.write(f'Scene : {data["scn"].name}\n')
+    jsx_file.write(f'Resolution : {data["width"]} x {data["height"]}\n')
+    jsx_file.write(f'Duration : {data["duration"]}\n')
+    jsx_file.write(f'FPS : {data["fps"]}\n')
+    jsx_file.write(f'Date : {datetime.datetime.now()}\n')
+    jsx_file.write(f'Exported with io_export_after_effects.py\n')
+    jsx_file.write(f'**************************************/\n\n\n\n')
 
     # Wrap in function
     jsx_file.write("function compFromBlender(){\n")
@@ -913,26 +888,23 @@ def write_jsx_file(file, data, selection, include_animation,
             os.path.splitext(os.path.basename(bpy.data.filepath))[0])
     else:
         comp_name = "BlendComp"
-    jsx_file.write('\nvar compName = prompt("Blender Comp\'s Name \\nEnter Name of newly created Composition","%s","Composition\'s Name");\n' % comp_name)
+    jsx_file.write(f'\nvar compName = prompt("Blender Comp\'s Name \\nEnter Name of newly created Composition","{comp_name}","Composition\'s Name");\n')
     jsx_file.write('if (compName){')
     # Continue only if comp name is given. If not - terminate
     jsx_file.write(
-        '\nvar newComp = app.project.items.addComp(compName, %i, %i, %f, %f, %f);'
-        % (data['width'], data['height'], data['aspect'],
-           data['duration'], data['fps']))
-    jsx_file.write('\nnewComp.displayStartTime = %f;\n\n'
-                   % ((data['start'] + 1.0) / data['fps']))
+        f'\nvar newComp = app.project.items.addComp(compName, {data["width"]}, '
+        f'{data["height"]}, {data["aspect"]}, {data["duration"]}, {data["fps"]});')
+    jsx_file.write(f"\nnewComp.displayStartTime = {(data['start']) / data['fps']};\n\n")
 
     jsx_file.write('var footageFolder = app.project.items.addFolder(compName + "_layers")\n\n\n')
 
     # Create camera bundles (nulls)
     jsx_file.write('// **************  CAMERA 3D MARKERS  **************\n\n')
     for name_ae, obj in js_data['bundles_cam'].items():
-        jsx_file.write('var %s = newComp.layers.addNull();\n' % (name_ae))
-        jsx_file.write('%s.threeDLayer = true;\n' % name_ae)
-        jsx_file.write('%s.source.name = "%s";\n' % (name_ae, name_ae))
-        jsx_file.write('%s.property("position").setValue(%s);\n\n'
-                       % (name_ae, obj['position']))
+        jsx_file.write(f'var {name_ae} = newComp.layers.addNull();\n')
+        jsx_file.write(f'{name_ae}.threeDLayer = true;\n')
+        jsx_file.write(f'{name_ae}.source.name = "{name_ae}";\n')
+        jsx_file.write(f'{name_ae}.property("position").setValue({obj["position"]});\n\n')
     jsx_file.write('\n')
 
     # Create object bundles (not ready yet)
@@ -940,19 +912,17 @@ def write_jsx_file(file, data, selection, include_animation,
     # Create objects (nulls)
     jsx_file.write('// **************  OBJECTS  **************\n\n')
     for name_ae, obj in js_data['nulls'].items():
-        jsx_file.write('var %s = newComp.layers.addNull();\n' % (name_ae))
-        jsx_file.write('%s.threeDLayer = true;\n' % name_ae)
-        jsx_file.write('%s.source.name = "%s";\n' % (name_ae, name_ae))
+        jsx_file.write(f'var {name_ae} = newComp.layers.addNull();\n')
+        jsx_file.write(f'{name_ae}.threeDLayer = true;\n')
+        jsx_file.write(f'{name_ae}.source.name = "{name_ae}";\n')
         # Set values of properties, add keyframes only where needed
         for prop in ("position", "orientation", "scale"):
             if include_animation and obj[prop + '_anim']:
                 jsx_file.write(
-                    '%s.property("%s").setValuesAtTimes([%s],[%s]);\n'
-                    % (name_ae, prop, js_data['times'], obj[prop]))
+                    f'{name_ae}.property("{prop}").setValuesAtTimes([{js_data["times"]}],[{obj[prop]}]);\n')
             else:
                 jsx_file.write(
-                    '%s.property("%s").setValue(%s);\n'
-                    % (name_ae, prop, obj[prop + '_static']))
+                    f'{name_ae}.property("{prop}").setValue({obj[prop + "_static"]});\n')
         jsx_file.write('\n')
     jsx_file.write('\n')
 
@@ -960,26 +930,18 @@ def write_jsx_file(file, data, selection, include_animation,
     jsx_file.write('// **************  SOLIDS  **************\n\n')
     for name_ae, obj in js_data['solids'].items():
         jsx_file.write(
-            'var %s = newComp.layers.addSolid(%s,"%s",%i,%i,%f);\n' % (
-                name_ae,
-                obj['color'],
-                name_ae,
-                obj['width'],
-                obj['height'],
-                1.0))
-        jsx_file.write('%s.source.name = "%s";\n' % (name_ae, name_ae))
-        jsx_file.write('%s.source.parentFolder = footageFolder;\n' % (name_ae))
-        jsx_file.write('%s.threeDLayer = true;\n' % name_ae)
+            f'var {name_ae} = newComp.layers.addSolid({obj["color"]},"{name_ae}",{obj["width"]},{obj["height"]},1.0);\n')
+        jsx_file.write(f'{name_ae}.source.name = "{name_ae}";\n')
+        jsx_file.write(f'{name_ae}.source.parentFolder = footageFolder;\n')
+        jsx_file.write(f'{name_ae}.threeDLayer = true;\n')
         # Set values of properties, add keyframes only where needed
         for prop in ("position", "orientation", "scale", "opacity"):
             if include_animation and obj[prop + '_anim']:
                 jsx_file.write(
-                    '%s.property("%s").setValuesAtTimes([%s],[%s]);\n'
-                    % (name_ae, prop, js_data['times'], obj[prop]))
+                    f'{name_ae}.property("{prop}").setValuesAtTimes([{js_data["times"]}],[{obj[prop]}]);\n')
             else:
                 jsx_file.write(
-                    '%s.property("%s").setValue(%s);\n'
-                    % (name_ae, prop, obj[prop + '_static']))
+                    f'{name_ae}.property("{prop}").setValue([{obj[prop + "_static"]});\n')
         jsx_file.write('\n')
     jsx_file.write('\n')
 
@@ -987,25 +949,19 @@ def write_jsx_file(file, data, selection, include_animation,
     jsx_file.write('// **************  IMAGES  **************\n\n')
     for name_ae, obj in js_data['images'].items():
         jsx_file.write(
-            'var newFootage = app.project.importFile(new ImportOptions(File("%s")));\n'
-            % (obj['filepath']))
+            f'var newFootage = app.project.importFile(new ImportOptions(File("{obj["filepath"]}")));\n')
         jsx_file.write('newFootage.parentFolder = footageFolder;\n')
         jsx_file.write(
-            'var %s = newComp.layers.add(newFootage);\n' % (name_ae))
-        jsx_file.write(
-            '%s.threeDLayer = true;\n' % name_ae)
-        jsx_file.write(
-            '%s.source.name = "%s";\n' % (name_ae, name_ae))
+            f'var {name_ae} = newComp.layers.add(newFootage);\n')
+        jsx_file.write(f'{name_ae}.threeDLayer = true;\n')
+        jsx_file.write(f'{name_ae}.source.name = "{name_ae}";\n')
         # Set values of properties, add keyframes only where needed
         for prop in ("position", "orientation", "scale", "opacity"):
             if include_animation and obj[prop + '_anim']:
                 jsx_file.write(
-                    '%s.property("%s").setValuesAtTimes([%s],[%s]);\n'
-                    % (name_ae, prop, js_data['times'], obj[prop]))
+                    f'{name_ae}.property("{prop}").setValuesAtTimes([{js_data["times"]}],[{obj[prop]}]);\n')
             else:
-                jsx_file.write(
-                    '%s.property("%s").setValue(%s);\n'
-                    % (name_ae, prop, obj[prop + '_static']))
+                jsx_file.write(f'{name_ae}.property("{prop}").setValue({obj[prop + "_static"]});\n')
         jsx_file.write('\n')
     jsx_file.write('\n')
 
@@ -1013,11 +969,9 @@ def write_jsx_file(file, data, selection, include_animation,
     jsx_file.write('// **************  LIGHTS  **************\n\n')
     for name_ae, obj in js_data['lights'].items():
         jsx_file.write(
-            'var %s = newComp.layers.addLight("%s", [0.0, 0.0]);\n'
-            % (name_ae, name_ae))
+            f'var {name_ae} = newComp.layers.addLight("{name_ae}", [0.0, 0.0]);\n')
         jsx_file.write(
-            '%s.autoOrient = AutoOrientType.NO_AUTO_ORIENT;\n'
-            % name_ae)
+            f'{name_ae}.autoOrient = AutoOrientType.NO_AUTO_ORIENT;\n')
         # Set values of properties, add keyframes only where needed
         props = ["position", "orientation", "intensity", "Color", "opacity"]
         if obj['type'] == 'SPOT':
@@ -1025,12 +979,10 @@ def write_jsx_file(file, data, selection, include_animation,
         for prop in props:
             if include_animation and obj[prop + '_anim']:
                 jsx_file.write(
-                    '%s.property("%s").setValuesAtTimes([%s],[%s]);\n'
-                    % (name_ae, prop, js_data['times'], obj[prop]))
+                    f'{name_ae}.property("{prop}").setValuesAtTimes([{js_data["times"]}],[{obj[prop]}]);\n')
             else:
                 jsx_file.write(
-                    '%s.property("%s").setValue(%s);\n'
-                    % (name_ae, prop, obj[prop + '_static']))
+                    f'{name_ae}.property("{prop}").setValue({obj[prop + "_static"]});\n')
         jsx_file.write('\n')
     jsx_file.write('\n')
 
@@ -1039,22 +991,17 @@ def write_jsx_file(file, data, selection, include_animation,
     for name_ae, obj in js_data['cameras'].items():
         # More than one camera can be selected
         jsx_file.write(
-            'var %s = newComp.layers.addCamera("%s",[0,0]);\n'
-            % (name_ae, name_ae))
+            f'var {name_ae} = newComp.layers.addCamera("{name_ae}",[0,0]);\n')
         jsx_file.write(
-            '%s.autoOrient = AutoOrientType.NO_AUTO_ORIENT;\n'
-            % name_ae)
+            f'{name_ae}.autoOrient = AutoOrientType.NO_AUTO_ORIENT;\n')
 
         # Set values of properties, add keyframes only where needed
         for prop in ("position", "orientation", "zoom"):
             if include_animation and obj[prop + '_anim']:
                 jsx_file.write(
-                    '%s.property("%s").setValuesAtTimes([%s],[%s]);\n'
-                    % (name_ae, prop, js_data['times'], obj[prop]))
+                    f'{name_ae}.property("{prop}").setValuesAtTimes([{js_data["times"]}],[{obj[prop]}]);\n')
             else:
-                jsx_file.write(
-                    '%s.property("%s").setValue(%s);\n'
-                    % (name_ae, prop, obj[prop + '_static']))
+                jsx_file.write(f'{name_ae}.property("{prop}").setValue({obj[prop + "_static"]});\n')
         jsx_file.write('\n')
     jsx_file.write('\n')
 
