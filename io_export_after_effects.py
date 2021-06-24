@@ -49,7 +49,7 @@ def get_comp_data(context):
     start = scene.frame_start
     end = scene.frame_end
     active_cam_frames = get_active_cam_for_each_frame(scene, start, end)
-    fps = floor(scene.render.fps / (scene.render.fps_base) * 1000.0) / 1000.0
+    fps = scene.render.fps / scene.render.fps_base
 
     return {
         'scn': scene,
