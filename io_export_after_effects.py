@@ -110,8 +110,16 @@ class ObjectExport():
     def get_prop_keyframe(self, context, prop_name, value, time):
         """Set keyframe for given property"""
         prop_keys = self.keyframes.setdefault(prop_name, [])
-        if not len(prop_keys) or value != prop_keys[-1][1]:
-            prop_keys.append((time, value))
+        if len(prop_keys) == 0:
+            prop_keys.append([time, value, False])
+            return
+
+        if value != prop_keys[-1][1]:
+            prop_keys.append([time, value, False])
+        # Store which keys should hold, that is, which are
+        # the first in a series of identical values
+        else:
+            prop_keys[-1][2] = True
 
     def get_keyframe(self, context, data, time, ae_size):
         """Store animation for the current frame"""
@@ -141,10 +149,21 @@ class ObjectExport():
         # Set values of properties, add keyframes only where needed
         for prop, keys in self.keyframes.items():
             if include_animation and len(keys) > 1:
-                times = ",".join((str(k[0]) for k in keys))
-                values = ",".join((str(k[1]) for k in keys)).replace(" ", "")
+                times = ",".join(str(k[0]) for k in keys)
+                values = ",".join(str(k[1]) for k in keys).replace(" ", "")
                 prop_script += (
                     f'{self.name_ae}.property("{prop}").setValuesAtTimes([{times}],[{values}]);\n')
+
+                # Set to HOLD the frames after which animation is fixed
+                # for several frames, to avoid interpolation errors
+                if any(k[2] for k in keys):
+                    prop_script += (
+                        f'var hold_frames = {[i + 1 for i, k in enumerate(keys) if k[2]]};\n'
+                        'for (var i = 0; i < hold_frames.length; i++) {\n'
+                        f'  {self.name_ae}.property("{prop}").setInterpolationTypeAtKey(hold_frames[i], KeyframeInterpolationType.HOLD);\n'
+                        '}\n')
+
+            # No animation for this property
             else:
                 value = str(keys[0][1]).replace(" ", "")
                 prop_script += (
