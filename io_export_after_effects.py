@@ -249,8 +249,11 @@ class ImageExport(ObjectExport):
         image_width, image_height = get_image_size(self.obj)
         ratio_to_comp = image_width / data['width']
         scale = ae_transform[6:9]
-        scale[0] /= ratio_to_comp
-        scale[1] = scale[1] / ratio_to_comp * image_width / image_height
+        if image_height != 0.0:
+            scale[1] *= image_width / image_height
+        if ratio_to_comp != 0.0:
+            scale[0] /= ratio_to_comp
+            scale[1] /= ratio_to_comp
 
         self.get_prop_keyframe(context, 'position', ae_transform[0:3], time)
         self.get_prop_keyframe(context, 'orientation', ae_transform[3:6], time)
