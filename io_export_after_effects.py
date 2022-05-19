@@ -36,7 +36,7 @@ bl_info = {
 import bpy
 import os
 import datetime
-from math import degrees, floor
+from math import degrees
 from mathutils import Matrix, Vector, Color
 
 
@@ -350,11 +350,10 @@ def get_selected(context, include_active_cam, include_selected_cams,
                     and obj is context.scene.camera):
                 # Ignore active camera if already selected
                 continue
-            else:
-                if include_selected_cams:
-                    cameras.append(CameraExport(obj))
-                if include_cam_bundles:
-                    cam_bundles.extend(get_camera_bundles(context.scene, obj))
+            if include_selected_cams:
+                cameras.append(CameraExport(obj))
+            if include_cam_bundles:
+                cam_bundles.extend(get_camera_bundles(context.scene, obj))
 
         elif include_image_planes and is_image_plane(obj):
             images.append(ImageExport(obj))
@@ -444,7 +443,7 @@ def is_image_plane(obj):
     if not is_plane(obj):
         return False
 
-    if not len(obj.material_slots):
+    if len(obj.material_slots) == 0:
         return False
 
     mat = get_first_material(obj)
@@ -534,8 +533,6 @@ def convert_transform_matrix(matrix, width, height, aspect,
 
     This function will be called for every object for every frame
     """
-
-    scale_mat = Matrix.Scale(width, 4)
 
     # Get blender transform data for object
     b_loc = matrix.to_translation()
@@ -695,8 +692,8 @@ def write_jsx_file(context, file, selection, include_animation, ae_size):
         jsx_file.write(f'Duration : {duration}\n')
         jsx_file.write(f'FPS : {fps}\n')
         jsx_file.write(f'Date : {datetime.datetime.now()}\n')
-        jsx_file.write(f'Exported with io_export_after_effects.py\n')
-        jsx_file.write(f'**************************************/\n\n\n\n')
+        jsx_file.write('Exported with io_export_after_effects.py\n')
+        jsx_file.write('**************************************/\n\n\n\n')
 
         # Wrap in function
         jsx_file.write("function compFromBlender(){\n")
