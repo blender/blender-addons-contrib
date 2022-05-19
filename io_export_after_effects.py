@@ -40,31 +40,6 @@ from math import degrees, floor
 from mathutils import Matrix, Vector, Color
 
 
-def get_comp_data(context):
-    """Create list of static blender's data"""
-    scene = context.scene
-    aspect_x = scene.render.pixel_aspect_x
-    aspect_y = scene.render.pixel_aspect_y
-    aspect = aspect_x / aspect_y
-    start = scene.frame_start
-    end = scene.frame_end
-    active_cam_frames = get_active_cam_for_each_frame(scene, start, end)
-    fps = scene.render.fps / scene.render.fps_base
-
-    return {
-        'scn': scene,
-        'width': scene.render.resolution_x,
-        'height': scene.render.resolution_y,
-        'aspect': aspect,
-        'fps': fps,
-        'start': start,
-        'end': end,
-        'duration': (end - start + 1.0) / fps,
-        'active_cam_frames': active_cam_frames,
-        'frame_current': scene.frame_current,
-        }
-
-
 def get_active_cam_for_each_frame(scene, start, end):
     """Create list of active camera for each frame in case active camera is set by markers"""
     active_cam_frames = []
@@ -107,8 +82,8 @@ class ObjectExport():
         self.name_ae = convert_name(self.obj.name)
         self.keyframes = {}
 
-    def get_prop_keyframe(self, context, prop_name, value, time):
-        """Set keyframe for given property"""
+    def get_prop_keyframe(self, prop_name, value, time):
+        """Get keyframe for given property, only if different from previous value"""
         prop_keys = self.keyframes.setdefault(prop_name, [])
         if len(prop_keys) == 0:
             prop_keys.append([time, value, False])
@@ -121,19 +96,19 @@ class ObjectExport():
         else:
             prop_keys[-1][2] = True
 
-    def get_keyframe(self, context, data, time, ae_size):
+    def get_keyframe(self, context, width, height, aspect, time, ae_size):
         """Store animation for the current frame"""
         ae_transform = convert_transform_matrix(self.obj.matrix_world,
-                                                data['width'], data['height'],
-                                                data['aspect'], True, ae_size)
+                                                width, height,
+                                                aspect, True, ae_size)
 
-        self.get_prop_keyframe(context, 'position', ae_transform[0:3], time)
-        self.get_prop_keyframe(context, 'orientation', ae_transform[3:6], time)
-        self.get_prop_keyframe(context, 'scale', ae_transform[6:9], time)
+        self.get_prop_keyframe('position', ae_transform[0:3], time)
+        self.get_prop_keyframe('orientation', ae_transform[3:6], time)
+        self.get_prop_keyframe('scale', ae_transform[6:9], time)
 
     def get_obj_script(self, include_animation):
         """Get the JSX script for the object"""
-        return self.get_type_script() + self.get_prop_script(include_animation) + self.get_post_script()
+        return self.get_type_script() + self.get_anim_script(include_animation) + self.get_post_script()
 
     def get_type_script(self):
         """Get the basic part of the JSX script"""
@@ -142,22 +117,22 @@ class ObjectExport():
         type_script += f'{self.name_ae}.source.name = "{self.name_ae}";\n'
         return type_script
 
-    def get_prop_script(self, include_animation):
+    def get_anim_script(self, include_animation):
         """Get the part of the JSX script encoding animation"""
-        prop_script = ""
+        anim_script = ""
 
         # Set values of properties, add keyframes only where needed
         for prop, keys in self.keyframes.items():
             if include_animation and len(keys) > 1:
                 times = ",".join(str(k[0]) for k in keys)
                 values = ",".join(str(k[1]) for k in keys).replace(" ", "")
-                prop_script += (
+                anim_script += (
                     f'{self.name_ae}.property("{prop}").setValuesAtTimes([{times}],[{values}]);\n')
 
                 # Set to HOLD the frames after which animation is fixed
                 # for several frames, to avoid interpolation errors
                 if any(k[2] for k in keys):
-                    prop_script += (
+                    anim_script += (
                         f'var hold_frames = {[i + 1 for i, k in enumerate(keys) if k[2]]};\n'
                         'for (var i = 0; i < hold_frames.length; i++) {\n'
                         f'  {self.name_ae}.property("{prop}").setInterpolationTypeAtKey(hold_frames[i], KeyframeInterpolationType.HOLD);\n'
@@ -166,27 +141,28 @@ class ObjectExport():
             # No animation for this property
             else:
                 value = str(keys[0][1]).replace(" ", "")
-                prop_script += (
+                anim_script += (
                     f'{self.name_ae}.property("{prop}").setValue({value});\n')
-        prop_script += '\n'
 
-        return prop_script
+        anim_script += '\n'
+
+        return anim_script
 
     def get_post_script(self):
         """This is only used in lights as a post-treatment after animation"""
         return ""
 
 class CameraExport(ObjectExport):
-    def get_keyframe(self, context, data, time, ae_size):
+    def get_keyframe(self, context, width, height, aspect, time, ae_size):
         ae_transform = convert_transform_matrix(self.obj.matrix_world,
-                                                data['width'], data['height'],
-                                                data['aspect'], True, ae_size)
-        zoom = convert_lens(self.obj, data['width'], data['height'],
-                            data['aspect'])
+                                                width, height,
+                                                aspect, True, ae_size)
+        zoom = convert_lens(self.obj, width, height,
+                            aspect)
 
-        self.get_prop_keyframe(context, 'position', ae_transform[0:3], time)
-        self.get_prop_keyframe(context, 'orientation', ae_transform[3:6], time)
-        self.get_prop_keyframe(context, 'zoom', zoom, time)
+        self.get_prop_keyframe('position', ae_transform[0:3], time)
+        self.get_prop_keyframe('orientation', ae_transform[3:6], time)
+        self.get_prop_keyframe('zoom', zoom, time)
 
     def get_type_script(self):
         type_script = f'var {self.name_ae} = newComp.layers.addCamera("{self.name_ae}",[0,0]);\n'
@@ -195,24 +171,24 @@ class CameraExport(ObjectExport):
 
 
 class LightExport(ObjectExport):
-    def get_keyframe(self, context, data, time, ae_size):
+    def get_keyframe(self, context, width, height, aspect, time, ae_size):
         ae_transform = convert_transform_matrix(self.obj.matrix_world,
-                                                data['width'], data['height'],
-                                                data['aspect'], True, ae_size)
+                                                width, height,
+                                                aspect, True, ae_size)
         self.type = self.obj.data.type
         color = list(self.obj.data.color)
         intensity = self.obj.data.energy * 10.0
 
-        self.get_prop_keyframe(context, 'position', ae_transform[0:3], time)
+        self.get_prop_keyframe('position', ae_transform[0:3], time)
         if self.type in {'SPOT', 'SUN'}:
-            self.get_prop_keyframe(context, 'orientation', ae_transform[3:6], time)
-        self.get_prop_keyframe(context, 'intensity', intensity, time)
-        self.get_prop_keyframe(context, 'Color', color, time)
+            self.get_prop_keyframe('orientation', ae_transform[3:6], time)
+        self.get_prop_keyframe('intensity', intensity, time)
+        self.get_prop_keyframe('Color', color, time)
         if self.type == 'SPOT':
             cone_angle = degrees(self.obj.data.spot_size)
-            self.get_prop_keyframe(context, 'Cone Angle', cone_angle, time)
+            self.get_prop_keyframe('Cone Angle', cone_angle, time)
             cone_feather = self.obj.data.spot_blend * 100.0
-            self.get_prop_keyframe(context, 'Cone Feather', cone_feather, time)
+            self.get_prop_keyframe('Cone Feather', cone_feather, time)
 
     def get_type_script(self):
         type_script = f'var {self.name_ae} = newComp.layers.addLight("{self.name_ae}", [0.0, 0.0]);\n'
@@ -232,14 +208,14 @@ class LightExport(ObjectExport):
 
 
 class ImageExport(ObjectExport):
-    def get_keyframe(self, context, data, time, ae_size):
+    def get_keyframe(self, context, width, height, aspect, time, ae_size):
         # Convert obj transform properties to AE space
         plane_matrix = get_image_plane_matrix(self.obj)
         # Scale plane to account for AE's transforms
-        plane_matrix = plane_matrix @ Matrix.Scale(100.0 / data['width'], 4)
+        plane_matrix = plane_matrix @ Matrix.Scale(100.0 / width, 4)
 
-        ae_transform = convert_transform_matrix(plane_matrix, data['width'],
-                                                data['height'], data['aspect'],
+        ae_transform = convert_transform_matrix(plane_matrix, width,
+                                                height, aspect,
                                                 True, ae_size)
         opacity = 0.0 if self.obj.hide_render else 100.0
 
@@ -247,7 +223,7 @@ class ImageExport(ObjectExport):
             self.filepath = get_image_filepath(self.obj)
 
         image_width, image_height = get_image_size(self.obj)
-        ratio_to_comp = image_width / data['width']
+        ratio_to_comp = image_width / width
         scale = ae_transform[6:9]
         if image_height != 0.0:
             scale[1] *= image_width / image_height
@@ -255,10 +231,10 @@ class ImageExport(ObjectExport):
             scale[0] /= ratio_to_comp
             scale[1] /= ratio_to_comp
 
-        self.get_prop_keyframe(context, 'position', ae_transform[0:3], time)
-        self.get_prop_keyframe(context, 'orientation', ae_transform[3:6], time)
-        self.get_prop_keyframe(context, 'scale', scale, time)
-        self.get_prop_keyframe(context, 'opacity', opacity, time)
+        self.get_prop_keyframe('position', ae_transform[0:3], time)
+        self.get_prop_keyframe('orientation', ae_transform[3:6], time)
+        self.get_prop_keyframe('scale', scale, time)
+        self.get_prop_keyframe('opacity', opacity, time)
 
     def get_type_script(self):
         type_script = f'var newFootage = app.project.importFile(new ImportOptions(File("{self.filepath}")));\n'
@@ -270,30 +246,30 @@ class ImageExport(ObjectExport):
 
 
 class SolidExport(ObjectExport):
-    def get_keyframe(self, context, data, time, ae_size):
+    def get_keyframe(self, context, width, height, aspect, time, ae_size):
         # Convert obj transform properties to AE space
         plane_matrix = get_plane_matrix(self.obj)
         # Scale plane to account for AE's transforms
-        plane_matrix = plane_matrix @ Matrix.Scale(100.0 / data['width'], 4)
+        plane_matrix = plane_matrix @ Matrix.Scale(100.0 / width, 4)
 
-        ae_transform = convert_transform_matrix(plane_matrix, data['width'],
-                                                data['height'], data['aspect'],
+        ae_transform = convert_transform_matrix(plane_matrix, width,
+                                                height, aspect,
                                                 True, ae_size)
         opacity = 0.0 if self.obj.hide_render else 100.0
         if not hasattr(self, 'color'):
             self.color = get_plane_color(self.obj)
         if not hasattr(self, 'width'):
-            self.width = data['width']
+            self.width = width
         if not hasattr(self, 'height'):
-            self.height = data['height']
+            self.height = height
 
         scale = ae_transform[6:9]
-        scale[1] *= data['width'] / data['height']
+        scale[1] *= width / height
 
-        self.get_prop_keyframe(context, 'position', ae_transform[0:3], time)
-        self.get_prop_keyframe(context, 'orientation', ae_transform[3:6], time)
-        self.get_prop_keyframe(context, 'scale', scale, time)
-        self.get_prop_keyframe(context, 'opacity', opacity, time)
+        self.get_prop_keyframe('position', ae_transform[0:3], time)
+        self.get_prop_keyframe('orientation', ae_transform[3:6], time)
+        self.get_prop_keyframe('scale', scale, time)
+        self.get_prop_keyframe('opacity', opacity, time)
 
     def get_type_script(self):
         type_script = f'var {self.name_ae} = newComp.layers.addSolid({self.color},"{self.name_ae}",{self.width},{self.height},1.0);\n'
@@ -310,18 +286,18 @@ class CamBundleExport(ObjectExport):
         self.name_ae = convert_name(f'{obj.name}__{track.name}')
         self.keyframes = {}
 
-    def get_keyframe(self, context, data, time, ae_size):
+    def get_keyframe(self, context, width, height, aspect, time, ae_size):
         # Bundles are in camera space.
         # Transpose to world space
         matrix = Matrix.Translation(self.obj.matrix_basis
                                     @ self.track.bundle)
         # Convert the position into AE space
-        ae_transform = convert_transform_matrix(matrix, data['width'],
-                                                data['height'],
-                                                data['aspect'], False,
+        ae_transform = convert_transform_matrix(matrix, width,
+                                                height,
+                                                aspect, False,
                                                 ae_size)
 
-        self.get_prop_keyframe(context, 'position', ae_transform[0:3], time)
+        self.get_prop_keyframe('position', ae_transform[0:3], time)
 
     def get_type_script(self):
         type_script = f'var {self.name_ae} = newComp.layers.addNull();\n'
@@ -672,44 +648,52 @@ def convert_lens(camera, width, height, aspect):
 #    return matrix
 
 
-def write_jsx_file(context, file, data, selection, include_animation, ae_size):
+def write_jsx_file(context, file, selection, include_animation, ae_size):
     """jsx script for AE creation"""
 
     print("\n---------------------------\n"
           "- Export to After Effects -\n"
           "---------------------------")
 
-    # Store the current frame to restore it at the end of export
-    frame_current = data['frame_current']
-
-    # Get all keyframes for each object and store in dico
+    # Create list of static blender data
+    scene = context.scene
+    width = scene.render.resolution_x
+    height = scene.render.resolution_y
+    aspect_x = scene.render.pixel_aspect_x
+    aspect_y = scene.render.pixel_aspect_y
+    aspect = aspect_x / aspect_y
     if include_animation:
-        end = data['end'] + 1
+        frame_end = scene.frame_end + 1
     else:
-        end = data['start'] + 1
+        frame_end = scene.frame_start + 1
+    fps = scene.render.fps / scene.render.fps_base
+    duration = (frame_end - scene.frame_start) / fps
 
-    for frame in range(data['start'], end):
+    # Store the current frame to restore it at the end of export
+    frame_current = scene.frame_current
+
+    # Get all keyframes for each object
+    for frame in range(scene.frame_start, frame_end):
         print("Working on frame: " + str(frame))
-        data['scn'].frame_set(frame)
+        scene.frame_set(frame)
 
         # Get time for this loop
-        time = (frame - data['start']) / data['fps']
+        time = (frame - scene.frame_start) / fps
 
         for obj_type in selection.values():
             for obj in obj_type:
-                obj.get_keyframe(context, data, time, ae_size)
+                obj.get_keyframe(context, width, height, aspect, time, ae_size)
 
     # ---- write JSX file
     with open(file, 'w') as jsx_file:
-
         # Make the jsx executable in After Effects (enable double click on jsx)
         jsx_file.write('#target AfterEffects\n\n')
         # Script's header
         jsx_file.write('/**************************************\n')
-        jsx_file.write(f'Scene : {data["scn"].name}\n')
-        jsx_file.write(f'Resolution : {data["width"]} x {data["height"]}\n')
-        jsx_file.write(f'Duration : {data["duration"]}\n')
-        jsx_file.write(f'FPS : {data["fps"]}\n')
+        jsx_file.write(f'Scene : {scene.name}\n')
+        jsx_file.write(f'Resolution : {width} x {height}\n')
+        jsx_file.write(f'Duration : {duration}\n')
+        jsx_file.write(f'FPS : {fps}\n')
         jsx_file.write(f'Date : {datetime.datetime.now()}\n')
         jsx_file.write(f'Exported with io_export_after_effects.py\n')
         jsx_file.write(f'**************************************/\n\n\n\n')
@@ -727,12 +711,13 @@ def write_jsx_file(context, file, data, selection, include_animation, ae_size):
         jsx_file.write('if (compName){')
         # Continue only if comp name is given. If not - terminate
         jsx_file.write(
-            f'\nvar newComp = app.project.items.addComp(compName, {data["width"]}, '
-            f'{data["height"]}, {data["aspect"]}, {data["duration"]}, {data["fps"]});')
-        jsx_file.write(f"\nnewComp.displayStartTime = {(data['start']) / data['fps']};\n\n")
+            f'\nvar newComp = app.project.items.addComp(compName, {width}, '
+            f'{height}, {aspect}, {duration}, {fps});')
+        jsx_file.write(f"\nnewComp.displayStartTime = {scene.frame_start / fps};\n\n")
 
         jsx_file.write('var footageFolder = app.project.items.addFolder(compName + "_layers")\n\n\n')
 
+        # Write each object's creation script
         for obj_type in ('cam_bundles', 'nulls', 'solids', 'images', 'lights', 'cameras'):
             if len(selection[obj_type]):
                 type_name = 'CAMERA 3D MARKERS' if obj_type == 'cam_bundles' else obj_type.upper()
@@ -750,8 +735,8 @@ def write_jsx_file(context, file, data, selection, include_animation, ae_size):
         jsx_file.write('compFromBlender();\n')  # Execute function
         jsx_file.write('app.endUndoGroup();\n\n\n')
 
-    # Set current frame of animation in blender to state before export
-    data['scn'].frame_set(frame_current)
+    # Restore current frame of animation in blender to state before export
+    scene.frame_set(frame_current)
 
 
 ##########################################
@@ -850,14 +835,13 @@ class ExportJsx(bpy.types.Operator, ExportHelper):
         return selected or camera
 
     def execute(self, context):
-        data = get_comp_data(context)
         selection = get_selected(context, self.include_active_cam,
                                  self.include_selected_cams,
                                  self.include_selected_objects,
                                  self.include_cam_bundles,
                                  self.include_image_planes,
                                  self.include_solids)
-        write_jsx_file(context, self.filepath, data, selection,
+        write_jsx_file(context, self.filepath, selection,
                        self.include_animation, self.ae_size)
         print("\nExport to After Effects Completed")
         return {'FINISHED'}
