@@ -40,36 +40,28 @@ from math import degrees
 from mathutils import Matrix, Vector, Color
 
 
-def get_active_cam_for_each_frame(scene, start, end):
-    """Create list of active camera for each frame in case active camera is set by markers"""
-    active_cam_frames = []
-    sorted_markers = []
-    markers = scene.timeline_markers
-    if markers:
-        for marker in markers:
-            if marker.camera:
-                sorted_markers.append([marker.frame, marker])
-        sorted_markers = sorted(sorted_markers)
+def get_camera_frame_ranges(scene, start, end):
+    """Get frame ranges for each marker in the timeline
 
-        if sorted_markers:
-            for frame in range(start, end + 1):
-                for m, marker in enumerate(sorted_markers):
-                    if marker[0] > frame:
-                        if m != 0:
-                            active_cam_frames.append(
-                                sorted_markers[m - 1][1].camera)
-                        else:
-                            active_cam_frames.append(marker[1].camera)
-                        break
-                    elif m == len(sorted_markers) - 1:
-                        active_cam_frames.append(marker[1].camera)
-    if not active_cam_frames:
-        if scene.camera:
-            # in this case active_cam_frames array will have length of 1. This
-            # will indicate that there is only one active cam in all frames
-            active_cam_frames.append(scene.camera)
+    For this, start at the end of the timeline,
+    iterate through each camera-bound marker in reverse,
+    and get the range from this marker to the end of the previous range.
+    """
+    markers = sorted((m for m in scene.timeline_markers if m.camera is not None),
+                     key=lambda m:m.frame, reverse=True)
 
-    return(active_cam_frames)
+    if len(markers) <= 1:
+        return [[[start, end], scene.camera],]
+
+    camera_frame_ranges = []
+    current_frame = end
+    for m in markers:
+        if m.frame < current_frame:
+            camera_frame_ranges.append([[m.frame, current_frame + 1], m.camera])
+            current_frame = m.frame - 1
+    camera_frame_ranges.reverse()
+    camera_frame_ranges[0][0][0] = start
+    return camera_frame_ranges
 
 
 class ObjectExport():
