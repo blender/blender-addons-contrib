@@ -99,8 +99,7 @@ class ObjectExport():
     def get_keyframe(self, context, width, height, aspect, time, ae_size):
         """Store animation for the current frame"""
         ae_transform = convert_transform_matrix(self.obj.matrix_world,
-                                                width, height,
-                                                aspect, True, ae_size)
+                                                width, height, aspect, ae_size)
 
         self.get_prop_keyframe('position', ae_transform[0:3], time)
         self.get_prop_keyframe('orientation', ae_transform[3:6], time)
@@ -155,8 +154,7 @@ class ObjectExport():
 class CameraExport(ObjectExport):
     def get_keyframe(self, context, width, height, aspect, time, ae_size):
         ae_transform = convert_transform_matrix(self.obj.matrix_world,
-                                                width, height,
-                                                aspect, True, ae_size)
+                                                width, height, aspect, ae_size)
         zoom = convert_lens(self.obj, width, height,
                             aspect)
 
@@ -173,8 +171,7 @@ class CameraExport(ObjectExport):
 class LightExport(ObjectExport):
     def get_keyframe(self, context, width, height, aspect, time, ae_size):
         ae_transform = convert_transform_matrix(self.obj.matrix_world,
-                                                width, height,
-                                                aspect, True, ae_size)
+                                                width, height, aspect, ae_size)
         self.type = self.obj.data.type
         color = list(self.obj.data.color)
         intensity = self.obj.data.energy * 10.0
@@ -214,9 +211,8 @@ class ImageExport(ObjectExport):
         # Scale plane to account for AE's transforms
         plane_matrix = plane_matrix @ Matrix.Scale(100.0 / width, 4)
 
-        ae_transform = convert_transform_matrix(plane_matrix, width,
-                                                height, aspect,
-                                                True, ae_size)
+        ae_transform = convert_transform_matrix(plane_matrix,
+                                                width, height, aspect, ae_size)
         opacity = 0.0 if self.obj.hide_render else 100.0
 
         if not hasattr(self, 'filepath'):
@@ -252,10 +248,10 @@ class SolidExport(ObjectExport):
         # Scale plane to account for AE's transforms
         plane_matrix = plane_matrix @ Matrix.Scale(100.0 / width, 4)
 
-        ae_transform = convert_transform_matrix(plane_matrix, width,
-                                                height, aspect,
-                                                True, ae_size)
+        ae_transform = convert_transform_matrix(plane_matrix,
+                                                width, height, aspect, ae_size)
         opacity = 0.0 if self.obj.hide_render else 100.0
+
         if not hasattr(self, 'color'):
             self.color = get_plane_color(self.obj)
         if not hasattr(self, 'width'):
@@ -291,10 +287,8 @@ class CamBundleExport(ObjectExport):
         # Transpose to world space
         matrix = self.obj.matrix_basis @ Matrix.Translation(self.track.bundle)
         # Convert the position into AE space
-        ae_transform = convert_transform_matrix(matrix, width,
-                                                height,
-                                                aspect, True,
-                                                ae_size)
+        ae_transform = convert_transform_matrix(matrix,
+                                                width, height, aspect, ae_size)
 
         self.get_prop_keyframe('position', ae_transform[0:3], time)
         self.get_prop_keyframe('orientation', ae_transform[3:6], time)
@@ -526,8 +520,7 @@ def convert_name(name):
     return name
 
 
-def convert_transform_matrix(matrix, width, height, aspect,
-                             x_rot_correction=False, ae_size=100.0):
+def convert_transform_matrix(matrix, width, height, aspect, ae_size=100.0):
     """Convert from Blender's Location, Rotation and Scale
     to AE's Position, Rotation/Orientation and Scale
 
@@ -548,14 +541,12 @@ def convert_transform_matrix(matrix, width, height, aspect,
     z = (b_loc.y * 100.0) * ae_size / 100.0
 
     # Convert rotations to match AE's orientation.
-    # If not x_rot_correction
-    rx =  degrees(b_rot.x)  # AE's X orientation =  blender's X rotation if 'ZYX' euler.
+    # In Blender, object of zero rotation lays on floor.
+    # In AE, layer of zero orientation "stands", so subtract 90 degrees
+    rx =  degrees(b_rot.x) - 90.0  # AE's X orientation =  blender's X rotation if 'ZYX' euler.
     ry = -degrees(b_rot.y)  # AE's Y orientation = -blender's Y rotation if 'ZYX' euler
     rz = -degrees(b_rot.z)  # AE's Z orientation = -blender's Z rotation if 'ZYX' euler
-    if x_rot_correction:
-        # In Blender, object of zero rotation lays on floor.
-        # In AE, layer of zero orientation "stands"
-        rx -= 90.0
+
     # Convert scale to AE scale. ae_size is a global multiplier.
     sx = b_scale.x * ae_size
     sy = b_scale.y * ae_size
