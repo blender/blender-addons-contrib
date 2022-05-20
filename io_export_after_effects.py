@@ -23,7 +23,7 @@ bl_info = {
     "description": "Export cameras, selected objects & camera solution "
         "3D Markers to Adobe After Effects CS3 and above",
     "author": "Bartek Skorupa, Damien Picard (@pioverfour)",
-    "version": (0, 1, 1),
+    "version": (0, 1, 2),
     "blender": (2, 80, 0),
     "location": "File > Export > Adobe After Effects (.jsx)",
     "warning": "",
@@ -144,6 +144,11 @@ class ObjectExport():
         return ""
 
 class CameraExport(ObjectExport):
+    def __init__(self, obj, start_time=None, end_time=None):
+        super().__init__(obj)
+        self.start_time = start_time
+        self.end_time = end_time
+
     def get_keyframe(self, context, width, height, aspect, time, ae_size):
         ae_transform = convert_transform_matrix(self.obj.matrix_world,
                                                 width, height, aspect, ae_size)
@@ -156,6 +161,10 @@ class CameraExport(ObjectExport):
 
     def get_type_script(self):
         type_script = f'var {self.name_ae} = newComp.layers.addCamera("{self.name_ae}",[0,0]);\n'
+        # Restrict time range when multiple cameras are used (markers)
+        if self.start_time is not None:
+            type_script += f'{self.name_ae}.inPoint = {self.start_time};\n'
+            type_script += f'{self.name_ae}.outPoint = {self.end_time};\n'
         type_script += f'{self.name_ae}.autoOrient = AutoOrientType.NO_AUTO_ORIENT;\n'
         return type_script
 
@@ -324,17 +333,29 @@ def get_selected(context, include_active_cam, include_selected_cams,
     cam_bundles = []  # Camera trackers exported as AE nulls
     nulls = []        # Remaining objects exported as AE nulls
 
+    scene = context.scene
+    fps = scene.render.fps / scene.render.fps_base
+
     if context.scene.camera is not None:
         if include_active_cam:
-            cameras.append(CameraExport(context.scene.camera))
-        if include_cam_bundles:
-            cam_bundles.extend(get_camera_bundles(context.scene, context.scene.camera))
+            for frame_range, camera in get_camera_frame_ranges(
+                    context.scene,
+                    context.scene.frame_start, context.scene.frame_end):
+
+                if (include_cam_bundles
+                        and camera not in (cam.obj for cam in cameras)):
+                    cam_bundles.extend(
+                        get_camera_bundles(context.scene, camera))
+
+                cameras.append(
+                    CameraExport(camera,
+                                 (frame_range[0] - scene.frame_start) / fps,
+                                 (frame_range[1] - scene.frame_start) / fps))
 
     for obj in context.selected_objects:
         if obj.type == 'CAMERA':
-            if (include_active_cam
-                    and obj is context.scene.camera):
-                # Ignore active camera if already selected
+            # Ignore camera if already selected
+            if obj in (cam.obj for cam in cameras):
                 continue
             if include_selected_cams:
                 cameras.append(CameraExport(obj))
