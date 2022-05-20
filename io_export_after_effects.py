@@ -23,7 +23,7 @@ bl_info = {
     "description": "Export cameras, selected objects & camera solution "
         "3D Markers to Adobe After Effects CS3 and above",
     "author": "Bartek Skorupa, Damien Picard (@pioverfour)",
-    "version": (0, 1, 0),
+    "version": (0, 1, 1),
     "blender": (2, 80, 0),
     "location": "File > Export > Adobe After Effects (.jsx)",
     "warning": "",
@@ -289,15 +289,15 @@ class CamBundleExport(ObjectExport):
     def get_keyframe(self, context, width, height, aspect, time, ae_size):
         # Bundles are in camera space.
         # Transpose to world space
-        matrix = Matrix.Translation(self.obj.matrix_basis
-                                    @ self.track.bundle)
+        matrix = self.obj.matrix_basis @ Matrix.Translation(self.track.bundle)
         # Convert the position into AE space
         ae_transform = convert_transform_matrix(matrix, width,
                                                 height,
-                                                aspect, False,
+                                                aspect, True,
                                                 ae_size)
 
         self.get_prop_keyframe('position', ae_transform[0:3], time)
+        self.get_prop_keyframe('orientation', ae_transform[3:6], time)
 
     def get_type_script(self):
         type_script = f'var {self.name_ae} = newComp.layers.addNull();\n'
