@@ -3,7 +3,6 @@
 import typing
 
 import bpy
-import bgl
 import gpu
 from gpu_extras.batch import batch_for_shader
 
@@ -38,7 +37,7 @@ class LineDrawer:
         if not coords:
             return
 
-        bgl.glEnable(bgl.GL_BLEND)
+        gpu.state.blend_set('ALPHA')
 
         self.shader.uniform_float("color", color)
 
@@ -46,7 +45,7 @@ class LineDrawer:
         batch.program_set(self.shader)
         batch.draw()
 
-        bgl.glDisable(bgl.GL_BLEND)
+        gpu.state.blend_set('NONE')
 
 
 def get_scene_strip_in_out(strip):
