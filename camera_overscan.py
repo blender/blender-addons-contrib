@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Camera Overscan",
     "author": "John Roper, Barnstorm VFX, Luca Scheller, dskjal",
-    "version": (1, 3, 0),
+    "version": (1, 4, 0),
     "blender": (3, 1, 0),
     "location": "Render Settings > Camera Overscan",
     "description": "Render Overscan",
@@ -103,6 +103,12 @@ class RENDER_PT_overscan(RenderOutputButtonsPanel, Panel):
             col_enable = row.column(align=True)
             if not overscan.RO_Activate:
                 col_enable.enabled = False
+            col_enable.prop(overscan, 'RO_Safe_Res_X', text="Original X")
+            col_enable.prop(overscan, 'RO_Safe_Res_Y', text="Original Y")
+            col_enable.enabled=False
+
+            row = layout.row()
+            col_enable = row.column(align=True)
             col_enable.prop(overscan, 'RO_Custom_Res_X', text="X")
             col_enable.prop(overscan, 'RO_Custom_Res_Y', text="Y")
             col_enable.prop(overscan, 'RO_Custom_Res_Scale', text="%")
@@ -162,7 +168,7 @@ def RO_Update(self, context):
         scale = overscan.RO_Custom_Res_Scale * 0.01
         x = int(overscan.RO_Custom_Res_X * scale + dx)
         y = int(overscan.RO_Custom_Res_Y * scale + dy)
-        sensor_size_factor = x / overscan.RO_Safe_Res_X
+        sensor_size_factor = float(x / overscan.RO_Safe_Res_X)
 
         # Set New Property Values
         active_cam.sensor_width = active_cam.sensor_width * sensor_size_factor
@@ -194,7 +200,7 @@ def RO_Update_X_Offset(self, context):
 
     if overscan.RO_Custom_Res_Retain_Aspect_Ratio:
         overscan.RO_Activate = False # recursion guard
-        overscan.RO_Custom_Res_Offset_Y = overscan.RO_Custom_Res_Offset_X * overscan.RO_Safe_Res_Y / overscan.RO_Safe_Res_X
+        overscan.RO_Custom_Res_Offset_Y = int(overscan.RO_Custom_Res_Offset_X * overscan.RO_Safe_Res_Y / overscan.RO_Safe_Res_X)
 
     overscan.RO_Activate = True
     RO_Update(self, context)
@@ -257,8 +263,8 @@ class camera_overscan_props(PropertyGroup):
                         description="Affects dX, dY"
     )
 
-    RO_Safe_Res_X: FloatProperty()
-    RO_Safe_Res_Y: FloatProperty()
+    RO_Safe_Res_X: IntProperty()
+    RO_Safe_Res_Y: IntProperty()
 
     # the hard limit is sys.max which is too much, used 65536 instead
     RO_Safe_SensorSize: FloatProperty(
