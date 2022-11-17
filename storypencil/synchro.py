@@ -464,8 +464,7 @@ def update_sync(context: Context, win_id=None):
 
     # bidirectionnal sync: change main time from slave window
     if (
-            wm.storypencil_settings.bidirectional
-            and win_id != wm.storypencil_settings.main_window_id
+            win_id != wm.storypencil_settings.main_window_id
             and is_slave_window(wm, win_id)
     ):
         # get strip under time cursor in main window
@@ -656,12 +655,6 @@ class STORYPENCIL_PG_Settings(PropertyGroup):
             "Main Windows and activate Time Synchronization"),
         default=False,
         update=sync_active_update
-    )
-
-    bidirectional: BoolProperty(
-        name="Bi-directional",
-        description="Enable bi-directional sync to drive Main time from synced Slave Windows",
-        default=False,
     )
 
     main_window_id: StringProperty(
