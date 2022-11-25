@@ -781,3 +781,18 @@ class STORYPENCIL_OT_Switch(Operator):
                                     area.spaces.active.region_3d.view_perspective = 'CAMERA'
 
         return {"FINISHED"}
+
+
+class STORYPENCIL_OT_TabSwitch(Operator):
+    bl_idname = "storypencil.tabswitch"
+    bl_label = "Switch using tab key"
+    bl_description = "Wrapper used to handle the Tab key to switch"
+    bl_options = {'INTERNAL'}
+
+    def execute(self, context):
+        if context.scene.storypencil_use_new_window:
+            bpy.ops.storypencil.sync_set_main('INVOKE_DEFAULT', True)
+        else:
+            bpy.ops.storypencil.switch('INVOKE_DEFAULT', True)
+
+        return {'FINISHED'}
