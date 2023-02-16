@@ -1167,7 +1167,7 @@ def save(operator,
          ):
 
     import time
-    from bpy_extras.io_utils import create_derived_objects, free_derived_objects
+    #from bpy_extras.io_utils import create_derived_objects, free_derived_objects
 
     """Save the Blender scene to a 3ds file."""
 
