@@ -63,6 +63,7 @@ MAT_SHIN2 = 0xA041  # Shininess of the object/material (percent)
 MAT_SHIN3 = 0xA042  # Reflection of the object/material (percent)
 MAT_TRANSPARENCY = 0xA050  # Transparency value of material (percent)
 MAT_SELF_ILLUM = 0xA080  # Self Illumination value of material
+MATSELFILPCT = 0xA084  # Self illumination strength (percent)
 MAT_WIRE = 0xA085  # Only render's wireframe
 
 MAT_TEXTURE_MAP = 0xA200  # This is a header for a new texture map
