@@ -1183,7 +1183,7 @@ def save(operator,
 
     scene = context.scene
     layer = context.view_layer
-    #depsgraph = context.evaluated_depsgraph_get()
+    depsgraph = context.evaluated_depsgraph_get()
 
     # Initialize the main chunk (primary):
     primary = _3ds_chunk(PRIMARY)
@@ -1231,7 +1231,9 @@ def save(operator,
 
     for ob in objects:
         # get derived objects
-        free, derived = create_derived_objects(scene, ob)
+        #free, derived = create_derived_objects(scene, ob)
+        derived_dict = bpy_extras.io_utils.create_derived_objects(depsgraph, [ob])
+        derived = derived_dict.get(ob)
 
         if derived is None:
             continue
@@ -1239,8 +1241,7 @@ def save(operator,
         for ob_derived, mtx in derived:
             if ob.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
                 continue
-
-            #ob_derived_eval = ob_derived.evaluated_get(depsgraph)
+                
             try:
                 data = ob_derived.to_mesh()
             except:
@@ -1284,8 +1285,8 @@ def save(operator,
 
                 # ob_derived_eval.to_mesh_clear()
 
-        if free:
-            free_derived_objects(ob)
+        #if free:
+        #    free_derived_objects(ob)
 
     # Make material chunks for all materials used in the meshes:
     for ma_image in materialDict.values():
