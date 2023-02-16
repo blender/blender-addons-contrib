@@ -465,6 +465,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         pct = 50
 
         contextWrapper.emission_color = contextMaterial.line_color[:3]
+        contextWrapper.emission_strength = contextMaterial.line_priority / 100
         contextWrapper.base_color = contextMaterial.diffuse_color[:3]
         contextWrapper.specular = contextMaterial.specular_intensity
         contextWrapper.roughness = contextMaterial.roughness
@@ -667,6 +668,18 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 print("Cannot read material transparency")
             new_chunk.bytes_read += temp_chunk.bytes_read
 
+        elif new_chunk.ID == MATSELFILPCT:
+            read_chunk(file, temp_chunk)
+            if temp_chunk.ID == PCTI:
+                temp_data = file.read(SZ_U_SHORT)
+                temp_chunk.bytes_read += SZ_U_SHORT
+                contextMaterial.line_priority = int(struct.unpack('H', temp_data)[0])
+            elif temp_chunk.ID == PCTF:
+                temp_data = file.read(SZ_FLOAT)
+                temp_chunk.bytes_read += SZ_FLOAT
+                contextMaterial.line_priority = (float(struct.unpack('f', temp_data)[0]) * 100)
+            new_chunk.bytes_read += temp_chunk.bytes_read
+
         elif new_chunk.ID == MAT_TEXTURE_MAP:
             read_texture(new_chunk, temp_chunk, "Diffuse", "COLOR")
 
@@ -684,9 +697,15 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             read_texture(new_chunk, temp_chunk, "Bump", "NORMAL")
 
         elif new_chunk.ID == MAT_BUMP_PERCENT:
-            temp_data = file.read(SZ_U_SHORT)
-            new_chunk.bytes_read += SZ_U_SHORT
-            contextWrapper.normalmap_strength = (float(struct.unpack('<H', temp_data)[0]) / 100)
+            read_chunk(file, temp_chunk)
+            if temp_chunk.ID == PCTI:
+                temp_data = file.read(SZ_U_SHORT)
+                temp_chunk.bytes_read += SZ_U_SHORT
+                contextWrapper.normalmap_strength = (float(struct.unpack('<H', temp_data)[0]) / 100)
+            elif temp_chunk.ID == PCTF:
+                temp_data = file.read(SZ_FLOAT)
+                temp_chunk.bytes_read += SZ_FLOAT
+                contextWrapper.normalmap_strength = float(struct.unpack('f', temp_data)[0])
             new_chunk.bytes_read += temp_chunk.bytes_read
 
         elif new_chunk.ID == MAT_SHIN_MAP:
