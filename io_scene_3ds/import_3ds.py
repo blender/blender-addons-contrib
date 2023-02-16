@@ -671,11 +671,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif new_chunk.ID == MATSELFILPCT:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == PCTI:
+            if temp_chunk.ID == PERCENTAGE_SHORT:
                 temp_data = file.read(SZ_U_SHORT)
                 temp_chunk.bytes_read += SZ_U_SHORT
                 contextMaterial.line_priority = int(struct.unpack('H', temp_data)[0])
-            elif temp_chunk.ID == PCTF:
+            elif temp_chunk.ID == PERCENTAGE_FLOAT:
                 temp_data = file.read(SZ_FLOAT)
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextMaterial.line_priority = (float(struct.unpack('f', temp_data)[0]) * 100)
@@ -699,11 +699,11 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif new_chunk.ID == MAT_BUMP_PERCENT:
             read_chunk(file, temp_chunk)
-            if temp_chunk.ID == PCTI:
+            if temp_chunk.ID == PERCENTAGE_SHORT:
                 temp_data = file.read(SZ_U_SHORT)
                 temp_chunk.bytes_read += SZ_U_SHORT
                 contextWrapper.normalmap_strength = (float(struct.unpack('<H', temp_data)[0]) / 100)
-            elif temp_chunk.ID == PCTF:
+            elif temp_chunk.ID == PERCENTAGE_FLOAT:
                 temp_data = file.read(SZ_FLOAT)
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextWrapper.normalmap_strength = float(struct.unpack('f', temp_data)[0])
