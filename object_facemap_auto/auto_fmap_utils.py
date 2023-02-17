@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 
 # Use so we can develop modules without reloading the add-on.
 

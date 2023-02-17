@@ -16,6 +16,8 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+# <pep8 compliant>
+
 bl_info = {
     "name": "Open Street Map (.osm)",
     "author": "Michael Anthrax Schlachter, ideasman42, littleneo",

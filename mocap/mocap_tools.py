@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 from math import sqrt, radians, floor, ceil
 import bpy
 import time

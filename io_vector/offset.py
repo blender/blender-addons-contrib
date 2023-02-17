@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 """Creating offset polygons inside faces."""
 
 __author__ = "howard.trickey@gmail.com"

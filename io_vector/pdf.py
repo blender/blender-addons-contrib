@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 """Functions for dealing with PDF files.
 """
 

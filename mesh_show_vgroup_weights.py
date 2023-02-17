@@ -17,6 +17,8 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+# <pep8 compliant> (Thanks to CodemanX on IRC)
+
 bl_info = {
     "name": "Show Vertex Groups/Weights",
     "author": "Jason van Gumster (Fweeb), Bartius Crouch, CoDEmanX",

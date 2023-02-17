@@ -1,3 +1,0 @@
-${PullRequestTitle}
-
-Pull Request #${PullRequestIndex}

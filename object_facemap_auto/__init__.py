@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 bl_info = {
     "name": "Auto Face Map Widgets",
     "author": "Campbell Barton",

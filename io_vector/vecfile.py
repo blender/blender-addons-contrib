@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 """Reading various vector file formats.
 
 Functions for classifying files, tokenizing, and parsing them.
