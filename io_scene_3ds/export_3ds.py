@@ -647,8 +647,8 @@ def make_material_chunk(material, image):
 
     name_str = material.name if material else "None"
 
-    if image:
-        name_str += image.name
+    #if image:
+    #    name_str += image.name
 
     name.add_variable("name", _3ds_string(sane_name(name_str)))
     material_chunk.add_subchunk(name)
