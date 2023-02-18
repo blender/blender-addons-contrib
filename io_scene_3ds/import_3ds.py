@@ -709,6 +709,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 contextWrapper.normalmap_strength = float(struct.unpack('f', temp_data)[0])
             new_chunk.bytes_read += temp_chunk.bytes_read
 
+
         elif new_chunk.ID == MAT_SHIN_MAP:
             read_texture(new_chunk, temp_chunk, "Shininess", "ROUGHNESS")
 
