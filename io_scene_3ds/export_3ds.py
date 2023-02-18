@@ -1241,7 +1241,7 @@ def save(operator,
         for ob_derived, mtx in derived:
             if ob.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
                 continue
-                
+
             try:
                 data = ob_derived.to_mesh()
             except:
