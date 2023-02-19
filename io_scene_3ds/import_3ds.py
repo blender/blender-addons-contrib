@@ -65,8 +65,9 @@ MAT_SHIN2 = 0xA041  # Shininess of the object/material (percent)
 MAT_SHIN3 = 0xA042  # Reflection of the object/material (percent)
 MAT_TRANSPARENCY = 0xA050  # Transparency value of material (percent)
 MAT_SELF_ILLUM = 0xA080  # Self Illumination value of material
-MATSELFILPCT = 0xA084  # Self illumination strength (percent)
+MAT_SELF_ILPCT = 0xA084  # Self illumination strength (percent)
 MAT_WIRE = 0xA085  # Only render's wireframe
+MAT_SHADING = 0xA100  # Material shading method
 
 MAT_TEXTURE_MAP = 0xA200  # This is a header for a new texture map
 MAT_SPECULAR_MAP = 0xA204  # This is a header for a new specular map
@@ -671,7 +672,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 print("Cannot read material transparency")
             new_chunk.bytes_read += temp_chunk.bytes_read
 
-        elif new_chunk.ID == MATSELFILPCT:
+        elif new_chunk.ID == MAT_SELF_ILPCT:
             read_chunk(file, temp_chunk)
             if temp_chunk.ID == PERCENTAGE_SHORT:
                 temp_data = file.read(SZ_U_SHORT)
@@ -682,6 +683,21 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextMaterial.line_priority = (float(struct.unpack('f', temp_data)[0]) * 100)
             new_chunk.bytes_read += temp_chunk.bytes_read
+
+        elif new_chunk.ID == MAT_SHADING:
+            shading = read_short(new_chunk)
+            if shading >= 2:
+                contextWrapper.use_nodes = True
+                contextWrapper.emission_color = contextMaterial.line_color[:3]
+                contextWrapper.emission_strength = contextMaterial.line_priority / 100
+                contextWrapper.base_color = contextMaterial.diffuse_color[:3]
+                contextWrapper.specular = contextMaterial.specular_intensity
+                contextWrapper.roughness = contextMaterial.roughness
+                contextWrapper.metallic = contextMaterial.metallic
+                contextWrapper.alpha = contextMaterial.diffuse_color[3]
+                contextWrapper.use_nodes = False
+                if shading >= 3:
+                    contextWrapper.use_nodes = True
 
         elif new_chunk.ID == MAT_TEXTURE_MAP:
             read_texture(new_chunk, temp_chunk, "Diffuse", "COLOR")
