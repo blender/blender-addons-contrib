@@ -681,7 +681,7 @@ def make_material_chunk(material, image):
             matmap = make_material_texture_chunk(MAT_DIFFUSEMAP, color, d_pct)
             if matmap:
                 material_chunk.add_subchunk(matmap)
-                primary = True
+                primary_tex = True
 
         if wrap.specular_texture:
             spec = [wrap.specular_texture]
