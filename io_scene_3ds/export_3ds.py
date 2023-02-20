@@ -675,12 +675,15 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(make_percent_subchunk(MATSELFILPCT, wrap.emission_strength))
         material_chunk.add_subchunk(shading)
 
+        primary_tex = False
+
         if wrap.base_color_texture:
             d_pct = 0.7 + sum(wrap.base_color[:]) * 0.1
             color = [wrap.base_color_texture]
             matmap = make_material_texture_chunk(MAT_DIFFUSEMAP, color, d_pct)
             if matmap:
                 material_chunk.add_subchunk(matmap)
+                primary_tex = True
 
         if wrap.specular_texture:
             spec = [wrap.specular_texture]
@@ -705,8 +708,7 @@ def make_material_chunk(material, image):
 
         if wrap.normalmap_texture:
             normal = [wrap.normalmap_texture]
-            bump = wrap.normalmap_strength
-            b_pct = min(bump, 1)
+            b_pct = wrap.normalmap_strength
             matmap = make_material_texture_chunk(MAT_BUMPMAP, normal, b_pct)
             if matmap:
                 material_chunk.add_subchunk(matmap)
@@ -735,7 +737,10 @@ def make_material_chunk(material, image):
                 diffuse = [link.from_node.image] if not wrap.normalmap_texture else None
 
         if diffuse:
-            matmap = make_texture_chunk(MAT_TEX2MAP, diffuse)
+            if primary_tex == False:
+                make_texture_chunk(MAT_DIFFUSEMAP, diffuse)
+            else:
+                matmap = make_texture_chunk(MAT_TEX2MAP, diffuse)
             if matmap:
                 material_chunk.add_subchunk(matmap)
 
