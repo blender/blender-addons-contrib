@@ -812,7 +812,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             contextCamera.rotation_euler[2] = -1 * (math.radians(90) - math.acos(cam[0] / focus))
             new_chunk.bytes_read += SZ_FLOAT
             temp_data = file.read(SZ_FLOAT)
-            contextCamera.data.lens = (float(struct.unpack('f', temp_data)[0]) * 10)
+            contextCamera.data.lens = float(struct.unpack('f', temp_data)[0])
             new_chunk.bytes_read += SZ_FLOAT
             contextMatrix = None  # Reset matrix
             CreateBlenderObject = False
