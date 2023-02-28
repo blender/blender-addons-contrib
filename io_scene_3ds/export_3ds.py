@@ -731,8 +731,8 @@ def make_material_chunk(material, image):
         diffuse = []
 
         for link in wrap.material.node_tree.links:
-            if link.from_node.type == 'TEX_IMAGE' and link.to_node.type != 'BSDF_PRINCIPLED':
-                diffuse = [link.from_node.image] if not wrap.normalmap_texture else None
+            if link.from_node.type == 'TEX_IMAGE' and link.to_node.type == 'MIX_RGB':
+                diffuse = [link.from_node.image]
 
         if diffuse:
             if primary_tex == False:

@@ -302,7 +302,21 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
     elif extend == 'noWrap':
         img_wrap.extension = 'CLIP'
     if alpha == 'alpha':
-        links.new(img_wrap.node_image.outputs['Alpha'], img_wrap.socket_dst)
+        for link in links:
+            if link.from_node.type == 'TEX_IMAGE' and link.to_node.type == 'MIX_RGB':
+                tex = link.from_node.image.name
+                own_node = img_wrap.node_image
+                own_map = img_wrap.node_mapping
+                if tex == image.name:
+                    links.new(link.from_node.outputs['Alpha'], img_wrap.socket_dst)
+                    nodes.remove(own_map)
+                    nodes.remove(own_node)
+                    for imgs in bpy.data.images:
+                        if imgs.name[-3:].isdigit():
+                            if not imgs.users:
+                                bpy.data.images.remove(imgs)
+                else:
+                    links.new(img_wrap.node_image.outputs['Alpha'], img_wrap.socket_dst)
 
     shader.location = (300, 300)
     contextWrapper._grid_to_location(1, 0, dst_node=contextWrapper.node_out, ref_node=shader)
@@ -323,7 +337,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
     contextMesh_smooth = None
     contextMeshUV = None
 
-    TEXTURE_DICT = {}
+    #TEXTURE_DICT = {}
     MATDICT = {}
 
     # Localspace variable names, faster.
@@ -379,23 +393,19 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 else:
                     bmat = MATDICT.get(matName)
                     # in rare cases no materials defined.
-                    if bmat:
-                        img = TEXTURE_DICT.get(bmat.name)
-                    else:
-                        print("    warning: material %r not defined!" % matName)
-                        bmat = MATDICT[matName] = bpy.data.materials.new(matName)
-                        img = None
 
                 bmesh.materials.append(bmat)  # can be None
+                for fidx in faces:
+                    bmesh.polygons[fidx].material_index = mat_idx
 
-                if uv_faces and img:
-                    for fidx in faces:
-                        bmesh.polygons[fidx].material_index = mat_idx
-                        # TODO: How to restore this?
-                        # uv_faces[fidx].image = img
-                else:
-                    for fidx in faces:
-                        bmesh.polygons[fidx].material_index = mat_idx
+#                if uv_faces and img:
+#                    for fidx in faces:
+#                        bmesh.polygons[fidx].material_index = mat_idx
+#                        # TODO: How to restore this?
+#                        # uv_faces[fidx].image = img
+#                else:
+#                    for fidx in faces:
+#                        bmesh.polygons[fidx].material_index = mat_idx
 
             if uv_faces:
                 uvl = bmesh.uv_layers.active.data[:]
