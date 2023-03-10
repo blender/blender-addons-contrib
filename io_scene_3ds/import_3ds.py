@@ -733,6 +733,8 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 temp_data = file.read(SZ_FLOAT)
                 temp_chunk.bytes_read += SZ_FLOAT
                 contextWrapper.normalmap_strength = float(struct.unpack('f', temp_data)[0])
+            else:
+                skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
 
         elif new_chunk.ID == MAT_SHIN_MAP:
@@ -743,6 +745,63 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         elif new_chunk.ID == MAT_TEX2_MAP:
             read_texture(new_chunk, temp_chunk, "Tex", "TEXTURE")
+
+        # mesh chunk
+        elif new_chunk.ID == OBJECT_MESH:
+            pass
+
+        elif new_chunk.ID == OBJECT_VERTICES:
+            """Worldspace vertex locations"""
+
+            temp_data = file.read(SZ_U_SHORT)
+            num_verts = struct.unpack('<H', temp_data)[0]
+            new_chunk.bytes_read += 2
+            contextMesh_vertls = struct.unpack('<%df' % (num_verts * 3), file.read(SZ_3FLOAT * num_verts))
+            new_chunk.bytes_read += SZ_3FLOAT * num_verts
+            # dummyvert is not used atm!
+
+        elif new_chunk.ID == OBJECT_FACES:
+            temp_data = file.read(SZ_U_SHORT)
+            num_faces = struct.unpack('<H', temp_data)[0]
+            new_chunk.bytes_read += 2
+            temp_data = file.read(SZ_4U_SHORT * num_faces)
+            new_chunk.bytes_read += SZ_4U_SHORT * num_faces  # 4 short ints x 2 bytes each
+            contextMesh_facels = struct.unpack('<%dH' % (num_faces * 4), temp_data)
+            contextMesh_facels = [contextMesh_facels[i - 3:i] for i in range(3, (num_faces * 4) + 3, 4)]
+
+        elif new_chunk.ID == OBJECT_MATERIAL:
+            material_name, read_str_len = read_string(file)
+            new_chunk.bytes_read += read_str_len  # remove 1 null character.
+            temp_data = file.read(SZ_U_SHORT)
+            num_faces_using_mat = struct.unpack('<H', temp_data)[0]
+            new_chunk.bytes_read += SZ_U_SHORT
+            temp_data = file.read(SZ_U_SHORT * num_faces_using_mat)
+            new_chunk.bytes_read += SZ_U_SHORT * num_faces_using_mat
+            temp_data = struct.unpack("<%dH" % (num_faces_using_mat), temp_data)
+            contextMeshMaterials.append((material_name, temp_data))
+            # look up the material in all the materials
+
+        elif new_chunk.ID == OBJECT_SMOOTH:
+            temp_data = file.read(struct.calcsize('I') * num_faces)
+            smoothgroup = struct.unpack('<%dI' % (num_faces), temp_data)
+            new_chunk.bytes_read += struct.calcsize('I') * num_faces
+            contextMesh_smooth = smoothgroup
+
+        elif new_chunk.ID == OBJECT_UV:
+            temp_data = file.read(SZ_U_SHORT)
+            num_uv = struct.unpack('<H', temp_data)[0]
+            new_chunk.bytes_read += 2
+            temp_data = file.read(SZ_2FLOAT * num_uv)
+            new_chunk.bytes_read += SZ_2FLOAT * num_uv
+            contextMeshUV = struct.unpack('<%df' % (num_uv * 2), temp_data)
+
+        elif new_chunk.ID == OBJECT_TRANS_MATRIX:
+            # How do we know the matrix size? 54 == 4x4 48 == 4x3
+            temp_data = file.read(SZ_4x3MAT)
+            data = list(struct.unpack('<ffffffffffff', temp_data))
+            new_chunk.bytes_read += SZ_4x3MAT
+            contextMatrix = mathutils.Matrix(
+                (data[:3] + [0], data[3:6] + [0], data[6:9] + [0], data[9:] + [1])).transposed()
 
         elif contextObName and new_chunk.ID == OBJECT_LIGHT:  # Basic lamp support.
             # no lamp in dict that would be confusing
@@ -818,69 +877,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             CreateBlenderObject = False
             CreateCameraObject = True
 
-        elif new_chunk.ID == OBJECT_MESH:
-            pass
-
-        elif new_chunk.ID == OBJECT_VERTICES:
-            """Worldspace vertex locations"""
-
-            temp_data = file.read(SZ_U_SHORT)
-            num_verts = struct.unpack('<H', temp_data)[0]
-            new_chunk.bytes_read += 2
-            contextMesh_vertls = struct.unpack('<%df' % (num_verts * 3), file.read(SZ_3FLOAT * num_verts))
-            new_chunk.bytes_read += SZ_3FLOAT * num_verts
-            # dummyvert is not used atm!
-
-        elif new_chunk.ID == OBJECT_FACES:
-            temp_data = file.read(SZ_U_SHORT)
-            num_faces = struct.unpack('<H', temp_data)[0]
-            new_chunk.bytes_read += 2
-            temp_data = file.read(SZ_4U_SHORT * num_faces)
-            new_chunk.bytes_read += SZ_4U_SHORT * num_faces  # 4 short ints x 2 bytes each
-            contextMesh_facels = struct.unpack('<%dH' % (num_faces * 4), temp_data)
-            contextMesh_facels = [contextMesh_facels[i - 3:i] for i in range(3, (num_faces * 4) + 3, 4)]
-
-        elif new_chunk.ID == OBJECT_MATERIAL:
-            material_name, read_str_len = read_string(file)
-            new_chunk.bytes_read += read_str_len  # remove 1 null character.
-            temp_data = file.read(SZ_U_SHORT)
-            num_faces_using_mat = struct.unpack('<H', temp_data)[0]
-            new_chunk.bytes_read += SZ_U_SHORT
-            temp_data = file.read(SZ_U_SHORT * num_faces_using_mat)
-            new_chunk.bytes_read += SZ_U_SHORT * num_faces_using_mat
-            temp_data = struct.unpack("<%dH" % (num_faces_using_mat), temp_data)
-            contextMeshMaterials.append((material_name, temp_data))
-            # look up the material in all the materials
-
-        elif new_chunk.ID == OBJECT_SMOOTH:
-            temp_data = file.read(struct.calcsize('I') * num_faces)
-            smoothgroup = struct.unpack('<%dI' % (num_faces), temp_data)
-            new_chunk.bytes_read += struct.calcsize('I') * num_faces
-            contextMesh_smooth = smoothgroup
-
-        elif new_chunk.ID == OBJECT_UV:
-            temp_data = file.read(SZ_U_SHORT)
-            num_uv = struct.unpack('<H', temp_data)[0]
-            new_chunk.bytes_read += 2
-            temp_data = file.read(SZ_2FLOAT * num_uv)
-            new_chunk.bytes_read += SZ_2FLOAT * num_uv
-            contextMeshUV = struct.unpack('<%df' % (num_uv * 2), temp_data)
-
-        elif new_chunk.ID == OBJECT_TRANS_MATRIX:
-            # How do we know the matrix size? 54 == 4x4 48 == 4x3
-            temp_data = file.read(SZ_4x3MAT)
-            data = list(struct.unpack('<ffffffffffff', temp_data))
-            new_chunk.bytes_read += SZ_4x3MAT
-            contextMatrix = mathutils.Matrix(
-                (data[:3] + [0], data[3:6] + [0], data[6:9] + [0], data[9:] + [1])).transposed()
-
-        elif (new_chunk.ID == MAT_MAP_FILEPATH):
-            texture_name, read_str_len = read_string(file)
-            if contextMaterial.name not in TEXTURE_DICT:
-                TEXTURE_DICT[contextMaterial.name] = load_image(
-                    texture_name, dirname, place_holder=False, recursive=IMAGE_SEARCH)
-
-            new_chunk.bytes_read += read_str_len  # plus one for the null character that gets removed
         elif new_chunk.ID == EDITKEYFRAME:
             pass
 
@@ -896,7 +892,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
 
         # including these here means their EK_OB_NODE_HEADER are scanned
         # another object is being processed
-        elif new_chunk.ID in {KFDATA_AMBIENT, KFDATA_CAMERA, KFDATA_OBJECT, KFDATA_TARGET, KFDATA_LIGHT, KFDATA_L_TARGET, }:
+        elif new_chunk.ID in {KFDATA_OBJECT, KFDATA_AMBIENT, KFDATA_CAMERA, KFDATA_OBJECT, KFDATA_TARGET, KFDATA_LIGHT, KFDATA_L_TARGET, }:
             child = None
 
         elif new_chunk.ID == OBJECT_NODE_HDR:
@@ -1060,7 +1056,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
     # FINISHED LOOP
     # There will be a number of objects still not added
     if CreateBlenderObject:
-        putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMeshMaterials, contextMesh_smooth)
+        if CreateLightObject:
+            pass
+        else:
+            putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMeshMaterials, contextMesh_smooth)
 
     # Assign parents to objects
     # check _if_ we need to assign first because doing so recalcs the depsgraph
