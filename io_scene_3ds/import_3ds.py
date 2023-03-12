@@ -823,7 +823,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             new_chunk.bytes_read += SZ_3FLOAT
         elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_MULTIPLIER:  # intensity
             temp_data = file.read(SZ_FLOAT)
-            contextLamp.data.energy = float(struct.unpack('f', temp_data)[0])
+            contextLamp.data.energy = (float(struct.unpack('f', temp_data)[0]) * 1000)
             new_chunk.bytes_read += SZ_FLOAT
 
         elif CreateLightObject and new_chunk.ID == OBJECT_LIGHT_SPOT:  # spotlight
@@ -905,7 +905,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             new_chunk.bytes_read += 2
             child = object_dictionary.get(object_name)
 
-            if child is None and object_name != '$AMBIENT$':
+            if child is None: # and object_name != '$AMBIENT$':
                 child = bpy.data.objects.new(object_name, None)  # create an empty object
                 context.view_layer.active_layer_collection.collection.objects.link(child)
                 imported_objects.append(child)
