@@ -810,6 +810,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             contextLamp = bpy.data.objects.new(contextObName, newLamp)
             context.view_layer.active_layer_collection.collection.objects.link(contextLamp)
             imported_objects.append(contextLamp)
+            object_dictionary[contextObName] = contextLamp
             temp_data = file.read(SZ_3FLOAT)
             contextLamp.location = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
@@ -855,6 +856,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             contextCamera = bpy.data.objects.new(contextObName, camera)
             context.view_layer.active_layer_collection.collection.objects.link(contextCamera)
             imported_objects.append(contextCamera)
+            object_dictionary[contextObName] = contextCamera
             temp_data = file.read(SZ_3FLOAT)
             contextCamera.location = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += SZ_3FLOAT
@@ -1067,7 +1069,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         parent = object_parent[ind]
         if parent == ROOT_OBJECT:
             if ob.parent is not None:
-                ob.parent = None
+                ob.parent = ROOT_OBJECT
         else:
             if ob.parent != object_list[parent]:
                 if ob == object_list[parent]:
