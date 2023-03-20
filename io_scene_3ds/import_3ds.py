@@ -246,7 +246,7 @@ def add_texture_to_material(image, contextWrapper, pct, extend, alpha, scale, of
         mixer = nodes.new(type='ShaderNodeMixRGB')
         mixer.label = "Mixer"
         mixer.inputs[0].default_value = pct / 100
-        mixer.inputs[1].default_value = tintcolor[:3] + [1] if tintcolor else (0, 0, 0, 0)
+        mixer.inputs[1].default_value = tintcolor[:3] + [1] if tintcolor else shader.inputs['Base Color'].default_value[:]
         contextWrapper._grid_to_location(1, 2, dst_node=mixer, ref_node=shader)
         img_wrap = contextWrapper.base_color_texture
         links.new(img_wrap.node_image.outputs['Color'], mixer.inputs[2])
@@ -1058,7 +1058,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
     # FINISHED LOOP
     # There will be a number of objects still not added
     if CreateBlenderObject:
-        if CreateLightObject:
+        if CreateLightObject or CreateCameraObject:
             pass
         else:
             putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMeshMaterials, contextMesh_smooth)
