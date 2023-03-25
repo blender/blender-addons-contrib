@@ -123,6 +123,7 @@ OBJECT_CAM_RANGES = 0x4720  # The camera range values
 
 # >------ sub defines of OBJECT_MESH
 OBJECT_VERTICES = 0x4110  # The objects vertices
+OBJECT_VERTFLAGS = 0x4111  # The objects vertex flags
 OBJECT_FACES = 0x4120  # The objects faces
 OBJECT_MATERIAL = 0x4130  # This is found if the object has a material, either texture map or color
 OBJECT_UV = 0x4140  # The UV texture coordinates
@@ -333,6 +334,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
     contextMatrix = None
     contextMesh_vertls = None
     contextMesh_facels = None
+    contextMesh_flag = None
     contextMeshMaterials = []
     contextMesh_smooth = None
     contextMeshUV = None
@@ -357,7 +359,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             context,
             myContextMesh_vertls,
             myContextMesh_facels,
-
+            myContextMesh_flag,
             myContextMeshMaterials,
             myContextMesh_smooth,
     ):
@@ -429,6 +431,36 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         object_dictionary[contextObName] = ob
         context.view_layer.active_layer_collection.collection.objects.link(ob)
         imported_objects.append(ob)
+
+        if myContextMesh_flag:
+            # Bit 0 (0x1) sets edge CA visible, Bit 1 (0x2) sets edge BC visible and Bit 2 (0x4) sets the edge AB visible
+            # In Blender we use sharp edges for those flags
+            for lt, tri in enumerate(bmesh.loop_triangles):
+                faceflag = myContextMesh_flag[lt]
+                edge_ca = bmesh.edges[bmesh.loops[tri.loops[2]].edge_index]
+                edge_bc = bmesh.edges[bmesh.loops[tri.loops[1]].edge_index]
+                edge_ab = bmesh.edges[bmesh.loops[tri.loops[0]].edge_index]
+                if faceflag == 1:
+                    edge_ca.use_edge_sharp = True
+                elif faceflag == 2:
+                    edge_bc.use_edge_sharp = True
+                elif faceflag == 3:
+                    edge_ca.use_edge_sharp = True
+                    edge_bc.use_edge_sharp = True
+                elif faceflag == 4:
+                    edge_ab.use_edge_sharp = True
+                elif faceflag == 5:
+                    edge_ca.use_edge_sharp = True
+                    edge_ab.use_edge_sharp = True
+                elif faceflag == 6:
+                    edge_bc.use_edge_sharp = True
+                    edge_ab.use_edge_sharp = True
+                elif faceflag == 7:
+                    edge_ca.use_edge_sharp = True
+                    edge_bc.use_edge_sharp = True
+                    edge_ab.use_edge_sharp = True
+                else:
+                    pass
 
         if myContextMesh_smooth:
             for f, pl in enumerate(bmesh.polygons):
@@ -570,12 +602,14 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                     context,
                     contextMesh_vertls,
                     contextMesh_facels,
+                    contextMesh_flag,
                     contextMeshMaterials,
                     contextMesh_smooth,
                 )
                 contextMesh_vertls = []
                 contextMesh_facels = []
                 contextMeshMaterials = []
+                contextMesh_flag = None
                 contextMesh_smooth = None
                 contextMeshUV = None
                 # Reset matrix
@@ -767,6 +801,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
             temp_data = file.read(SZ_4U_SHORT * num_faces)
             new_chunk.bytes_read += SZ_4U_SHORT * num_faces  # 4 short ints x 2 bytes each
             contextMesh_facels = struct.unpack('<%dH' % (num_faces * 4), temp_data)
+            contextMesh_flag = [contextMesh_facels[i] for i in range(3, (num_faces * 4) + 3, 4)]
             contextMesh_facels = [contextMesh_facels[i - 3:i] for i in range(3, (num_faces * 4) + 3, 4)]
 
         elif new_chunk.ID == OBJECT_MATERIAL:
@@ -1061,7 +1096,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         if CreateLightObject or CreateCameraObject:
             pass
         else:
-            putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMeshMaterials, contextMesh_smooth)
+            putContextMesh(context, contextMesh_vertls, contextMesh_facels, contextMesh_flag, contextMeshMaterials, contextMesh_smooth)
 
     # Assign parents to objects
     # check _if_ we need to assign first because doing so recalcs the depsgraph
