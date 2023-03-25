@@ -455,11 +455,7 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 elif faceflag == 6:
                     edge_bc.use_edge_sharp = True
                     edge_ab.use_edge_sharp = True
-                elif faceflag == 7:
-                    edge_ca.use_edge_sharp = True
-                    edge_bc.use_edge_sharp = True
-                    edge_ab.use_edge_sharp = True
-                else:
+                elif faceflag >= 7:
                     pass
 
         if myContextMesh_smooth:
