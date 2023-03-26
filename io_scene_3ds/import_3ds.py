@@ -400,15 +400,6 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 for fidx in faces:
                     bmesh.polygons[fidx].material_index = mat_idx
 
-#                if uv_faces and img:
-#                    for fidx in faces:
-#                        bmesh.polygons[fidx].material_index = mat_idx
-#                        # TODO: How to restore this?
-#                        # uv_faces[fidx].image = img
-#                else:
-#                    for fidx in faces:
-#                        bmesh.polygons[fidx].material_index = mat_idx
-
             if uv_faces:
                 uvl = bmesh.uv_layers.active.data[:]
                 for fidx, pl in enumerate(bmesh.polygons):
@@ -433,13 +424,16 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
         imported_objects.append(ob)
 
         if myContextMesh_flag:
-            # Bit 0 (0x1) sets edge CA visible, Bit 1 (0x2) sets edge BC visible and Bit 2 (0x4) sets the edge AB visible
+            # Bit 0 (0x1) sets edge CA visible, Bit 1 (0x2) sets edge BC visible and Bit 2 (0x4) sets edge AB visible
             # In Blender we use sharp edges for those flags
-            for lt, tri in enumerate(bmesh.loop_triangles):
-                faceflag = myContextMesh_flag[lt]
-                edge_ca = bmesh.edges[bmesh.loops[tri.loops[2]].edge_index]
-                edge_bc = bmesh.edges[bmesh.loops[tri.loops[1]].edge_index]
-                edge_ab = bmesh.edges[bmesh.loops[tri.loops[0]].edge_index]
+            for f, pl in enumerate(bmesh.polygons):
+                face = myContextMesh_facels[f]
+                faceflag = myContextMesh_flag[f]
+                edge_ab = bmesh.edges[bmesh.loops[pl.loop_start].edge_index]
+                edge_bc = bmesh.edges[bmesh.loops[pl.loop_start + 1].edge_index]
+                edge_ca = bmesh.edges[bmesh.loops[pl.loop_start + 2].edge_index]
+                if face[2] == 0:
+                    edge_ab, edge_bc, edge_ca = edge_ca, edge_ab, edge_bc
                 if faceflag == 1:
                     edge_ca.use_edge_sharp = True
                 elif faceflag == 2:
@@ -455,8 +449,10 @@ def process_next_chunk(context, file, previous_chunk, imported_objects, IMAGE_SE
                 elif faceflag == 6:
                     edge_bc.use_edge_sharp = True
                     edge_ab.use_edge_sharp = True
-                elif faceflag >= 7:
-                    pass
+                elif faceflag == 7:
+                    edge_bc.use_edge_sharp = True
+                    edge_ab.use_edge_sharp = True
+                    edge_ca.use_edge_sharp = True
 
         if myContextMesh_smooth:
             for f, pl in enumerate(bmesh.polygons):
