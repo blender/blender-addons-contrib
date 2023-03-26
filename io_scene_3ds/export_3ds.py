@@ -749,7 +749,7 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, material.line_color[:3]))
         material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.diffuse_color[:3]))
         material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specular_color[:]))
-        material_chunk.add_subchunk(make_percent_subchunk(MATSHINESS, material.roughness))
+        material_chunk.add_subchunk(make_percent_subchunk(MATSHINESS, 1 - material.roughness))
         material_chunk.add_subchunk(make_percent_subchunk(MATSHIN2, material.specular_intensity))
         material_chunk.add_subchunk(make_percent_subchunk(MATSHIN3, material.metallic))
         material_chunk.add_subchunk(make_percent_subchunk(MATTRANS, 1 - material.diffuse_color[3]))
