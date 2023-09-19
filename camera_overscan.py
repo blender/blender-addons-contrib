@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Camera Overscan",
     "author": "John Roper, Barnstorm VFX, Luca Scheller, dskjal",
-    "version": (1, 4, 0),
+    "version": (1, 4, 1),
     "blender": (3, 1, 0),
     "location": "Render Settings > Camera Overscan",
     "description": "Render Overscan",
@@ -96,41 +96,31 @@ class RENDER_PT_overscan(RenderOutputButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        row = layout.row()
         active_cam = getattr(scene, "camera", None)
 
         if active_cam and active_cam.type == 'CAMERA':
-            col_enable = row.column(align=True)
-            if not overscan.RO_Activate:
-                col_enable.enabled = False
-            col_enable.prop(overscan, 'RO_Safe_Res_X', text="Original X")
-            col_enable.prop(overscan, 'RO_Safe_Res_Y', text="Original Y")
-            col_enable.enabled=False
+            col = layout.column(align=True)
+            col.prop(overscan, 'RO_Safe_Res_X', text="Original X")
+            col.prop(overscan, 'RO_Safe_Res_Y', text="Y")
+            col.enabled=False
 
-            row = layout.row()
-            col_enable = row.column(align=True)
-            col_enable.prop(overscan, 'RO_Custom_Res_X', text="X")
-            col_enable.prop(overscan, 'RO_Custom_Res_Y', text="Y")
-            col_enable.prop(overscan, 'RO_Custom_Res_Scale', text="%")
-            row = layout.row()
-            if not overscan.RO_Activate:
-                row.enabled = False
+            col = layout.column(align=True)
+            col.prop(overscan, 'RO_Custom_Res_X', text="New X")
+            col.prop(overscan, 'RO_Custom_Res_Y', text="Y")
+            col.prop(overscan, 'RO_Custom_Res_Scale', text="%")
+            col.enabled = overscan.RO_Activate
 
-            row = layout.row()
-
-            col_enable = row.column(align=True)
-            col_enable.prop(overscan, 'RO_Custom_Res_Offset_X', text="dX")
-            col_enable.prop(overscan, 'RO_Custom_Res_Offset_Y', text="dY")
-            col_enable.prop(overscan, 'RO_Custom_Res_Retain_Aspect_Ratio', text="Retain Aspect Ratio")
-            if not overscan.RO_Activate:
-                col_enable.enabled = False
+            col = layout.column(align=True)
+            col.prop(overscan, 'RO_Custom_Res_Offset_X', text="dX")
+            col.prop(overscan, 'RO_Custom_Res_Offset_Y', text="dY")
+            col.prop(overscan, 'RO_Custom_Res_Retain_Aspect_Ratio', text="Retain Aspect Ratio")
+            col.enabled = overscan.RO_Activate
 
             col = layout.column()
             col.separator()
-            col.separator()
             col.operator("scene.co_duplicate_camera", icon="RENDER_STILL")
         else:
-            row.label(text="No active Camera type in the Scene", icon='INFO')
+            layout.label(text="No active camera in the scene", icon='INFO')
 
 def RO_Update(self, context):
     scene = context.scene
@@ -221,25 +211,28 @@ def RO_Update_Y_Offset(self, context):
 
 class camera_overscan_props(PropertyGroup):
     RO_Activate: BoolProperty(
-                        default=False,
-                        description="Enable/Disable Camera Overscan\n"
-                                    "Affects the active Scene Camera only\n"
+                        name="Enable Camera Overscan",
+                        description="Affects the active Scene Camera only\n"
                                     "(Objects as cameras are not supported)",
+                        default=False,
                         update=RO_Update
                         )
     RO_Custom_Res_X: IntProperty(
+                        name="Target Resolution X",
                         default=0,
                         min=0,
                         max=65536,
                         update=RO_Update
                         )
     RO_Custom_Res_Y: IntProperty(
+                        name="Target Resolution Y",
                         default=0,
                         min=0,
                         max=65536,
                         update=RO_Update
                         )
     RO_Custom_Res_Scale: FloatProperty(
+                        name="Resolution Percentage",
                         default=100,
                         min=0,
                         max=1000,
@@ -247,24 +240,31 @@ class camera_overscan_props(PropertyGroup):
                         update=RO_Update
     )
     RO_Custom_Res_Offset_X: IntProperty(
+                        name="Resolution Offset X",
                         default=0,
                         min=-65536,
                         max=65536,
                         update=RO_Update_X_Offset
     )
     RO_Custom_Res_Offset_Y: IntProperty(
+                        name="Resolution Offset Y",
                         default=0,
                         min=-65536,
                         max=65536,
                         update=RO_Update_Y_Offset
     )
     RO_Custom_Res_Retain_Aspect_Ratio: BoolProperty(
+                        name="Retain Aspect Ratio",
+                        description="Keep the aspect ratio of the original resolution. Affects dX, dY",
                         default=False,
-                        description="Affects dX, dY"
     )
 
-    RO_Safe_Res_X: IntProperty()
-    RO_Safe_Res_Y: IntProperty()
+    RO_Safe_Res_X: IntProperty(
+                        name="Original Resolution X",
+    )
+    RO_Safe_Res_Y: IntProperty(
+                        name="Original Resolution Y",
+    )
 
     # the hard limit is sys.max which is too much, used 65536 instead
     RO_Safe_SensorSize: FloatProperty(
