@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Camera Overscan",
     "author": "John Roper, Barnstorm VFX, Luca Scheller, dskjal",
-    "version": (1, 4, 1),
+    "version": (1, 4, 2),
     "blender": (3, 1, 0),
     "location": "Render Settings > Camera Overscan",
     "description": "Render Overscan",
@@ -30,20 +30,20 @@ bl_info = {
 
 import bpy
 from bpy.types import (
-        Panel,
-        Operator,
-        PropertyGroup,
-        )
+    Panel,
+    Operator,
+    PropertyGroup,
+)
 from bpy.props import (
-        BoolProperty,
-        IntProperty,
-        FloatProperty,
-        StringProperty,
-        PointerProperty,
-        )
+    BoolProperty,
+    IntProperty,
+    FloatProperty,
+    StringProperty,
+    PointerProperty,
+)
 
 
-class CODuplicateCamera(Operator):
+class RENDER_OT_co_duplicate_camera(Operator):
     bl_idname = "scene.co_duplicate_camera"
     bl_label = "Bake to New Camera"
     bl_description = ("Make a new overscan camera with all the settings builtin\n"
@@ -68,7 +68,8 @@ class CODuplicateCamera(Operator):
 
         return {'FINISHED'}
 
-# foldable panel
+
+# Foldable panel
 class RenderOutputButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -78,7 +79,8 @@ class RenderOutputButtonsPanel:
     def poll(cls, context):
         return (context.engine in cls.COMPAT_ENGINES)
 
-# ui panel
+
+# UI panel
 class RENDER_PT_overscan(RenderOutputButtonsPanel, Panel):
     bl_label = "Overscan"
     bl_parent_id = "RENDER_PT_format"
@@ -87,34 +89,34 @@ class RENDER_PT_overscan(RenderOutputButtonsPanel, Panel):
 
     def draw_header(self, context):
         overscan = context.scene.camera_overscan
-        self.layout.prop(overscan, "RO_Activate", text="")
+        self.layout.prop(overscan, "activate", text="")
 
     def draw(self, context):
         scene = context.scene
         overscan = scene.camera_overscan
         layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
+        layout.use_property_decorate = False  # No animation
 
         active_cam = getattr(scene, "camera", None)
 
         if active_cam and active_cam.type == 'CAMERA':
             col = layout.column(align=True)
-            col.prop(overscan, 'RO_Safe_Res_X', text="Original X")
-            col.prop(overscan, 'RO_Safe_Res_Y', text="Y")
-            col.enabled=False
+            col.prop(overscan, 'original_res_x', text="Original X")
+            col.prop(overscan, 'original_res_y', text="Y")
+            col.enabled = False
 
             col = layout.column(align=True)
-            col.prop(overscan, 'RO_Custom_Res_X', text="New X")
-            col.prop(overscan, 'RO_Custom_Res_Y', text="Y")
-            col.prop(overscan, 'RO_Custom_Res_Scale', text="%")
-            col.enabled = overscan.RO_Activate
+            col.prop(overscan, 'custom_res_x', text="New X")
+            col.prop(overscan, 'custom_res_y', text="Y")
+            col.prop(overscan, 'custom_res_scale', text="%")
+            col.enabled = overscan.activate
 
             col = layout.column(align=True)
-            col.prop(overscan, 'RO_Custom_Res_Offset_X', text="dX")
-            col.prop(overscan, 'RO_Custom_Res_Offset_Y', text="dY")
-            col.prop(overscan, 'RO_Custom_Res_Retain_Aspect_Ratio', text="Retain Aspect Ratio")
-            col.enabled = overscan.RO_Activate
+            col.prop(overscan, 'custom_res_offset_x', text="dX")
+            col.prop(overscan, 'custom_res_offset_y', text="dY")
+            col.prop(overscan, 'custom_res_retain_aspect_ratio', text="Retain Aspect Ratio")
+            col.enabled = overscan.activate
 
             col = layout.column()
             col.separator()
@@ -122,7 +124,8 @@ class RENDER_PT_overscan(RenderOutputButtonsPanel, Panel):
         else:
             layout.label(text="No active camera in the scene", icon='INFO')
 
-def RO_Update(self, context):
+
+def update(self, context):
     scene = context.scene
     overscan = scene.camera_overscan
     render_settings = scene.render
@@ -133,161 +136,159 @@ def RO_Update(self, context):
     if not active_cam or active_camera.type not in {'CAMERA'}:
         return None
 
-    if overscan.RO_Activate:
-        if overscan.RO_Safe_SensorSize == -1:
-            # Save Property Values
-            overscan.RO_Safe_Res_X = render_settings.resolution_x
-            overscan.RO_Safe_Res_Y = render_settings.resolution_y
-            overscan.RO_Safe_SensorSize = active_cam.sensor_width
-            overscan.RO_Safe_SensorFit = active_cam.sensor_fit
+    if overscan.activate:
+        if overscan.original_sensor_size == -1:
+            # Save property values
+            overscan.original_res_x = render_settings.resolution_x
+            overscan.original_res_y = render_settings.resolution_y
+            overscan.original_sensor_size = active_cam.sensor_width
+            overscan.original_sensor_fit = active_cam.sensor_fit
 
-        if overscan.RO_Custom_Res_X == 0 or overscan.RO_Custom_Res_Y == 0:
-            # avoid infinite recursion on props update
-            if overscan.RO_Custom_Res_X != render_settings.resolution_x:
-                overscan.RO_Custom_Res_X = render_settings.resolution_x
-            if overscan.RO_Custom_Res_Y != render_settings.resolution_y:
-                overscan.RO_Custom_Res_Y = render_settings.resolution_y
+        if overscan.custom_res_x == 0 or overscan.custom_res_y == 0:
+            # Avoid infinite recursion on props update
+            if overscan.custom_res_x != render_settings.resolution_x:
+                overscan.custom_res_x = render_settings.resolution_x
+            if overscan.custom_res_y != render_settings.resolution_y:
+                overscan.custom_res_y = render_settings.resolution_y
 
-        # Reset Property Values
-        active_cam.sensor_width = scene.camera_overscan.RO_Safe_SensorSize
+        # Reset property values
+        active_cam.sensor_width = scene.camera_overscan.original_sensor_size
 
-        # Calc Sensor Size
+        # Calc sensor size
         active_cam.sensor_fit = 'HORIZONTAL'
-        dx = overscan.RO_Custom_Res_Offset_X
-        dy = overscan.RO_Custom_Res_Offset_Y
-        scale = overscan.RO_Custom_Res_Scale * 0.01
-        x = int(overscan.RO_Custom_Res_X * scale + dx)
-        y = int(overscan.RO_Custom_Res_Y * scale + dy)
-        sensor_size_factor = float(x / overscan.RO_Safe_Res_X)
+        dx = overscan.custom_res_offset_x
+        dy = overscan.custom_res_offset_y
+        scale = overscan.custom_res_scale * 0.01
+        x = int(overscan.custom_res_x * scale + dx)
+        y = int(overscan.custom_res_y * scale + dy)
+        sensor_size_factor = float(x / overscan.original_res_x)
 
-        # Set New Property Values
+        # Set new property values
         active_cam.sensor_width = active_cam.sensor_width * sensor_size_factor
         render_settings.resolution_x = x
         render_settings.resolution_y = y
 
     else:
-        if overscan.RO_Safe_SensorSize != -1:
-            # Restore Property Values
-            render_settings.resolution_x = int(overscan.RO_Safe_Res_X)
-            render_settings.resolution_y = int(overscan.RO_Safe_Res_Y)
-            active_cam.sensor_width = overscan.RO_Safe_SensorSize
-            active_cam.sensor_fit = overscan.RO_Safe_SensorFit
-            overscan.RO_Safe_SensorSize = -1
+        if overscan.original_sensor_size != -1:
+            # Restore property values
+            render_settings.resolution_x = int(overscan.original_res_x)
+            render_settings.resolution_y = int(overscan.original_res_y)
+            active_cam.sensor_width = overscan.original_sensor_size
+            active_cam.sensor_fit = overscan.original_sensor_fit
+            overscan.original_sensor_size = -1
 
-def get_overscan_object(self, context):
+
+def get_overscan_object(context):
     scene = context.scene
     overscan = scene.camera_overscan
     active_camera = getattr(scene, "camera", None)
     active_cam = getattr(active_camera, "data", None)
-    if not active_cam or active_camera.type not in {'CAMERA'} or not overscan.RO_Activate:
+    if not active_cam or active_camera.type not in {'CAMERA'} or not overscan.activate:
         return None
     return overscan
 
-def RO_Update_X_Offset(self, context):
-    overscan = get_overscan_object(self, context)
-    if overscan == None:
+
+def update_x_offset(self, context):
+    overscan = get_overscan_object(context)
+    if overscan is None:
+        return
+
+    if overscan.custom_res_retain_aspect_ratio:
+        overscan.activate = False  # Recursion guard
+        overscan.custom_res_offset_y = int(overscan.custom_res_offset_x * overscan.original_res_y / overscan.original_res_x)
+
+    overscan.activate = True
+    update(self, context)
+
+
+def update_y_offset(self, context):
+    overscan = get_overscan_object(context)
+    if overscan is None:
         return None
 
-    if overscan.RO_Custom_Res_Retain_Aspect_Ratio:
-        overscan.RO_Activate = False # recursion guard
-        overscan.RO_Custom_Res_Offset_Y = int(overscan.RO_Custom_Res_Offset_X * overscan.RO_Safe_Res_Y / overscan.RO_Safe_Res_X)
+    if overscan.custom_res_retain_aspect_ratio:
+        overscan.activate = False  # Recursion guard
+        overscan.custom_res_offset_x = int(overscan.custom_res_offset_y * overscan.original_res_x / overscan.original_res_y)
 
-    overscan.RO_Activate = True
-    RO_Update(self, context)
-
-
-def RO_Update_Y_Offset(self, context):
-    overscan = get_overscan_object(self, context)
-    if overscan == None:
-        return None
-
-    if overscan.RO_Custom_Res_Retain_Aspect_Ratio:
-        overscan.RO_Activate = False # recursion guard
-        overscan.RO_Custom_Res_Offset_X = int(overscan.RO_Custom_Res_Offset_Y * overscan.RO_Safe_Res_X / overscan.RO_Safe_Res_Y)
-
-    overscan.RO_Activate = True
-    RO_Update(self, context)
+    overscan.activate = True
+    update(self, context)
 
 
-class camera_overscan_props(PropertyGroup):
-    RO_Activate: BoolProperty(
-                        name="Enable Camera Overscan",
-                        description="Affects the active Scene Camera only\n"
-                                    "(Objects as cameras are not supported)",
-                        default=False,
-                        update=RO_Update
-                        )
-    RO_Custom_Res_X: IntProperty(
-                        name="Target Resolution X",
-                        default=0,
-                        min=0,
-                        max=65536,
-                        update=RO_Update
-                        )
-    RO_Custom_Res_Y: IntProperty(
-                        name="Target Resolution Y",
-                        default=0,
-                        min=0,
-                        max=65536,
-                        update=RO_Update
-                        )
-    RO_Custom_Res_Scale: FloatProperty(
-                        name="Resolution Percentage",
-                        default=100,
-                        min=0,
-                        max=1000,
-                        step=100,
-                        update=RO_Update
+class CameraOverscanProps(PropertyGroup):
+    activate: BoolProperty(
+        name="Enable Camera Overscan",
+        description="Affects the active Scene Camera only\n"
+        "(Objects as cameras are not supported)",
+        default=False,
+        update=update
     )
-    RO_Custom_Res_Offset_X: IntProperty(
-                        name="Resolution Offset X",
-                        default=0,
-                        min=-65536,
-                        max=65536,
-                        update=RO_Update_X_Offset
+    custom_res_x: IntProperty(
+        name="Target Resolution X",
+        default=0,
+        min=0,
+        max=65536,
+        update=update,
     )
-    RO_Custom_Res_Offset_Y: IntProperty(
-                        name="Resolution Offset Y",
-                        default=0,
-                        min=-65536,
-                        max=65536,
-                        update=RO_Update_Y_Offset
+    custom_res_y: IntProperty(
+        name="Target Resolution Y",
+        default=0,
+        min=0,
+        max=65536,
+        update=update,
     )
-    RO_Custom_Res_Retain_Aspect_Ratio: BoolProperty(
-                        name="Retain Aspect Ratio",
-                        description="Keep the aspect ratio of the original resolution. Affects dX, dY",
-                        default=False,
+    custom_res_scale: FloatProperty(
+        name="Resolution Percentage",
+        default=100,
+        min=0,
+        max=1000,
+        step=100,
+        update=update,
+    )
+    custom_res_offset_x: IntProperty(
+        name="Resolution Offset X",
+        default=0,
+        min=-65536,
+        max=65536,
+        update=update_x_offset,
+    )
+    custom_res_offset_y: IntProperty(
+        name="Resolution Offset Y",
+        default=0,
+        min=-65536,
+        max=65536,
+        update=update_y_offset,
+    )
+    custom_res_retain_aspect_ratio: BoolProperty(
+        name="Retain Aspect Ratio",
+        description="Keep the aspect ratio of the original resolution. Affects dX, dY",
+        default=False,
     )
 
-    RO_Safe_Res_X: IntProperty(
-                        name="Original Resolution X",
-    )
-    RO_Safe_Res_Y: IntProperty(
-                        name="Original Resolution Y",
-    )
+    original_res_x: IntProperty(name="Original Resolution X")
+    original_res_y: IntProperty(name="Original Resolution Y")
 
-    # the hard limit is sys.max which is too much, used 65536 instead
-    RO_Safe_SensorSize: FloatProperty(
-                        default=-1,
-                        min=-1,
-                        max=65536
-                        )
-    RO_Safe_SensorFit: StringProperty()
+    # The hard limit is sys.max which is too much, used 65536 instead
+    original_sensor_size: FloatProperty(
+        default=-1,
+        min=-1,
+        max=65536
+    )
+    original_sensor_fit: StringProperty()
 
 
 def register():
-    bpy.utils.register_class(CODuplicateCamera)
-    bpy.utils.register_class(camera_overscan_props)
+    bpy.utils.register_class(RENDER_OT_co_duplicate_camera)
+    bpy.utils.register_class(CameraOverscanProps)
     bpy.utils.register_class(RENDER_PT_overscan)
     bpy.types.Scene.camera_overscan = PointerProperty(
-                                        type=camera_overscan_props
-                                        )
+        type=CameraOverscanProps
+    )
 
 
 def unregister():
     bpy.utils.unregister_class(RENDER_PT_overscan)
-    bpy.utils.unregister_class(CODuplicateCamera)
-    bpy.utils.unregister_class(camera_overscan_props)
+    bpy.utils.unregister_class(RENDER_OT_co_duplicate_camera)
+    bpy.utils.unregister_class(CameraOverscanProps)
     del bpy.types.Scene.camera_overscan
 
 
