@@ -695,9 +695,9 @@ class ImportMaxFile:
 
 class MaxChunk():
 
-    def __init__(self, type, size, level, number):
+    def __init__(self, types, size, level, number):
         self.number = number
-        self.type = type
+        self.types = types
         self.level = level
         self.parent = None
         self.previous = None
@@ -716,8 +716,8 @@ class MaxChunk():
 
 class ByteArrayChunk(MaxChunk):
 
-    def __init__(self, type, data, level, number):
-        MaxChunk.__init__(self, type, data, level, number)
+    def __init__(self, types, data, level, number):
+        MaxChunk.__init__(self, types, data, level, number)
 
     def set(self, data, name, fmt, start, end):
         try:
@@ -751,9 +751,9 @@ class ByteArrayChunk(MaxChunk):
         if (self.type in [0x0340, 0x4001, 0x0456, 0x0962]):
             self.set_string(data)
         elif (self.type in [0x2034, 0x2035]):
-            self.set(data, "int()", '<'+'I'*int(len(data) / 4), 0, len(data))
+            self.set(data, "ints", '<'+'I'*int(len(data) / 4), 0, len(data))
         elif (self.type in [0x2501, 0x2503, 0x2504, 0x2505, 0x2511]):
-            self.set(data, "float[]", '<'+'f'*int(len(data) / 4), 0, len(data))
+            self.set(data, "floats", '<'+'f'*int(len(data) / 4), 0, len(data))
         elif (self.type == 0x2510):
             self.set(data, "struct", '<'+'f'*int(len(data) / 4 - 1) + 'I', 0, len(data))
         elif (self.type == 0x0100):
@@ -765,14 +765,14 @@ class ByteArrayChunk(MaxChunk):
 
 class ClassIDChunk(ByteArrayChunk):
 
-    def __init__(self, type, data, level, number):
-        MaxChunk.__init__(self, type, data, level, number)
+    def __init__(self, types, data, level, number):
+        MaxChunk.__init__(self, types, data, level, number)
         self.dll = None
 
     def set_data(self, data):
-        if (self.type == 0x2042):
+        if (self.types == 0x2042):
             self.set_string(data)  # ClsName
-        elif (self.type == 0x2060):
+        elif (self.types == 0x2060):
             self.set(data, "struct", '<IQI', 0, 16)  # DllIndex, ID, SuperID
         else:
             self.unknown = False
@@ -781,44 +781,44 @@ class ClassIDChunk(ByteArrayChunk):
 
 class DirectoryChunk(ByteArrayChunk):
 
-    def __init__(self, type, data, level, number):
-        MaxChunk.__init__(self, type, data, level, number)
+    def __init__(self, types, data, level, number):
+        MaxChunk.__init__(self, types, data, level, number)
 
     def set_data(self, data):
-        if (self.type == 0x2039):
+        if (self.types == 0x2039):
             self.set_string(data)
-        elif (self.type == 0x2037):
+        elif (self.types == 0x2037):
             self.set_string(data)
 
 
 class ContainerChunk(MaxChunk):
 
-    def __init__(self, type, data, level, number, primitiveReader=ByteArrayChunk):
-        MaxChunk.__init__(self, type, data, level, number)
+    def __init__(self, types, data, level, number, primitiveReader=ByteArrayChunk):
+        MaxChunk.__init__(self, types, data, level, number)
         self.primitiveReader = primitiveReader
 
     def __str__(self):
         if (self.unknown == True):
-            return "%s[%4x] %04X" %("" * self.level, self.number, self.type)
-        return "%s[%4x] %04X: %s" %("" * self.level, self.number, self.type, self.format)
+            return "%s[%4x] %04X" %("" * self.level, self.number, self.types)
+        return "%s[%4x] %04X: %s" %("" * self.level, self.number, self.types, self.format)
 
-    def get_first(self, type):
+    def get_first(self, types):
         for child in self.children:
-            if (child.type == type):
+            if (child.types == types):
                 return child
         return None
 
     def set_data(self, data):
         previous = None
-        next     = None
-        reader   = ChunkReader()
-        self.children  = reader.get_chunks(data, self.level + 1, ContainerChunk, self.primitiveReader)
+        next = None
+        reader = ChunkReader()
+        self.children = reader.get_chunks(data, self.level + 1, ContainerChunk, self.primitiveReader)
 
 
 class SceneChunk(ContainerChunk):
 
-    def __init__(self, type, data, level, number, primitiveReader=ByteArrayChunk):
-        MaxChunk.__init__(self, type, data, level, number)
+    def __init__(self, types, data, level, number, primitiveReader=ByteArrayChunk):
+        MaxChunk.__init__(self, types, data, level, number)
         self.primitiveReader = primitiveReader
         self.matrix = None
 
@@ -938,7 +938,7 @@ def get_node_name(node):
 def get_class(chunk):
     global CLS_DIR3_LIST
     if (chunk.type < len(CLS_DIR3_LIST)):
-        return CLS_DIR3_LIST[chunk.type]
+        return CLS_DIR3_LIST[chunk.types]
     return None
 
 
@@ -954,7 +954,7 @@ def get_guid(chunk):
     cls = get_class(chunk)
     if (cls):
         return cls.get_first(0x2060).data[1]
-    return chunk.type
+    return chunk.types
 
 
 def get_super_id(chunk):
@@ -972,7 +972,7 @@ def get_class_name(chunk):
             return "'%s'" %(clsName)
         except:
             return "'%r'" %(clsName)
-    return u"%04X" %(chunk.type)
+    return u"%04X" %(chunk.types)
 
 
 def get_references(chunk):
@@ -986,7 +986,7 @@ def get_reference(chunk):
     references = {}
     refs = chunk.get_first(0x2035)
     if (refs):
-        type = refs.data[0]
+        types = refs.data[0]
         offset = 1
         while offset < len(refs.data):
             key = refs.data[offset]
@@ -1149,7 +1149,7 @@ def create_matrix(prc):
 
 def get_property(properties, idx):
     for child in properties.children:
-        if (child.type == 0x100E):
+        if (child.types == 0x100E):
             if (get_short(child.data, 0)[0] == idx):
                 return child
     return None
@@ -1244,26 +1244,26 @@ def adjust_material(obj, mat):
 
 def create_shape(context, pts, indices, node, key, prc, mat):
     name = node.get_first(TYP_NAME).data
-    newmesh = bpy.data.meshes.new(name)
+    shape = bpy.data.meshes.new(name)
     if (key is not None):
         name = "%s_%d" %(name, key)
     mtx = create_matrix(prc)
     data = []
     if (pts):
-        newmesh.vertices.add(len(pts) // 3)
-        newmesh.vertices.foreach_set("co", pts)
+        shape.vertices.add(len(pts) // 3)
+        shape.vertices.foreach_set("co", pts)
         nbr_faces = len(indices)
-        newmesh.polygons.add(nbr_faces)
-        newmesh.loops.add(nbr_faces * 3)
+        shape.polygons.add(nbr_faces)
+        shape.loops.add(nbr_faces * 3)
         for v1, v2, v3 in indices:
             data.extend((v3, v1, v2) if v3 == 0 else (v1, v2, v3))
-        newmesh.polygons.foreach_set("loop_start", range(0, nbr_faces * 3, 3))
-        newmesh.loops.foreach_set("vertex_index", data)
+        shape.polygons.foreach_set("loop_start", range(0, nbr_faces * 3, 3))
+        shape.loops.foreach_set("vertex_index", data)
 
     if (len(data) > 0):
-        newmesh.validate()
-        newmesh.update()
-        obj = bpy.data.objects.new(name, newmesh)
+        shape.validate()
+        shape.update()
+        obj = bpy.data.objects.new(name, shape)
         context.view_layer.active_layer_collection.collection.objects.link(obj)
         adjust_material(obj, mat)
         return True
@@ -1393,13 +1393,13 @@ def create_editable_poly(context, node, msh, mat, mtx):
     created = False
     if (poly):
         for child in poly.children:
-            if (child.type == 0x0100):
+            if (child.types == 0x0100):
                 coords = calc_point(child.data)
-            elif (child.type == 0x0108):
+            elif (child.types == 0x0108):
                 point6i = child.data
-            elif (child.type == 0x011A):
+            elif (child.types == 0x011A):
                 point4i = calc_point_3d(child)
-            elif (child.type == 0x0310):
+            elif (child.types == 0x0310):
                 pointNi = child.data
         if (point4i is not None):
             vertex = get_poly_4p(point4i)
