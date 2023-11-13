@@ -937,7 +937,7 @@ def get_node_name(node):
 
 def get_class(chunk):
     global CLS_DIR3_LIST
-    if (chunk.type < len(CLS_DIR3_LIST)):
+    if (chunk.types < len(CLS_DIR3_LIST)):
         return CLS_DIR3_LIST[chunk.types]
     return None
 
