@@ -710,8 +710,8 @@ class MaxChunk():
 
     def __str__(self):
         if (self.unknown == True):
-            return "%s[%4x] %04X: %s" %("  "*self.level, self.number, self.type, ":".join("%02x"%(c) for c in self.data))
-        return "%s[%4x] %04X: %s=%s" %("  "*self.level, self.number, self.type, self.format, self.data)
+            return "%s[%4x] %04X: %s" %("  "*self.level, self.number, self.types, ":".join("%02x"%(c) for c in self.data))
+        return "%s[%4x] %04X: %s=%s" %("  "*self.level, self.number, self.types, self.format, self.data)
 
 
 class ByteArrayChunk(MaxChunk):
@@ -748,15 +748,15 @@ class ByteArrayChunk(MaxChunk):
             self.data = data
 
     def set_data(self, data):
-        if (self.type in [0x0340, 0x4001, 0x0456, 0x0962]):
+        if (self.types in [0x0340, 0x4001, 0x0456, 0x0962]):
             self.set_string(data)
-        elif (self.type in [0x2034, 0x2035]):
+        elif (self.types in [0x2034, 0x2035]):
             self.set(data, "ints", '<'+'I'*int(len(data) / 4), 0, len(data))
-        elif (self.type in [0x2501, 0x2503, 0x2504, 0x2505, 0x2511]):
+        elif (self.types in [0x2501, 0x2503, 0x2504, 0x2505, 0x2511]):
             self.set(data, "floats", '<'+'f'*int(len(data) / 4), 0, len(data))
-        elif (self.type == 0x2510):
+        elif (self.types == 0x2510):
             self.set(data, "struct", '<'+'f'*int(len(data) / 4 - 1) + 'I', 0, len(data))
-        elif (self.type == 0x0100):
+        elif (self.types == 0x0100):
             self.set(data, "float", '<f', 0, len(data))
         else:
             self.unknown = True
