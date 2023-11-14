@@ -844,11 +844,11 @@ class ChunkReader():
         chunks = []
         offset = 0
         if (level == 0):
-            t, o = get_short(data, 0)
-            l, o = get_long(data, o)
-            if (t == 0x8B1F):
-                t, o = get_long(data, o)
-                if (t == 0x0B000000):
+            short, offset = get_short(data, 0)
+            long, offset = get_long(data, offset)
+            if (short == 0x8B1F):
+                short, offset = get_long(data, offset)
+                if (short == 0x0B000000):
                     data = zlib.decompress(data, zlib.MAX_WBITS|32)
         if (level==0):
             print("  reading '%s'..."%self.name, len(data))
@@ -1255,8 +1255,8 @@ def create_shape(context, pts, indices, node, key, prc, mat):
         nbr_faces = len(indices)
         shape.polygons.add(nbr_faces)
         shape.loops.add(nbr_faces * 3)
-        for v1, v2, v3 in indices:
-            data.extend((v3, v1, v2) if v3 == 0 else (v1, v2, v3))
+        for vtx in indices:
+            data.extend(vtx)
         shape.polygons.foreach_set("loop_start", range(0, nbr_faces * 3, 3))
         shape.loops.foreach_set("vertex_index", data)
 
