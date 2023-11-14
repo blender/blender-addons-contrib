@@ -1458,7 +1458,7 @@ def get_matrix_mesh_material(node):
 def adjust_matrix(obj, node):
     mtx = create_matrix(node).flatten()
     plc = mathutils.Matrix(*mtx)
-    obj.Placement = plc
+    obj.matrix_world = plc
     return plc
 
 
