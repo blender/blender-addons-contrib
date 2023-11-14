@@ -107,11 +107,9 @@ VT_BLOB=65; VT_STREAM=66; VT_STORAGE=67; VT_STREAMED_OBJECT=68;
 VT_STORED_OBJECT=69; VT_BLOB_OBJECT=70; VT_CF=71; VT_CLSID=72;
 VT_VECTOR=0x1000;
 
+TYP_NAME = 0x0962
 INVALID_NAME = re.compile('^[0-9].*')
 UNPACK_BOX_DATA = struct.Struct('<HIHHBff').unpack_from  # Index, int, short, short, byte, float, Length
-
-DEBUG = False
-TYP_NAME = 0x0962
 
 CONFIG = []
 CLS_DATA = []
@@ -352,7 +350,6 @@ class MaxFileDirEntry:
 class ImportMaxFile:
 
     def __init__(self, filename=None, write_mode=False, debug=False):
-
         self.write_mode = write_mode
         self._filesize = None
         self.byte_order = None
