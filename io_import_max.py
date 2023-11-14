@@ -638,7 +638,7 @@ class ImportMaxFile:
         except BaseException as exc:
             return data
 
-        num_props = min(num_props, int(len(s) / 8))
+        num_props = min(num_props, int(len(stream) / 8))
         for i in range(num_props):
             property_id = 0
             try:
