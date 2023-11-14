@@ -844,10 +844,10 @@ class ChunkReader():
         chunks = []
         offset = 0
         if (level == 0):
-            short, offset = get_short(data, 0)
-            long, offset = get_long(data, offset)
+            short, ofst = get_short(data, 0)
+            long, ofst = get_long(data, ofst)
             if (short == 0x8B1F):
-                short, offset = get_long(data, offset)
+                short, ofst = get_long(data, ofst)
                 if (short == 0x0B000000):
                     data = zlib.decompress(data, zlib.MAX_WBITS|32)
             print("  reading '%s'..."%self.name, len(data))
