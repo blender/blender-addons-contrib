@@ -33,10 +33,10 @@ bl_info = {
 
 import io, re
 import os, sys, zlib
+import struct, array
 import time, datetime
 import math, mathutils
 import bpy, bpy_extras
-import struct, numpy, array
 from bpy_extras import node_shader_utils
 from bpy_extras.image_utils import load_image
 from bpy_extras.io_utils import axis_conversion
@@ -628,13 +628,13 @@ class ImportMaxFile:
         fp = self.openstream(filename)
         data = {}
         try:
-            s = fp.read(28)
+            stream = fp.read(28)
             clsid = _clsid(s[8:24])
-            s = fp.read(20)
+            stream = fp.read(20)
             fmtid = _clsid(s[:16])
             fp.seek(i32(s, 16))
-            s = b"****" + fp.read(i32(fp.read(4)) - 4)
-            num_props = i32(s, 4)
+            stream = b"****" + fp.read(i32(fp.read(4)) - 4)
+            num_props = i32(stream, 4)
         except BaseException as exc:
             return data
 
@@ -642,45 +642,45 @@ class ImportMaxFile:
         for i in range(num_props):
             property_id = 0
             try:
-                property_id = i32(s, 8 + i*8)
-                offset = i32(s, 12 + i*8)
-                property_type = i32(s, offset)
+                property_id = i32(stream, 8 + i*8)
+                offset = i32(stream, 12 + i*8)
+                property_type = i32(stream, offset)
                 if property_type == VT_I2:  # 16-bit signed integer
-                    value = i16(s, offset + 4)
+                    value = i16(stream, offset + 4)
                     if value >= 32768:
                         value = value - 65536
                 elif property_type == VT_UI2:  # 2-byte unsigned integer
-                    value = i16(s, offset + 4)
+                    value = i16(stream, offset + 4)
                 elif property_type in (VT_I4, VT_INT, VT_ERROR):
-                    value = i32(s, offset + 4)
+                    value = i32(stream, offset + 4)
                 elif property_type in (VT_UI4, VT_UINT):  # 4-byte unsigned integer
-                    value = i32(s, offset + 4)
+                    value = i32(stream, offset + 4)
                 elif property_type in (VT_BSTR, VT_LPSTR):
-                    count = i32(s, offset + 4)
-                    value = s[offset + 8:offset + 8 + count - 1]
+                    count = i32(stream, offset + 4)
+                    value = stream[offset + 8:offset + 8 + count - 1]
                     value = value.replace(b'\x00', b'')
                 elif property_type == VT_BLOB:
-                    count = i32(s, offset + 4)
-                    value = s[offset + 8:offset + 8 + count]
+                    count = i32(stream, offset + 4)
+                    value = stream[offset + 8:offset + 8 + count]
                 elif property_type == VT_LPWSTR:
-                    count = i32(s, offset + 4)
-                    value = self._decode_utf16_str(s[offset + 8:offset + 8 + count*2])
+                    count = i32(stream, offset + 4)
+                    value = self._decode_utf16_str(stream[offset + 8:offset + 8 + count*2])
                 elif property_type == VT_FILETIME:
-                    value = int(i32(s, offset + 4)) + (int(i32(s, offset + 8)) << 32)
+                    value = int(i32(stream, offset + 4)) + (int(i32(stream, offset + 8)) << 32)
                     if convert_time and property_id not in no_conversion:
                         _FILETIME_null_date = datetime.datetime(1601, 1, 1, 0, 0, 0)
                         value = _FILETIME_null_date + datetime.timedelta(microseconds=value // 10)
                     else:
                         value = value // 10000000
                 elif property_type == VT_UI1:  # 1-byte unsigned integer
-                    value = i8(s[offset + 4])
+                    value = i8(stream[offset + 4])
                 elif property_type == VT_CLSID:
-                    value = _clsid(s[offset + 4:offset + 20])
+                    value = _clsid(stream[offset + 4:offset + 20])
                 elif property_type == VT_CF:
-                    count = i32(s, offset + 4)
-                    value = s[offset + 8:offset + 8 + count]
+                    count = i32(stream, offset + 4)
+                    value = stream[offset + 8:offset + 8 + count]
                 elif property_type == VT_BOOL:
-                    value = bool(i16(s, offset + 4))
+                    value = bool(i16(stream, offset + 4))
                 else:
                     value = None
 
