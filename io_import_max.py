@@ -821,8 +821,8 @@ class SceneChunk(ContainerChunk):
 
     def __str__(self):
         if (self.unknown == True):
-            return "%s[%4x] %s" %("  "*self.level, self.number, get_class_name(self))
-        return "%s[%4x] %s: %s" %("  "*self.level, self.number, get_class_name(self), self.format)
+            return "%s[%4x] %s" %("" * self.level, self.number, get_class_name(self))
+        return "%s[%4x] %s: %s" %("" * self.level, self.number, get_class_name(self), self.format)
 
     def set_data(self, data):
         previous = None
