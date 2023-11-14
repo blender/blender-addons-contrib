@@ -707,8 +707,8 @@ class MaxChunk():
 
     def __str__(self):
         if (self.unknown == True):
-            return "%s[%4x] %04X: %s" %("  "*self.level, self.number, self.types, ":".join("%02x"%(c) for c in self.data))
-        return "%s[%4x] %04X: %s=%s" %("  "*self.level, self.number, self.types, self.format, self.data)
+            return "%s[%4x] %04X: %s" %("" * self.level, self.number, self.types, ":".join("%02x"%(c) for c in self.data))
+        return "%s[%4x] %04X: %s=%s" %("" * self.level, self.number, self.types, self.format, self.data)
 
 
 class ByteArrayChunk(MaxChunk):
@@ -938,9 +938,9 @@ def get_class(chunk):
     return None
 
 
-def get_dll(container):
+def get_dll(chunk):
     global DLL_DIR_LIST
-    idx = container.get_first(0x2060).data[0]
+    idx = chunk.get_first(0x2060).data[0]
     if (idx < len(DLL_DIR_LIST)):
         return DLL_DIR_LIST[idx]
     return None
@@ -1162,7 +1162,7 @@ def get_color(colors, idx):
 def get_float(colors, idx):
     prop = get_property(colors, idx)
     if (prop is not None):
-        fl, offset = get_float(prp.data, 15)
+        fl, offset = get_float(prop.data, 15)
         return fl
     return None
 
@@ -1174,8 +1174,8 @@ def get_standard_material(refs):
             colors = refs[2]
             parameters = get_references(colors)[0]
             material = Material()
-            material.set('ambient',  get_color(parameters, 0x00))
-            material.set('diffuse',  get_color(parameters, 0x01))
+            material.set('ambient', get_color(parameters, 0x00))
+            material.set('diffuse', get_color(parameters, 0x01))
             material.set('specular', get_color(parameters, 0x02))
             material.set('emissive', get_color(parameters, 0x08))
             material.set('shinines', get_float(parameters, 0x0A))
@@ -1189,8 +1189,8 @@ def get_standard_material(refs):
 def get_vray_material(vry):
     material = Material()
     try:
-        material.set('diffuse',  get_color(vry, 0x01))
-        material.set('ambient',  get_color(vry, 0x02))
+        material.set('diffuse', get_color(vry, 0x01))
+        material.set('ambient', get_color(vry, 0x02))
         material.set('specular', get_color(vry, 0x05))
         material.set('emissive', get_color(vry, 0x05))
         material.set('shinines', get_float(vry, 0x0B))
@@ -1203,8 +1203,8 @@ def get_vray_material(vry):
 def get_arch_material(ad):
     material = Material()
     try:
-        material.set('diffuse',  get_color(ad, 0x1A))
-        material.set('ambient',  get_color(ad, 0x02))
+        material.set('diffuse', get_color(ad, 0x1A))
+        material.set('ambient', get_color(ad, 0x02))
         material.set('specular', get_color(ad, 0x05))
         material.set('emissive', get_color(ad, 0x05))
         material.set('shinines', get_float(ad, 0x0B))
