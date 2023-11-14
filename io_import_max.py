@@ -629,10 +629,10 @@ class ImportMaxFile:
         data = {}
         try:
             stream = fp.read(28)
-            clsid = _clsid(s[8:24])
+            clsid = _clsid(stream[8:24])
             stream = fp.read(20)
-            fmtid = _clsid(s[:16])
-            fp.seek(i32(s, 16))
+            fmtid = _clsid(stream[:16])
+            fp.seek(i32(stream, 16))
             stream = b"****" + fp.read(i32(fp.read(4)) - 4)
             num_props = i32(stream, 4)
         except BaseException as exc:
