@@ -738,8 +738,8 @@ class ByteArrayChunk(MaxChunk):
 
     def set_le16_string(self, data):
         try:
-            l, o = get_long(data, 0)
-            self.data = data[o:o + l * 2].decode('utf-16-le')
+            long, offset = get_long(data, 0)
+            self.data = data[offset:offset + l * 2].decode('utf-16-le')
             if (self.data[-1] == b'\0'):
                 self.data = self.data[0:-1]
             self.format = "LStr16"
@@ -837,7 +837,7 @@ class SceneChunk(ContainerChunk):
 
 class ChunkReader():
 
-    def __init__(self, name = None):
+    def __init__(self, name=None):
         self.name = name
 
     def get_chunks(self, data, level, containerReader, primitiveReader):
@@ -850,7 +850,6 @@ class ChunkReader():
                 short, offset = get_long(data, offset)
                 if (short == 0x0B000000):
                     data = zlib.decompress(data, zlib.MAX_WBITS|32)
-        if (level==0):
             print("  reading '%s'..."%self.name, len(data))
         while offset < len(data):
             old = offset
@@ -1088,7 +1087,7 @@ def get_rotation(pos):
             rotation = mathutils.Euler((rot[2], rot[1], rot[0])).to_quaternion()
         elif (uid == 0x0000000000442313):  # TCB Rotation
             rot = pos.get_first(0x2504).data
-            rotation = mathutils.Quaternion(rot[0], rot[1], rot[2], rot[3])
+            rotation = mathutils.Quaternion((rot[0], rot[1], rot[2], rot[3]))
         elif (uid == 0x000000004B4B1003):  #'Rotation List
             refs = get_references(pos)
             if (len(refs) > 3):
@@ -1293,7 +1292,7 @@ def get_poly_4p(points):
     vertex = {}
     for point in points:
         ngon = point.points
-        key  = point.fH
+        key = point.fH
         if (key not in vertex):
             vertex[key] = []
         vertex[key].append(ngon)
