@@ -918,8 +918,6 @@ def get_node_parent(node):
         if (chunk is not None):
             idx, offset = get_long(chunk.data, 0)
             parent = get_node(idx)
-            if (parent is None):
-                print("parent index %X < %X!\n" %(idx, len(SCENE_LIST)))
     return parent
 
 
@@ -947,27 +945,27 @@ def get_dll(chunk):
 
 
 def get_guid(chunk):
-    cls = get_class(chunk)
-    if (cls):
-        return cls.get_first(0x2060).data[1]
+    clid = get_class(chunk)
+    if (clid):
+        return clid.get_first(0x2060).data[1]
     return chunk.types
 
 
 def get_super_id(chunk):
-    cls = get_class(chunk)
-    if (cls):
-        return cls.get_first(0x2060).data[2]
+    clid = get_class(chunk)
+    if (clid):
+        return clid.get_first(0x2060).data[2]
     return None
 
 
 def get_class_name(chunk):
-    cls = get_class(chunk)
-    if (cls):
-        clsName = cls.get_first(0x2042).data
+    clid = get_class(chunk)
+    if (clid):
+        cls_name = clid.get_first(0x2042).data
         try:
-            return "'%s'" %(clsName)
+            return "'%s'" %(cls_name)
         except:
-            return "'%r'" %(clsName)
+            return "'%r'" %(cls_name)
     return u"%04X" %(chunk.types)
 
 
@@ -1120,17 +1118,15 @@ def get_scale(pos):
 
 def create_matrix(prc):
     mtx = mathutils.Matrix.Identity(4)
+    pos = rot = scl = None
     uid = get_guid(prc)
-    scl = None
-    rot = None
-    pos = None
     if (uid == 0x2005):  # Position/Rotation/Scale
         pos = get_position(get_references(prc)[0])
         rot = get_rotation(get_references(prc)[1])
         scl = get_scale(get_references(prc)[2])
     elif (uid == 0x9154):  # BipSlave Control
-        bipedSubAnim = get_references(prc)[2]
-        refs = get_references(bipedSubAnim)
+        biped_sub_anim = get_references(prc)[2]
+        refs = get_references(biped_sub_anim)
         scl = get_scale(get_references(refs[1])[0])
         rot = get_rotation(get_references(refs[2])[0])
         pos = get_position(get_references(refs[3])[0])
@@ -1370,23 +1366,18 @@ def calc_point_3d(chunk):
             if (len(pt.points) > 0):
                 pointlist.append(pt)
     except Exception as exc:
-        print('Error:\n')
-        print("%s: offset = %d\n" %(exc, offset))
+        print('ArrayError:\n', "%s: offset = %d\n" %(exc, offset))
         raise exc
     return pointlist
 
 
 def create_editable_poly(context, node, msh, mat, mtx):
+    coords = point3i = point4i = point6i = pointNi = None
     name = node.get_first(TYP_NAME).data
     poly = msh.get_first(0x08FE)
     indexList = []
     coordListI = []
     indicesList = []
-    point3i = None
-    point4i = None
-    point6i = None
-    pointNi = None
-    coords = None
     created = False
     if (poly):
         for child in poly.children:
@@ -1430,10 +1421,10 @@ def create_editable_mesh(context, node, msh, mat, mtx):
     poly = msh.get_first(0x08FE)
     created = False
     if (poly):
-        vertexChunk = poly.get_first(0x0914)
-        ClassIDChunk = poly.get_first(0x0912)
-        coords = get_point_array(vertexChunk.data)
-        ngons = get_poly_5p(ClassIDChunk.data)
+        vertex_chunk = poly.get_first(0x0914)
+        clsid_chunk = poly.get_first(0x0912)
+        coords = get_point_array(vertex_chunk.data)
+        ngons = get_poly_5p(clsid_chunk.data)
         created = create_shape(context, coords, ngons, node, None, mtx, mat)
     return created
 
@@ -1463,6 +1454,14 @@ def adjust_matrix(obj, node):
     return plc
 
 
+def create_shell(context, node, shell, mat, mtx):
+    name = node.get_first(TYP_NAME).data
+    refs = get_references(shell)
+    msh = refs[-1]
+    created = create_editable_mesh(context, node, msh, mtx, mat)
+    return created
+
+
 def create_boolean(context, node, pro, mat, mtx):
     name = node.get_first(TYP_NAME).data
     pBlocks = get_references(pro)
@@ -1483,6 +1482,8 @@ def create_mesh(context, node, msh, mtx, mat):
         created = create_editable_mesh(context, node, msh, mat, mtx)
     elif (uid == 0x192F60981BF8338D):
         created = create_editable_poly(context, node, msh, mat, mtx)
+    elif (uid in {0x2032, 0x2033}):
+        created = create_shell(context, node, msh, mat, mtx)
     else:
         skip = SKIPPABLE.get(uid)
         if (skip is not None):
