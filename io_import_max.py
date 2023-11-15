@@ -1145,7 +1145,7 @@ def create_matrix(prc):
 
 def get_property(properties, idx):
     for child in properties.children:
-        if (child.types == 0x100E):
+        if (child.types & 0x100E):
             if (get_short(child.data, 0)[0] == idx):
                 return child
     return None
@@ -1154,7 +1154,8 @@ def get_property(properties, idx):
 def get_color(colors, idx):
     prop = get_property(colors, idx)
     if (prop is not None):
-        col, offset = get_floats(prop.data, 15, 3)
+        siz = 15 if (len(prop.data) > 23) else 11
+        col, offset = get_floats(prop.data, siz, 3)
         return (col[0], col[1], col[2])
     return None
 
@@ -1182,7 +1183,7 @@ def get_standard_material(refs):
             transparency = refs[4]  # ParameterBlock2
             material.set('transparency', get_float(transparency, 0x02))
     except:
-        print('Mat\n')
+        pass
     return material
 
 
@@ -1196,7 +1197,7 @@ def get_vray_material(vry):
         material.set('shinines', get_float(vry, 0x0B))
         material.set('transparency', get_float(vry, 0x02))
     except:
-        print('VRay\n')
+        pass
     return material
 
 
@@ -1210,7 +1211,7 @@ def get_arch_material(ad):
         material.set('shinines', get_float(ad, 0x0B))
         material.set('transparency', get_float(ad, 0x02))
     except:
-        print('Arch\n')
+        pass
     return material
 
 
@@ -1235,7 +1236,7 @@ def adjust_material(obj, mat):
             obj.data.materials.append(objMaterial)
             objMaterial.diffuse_color[:3] = material.get('diffuse', (0.8,0.8,0.8))
             objMaterial.specular_color[:3] = material.get('specular', (0,0,0))
-            objMaterial.roughness = material.get('shinines', 0.2)
+            objMaterial.roughness = 1.0 - material.get('shinines', 0.6)
 
 
 def create_shape(context, pts, indices, node, key, prc, mat):
@@ -1350,7 +1351,7 @@ def get_poly_data(chunk):
 
 def calc_point_3d(chunk):
     data = chunk.data
-    cnt, offset = get_long(data, 0)
+    count, offset = get_long(data, 0)
     pointlist = []
     try:
         while (offset < len(data)):
@@ -1370,7 +1371,7 @@ def calc_point_3d(chunk):
                 pointlist.append(pt)
     except Exception as exc:
         print('Error:\n')
-        print("%s: o = %d\n" %(exc, offset))
+        print("%s: offset = %d\n" %(exc, offset))
         raise exc
     return pointlist
 
@@ -1510,7 +1511,7 @@ def make_scene(context, parent, level=0):
                 try:
                     create_object(context, chunk)
                 except Exception as exc:
-                    print('SceneError:', exc, chunk)
+                    print('ImportError:', exc, chunk)
 
 
 def read_scene(context, maxfile, filename):
