@@ -556,16 +556,10 @@ class MaxChunk():
         self.previous = None
         self.next = None
         self.size = size
-        self.unknown = True
-        self.format = None
         self.data = None
 
     def __str__(self):
-        if (self.unknown):
-            return "%s[%4x]%04X:%s" % ("" * self.level, self.number, self.types,
-                                       ":".join("%02x" % (c) for c in self.data))
-        return "%s[%4x]%04X:%s=%s" % ("" * self.level, self.number, self.types,
-                                      self.format, self.data)
+        return "%s[%4x]%04X:%s" % ("" * self.level, self.number, self.types, self.data)
 
 
 class ByteArrayChunk(MaxChunk):
@@ -574,11 +568,9 @@ class ByteArrayChunk(MaxChunk):
     def __init__(self, types, data, level, number):
         MaxChunk.__init__(self, types, data, level, number)
 
-    def set(self, data, name, fmt, start, end):
+    def set(self, data, fmt, start, end):
         try:
             self.data = struct.unpack(fmt, data[start:end])
-            self.format = name
-            self.unknown = False
         except Exception as exc:
             self.data = data
             # print('StructError:', exc, name)
@@ -586,8 +578,6 @@ class ByteArrayChunk(MaxChunk):
     def set_string(self, data):
         try:
             self.data = data.decode('UTF-16LE')
-            self.format = "Str16"
-            self.unknown = False
         except:
             self.data = data
 
@@ -595,15 +585,14 @@ class ByteArrayChunk(MaxChunk):
         if (self.types in [0x0340, 0x4001, 0x0456, 0x0962]):
             self.set_string(data)
         elif (self.types in [0x2034, 0x2035]):
-            self.set(data, "ints", '<' + 'I' * int(len(data) / 4), 0, len(data))
+            self.set(data, '<' + 'I' * int(len(data) / 4), 0, len(data))
         elif (self.types in [0x2501, 0x2503, 0x2504, 0x2505, 0x2511]):
-            self.set(data, "floats", '<' + 'f' * int(len(data) / 4), 0, len(data))
+            self.set(data, '<' + 'f' * int(len(data) / 4), 0, len(data))
         elif (self.types == 0x2510):
-            self.set(data, "struct", '<' + 'f' * int(len(data) / 4 - 1) + 'I', 0, len(data))
+            self.set(data, '<' + 'f' * int(len(data) / 4 - 1) + 'I', 0, len(data))
         elif (self.types == 0x0100):
-            self.set(data, "float", '<f', 0, len(data))
+            self.set(data, '<f', 0, len(data))
         else:
-            self.unknown = True
             self.data = data
 
 
@@ -618,9 +607,8 @@ class ClassIDChunk(ByteArrayChunk):
         if (self.types == 0x2042):
             self.set_string(data)  # ClsName
         elif (self.types == 0x2060):
-            self.set(data, "struct", '<IQI', 0, 16)  # DllIndex, ID, SuperID
+            self.set(data, '<IQI', 0, 16)  # DllIndex, ID, SuperID
         else:
-            self.unknown = False
             self.data = ":".join("%02x" % (c) for c in data)
 
 
@@ -645,9 +633,7 @@ class ContainerChunk(MaxChunk):
         self.primReader = primReader
 
     def __str__(self):
-        if (self.unknown):
-            return "%s[%4x]%04X" % ("" * self.level, self.number, self.types)
-        return "%s[%4x]%04X: %s" % ("" * self.level, self.number, self.types, self.format)
+        return "%s[%4x]%04X" % ("" * self.level, self.number, self.types)
 
     def get_first(self, types):
         for child in self.children:
@@ -671,9 +657,7 @@ class SceneChunk(ContainerChunk):
         self.matrix = None
 
     def __str__(self):
-        if (self.unknown):
-            return "%s[%4x]%s" % ("" * self.level, self.number, get_cls_name(self))
-        return "%s[%4x]%s: %s" % ("" * self.level, self.number, get_cls_name(self), self.format)
+        return "%s[%4x]%s" % ("" * self.level, self.number, get_cls_name(self))
 
     def set_data(self, data):
         previous = None
