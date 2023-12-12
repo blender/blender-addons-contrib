@@ -35,7 +35,7 @@ if "bpy" in locals():
 @orientation_helper(axis_forward='Y', axis_up='Z')
 class Import_max(bpy.types.Operator, ImportHelper):
     """Import Autodesk MAX"""
-    bl_idname = "import_autodesk.max"
+    bl_idname = "import_scene.max"
     bl_label = "Import MAX (.max)"
     bl_options = {'PRESET', 'UNDO'}
 
@@ -88,7 +88,7 @@ class MAX_PT_import_include(bpy.types.Panel):
         sfile = context.space_data
         operator = sfile.active_operator
 
-        return operator.bl_idname == "IMPORT_AUTODESK_OT_max"
+        return operator.bl_idname == "IMPORT_SCENE_OT_max"
 
     def draw(self, context):
         layout = self.layout
@@ -117,7 +117,7 @@ class MAX_PT_import_transform(bpy.types.Panel):
         sfile = context.space_data
         operator = sfile.active_operator
 
-        return operator.bl_idname == "IMPORT_AUTODESK_OT_max"
+        return operator.bl_idname == "IMPORT_SCENE_OT_max"
 
     def draw(self, context):
         layout = self.layout
