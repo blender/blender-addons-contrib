@@ -582,6 +582,13 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
         if (repo_item := _extensions_repo_from_directory_and_report(directory, self.report)) is None:
             return None
 
+        if not os.path.exists(directory):
+            try:
+                os.makedirs(directory)
+            except BaseException as ex:
+                self.report({'ERROR'}, str(ex))
+                return {'CANCELLED'}
+
         # Needed to refresh.
         self.directory = directory
 
@@ -624,6 +631,14 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
         if not repos_all:
             self.report({'INFO'}, "No repositories to sync")
             return None
+
+        for repo_item in repos_all:
+            if not os.path.exists(repo_item.directory):
+                try:
+                    os.makedirs(repo_item.directory)
+                except BaseException as ex:
+                    self.report({'ERROR'}, str(ex))
+                    return None
 
         cmd_batch = []
         for repo_item in repos_all:
