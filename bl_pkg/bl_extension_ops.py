@@ -154,7 +154,7 @@ def repo_cache_store_refresh_from_prefs(include_disabled=False):
     extension_repos = bpy.context.preferences.filepaths.extension_repos
     repo_cache_store.refresh_from_repos(
         repos=[
-            (repo.directory, repo.remote_path) for repo in extension_repos
+            (repo.directory_or_default, repo.remote_path) for repo in extension_repos
             if include_disabled or repo.enabled
         ],
     )
@@ -278,7 +278,7 @@ def extension_repos_read_index(index):
         if index == index_test:
             return RepoItem(
                 name=repo_item.name,
-                directory=repo_item.directory,
+                directory=repo_item.directory_or_default,
                 repo_url=repo_item.remote_path,
                 module=repo_item.module,
                 use_cache=repo_item.use_cache,
@@ -292,7 +292,7 @@ def extension_repos_read(include_disabled=False):
     return [
         RepoItem(
             name=repo_item.name,
-            directory=repo_item.directory,
+            directory=repo_item.directory_or_default,
             repo_url=repo_item.remote_path,
             module=repo_item.module,
             use_cache=repo_item.use_cache,

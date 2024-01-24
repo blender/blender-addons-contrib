@@ -521,6 +521,7 @@ class _RepoCacheEntry:
     )
 
     def __init__(self, directory: str, repo_url: str) -> None:
+        assert directory != ""
         self.directory = directory
         self.repo_url = repo_url
         # Manifest data per package loaded from the packages local JSON.
