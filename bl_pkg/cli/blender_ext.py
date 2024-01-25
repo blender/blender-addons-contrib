@@ -508,6 +508,18 @@ def url_retrieve_to_filepath_iter_or_filesystem(
 # Standalone Utilities
 
 
+def pkg_idname_is_valid_or_error(pkg_idname: str) -> Optional[str]:
+    if not pkg_idname.isidentifier():
+        return "Not a valid identifier"
+    if "__" in pkg_idname:
+        return "Only single separators are supported"
+    if pkg_idname.startswith("_"):
+        return "Names must not start with a \"_\""
+    if pkg_idname.endswith("_"):
+        return "Names must not end with a \"_\""
+    return None
+
+
 def pkg_manifest_is_valid_or_error(value: Dict[str, Any], *, from_repo: bool) -> Optional[str]:
     import string
 
@@ -591,8 +603,10 @@ def repo_json_is_valid_or_error(filepath: str) -> Optional[str]:
         if not isinstance(key, str):
             return "Expected key at index {:d} to be a string, not a {!r}".format(i, type(key))
 
-        error_msg = pkg_manifest_is_valid_or_error(value, from_repo=True)
-        if error_msg is not None:
+        if (error_msg := pkg_idname_is_valid_or_error(key)) is not None:
+            return "Expected key at index {:d} to be an identifier, \"{:s}\" failed: {:s}".format(i, key, error_msg)
+
+        if (error_msg := pkg_manifest_is_valid_or_error(value, from_repo=True)) is not None:
             return "Error at index {:d}: {:s}".format(i, error_msg)
 
     return None
@@ -793,6 +807,14 @@ def arg_handle_int_as_bool(value: str) -> bool:
     if result not in {0, 1}:
         raise argparse.ArgumentTypeError("Expected a 0 or 1")
     return bool(result)
+
+
+def arg_handle_str_as_package_names(value: str) -> Sequence[str]:
+    result = value.split(",")
+    for pkg_idname in result:
+        if (error_msg := pkg_idname_is_valid_or_error(pkg_idname)) is not None:
+            raise argparse.ArgumentTypeError("Invalid name \"{:s}\". {:s}".format(pkg_idname, error_msg))
+    return result
 
 
 # -----------------------------------------------------------------------------
@@ -1734,7 +1756,7 @@ def argparse_create_dummy_repo(subparsers: "argparse._SubParsersAction[argparse.
     subparse.add_argument(
         "--package-names",
         dest="package_names",
-        type=str,
+        type=arg_handle_str_as_package_names,
         help=(
             "Comma separated list of package names to create (no-spaces)."
         ),
@@ -1748,7 +1770,7 @@ def argparse_create_dummy_repo(subparsers: "argparse._SubParsersAction[argparse.
         func=lambda args: subcmd_dummy.repo(
             msg_fn_from_args(args),
             repo_dir=args.repo_dir,
-            package_names=args.package_names.split(","),
+            package_names=args.package_names,
         ),
     )
 
