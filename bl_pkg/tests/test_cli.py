@@ -13,10 +13,6 @@ import tempfile
 import unittest
 
 import unittest.util
-unittest.util._MAX_LENGTH = 10_000
-
-# NOTE: Python 3.11 will have `tomllib`, we may wish to use this.
-# import tomlkit
 
 from typing import (
     Any,
@@ -27,6 +23,9 @@ from typing import (
     Set,
     Tuple,
 )
+
+# For more useful output that isn't clipped.
+unittest.util._MAX_LENGTH = 10_000
 
 # See the variable with the same name in `blender_ext.py`.
 REMOTE_REPO_HAS_JSON_IMPLIED = True

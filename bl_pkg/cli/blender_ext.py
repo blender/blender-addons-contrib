@@ -41,7 +41,6 @@ import urllib.parse  # For `urljoin`.
 import urllib.request  # For accessing remote `https://` paths.
 
 
-from types import ModuleType
 from typing import (
     Any,
     Dict,
@@ -1425,7 +1424,6 @@ class subcmd_author:
 
         with CleanupPathsContext(files=(outfile_temp,), directories=()):
             with tarfile.open(outfile_temp, "w:xz") as tar:
-                files_relative: List[str] = []
                 for filepath_abs, filepath_rel in scandir_recursive(
                         pkg_source_dir,
                         # Be more advanced in the future, for now ignore dot-files (`.git`) .. etc.
