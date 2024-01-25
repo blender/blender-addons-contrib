@@ -1803,6 +1803,7 @@ def argparse_create() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="blender_ext",
         description=usage_text,
+        formatter_class=argparse.RawTextHelpFormatter,
     )
 
     subparsers = parser.add_subparsers(
