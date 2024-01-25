@@ -1487,12 +1487,12 @@ class subcmd_dummy:
 
         # Ensure package names are valid.
         package_names = tuple(set(package_names))
-        for pkg_id in package_names:
-            if (error_msg := pkg_idname_is_valid_or_error(pkg_id)) is None:
+        for pkg_idname in package_names:
+            if (error_msg := pkg_idname_is_valid_or_error(pkg_idname)) is None:
                 continue
             message_error(
                 msg_fn,
-                "key \"id\", \"{:s}\" doesn't match expected format, \"{:s}\"".format(pkg_id, error_msg),
+                "key \"id\", \"{:s}\" doesn't match expected format, \"{:s}\"".format(pkg_idname, error_msg),
             )
             return False
 
@@ -1509,14 +1509,14 @@ class subcmd_dummy:
                 return False
 
         import tempfile
-        for pkg_id in package_names:
+        for pkg_idname in package_names:
             with tempfile.TemporaryDirectory(suffix="pkg-repo") as temp_dir_source:
-                pkg_src_dir = os.path.join(temp_dir_source, pkg_id)
+                pkg_src_dir = os.path.join(temp_dir_source, pkg_idname)
                 os.makedirs(pkg_src_dir)
-                pkg_name = pkg_id.replace("_", " ").title()
+                pkg_name = pkg_idname.replace("_", " ").title()
                 with open(os.path.join(pkg_src_dir, PKG_MANIFEST_FILENAME_TOML), "w", encoding="utf-8") as fh:
                     fh.write("""# Example\n""")
-                    fh.write("""id = "{:s}"\n""".format(pkg_id))
+                    fh.write("""id = "{:s}"\n""".format(pkg_idname))
                     fh.write("""name = "{:s}"\n""".format(pkg_name))
                     fh.write("""type = "addon"\n""")
                     fh.write("""author = "Developer Name"\n""")
@@ -1534,7 +1534,7 @@ def unregister():
 
                     fh.write("""# Dummy.\n""")
                     # Generate some random ASCII-data.
-                    for i, line in enumerate(random_acii_lines(seed=pkg_id, width=80)):
+                    for i, line in enumerate(random_acii_lines(seed=pkg_idname, width=80)):
                         if i > 1000:
                             break
                         fh.write("# {:s}\n".format(line))
