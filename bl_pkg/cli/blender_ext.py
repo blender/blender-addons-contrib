@@ -1836,8 +1836,10 @@ def argparse_create() -> argparse.ArgumentParser:
 # Follows `MessageFn` convention.
 def msg_print_text(ty: str, data: PrimTypeOrSeq) -> bool:
     assert ty in MESSAGE_TYPES
-
-    sys.stdout.write("{:s}: {:s}\n".format(ty, data))
+    if isinstance(data, (list, tuple)):
+        sys.stdout.write("{:s}: {:s}\n".format(ty, ", ".join(str(x) for x in data)))
+    else:
+        sys.stdout.write("{:s}: {:s}\n".format(ty, str(data)))
     return REQUEST_EXIT
 
 
