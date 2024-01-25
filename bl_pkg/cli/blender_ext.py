@@ -96,7 +96,7 @@ PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
 PKG_MANIFEST_FILENAME = "bl_ext_pkg_manifest.json"
 
 # Only for building.
-PKG_MANIFEST_FILENAME_TOML = "bl_ext_pkg.toml"
+PKG_MANIFEST_FILENAME_TOML = "bl_manifest.toml"
 
 # This directory is in the local repository.
 REPO_LOCAL_PRIVATE_DIR = ".blender_ext"

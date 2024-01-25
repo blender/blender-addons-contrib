@@ -45,7 +45,7 @@ sys.path.append(os.path.join(BASE_DIR, "modules"))
 from http_server_context import HTTPServerContext  # noqa: E402
 
 
-PKG_MANIFEST_FILENAME_TOML = "bl_ext_pkg.toml"
+PKG_MANIFEST_FILENAME_TOML = "bl_manifest.toml"
 PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
 
 # Use an in-memory temp, when available.

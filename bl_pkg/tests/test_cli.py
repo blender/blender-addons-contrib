@@ -107,7 +107,7 @@ def my_create_package(dirpath: str, filename: str, *, metadata: Dict[str, Any], 
     metadata_copy = metadata.copy()
 
     with tempfile.TemporaryDirectory() as temp_dir_pkg:
-        temp_dir_pkg_manifest_toml = os.path.join(temp_dir_pkg, "bl_ext_pkg.toml")
+        temp_dir_pkg_manifest_toml = os.path.join(temp_dir_pkg, "bl_manifest.toml")
         with open(temp_dir_pkg_manifest_toml, "wb") as fh:
             # NOTE: escaping is not supported, this is primitive TOML writing for tests.
             data = "".join((
