@@ -125,11 +125,11 @@ def lock_result_any_failed_with_report(op, lock_result, report_type='ERROR'):
     Note that we might want to allow some repositories not to lock and still proceed (in the future).
     """
     any_errors = False
-    for directory, lock_result in lock_result.items():
-        if lock_result is None:
+    for directory, lock_result_for_repo in lock_result.items():
+        if lock_result_for_repo is None:
             continue
-        print("Error \"{:s}\" locking \"{:s}\"".format(lock_result, repr(directory)))
-        op.report({report_type}, lock_result)
+        print("Error \"{:s}\" locking \"{:s}\"".format(lock_result_for_repo, repr(directory)))
+        op.report({report_type}, lock_result_for_repo)
         any_errors = True
     return any_errors
 
