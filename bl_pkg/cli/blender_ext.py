@@ -589,7 +589,7 @@ def repo_json_is_valid_or_error(filepath: str) -> Optional[str]:
 
     for i, (key, value) in enumerate(result.items()):
         if not isinstance(key, str):
-            return "Expected key at index {:d} to be a string, not a {!r}".format(i, type(result))
+            return "Expected key at index {:d} to be a string, not a {!r}".format(i, type(key))
 
         error_msg = pkg_manifest_is_valid_or_error(value, from_repo=True)
         if error_msg is not None:
