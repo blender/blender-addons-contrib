@@ -688,13 +688,13 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
         self._repo_directories = set()
         self._addon_restore = []
 
+        repos_all = extension_repos_read()
+
         # Track add-ons to disable before uninstalling.
         handle_addons_info = []
 
         packages_to_upgrade = [[] for _ in range(len(repos_all))]
         package_count = 0
-
-        repos_all = extension_repos_read()
 
         pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure())
         for repo_index, pkg_manifest_remote in enumerate(repo_cache_store.pkg_manifest_from_remote_ensure()):
