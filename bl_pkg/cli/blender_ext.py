@@ -35,6 +35,7 @@ import shutil
 import signal  # Override `Ctrl-C`.
 import sys
 import tarfile
+import tomllib
 import urllib.error  # For `URLError`.
 import urllib.parse  # For `urljoin`.
 import urllib.request  # For accessing remote `https://` paths.
@@ -70,13 +71,6 @@ def signal_handler_sigint(_sig: int, _frame: Any) -> None:
 
 signal.signal(signal.SIGINT, signal_handler_sigint)
 
-
-# Only for building packages.
-tomllib: Optional[ModuleType] = None
-try:
-    import tomllib
-except ImportError:
-    pass
 
 # A primitive type that can be communicated via message passing.
 PrimType = Union[int, str]
@@ -348,7 +342,6 @@ def pkg_manifest_from_toml_and_validate(filepath: str) -> Union[PkgManifest, str
 
     The caller is expected to use exception handling and forward any errors to the user.
     """
-    assert tomllib is not None
     try:
         with open(filepath, "rb") as fh:
             data = tomllib.load(fh)
@@ -1394,10 +1387,6 @@ class subcmd_author:
 
         if pkg_output_dir != "." and pkg_output_filepath != ".":
             message_error(msg_fn, "Both output directory & output filepath set, set one or the other")
-            return False
-
-        if tomllib is None:
-            message_error(msg_fn, "Module \"tomllib\" not available!")
             return False
 
         pkg_manifest_filepath = os.path.join(pkg_source_dir, PKG_MANIFEST_FILENAME_TOML)
