@@ -5,18 +5,20 @@
 # note: this isn't needed for building,
 # its just for some convenience targets.
 
-PY_FILES=$(shell find ./blender_addon ./tests -type f -name '*.py')
+PY_FILES=$(shell find ./ -type f -name '*.py')
 # Filter out files which use `bpy`.
 PY_FILES_MYPY=$(filter-out \
-	./blender_addon/bl_pkg/__init__.py \
-	./blender_addon/bl_pkg/bl_extension_monkeypatch.py \
-	./blender_addon/bl_pkg/bl_extension_ops.py \
-	./blender_addon/bl_pkg/bl_extension_ui.py \
-	./blender_addon/bl_pkg/bl_extension_utils.py \
+	./__init__.py \
+	./bl_extension_monkeypatch.py \
+	./bl_extension_ops.py \
+	./bl_extension_ui.py \
+	./bl_extension_utils.py \
+	./example_extension/__init__.py \
+	./example_extension/foo.py \
 	,$(PY_FILES))
 
 PY_FILES_MYPY_STANDALONE= \
-	./blender_addon/bl_pkg/bl_extension_utils.py \
+	./bl_extension_utils.py \
 
 EXTRA_WATCH_FILES=Makefile
 
@@ -27,13 +29,13 @@ PYTHON_BIN?=$(shell which python3)
 pep8: FORCE
 	flake8 $(PY_FILES) --ignore=E501,E302,E123,E126,E128,E129,E124,E122,W504
 
-# `--no-namespace-packages` is needed otherwise `blender_addon/bl_pkg/cli/blender_ext.py` loads in parent modules
+# `--no-namespace-packages` is needed otherwise `./cli/blender_ext.py` loads in parent modules
 # (the Blender add-on which imports `bpy`).
-check: FORCE
+check_mypy: FORCE
 	mypy --no-namespace-packages --strict $(PY_FILES_MYPY)
 	mypy --strict --follow-imports=skip $(PY_FILES_MYPY_STANDALONE)
 
-lint:
+check_pylint:
 	pylint $(PY_FILES) \
 	--disable=C0111,C0301,C0302,C0103,C0415,R1705,R0902,R0903,R0913,E0611,E0401,I1101,R0801,C0209,W0511,W0718,W0719,C0413,R0911,R0912,R0914,R0915
 
@@ -68,18 +70,18 @@ watch_test: FORCE
 		tput clear; \
 	done
 
-watch_check:
+watch_check_mypy:
 	while true; do \
-		$(MAKE) check; \
+		$(MAKE) check_mypy; \
 		inotifywait -q -e close_write $(EXTRA_WATCH_FILES) \
 		            $(PY_FILES_MYPY) \
-		            ./blender_addon/bl_pkg/bl_extension_utils.py ; \
+		            ./bl_extension_utils.py ; \
 		tput clear; \
 	done
 
-watch_lint:
+watch_check_pylint:
 	while true; do \
-		$(MAKE) lint; \
+		$(MAKE) check_pylint; \
 		inotifywait -q -e close_write $(EXTRA_WATCH_FILES) $(PY_FILES) ; \
 		tput clear; \
 	done
