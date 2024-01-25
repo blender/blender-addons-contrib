@@ -104,10 +104,6 @@ RE_MANIFEST_SEMVER = re.compile(
     r'(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
 )
 
-# Fairly relaxed keep compatible with Python module names,
-# we might want to allow non-ASCII characters though.
-RE_MANIFEST_ID = re.compile("[a-z]+[a-z0-9_]*")
-
 # Small value (in bytes).
 CHUNK_SIZE_DEFAULT = 32  # 16
 
@@ -306,8 +302,8 @@ def pkg_manifest_from_dict_and_validate(pkg_idname: str, data: Dict[Any, Any]) -
 
     manifest = PkgManifest(**dict(zip(PkgManifest._fields, values, strict=True)))
 
-    if not RE_MANIFEST_ID.match(manifest.id):
-        return "key \"id\" doesn't match expected format \"{:s}\"".format(RE_MANIFEST_ID.pattern)
+    if (error_msg := pkg_idname_is_valid_or_error(manifest.id)) is not None:
+        return "key \"id\": \"{:s}\" invalid, {:s}".format(manifest.id, error_msg)
 
     # From https://semver.org
     if not RE_MANIFEST_SEMVER.match(manifest.version):
@@ -1492,11 +1488,11 @@ class subcmd_dummy:
         # Ensure package names are valid.
         package_names = tuple(set(package_names))
         for pkg_id in package_names:
-            if RE_MANIFEST_ID.match(pkg_id):
+            if (error_msg := pkg_idname_is_valid_or_error(pkg_id)) is None:
                 continue
             message_error(
                 msg_fn,
-                "key \"id\" doesn't match expected format \"{:s}\"".format(RE_MANIFEST_ID.pattern),
+                "key \"id\", \"{:s}\" doesn't match expected format, \"{:s}\"".format(pkg_id, error_msg),
             )
             return False
 
