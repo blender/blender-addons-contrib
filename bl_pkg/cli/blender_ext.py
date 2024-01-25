@@ -1514,7 +1514,7 @@ def register():
 
 def unregister():
     print("Unregister:", __name__)
-""".format(pkg_name))
+""")
 
                     fh.write("""# Dummy.\n""")
                     # Generate some random ASCII-data.
