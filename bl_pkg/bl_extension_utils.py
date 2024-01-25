@@ -40,6 +40,7 @@ import signal
 import stat
 import subprocess
 import time
+import tomllib
 
 
 from typing import (
@@ -68,7 +69,7 @@ REPO_LOCAL_PRIVATE_DIR = ".blender_ext"
 REPO_LOCAL_PRIVATE_LOCK = "bl_ext_repo.lock"
 
 PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
-PKG_MANIFEST_FILENAME = "bl_ext_pkg_manifest.json"
+PKG_MANIFEST_FILENAME_TOML = "bl_manifest.toml"
 
 # Add this to the local JSON file.
 REPO_LOCAL_JSON = os.path.join(REPO_LOCAL_PRIVATE_DIR, PKG_REPO_LIST_FILENAME)
@@ -309,6 +310,13 @@ def json_from_filepath(filepath_json: str) -> Any:
     return None
 
 
+def toml_from_filepath(filepath_json: str) -> Any:
+    if os.path.exists(filepath_json):
+        with open(filepath_json, "r", encoding="utf-8") as fh:
+            return tomllib.loads(fh.read())
+    return None
+
+
 def json_to_filepath(filepath_json: str, data: Any) -> None:
     with open(filepath_json, "w", encoding="utf-8") as fh:
         fh.write(json.dumps(data))
@@ -319,8 +327,8 @@ def json_from_local_dir(local_dir: str) -> Any:
 
 
 def pkg_make_obsolete_for_testing(local_dir: str, pkg_id: str) -> None:
-    filepath = os.path.join(local_dir, pkg_id, PKG_MANIFEST_FILENAME)
-    data = json_from_filepath(filepath)
+    filepath = os.path.join(local_dir, pkg_id, PKG_MANIFEST_FILENAME_TOML)
+    data = toml_from_filepath(filepath)
     data["version"] = "0.0.0"
     json_to_filepath(filepath, data)
 
@@ -627,10 +635,9 @@ class _RepoCacheEntry:
                     print(ex)
 
             for d in dir_list:
-                filepath_json = os.path.join(self.directory, d, PKG_MANIFEST_FILENAME)
-
+                filepath_toml = os.path.join(self.directory, d, PKG_MANIFEST_FILENAME_TOML)
                 try:
-                    item_local = json_from_filepath(filepath_json)
+                    item_local = toml_from_filepath(filepath_toml)
                 except BaseException as ex:
                     item_local = None
 

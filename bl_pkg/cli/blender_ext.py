@@ -87,7 +87,6 @@ PKG_EXT = ".txz"
 # PKG_JSON_INFO = "bl_ext_repo.json"
 
 PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
-PKG_MANIFEST_FILENAME = "bl_ext_pkg_manifest.json"
 
 # Only for building.
 PKG_MANIFEST_FILENAME_TOML = "bl_manifest.toml"
@@ -576,7 +575,7 @@ def pkg_manifest_is_valid_or_error(value: Dict[str, Any], *, from_repo: bool) ->
     return None
 
 
-def repo_manifest_json_is_valid_or_error(filepath: str) -> Optional[str]:
+def repo_json_is_valid_or_error(filepath: str) -> Optional[str]:
     if not os.path.exists(filepath):
         return "File missing: " + filepath
 
@@ -600,13 +599,13 @@ def repo_manifest_json_is_valid_or_error(filepath: str) -> Optional[str]:
     return None
 
 
-def pkg_manifest_json_is_valid_or_error(filepath: str) -> Tuple[Optional[str], Dict[str, Any]]:
+def pkg_manifest_toml_is_valid_or_error(filepath: str) -> Tuple[Optional[str], Dict[str, Any]]:
     if not os.path.exists(filepath):
         return "File missing: " + filepath, {}
 
     try:
-        with open(filepath, "r", encoding="utf-8") as fh:
-            result = json.load(fh)
+        with open(filepath, "rb") as fh:
+            result = tomllib.load(fh)
     except BaseException as ex:
         return str(ex), {}
 
@@ -617,7 +616,7 @@ def pkg_manifest_json_is_valid_or_error(filepath: str) -> Tuple[Optional[str], D
 
 
 def extract_metadata_from_data(data: bytes) -> Optional[Dict[str, Any]]:
-    result = json.loads(data.decode('utf-8'))
+    result = tomllib.loads(data.decode('utf-8'))
     assert isinstance(result, dict)
     return result
 
@@ -632,7 +631,7 @@ def extract_metadata_from_filepath(filepath: str) -> Optional[Dict[str, Any]]:
 def extract_metadata_from_archive(filepath: str) -> Optional[Dict[str, Any]]:
     with tarfile.open(filepath, "r:xz") as tar_fh:
         try:
-            file_content = tar_fh.extractfile(PKG_MANIFEST_FILENAME)
+            file_content = tar_fh.extractfile(PKG_MANIFEST_FILENAME_TOML)
         except KeyError:
             # TODO: check if there is a nicer way to handle this?
             # From a quick look there doesn't seem to be a good way
@@ -735,7 +734,7 @@ def repo_sync_from_remote(*, msg_fn: MessageFn, repo_dir: str, local_dir: str, t
         if request_exit:
             return False
 
-        error_msg = repo_manifest_json_is_valid_or_error(local_json_path_temp)
+        error_msg = repo_json_is_valid_or_error(local_json_path_temp)
         if error_msg is not None:
             message_error(msg_fn, "sync: invalid json ({!r}) reading {!r}!".format(error_msg, repo_dir))
             return False
@@ -1270,13 +1269,13 @@ class subcmd_client:
                     tar_fh.extractall(filepath_local_pkg_temp)
 
                 # TODO: assume the package is OK.
-                filepath_local_manifest_json = os.path.join(filepath_local_pkg_temp, PKG_MANIFEST_FILENAME)
-                if not os.path.exists(filepath_local_manifest_json):
-                    message_warn(msg_fn, "Package manifest not found: {:s}".format(filepath_local_manifest_json))
+                filepath_local_manifest_toml = os.path.join(filepath_local_pkg_temp, PKG_MANIFEST_FILENAME_TOML)
+                if not os.path.exists(filepath_local_manifest_toml):
+                    message_warn(msg_fn, "Package manifest not found: {:s}".format(filepath_local_manifest_toml))
                     continue
 
                 # Check the package manifest is valid.
-                error_msg, manifest_from_archive = pkg_manifest_json_is_valid_or_error(filepath_local_manifest_json)
+                error_msg, manifest_from_archive = pkg_manifest_toml_is_valid_or_error(filepath_local_manifest_toml)
                 if error_msg is not None:
                     message_warn(msg_fn, "Package manifest invalid: {:s}".format(error_msg))
                     continue
@@ -1413,8 +1412,9 @@ class subcmd_author:
             pkg_filename,
             # This is added, converted from the TOML.
             PKG_REPO_LIST_FILENAME,
-            # No need to add the TOML.
-            PKG_MANIFEST_FILENAME_TOML,
+
+            # We could exclude the manifest: `PKG_MANIFEST_FILENAME_TOML`
+            # but it's now used so a generation step isn't needed.
         }
 
         request_exit = False
@@ -1426,14 +1426,6 @@ class subcmd_author:
         with CleanupPathsContext(files=(outfile_temp,), directories=()):
             with tarfile.open(outfile_temp, "w:xz") as tar:
                 files_relative: List[str] = []
-                switch_slash = os.sep != "/"
-
-                def add_from_bytes(path: str, data: bytes) -> None:
-                    with io.BytesIO(initial_bytes=data) as data_fh:
-                        info = tarfile.TarInfo(path)
-                        info.size = len(data)
-                        tar.addfile(info, data_fh)
-
                 for filepath_abs, filepath_rel in scandir_recursive(
                         pkg_source_dir,
                         # Be more advanced in the future, for now ignore dot-files (`.git`) .. etc.
@@ -1449,29 +1441,6 @@ class subcmd_author:
                         info.size = size
                         del size
                         tar.addfile(info, fh)
-
-                        if switch_slash:
-                            files_relative.append(filepath_rel.replace(os.sep, "/"))
-                        else:
-                            files_relative.append(filepath_rel)
-
-                files_relative.append(PKG_MANIFEST_FILENAME)
-
-                # NOTE: we might not want to include this in the JSON?
-                # (the TAR file includes this info).
-                manifest_dict = manifest._asdict()
-                files_relative.sort()
-                manifest_dict["files"] = files_relative
-                del files_relative
-
-                add_from_bytes(
-                    PKG_MANIFEST_FILENAME,
-                    json.dumps(
-                        manifest_dict,
-                        indent=2,
-                        check_circular=False,
-                    ).encode('utf-8'),
-                )
 
                 request_exit |= message_status(msg_fn, "complete")
                 if request_exit:
@@ -1534,23 +1503,12 @@ class subcmd_dummy:
                     fh.write("""id = "{:s}"\n""".format(pkg_id))
                     fh.write("""name = "{:s}"\n""".format(pkg_name))
                     fh.write("""type = "addon"\n""")
+                    fh.write("""author = "Developer Name"\n""")
                     fh.write("""version = "1.0.0"\n""")
                     fh.write("""description = "This is a package"\n""")
 
                 with open(os.path.join(pkg_src_dir, "__init__.py"), "w", encoding="utf-8") as fh:
                     fh.write("""
-bl_info = {{
-    "name": {!r},
-    "author": "My Name",
-    "version": (0, 0, 1),
-    "blender": (4, 0, 0),
-    "location": "File > Import-Export",
-    "description": "Example description",
-    "warning": "",
-    "support": 'OFFICIAL',
-    "category": "Import-Export",
-}}
-
 def register():
     print("Register:", __name__)
 
