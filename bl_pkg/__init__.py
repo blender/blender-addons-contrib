@@ -172,6 +172,45 @@ repo_status_text = StatusInfoUI()
 repo_cache_store = None
 
 
+# -----------------------------------------------------------------------------
+# Theme Integration
+
+def theme_preset_draw(menu, context):
+    layout = menu.layout
+    repos_all = [
+        repo_item for repo_item in context.preferences.filepaths.extension_repos
+        if repo_item.enabled
+    ]
+    if not repos_all:
+        return
+    import os
+    menu_idname = type(menu).__name__
+    for i, pkg_manifest_local in enumerate(repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print)):
+        if pkg_manifest_local is None:
+            continue
+        repo_item = repos_all[i]
+        directory = repo_item.directory_or_default
+        for pkg_idname, value in pkg_manifest_local.items():
+            if value["type"] != "theme":
+                continue
+
+            theme_dir = os.path.join(directory, pkg_idname)
+            theme_files = [
+                filename for entry in os.scandir(theme_dir)
+                if ((not entry.is_dir()) and
+                    (not (filename := entry.name).startswith(".")) and
+                    filename.lower().endswith(".xml"))
+            ]
+            theme_files.sort()
+            for filename in theme_files:
+                props = layout.operator(menu.preset_operator, text=bpy.path.display_name(filename))
+                props.filepath = os.path.join(theme_dir, os.path.join(theme_dir, filename))
+                props.menu_idname = menu_idname
+
+
+# -----------------------------------------------------------------------------
+# Registration
+
 classes = (
     BlExtPreferences,
 )
@@ -222,6 +261,9 @@ def register():
         description="Only show installed extensions",
     )
 
+    from bl_ui.space_userpref import USERPREF_MT_interface_theme_presets
+    USERPREF_MT_interface_theme_presets.append(theme_preset_draw)
+
     monkeypatch_install()
 
     # addon_prefs = bpy.context.preferences.addons[__name__].preferences
@@ -252,5 +294,8 @@ def unregister():
     else:
         repo_cache_store.clear()
         repo_cache_store = None
+
+    from bl_ui.space_userpref import USERPREF_MT_interface_theme_presets
+    USERPREF_MT_interface_theme_presets.remove(theme_preset_draw)
 
     monkeypatch_uninstall()
