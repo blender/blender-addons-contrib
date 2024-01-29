@@ -105,6 +105,10 @@ def file_mtime_or_none(filepath: str) -> Optional[int]:
         return None
 
 
+def error_fn_default(ex: BaseException) -> None:
+    print(ex)
+
+
 # -----------------------------------------------------------------------------
 # Call JSON.
 #
@@ -543,7 +547,7 @@ class _RepoCacheEntry:
             self,
             check_files: bool = False,
             ignore_missing: bool = False,
-            error_fn: Optional[Callable[[BaseException], None]] = None,
+            error_fn: Callable[[BaseException], None] = error_fn_default,
     ) -> Any:
         if self._pkg_manifest_remote is not None:
             if check_files:
@@ -557,10 +561,7 @@ class _RepoCacheEntry:
         except BaseException as ex:
             self._pkg_manifest_remote = None
 
-            if error_fn is not None:
-                error_fn(ex)
-            else:
-                print(ex)
+            error_fn(ex)
 
         self._pkg_manifest_local = None
         if self._pkg_manifest_remote is not None:
@@ -583,7 +584,7 @@ class _RepoCacheEntry:
     def _json_data_refresh(
             self,
             force: bool = False,
-            error_fn: Optional[Callable[[BaseException], None]] = None,
+            error_fn: Callable[[BaseException], None] = error_fn_default,
     ) -> None:
         if force or (self._pkg_manifest_remote is None) or (self._pkg_manifest_remote_mtime == 0):
             self._pkg_manifest_remote = None
@@ -601,11 +602,7 @@ class _RepoCacheEntry:
             self._pkg_manifest_remote = json_from_filepath(filepath_json)
         except BaseException as ex:
             self._pkg_manifest_remote = None
-
-            if error_fn is not None:
-                error_fn(ex)
-            else:
-                print(ex)
+            error_fn(ex)
 
         self._pkg_manifest_local = None
         if self._pkg_manifest_remote is not None:
@@ -616,7 +613,7 @@ class _RepoCacheEntry:
     def pkg_manifest_from_local_ensure(
             self,
             ignore_missing: bool = False,
-            error_fn: Optional[Callable[[BaseException], None]] = None,
+            error_fn: Callable[[BaseException], None] = error_fn_default,
     ) -> Optional[Dict[str, Dict[str, Any]]]:
         if self._pkg_manifest_local is None:
             self._json_data_ensure(
@@ -628,11 +625,7 @@ class _RepoCacheEntry:
                 dir_list = os.listdir(self.directory)
             except BaseException as ex:
                 dir_list = []
-
-                if error_fn is not None:
-                    error_fn(ex)
-                else:
-                    print(ex)
+                error_fn(ex)
 
             for d in dir_list:
                 filepath_toml = os.path.join(self.directory, d, PKG_MANIFEST_FILENAME_TOML)
@@ -640,11 +633,7 @@ class _RepoCacheEntry:
                     item_local = toml_from_filepath(filepath_toml)
                 except BaseException as ex:
                     item_local = None
-
-                    if error_fn is not None:
-                        error_fn(ex)
-                    else:
-                        print(ex)
+                    error_fn(ex)
 
                 if not item_local:
                     continue
@@ -655,7 +644,7 @@ class _RepoCacheEntry:
     def pkg_manifest_from_remote_ensure(
             self,
             ignore_missing: bool = False,
-            error_fn: Optional[Callable[[BaseException], None]] = None,
+            error_fn: Callable[[BaseException], None] = error_fn_default,
     ) -> Optional[Dict[str, Dict[str, Any]]]:
         if self._pkg_manifest_remote is None:
             self._json_data_ensure(
