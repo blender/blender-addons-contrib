@@ -73,7 +73,7 @@ def monkeypatch_extenions_repos_update_pre_impl():
         if not repo_item.enabled:
             continue
 
-        _monkeypatch_extenions_repos_update_dirs.add(repo_item.directory)
+        _monkeypatch_extenions_repos_update_dirs.add(repo_item.directory_or_default)
 
 
 def monkeypatch_extenions_repos_update_post_impl():
@@ -87,7 +87,7 @@ def monkeypatch_extenions_repos_update_post_impl():
         if not repo_item.enabled:
             continue
 
-        directory = repo_item.directory
+        directory = repo_item.directory_or_default
         if directory in _monkeypatch_extenions_repos_update_dirs:
             continue
         # Ignore missing because the new repo might not have a JSON file.
