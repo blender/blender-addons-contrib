@@ -88,7 +88,7 @@ PKG_EXT = ".txz"
 PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
 
 # Only for building.
-PKG_MANIFEST_FILENAME_TOML = "bl_manifest.toml"
+PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
 
 # This directory is in the local repository.
 REPO_LOCAL_PRIVATE_DIR = ".blender_ext"

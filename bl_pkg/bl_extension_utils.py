@@ -71,7 +71,7 @@ REPO_LOCAL_PRIVATE_DIR = ".blender_ext"
 REPO_LOCAL_PRIVATE_LOCK = "bl_ext_repo.lock"
 
 PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
-PKG_MANIFEST_FILENAME_TOML = "bl_manifest.toml"
+PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
 
 # Add this to the local JSON file.
 REPO_LOCAL_JSON = os.path.join(REPO_LOCAL_PRIVATE_DIR, PKG_REPO_LIST_FILENAME)

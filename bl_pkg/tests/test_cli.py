@@ -35,7 +35,7 @@ PKG_EXT = ".txz"
 # PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
 PKG_MANIFEST_FILENAME = "bl_ext_pkg_manifest.json"
 
-PKG_MANIFEST_FILENAME_TOML = "bl_manifest.toml"
+PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
 
 # Use an in-memory temp, when available.
 TEMP_PREFIX = tempfile.gettempdir()
