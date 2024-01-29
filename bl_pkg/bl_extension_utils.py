@@ -310,7 +310,7 @@ def json_from_filepath(filepath_json: str) -> Any:
     return None
 
 
-def toml_from_filepath(filepath_json: str) -> Any:
+def toml_from_filepath(filepath_json: str) -> Optional[Dict[str, Any]]:
     if os.path.exists(filepath_json):
         with open(filepath_json, "r", encoding="utf-8") as fh:
             return tomllib.loads(fh.read())
@@ -331,6 +331,17 @@ def pkg_make_obsolete_for_testing(local_dir: str, pkg_id: str) -> None:
     data = toml_from_filepath(filepath)
     data["version"] = "0.0.0"
     json_to_filepath(filepath, data)
+
+
+def pkg_validate_data_or_error(pkg_idname: str, data: Dict[str, Any]) -> Optional[str]:
+    # Exception! In in general `cli` shouldn't be considered a Python module,
+    # it's validation function is handy to reuse.
+    from .cli.blender_ext import pkg_manifest_from_dict_and_validate
+    assert "id" not in data
+    result = pkg_manifest_from_dict_and_validate(pkg_idname, data)
+    if isinstance(result, str):
+        return result
+    return None
 
 
 # -----------------------------------------------------------------------------
@@ -677,7 +688,7 @@ class _RepoCacheEntry:
                     item_local = None
                     error_fn(ex)
 
-                if not item_local:
+                if item_local is None:
                     continue
 
                 pkg_idname = item_local.pop("id")
@@ -691,6 +702,12 @@ class _RepoCacheEntry:
                         continue
                 else:
                     pkg_idname = filename
+
+                # Validate so local-only packages with invalid manifests aren't used.
+                if (error_str := pkg_validate_data_or_error(pkg_idname, item_local)):
+                    error_fn(Exception(error_str))
+                    continue
+
                 pkg_manifest_local[pkg_idname] = item_local
             self._pkg_manifest_local = pkg_manifest_local
         return self._pkg_manifest_local
