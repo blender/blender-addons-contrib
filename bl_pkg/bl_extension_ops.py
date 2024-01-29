@@ -597,16 +597,20 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
         if lock_result_any_failed_with_report(self, self.repo_lock.acquire()):
             return None
 
-        return bl_extension_utils.CommandBatch(
-            title="Sync",
-            batch=[
+        cmd_batch = []
+        if repo_item.repo_url:
+            cmd_batch.append(
                 partial(
                     bl_extension_utils.repo_sync,
                     directory=directory,
                     repo_url=repo_item.repo_url,
                     use_idle=is_modal,
                 )
-            ],
+            )
+
+        return bl_extension_utils.CommandBatch(
+            title="Sync",
+            batch=cmd_batch,
         )
 
     def exec_command_finish(self):
@@ -642,12 +646,14 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
 
         cmd_batch = []
         for repo_item in repos_all:
-            cmd_batch.append(partial(
-                bl_extension_utils.repo_sync,
-                directory=repo_item.directory,
-                repo_url=repo_item.repo_url,
-                use_idle=is_modal,
-            ))
+            # Local only repositories should still refresh, but not run the sync.
+            if repo_item.repo_url:
+                cmd_batch.append(partial(
+                    bl_extension_utils.repo_sync,
+                    directory=repo_item.directory,
+                    repo_url=repo_item.repo_url,
+                    use_idle=is_modal,
+                ))
 
         repos_lock = [repo_item.directory for repo_item in repos_all]
 

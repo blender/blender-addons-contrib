@@ -581,6 +581,23 @@ class _RepoCacheEntry:
 
         return self._pkg_manifest_remote
 
+    def _json_data_refresh_from_toml(
+            self,
+            force: bool = False,
+            error_fn: Callable[[BaseException], None] = error_fn_default,
+    ) -> None:
+        assert self.repo_url == ""
+        # Since there is no remote repo the ID name is defined by the directory name only.
+        local_json_data = self.pkg_manifest_from_local_ensure()
+        if local_json_data is None:
+            return
+
+        filepath_json = os.path.join(self.directory, REPO_LOCAL_JSON)
+        print(self.directory, REPO_LOCAL_JSON)
+        with open(filepath_json, "w", encoding="utf-8") as fh:
+            # Indent because it can be useful to check this file if there are any issues.
+            fh.write(json.dumps(local_json_data, indent=2))
+
     def _json_data_refresh(
             self,
             force: bool = False,
@@ -590,6 +607,12 @@ class _RepoCacheEntry:
             self._pkg_manifest_remote = None
             self._pkg_manifest_remote_mtime = 0
             self._pkg_manifest_local = None
+
+        # Detect a local-only repository, there is no server to sync with
+        # so generate the JSON from the TOML files.
+        # While redundant this avoids having support multiple code-paths for local-only/remote repos.
+        if self.repo_url == "":
+            self._json_data_refresh_from_toml(force, error_fn)
 
         filepath_json = os.path.join(self.directory, REPO_LOCAL_JSON)
         mtime_test = file_mtime_or_none(filepath_json)
@@ -615,6 +638,9 @@ class _RepoCacheEntry:
             ignore_missing: bool = False,
             error_fn: Callable[[BaseException], None] = error_fn_default,
     ) -> Optional[Dict[str, Dict[str, Any]]]:
+        # Important for local-only repositories (where the directory name defines the ID).
+        has_remote = self.repo_url != ""
+
         if self._pkg_manifest_local is None:
             self._json_data_ensure(
                 ignore_missing=ignore_missing,
@@ -637,7 +663,19 @@ class _RepoCacheEntry:
 
                 if not item_local:
                     continue
-                pkg_manifest_local[item_local.pop("id")] = item_local
+
+                pkg_idname = item_local.pop("id")
+                if has_remote:
+                    # This should never happen, the user may have manually renamed a directory.
+                    if pkg_idname != d:
+                        print("Skipping package with inconsistent name: \"{:s}\" mismatch \"{:s}\"".format(
+                            d,
+                            pkg_idname,
+                        ))
+                        continue
+                else:
+                    pkg_idname = d
+                pkg_manifest_local[pkg_idname] = item_local
             self._pkg_manifest_local = pkg_manifest_local
         return self._pkg_manifest_local
 

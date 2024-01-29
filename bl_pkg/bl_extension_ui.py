@@ -124,15 +124,18 @@ def userpref_addons_draw_ext(
         if pkg_manifest_remote is None:
             box = layout_topmost.box()
             repo = repos_all[repo_index]
-            if repo.repo_url == "":
-                box.label(text="Repository: \"{:s}\" has no remote set.".format(repo.name))
-            else:
+            has_remote = (repo.repo_url != "")
+            if has_remote:
                 # NOTE: it would be nice to detect when the repository ran sync and it failed.
                 # This isn't such an important distinction though, the main thing users should be aware of
                 # is that a "sync" is required.
                 box.label(text="Repository: \"{:s}\" must sync with the remote repository.".format(repo.name))
             del repo
             continue
+        else:
+            repo = repos_all[repo_index]
+            has_remote = (repo.repo_url != "")
+            del repo
 
         for pkg_id, item_remote in pkg_manifest_remote.items():
             if filter_by_type and (filter_by_type != item_remote["type"]):
@@ -198,22 +201,27 @@ def userpref_addons_draw_ext(
             row_right = row.row()
             row_right.alignment = 'RIGHT'
 
-            if is_installed:
-                # Include uninstall below.
-                if is_outdated:
-                    props = row_right.operator("bl_pkg.pkg_install", text="Upgrade")
+            if has_remote:
+                if is_installed:
+                    # Include uninstall below.
+                    if is_outdated:
+                        props = row_right.operator("bl_pkg.pkg_install", text="Upgrade")
+                        props.repo_index = repo_index
+                        props.pkg_id = pkg_id
+                        del props
+                    else:
+                        # Right space for alignment with the button.
+                        row_right.label(text="Installed   ")
+                        row_right.active = False
+                else:
+                    props = row_right.operator("bl_pkg.pkg_install", text="Install")
                     props.repo_index = repo_index
                     props.pkg_id = pkg_id
                     del props
-                else:
-                    # Right space for alignment with the button.
-                    row_right.label(text="Installed   ")
-                    row_right.active = False
             else:
-                props = row_right.operator("bl_pkg.pkg_install", text="Install")
-                props.repo_index = repo_index
-                props.pkg_id = pkg_id
-                del props
+                # Right space for alignment with the button.
+                row_right.label(text="Installed (Local)   ")
+                row_right.active = False
 
             if show:
                 split = box.split(factor=0.15)
@@ -229,14 +237,17 @@ def userpref_addons_draw_ext(
                 row_a.label(text="Description:")
                 row_b.label(text=item_remote["description"])
 
-                row_a.label(text="Size:")
-                row_b.label(text=size_as_fmt_string(item_remote["archive_size"]))
+                if has_remote:
+                    row_a.label(text="Size:")
+                    row_b.label(text=size_as_fmt_string(item_remote["archive_size"]))
 
                 if len(repos_all) > 1:
                     row_a.label(text="Repository:")
                     row_b.label(text=repos_all[repo_index].name)
 
-                if is_installed:
+                # Note that we could allow removing extensions from non-remote extension repos
+                # although this is destructive, so don't enable this right now.
+                if is_installed and has_remote:
                     # Include uninstall below.
                     props = row_a.operator("bl_pkg.pkg_uninstall", text="Remove")
                     props.repo_index = repo_index
