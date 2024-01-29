@@ -327,10 +327,18 @@ def json_to_filepath(filepath_json: str, data: Any) -> None:
 
 
 def pkg_make_obsolete_for_testing(local_dir: str, pkg_id: str) -> None:
+    import re
     filepath = os.path.join(local_dir, pkg_id, PKG_MANIFEST_FILENAME_TOML)
-    data = toml_from_filepath(filepath)
-    data["version"] = "0.0.0"
-    json_to_filepath(filepath, data)
+    # Weak! use basic matching to replace the version, not nice but OK as a debugging option.
+    with open(filepath, "r", encoding="utf-8") as fh:
+        data = fh.read()
+
+    def key_replace(match: re.Match[str]) -> str:
+        return "version = \"0.0.0\""
+
+    data = re.sub(r"^\s*version\s*=\s*\"[^\"]+\"", key_replace, data, flags=re.MULTILINE)
+    with open(filepath, "w", encoding="utf-8") as fh:
+        fh.write(data)
 
 
 def pkg_validate_data_or_error(pkg_idname: str, data: Dict[str, Any]) -> Optional[str]:
