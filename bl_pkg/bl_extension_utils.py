@@ -23,7 +23,9 @@ __all__ = (
     "dummy_progress",
 
     # Public API.
-    "json_from_local_dir",
+    "json_from_filepath",
+    "toml_from_filepath",
+    "json_to_filepath",
 
     "CommandBatch",
     "RepoCacheStore",
@@ -303,10 +305,12 @@ def dummy_progress(
 # Public (non-command-line-wrapping) functions
 #
 
-def json_from_filepath(filepath_json: str) -> Any:
+def json_from_filepath(filepath_json: str) -> Optional[Dict[str, Any]]:
     if os.path.exists(filepath_json):
         with open(filepath_json, "r", encoding="utf-8") as fh:
-            return json.loads(fh.read())
+            result = json.loads(fh.read())
+            assert isinstance(result, dict)
+            return result
     return None
 
 
@@ -320,10 +324,6 @@ def toml_from_filepath(filepath_json: str) -> Optional[Dict[str, Any]]:
 def json_to_filepath(filepath_json: str, data: Any) -> None:
     with open(filepath_json, "w", encoding="utf-8") as fh:
         fh.write(json.dumps(data))
-
-
-def json_from_local_dir(local_dir: str) -> Any:
-    return json_from_filepath(os.path.join(local_dir, REPO_LOCAL_JSON))
 
 
 def pkg_make_obsolete_for_testing(local_dir: str, pkg_id: str) -> None:
