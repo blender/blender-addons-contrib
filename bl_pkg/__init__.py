@@ -91,8 +91,8 @@ def monkeypatch_extenions_repos_update_post_impl():
         if directory in _monkeypatch_extenions_repos_update_dirs:
             continue
         # Ignore missing because the new repo might not have a JSON file.
-        repo_cache_store.refresh_remote_from_directory(directory=directory, force=True)
-        repo_cache_store.refresh_local_from_directory(directory=directory, ignore_missing=True)
+        repo_cache_store.refresh_remote_from_directory(directory=directory, error_fn=print, force=True)
+        repo_cache_store.refresh_local_from_directory(directory=directory, error_fn=print, ignore_missing=True)
 
     _monkeypatch_extenions_repos_update_dirs.clear()
 

@@ -525,6 +525,10 @@ class _BlPkgCmdMixIn:
     def exec_command_finish(self):
         raise Exception("Subclass must define!")
 
+    def error_fn_from_exception(self, ex):
+        # A bit silly setting every time, but it's needed to ensure there is a title.
+        repo_status_text.log.append(("ERROR", str(ex)))
+
     def execute(self, context):
         is_modal = _is_modal(self)
         cmd_batch = self.exec_command_iter(is_modal)
@@ -532,6 +536,11 @@ class _BlPkgCmdMixIn:
         # In this case `exec_command_iter` should report an error.
         if cmd_batch is None:
             return {'CANCELLED'}
+
+        # Needed in cast there are no commands within `cmd_batch`,
+        # the title should still be set.
+        repo_status_text.title = cmd_batch.title
+
         result = CommandHandle.op_exec_from_iter(self, context, cmd_batch, is_modal)
         if 'FINISHED' in result:
             self.exec_command_finish()
@@ -621,7 +630,11 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
         del self.repo_lock
 
         repo_cache_store_refresh_from_prefs()
-        repo_cache_store.refresh_remote_from_directory(directory=self.directory, force=True)
+        repo_cache_store.refresh_remote_from_directory(
+            directory=self.directory,
+            error_fn=self.error_fn_from_exception,
+            force=True,
+        )
         _preferences_ui_redraw()
 
 
@@ -677,7 +690,11 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
         repo_cache_store_refresh_from_prefs()
 
         for repo_item in extension_repos_read():
-            repo_cache_store.refresh_remote_from_directory(directory=repo_item.directory, force=True)
+            repo_cache_store.refresh_remote_from_directory(
+                directory=repo_item.directory,
+                error_fn=self.error_fn_from_exception,
+                force=True,
+            )
 
         _preferences_ui_redraw()
 
@@ -702,8 +719,12 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
         packages_to_upgrade = [[] for _ in range(len(repos_all))]
         package_count = 0
 
-        pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure())
-        for repo_index, pkg_manifest_remote in enumerate(repo_cache_store.pkg_manifest_from_remote_ensure()):
+        pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure(
+            error_fn=self.error_fn_from_exception,
+        ))
+        for repo_index, pkg_manifest_remote in enumerate(repo_cache_store.pkg_manifest_from_remote_ensure(
+            error_fn=self.error_fn_from_exception,
+        )):
             if pkg_manifest_remote is None:
                 continue
 
@@ -770,7 +791,10 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
         for directory in self._repo_directories:
-            repo_cache_store.refresh_local_from_directory(directory=directory)
+            repo_cache_store.refresh_local_from_directory(
+                directory=directory,
+                error_fn=self.error_fn_from_exception,
+            )
 
         for repo_item, pkg_id_sequence, result in self._addon_restore:
             _preferences_ensure_enabled(
@@ -793,7 +817,9 @@ class BlPkgPkgInstallMarked(Operator, _BlPkgCmdMixIn):
     def exec_command_iter(self, is_modal):
         from . import repo_cache_store
         repos_all = extension_repos_read()
-        pkg_manifest_remote_all = list(repo_cache_store.pkg_manifest_from_remote_ensure())
+        pkg_manifest_remote_all = list(repo_cache_store.pkg_manifest_from_remote_ensure(
+            error_fn=self.error_fn_from_exception,
+        ))
         repo_pkg_map = _pkg_marked_by_repo(pkg_manifest_remote_all)
         self._repo_directories = set()
         package_count = 0
@@ -802,7 +828,10 @@ class BlPkgPkgInstallMarked(Operator, _BlPkgCmdMixIn):
         for repo_index, pkg_id_sequence in sorted(repo_pkg_map.items()):
             repo_item = repos_all[repo_index]
             # Filter out already installed.
-            pkg_manifest_local = repo_cache_store.refresh_local_from_directory(repo_item.directory)
+            pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
+                directory=repo_item.directory,
+                error_fn=self.error_fn_from_exception,
+            )
             if pkg_manifest_local is None:
                 continue
             pkg_id_sequence = [pkg_id for pkg_id in pkg_id_sequence if pkg_id not in pkg_manifest_local]
@@ -843,7 +872,10 @@ class BlPkgPkgInstallMarked(Operator, _BlPkgCmdMixIn):
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
         for directory in self._repo_directories:
-            repo_cache_store.refresh_local_from_directory(directory=directory)
+            repo_cache_store.refresh_local_from_directory(
+                directory=directory,
+                error_fn=self.error_fn_from_exception,
+            )
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
@@ -861,7 +893,9 @@ class BlPkgPkgUninstallMarked(Operator, _BlPkgCmdMixIn):
         # TODO: check if the packages are already installed (notify the user).
         # Perhaps re-install?
         repos_all = extension_repos_read()
-        pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure())
+        pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure(
+            error_fn=self.error_fn_from_exception,
+        ))
         repo_pkg_map = _pkg_marked_by_repo(pkg_manifest_local_all)
         package_count = 0
 
@@ -875,7 +909,10 @@ class BlPkgPkgUninstallMarked(Operator, _BlPkgCmdMixIn):
             repo_item = repos_all[repo_index]
 
             # Filter out not installed.
-            pkg_manifest_local = repo_cache_store.refresh_local_from_directory(repo_item.directory)
+            pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
+                directory=repo_item.directory,
+                error_fn=self.error_fn_from_exception,
+            )
             if pkg_manifest_local is None:
                 continue
             pkg_id_sequence = [pkg_id for pkg_id in pkg_id_sequence if pkg_id in pkg_manifest_local]
@@ -925,7 +962,10 @@ class BlPkgPkgUninstallMarked(Operator, _BlPkgCmdMixIn):
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
         for directory in self._repo_directories:
-            repo_cache_store.refresh_local_from_directory(directory=directory)
+            repo_cache_store.refresh_local_from_directory(
+                directory=directory,
+                error_fn=self.error_fn_from_exception,
+            )
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
@@ -958,7 +998,10 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
 
         # Detect upgrade.
         from . import repo_cache_store
-        pkg_manifest_local = repo_cache_store.refresh_local_from_directory(directory=self.directory)
+        pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
+            directory=self.directory,
+            error_fn=self.error_fn_from_exception,
+        )
         is_installed = pkg_manifest_local is not None and (pkg_id in pkg_manifest_local)
         del repo_cache_store, pkg_manifest_local
 
@@ -999,7 +1042,10 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
 
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
-        repo_cache_store.refresh_local_from_directory(directory=self.directory)
+        repo_cache_store.refresh_local_from_directory(
+            directory=self.directory,
+            error_fn=self.error_fn_from_exception,
+        )
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
@@ -1081,7 +1127,10 @@ class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):
 
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
-        repo_cache_store.refresh_local_from_directory(directory=self.directory)
+        repo_cache_store.refresh_local_from_directory(
+            directory=self.directory,
+            error_fn=self.error_fn_from_exception,
+        )
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
@@ -1190,7 +1239,7 @@ class BlPkgObsoleteMarked(Operator):
         )
 
         repos_all = extension_repos_read()
-        pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure())
+        pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print))
         repo_pkg_map = _pkg_marked_by_repo(pkg_manifest_local_all)
         found = False
 
@@ -1204,7 +1253,10 @@ class BlPkgObsoleteMarked(Operator):
 
             for repo_index, pkg_id_sequence in sorted(repo_pkg_map.items()):
                 repo_item = repos_all[repo_index]
-                pkg_manifest_local = repo_cache_store.refresh_local_from_directory(repo_item.directory)
+                pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
+                    repo_item.directory,
+                    error_fn=print,
+                )
                 found_for_repo = False
                 for pkg_id in pkg_id_sequence:
                     is_installed = pkg_id in pkg_manifest_local
@@ -1223,8 +1275,15 @@ class BlPkgObsoleteMarked(Operator):
                 return {'CANCELLED'}
 
             for directory in directories_update:
-                repo_cache_store.refresh_remote_from_directory(directory=directory, force=True)
-                repo_cache_store.refresh_local_from_directory(directory=directory)
+                repo_cache_store.refresh_remote_from_directory(
+                    directory=directory,
+                    error_fn=print,
+                    force=True,
+                )
+                repo_cache_store.refresh_local_from_directory(
+                    directory=directory,
+                    error_fn=print,
+                )
             _preferences_ui_redraw()
 
         return {'FINISHED'}
