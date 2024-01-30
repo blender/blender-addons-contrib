@@ -282,7 +282,7 @@ def userpref_addons_draw_ext(
                         draw = getattr(addon_preferences, "draw", None)
                         if draw is not None:
                             addon_preferences_class = type(addon_preferences)
-                            box_prefs = box.box()
+                            box_prefs = layout.box()
                             box_prefs.label(text="Preferences:")
                             addon_preferences_class.layout = box_prefs
                             try:
