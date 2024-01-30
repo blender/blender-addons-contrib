@@ -558,6 +558,13 @@ def pkg_manifest_is_valid_or_error(value: Dict[str, Any], *, from_repo: bool) ->
     if not RE_MANIFEST_SEMVER.match(x_val):
         return "Expected key {!r}: to be a semantic-version, found {!r}".format(x_key, x_val)
 
+    x_val_expected = {"addon", "theme", "keymap"}
+    x_key = "type"
+    x_val = value_extract[x_key]
+    if x_val not in x_val_expected:
+        return "Expected key {!r}: to be one of [{:s}], found {!r}".format(x_key, ", ".join(x_val_expected), x_val)
+    del x_val_expected
+
     if from_repo:
         x_key = "archive_hash"
         x_val = value_extract[x_key]
@@ -745,7 +752,7 @@ def repo_sync_from_remote(*, msg_fn: MessageFn, repo_dir: str, local_dir: str, t
 
         error_msg = repo_json_is_valid_or_error(local_json_path_temp)
         if error_msg is not None:
-            message_error(msg_fn, "sync: invalid json ({!r}) reading {!r}!".format(error_msg, repo_dir))
+            message_error(msg_fn, "sync: invalid manifest ({:s}) reading {!r}!".format(error_msg, repo_dir))
             return False
         del error_msg
 
