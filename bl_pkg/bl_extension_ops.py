@@ -315,26 +315,6 @@ def _extension_repos_index_from_directory(directory):
     return -1
 
 
-def _extension_repos_add(directory, repo_url):
-    addon_prefs = bpy.context.preferences.addons[__package__].preferences
-    repo_item = addon_prefs.repos.add()
-    repo_item.directory = directory
-    repo_item.repo_url = repo_url
-    # Pick a name, the update function ensures it's a valid module name & unique.
-    repo_item.module = directory.replace("\\", "/").rstrip("/").rsplit("/", 1)[-1]
-    addon_prefs.active_repo_index = len(addon_prefs.repos) - 1
-
-
-def _extension_repos_remove(directory):
-    addon_prefs = bpy.context.preferences.addons[__package__].preferences
-    i = _extension_repos_index_from_directory(directory)
-    if i == -1:
-        return
-    if i >= addon_prefs.active_repo_index:
-        addon_prefs.active_repo_index -= 1
-    addon_prefs.repos.remove(i)
-
-
 def _extensions_repo_from_directory(directory):
     repos_all = extension_repos_read()
     repo_index = _extension_repos_index_from_directory(directory)
