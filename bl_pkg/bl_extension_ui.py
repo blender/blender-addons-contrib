@@ -20,8 +20,6 @@ from bpy.types import (
 )
 
 from bl_ui.space_userpref import (
-    ExtensionsPanel,
-    USERPREF_PT_extensions,
     USERPREF_PT_addons,
 )
 
@@ -49,6 +47,134 @@ def sizes_as_percentage_string(size_partial: int, size_final: int) -> str:
         percent = size_partial / size_final
 
     return "{:-6.2f}%".format(percent * 100)
+
+
+def extensions_panel_draw_legacy_addons(
+        layout,
+        context,
+        *,
+        search_lower,
+        installed_only,
+        used_addon_module_name_map,
+):
+    # NOTE: this duplicates logic from `USERPREF_PT_addons` eventually this logic should be used instead.
+    # Don't de-duplicate the logic as this is a temporary state - as long as extensions remains experimental.
+    import addon_utils
+    from bpy.app.translations import (
+        pgettext_iface as iface_,
+    )
+    from .bl_extension_ops import (
+        pkg_info_check_exclude_filter,
+    )
+
+    addons = [
+        (mod, addon_utils.module_bl_info(mod))
+        for mod in addon_utils.modules(refresh=False)
+    ]
+
+    # Initialized on demand.
+    user_addon_paths = []
+
+    for mod, info in addons:
+        module_name = mod.__name__
+        is_extension = addon_utils.check_extension(module_name)
+        if is_extension:
+            continue
+
+        if search_lower and (not pkg_info_check_exclude_filter(info, search_lower)):
+            continue
+
+        is_enabled = module_name in used_addon_module_name_map
+
+        col_box = layout.column()
+        box = col_box.box()
+        colsub = box.column()
+        row = colsub.row(align=True)
+
+        row.operator(
+            "preferences.addon_expand",
+            icon='DISCLOSURE_TRI_DOWN' if info["show_expanded"] else 'DISCLOSURE_TRI_RIGHT',
+            emboss=False,
+        ).module = module_name
+
+        row.operator(
+            "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
+            icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT', text="",
+            emboss=False,
+        ).module = module_name
+
+        sub = row.row()
+        sub.active = is_enabled
+        sub.label(text=info["name"])
+
+        if info["warning"]:
+            sub.label(icon='ERROR')
+
+        row_right = row.row()
+        row_right.alignment = 'RIGHT'
+
+        row_right.label(text="Installed (Legacy)   ")
+        row_right.active = False
+
+        if info["show_expanded"]:
+            split = box.split(factor=0.15)
+            col_a = split.column()
+            col_b = split.column()
+            if value := info["description"]:
+                col_a.label(text="Description:")
+                col_b.label(text=iface_(value))
+            if value := info["author"]:
+                col_a.label(text="Author:")
+                col_b.label(text=value, translate=False)
+            if value := info["version"]:
+                col_a.label(text="Version:")
+                col_b.label(text=".".join(str(x) for x in value), translate=False)
+            if value := info["warning"]:
+                col_a.label(text="Warning:")
+                col_b.label(text="  " + iface_(value), icon='ERROR')
+            del value
+
+            # Include for consistency.
+            col_a.label(text="Type:")
+            col_b.label(text="addons")
+
+            user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
+
+            if info["doc_url"] or info.get("tracker_url"):
+                split = box.row().split(factor=0.15)
+                split.label(text="Internet:")
+                sub = split.row()
+                if info["doc_url"]:
+                    sub.operator(
+                        "wm.url_open", text="Documentation", icon='HELP',
+                    ).url = info["doc_url"]
+                # Only add "Report a Bug" button if tracker_url is set
+                # or the add-on is bundled (use official tracker then).
+                if info.get("tracker_url"):
+                    sub.operator(
+                        "wm.url_open", text="Report a Bug", icon='URL',
+                    ).url = info["tracker_url"]
+                elif not user_addon:
+                    addon_info = (
+                        "Name: %s %s\n"
+                        "Author: %s\n"
+                    ) % (info["name"], str(info["version"]), info["author"])
+                    props = sub.operator(
+                        "wm.url_open_preset", text="Report a Bug", icon='URL',
+                    )
+                    props.type = 'BUG_ADDON'
+                    props.id = addon_info
+
+            if user_addon:
+                rowsub = col_b.row()
+                rowsub.alignment = 'RIGHT'
+                rowsub.operator(
+                    "preferences.addon_remove", text="Remove", icon='CANCEL',
+                ).module = module_name
+
+            if is_enabled:
+                if (addon_preferences := used_addon_module_name_map[module_name].preferences) is not None:
+                    USERPREF_PT_addons.draw_addon_preferences(layout, context, addon_preferences)
 
 
 def extensions_panel_draw_impl(
@@ -281,6 +407,15 @@ def extensions_panel_draw_impl(
                     if (addon_preferences := used_addon_module_name_map[addon_module_name].preferences) is not None:
                         USERPREF_PT_addons.draw_addon_preferences(layout, context, addon_preferences)
 
+    if show_addons:
+        extensions_panel_draw_legacy_addons(
+            layout,
+            context,
+            search_lower=search_lower,
+            installed_only=installed_only,
+            used_addon_module_name_map=used_addon_module_name_map,
+        )
+
 
 class USERPREF_PT_extensions_bl_pkg_filter(Panel):
     bl_label = "Extensions Filter"
@@ -306,6 +441,10 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
 
         layout.operator("bl_pkg.repo_sync_all", text="Check for Updates", icon='FILE_REFRESH')
         layout.operator("bl_pkg.pkg_upgrade_all", text="Upgrade All", icon='FILE_REFRESH')
+
+        layout.separator()
+
+        layout.operator("preferences.addon_install", icon='IMPORT', text="Install Legacy Add-on...")
 
         layout.separator()
 
@@ -400,16 +539,14 @@ classes = (
 
 
 def register():
-    USERPREF_PT_extensions.append(extensions_panel_draw)
-    USERPREF_PT_extensions.unused = False
+    USERPREF_PT_addons.append(extensions_panel_draw)
 
     for cls in classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    USERPREF_PT_extensions.unused = True
-    USERPREF_PT_extensions.remove(extensions_panel_draw)
+    USERPREF_PT_addons.remove(extensions_panel_draw)
 
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
