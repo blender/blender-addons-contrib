@@ -226,42 +226,42 @@ def userpref_addons_draw_ext(
 
             if show:
                 split = box.split(factor=0.15)
-                row_a = split.column()
-                row_b = split.column()
+                col_a = split.column()
+                col_b = split.column()
 
-                row_a.label(text="Version:")
+                col_a.label(text="Version:")
                 if item_local_version is not None and (item_version != item_local_version):
-                    row_b.label(text="{:s} ({:s} available)".format(item_local_version, item_version))
+                    col_b.label(text="{:s} ({:s} available)".format(item_local_version, item_version))
                 else:
-                    row_b.label(text=item_version)
+                    col_b.label(text=item_version)
 
-                row_a.label(text="Description:")
-                row_b.label(text=item_remote["description"])
+                col_a.label(text="Description:")
+                col_b.label(text=item_remote["description"])
 
                 if has_remote:
-                    row_a.label(text="Size:")
-                    row_b.label(text=size_as_fmt_string(item_remote["archive_size"]))
+                    col_a.label(text="Size:")
+                    col_b.label(text=size_as_fmt_string(item_remote["archive_size"]))
 
                 if len(repos_all) > 1:
-                    row_a.label(text="Repository:")
-                    row_b.label(text=repos_all[repo_index].name)
+                    col_a.label(text="Repository:")
+                    col_b.label(text=repos_all[repo_index].name)
 
                 # Note that we could allow removing extensions from non-remote extension repos
                 # although this is destructive, so don't enable this right now.
                 if is_installed and has_remote:
                     # Include uninstall below.
-                    props = row_a.operator("bl_pkg.pkg_uninstall", text="Remove")
+                    props = col_a.operator("bl_pkg.pkg_uninstall", text="Remove")
                     props.repo_index = repo_index
                     props.pkg_id = pkg_id
                     del props
 
                     if show_development:
-                        props = row_a.operator("bl_pkg.pkg_make_obsolete", text="Obsolete")
+                        props = col_a.operator("bl_pkg.pkg_make_obsolete", text="Obsolete")
                         props.repo_index = repo_index
                         props.pkg_id = pkg_id
                         del props
 
-                    rowsub = row_b.row()
+                    rowsub = col_b.row()
                     rowsub.alignment = 'RIGHT'
                     props = rowsub.operator("bl_pkg.pkg_show_settings", text="", icon='SETTINGS')
                     props.repo_index = repo_index
