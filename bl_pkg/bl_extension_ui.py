@@ -257,6 +257,10 @@ def userpref_addons_draw_ext(
                     col_a.label(text="Size:")
                     col_b.label(text=size_as_fmt_string(item_remote["archive_size"]))
 
+                if not filter_by_type:
+                    col_a.label(text="Type:")
+                    col_b.label(text=item_remote["type"])
+
                 if len(repos_all) > 1:
                     col_a.label(text="Repository:")
                     col_b.label(text=repos_all[repo_index].name)
