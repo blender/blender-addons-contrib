@@ -164,7 +164,7 @@ def my_generate_repo(
             metadata={
                 "id": template.idname,
                 "name": template.name,
-                "type": "addon",
+                "type": "add-on",
                 "version": template.version,
                 "description": """This package has some info.""",
             },

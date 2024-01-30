@@ -136,7 +136,7 @@ def extensions_panel_draw_legacy_addons(
 
             # Include for consistency.
             col_a.label(text="Type:")
-            col_b.label(text="addons")
+            col_b.label(text="add-ons")
 
             user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
 
@@ -211,7 +211,7 @@ def extensions_panel_draw_impl(
     repos_all = extension_repos_read()
 
     # To access enabled add-ons.
-    show_addons = filter_by_type in {"", "addon"}
+    show_addons = filter_by_type in {"", "add-on"}
     if show_addons:
         used_addon_module_name_map = {addon.module: addon for addon in context.preferences.addons}
 
@@ -286,7 +286,7 @@ def extensions_panel_draw_impl(
                 item_local_version = item_local["version"]
                 is_outdated = item_local_version != item_version
 
-            if is_installed and (item_local["type"] == "addon"):
+            if is_installed and (item_local["type"] == "add-on"):
                 addon_module_name = "bl_ext.{:s}.{:s}".format(repos_all[repo_index].module, pkg_id)
                 is_enabled_addon = addon_module_name in used_addon_module_name_map
             else:
@@ -348,7 +348,7 @@ def extensions_panel_draw_impl(
                 if is_installed:
                     # Include uninstall below.
                     if is_outdated:
-                        props = row_right.operator("bl_pkg.pkg_install", text="Upgrade")
+                        props = row_right.operator("bl_pkg.pkg_install", text="Update")
                         props.repo_index = repo_index
                         props.pkg_id = pkg_id
                         del props
@@ -440,7 +440,7 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
         addon_prefs = context.preferences.addons[__package__].preferences
 
         layout.operator("bl_pkg.repo_sync_all", text="Check for Updates", icon='FILE_REFRESH')
-        layout.operator("bl_pkg.pkg_upgrade_all", text="Upgrade All", icon='FILE_REFRESH')
+        layout.operator("bl_pkg.pkg_upgrade_all", text="Update All", icon='FILE_REFRESH')
 
         layout.separator()
 

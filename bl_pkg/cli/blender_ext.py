@@ -558,7 +558,7 @@ def pkg_manifest_is_valid_or_error(value: Dict[str, Any], *, from_repo: bool) ->
     if not RE_MANIFEST_SEMVER.match(x_val):
         return "Expected key {!r}: to be a semantic-version, found {!r}".format(x_key, x_val)
 
-    x_val_expected = {"addon", "theme", "keymap"}
+    x_val_expected = {"add-on", "theme", "keymap"}
     x_key = "type"
     x_val = value_extract[x_key]
     if x_val not in x_val_expected:
@@ -1525,7 +1525,7 @@ class subcmd_dummy:
                     fh.write("""# Example\n""")
                     fh.write("""id = "{:s}"\n""".format(pkg_idname))
                     fh.write("""name = "{:s}"\n""".format(pkg_name))
-                    fh.write("""type = "addon"\n""")
+                    fh.write("""type = "add-on"\n""")
                     fh.write("""author = "Developer Name"\n""")
                     fh.write("""version = "1.0.0"\n""")
                     fh.write("""description = "This is a package"\n""")

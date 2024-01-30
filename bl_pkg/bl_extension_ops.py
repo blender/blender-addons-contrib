@@ -79,7 +79,7 @@ blender_extension_show = set()
 # Map the enum value to the value in the manifest.
 blender_filter_by_type_map = {
     "ALL": "",
-    "ADDON": "addon",
+    "ADDON": "add-on",
     "KEYMAP": "keymap",
     "THEME": "theme",
 }
@@ -761,7 +761,7 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
             self._repo_directories.add(repo_item.directory)
 
         if not cmd_batch:
-            self.report({'ERROR'}, "No installed packages to upgrade")
+            self.report({'ERROR'}, "No installed packages to update")
             return None
 
         # Lock repositories.
