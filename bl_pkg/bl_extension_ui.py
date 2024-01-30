@@ -60,6 +60,7 @@ def userpref_addons_draw_ext(
         search_lower,
         filter_by_type,
         installed_only,
+        show_development,
 ):
     """
     Show all the items... we may want to paginate at some point.
@@ -254,6 +255,12 @@ def userpref_addons_draw_ext(
                     props.pkg_id = pkg_id
                     del props
 
+                    if show_development:
+                        props = row_a.operator("bl_pkg.pkg_make_obsolete", text="Obsolete")
+                        props.repo_index = repo_index
+                        props.pkg_id = pkg_id
+                        del props
+
                     rowsub = row_b.row()
                     rowsub.alignment = 'RIGHT'
                     props = rowsub.operator("bl_pkg.pkg_show_settings", text="", icon='SETTINGS')
@@ -282,16 +289,24 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
     def draw(self, context):
         layout = self.layout
 
+        addon_prefs = context.preferences.addons[__package__].preferences
+
         if USE_MARK:
             layout.operator("bl_pkg.pkg_install_marked", text="Install Marked", icon='IMPORT')
             layout.operator("bl_pkg.pkg_uninstall_marked", text="Uninstall Marked", icon='X')
-            layout.operator("bl_pkg.obsolete_marked")
 
         layout.operator("bl_pkg.repo_sync_all", text="Check for Updates", icon='FILE_REFRESH')
         layout.operator("bl_pkg.pkg_upgrade_all", text="Upgrade All", icon='FILE_REFRESH')
 
-        layout.operator("bl_pkg.repo_lock")
-        layout.operator("bl_pkg.repo_unlock")
+        layout.separator()
+
+        layout.prop(addon_prefs, "show_development")
+
+        layout.separator()
+
+        if addon_prefs.show_development:
+            layout.operator("bl_pkg.repo_lock")
+            layout.operator("bl_pkg.repo_unlock")
 
 
 class USERPREF_PT_extensions_bl_pkg(ExtensionsPanel, Panel):
@@ -352,12 +367,15 @@ class USERPREF_PT_extensions_bl_pkg(ExtensionsPanel, Panel):
             if repo_status_text.running:
                 return
 
+        addon_prefs = context.preferences.addons[__package__].preferences
+
         userpref_addons_draw_ext(
             self,
             context,
             wm.extension_search.lower(),
             blender_filter_by_type_map[wm.extension_type],
             wm.extension_installed_only,
+            addon_prefs.show_development,
         )
 
 

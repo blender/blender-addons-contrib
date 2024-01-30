@@ -35,6 +35,11 @@ class BlExtPreferences(AddonPreferences):
         name="Time Out",
         default=10,
     )
+    show_development: BoolProperty(
+        name="Show Development Utilities",
+        description="Show utilities intended for developing the extension",
+        default=False,
+    )
 
 
 class StatusInfoUI:
@@ -265,8 +270,6 @@ def register():
     USERPREF_MT_interface_theme_presets.append(theme_preset_draw)
 
     monkeypatch_install()
-
-    # addon_prefs = bpy.context.preferences.addons[__name__].preferences
 
 
 def unregister():
