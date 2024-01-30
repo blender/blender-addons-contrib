@@ -140,14 +140,13 @@ def userpref_addons_draw_ext(
             if search_lower and (not pkg_info_check_exclude_filter(item_remote, search_lower)):
                 continue
 
-            item_version = item_remote["version"]
-
             item_local = pkg_manifest_local.get(pkg_id)
             is_installed = item_local is not None
 
             if installed_only and (is_installed == 0):
                 continue
 
+            item_version = item_remote["version"]
             if item_local is None:
                 item_local_version = None
                 is_outdated = False
@@ -182,9 +181,9 @@ def userpref_addons_draw_ext(
 
             if show_development:
                 if mark:
-                    props = row_button.operator("bl_pkg.pkg_mark_clear", text=label, icon='CHECKBOX_HLT', emboss=False)
+                    props = row_button.operator("bl_pkg.pkg_mark_clear", text=label, icon='RADIOBUT_ON', emboss=False)
                 else:
-                    props = row_button.operator("bl_pkg.pkg_mark_set", text=label, icon='CHECKBOX_DEHLT', emboss=False)
+                    props = row_button.operator("bl_pkg.pkg_mark_set", text=label, icon='RADIOBUT_OFF', emboss=False)
                 props.pkg_id = pkg_id
                 props.repo_index = repo_index
                 del props
@@ -226,7 +225,7 @@ def userpref_addons_draw_ext(
                 col_b = split.column()
 
                 col_a.label(text="Version:")
-                if item_local_version is not None and (item_version != item_local_version):
+                if is_outdated:
                     col_b.label(text="{:s} ({:s} available)".format(item_local_version, item_version))
                 else:
                     col_b.label(text=item_version)
@@ -245,15 +244,9 @@ def userpref_addons_draw_ext(
                 # Note that we could allow removing extensions from non-remote extension repos
                 # although this is destructive, so don't enable this right now.
                 if is_installed and has_remote:
-                    # Include uninstall below.
-                    props = col_a.operator("bl_pkg.pkg_uninstall", text="Remove")
-                    props.repo_index = repo_index
-                    props.pkg_id = pkg_id
-                    del props
-
                     rowsub = col_b.row()
                     rowsub.alignment = 'RIGHT'
-                    props = rowsub.operator("bl_pkg.pkg_show_settings", text="", icon='SETTINGS')
+                    props = rowsub.operator("bl_pkg.pkg_uninstall", text="Remove")
                     props.repo_index = repo_index
                     props.pkg_id = pkg_id
                     del props, rowsub
@@ -301,79 +294,75 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
             layout.operator("bl_pkg.repo_unlock")
 
 
-class USERPREF_PT_extensions_bl_pkg(ExtensionsPanel, Panel):
-    bl_label = "Extensions"
-    # Keep header so panel can be moved under the repositories list until design is finished.
-    # bl_options = {'HIDE_HEADER'}
+def extensions_panel_draw(panel, context):
+    from .bl_extension_ops import (
+        blender_filter_by_type_map,
+    )
 
-    def draw(self, context):
-        from .bl_extension_ops import (
-            blender_filter_by_type_map,
-        )
+    wm = context.window_manager
+    layout = panel.layout
 
-        wm = context.window_manager
-        layout = self.layout
+    row = layout.split(factor=0.5)
+    row_a = row.row()
+    row_a.prop(wm, "extension_search", text="", icon='VIEWZOOM')
+    row_b = row.row()
+    row_b.prop(wm, "extension_type", text="")
+    row_b.popover("USERPREF_PT_extensions_bl_pkg_filter", text="", icon='FILTER')
 
-        row = layout.row()
-        rowsub = row.split(factor=0.75)
-        rowsub.prop(wm, "extension_search", text="", icon='VIEWZOOM')
-        rowsub.prop(wm, "extension_type", text="")
+    row_b.separator_spacer()
+    row_b.menu("USERPREF_MT_extensions_bl_pkg_settings", text="", icon='DOWNARROW_HLT')
+    row_b.popover("USERPREF_PT_extensions_repos", text="", icon='PREFERENCES')
+    del row, row_a, row_b
+
+    if repo_status_text.log:
+        box = layout.box()
+        row = box.split(factor=0.5, align=True)
+        if repo_status_text.running:
+            row.label(text=repo_status_text.title + "...")
+        else:
+            row.label(text=repo_status_text.title)
         rowsub = row.row(align=True)
-        rowsub.popover("USERPREF_PT_extensions_bl_pkg_filter", text="", icon='FILTER')
-        rowsub.menu("USERPREF_MT_extensions_bl_pkg_settings", text="", icon='PREFERENCES')
-        del rowsub
-
-        if repo_status_text.log:
-            box = layout.box()
-            row = box.split(factor=0.5, align=True)
-            if repo_status_text.running:
-                row.label(text=repo_status_text.title + "...")
-            else:
-                row.label(text=repo_status_text.title)
-            rowsub = row.row(align=True)
-            rowsub.alignment = 'RIGHT'
-            rowsub.operator("bl_pkg.pkg_status_clear", text="", icon='X', emboss=False)
-            boxsub = box.box()
-            for ty, msg in repo_status_text.log:
-                if ty == 'STATUS':
-                    boxsub.label(text=msg)
-                elif ty == 'PROGRESS':
-                    msg_str, progress_unit, progress, progress_range = msg
-                    if progress <= progress_range:
-                        boxsub.progress(
-                            factor=progress / progress_range,
-                            text="{:s}, {:s}".format(
-                                sizes_as_percentage_string(progress, progress_range),
-                                msg_str,
-                            ),
-                        )
-                    elif progress_unit == 'BYTE':
-                        boxsub.progress(factor=0.0, text="{:s}, {:s}".format(msg_str, size_as_fmt_string(progress)))
-                    else:
-                        # We might want to support other types.
-                        boxsub.progress(factor=0.0, text="{:s}, {:d}".format(msg_str, progress))
+        rowsub.alignment = 'RIGHT'
+        rowsub.operator("bl_pkg.pkg_status_clear", text="", icon='X', emboss=False)
+        boxsub = box.box()
+        for ty, msg in repo_status_text.log:
+            if ty == 'STATUS':
+                boxsub.label(text=msg)
+            elif ty == 'PROGRESS':
+                msg_str, progress_unit, progress, progress_range = msg
+                if progress <= progress_range:
+                    boxsub.progress(
+                        factor=progress / progress_range,
+                        text="{:s}, {:s}".format(
+                            sizes_as_percentage_string(progress, progress_range),
+                            msg_str,
+                        ),
+                    )
+                elif progress_unit == 'BYTE':
+                    boxsub.progress(factor=0.0, text="{:s}, {:s}".format(msg_str, size_as_fmt_string(progress)))
                 else:
-                    boxsub.label(text="{:s}: {:s}".format(ty, msg))
+                    # We might want to support other types.
+                    boxsub.progress(factor=0.0, text="{:s}, {:d}".format(msg_str, progress))
+            else:
+                boxsub.label(text="{:s}: {:s}".format(ty, msg))
 
-            # Hide when running.
-            if repo_status_text.running:
-                return
+        # Hide when running.
+        if repo_status_text.running:
+            return
 
-        addon_prefs = context.preferences.addons[__package__].preferences
+    addon_prefs = context.preferences.addons[__package__].preferences
 
-        userpref_addons_draw_ext(
-            self,
-            context,
-            wm.extension_search.lower(),
-            blender_filter_by_type_map[wm.extension_type],
-            wm.extension_installed_only,
-            addon_prefs.show_development,
-        )
+    userpref_addons_draw_ext(
+        panel,
+        context,
+        wm.extension_search.lower(),
+        blender_filter_by_type_map[wm.extension_type],
+        wm.extension_installed_only,
+        addon_prefs.show_development,
+    )
 
 
 classes = (
-    USERPREF_PT_extensions_bl_pkg,
-
     # Pop-overs.
     USERPREF_PT_extensions_bl_pkg_filter,
     USERPREF_MT_extensions_bl_pkg_settings,
@@ -381,12 +370,16 @@ classes = (
 
 
 def register():
+    USERPREF_PT_extensions.append(extensions_panel_draw)
     USERPREF_PT_extensions.unused = False
+
     for cls in classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
     USERPREF_PT_extensions.unused = True
+    USERPREF_PT_extensions.remove(extensions_panel_draw)
+
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
