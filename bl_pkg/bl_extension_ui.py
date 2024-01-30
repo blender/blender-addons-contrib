@@ -20,8 +20,9 @@ from bpy.types import (
 )
 
 from bl_ui.space_userpref import (
-    USERPREF_PT_extensions,
     ExtensionsPanel,
+    USERPREF_PT_extensions,
+    USERPREF_PT_addons,
 )
 
 from . import repo_status_text
@@ -50,7 +51,7 @@ def sizes_as_percentage_string(size_partial: int, size_final: int) -> str:
     return "{:-6.2f}%".format(percent * 100)
 
 
-def userpref_addons_draw_ext(
+def extensions_panel_draw_impl(
         self,
         context,
         search_lower,
@@ -275,23 +276,10 @@ def userpref_addons_draw_ext(
                     props.pkg_id = pkg_id
                     del props, rowsub
 
-                # Show addon user preferences
+                # Show addon user preferences.
                 if is_enabled_addon:
-                    addon_preferences = used_addon_module_name_map[addon_module_name].preferences
-                    if addon_preferences is not None:
-                        draw = getattr(addon_preferences, "draw", None)
-                        if draw is not None:
-                            addon_preferences_class = type(addon_preferences)
-                            box_prefs = layout.box()
-                            box_prefs.label(text="Preferences:")
-                            addon_preferences_class.layout = box_prefs
-                            try:
-                                draw(context)
-                            except BaseException:
-                                import traceback
-                                traceback.print_exc()
-                                box_prefs.label(text="Error (see console)", icon='ERROR')
-                            del addon_preferences_class.layout
+                    if (addon_preferences := used_addon_module_name_map[addon_module_name].preferences) is not None:
+                        USERPREF_PT_addons.draw_addon_preferences(layout, context, addon_preferences)
 
 
 class USERPREF_PT_extensions_bl_pkg_filter(Panel):
@@ -394,7 +382,7 @@ def extensions_panel_draw(panel, context):
 
     addon_prefs = context.preferences.addons[__package__].preferences
 
-    userpref_addons_draw_ext(
+    extensions_panel_draw_impl(
         panel,
         context,
         wm.extension_search.lower(),
