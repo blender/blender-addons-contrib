@@ -1230,35 +1230,20 @@ class BlPkgPkgShowSettings(Operator):
 
 class BlPkgObsoleteMarked(Operator):
     """Zeroes package versions, useful for development - to test upgrading"""
-    bl_idname = "bl_pkg.pkg_make_obsolete"
-    bl_label = "Make Obsolete"
-
-    directory: rna_prop_directory
-    repo_index: rna_prop_repo_index
-
-    pkg_id: rna_prop_pkg_id
+    bl_idname = "bl_pkg.obsolete_marked"
+    bl_label = "Obsolete Marked"
 
     def execute(self, _context):
-        directory = _repo_dir_and_index_get(self.repo_index, self.directory, self.report)
-        if not directory:
-            return {'CANCELLED'}
-
-        if (repo_item := _extensions_repo_from_directory_and_report(directory, self.report)) is None:
-            return {'CANCELLED'}
-
-        if not self.pkg_id:
-            self.report({'ERROR'}, "Package ID not set")
-            return {'CANCELLED'}
-
         from . import (
             repo_cache_store,
         )
 
+        repos_all = extension_repos_read()
+        pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print))
+        repo_pkg_map = _pkg_marked_by_repo(pkg_manifest_local_all)
         found = False
 
-        # Allow for handling multiple packages at once.
-        pkg_id_sequence = [self.pkg_id]
-        repos_lock = [repo_item.directory]
+        repos_lock = [repos_all[repo_index].directory for repo_index in sorted(repo_pkg_map.keys())]
 
         with RepoLockContext(repo_directories=repos_lock, cookie=cookie_from_session()) as lock_result:
             if lock_result_any_failed_with_report(self, lock_result):
@@ -1266,22 +1251,24 @@ class BlPkgObsoleteMarked(Operator):
 
             directories_update = set()
 
-            pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
-                repo_item.directory,
-                error_fn=print,
-            )
-            found_for_repo = False
-            for pkg_id in pkg_id_sequence:
-                is_installed = pkg_id in pkg_manifest_local
-                if not is_installed:
-                    continue
+            for repo_index, pkg_id_sequence in sorted(repo_pkg_map.items()):
+                repo_item = repos_all[repo_index]
+                pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
+                    repo_item.directory,
+                    error_fn=print,
+                )
+                found_for_repo = False
+                for pkg_id in pkg_id_sequence:
+                    is_installed = pkg_id in pkg_manifest_local
+                    if not is_installed:
+                        continue
 
-                bl_extension_utils.pkg_make_obsolete_for_testing(repo_item.directory, pkg_id)
-                found = True
-                found_for_repo = True
+                    bl_extension_utils.pkg_make_obsolete_for_testing(repo_item.directory, pkg_id)
+                    found = True
+                    found_for_repo = True
 
-            if found_for_repo:
-                directories_update.add(repo_item.directory)
+                if found_for_repo:
+                    directories_update.add(repo_item.directory)
 
             if not found:
                 self.report({'ERROR'}, "No installed packages marked")

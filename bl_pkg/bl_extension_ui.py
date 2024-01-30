@@ -27,12 +27,8 @@ from bl_ui.space_userpref import (
 from . import repo_status_text
 
 
-# Allow marking packages.
-USE_MARK = False
-
-
 # -----------------------------------------------------------------------------
-#
+# Generic Utilities
 
 
 def size_as_fmt_string(num: float) -> str:
@@ -184,7 +180,7 @@ def userpref_addons_draw_ext(
             if is_outdated:
                 label = label + " (outdated)"
 
-            if USE_MARK:
+            if show_development:
                 if mark:
                     props = row_button.operator("bl_pkg.pkg_mark_clear", text=label, icon='CHECKBOX_HLT', emboss=False)
                 else:
@@ -255,12 +251,6 @@ def userpref_addons_draw_ext(
                     props.pkg_id = pkg_id
                     del props
 
-                    if show_development:
-                        props = col_a.operator("bl_pkg.pkg_make_obsolete", text="Obsolete")
-                        props.repo_index = repo_index
-                        props.pkg_id = pkg_id
-                        del props
-
                     rowsub = col_b.row()
                     rowsub.alignment = 'RIGHT'
                     props = rowsub.operator("bl_pkg.pkg_show_settings", text="", icon='SETTINGS')
@@ -291,10 +281,6 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
 
         addon_prefs = context.preferences.addons[__package__].preferences
 
-        if USE_MARK:
-            layout.operator("bl_pkg.pkg_install_marked", text="Install Marked", icon='IMPORT')
-            layout.operator("bl_pkg.pkg_uninstall_marked", text="Uninstall Marked", icon='X')
-
         layout.operator("bl_pkg.repo_sync_all", text="Check for Updates", icon='FILE_REFRESH')
         layout.operator("bl_pkg.pkg_upgrade_all", text="Upgrade All", icon='FILE_REFRESH')
 
@@ -302,9 +288,15 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
 
         layout.prop(addon_prefs, "show_development")
 
-        layout.separator()
-
         if addon_prefs.show_development:
+            layout.separator()
+
+            layout.operator("bl_pkg.pkg_install_marked", text="Install Marked", icon='IMPORT')
+            layout.operator("bl_pkg.pkg_uninstall_marked", text="Uninstall Marked", icon='X')
+            layout.operator("bl_pkg.obsolete_marked")
+
+            layout.separator()
+
             layout.operator("bl_pkg.repo_lock")
             layout.operator("bl_pkg.repo_unlock")
 
