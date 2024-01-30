@@ -52,7 +52,7 @@ def sizes_as_percentage_string(size_partial: int, size_final: int) -> str:
 
 def userpref_addons_draw_ext(
         self,
-        _context,
+        context,
         search_lower,
         filter_by_type,
         installed_only,
@@ -82,6 +82,11 @@ def userpref_addons_draw_ext(
     layout_topmost = layout.column()
 
     repos_all = extension_repos_read()
+
+    # To access enabled add-ons.
+    show_addons = filter_by_type in {"", "addon"}
+    if show_addons:
+        used_addon_module_name_map = {addon.module: addon for addon in context.preferences.addons}
 
     remote_ex = None
     local_ex = None
@@ -154,8 +159,16 @@ def userpref_addons_draw_ext(
                 item_local_version = item_local["version"]
                 is_outdated = item_local_version != item_version
 
+            if is_installed and (item_local["type"] == "addon"):
+                addon_module_name = "bl_ext.{:s}.{:s}".format(repos_all[repo_index].module, pkg_id)
+                is_enabled_addon = addon_module_name in used_addon_module_name_map
+            else:
+                is_enabled_addon = False
+                addon_module_name = None
+
             key = (pkg_id, repo_index)
-            mark = key in blender_extension_mark
+            if show_development:
+                mark = key in blender_extension_mark
             show = key in blender_extension_show
             del key
 
@@ -181,18 +194,25 @@ def userpref_addons_draw_ext(
 
             if show_development:
                 if mark:
-                    props = row_button.operator("bl_pkg.pkg_mark_clear", text=label, icon='RADIOBUT_ON', emboss=False)
+                    props = row_button.operator("bl_pkg.pkg_mark_clear", text="", icon='RADIOBUT_ON', emboss=False)
                 else:
-                    props = row_button.operator("bl_pkg.pkg_mark_set", text=label, icon='RADIOBUT_OFF', emboss=False)
+                    props = row_button.operator("bl_pkg.pkg_mark_set", text="", icon='RADIOBUT_OFF', emboss=False)
                 props.pkg_id = pkg_id
                 props.repo_index = repo_index
                 del props
 
-                row_button.active = mark
-                del row_button
+            if is_installed and (addon_module_name is not None):
+                row_button.operator(
+                    "preferences.addon_disable" if is_enabled_addon else "preferences.addon_enable",
+                    icon='CHECKBOX_HLT' if is_enabled_addon else 'CHECKBOX_DEHLT',
+                    text=label,
+                    emboss=False,
+                ).module = addon_module_name
             else:
+                # Use a blank icon to avoid odd text alignment when mixing with installed add-ons.
                 row_button.active = is_installed
-                row_button.label(text=label)
+                row_button.label(text=label, icon='BLANK1')
+            del label
 
             row_right = row.row()
             row_right.alignment = 'RIGHT'
@@ -250,6 +270,24 @@ def userpref_addons_draw_ext(
                     props.repo_index = repo_index
                     props.pkg_id = pkg_id
                     del props, rowsub
+
+                # Show addon user preferences
+                if is_enabled_addon:
+                    addon_preferences = used_addon_module_name_map[addon_module_name].preferences
+                    if addon_preferences is not None:
+                        draw = getattr(addon_preferences, "draw", None)
+                        if draw is not None:
+                            addon_preferences_class = type(addon_preferences)
+                            box_prefs = box.box()
+                            box_prefs.label(text="Preferences:")
+                            addon_preferences_class.layout = box_prefs
+                            try:
+                                draw(context)
+                            except BaseException:
+                                import traceback
+                                traceback.print_exc()
+                                box_prefs.label(text="Error (see console)", icon='ERROR')
+                            del addon_preferences_class.layout
 
 
 class USERPREF_PT_extensions_bl_pkg_filter(Panel):
