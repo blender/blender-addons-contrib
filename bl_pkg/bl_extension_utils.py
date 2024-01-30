@@ -609,7 +609,6 @@ class _RepoCacheEntry:
             return
 
         filepath_json = os.path.join(self.directory, REPO_LOCAL_JSON)
-        print(self.directory, REPO_LOCAL_JSON)
         with open(filepath_json, "w", encoding="utf-8") as fh:
             # Indent because it can be useful to check this file if there are any issues.
             fh.write(json.dumps(local_json_data, indent=2))
