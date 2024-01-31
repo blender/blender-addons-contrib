@@ -116,6 +116,21 @@ def print(*args: Any, **kw: Dict[str, Any]) -> None:
     raise Exception("Illegal print(*({!r}), **{{{!r}}})".format(args, kw))
 
 
+def debug_stack_trace_to_file() -> None:
+    """
+    Debugging.
+    """
+    import inspect
+    stack = inspect.stack(context=1)
+    with open("/tmp/out.txt", "w") as fh:
+        for frame_info in stack[1:]:
+            fh.write("{:s}:{:d}: {:s}\n".format(
+                frame_info.filename,
+                frame_info.lineno,
+                frame_info.function,
+            ))
+
+
 def message_done(msg_fn: MessageFn) -> bool:
     """
     Print a non-fatal warning.
@@ -197,15 +212,27 @@ class CleanupPathsContext:
 
 class PkgManifest(NamedTuple):
     """Package Information."""
+    schema_version: str
     id: str
     name: str
+    tagline: str
     description: str
     version: str
     type: str
+    tags: List[str]
+    author: List[str]
+    license: List[str]
+    blender_version_min: str
+
+    # Optional.
+    blender_version_max: str = ""
+    homepage: str = ""
+    copyright: Optional[List[str]] = []
 
 
 class PkgManifest_Archive(NamedTuple):
     """Package Information with archive information."""
+    # NOTE: no support for default values (unlike `PkgManifest`).
     manifest: PkgManifest
     archive_size: int
     archive_hash: str
@@ -287,7 +314,29 @@ def scandir_recursive(
     yield from scandir_recursive_impl(path, path, filter_fn=filter_fn)
 
 
-def pkg_manifest_from_dict_and_validate(pkg_idname: str, data: Dict[Any, Any]) -> Union[PkgManifest, str]:
+def pkg_manifest_from_dict_and_validate_impl(
+        pkg_idname: str,
+        data: Dict[Any, Any],
+        *,
+        from_repo: bool,
+        all_errors: bool,
+) -> Union[PkgManifest, List[str]]:
+    error_list = []
+    if (error_msg := pkg_idname_is_valid_or_error(pkg_idname)) is not None:
+        error_list.append("key \"id\": \"{:s}\" invalid, {:s}".format(pkg_idname, error_msg))
+        if not all_errors:
+            return error_list
+
+    # Validate the dictionary.
+    if all_errors:
+        if (x := pkg_manifest_is_valid_or_error_all(data, from_repo=from_repo)) is not None:
+            error_list.extend(x)
+    else:
+        if (error_msg := pkg_manifest_is_valid_or_error(data, from_repo=from_repo)) is not None:
+            error_list.append(error_msg)
+            if not all_errors:
+                return error_list
+
     values: List[str] = []
     for key in PkgManifest._fields:
         if key == "id":
@@ -295,28 +344,49 @@ def pkg_manifest_from_dict_and_validate(pkg_idname: str, data: Dict[Any, Any]) -
             continue
         val = data.get(key, ...)
         if val is ...:
-            return "key \"{:s}\" expected but not found".format(key)
-        if not isinstance(val, str):
-            return "key \"{:s}\" expected string type for".format(key)
+            val = PkgManifest._field_defaults.get(key, ...)
+        # `pkg_manifest_is_valid_or_error{_all}` will have caught this, assert all the same.
+        assert val is not ...
         values.append(val)
 
-    manifest = PkgManifest(**dict(zip(PkgManifest._fields, values, strict=True)))
+    kw_args: Dict[str, Any] = dict(zip(PkgManifest._fields, values, strict=True))
+    manifest = PkgManifest(**kw_args)
 
-    if (error_msg := pkg_idname_is_valid_or_error(manifest.id)) is not None:
-        return "key \"id\": \"{:s}\" invalid, {:s}".format(manifest.id, error_msg)
-
-    # From https://semver.org
-    if not RE_MANIFEST_SEMVER.match(manifest.version):
-        return "key \"version\" doesn't match SEMVER format, see: https://semver.org"
+    if error_list:
+        assert all_errors
+        return error_list
 
     # There could be other validation, leave these as-is.
-
     return manifest
 
 
+def pkg_manifest_from_dict_and_validate(
+        pkg_idname: str,
+        data: Dict[Any, Any],
+        from_repo: bool,
+) -> Union[PkgManifest, str]:
+    manifest = pkg_manifest_from_dict_and_validate_impl(pkg_idname, data, from_repo=from_repo, all_errors=False)
+    if isinstance(manifest, list):
+        return manifest[0]
+    return manifest
+
+
+def pkg_manifest_from_dict_and_validate_all_errros(
+        pkg_idname: str,
+        data: Dict[Any, Any],
+        from_repo: bool,
+) -> Union[PkgManifest, List[str]]:
+    """
+    Validate the manifest and return all errors.
+    """
+    return pkg_manifest_from_dict_and_validate_impl(pkg_idname, data, from_repo=from_repo, all_errors=True)
+
+
 def pkg_manifest_archive_from_dict_and_validate(
-        pkg_idname: str, data: Dict[Any, Any]) -> Union[PkgManifest_Archive, str]:
-    manifest = pkg_manifest_from_dict_and_validate(pkg_idname, data)
+        pkg_idname: str,
+        data: Dict[Any, Any],
+) -> Union[PkgManifest_Archive, str]:
+    manifest = pkg_manifest_from_dict_and_validate(pkg_idname, data, from_repo=False)
     if isinstance(manifest, str):
         return manifest
 
@@ -329,7 +399,7 @@ def pkg_manifest_archive_from_dict_and_validate(
     )
 
 
-def pkg_manifest_from_toml_and_validate(filepath: str) -> Union[PkgManifest, str]:
+def pkg_manifest_from_toml_and_validate_all_errors(filepath: str) -> Union[PkgManifest, List[str]]:
     """
     This function is responsible for not letting invalid manifest from creating packages with ID names
     or versions that would not properly install.
@@ -340,10 +410,10 @@ def pkg_manifest_from_toml_and_validate(filepath: str) -> Union[PkgManifest, str
         with open(filepath, "rb") as fh:
             data = tomllib.load(fh)
     except Exception as ex:
-        return str(ex)
+        return [str(ex)]
 
-    pkg_idname = data.pop("id")
-    return pkg_manifest_from_dict_and_validate(pkg_idname, data)
+    pkg_idname = data.pop("id", "")
+    return pkg_manifest_from_dict_and_validate_all_errros(pkg_idname, data, from_repo=False)
 
 
 def remote_url_from_repo_url(url: str) -> str:
@@ -501,7 +571,7 @@ def url_retrieve_to_filepath_iter_or_filesystem(
 
 
 # -----------------------------------------------------------------------------
-# Standalone Utilities
+# Manifest Validation
 
 
 def pkg_idname_is_valid_or_error(pkg_idname: str) -> Optional[str]:
@@ -516,78 +586,199 @@ def pkg_idname_is_valid_or_error(pkg_idname: str) -> Optional[str]:
     return None
 
 
-def pkg_manifest_is_valid_or_error(value: Dict[str, Any], *, from_repo: bool) -> Optional[str]:
+# -----------------------------------------------------------------------------
+# Manifest Validation (Generic Callbacks)
+
+def pkg_manifest_validate_field_any_non_empty_string(value: str) -> Optional[str]:
+    if not value.strip():
+        return "A non-empty string expected"
+    return None
+
+
+def pkg_manifest_validate_field_any_list_of_non_empty_strings(value: List[Any]) -> Optional[str]:
+    for i, tag in enumerate(value):
+        if not isinstance(tag, str):
+            return "at index {:d} must be a string not a {:s}".format(i, str(type(tag)))
+        if not tag.strip():
+            return "at index {:d} must be a non-empty string".format(i)
+    return None
+
+
+def pkg_manifest_validate_field_any_version(value: str) -> Optional[str]:
+    if not RE_MANIFEST_SEMVER.match(value):
+        return "to be a semantic-version, found {!r}".format(value)
+    return None
+
+
+def pkg_manifest_validate_field_any_version_primitive(value: str) -> Optional[str]:
+    # Parse simple `1.2.3`, `1.2` & `1` numbers.
+    for number in value.split("."):
+        if not number.isdigit():
+            return "must be numbers separated by single \".\" characters, found \"{:s}\"".format(value)
+    return None
+
+
+def pkg_manifest_validate_field_any_version_primitive_or_empty(value: str) -> Optional[str]:
+    if value:
+        return pkg_manifest_validate_field_any_version_primitive(value)
+    return None
+
+# -----------------------------------------------------------------------------
+# Manifest Validation (Spesific Callbacks)
+
+
+def pkg_manifest_validate_field_type(value: str) -> Optional[str]:
+    value_expected = {"add-on", "theme", "keymap"}
+    if value not in value_expected:
+        return "Expected to be one of [{:s}], found {!r}".format(", ".join(value_expected), value)
+    return None
+
+
+def pkg_manifest_validate_field_archive_size(value: int) -> Optional[str]:
+    if value <= 0:
+        return "to be a positive integer, found {!r}".format(value)
+    return None
+
+
+def pkg_manifest_validate_field_archive_hash(value: str) -> Optional[str]:
     import string
+    # Expect: `sha256:{HASH}`.
+    # In the future we may support multiple hash types.
+    value_hash_type, value_sep, x_val_hash_data = value.partition(":")
+    if not value_sep:
+        return "Must have a \":\" separator {!r}".format(value)
+    del value_sep
+    if value_hash_type == "sha256":
+        if len(x_val_hash_data) != 64 or x_val_hash_data.strip(string.hexdigits):
+            return "Must be 64 hex-digits, found {!r}".format(value)
+    else:
+        return "Must use a prefix in [\"sha256\"], found {!r}".format(value_hash_type)
+    return None
 
-    if not isinstance(value, dict):
-        return "Expected value to be a dict, not a {!r}".format(type(value))
 
-    # key, type, is_optional.
-    known_keys_and_types = (
-        ("name", str, True),
-        ("description", str, True),
-        ("version", str, True),
-        ("type", str, True),
-        *((
-            ("archive_size", int, True),
-            ("archive_hash", str, True),
-            ("archive_url", str, True),
-        ) if from_repo else ()),
-    )
+# Keep in sync with `PkgManifest`.
+# key, type, check_fn.
+pkg_manifest_known_keys_and_types: Tuple[Tuple[str, type, Optional[Callable[[Any], Optional[str]]]], ...] = (
+    ("schema_version", str, pkg_manifest_validate_field_any_version),
+    ("name", str, pkg_manifest_validate_field_any_non_empty_string),
+    ("tagline", str, None),
+    ("description", str, None),
+    ("version", str, pkg_manifest_validate_field_any_version),
+    ("type", str, pkg_manifest_validate_field_type),
+    ("tags", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
+    ("author", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
+    ("license", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
+    ("blender_version_min", str, pkg_manifest_validate_field_any_version_primitive),
+
+    # Optional.
+    ("homepage", str, None),
+    ("copyright", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
+    ("blender_version_max", str, pkg_manifest_validate_field_any_version_primitive_or_empty),
+)
+
+# Keep in sync with `PkgManifest_Archive`.
+pkg_manifest_known_keys_and_types_from_repo: Tuple[Tuple[str, type, Optional[Callable[[Any], Optional[str]]]], ...] = (
+    ("archive_size", int, pkg_manifest_validate_field_archive_size),
+    ("archive_hash", str, pkg_manifest_validate_field_archive_hash),
+    ("archive_url", str, None),
+)
+
+
+# -----------------------------------------------------------------------------
+# Manifest Validation
+
+def pkg_manifest_is_valid_or_error_impl(
+        data: Dict[str, Any],
+        *,
+        from_repo: bool,
+        all_errors: bool,
+) -> Optional[List[str]]:
+    if not isinstance(data, dict):
+        return ["Expected value to be a dict, not a {!r}".format(type(data))]
+
+    # +1 because known types doesn't include the "id".
+    assert len(pkg_manifest_known_keys_and_types) + 1 == len(PkgManifest._fields)
+    # -1 because the manifest is an item.
+    assert len(pkg_manifest_known_keys_and_types_from_repo) == len(PkgManifest_Archive._fields) - 1
+
+    error_list = []
 
     value_extract: Dict[str, Optional[object]] = {}
-    for x_key, x_ty, x_required in known_keys_and_types:
-        x_val = value.get(x_key, ...)
-        if x_val is ...:
-            if x_required:
-                return "Missing \"{:s}\"".format(x_key)
-            # TOML cannot contain None.
-            value_extract[x_key] = None
-            continue
+    for known_types in (
+            (pkg_manifest_known_keys_and_types, pkg_manifest_known_keys_and_types_from_repo) if from_repo else
+            (pkg_manifest_known_keys_and_types, )
+    ):
+        for x_key, x_ty, x_check_fn in known_types:
+            x_val = data.get(x_key, ...)
+            if x_val is ...:
+                x_val = PkgManifest._field_defaults.get(x_key, ...)
+                if from_repo:
+                    if x_val is ...:
+                        x_val = PkgManifest_Archive._field_defaults.get(x_key, ...)
+                if x_val is ...:
+                    error_list.append("missing \"{:s}\"".format(x_key))
+                    if not all_errors:
+                        return error_list
+                value_extract[x_key] = x_val
+                continue
 
-        if x_ty is None:
-            pass
-        elif isinstance(x_val, x_ty):
-            pass
-        else:
-            return "Expected \"{:s}\" to be a string, not a {!r}".format(x_key, type(x_val))
+            if x_ty is None:
+                pass
+            elif isinstance(x_val, x_ty):
+                pass
+            else:
+                error_list.append("\"{:s}\" must be a {:s}, not a {:s}".format(
+                    x_key,
+                    x_ty.__name__,
+                    type(x_val).__name__,
+                ))
+                if not all_errors:
+                    return error_list
+                continue
 
-        value_extract[x_key] = x_val
+            if x_check_fn is not None:
+                if (error_msg := x_check_fn(x_val)) is not None:
+                    error_list.append("key \"{:s}\" invalid: {:s}".format(x_key, error_msg))
+                    if not all_errors:
+                        return error_list
+                    continue
 
-    x_key = "version"
-    x_val = value_extract[x_key]
-    if not RE_MANIFEST_SEMVER.match(x_val):
-        return "Expected key {!r}: to be a semantic-version, found {!r}".format(x_key, x_val)
-
-    x_val_expected = {"add-on", "theme", "keymap"}
-    x_key = "type"
-    x_val = value_extract[x_key]
-    if x_val not in x_val_expected:
-        return "Expected key {!r}: to be one of [{:s}], found {!r}".format(x_key, ", ".join(x_val_expected), x_val)
-    del x_val_expected
-
-    if from_repo:
-        x_key = "archive_hash"
-        x_val = value_extract[x_key]
-        # Expect: `sha256:{HASH}`.
-        # In the future we may support multiple hash types.
-        x_val_hash_type, x_val_sep, x_val_hash_data = x_val.partition(":")
-        if not x_val_sep:
-            return "Expected key {!r}: to have a \":\" separator {!r}".format(x_key, x_val)
-        del x_val_sep
-        if x_val_hash_type == "sha256":
-            if len(x_val_hash_data) != 64 or x_val_hash_data.strip(string.hexdigits):
-                return "Expected key {!r}: to be 64 hex-digits, found {!r}".format(x_key, x_val)
-        else:
-            return "Expected key {!r}: to use a prefix in [\"sha256\"], found {!r}".format(x_key, x_val_hash_type)
-        del x_val_hash_type, x_val_hash_data
-
-        x_key = "archive_size"
-        x_val = value_extract[x_key]
-        if x_val <= 0:
-            return "Expected key {!r}: to be a positive integer, found {!r}".format(x_key, x_val)
+            value_extract[x_key] = x_val
 
     return None
+
+
+def pkg_manifest_is_valid_or_error(
+        data: Dict[str, Any],
+        *,
+        from_repo: bool,
+
+
+) -> Optional[str]:
+    error_list = pkg_manifest_is_valid_or_error_impl(
+        data,
+        from_repo=from_repo,
+        all_errors=False,
+    )
+    if isinstance(error_list, list):
+        return error_list[0]
+    return None
+
+
+def pkg_manifest_is_valid_or_error_all(
+        data: Dict[str, Any],
+        *,
+        from_repo: bool,
+) -> Optional[List[str]]:
+    return pkg_manifest_is_valid_or_error_impl(
+        data,
+        from_repo=from_repo,
+        all_errors=True,
+    )
+
+
+# -----------------------------------------------------------------------------
+# Standalone Utilities
 
 
 def repo_json_is_valid_or_error(filepath: str) -> Optional[str]:
@@ -980,7 +1171,7 @@ class subcmd_server:
                 continue
 
             pkg_idname = manifest_dict.pop("id")
-            manifest = pkg_manifest_from_dict_and_validate(pkg_idname, manifest_dict)
+            manifest = pkg_manifest_from_dict_and_validate(pkg_idname, manifest_dict, from_repo=False)
             if isinstance(manifest, str):
                 message_warn(msg_fn, "malformed meta-data from {!r}, error: {:s}".format(filepath, manifest))
                 continue
@@ -1419,9 +1610,10 @@ class subcmd_author:
             message_error(msg_fn, "File \"{:s}\" not found!".format(pkg_manifest_filepath))
             return False
 
-        manifest = pkg_manifest_from_toml_and_validate(pkg_manifest_filepath)
-        if isinstance(manifest, str):
-            message_error(msg_fn, "Error parsing TOML \"{:s}\" {:s}".format(pkg_manifest_filepath, manifest))
+        manifest = pkg_manifest_from_toml_and_validate_all_errors(pkg_manifest_filepath)
+        if isinstance(manifest, list):
+            for error_msg in manifest:
+                message_error(msg_fn, "Error parsing TOML \"{:s}\" {:s}".format(pkg_manifest_filepath, error_msg))
             return False
 
         pkg_filename = manifest.id + PKG_EXT
@@ -1524,12 +1716,17 @@ class subcmd_dummy:
                 pkg_name = pkg_idname.replace("_", " ").title()
                 with open(os.path.join(pkg_src_dir, PKG_MANIFEST_FILENAME_TOML), "w", encoding="utf-8") as fh:
                     fh.write("""# Example\n""")
+                    fh.write("""schema_version = "1.0.0"\n""")
                     fh.write("""id = "{:s}"\n""".format(pkg_idname))
                     fh.write("""name = "{:s}"\n""".format(pkg_name))
                     fh.write("""type = "add-on"\n""")
-                    fh.write("""author = "Developer Name"\n""")
+                    fh.write("""tags = []\n""")
+                    fh.write("""author = ["Developer Name"]\n""")
+                    fh.write("""license = ["SPDX:GPL-2.0-or-later"]\n""")
                     fh.write("""version = "1.0.0"\n""")
+                    fh.write("""tagline = "This is a tagline"\n""")
                     fh.write("""description = "This is a package"\n""")
+                    fh.write("""blender_version_min = "0.0.0"\n""")
 
                 with open(os.path.join(pkg_src_dir, "__init__.py"), "w", encoding="utf-8") as fh:
                     fh.write("""
@@ -1862,10 +2059,18 @@ def argparse_create() -> argparse.ArgumentParser:
 # Follows `MessageFn` convention.
 def msg_print_text(ty: str, data: PrimTypeOrSeq) -> bool:
     assert ty in MESSAGE_TYPES
+
     if isinstance(data, (list, tuple)):
-        sys.stdout.write("{:s}: {:s}\n".format(ty, ", ".join(str(x) for x in data)))
+        data_str = ", ".join(str(x) for x in data)
     else:
-        sys.stdout.write("{:s}: {:s}\n".format(ty, str(data)))
+        data_str = str(data)
+
+    # Don't prefix status as it's noise for users.
+    if ty == 'STATUS':
+        sys.stdout.write("{:s}\n".format(data_str))
+    else:
+        sys.stdout.write("{:s}: {:s}\n".format(ty, data_str))
+
     return REQUEST_EXIT
 
 

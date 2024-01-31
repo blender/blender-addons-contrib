@@ -1,10 +1,20 @@
 # Example
+schema_version = "1.0.0"
+
 id = "my_example_package"
 name = "Test Package"
 type = "add-on"
+tags = ["UV", "Modeling"]
 version = "0.2.0"
 blender_version_min = "2.80.0"
-author = "see AUTHORS"
-license = "CC-0"
-copyright = "see AUTHORS"
+author = [
+    "./AUTHORS"
+]
+license = [
+    "SPDX:CC-0"
+]
+copyright = [
+    "Developer Name"
+]
+tagline = "This is a tagline."
 description = "This is another package."

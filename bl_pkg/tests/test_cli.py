@@ -113,10 +113,16 @@ def my_create_package(dirpath: str, filename: str, *, metadata: Dict[str, Any], 
             # NOTE: escaping is not supported, this is primitive TOML writing for tests.
             data = "".join((
                 """# Example\n""",
+                """schema_version = "{:s}"\n""".format(metadata_copy.pop("schema_version")),
                 """id = "{:s}"\n""".format(metadata_copy.pop("id")),
                 """name = "{:s}"\n""".format(metadata_copy.pop("name")),
                 """type = "{:s}"\n""".format(metadata_copy.pop("type")),
+                """tags = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in metadata_copy.pop("tags"))),
+                """blender_version_min = "{:s}"\n""".format(metadata_copy.pop("blender_version_min")),
                 """version = "{:s}"\n""".format(metadata_copy.pop("version")),
+                """tagline = "{:s}"\n""".format(metadata_copy.pop("tagline")),
+                """author = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in metadata_copy.pop("author"))),
+                """license = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in metadata_copy.pop("license"))),
                 """description = "{:s}"\n""".format(metadata_copy.pop("description")),
             )).encode('utf-8')
             fh.write(data)
@@ -162,10 +168,16 @@ def my_generate_repo(
         my_create_package(
             dirpath, template.idname + PKG_EXT,
             metadata={
+                "schema_version": "1.0.0",
                 "id": template.idname,
                 "name": template.name,
                 "type": "add-on",
+                "tags": ["UV", "Modeling"],
                 "version": template.version,
+                "blender_version_min": "0.0.0",
+                "tagline": """This package has a tagline.""",
+                "author": ["Some Developer <>", "Another Developer <>"],
+                "license": ["SPDX:GPL-2.0-or-later"],
                 "description": """This package has some info.""",
             },
             files={
@@ -273,7 +285,7 @@ class TestCLI_WithRepo(unittest.TestCase):
 
     def test_server_generate(self) -> None:
         output = command_output(["server-generate", "--repo-dir", self.dirpath])
-        self.assertEqual(output, "STATUS: found 3 packages.\n")
+        self.assertEqual(output, "found 3 packages.\n")
 
     def test_client_list(self) -> None:
         # TODO: only run once.
@@ -282,9 +294,9 @@ class TestCLI_WithRepo(unittest.TestCase):
         output = command_output(["list", "--repo-dir", self.dirpath_url, "--local-dir", ""])
         self.assertEqual(
             output, (
-                "STATUS: another_package(1.5.2): Another Package\n"
-                "STATUS: foo_bar(1.0.5): Foo Bar\n"
-                "STATUS: test_package(1.5.2): Test Package\n"
+                "another_package(1.5.2): Another Package\n"
+                "foo_bar(1.0.5): Foo Bar\n"
+                "test_package(1.5.2): Test Package\n"
             )
         )
         del output

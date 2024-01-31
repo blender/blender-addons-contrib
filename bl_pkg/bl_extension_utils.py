@@ -341,14 +341,18 @@ def pkg_make_obsolete_for_testing(local_dir: str, pkg_id: str) -> None:
         fh.write(data)
 
 
-def pkg_validate_data_or_error(pkg_idname: str, data: Dict[str, Any]) -> Optional[str]:
+def pkg_validate_data_or_error(
+        pkg_idname: str,
+        data: Dict[str, Any],
+        from_repo: bool,
+) -> Optional[str]:
     # Exception! In in general `cli` shouldn't be considered a Python module,
     # it's validation function is handy to reuse.
     from .cli.blender_ext import pkg_manifest_from_dict_and_validate
     assert "id" not in data
-    result = pkg_manifest_from_dict_and_validate(pkg_idname, data)
+    result = pkg_manifest_from_dict_and_validate(pkg_idname, data, from_repo=from_repo)
     if isinstance(result, str):
-        return result
+        return "{:s}: {:s}".format(pkg_idname, result)
     return None
 
 
@@ -711,7 +715,7 @@ class _RepoCacheEntry:
                     pkg_idname = filename
 
                 # Validate so local-only packages with invalid manifests aren't used.
-                if (error_str := pkg_validate_data_or_error(pkg_idname, item_local)):
+                if (error_str := pkg_validate_data_or_error(pkg_idname, item_local, from_repo=False)):
                     error_fn(Exception(error_str))
                     continue
 

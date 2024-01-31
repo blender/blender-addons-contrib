@@ -211,7 +211,7 @@ def _preferences_ensure_disabled(*, repo_item, pkg_id_sequence, default_set):
 
     # NOTE(@ideasman42): clearing the modules is not great practice,
     # however we need to ensure this is fully un-loaded then reloaded.
-    for key, value in list(sys.modules.items()):
+    for key in list(sys.modules.keys()):
         if not key.startswith(prefix_base):
             continue
         if not (
@@ -1197,7 +1197,7 @@ class BlPkgPkgShowSettings(Operator):
     pkg_id: rna_prop_pkg_id
     repo_index: rna_prop_repo_index
 
-    def execute(self, context):
+    def execute(self, _context):
         repo_item = extension_repos_read_index(self.repo_index)
         bpy.ops.preferences.addon_show(module="bl_ext.{:s}.{:s}".format(repo_item.module, self.pkg_id))
         return {'FINISHED'}
