@@ -136,7 +136,7 @@ def extensions_panel_draw_legacy_addons(
 
             # Include for consistency.
             col_a.label(text="Type:")
-            col_b.label(text="add-ons")
+            col_b.label(text="add-on")
 
             user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
 
@@ -371,14 +371,21 @@ def extensions_panel_draw_impl(
                 col_a = split.column()
                 col_b = split.column()
 
+                col_a.label(text="Description:")
+                col_b.label(text=item_remote["description"])
+
+                # Authors (hide-emails) we might want to limit this if some extensions have 10+ authors.
+                col_a.label(text="Author:")
+                col_b.label(text=",".join([x.split("<", 1)[0].strip() for x in item_remote["author"]]))
+
+                col_a.label(text="License:")
+                col_b.label(text=",".join([x.removeprefix("SPDX:") for x in item_remote["license"]]))
+
                 col_a.label(text="Version:")
                 if is_outdated:
                     col_b.label(text="{:s} ({:s} available)".format(item_local_version, item_version))
                 else:
                     col_b.label(text=item_version)
-
-                col_a.label(text="Description:")
-                col_b.label(text=item_remote["description"])
 
                 if has_remote:
                     col_a.label(text="Size:")
@@ -391,6 +398,13 @@ def extensions_panel_draw_impl(
                 if len(repos_all) > 1:
                     col_a.label(text="Repository:")
                     col_b.label(text=repos_all[repo_index].name)
+
+                if value := item_remote.get("homepage"):
+                    col_a.label(text="Internet:")
+                    # Use half size button, for legacy add-ons there are two, here there is one
+                    # however one large button looks silly, so use a half size still.
+                    col_b.split(factor=0.5).operator("wm.url_open", text="Homepage", icon='HELP').url = value
+                del value
 
                 # Note that we could allow removing extensions from non-remote extension repos
                 # although this is destructive, so don't enable this right now.
