@@ -522,27 +522,28 @@ def pkg_manifest_is_valid_or_error(value: Dict[str, Any], *, from_repo: bool) ->
     if not isinstance(value, dict):
         return "Expected value to be a dict, not a {!r}".format(type(value))
 
+    # key, type, is_optional.
     known_keys_and_types = (
-        ("name", str),
-        ("description", str),
-        ("version", str),
-        ("type", str),
-
-        ("archive_size", int),
-        ("archive_hash", str),
-        ("archive_url", str),
-    ) if from_repo else (
-        ("name", str),
-        ("description", str),
-        ("version", str),
-        ("type", str),
+        ("name", str, True),
+        ("description", str, True),
+        ("version", str, True),
+        ("type", str, True),
+        *((
+            ("archive_size", int, True),
+            ("archive_hash", str, True),
+            ("archive_url", str, True),
+        ) if from_repo else ()),
     )
 
-    value_extract = {}
-    for x_key, x_ty in known_keys_and_types:
+    value_extract: Dict[str, Optional[object]] = {}
+    for x_key, x_ty, x_required in known_keys_and_types:
         x_val = value.get(x_key, ...)
         if x_val is ...:
-            return "Missing \"{:s}\"".format(x_key)
+            if x_required:
+                return "Missing \"{:s}\"".format(x_key)
+            # TOML cannot contain None.
+            value_extract[x_key] = None
+            continue
 
         if x_ty is None:
             pass
