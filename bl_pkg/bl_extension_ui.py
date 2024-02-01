@@ -395,7 +395,6 @@ def extensions_panel_draw_impl(
                     col_b.label(text="{:s} ({:s} available)".format(item_local_version, item_version))
                 else:
                     col_b.label(text=item_version)
-
                 if has_remote:
                     col_a.label(text="Size:")
                     col_b.label(text=size_as_fmt_string(item_remote["archive_size"]))
@@ -474,6 +473,12 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
         layout.prop(addon_prefs, "show_development")
 
         if addon_prefs.show_development:
+            layout.separator()
+
+            # We might want to expose this for all users, the purpose of this
+            # is to refresh after changes have been made to the repos outside of Blender
+            # it's disputable if this is a common case.
+            layout.operator("preferences.addon_refresh", text="Refresh (file-system)", icon='FILE_REFRESH')
             layout.separator()
 
             layout.operator("bl_pkg.pkg_install_marked", text="Install Marked", icon='IMPORT')
