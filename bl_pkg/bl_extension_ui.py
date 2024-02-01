@@ -377,7 +377,8 @@ def extensions_panel_draw_impl(
                 col_b = split.column()
 
                 col_a.label(text="Description:")
-                col_b.label(text=item_remote["description"])
+                # The full description may be multiple lines (not yet supported by Blender's UI).
+                col_b.label(text=item_remote["tagline"])
 
                 if is_installed:
                     col_a.label(text="Path:")
