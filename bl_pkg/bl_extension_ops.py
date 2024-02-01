@@ -142,7 +142,7 @@ def pkg_info_check_exclude_filter_ex(name, tagline, search_lower):
 
 
 def pkg_info_check_exclude_filter(item, search_lower):
-    return pkg_info_check_exclude_filter_ex(item["name"], item["tagline"])
+    return pkg_info_check_exclude_filter_ex(item["name"], item["tagline"], search_lower)
 
 
 class RepoItem(NamedTuple):
