@@ -487,6 +487,12 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
 
 
 def extensions_panel_draw(panel, context):
+    prefs = context.preferences
+    if not prefs.experimental.use_extension_repos:
+        # Unexpected, the extension is disabled but this add-on is.
+        # In this case don't show the UI as it is confusing.
+        return
+
     from .bl_extension_ops import (
         blender_filter_by_type_map,
     )
@@ -542,7 +548,7 @@ def extensions_panel_draw(panel, context):
         if repo_status_text.running:
             return
 
-    addon_prefs = context.preferences.addons[__package__].preferences
+    addon_prefs = prefs.addons[__package__].preferences
 
     extensions_panel_draw_impl(
         panel,
