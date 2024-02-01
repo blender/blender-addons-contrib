@@ -134,11 +134,15 @@ def lock_result_any_failed_with_report(op, lock_result, report_type='ERROR'):
     return any_errors
 
 
-def pkg_info_check_exclude_filter(item, search_lower):
+def pkg_info_check_exclude_filter_ex(name, tagline, search_lower):
     return (
-        (search_lower in item["name"].lower() or search_lower in iface_(item["name"]).lower()) or
-        (search_lower in item["description"].lower() or search_lower in iface_(item["description"]).lower())
+        (search_lower in name.lower() or search_lower in iface_(name).lower()) or
+        (search_lower in tagline.lower() or search_lower in iface_(tagline).lower())
     )
+
+
+def pkg_info_check_exclude_filter(item, search_lower):
+    return pkg_info_check_exclude_filter_ex(item["name"], item["tagline"])
 
 
 class RepoItem(NamedTuple):

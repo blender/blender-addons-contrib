@@ -64,7 +64,7 @@ def extensions_panel_draw_legacy_addons(
         pgettext_iface as iface_,
     )
     from .bl_extension_ops import (
-        pkg_info_check_exclude_filter,
+        pkg_info_check_exclude_filter_ex,
     )
 
     addons = [
@@ -81,7 +81,13 @@ def extensions_panel_draw_legacy_addons(
         if is_extension:
             continue
 
-        if search_lower and (not pkg_info_check_exclude_filter(bl_info, search_lower)):
+        if search_lower and (
+                not pkg_info_check_exclude_filter_ex(
+                    bl_info["name"],
+                    bl_info["description"],
+                    search_lower,
+                )
+        ):
             continue
 
         is_enabled = module_name in used_addon_module_name_map

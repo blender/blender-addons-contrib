@@ -3,6 +3,7 @@ schema_version = "1.0.0"
 
 id = "my_example_package"
 name = "Test Package"
+tagline = "Single line description."
 type = "add-on"
 tags = ["UV", "Modeling"]
 version = "0.2.0"
@@ -14,5 +15,3 @@ license = [
 copyright = [
     "Developer Name"
 ]
-tagline = "This is a tagline."
-description = "This is another package."

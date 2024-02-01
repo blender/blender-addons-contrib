@@ -216,7 +216,6 @@ class PkgManifest(NamedTuple):
     id: str
     name: str
     tagline: str
-    description: str
     version: str
     type: str
     tags: List[str]
@@ -662,7 +661,6 @@ pkg_manifest_known_keys_and_types: Tuple[Tuple[str, type, Optional[Callable[[Any
     ("schema_version", str, pkg_manifest_validate_field_any_version),
     ("name", str, pkg_manifest_validate_field_any_non_empty_string),
     ("tagline", str, None),
-    ("description", str, None),
     ("version", str, pkg_manifest_validate_field_any_version),
     ("type", str, pkg_manifest_validate_field_type),
     ("tags", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
@@ -1725,7 +1723,6 @@ class subcmd_dummy:
                     fh.write("""license = ["SPDX:GPL-2.0-or-later"]\n""")
                     fh.write("""version = "1.0.0"\n""")
                     fh.write("""tagline = "This is a tagline"\n""")
-                    fh.write("""description = "This is a package"\n""")
                     fh.write("""blender_version_min = "0.0.0"\n""")
 
                 with open(os.path.join(pkg_src_dir, "__init__.py"), "w", encoding="utf-8") as fh:
