@@ -123,6 +123,10 @@ def extensions_panel_draw_legacy_addons(
             if value := bl_info["description"]:
                 col_a.label(text="Description:")
                 col_b.label(text=iface_(value))
+
+            col_a.label(text="File:")
+            col_b.label(text=mod.__file__, translate=False)
+
             if value := bl_info["author"]:
                 col_a.label(text="Author:")
                 col_b.label(text=value, translate=False)
@@ -188,6 +192,7 @@ def extensions_panel_draw_impl(
     """
     Show all the items... we may want to paginate at some point.
     """
+    import os
     from .bl_extension_ops import (
         blender_extension_mark,
         blender_extension_show,
@@ -373,6 +378,10 @@ def extensions_panel_draw_impl(
 
                 col_a.label(text="Description:")
                 col_b.label(text=item_remote["description"])
+
+                if is_installed:
+                    col_a.label(text="Path:")
+                    col_b.label(text=os.path.join(repos_all[repo_index].directory, pkg_id), translate=False)
 
                 # Authors (hide-emails) we might want to limit this if some extensions have 10+ authors.
                 col_a.label(text="Author:")
