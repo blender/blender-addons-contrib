@@ -384,7 +384,6 @@ def extensions_panel_draw_impl(
                     col_a.label(text="Path:")
                     col_b.label(text=os.path.join(repos_all[repo_index].directory, pkg_id), translate=False)
 
-                # Authors (hide-emails) we might want to limit this if some extensions have 10+ authors.
                 col_a.label(text="Maintainer:")
                 col_b.label(text=item_remote["maintainer"])
 
