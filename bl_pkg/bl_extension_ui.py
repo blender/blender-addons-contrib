@@ -384,8 +384,8 @@ def extensions_panel_draw_impl(
                     col_b.label(text=os.path.join(repos_all[repo_index].directory, pkg_id), translate=False)
 
                 # Authors (hide-emails) we might want to limit this if some extensions have 10+ authors.
-                col_a.label(text="Author:")
-                col_b.label(text=",".join([x.split("<", 1)[0].strip() for x in item_remote["author"]]))
+                col_a.label(text="Maintainer:")
+                col_b.label(text=item_remote["maintainer"])
 
                 col_a.label(text="License:")
                 col_b.label(text=",".join([x.removeprefix("SPDX:") for x in item_remote["license"]]))
@@ -395,6 +395,7 @@ def extensions_panel_draw_impl(
                     col_b.label(text="{:s} ({:s} available)".format(item_local_version, item_version))
                 else:
                     col_b.label(text=item_version)
+
                 if has_remote:
                     col_a.label(text="Size:")
                     col_b.label(text=size_as_fmt_string(item_remote["archive_size"]))
