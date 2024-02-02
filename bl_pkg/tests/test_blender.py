@@ -130,7 +130,7 @@ def blender_test_run(temp_dir_local: str) -> None:
     repo = preferences.filepaths.extension_repos.new(
         name="My Test",
         module="my_repo",
-        directory=temp_dir_local,
+        custom_directory=temp_dir_local,
         remote_path=repo_url,
     )
 
