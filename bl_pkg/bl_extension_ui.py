@@ -54,6 +54,7 @@ def extensions_panel_draw_legacy_addons(
         context,
         *,
         search_lower,
+        enabled_only,
         installed_only,
         used_addon_module_name_map,
 ):
@@ -91,6 +92,8 @@ def extensions_panel_draw_legacy_addons(
             continue
 
         is_enabled = module_name in used_addon_module_name_map
+        if enabled_only and (not is_enabled):
+            continue
 
         col_box = layout.column()
         box = col_box.box()
@@ -192,6 +195,7 @@ def extensions_panel_draw_impl(
         context,
         search_lower,
         filter_by_type,
+        enabled_only,
         installed_only,
         show_development,
 ):
@@ -289,6 +293,17 @@ def extensions_panel_draw_impl(
             if installed_only and (is_installed == 0):
                 continue
 
+            if is_installed and (item_local["type"] == "add-on"):
+                addon_module_name = "bl_ext.{:s}.{:s}".format(repos_all[repo_index].module, pkg_id)
+                is_enabled_addon = addon_module_name in used_addon_module_name_map
+
+                # This only makes sense for add-ons at the moment.
+                if enabled_only and (not is_enabled_addon):
+                    continue
+            else:
+                is_enabled_addon = False
+                addon_module_name = None
+
             item_version = item_remote["version"]
             if item_local is None:
                 item_local_version = None
@@ -296,13 +311,6 @@ def extensions_panel_draw_impl(
             else:
                 item_local_version = item_local["version"]
                 is_outdated = item_local_version != item_version
-
-            if is_installed and (item_local["type"] == "add-on"):
-                addon_module_name = "bl_ext.{:s}.{:s}".format(repos_all[repo_index].module, pkg_id)
-                is_enabled_addon = addon_module_name in used_addon_module_name_map
-            else:
-                is_enabled_addon = False
-                addon_module_name = None
 
             key = (pkg_id, repo_index)
             if show_development:
@@ -441,6 +449,7 @@ def extensions_panel_draw_impl(
             layout,
             context,
             search_lower=search_lower,
+            enabled_only=enabled_only,
             installed_only=installed_only,
             used_addon_module_name_map=used_addon_module_name_map,
         )
@@ -457,6 +466,7 @@ class USERPREF_PT_extensions_bl_pkg_filter(Panel):
         layout = self.layout
 
         wm = context.window_manager
+        layout.prop(wm, "extension_enabled_only")
         layout.prop(wm, "extension_installed_only")
 
 
@@ -567,6 +577,7 @@ def extensions_panel_draw(panel, context):
         context,
         wm.extension_search.lower(),
         blender_filter_by_type_map[wm.extension_type],
+        wm.extension_enabled_only,
         wm.extension_installed_only,
         addon_prefs.show_development,
     )

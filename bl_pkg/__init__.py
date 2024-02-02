@@ -280,6 +280,10 @@ def register():
         description="Show extensions by type",
         default='ALL',
     )
+    WindowManager.extension_enabled_only = BoolProperty(
+        name="Enabled Extensions Only",
+        description="Only show enabled extensions",
+    )
     WindowManager.extension_installed_only = BoolProperty(
         name="Installed Extensions Only",
         description="Only show installed extensions",
@@ -306,6 +310,7 @@ def unregister():
 
     del WindowManager.extension_search
     del WindowManager.extension_type
+    del WindowManager.extension_enabled_only
     del WindowManager.extension_installed_only
 
     for cls in classes:
