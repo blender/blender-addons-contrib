@@ -519,7 +519,7 @@ def extensions_panel_draw(panel, context):
     row_b.prop(wm, "extension_type", text="")
     row_b.popover("USERPREF_PT_extensions_bl_pkg_filter", text="", icon='FILTER')
 
-    row_b.separator_spacer()
+    row_b.separator()
     row_b.menu("USERPREF_MT_extensions_bl_pkg_settings", text="", icon='DOWNARROW_HLT')
     row_b.popover("USERPREF_PT_extensions_repos", text="", icon='PREFERENCES')
     del row, row_a, row_b
