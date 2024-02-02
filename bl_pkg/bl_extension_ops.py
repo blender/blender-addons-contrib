@@ -155,13 +155,19 @@ class RepoItem(NamedTuple):
 
 def repo_cache_store_refresh_from_prefs(include_disabled=False):
     from . import repo_cache_store
+    from . import repo_paths_or_none
     extension_repos = bpy.context.preferences.filepaths.extension_repos
-    repo_cache_store.refresh_from_repos(
-        repos=[
-            (repo.directory_or_default, repo.remote_path) for repo in extension_repos
-            if include_disabled or repo.enabled
-        ],
-    )
+    repos = []
+    for repo_item in extension_repos:
+        if not include_disabled:
+            if not repo_item.enabled:
+                continue
+        directory, remote_path = repo_paths_or_none(repo_item)
+        if directory is None:
+            continue
+        repos.append((directory, remote_path))
+
+    repo_cache_store.refresh_from_repos(repos=repos)
 
 
 def _preferences_ensure_disabled(*, repo_item, pkg_id_sequence, default_set):
@@ -273,17 +279,23 @@ def _preferences_ui_refresh_addons():
     addon_utils.modules._is_first = True
 
 
-def extension_repos_read_index(index):
+def extension_repos_read_index(index, *, include_disabled=False):
+    from . import repo_paths_or_none
     extension_repos = bpy.context.preferences.filepaths.extension_repos
     index_test = 0
     for repo_item in extension_repos:
-        if not repo_item.enabled:
+        if not include_disabled:
+            if not repo_item.enabled:
+                continue
+        directory, remote_path = repo_paths_or_none(repo_item)
+        if directory is None:
             continue
+
         if index == index_test:
             return RepoItem(
                 name=repo_item.name,
-                directory=repo_item.directory_or_default,
-                repo_url=repo_item.remote_path,
+                directory=directory,
+                repo_url=remote_path,
                 module=repo_item.module,
                 use_cache=repo_item.use_cache,
             )
@@ -291,19 +303,29 @@ def extension_repos_read_index(index):
     return None
 
 
-def extension_repos_read(include_disabled=False):
+def extension_repos_read(*, include_disabled=False):
+    from . import repo_paths_or_none
     extension_repos = bpy.context.preferences.filepaths.extension_repos
-    return [
-        RepoItem(
+    result = []
+
+    for repo_item in extension_repos:
+        if not include_disabled:
+            if not repo_item.enabled:
+                continue
+
+        # Ignore repositories that have invalid settings.
+        directory, remote_path = repo_paths_or_none(repo_item)
+        if directory is None:
+            continue
+
+        result.append(RepoItem(
             name=repo_item.name,
-            directory=repo_item.directory_or_default,
-            repo_url=repo_item.remote_path,
+            directory=directory,
+            repo_url=remote_path,
             module=repo_item.module,
             use_cache=repo_item.use_cache,
-        )
-        for repo_item in extension_repos
-        if include_disabled or repo_item.enabled
-    ]
+        ))
+    return result
 
 
 def _extension_repos_index_from_directory(directory):

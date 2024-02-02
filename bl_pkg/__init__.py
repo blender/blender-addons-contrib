@@ -63,9 +63,23 @@ def cookie_from_session():
     # Don't use a constant as it may be changed at run-time.
     return bpy.app.tempdir
 
+
+# -----------------------------------------------------------------------------
+# Shared Low Level Utilities
+
+def repo_paths_or_none(repo_item):
+    if (directory := repo_item.directory) == "":
+        return None, None
+    if repo_item.use_remote_path:
+        if not (remote_path := repo_item.remote_path):
+            return None, None
+    else:
+        remote_path = ""
+    return directory, remote_path
+
+
 # -----------------------------------------------------------------------------
 # Wrap Handlers
-
 
 _monkeypatch_extenions_repos_update_dirs = set()
 
@@ -77,8 +91,11 @@ def monkeypatch_extenions_repos_update_pre_impl():
     for repo_item in extension_repos:
         if not repo_item.enabled:
             continue
+        directory, _repo_path = repo_paths_or_none(repo_item)
+        if directory is None:
+            continue
 
-        _monkeypatch_extenions_repos_update_dirs.add(repo_item.directory_or_default)
+        _monkeypatch_extenions_repos_update_dirs.add(directory)
 
 
 def monkeypatch_extenions_repos_update_post_impl():
@@ -91,8 +108,10 @@ def monkeypatch_extenions_repos_update_post_impl():
     for repo_item in extension_repos:
         if not repo_item.enabled:
             continue
+        directory, _repo_path = repo_paths_or_none(repo_item)
+        if directory is None:
+            continue
 
-        directory = repo_item.directory_or_default
         if directory in _monkeypatch_extenions_repos_update_dirs:
             continue
         # Ignore missing because the new repo might not have a JSON file.
@@ -194,7 +213,7 @@ def theme_preset_draw(menu, context):
         if pkg_manifest_local is None:
             continue
         repo_item = repos_all[i]
-        directory = repo_item.directory_or_default
+        directory = repo_item.directory
         for pkg_idname, value in pkg_manifest_local.items():
             if value["type"] != "theme":
                 continue
