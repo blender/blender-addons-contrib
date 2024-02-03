@@ -422,11 +422,11 @@ def extensions_panel_draw_impl(
                     col_a.label(text="Repository:")
                     col_b.label(text=repos_all[repo_index].name)
 
-                if value := item_remote.get("homepage"):
+                if value := item_remote.get("website"):
                     col_a.label(text="Internet:")
                     # Use half size button, for legacy add-ons there are two, here there is one
                     # however one large button looks silly, so use a half size still.
-                    col_b.split(factor=0.5).operator("wm.url_open", text="Homepage", icon='HELP').url = value
+                    col_b.split(factor=0.5).operator("wm.url_open", text="Website", icon='HELP').url = value
                 del value
 
                 # Note that we could allow removing extensions from non-remote extension repos

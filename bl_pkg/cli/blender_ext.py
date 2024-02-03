@@ -225,7 +225,7 @@ class PkgManifest(NamedTuple):
 
     # Optional.
     blender_version_max: str = ""
-    homepage: str = ""
+    website: str = ""
     copyright: Optional[List[str]] = []
 
 
@@ -669,7 +669,7 @@ pkg_manifest_known_keys_and_types: Tuple[Tuple[str, type, Optional[Callable[[Any
     ("blender_version_min", str, pkg_manifest_validate_field_any_version_primitive),
 
     # Optional.
-    ("homepage", str, None),
+    ("website", str, None),
     ("copyright", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
     ("blender_version_max", str, pkg_manifest_validate_field_any_version_primitive_or_empty),
 )
