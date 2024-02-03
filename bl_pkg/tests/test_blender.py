@@ -137,16 +137,16 @@ def blender_test_run(temp_dir_local: str) -> None:
     bpy.ops.bl_pkg.dummy_progress()
 
     bpy.ops.bl_pkg.repo_sync(
-        directory=temp_dir_local,
+        repo_directory=temp_dir_local,
     )
 
     bpy.ops.bl_pkg.pkg_install(
-        directory=temp_dir_local,
+        repo_directory=temp_dir_local,
         pkg_id="blue",
     )
 
     bpy.ops.bl_pkg.pkg_uninstall(
-        directory=temp_dir_local,
+        repo_directory=temp_dir_local,
         pkg_id="blue",
     )
 
