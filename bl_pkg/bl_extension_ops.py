@@ -60,7 +60,7 @@ from .bl_extension_utils import (
 USE_ENABLE_ON_INSTALL = True
 
 
-rna_prop_directory = StringProperty(name="Directory", subtype='FILE_PATH')
+rna_prop_directory = StringProperty(name="Repo Directory", subtype='FILE_PATH')
 rna_prop_repo_index = IntProperty(name="Repo Index", default=-1)
 rna_prop_repo_url = StringProperty(name="Repo URL", subtype='FILE_PATH')
 rna_prop_pkg_id = StringProperty(name="Package ID")
@@ -582,15 +582,13 @@ class BlPkgDummyProgress(Operator, _BlPkgCmdMixIn):
 class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
     bl_idname = "bl_pkg.repo_sync"
     bl_label = "Ext Repo Sync"
-    __slots__ = _BlPkgCmdMixIn.cls_slots + (
-        "directory",
-    )
+    __slots__ = _BlPkgCmdMixIn.cls_slots
 
-    directory: rna_prop_directory
+    repo_directory: rna_prop_directory
     repo_index: rna_prop_repo_index
 
     def exec_command_iter(self, is_modal):
-        directory = _repo_dir_and_index_get(self.repo_index, self.directory, self.report)
+        directory = _repo_dir_and_index_get(self.repo_index, self.repo_directory, self.report)
         if not directory:
             return None
 
@@ -605,7 +603,7 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
                 return {'CANCELLED'}
 
         # Needed to refresh.
-        self.directory = directory
+        self.repo_directory = directory
 
         # Lock repositories.
         self.repo_lock = RepoLock(repo_directories=[directory], cookie=cookie_from_session())
@@ -637,7 +635,7 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
 
         repo_cache_store_refresh_from_prefs()
         repo_cache_store.refresh_remote_from_directory(
-            directory=self.directory,
+            directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,
             force=True,
         )
@@ -982,7 +980,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
     bl_label = "Ext Package Install"
     __slots__ = _BlPkgCmdMixIn.cls_slots
 
-    directory: rna_prop_directory
+    repo_directory: rna_prop_directory
     repo_index: rna_prop_repo_index
 
     pkg_id: rna_prop_pkg_id
@@ -990,10 +988,10 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
     def exec_command_iter(self, is_modal):
         self._addon_restore = []
 
-        directory = _repo_dir_and_index_get(self.repo_index, self.directory, self.report)
+        directory = _repo_dir_and_index_get(self.repo_index, self.repo_directory, self.report)
         if not directory:
             return None
-        self.directory = directory
+        self.repo_directory = directory
 
         if (repo_item := _extensions_repo_from_directory_and_report(directory, self.report)) is None:
             return None
@@ -1005,7 +1003,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
         # Detect upgrade.
         from . import repo_cache_store
         pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
-            directory=self.directory,
+            directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,
         )
         is_installed = pkg_manifest_local is not None and (pkg_id in pkg_manifest_local)
@@ -1049,7 +1047,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
         repo_cache_store.refresh_local_from_directory(
-            directory=self.directory,
+            directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,
         )
 
@@ -1073,7 +1071,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
                 def handle_error(ex):
                     self.report({'ERROR'}, str(ex))
 
-                repo_item = _extensions_repo_from_directory(self.directory)
+                repo_item = _extensions_repo_from_directory(self.repo_directory)
                 addon_module_name = "bl_ext.{:s}.{:s}".format(repo_item.module, self.pkg_id)
                 addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
 
@@ -1083,17 +1081,17 @@ class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):
     bl_label = "Ext Package Uninstall"
     __slots__ = _BlPkgCmdMixIn.cls_slots
 
-    directory: rna_prop_directory
+    repo_directory: rna_prop_directory
     repo_index: rna_prop_repo_index
 
     pkg_id: rna_prop_pkg_id
 
     def exec_command_iter(self, is_modal):
 
-        directory = _repo_dir_and_index_get(self.repo_index, self.directory, self.report)
+        directory = _repo_dir_and_index_get(self.repo_index, self.repo_directory, self.report)
         if not directory:
             return None
-        self.directory = directory
+        self.repo_directory = directory
 
         if (repo_item := _extensions_repo_from_directory_and_report(directory, self.report)) is None:
             return None
@@ -1134,7 +1132,7 @@ class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
         repo_cache_store.refresh_local_from_directory(
-            directory=self.directory,
+            directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,
         )
 
