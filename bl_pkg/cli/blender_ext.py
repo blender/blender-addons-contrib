@@ -415,6 +415,35 @@ def pkg_manifest_from_toml_and_validate_all_errors(filepath: str) -> Union[PkgMa
     return pkg_manifest_from_dict_and_validate_all_errros(pkg_idname, data, from_repo=False)
 
 
+def pkg_manifest_from_tarfile_and_validate(
+        tar_fh: tarfile.TarFile,
+) -> Union[PkgManifest, str]:
+    """
+    Validate the manifest and return all errors.
+    """
+    try:
+        file_content = tar_fh.extractfile(PKG_MANIFEST_FILENAME_TOML)
+    except KeyError:
+        # TODO: check if there is a nicer way to handle this?
+        # From a quick look there doesn't seem to be a good way
+        # to do this using public methods.
+        file_content = None
+
+    if file_content is None:
+        return "Archive does not contain a manifest"
+
+    manifest_dict = toml_from_bytes(file_content.read())
+    assert isinstance(manifest_dict, dict)
+
+    # TODO: forward actual error.
+    if manifest_dict is None:
+        return "Archive does not contain a manifest"
+    pkg_idname = manifest_dict.pop("id", None)
+    if pkg_idname is None:
+        return "Archive does not contain an \"id\" field"
+    return pkg_manifest_from_dict_and_validate(pkg_idname, manifest_dict, from_repo=False)
+
+
 def remote_url_from_repo_url(url: str) -> str:
     if REMOTE_REPO_HAS_JSON_IMPLIED:
         return url
@@ -1480,41 +1509,37 @@ class subcmd_client:
             # Remove `filepath_local_pkg_temp` if this block exits or continues.
             with CleanupPathsContext(files=(), directories=(filepath_local_pkg_temp,)):
                 with tarfile.open(filepath_local_cache_archive, mode="r:xz") as tar_fh:
+                    manifest_from_archive = pkg_manifest_from_tarfile_and_validate(tar_fh)
+                    if isinstance(manifest_from_archive, str):
+                        message_warn(
+                            msg_fn,
+                            "Error loading manifest for {:s}: {:s}".format(pkg_idname, manifest_from_archive),
+                        )
+                        continue
+
+                    # The archive ID name must match the server name,
+                    # otherwise the package will install but not be able to collate
+                    # the installed package with the remote ID.
+                    if pkg_idname != manifest_from_archive.id:
+                        message_warn(
+                            msg_fn,
+                            "Package ID mismatch (remote: \"{:s}\", archive: \"{:s}\")".format(
+                                pkg_idname,
+                                manifest_from_archive.id,
+                            )
+                        )
+                        continue
+                    if pkg_version != manifest_from_archive.version:
+                        message_warn(
+                            msg_fn,
+                            "Package version mismatch (remote: \"{:s}\", archive: \"{:s}\")".format(
+                                pkg_version,
+                                manifest_from_archive.version,
+                            )
+                        )
+                        continue
+
                     tar_fh.extractall(filepath_local_pkg_temp)
-
-                # TODO: assume the package is OK.
-                filepath_local_manifest_toml = os.path.join(filepath_local_pkg_temp, PKG_MANIFEST_FILENAME_TOML)
-                if not os.path.exists(filepath_local_manifest_toml):
-                    message_warn(msg_fn, "Package manifest not found: {:s}".format(filepath_local_manifest_toml))
-                    continue
-
-                # Check the package manifest is valid.
-                error_msg, manifest_from_archive = pkg_manifest_toml_is_valid_or_error(filepath_local_manifest_toml)
-                if error_msg is not None:
-                    message_warn(msg_fn, "Package manifest invalid: {:s}".format(error_msg))
-                    continue
-
-                # The archive ID name must match the server name,
-                # otherwise the package will install but not be able to collate
-                # the installed package with the remote ID.
-                if pkg_idname != manifest_from_archive["id"]:
-                    message_warn(
-                        msg_fn,
-                        "Package ID mismatch (remote: \"{:s}\", archive: \"{:s}\")".format(
-                            pkg_idname,
-                            manifest_from_archive["id"],
-                        )
-                    )
-                    continue
-                if pkg_version != manifest_from_archive["version"]:
-                    message_warn(
-                        msg_fn,
-                        "Package version mismatch (remote: \"{:s}\", archive: \"{:s}\")".format(
-                            pkg_version,
-                            manifest_from_archive["version"],
-                        )
-                    )
-                    continue
 
                 is_reinstall = False
                 if os.path.isdir(filepath_local_pkg):
