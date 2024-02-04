@@ -385,14 +385,13 @@ def pkg_manifest_archive_from_dict_and_validate(
         pkg_idname: str,
         data: Dict[Any, Any],
 ) -> Union[PkgManifest_Archive, str]:
-    manifest = pkg_manifest_from_dict_and_validate(pkg_idname, data, from_repo=False)
+    manifest = pkg_manifest_from_dict_and_validate(pkg_idname, data, from_repo=True)
     if isinstance(manifest, str):
         return manifest
 
     assert isinstance(manifest, PkgManifest)
     return PkgManifest_Archive(
         manifest=manifest,
-        # TODO: check these ID's exist.
         archive_size=data["archive_size"],
         archive_hash=data["archive_hash"],
         archive_url=data["archive_url"],
