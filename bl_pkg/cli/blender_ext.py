@@ -821,16 +821,16 @@ def pkg_manifest_toml_is_valid_or_error(filepath: str) -> Tuple[Optional[str], D
     return None, result
 
 
-def extract_metadata_from_data(data: bytes) -> Optional[Dict[str, Any]]:
+def toml_from_bytes(data: bytes) -> Optional[Dict[str, Any]]:
     result = tomllib.loads(data.decode('utf-8'))
     assert isinstance(result, dict)
     return result
 
 
-def extract_metadata_from_filepath(filepath: str) -> Optional[Dict[str, Any]]:
+def toml_from_filepath(filepath: str) -> Optional[Dict[str, Any]]:
     with open(filepath, "rb") as fh:
         data = fh.read()
-    result = extract_metadata_from_data(data)
+    result = toml_from_bytes(data)
     return result
 
 
@@ -847,7 +847,7 @@ def extract_metadata_from_archive(filepath: str) -> Optional[Dict[str, Any]]:
         if file_content is None:
             return None
 
-        result = extract_metadata_from_data(file_content.read())
+        result = toml_from_bytes(file_content.read())
         assert isinstance(result, dict)
         return result
 

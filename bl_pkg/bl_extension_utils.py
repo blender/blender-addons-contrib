@@ -341,7 +341,7 @@ def pkg_make_obsolete_for_testing(local_dir: str, pkg_id: str) -> None:
         fh.write(data)
 
 
-def pkg_validate_data_or_error(
+def pkg_manifest_dict_is_valid_or_error(
         pkg_idname: str,
         data: Dict[str, Any],
         from_repo: bool,
@@ -715,7 +715,7 @@ class _RepoCacheEntry:
                     pkg_idname = filename
 
                 # Validate so local-only packages with invalid manifests aren't used.
-                if (error_str := pkg_validate_data_or_error(pkg_idname, item_local, from_repo=False)):
+                if (error_str := pkg_manifest_dict_is_valid_or_error(pkg_idname, item_local, from_repo=False)):
                     error_fn(Exception(error_str))
                     continue
 
