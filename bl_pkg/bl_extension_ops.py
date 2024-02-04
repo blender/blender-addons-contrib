@@ -33,8 +33,9 @@ from bpy.types import (
     Operator,
 )
 from bpy.props import (
+    CollectionProperty,
+    EnumProperty,
     StringProperty,
-    # BoolProperty,
     IntProperty,
 )
 from bpy.app.translations import (
@@ -64,6 +65,19 @@ rna_prop_directory = StringProperty(name="Repo Directory", subtype='FILE_PATH')
 rna_prop_repo_index = IntProperty(name="Repo Index", default=-1)
 rna_prop_repo_url = StringProperty(name="Repo URL", subtype='FILE_PATH')
 rna_prop_pkg_id = StringProperty(name="Package ID")
+
+
+def rna_prop_repo_enum_local_only_itemf(_self, context):
+    if context is None:
+        return []
+    return [
+        (
+            repo_item.module,
+            repo_item.name if repo_item.enabled else (repo_item.name + " (disabled)"),
+            "",
+        )
+        for repo_item in repo_iter_valid_local_only(context)
+    ]
 
 
 is_background = bpy.app.background
@@ -143,6 +157,21 @@ def pkg_info_check_exclude_filter_ex(name, tagline, search_lower):
 
 def pkg_info_check_exclude_filter(item, search_lower):
     return pkg_info_check_exclude_filter_ex(item["name"], item["tagline"], search_lower)
+
+
+def repo_iter_valid_local_only(context):
+    from . import repo_paths_or_none
+    extension_repos = context.preferences.filepaths.extension_repos
+    for repo_item in extension_repos:
+        if not repo_item.enabled:
+            continue
+        # Ignore repositories that have invalid settings.
+        directory, remote_path = repo_paths_or_none(repo_item)
+        if directory is None:
+            continue
+        if remote_path:
+            continue
+        yield repo_item
 
 
 class RepoItem(NamedTuple):
@@ -975,6 +1004,204 @@ class BlPkgPkgUninstallMarked(Operator, _BlPkgCmdMixIn):
         _preferences_ui_refresh_addons()
 
 
+class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
+    """Install an extension from a file into a locally managed repository"""
+    bl_idname = "bl_pkg.pkg_install_files"
+    bl_label = "Install from Files"
+    __slots__ = _BlPkgCmdMixIn.cls_slots + (
+        "repo_directory",
+        "pkg_id_sequence"
+    )
+
+    filter_glob: StringProperty(default="*.txz", options={'HIDDEN'})
+
+    directory: StringProperty(
+        name="Directory",
+        subtype='DIR_PATH',
+        default="",
+    )
+    files: CollectionProperty(
+        type=bpy.types.OperatorFileListElement,
+        options={'HIDDEN', 'SKIP_SAVE'}
+    )
+
+    # Use for for scripts.
+    filepath: StringProperty(
+        subtype='FILE_PATH',
+    )
+
+    repo: EnumProperty(
+        name="Local Repository",
+        items=rna_prop_repo_enum_local_only_itemf,
+        description="The local repository to install extensions into",
+    )
+
+    def exec_command_iter(self, is_modal):
+        from .bl_extension_utils import (
+            pkg_manifest_dict_from_file_or_error,
+        )
+
+        self._addon_restore = []
+
+        # Happens when run from scripts and this argument isn't passed in.
+        if not self.properties.is_property_set("repo"):
+            self.report({'ERROR'}, "Repository not set")
+            return None
+
+        # Repository accessed.
+        repo_module_name = self.repo
+        repo_item = next(
+            (repo_item for repo_item in extension_repos_read() if repo_item.module == repo_module_name),
+            None,
+        )
+        # This should really never happen as poll means this shouldn't be possible.
+        assert repo_item is not None
+        del repo_module_name
+        # Done with the repository.
+
+        source_files = [os.path.join(file.name) for file in self.files]
+        source_directory = self.directory
+        # Support a single `filepath`, more convenient when calling from scripts.
+        if not (source_directory and source_files):
+            source_directory, source_file = os.path.split(self.filepath)
+            if not (source_directory and source_file):
+                self.report({'ERROR'}, "No source paths set")
+                return None
+            source_files = [source_file]
+            del source_file
+        assert len(source_files) > 0
+
+        # Make absolute paths.
+        source_files = [os.path.join(source_directory, filename) for filename in source_files]
+
+        # Extract meta-data from package files.
+        # Note that errors are ignored here, let the underlying install operation do this.
+        pkg_id_sequence = []
+        for source_filepath in source_files:
+            result = pkg_manifest_dict_from_file_or_error(source_filepath)
+            if isinstance(result, str):
+                continue
+            pkg_id = result["id"]
+            if pkg_id in pkg_id_sequence:
+                continue
+            pkg_id_sequence.append(pkg_id)
+
+        directory = repo_item.directory
+        assert directory != ""
+
+        # Collect package ID's.
+        self.repo_directory = directory
+        self.pkg_id_sequence = pkg_id_sequence
+
+        # Detect upgrade.
+        if pkg_id_sequence:
+            from . import repo_cache_store
+            pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
+                directory=self.repo_directory,
+                error_fn=self.error_fn_from_exception,
+            )
+            if pkg_manifest_local is not None:
+                pkg_id_sequence_installed = [pkg_id for pkg_id in pkg_id_sequence if pkg_id in pkg_manifest_local]
+                if pkg_id_sequence_installed:
+                    result, errors = _preferences_ensure_disabled(
+                        repo_item=repo_item,
+                        pkg_id_sequence=pkg_id_sequence_installed,
+                        default_set=False,
+                    )
+                    self._addon_restore.append((repo_item, pkg_id_sequence_installed, result))
+            del repo_cache_store, pkg_manifest_local
+
+        # Lock repositories.
+        self.repo_lock = RepoLock(repo_directories=[repo_item.directory], cookie=cookie_from_session())
+        if lock_result_any_failed_with_report(self, self.repo_lock.acquire()):
+            return None
+
+        return bl_extension_utils.CommandBatch(
+            title="Install Package Files",
+            batch=[
+                partial(
+                    bl_extension_utils.pkg_install_files,
+                    directory=directory,
+                    files=source_files,
+                    use_idle=is_modal,
+                )
+            ],
+        )
+
+    def exec_command_finish(self):
+
+        # Unlock repositories.
+        lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
+        del self.repo_lock
+
+        # Refresh installed packages for repositories that were operated on.
+        from . import repo_cache_store
+
+        # Re-generate JSON meta-data from TOML files (needed for offline repository).
+        repo_cache_store.refresh_remote_from_directory(
+            directory=self.repo_directory,
+            error_fn=self.error_fn_from_exception,
+            force=True,
+        )
+        repo_cache_store.refresh_local_from_directory(
+            directory=self.repo_directory,
+            error_fn=self.error_fn_from_exception,
+        )
+
+        _preferences_ui_redraw()
+        _preferences_ui_refresh_addons()
+
+        pkg_id_sequence_installed = []
+        if self._addon_restore:
+            # Upgrade.
+            for repo_item, pkg_id_sequence, result in self._addon_restore:
+                _preferences_ensure_enabled(
+                    repo_item=repo_item,
+                    pkg_id_sequence=pkg_id_sequence,
+                    result=result,
+                )
+                pkg_id_sequence_installed = pkg_id_sequence
+
+        # Install.
+        if USE_ENABLE_ON_INSTALL:
+            import addon_utils
+
+            # TODO: it would be nice to include this message in the banner.
+            def handle_error(ex):
+                self.report({'ERROR'}, str(ex))
+
+            repo_item = _extensions_repo_from_directory(self.repo_directory)
+            for pkg_id in self.pkg_id_sequence:
+                # Check if the add-on will have been enabled from re-installing.
+                if pkg_id in pkg_id_sequence_installed:
+                    continue
+                addon_module_name = "bl_ext.{:s}.{:s}".format(repo_item.module, pkg_id)
+
+                addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
+
+    @classmethod
+    def poll(cls, context):
+        if next(repo_iter_valid_local_only(context), None) is None:
+            cls.poll_message_set("There must be at least one \"Local\" repository set to install extensions into")
+            return False
+        return True
+
+    def invoke(self, context, _event):
+        # Ensure the value is marked as set (else an error is reported).
+        self.repo = self.repo
+
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    def draw(self, context):
+        # Override draw because the repository names may be over-long and not fit well in the UI.
+        # Show the text & repository names in two separate rows.
+        layout = self.layout
+        col = layout.column()
+        col.label(text="Repository:")
+        col.prop(self, "repo", text="")
+
+
 class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
     bl_idname = "bl_pkg.pkg_install"
     bl_label = "Ext Package Install"
@@ -1346,6 +1573,7 @@ classes = (
     BlPkgRepoSync,
     BlPkgRepoSyncAll,
 
+    BlPkgPkgInstallFiles,
     BlPkgPkgInstall,
     BlPkgPkgUninstall,
 

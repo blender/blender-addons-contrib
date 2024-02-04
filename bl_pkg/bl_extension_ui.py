@@ -483,7 +483,8 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
 
         layout.separator()
 
-        layout.operator("preferences.addon_install", icon='IMPORT', text="Install Legacy Add-on...")
+        layout.operator("bl_pkg.pkg_install_files", icon='IMPORT', text="Install Extensions (from file)...")
+        layout.operator("preferences.addon_install", icon='IMPORT', text="Install Legacy Add-on (from file)...")
 
         layout.separator()
 

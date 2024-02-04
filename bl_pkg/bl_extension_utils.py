@@ -15,6 +15,7 @@ __all__ = (
     "repo_listing",
 
     # Public Package Actions.
+    "pkg_install_files",
     "pkg_install",
     "pkg_uninstall",
 
@@ -26,6 +27,9 @@ __all__ = (
     "json_from_filepath",
     "toml_from_filepath",
     "json_to_filepath",
+
+    "pkg_manifest_dict_is_valid_or_error",
+    "pkg_manifest_dict_from_file_or_error",
 
     "CommandBatch",
     "RepoCacheStore",
@@ -55,6 +59,7 @@ from typing import (
     Dict,
     Sequence,
     Tuple,
+    Union,
 )
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -247,6 +252,23 @@ def repo_listing(
 # Public Package Actions
 #
 
+def pkg_install_files(
+        *,
+        directory: str,
+        files: Sequence[str],
+        use_idle: bool,
+) -> Generator[InfoItemSeq, None, None]:
+    """
+    Implementation:
+    ``bpy.ops.ext.pkg_install_files(directory, files)``.
+    """
+    yield from command_output_from_json_0([
+        "install-files", *files,
+        "--local-dir", directory,
+    ], use_idle=use_idle)
+    yield [COMPLETE_ITEM]
+
+
 def pkg_install(
         *,
         directory: str,
@@ -354,6 +376,19 @@ def pkg_manifest_dict_is_valid_or_error(
     if isinstance(result, str):
         return "{:s}: {:s}".format(pkg_idname, result)
     return None
+
+
+def pkg_manifest_dict_from_file_or_error(
+        filepath: str,
+) -> Union[Dict[str, Any], str]:
+    from .cli.blender_ext import pkg_manifest_from_archive_and_validate
+    result = pkg_manifest_from_archive_and_validate(filepath)
+    if isinstance(result, str):
+        return result
+    # Else convert the named-tuple into a dictionary.
+    result_dict = result._asdict()
+    assert isinstance(result_dict, dict)
+    return result_dict
 
 
 # -----------------------------------------------------------------------------
