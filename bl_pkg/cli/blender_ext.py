@@ -871,25 +871,6 @@ def toml_from_filepath(filepath: str) -> Optional[Dict[str, Any]]:
     return result
 
 
-def extract_metadata_from_archive(filepath: str) -> Optional[Dict[str, Any]]:
-    # TODO: error handling, corrupt archive or invalid TOML.
-    with tarfile.open(filepath, "r:xz") as tar_fh:
-        try:
-            file_content = tar_fh.extractfile(PKG_MANIFEST_FILENAME_TOML)
-        except KeyError:
-            # TODO: check if there is a nicer way to handle this?
-            # From a quick look there doesn't seem to be a good way
-            # to do this using public methods.
-            file_content = None
-
-        if file_content is None:
-            return None
-
-        result = toml_from_bytes(file_content.read())
-        assert isinstance(result, dict)
-        return result
-
-
 def repo_local_private_dir(*, local_dir: str) -> str:
     """
     Ensure the repos hidden directory exists.
@@ -1211,20 +1192,13 @@ class subcmd_server:
 
             filename = entry.name
             filepath = os.path.join(repo_dir, filename)
-            manifest_dict = extract_metadata_from_archive(filepath)
-
-            if manifest_dict is None:
-                message_warn(msg_fn, "failed to extract meta-data from {!r}".format(filepath))
-                continue
-
-            pkg_idname = manifest_dict.pop("id")
-            manifest = pkg_manifest_from_dict_and_validate(pkg_idname, manifest_dict, from_repo=False)
+            manifest = pkg_manifest_from_archive_and_validate(filepath)
             if isinstance(manifest, str):
-                message_warn(msg_fn, "malformed meta-data from {!r}, error: {:s}".format(filepath, manifest))
+                message_warn(msg_fn, "unable to read manifest from {!r}, error: {:s}".format(filepath, manifest))
                 continue
             manifest_dict = manifest._asdict()
             # TODO: we could have a method besides `_asdict` that excludes the ID.
-            del manifest_dict["id"]
+            pkg_idname = manifest_dict.pop("id")
 
             # These are added, ensure they don't exist.
             has_key_error = False
