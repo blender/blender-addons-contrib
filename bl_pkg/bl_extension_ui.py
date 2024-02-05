@@ -114,7 +114,7 @@ def extensions_panel_draw_legacy_addons(
 
         sub = row.row()
         sub.active = is_enabled
-        sub.label(text=bl_info["name"])
+        sub.label(text="Legacy: " + bl_info["name"])
 
         if bl_info["warning"]:
             sub.label(icon='ERROR')
@@ -122,7 +122,7 @@ def extensions_panel_draw_legacy_addons(
         row_right = row.row()
         row_right.alignment = 'RIGHT'
 
-        row_right.label(text="Installed (Legacy)   ")
+        row_right.label(text="Installed   ")
         row_right.active = False
 
         if bl_info["show_expanded"]:
@@ -335,8 +335,6 @@ def extensions_panel_draw_impl(
             row_button.alignment = 'LEFT'
 
             label = item_remote["name"]
-            if is_outdated:
-                label = label + " (outdated)"
 
             if show_development:
                 if mark:
@@ -382,7 +380,7 @@ def extensions_panel_draw_impl(
                     del props
             else:
                 # Right space for alignment with the button.
-                row_right.label(text="Installed (Local)   ")
+                row_right.label(text="Installed   ")
                 row_right.active = False
 
             if show:
@@ -483,8 +481,8 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
 
         layout.separator()
 
-        layout.operator("bl_pkg.pkg_install_files", icon='IMPORT', text="Install Extensions (from file)...")
-        layout.operator("preferences.addon_install", icon='IMPORT', text="Install Legacy Add-on (from file)...")
+        layout.operator("bl_pkg.pkg_install_files", icon='IMPORT', text="Install from Disk")
+        layout.operator("preferences.addon_install", icon='IMPORT', text="Install Legacy Add-on")
 
         layout.separator()
 
