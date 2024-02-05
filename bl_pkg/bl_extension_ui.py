@@ -293,16 +293,24 @@ def extensions_panel_draw_impl(
             if installed_only and (is_installed == 0):
                 continue
 
-            if is_installed and (item_local["type"] == "add-on"):
-                addon_module_name = "bl_ext.{:s}.{:s}".format(repos_all[repo_index].module, pkg_id)
-                is_enabled_addon = addon_module_name in used_addon_module_name_map
+            is_addon = (item_remote["type"] == "add-on")
 
-                # This only makes sense for add-ons at the moment.
-                if enabled_only and (not is_enabled_addon):
-                    continue
+            if is_addon:
+                if is_installed:
+                    # Currently we only need to know the module name once installed.
+                    addon_module_name = "bl_ext.{:s}.{:s}".format(repos_all[repo_index].module, pkg_id)
+                    is_enabled = addon_module_name in used_addon_module_name_map
+
+                else:
+                    is_enabled = False
+                    addon_module_name = None
             else:
-                is_enabled_addon = False
+                # TODO: ability to disable.
+                is_enabled = is_installed
                 addon_module_name = None
+
+            if enabled_only and (not is_enabled):
+                continue
 
             item_version = item_remote["version"]
             if item_local is None:
@@ -321,7 +329,8 @@ def extensions_panel_draw_impl(
             box = layout.box()
 
             # Left align so the operator text isn't centered.
-            row = box.row(align=True)
+            colsub = box.column()
+            row = colsub.row(align=True)
             # row.label
             if show:
                 props = row.operator("bl_pkg.pkg_show_clear", text="", icon='DISCLOSURE_TRI_DOWN', emboss=False)
@@ -331,32 +340,40 @@ def extensions_panel_draw_impl(
             props.repo_index = repo_index
             del props
 
-            row_button = row.row()
-            row_button.alignment = 'LEFT'
-
-            label = item_remote["name"]
+            if is_installed:
+                if is_addon:
+                    row.operator(
+                        "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
+                        icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT',
+                        text="",
+                        emboss=False,
+                    ).module = addon_module_name
+                else:
+                    # Use a place-holder checkbox icon to avoid odd text alignment when mixing with installed add-ons.
+                    # Non add-ons have no concept of "enabled" right now, use installed.
+                    row.operator(
+                        "bl_pkg.extension_disable",
+                        text="",
+                        icon='CHECKBOX_HLT',
+                        emboss=False,
+                    )
+            else:
+                # Not installed, always placeholder.
+                row.label(text="", icon='CHECKBOX_DEHLT')
 
             if show_development:
                 if mark:
-                    props = row_button.operator("bl_pkg.pkg_mark_clear", text="", icon='RADIOBUT_ON', emboss=False)
+                    props = sub.operator("bl_pkg.pkg_mark_clear", text="", icon='RADIOBUT_ON', emboss=False)
                 else:
-                    props = row_button.operator("bl_pkg.pkg_mark_set", text="", icon='RADIOBUT_OFF', emboss=False)
+                    props = sub.operator("bl_pkg.pkg_mark_set", text="", icon='RADIOBUT_OFF', emboss=False)
                 props.pkg_id = pkg_id
                 props.repo_index = repo_index
                 del props
 
-            if is_installed and (addon_module_name is not None):
-                row_button.operator(
-                    "preferences.addon_disable" if is_enabled_addon else "preferences.addon_enable",
-                    icon='CHECKBOX_HLT' if is_enabled_addon else 'CHECKBOX_DEHLT',
-                    text=label,
-                    emboss=False,
-                ).module = addon_module_name
-            else:
-                # Use a blank icon to avoid odd text alignment when mixing with installed add-ons.
-                row_button.active = is_installed
-                row_button.label(text=label, icon='BLANK1')
-            del label
+            sub = row.row()
+            sub.active = is_enabled
+            sub.label(text=item_remote["name"])
+            del sub
 
             row_right = row.row()
             row_right.alignment = 'RIGHT'
@@ -438,7 +455,7 @@ def extensions_panel_draw_impl(
                     del props, rowsub
 
                 # Show addon user preferences.
-                if is_enabled_addon:
+                if is_enabled and is_addon:
                     if (addon_preferences := used_addon_module_name_map[addon_module_name].preferences) is not None:
                         USERPREF_PT_addons.draw_addon_preferences(layout, context, addon_preferences)
 

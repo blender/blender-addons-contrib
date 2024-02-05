@@ -1367,6 +1367,16 @@ class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):
         _preferences_ui_refresh_addons()
 
 
+class BlPkgPkgDisable_TODO(Operator):
+    """NOTE: this operation is not yet supported"""
+    bl_idname = "bl_pkg.extension_disable"
+    bl_label = "Disable the extension"
+
+    def execute(self, _context):
+        self.report({'WARNING'}, "Disabling not yet supported")
+        return {'CANCELLED'}
+
+
 # -----------------------------------------------------------------------------
 # Non Wrapped Actions
 #
@@ -1576,6 +1586,7 @@ classes = (
     BlPkgPkgInstallFiles,
     BlPkgPkgInstall,
     BlPkgPkgUninstall,
+    BlPkgPkgDisable_TODO,
 
     BlPkgPkgUpgradeAll,
     BlPkgPkgInstallMarked,
