@@ -322,14 +322,13 @@ def extensions_panel_draw_impl(
             continue
 
         if pkg_manifest_remote is None:
-            box = layout_topmost.box()
             repo = repos_all[repo_index]
             has_remote = (repo.repo_url != "")
             if has_remote:
                 # NOTE: it would be nice to detect when the repository ran sync and it failed.
                 # This isn't such an important distinction though, the main thing users should be aware of
                 # is that a "sync" is required.
-                box.label(text="Repository: \"{:s}\" must sync with the remote repository.".format(repo.name))
+                errors_on_draw.append("Repository: \"{:s}\" must sync with the remote repository.".format(repo.name))
             del repo
             continue
         else:
