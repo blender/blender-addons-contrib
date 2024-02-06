@@ -8,6 +8,7 @@ Written to allow a UI without modifying Blender.
 """
 
 __all__ = (
+    "display_errors",
     "register",
     "unregister",
 )
@@ -210,6 +211,39 @@ def extensions_panel_draw_legacy_addons(
                     USERPREF_PT_addons.draw_addon_preferences(layout, context, addon_preferences)
 
 
+class display_errors:
+    """
+    This singleton class is used to store errors which are generated while drawing,
+    note that these errors are reasonably obscure, examples are:
+    - Failure to parse the repository JSON file.
+    - Failure to access the file-system for reading where the repository is stored.
+
+    The current and previous state are compared, when they match no drawing is done,
+    this allows the current display errors to be dismissed.
+    """
+    errors_prev = []
+    errors_curr = []
+
+    @staticmethod
+    def clear():
+        display_errors.errors_prev = display_errors.errors_curr
+
+    @staticmethod
+    def draw(layout):
+        if display_errors.errors_curr == display_errors.errors_prev:
+            return
+        box_header = layout.box()
+        row = box_header.row()
+        row.label(text="Repository Access Errors:", icon='ERROR')
+        rowsub = row.row(align=True)
+        rowsub.alignment = 'RIGHT'
+        rowsub.operator("bl_pkg.pkg_display_errors_clear", text="", icon='X', emboss=False)
+
+        box_contents = box_header.box()
+        for err in display_errors.errors_curr:
+            box_contents.label(text=err)
+
+
 def extensions_panel_draw_impl(
         self,
         context,
@@ -250,6 +284,9 @@ def extensions_panel_draw_impl(
     if show_addons:
         used_addon_module_name_map = {addon.module: addon for addon in context.preferences.addons}
 
+    # Collect exceptions accessing repositories, and optionally show them.
+    errors_on_draw = []
+
     remote_ex = None
     local_ex = None
 
@@ -275,13 +312,12 @@ def extensions_panel_draw_impl(
         # or cause a trace-back which breaks the UI.
         if (remote_ex is not None) or (local_ex is not None):
             repo = repos_all[repo_index]
-            box = layout_topmost.box()
             if remote_ex is not None:
-                box.label(text="Repository Remote \"{:s}\": {:s}".format(repo.name, str(remote_ex)))
+                errors_on_draw.append("Remote of \"{:s}\": {:s}".format(repo.name, str(remote_ex)))
                 remote_ex = None
 
             if local_ex is not None:
-                box.label(text="Repository Local \"{:s}\": {:s}".format(repo.name, str(local_ex)))
+                errors_on_draw.append("Local of \"{:s}\": {:s}".format(repo.name, str(remote_ex)))
                 local_ex = None
             continue
 
@@ -489,6 +525,11 @@ def extensions_panel_draw_impl(
             used_addon_module_name_map=used_addon_module_name_map,
         )
 
+    # Finally show any errors in a single panel which can be dismissed.
+    display_errors.errors_curr = errors_on_draw
+    if errors_on_draw:
+        display_errors.draw(layout_topmost)
+
 
 class USERPREF_PT_extensions_bl_pkg_filter(Panel):
     bl_label = "Extensions Filter"
@@ -574,9 +615,9 @@ def extensions_panel_draw(panel, context):
         box = layout.box()
         row = box.split(factor=0.5, align=True)
         if repo_status_text.running:
-            row.label(text=repo_status_text.title + "...")
+            row.label(text=repo_status_text.title + "...", icon='INFO')
         else:
-            row.label(text=repo_status_text.title)
+            row.label(text=repo_status_text.title, icon='INFO')
         rowsub = row.row(align=True)
         rowsub.alignment = 'RIGHT'
         rowsub.operator("bl_pkg.pkg_status_clear", text="", icon='X', emboss=False)

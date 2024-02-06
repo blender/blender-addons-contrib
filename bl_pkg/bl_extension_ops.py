@@ -1384,6 +1384,18 @@ class BlPkgPkgDisable_TODO(Operator):
 #
 # NOTE: create/destroy might not be best names.
 
+
+class BlPkgDisplayErrorsClear(Operator):
+    bl_idname = "bl_pkg.pkg_display_errors_clear"
+    bl_label = "Clear Status"
+
+    def execute(self, _context):
+        from .bl_extension_ui import display_errors
+        display_errors.clear()
+        _preferences_ui_redraw()
+        return {'FINISHED'}
+
+
 class BlPkgStatusClear(Operator):
     bl_idname = "bl_pkg.pkg_status_clear"
     bl_label = "Clear Status"
@@ -1593,6 +1605,7 @@ classes = (
     BlPkgPkgUninstallMarked,
 
     # UI only operator (to select a package).
+    BlPkgDisplayErrorsClear,
     BlPkgStatusClear,
     BlPkgPkgShowSet,
     BlPkgPkgShowClear,
