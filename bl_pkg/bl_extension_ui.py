@@ -418,9 +418,9 @@ def extensions_panel_draw_impl(
 
             if show_development:
                 if mark:
-                    props = sub.operator("bl_pkg.pkg_mark_clear", text="", icon='RADIOBUT_ON', emboss=False)
+                    props = row.operator("bl_pkg.pkg_mark_clear", text="", icon='RADIOBUT_ON', emboss=False)
                 else:
-                    props = sub.operator("bl_pkg.pkg_mark_set", text="", icon='RADIOBUT_OFF', emboss=False)
+                    props = row.operator("bl_pkg.pkg_mark_set", text="", icon='RADIOBUT_OFF', emboss=False)
                 props.pkg_id = pkg_id
                 props.repo_index = repo_index
                 del props
