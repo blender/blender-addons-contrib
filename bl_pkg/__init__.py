@@ -57,12 +57,19 @@ class StatusInfoUI:
         self.title = ""
         self.running = False
 
-    def from_exception(self, title, ex):
+    def from_message(self, title, text):
+        log_new = []
+        for line in text.split("\n"):
+            if not (line := line.rstrip()):
+                continue
+            # Don't show any prefix for "Info" since this is implied.
+            log_new.append(('STATUS', line.removeprefix("Info: ")))
+        if not log_new:
+            return
+
         self.title = title
         self.running = False
-        # Error reports typically begin with `Error:` which would be shown twice.
-        # Remove this as it's redundant.
-        self.log = [('ERROR', str(ex).removeprefix("Error: "))]
+        self.log = log_new
 
 
 def cookie_from_session():
@@ -111,11 +118,16 @@ def extenion_repos_sync(*_):
 
     print("SYNC:", active_repo.name)
     # There may be nothing to upgrade.
-    try:
+
+    from contextlib import redirect_stdout
+    import io
+    stdout = io.StringIO()
+
+    with redirect_stdout(stdout):
         bpy.ops.bl_pkg.repo_sync_all('INVOKE_DEFAULT', use_active_only=True)
-    except RuntimeError as ex:
-        repo_status_text.from_exception("Sync \"{:s}\"".format(active_repo.name), ex)
-        print(str(ex))
+
+    if text := stdout.getvalue():
+        repo_status_text.from_message("Sync \"{:s}\"".format(active_repo.name), text)
 
 
 @bpy.app.handlers.persistent
@@ -126,12 +138,16 @@ def extenion_repos_upgrade(*_):
         return
 
     print("UPGRADE:", active_repo.name)
-    # There may be nothing to upgrade.
-    try:
+
+    from contextlib import redirect_stdout
+    import io
+    stdout = io.StringIO()
+
+    with redirect_stdout(stdout):
         bpy.ops.bl_pkg.pkg_upgrade_all('INVOKE_DEFAULT', use_active_only=True)
-    except RuntimeError as ex:
-        repo_status_text.from_exception("Upgrade \"{:s}\"".format(active_repo.name), ex)
-        print(str(ex))
+
+    if text := stdout.getvalue():
+        repo_status_text.from_message("Upgrade \"{:s}\"".format(active_repo.name), text)
 
 
 # -----------------------------------------------------------------------------
