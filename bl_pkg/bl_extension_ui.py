@@ -554,7 +554,7 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
         addon_prefs = context.preferences.addons[__package__].preferences
 
         layout.operator("bl_pkg.repo_sync_all", text="Check for Updates", icon='FILE_REFRESH')
-        layout.operator("bl_pkg.pkg_upgrade_all", text="Update All", icon='FILE_REFRESH')
+        layout.operator("bl_pkg.pkg_upgrade_all", text="Update All", icon='IMPORT')
 
         layout.separator()
 

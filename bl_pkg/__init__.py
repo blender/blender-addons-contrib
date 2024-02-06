@@ -57,6 +57,11 @@ class StatusInfoUI:
         self.title = ""
         self.running = False
 
+    def from_exception(self, title, ex):
+        self.title = title
+        self.running = False
+        self.log = [('ERROR', str(ex))]
+
 
 def cookie_from_session():
     # This path is a unique string for this session.
@@ -76,6 +81,55 @@ def repo_paths_or_none(repo_item):
     else:
         remote_path = ""
     return directory, remote_path
+
+
+def repo_active_or_none():
+    prefs = bpy.context.preferences
+    if not prefs.experimental.use_extension_repos:
+        return
+
+    paths = prefs.filepaths
+    active_extension_index = paths.active_extension_repo
+    try:
+        active_repo = None if active_extension_index < 0 else paths.extension_repos[active_extension_index]
+    except IndexError:
+        active_repo = None
+    return active_repo
+
+
+# -----------------------------------------------------------------------------
+# Handlers
+
+@bpy.app.handlers.persistent
+def extenion_repos_sync(*_):
+    # This is called from operators (create or an explicit call to sync)
+    # so calling a modal operator is "safe".
+    if (active_repo := repo_active_or_none()) is None:
+        return
+
+    print("SYNC:", active_repo.name)
+    # There may be nothing to upgrade.
+    try:
+        bpy.ops.bl_pkg.repo_sync_all('INVOKE_DEFAULT', use_active_only=True)
+    except RuntimeError as ex:
+        repo_status_text.from_exception("Sync \"{:s}\"".format(active_repo.name), ex)
+        print(str(ex))
+
+
+@bpy.app.handlers.persistent
+def extenion_repos_upgrade(*_):
+    # This is called from operators (create or an explicit call to sync)
+    # so calling a modal operator is "safe".
+    if (active_repo := repo_active_or_none()) is None:
+        return
+
+    print("UPGRADE:", active_repo.name)
+    # There may be nothing to upgrade.
+    try:
+        bpy.ops.bl_pkg.pkg_upgrade_all('INVOKE_DEFAULT', use_active_only=True)
+    except RuntimeError as ex:
+        repo_status_text.from_exception("Upgrade \"{:s}\"".format(active_repo.name), ex)
+        print(str(ex))
 
 
 # -----------------------------------------------------------------------------
@@ -292,6 +346,12 @@ def register():
     from bl_ui.space_userpref import USERPREF_MT_interface_theme_presets
     USERPREF_MT_interface_theme_presets.append(theme_preset_draw)
 
+    handlers = bpy.app.handlers._extension_repos_sync
+    handlers.append(extenion_repos_sync)
+
+    handlers = bpy.app.handlers._extension_repos_upgrade
+    handlers.append(extenion_repos_upgrade)
+
     monkeypatch_install()
 
 
@@ -324,5 +384,13 @@ def unregister():
 
     from bl_ui.space_userpref import USERPREF_MT_interface_theme_presets
     USERPREF_MT_interface_theme_presets.remove(theme_preset_draw)
+
+    handlers = bpy.app.handlers._extension_repos_sync
+    if extenion_repos_sync in handlers:
+        handlers.remove(extenion_repos_sync)
+
+    handlers = bpy.app.handlers._extension_repos_upgrade
+    if extenion_repos_upgrade in handlers:
+        handlers.remove(extenion_repos_upgrade)
 
     monkeypatch_uninstall()

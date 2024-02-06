@@ -33,6 +33,7 @@ from bpy.types import (
     Operator,
 )
 from bpy.props import (
+    BoolProperty,
     CollectionProperty,
     EnumProperty,
     StringProperty,
@@ -332,10 +333,20 @@ def extension_repos_read_index(index, *, include_disabled=False):
     return None
 
 
-def extension_repos_read(*, include_disabled=False):
+def extension_repos_read(*, include_disabled=False, use_active_only=False):
     from . import repo_paths_or_none
-    extension_repos = bpy.context.preferences.filepaths.extension_repos
+    paths = bpy.context.preferences.filepaths
+    extension_repos = paths.extension_repos
     result = []
+
+    if use_active_only:
+        try:
+            extension_active = extension_repos[paths.active_extension_repo]
+        except IndexError:
+            return result
+
+        extension_repos = [extension_active]
+        del extension_active
 
     for repo_item in extension_repos:
         if not include_disabled:
@@ -676,10 +687,16 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
     bl_label = "Ext Repo Sync All"
     __slots__ = _BlPkgCmdMixIn.cls_slots
 
+    use_active_only: BoolProperty(
+        name="Active Only",
+        description="Only sync the active repository",
+    )
+
     def exec_command_iter(self, is_modal):
-        repos_all = extension_repos_read()
+        use_active_only = self.use_active_only
+        repos_all = extension_repos_read(use_active_only=use_active_only)
         if not repos_all:
-            self.report({'INFO'}, "No repositories to sync")
+            self.report({'ERROR'}, "No repositories to sync")
             return None
 
         for repo_item in repos_all:
@@ -709,7 +726,7 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
             return None
 
         return bl_extension_utils.CommandBatch(
-            title="Sync All",
+            title="Sync \"{:s}\"".format(repos_all[0].name) if use_active_only else "Sync All",
             batch=cmd_batch,
         )
 
@@ -739,12 +756,22 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
         "_repo_directories",
     )
 
+    use_active_only: BoolProperty(
+        name="Active Only",
+        description="Only sync the active repository",
+    )
+
     def exec_command_iter(self, is_modal):
         from . import repo_cache_store
         self._repo_directories = set()
         self._addon_restore = []
 
-        repos_all = extension_repos_read()
+        use_active_only = self.use_active_only
+        repos_all = extension_repos_read(use_active_only=use_active_only)
+
+        if not repos_all:
+            self.report({'ERROR'}, "No repositories to upgrade")
+            return None
 
         # Track add-ons to disable before uninstalling.
         handle_addons_info = []
@@ -811,7 +838,10 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
             self._addon_restore.append((repo_item, pkg_id_sequence, result))
 
         return bl_extension_utils.CommandBatch(
-            title="Update {:d} Package(s)".format(package_count),
+            title=(
+                "Update {:d} Package(s) from \"{:s}\"".format(package_count, repos_all[0].name) if use_active_only else
+                "Update {:d} Package(s)".format(package_count)
+            ),
             batch=cmd_batch,
         )
 
