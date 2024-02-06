@@ -49,6 +49,26 @@ def sizes_as_percentage_string(size_partial: int, size_final: int) -> str:
     return "{:-6.2f}%".format(percent * 100)
 
 
+def license_info_to_text(license_list):
+    # See: https://spdx.org/licenses/
+    # - Note that we could include all, for now only common, GPL compatible licenses.
+    # - Note that many of the human descriptions are not especially more humanly readable
+    #   than the short versions, so it's questionable if we should attempt to add all of these.
+    _spdx_id_to_text = {
+        "GPL-2.0-only": "GNU General Public License v2.0 only",
+        "GPL-2.0-or-later": "GNU General Public License v2.0 or later",
+        "GPL-3.0-only": "GNU General Public License v3.0 only",
+        "GPL-3.0-or-later": "GNU General Public License v3.0 or later",
+    }
+    result = []
+    for item in license_list:
+        if item.startswith("SPDX:"):
+            item = item[5:]
+            item = _spdx_id_to_text.get(item, item)
+        result.append(item)
+    return ", ".join(result)
+
+
 def extensions_panel_draw_legacy_addons(
         layout,
         context,
@@ -417,7 +437,7 @@ def extensions_panel_draw_impl(
                 col_b.label(text=item_remote["maintainer"])
 
                 col_a.label(text="License:")
-                col_b.label(text=",".join([x.removeprefix("SPDX:") for x in item_remote["license"]]))
+                col_b.label(text=license_info_to_text(item_remote["license"]))
 
                 col_a.label(text="Version:")
                 if is_outdated:
