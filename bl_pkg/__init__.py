@@ -60,7 +60,9 @@ class StatusInfoUI:
     def from_exception(self, title, ex):
         self.title = title
         self.running = False
-        self.log = [('ERROR', str(ex))]
+        # Error reports typically begin with `Error:` which would be shown twice.
+        # Remove this as it's redundant.
+        self.log = [('ERROR', str(ex).removeprefix("Error: "))]
 
 
 def cookie_from_session():
