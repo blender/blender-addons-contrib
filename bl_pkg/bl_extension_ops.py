@@ -695,6 +695,7 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
     def exec_command_iter(self, is_modal):
         use_active_only = self.use_active_only
         repos_all = extension_repos_read(use_active_only=use_active_only)
+
         if not repos_all:
             self.report({'ERROR'}, "No repositories to sync")
             return None
@@ -768,6 +769,7 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
 
         use_active_only = self.use_active_only
         repos_all = extension_repos_read(use_active_only=use_active_only)
+        repo_directory_supset = [repo_entry.directory for repo_entry in repos_all] if use_active_only else None
 
         if not repos_all:
             self.report({'ERROR'}, "No repositories to upgrade")
@@ -781,9 +783,11 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
 
         pkg_manifest_local_all = list(repo_cache_store.pkg_manifest_from_local_ensure(
             error_fn=self.error_fn_from_exception,
+            directory_subset=repo_directory_supset,
         ))
         for repo_index, pkg_manifest_remote in enumerate(repo_cache_store.pkg_manifest_from_remote_ensure(
             error_fn=self.error_fn_from_exception,
+            directory_subset=repo_directory_supset,
         )):
             if pkg_manifest_remote is None:
                 continue
