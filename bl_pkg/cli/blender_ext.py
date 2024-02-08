@@ -489,11 +489,13 @@ def url_retrieve_to_data_iter(
     from urllib.error import ContentTooShortError
     from urllib.request import urlopen
 
-    with contextlib.closing(urlopen(
-            url,
-            data,
-            timeout=timeout_in_seconds,
-    )) as fp:
+    headers = {'Accept': 'application/json'}
+    request = urllib.request.Request(
+        url,
+        data=data,
+        headers=headers)
+
+    with contextlib.closing(urlopen(request, timeout=timeout_in_seconds)) as fp:
         headers = fp.info()
 
         size = -1
