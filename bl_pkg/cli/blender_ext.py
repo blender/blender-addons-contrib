@@ -107,6 +107,9 @@ RE_MANIFEST_SEMVER = re.compile(
 # Small value (in bytes).
 CHUNK_SIZE_DEFAULT = 32  # 16
 
+# Default for JSON requests this allows top-level URL's to be used.
+URL_REQUEST_JSON_HEADERS = {"Accept": "application/json"}
+
 # Standard out may be communicating with a parent process,
 # arbitrary prints are NOT acceptable.
 
@@ -468,6 +471,7 @@ def url_retrieve_to_data_iter(
         url: str,
         *,
         data: Optional[Any] = None,
+        headers: Dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
 ) -> Generator[Tuple[bytes, int, Any], None, None]:
@@ -489,21 +493,21 @@ def url_retrieve_to_data_iter(
     from urllib.error import ContentTooShortError
     from urllib.request import urlopen
 
-    headers = {'Accept': 'application/json'}
     request = urllib.request.Request(
         url,
         data=data,
-        headers=headers)
+        headers=headers,
+    )
 
     with contextlib.closing(urlopen(request, timeout=timeout_in_seconds)) as fp:
-        headers = fp.info()
+        response_headers = fp.info()
 
         size = -1
         read = 0
-        if "content-length" in headers:
-            size = int(headers["Content-Length"])
+        if "content-length" in response_headers:
+            size = int(response_headers["Content-Length"])
 
-        yield (b'', size, headers)
+        yield (b'', size, response_headers)
 
         if timeout_in_seconds == -1.0:
             while True:
@@ -511,37 +515,42 @@ def url_retrieve_to_data_iter(
                 if not block:
                     break
                 read += len(block)
-                yield (block, size, headers)
+                yield (block, size, response_headers)
         else:
             while True:
                 block = read_with_timeout(fp, chunk_size, timeout_in_seconds=timeout_in_seconds)
                 if not block:
                     break
                 read += len(block)
-                yield (block, size, headers)
+                yield (block, size, response_headers)
 
     if size >= 0 and read < size:
-        raise ContentTooShortError("retrieval incomplete: got only %i out of %i bytes" % (read, size), headers)
+        raise ContentTooShortError(
+            "retrieval incomplete: got only %i out of %i bytes" % (read, size),
+            response_headers,
+        )
 
 
 def url_retrieve_to_filepath_iter(
         url: str,
         filepath: str,
         *,
+        headers: Dict[str, str],
         data: Optional[Any] = None,
         chunk_size: int,
         timeout_in_seconds: float,
 ) -> Generator[Tuple[int, int, Any], None, None]:
     # Handle temporary file setup.
     with open(filepath, 'wb') as fh_output:
-        for block, size, headers in url_retrieve_to_data_iter(
+        for block, size, response_headers in url_retrieve_to_data_iter(
                 url,
+                headers=headers,
                 data=data,
                 chunk_size=chunk_size,
                 timeout_in_seconds=timeout_in_seconds,
         ):
             fh_output.write(block)
-            yield (len(block), size, headers)
+            yield (len(block), size, response_headers)
 
 
 def filepath_retrieve_to_filepath_iter(
@@ -564,6 +573,7 @@ def filepath_retrieve_to_filepath_iter(
 def url_retrieve_to_data_iter_or_filesystem(
         path: str,
         is_filesystem: bool,
+        headers: Dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
 ) -> Generator[bytes, None, None]:
@@ -575,9 +585,10 @@ def url_retrieve_to_data_iter_or_filesystem(
         for (
                 block,
                 _size,
-                _headers,
+                _response_headers,
         ) in url_retrieve_to_data_iter(
             path,
+            headers=headers,
             chunk_size=chunk_size,
             timeout_in_seconds=timeout_in_seconds,
         ):
@@ -588,6 +599,7 @@ def url_retrieve_to_filepath_iter_or_filesystem(
         path: str,
         filepath: str,
         is_filesystem: bool,
+        headers: Dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
 ) -> Generator[Tuple[int, int], None, None]:
@@ -599,9 +611,10 @@ def url_retrieve_to_filepath_iter_or_filesystem(
             timeout_in_seconds=timeout_in_seconds,
         )
     else:
-        for (read, size, _headers) in url_retrieve_to_filepath_iter(
+        for (read, size, _response_headers) in url_retrieve_to_filepath_iter(
             path,
             filepath,
+            headers=headers,
             chunk_size=chunk_size,
             timeout_in_seconds=timeout_in_seconds,
         ):
@@ -936,6 +949,7 @@ def repo_sync_from_remote(*, msg_fn: MessageFn, repo_dir: str, local_dir: str, t
                     remote_json_path,
                     local_json_path_temp,
                     is_filesystem=is_repo_filesystem,
+                    headers=URL_REQUEST_JSON_HEADERS,
                     chunk_size=CHUNK_SIZE_DEFAULT,
                     timeout_in_seconds=timeout_in_seconds,
             ):
@@ -1266,8 +1280,9 @@ class subcmd_client:
             for block in url_retrieve_to_data_iter_or_filesystem(
                     filepath_repo_json,
                     is_filesystem=is_repo_filesystem,
-                    timeout_in_seconds=timeout_in_seconds,
+                    headers=URL_REQUEST_JSON_HEADERS,
                     chunk_size=CHUNK_SIZE_DEFAULT,
+                    timeout_in_seconds=timeout_in_seconds,
             ):
                 result.write(block)
 
@@ -1529,6 +1544,7 @@ class subcmd_client:
                         for block in url_retrieve_to_data_iter_or_filesystem(
                                 filepath_remote_archive,
                                 is_filesystem=is_pkg_filesystem,
+                                headers={},
                                 chunk_size=CHUNK_SIZE_DEFAULT,
                                 timeout_in_seconds=timeout_in_seconds,
                         ):
