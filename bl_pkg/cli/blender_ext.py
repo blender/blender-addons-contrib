@@ -34,11 +34,11 @@ import re
 import shutil
 import signal  # Override `Ctrl-C`.
 import sys
-import tarfile
 import tomllib
 import urllib.error  # For `URLError`.
 import urllib.parse  # For `urljoin`.
 import urllib.request  # For accessing remote `https://` paths.
+import zipfile
 
 
 from typing import (
@@ -82,7 +82,7 @@ PkgManifest_RepoDict = Dict[str, Any]
 
 VERSION = "0.1"
 
-PKG_EXT = ".txz"
+PKG_EXT = ".zip"
 # PKG_JSON_INFO = "bl_ext_repo.json"
 
 PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
@@ -418,14 +418,14 @@ def pkg_manifest_from_toml_and_validate_all_errors(filepath: str) -> Union[PkgMa
     return pkg_manifest_from_dict_and_validate_all_errros(pkg_idname, data, from_repo=False)
 
 
-def pkg_manifest_from_tarfile_and_validate(
-        tar_fh: tarfile.TarFile,
+def pkg_manifest_from_zipfile_and_validate(
+        zip_fh: zipfile.ZipFile,
 ) -> Union[PkgManifest, str]:
     """
     Validate the manifest and return all errors.
     """
     try:
-        file_content = tar_fh.extractfile(PKG_MANIFEST_FILENAME_TOML)
+        file_content = zip_fh.read(PKG_MANIFEST_FILENAME_TOML)
     except KeyError:
         # TODO: check if there is a nicer way to handle this?
         # From a quick look there doesn't seem to be a good way
@@ -435,7 +435,7 @@ def pkg_manifest_from_tarfile_and_validate(
     if file_content is None:
         return "Archive does not contain a manifest"
 
-    manifest_dict = toml_from_bytes(file_content.read())
+    manifest_dict = toml_from_bytes(file_content)
     assert isinstance(manifest_dict, dict)
 
     # TODO: forward actual error.
@@ -451,8 +451,8 @@ def pkg_manifest_from_archive_and_validate(
         filepath: str,
 ) -> Union[PkgManifest, str]:
     # TODO: handle errors.
-    with tarfile.open(filepath, mode="r:xz") as tar_fh:
-        return pkg_manifest_from_tarfile_and_validate(tar_fh)
+    with zipfile.ZipFile(filepath, mode="r") as zip_fh:
+        return pkg_manifest_from_zipfile_and_validate(zip_fh)
 
 
 def remote_url_from_repo_url(url: str) -> str:
@@ -1347,8 +1347,8 @@ class subcmd_client:
         # Remove `filepath_local_pkg_temp` if this block exits.
         directories_to_clean: List[str] = []
         with CleanupPathsContext(files=(), directories=directories_to_clean):
-            with tarfile.open(filepath_archive, mode="r:xz") as tar_fh:
-                manifest = pkg_manifest_from_tarfile_and_validate(tar_fh)
+            with zipfile.ZipFile(filepath_archive, mode="r") as zip_fh:
+                manifest = pkg_manifest_from_zipfile_and_validate(zip_fh)
                 if isinstance(manifest, str):
                     message_warn(
                         msg_fn,
@@ -1393,7 +1393,7 @@ class subcmd_client:
 
                 directories_to_clean.append(filepath_local_pkg_temp)
                 try:
-                    tar_fh.extractall(filepath_local_pkg_temp)
+                    zip_fh.extractall(filepath_local_pkg_temp)
                 except BaseException as ex:
                     message_warn(
                         msg_fn,
@@ -1733,7 +1733,7 @@ class subcmd_author:
             return False
 
         with CleanupPathsContext(files=(outfile_temp,), directories=()):
-            with tarfile.open(outfile_temp, "w:xz") as tar:
+            with zipfile.ZipFile(outfile_temp, 'w', zipfile.ZIP_LZMA) as zip_fh:
                 for filepath_abs, filepath_rel in scandir_recursive(
                         pkg_source_dir,
                         # Be more advanced in the future, for now ignore dot-files (`.git`) .. etc.
@@ -1742,13 +1742,7 @@ class subcmd_author:
                     if filepath_rel in filenames_root_exclude:
                         continue
 
-                    with open(filepath_abs, 'rb') as fh:
-                        size = os.fstat(fh.fileno()).st_size
-                        message_status(msg_fn, "add \"{:s}\", {:d}".format(filepath_rel, size))
-                        info = tarfile.TarInfo(filepath_rel)
-                        info.size = size
-                        del size
-                        tar.addfile(info, fh)
+                    zip_fh.write(filepath_abs, filepath_rel)
 
                 request_exit |= message_status(msg_fn, "complete")
                 if request_exit:

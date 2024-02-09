@@ -1047,7 +1047,7 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
         "pkg_id_sequence"
     )
 
-    filter_glob: StringProperty(default="*.txz", options={'HIDDEN'})
+    filter_glob: StringProperty(default="*.zip", options={'HIDDEN'})
 
     directory: StringProperty(
         name="Directory",
