@@ -418,14 +418,48 @@ def pkg_manifest_from_toml_and_validate_all_errors(filepath: str) -> Union[PkgMa
     return pkg_manifest_from_dict_and_validate_all_errros(pkg_idname, data, from_repo=False)
 
 
+def pkg_zipfile_detect_subdir_or_none(
+        zip_fh: zipfile.ZipFile,
+) -> Optional[str]:
+    if PKG_MANIFEST_FILENAME_TOML in zip_fh.NameToInfo:
+        return ""
+    # Support one directory containing the expected TOML.
+    # ZIP's always use "/" (not platform specific).
+    test_suffix = "/" + PKG_MANIFEST_FILENAME_TOML
+
+    base_dir = None
+    for filename in zip_fh.NameToInfo.keys():
+        if filename.startswith("."):
+            continue
+        if not filename.endswith(test_suffix):
+            continue
+        # Only a single directory (for sanity sake).
+        if filename.find("/", len(filename) - len(test_suffix)) == -1:
+            continue
+
+        # Multiple packages in a single archive, bail out as this is not a supported scenario.
+        if base_dir is not None:
+            base_dir = None
+            break
+
+        # Don't break in case there are multiple, in that case this function should return None.
+        base_dir = filename[:-len(PKG_MANIFEST_FILENAME_TOML)]
+
+    return base_dir
+
+
 def pkg_manifest_from_zipfile_and_validate(
         zip_fh: zipfile.ZipFile,
+        archive_subdir: str,
 ) -> Union[PkgManifest, str]:
     """
     Validate the manifest and return all errors.
     """
+    # `archive_subdir` from `pkg_zipfile_detect_subdir_or_none`.
+    assert archive_subdir == "" or archive_subdir.endswith("/")
+
     try:
-        file_content = zip_fh.read(PKG_MANIFEST_FILENAME_TOML)
+        file_content = zip_fh.read(archive_subdir + PKG_MANIFEST_FILENAME_TOML)
     except KeyError:
         # TODO: check if there is a nicer way to handle this?
         # From a quick look there doesn't seem to be a good way
@@ -452,13 +486,39 @@ def pkg_manifest_from_archive_and_validate(
 ) -> Union[PkgManifest, str]:
     # TODO: handle errors.
     with zipfile.ZipFile(filepath, mode="r") as zip_fh:
-        return pkg_manifest_from_zipfile_and_validate(zip_fh)
+        if (archive_subdir := pkg_zipfile_detect_subdir_or_none(zip_fh)) is None:
+            return "Archive has no manifest"
+        return pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir)
 
 
 def remote_url_from_repo_url(url: str) -> str:
     if REMOTE_REPO_HAS_JSON_IMPLIED:
         return url
     return urllib.parse.urljoin(url, PKG_REPO_LIST_FILENAME)
+
+
+# -----------------------------------------------------------------------------
+# ZipFile Helpers
+
+def zipfile_make_root_directory(
+        zip_fh: zipfile.ZipFile,
+        root_dir: str,
+) -> None:
+    """
+    Make ``root_dir`` the new root of this ``zip_fh``, remove all other files.
+    """
+    # WARNING: this works but it's not pretty,
+    # alternative solutions involve duplicating too much of ZipFile's internal logic.
+    assert root_dir.endswith("/")
+    filelist = zip_fh.filelist
+    filelist_copy = filelist[:]
+    zip_fh.filelist.clear()
+    for member in filelist_copy:
+        filename = member.filename
+        if not filename.startswith(root_dir):
+            continue
+        member.filename = filename[len(root_dir):]
+        filelist.append(member)
 
 
 # -----------------------------------------------------------------------------
@@ -1348,7 +1408,15 @@ class subcmd_client:
         directories_to_clean: List[str] = []
         with CleanupPathsContext(files=(), directories=directories_to_clean):
             with zipfile.ZipFile(filepath_archive, mode="r") as zip_fh:
-                manifest = pkg_manifest_from_zipfile_and_validate(zip_fh)
+                archive_subdir = pkg_zipfile_detect_subdir_or_none(zip_fh)
+                if archive_subdir is None:
+                    message_warn(
+                        msg_fn,
+                        "Missing manifest from: {:s}".format(filepath_archive),
+                    )
+                    return False
+
+                manifest = pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir)
                 if isinstance(manifest, str):
                     message_warn(
                         msg_fn,
@@ -1392,8 +1460,14 @@ class subcmd_client:
                     shutil.rmtree(filepath_local_pkg_temp)
 
                 directories_to_clean.append(filepath_local_pkg_temp)
+
+                if archive_subdir:
+                    zipfile_make_root_directory(zip_fh, archive_subdir)
+                del archive_subdir
+
                 try:
-                    zip_fh.extractall(filepath_local_pkg_temp)
+                    for member in zip_fh.infolist():
+                        zip_fh.extract(member, filepath_local_pkg_temp)
                 except BaseException as ex:
                     message_warn(
                         msg_fn,
@@ -1742,6 +1816,8 @@ class subcmd_author:
                     if filepath_rel in filenames_root_exclude:
                         continue
 
+                    # Handy for testing that sub-directories:
+                    # zip_fh.write(filepath_abs, manifest.id + "/" + filepath_rel)
                     zip_fh.write(filepath_abs, filepath_rel)
 
                 request_exit |= message_status(msg_fn, "complete")
@@ -1828,6 +1904,12 @@ def unregister():
                         if i > 1000:
                             break
                         fh.write("# {:s}\n".format(line))
+
+                # Write a sub-directory (check this is working).
+                docs = os.path.join(pkg_src_dir, "docs")
+                os.makedirs(docs)
+                with open(os.path.join(docs, "readme.txt"), "w", encoding="utf-8") as fh:
+                    fh.write("Example readme.")
 
                 # `{cmd} pkg-build --pkg-source-dir {pkg_src_dir} --pkg-output-dir {repo_dir}`.
                 if not subcmd_author.pkg_build(
