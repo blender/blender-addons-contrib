@@ -104,8 +104,14 @@ RE_MANIFEST_SEMVER = re.compile(
     r'(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
 )
 
-# Small value (in bytes).
-CHUNK_SIZE_DEFAULT = 32  # 16
+# Progress updates are displayed after each chunk of this size is downloaded.
+# Small values add unnecessary overhead showing progress, large values will make
+# progress not update often enough.
+#
+# Note that this could be dynamic although it's not a priority.
+#
+# 16kb to be responsive even on slow connections.
+CHUNK_SIZE_DEFAULT = 1 << 14
 
 # Default for JSON requests this allows top-level URL's to be used.
 URL_REQUEST_JSON_HEADERS = {"Accept": "application/json"}
