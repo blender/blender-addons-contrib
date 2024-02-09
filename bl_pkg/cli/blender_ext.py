@@ -512,12 +512,16 @@ def zipfile_make_root_directory(
     assert root_dir.endswith("/")
     filelist = zip_fh.filelist
     filelist_copy = filelist[:]
-    zip_fh.filelist.clear()
+    filelist.clear()
     for member in filelist_copy:
         filename = member.filename
         if not filename.startswith(root_dir):
             continue
-        member.filename = filename[len(root_dir):]
+        # Ensure the path is not _ony_ the directory (can happen for some ZIP files).
+        if not (filename := filename[len(root_dir):]):
+            continue
+
+        member.filename = filename
         filelist.append(member)
 
 
