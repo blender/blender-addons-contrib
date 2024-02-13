@@ -416,7 +416,7 @@ def extensions_panel_draw_impl(
                     )
             else:
                 # Not installed, always placeholder.
-                row.label(text="", icon='CHECKBOX_DEHLT')
+                row.operator("bl_pkg.extensions_enable_not_installed", text="", icon='CHECKBOX_DEHLT', emboss=False)
 
             if show_development:
                 if mark:

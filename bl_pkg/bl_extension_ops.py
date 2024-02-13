@@ -1622,6 +1622,21 @@ class BlPkgRepoUnlock(Operator):
         return {'FINISHED'}
 
 
+class BlPkgPkgEnableNotInstalled(Operator):
+    """Extension needs to be installed before it can be enabled"""
+    bl_idname = "bl_pkg.extensions_enable_not_installed"
+    bl_label = "Enable Extension"
+
+    @classmethod
+    def poll(cls, context):
+        return False
+
+    def execute(self, context):
+        # This operator only exists to be able to show disabled check-boxes for extensions
+        # while giving users a reasonable explanation on why is that.
+        return {'CANCELLED'}
+
+
 # -----------------------------------------------------------------------------
 # Register
 #
@@ -1650,6 +1665,9 @@ classes = (
     BlPkgObsoleteMarked,
     BlPkgRepoLock,
     BlPkgRepoUnlock,
+
+    # Dummy, just shows a message.
+    BlPkgPkgEnableNotInstalled,
 
     # Dummy commands (for testing).
     BlPkgDummyProgress,
