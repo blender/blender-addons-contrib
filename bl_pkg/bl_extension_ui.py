@@ -604,7 +604,7 @@ def extensions_panel_draw(panel, context):
     row = layout.split(factor=0.5)
     row_a = row.row()
     row_a.prop(wm, "extension_search", text="", icon='VIEWZOOM')
-    row_b = row.row()
+    row_b = row.row(align=True)
     row_b.prop(wm, "extension_type", text="")
     row_b.popover("USERPREF_PT_extensions_bl_pkg_filter", text="", icon='FILTER')
 
