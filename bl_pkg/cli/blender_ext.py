@@ -2306,6 +2306,13 @@ def msg_fn_from_args(args: argparse.Namespace) -> MessageFn:
 
 
 def main(argv: Optional[List[str]] = None) -> bool:
+
+    # Needed on WIN32 which doesn't default to `utf-8`.
+    for fh in (sys.stdout, sys.stderr):
+        if fh.encoding.lower().partition(":")[0] == "utf-8":
+            continue
+        fh.reconfigure(encoding="utf-8")
+
     if "--version" in sys.argv:
         sys.stdout.write("{:s}\n".format(VERSION))
         return True
