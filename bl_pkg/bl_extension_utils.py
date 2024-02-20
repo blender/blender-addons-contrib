@@ -97,12 +97,58 @@ IDLE_WAIT_ON_READ = 0.05
 # Internal Functions.
 #
 
-def file_handle_make_non_blocking(file_handle: IO[bytes]) -> None:
-    import fcntl
+if sys.platform == "win32":
+    # See: https://stackoverflow.com/a/35052424/432509
+    def file_handle_make_non_blocking(file_handle: IO[bytes]) -> None:
+        # Constant could define globally but avoid polluting the name-space
+        # thanks to: https://stackoverflow.com/questions/34504970
+        import msvcrt
+        from ctypes import (
+            POINTER,
+            WinError,
+            byref,
+            windll,
+            wintypes,
+        )
+        from ctypes.wintypes import (
+            BOOL,
+            DWORD,
+            HANDLE,
+        )
 
-    # Get current `file_handle` flags.
-    flags = fcntl.fcntl(file_handle.fileno(), fcntl.F_GETFL)
-    fcntl.fcntl(file_handle, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+        LPDWORD = POINTER(DWORD)
+
+        PIPE_NOWAIT = wintypes.DWORD(0x00000001)
+
+        # Set non-blocking.
+        SetNamedPipeHandleState = windll.kernel32.SetNamedPipeHandleState
+        SetNamedPipeHandleState.argtypes = [HANDLE, LPDWORD, LPDWORD, LPDWORD]
+        SetNamedPipeHandleState.restype = BOOL
+        os_handle = msvcrt.get_osfhandle(file_handle.fileno())
+        res = windll.kernel32.SetNamedPipeHandleState(os_handle, byref(PIPE_NOWAIT), None, None)
+        if res == 0:
+            print(WinError())
+
+    def file_handle_non_blocking_is_error_blocking(ex: BaseException) -> bool:
+        if not isinstance(ex, OSError):
+            return False
+        from ctypes import GetLastError
+        ERROR_NO_DATA = 232
+        # This is sometimes zero, `ex.args == (22, "Invalid argument")`
+        # This could be checked but for now ignore all zero errors.
+        return (GetLastError() in {0, ERROR_NO_DATA})
+
+else:
+    def file_handle_make_non_blocking(file_handle: IO[bytes]) -> None:
+        import fcntl
+        # Get current `file_handle` flags.
+        flags = fcntl.fcntl(file_handle.fileno(), fcntl.F_GETFL)
+        fcntl.fcntl(file_handle, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+
+    def file_handle_non_blocking_is_error_blocking(ex: BaseException) -> bool:
+        if not isinstance(ex, BlockingIOError):
+            return False
+        return True
 
 
 def file_mtime_or_none(filepath: str) -> Optional[int]:
@@ -140,7 +186,13 @@ def command_output_from_json_0(
 
     while True:
         # It's possible this is multiple chunks.
-        chunk = stdout.read()
+        try:
+            chunk = stdout.read()
+        except BaseException as ex:
+            if not file_handle_non_blocking_is_error_blocking(ex):
+                raise ex
+            chunk = b''
+
         if not chunk:
             if ps.poll() is not None:
                 break
