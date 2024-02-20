@@ -537,13 +537,14 @@ class USERPREF_PT_extensions_bl_pkg_filter(Panel):
 
     bl_space_type = 'TOPBAR'  # dummy.
     bl_region_type = 'HEADER'
-    bl_ui_units_x = 12
+    bl_ui_units_x = 13
 
     def draw(self, context):
         layout = self.layout
 
         wm = context.window_manager
         col = layout.column(heading="Show")
+        col.use_property_split=True
         col.prop(wm, "extension_installed_only", text="Installed Extensions")
         sub = col.column()
         sub.active = wm.extension_installed_only
