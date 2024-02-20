@@ -346,7 +346,6 @@ def register():
             None,
             ('ADDON', "Add-ons", "Only show add-ons"),
             ('THEME', "Themes", "Only show themes"),
-            ('KEYMAP', "Keymaps", "Only show keymaps"),
         ),
         name="Filter by Type",
         description="Show extensions by type",
