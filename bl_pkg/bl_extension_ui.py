@@ -543,9 +543,12 @@ class USERPREF_PT_extensions_bl_pkg_filter(Panel):
         layout = self.layout
 
         wm = context.window_manager
-        layout.prop(wm, "extension_enabled_only")
-        layout.prop(wm, "extension_installed_only")
-        layout.prop(wm, "extension_show_legacy_addons")
+        col = layout.column(heading="Show")
+        col.prop(wm, "extension_installed_only", text="Installed Extensions")
+        sub = col.column()
+        sub.active = wm.extension_installed_only
+        sub.prop(wm, "extension_enabled_only", text="Enabled Extensions")
+        col.prop(wm, "extension_show_legacy_addons", text="Legacy Add-ons")
 
 
 class USERPREF_MT_extensions_bl_pkg_settings(Menu):
@@ -562,7 +565,7 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
         layout.separator()
 
         layout.operator("bl_pkg.pkg_install_files", icon='IMPORT', text="Install from Disk")
-        layout.operator("preferences.addon_install", icon='IMPORT', text="Install Legacy Add-on")
+        layout.operator("preferences.addon_install", text="Install Legacy Add-on")
 
         layout.separator()
 

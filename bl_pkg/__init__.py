@@ -352,11 +352,11 @@ def register():
         default='ALL',
     )
     WindowManager.extension_enabled_only = BoolProperty(
-        name="Enabled Extensions Only",
+        name="Show Enabled Extensions",
         description="Only show enabled extensions",
     )
     WindowManager.extension_installed_only = BoolProperty(
-        name="Installed Extensions Only",
+        name="Show Installed Extensions",
         description="Only show installed extensions",
     )
     WindowManager.extension_show_legacy_addons = BoolProperty(
