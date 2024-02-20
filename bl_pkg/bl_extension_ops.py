@@ -1622,7 +1622,7 @@ class BlPkgRepoUnlock(Operator):
         return {'FINISHED'}
 
 
-class BlPkgPkgEnableNotInstalled(Operator):
+class BlPkgEnableNotInstalled(Operator):
     """Extension needs to be installed before it can be enabled"""
     bl_idname = "bl_pkg.extensions_enable_not_installed"
     bl_label = "Enable Extension"
@@ -1667,7 +1667,7 @@ classes = (
     BlPkgRepoUnlock,
 
     # Dummy, just shows a message.
-    BlPkgPkgEnableNotInstalled,
+    BlPkgEnableNotInstalled,
 
     # Dummy commands (for testing).
     BlPkgDummyProgress,
