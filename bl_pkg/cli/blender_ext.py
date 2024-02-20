@@ -2309,6 +2309,9 @@ def main(argv: Optional[List[str]] = None) -> bool:
 
     # Needed on WIN32 which doesn't default to `utf-8`.
     for fh in (sys.stdout, sys.stderr):
+        # While this is typically the case, is only guaranteed to be `TextIO` so check `reconfigure` is available.
+        if not isinstance(fh, io.TextIOWrapper):
+            continue
         if fh.encoding.lower().partition(":")[0] == "utf-8":
             continue
         fh.reconfigure(encoding="utf-8")
