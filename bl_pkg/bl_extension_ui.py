@@ -118,7 +118,7 @@ def extension_url_drop_popover(panel, context, url):
     repo_index, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
 
     if repo_index == -1:
-        layout.label(text="Extension: URL found in remote repositories!", icon='ALERT')
+        layout.label(text="Extension: URL found in remote repositories!", icon='ERROR')
         layout.label(text=url)
         return
 
