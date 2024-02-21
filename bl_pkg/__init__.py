@@ -152,13 +152,22 @@ def extenion_repos_upgrade(*_):
 
 @bpy.app.handlers.persistent
 def extenion_url_drop(url):
-    from .bl_extension_ui import extension_url_drop_popover
+    from .bl_extension_ui import (
+        extension_drop_url_popover,
+        extension_drop_filepath_popover,
+    )
 
     wm = bpy.context.window_manager
-    wm.popover(
-        lambda panel, context: extension_url_drop_popover(panel, context, url),
-        ui_units_x=14,
-    )
+    if url.startswith(("http://", "https://", "file://")):
+        wm.popover(
+            lambda panel, context: extension_drop_url_popover(panel, context, url),
+            ui_units_x=14,
+        )
+    else:
+        wm.popover(
+            lambda panel, context: extension_drop_filepath_popover(panel, context, url),
+            ui_units_x=14,
+        )
 
 
 # -----------------------------------------------------------------------------

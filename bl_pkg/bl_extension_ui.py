@@ -9,7 +9,8 @@ Written to allow a UI without modifying Blender.
 
 __all__ = (
     "display_errors",
-    "extension_url_drop_popover",
+    "extension_drop_filepath_popover",
+    "extension_drop_url_popover",
     "register",
     "unregister",
 )
@@ -112,7 +113,7 @@ def extension_url_find_repo_index_and_pkg_id(url):
     return -1, "", None, None
 
 
-def extension_url_drop_popover(panel, context, url):
+def extension_drop_url_popover(panel, context, url):
     layout = panel.layout
 
     repo_index, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
@@ -138,6 +139,18 @@ def extension_url_drop_popover(panel, context, url):
 
     props.repo_index = repo_index
     props.pkg_id = pkg_id
+
+
+def extension_drop_filepath_popover(panel, context, url):
+    layout = panel.layout
+
+    # TODO: this UI isn't so nice, ideally the repo can be selected with an OK button.
+    # This is more complicated than it might seem as calling `bpy.ops.*` doesn't forward errors to the window-manager.
+    # The API may need to be extended to better support this use-case.
+    layout.operator_context = 'EXEC_DEFAULT'
+    layout.label(text="Install from Disk")
+    props = layout.operator_menu_enum("bl_pkg.pkg_install_files", "repo", text="Local Repository")
+    props.filepath = url
 
 
 # -----------------------------------------------------------------------------
