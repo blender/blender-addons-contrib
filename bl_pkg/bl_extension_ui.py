@@ -620,7 +620,7 @@ class USERPREF_PT_extensions_bl_pkg_filter(Panel):
 
         wm = context.window_manager
         col = layout.column(heading="Show")
-        col.use_property_split=True
+        col.use_property_split = True
         col.prop(wm, "extension_installed_only", text="Installed Extensions")
         sub = col.column()
         sub.active = wm.extension_installed_only
