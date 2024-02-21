@@ -1624,12 +1624,13 @@ class BlPkgRepoUnlock(Operator):
 
 
 class BlPkgEnableNotInstalled(Operator):
-    """Extension needs to be installed before it can be enabled"""
+    """Turn on this extension"""
     bl_idname = "bl_pkg.extensions_enable_not_installed"
     bl_label = "Enable Extension"
 
     @classmethod
     def poll(cls, context):
+        cls.poll_message_set("Extension needs to be installed before it can be enabled")
         return False
 
     def execute(self, context):
