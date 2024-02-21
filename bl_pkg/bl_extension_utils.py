@@ -30,6 +30,7 @@ __all__ = (
 
     "pkg_manifest_dict_is_valid_or_error",
     "pkg_manifest_dict_from_file_or_error",
+    "pkg_manifest_archive_url_abs_from_repo_url",
 
     "CommandBatch",
     "RepoCacheStore",
@@ -442,6 +443,24 @@ def pkg_manifest_dict_from_file_or_error(
     result_dict = result._asdict()
     assert isinstance(result_dict, dict)
     return result_dict
+
+
+def pkg_manifest_archive_url_abs_from_repo_url(repo_url: str, archive_url: str) -> str:
+    if archive_url.startswith("./"):
+        if (
+                len(repo_url) > len(PKG_REPO_LIST_FILENAME) and
+                repo_url.endswith(PKG_REPO_LIST_FILENAME) and
+                (repo_url[-(len(PKG_REPO_LIST_FILENAME) + 1)] in {"\\", "/"})
+        ):
+            # The URL contains the JSON name, strip this off before adding the package name.
+            archive_url = repo_url[:-len(PKG_REPO_LIST_FILENAME)] + archive_url[2:]
+        elif repo_url.startswith(("http://", "https://", "file://")):
+            # Simply add to the URL.
+            archive_url = repo_url.rstrip("/") + archive_url[1:]
+        else:
+            # Handle as a regular path.
+            archive_url = os.path.join(repo_url, archive_url[2:])
+    return archive_url
 
 
 # -----------------------------------------------------------------------------

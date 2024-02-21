@@ -150,6 +150,17 @@ def extenion_repos_upgrade(*_):
         repo_status_text.from_message("Upgrade \"{:s}\"".format(active_repo.name), text)
 
 
+@bpy.app.handlers.persistent
+def extenion_url_drop(url):
+    from .bl_extension_ui import extension_url_drop_popover
+
+    wm = bpy.context.window_manager
+    wm.popover(
+        lambda panel, context: extension_url_drop_popover(panel, context, url),
+        ui_units_x=14,
+    )
+
+
 # -----------------------------------------------------------------------------
 # Wrap Handlers
 
@@ -374,6 +385,9 @@ def register():
     handlers = bpy.app.handlers._extension_repos_upgrade
     handlers.append(extenion_repos_upgrade)
 
+    handlers = bpy.app.handlers._extension_drop_url
+    handlers.append(extenion_url_drop)
+
     monkeypatch_install()
 
 
@@ -415,5 +429,9 @@ def unregister():
     handlers = bpy.app.handlers._extension_repos_upgrade
     if extenion_repos_upgrade in handlers:
         handlers.remove(extenion_repos_upgrade)
+
+    handlers = bpy.app.handlers._extension_drop_url
+    if extenion_url_drop in handlers:
+        handlers.remove(extenion_url_drop)
 
     monkeypatch_uninstall()

@@ -62,6 +62,7 @@ from .bl_extension_utils import (
 USE_ENABLE_ON_INSTALL = True
 
 
+rna_prop_url = StringProperty(name="URL", subtype='FILE_PATH')
 rna_prop_directory = StringProperty(name="Repo Directory", subtype='FILE_PATH')
 rna_prop_repo_index = IntProperty(name="Repo Index", default=-1)
 rna_prop_repo_url = StringProperty(name="Repo URL", subtype='FILE_PATH')
@@ -1576,6 +1577,17 @@ class BlPkgObsoleteMarked(Operator):
         return {'FINISHED'}
 
 
+class BlPkgRepoInstallFromURL(Operator):
+
+    """Unlock repositories - to test unlocking"""
+    bl_idname = "wm.drop_extension_url"
+    bl_label = "Drop the Extension URL"
+    url: rna_prop_url
+
+    def execute(self, _context):
+        return {'FINISHED'}
+
+
 class BlPkgRepoLock(Operator):
     """Lock repositories - to test locking"""
     bl_idname = "bl_pkg.repo_lock"
@@ -1665,6 +1677,8 @@ classes = (
     BlPkgObsoleteMarked,
     BlPkgRepoLock,
     BlPkgRepoUnlock,
+
+    BlPkgRepoInstallFromURL,
 
     # Dummy, just shows a message.
     BlPkgEnableNotInstalled,
