@@ -898,9 +898,9 @@ def pkg_manifest_is_valid_or_error_all(
 # Standalone Utilities
 
 
-def online_headers_create(*, json: bool, user_agent: str) -> Dict[str, str]:
+def url_request_headers_create(*, accept_json: bool, user_agent: str) -> Dict[str, str]:
     headers = {}
-    if json:
+    if accept_json:
         # Default for JSON requests this allows top-level URL's to be used.
         headers["Accept"] = "application/json"
 
@@ -1035,7 +1035,7 @@ def repo_sync_from_remote(
                     remote_json_path,
                     local_json_path_temp,
                     is_filesystem=is_repo_filesystem,
-                    headers=online_headers_create(json=True, user_agent=online_user_agent),
+                    headers=url_request_headers_create(accept_json=True, user_agent=online_user_agent),
                     chunk_size=CHUNK_SIZE_DEFAULT,
                     timeout_in_seconds=timeout_in_seconds,
             ):
@@ -1381,7 +1381,7 @@ class subcmd_client:
             for block in url_retrieve_to_data_iter_or_filesystem(
                     filepath_repo_json,
                     is_filesystem=is_repo_filesystem,
-                    headers=online_headers_create(json=True, user_agent=online_user_agent),
+                    headers=url_request_headers_create(accept_json=True, user_agent=online_user_agent),
                     chunk_size=CHUNK_SIZE_DEFAULT,
                     timeout_in_seconds=timeout_in_seconds,
             ):
@@ -1662,7 +1662,7 @@ class subcmd_client:
                         for block in url_retrieve_to_data_iter_or_filesystem(
                                 filepath_remote_archive,
                                 is_filesystem=is_pkg_filesystem,
-                                headers=online_headers_create(json=False, user_agent=online_user_agent),
+                                headers=url_request_headers_create(accept_json=False, user_agent=online_user_agent),
                                 chunk_size=CHUNK_SIZE_DEFAULT,
                                 timeout_in_seconds=timeout_in_seconds,
                         ):
