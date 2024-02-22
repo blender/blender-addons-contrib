@@ -289,7 +289,7 @@ def extensions_panel_draw_legacy_addons(
                 rowsub = col_b.row()
                 rowsub.alignment = 'RIGHT'
                 rowsub.operator(
-                    "preferences.addon_remove", text="Remove", icon='CANCEL',
+                    "preferences.addon_remove", text="Uninstall", icon='CANCEL',
                 ).module = module_name
 
             if is_enabled:
@@ -604,7 +604,7 @@ def extensions_panel_draw_impl(
                 if is_installed:
                     rowsub = col_b.row()
                     rowsub.alignment = 'RIGHT'
-                    props = rowsub.operator("bl_pkg.pkg_uninstall", text="Remove")
+                    props = rowsub.operator("bl_pkg.pkg_uninstall", text="Uninstall")
                     props.repo_index = repo_index
                     props.pkg_id = pkg_id
                     del props, rowsub
