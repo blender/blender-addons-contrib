@@ -255,6 +255,7 @@ def repo_sync(
         *,
         directory: str,
         repo_url: str,
+        online_user_agent: str,
         use_idle: bool,
 ) -> Generator[InfoItemSeq, None, None]:
     """
@@ -265,6 +266,7 @@ def repo_sync(
         "sync",
         "--local-dir", directory,
         "--repo-dir", repo_url,
+        "--online-user-agent", online_user_agent,
     ], use_idle=use_idle)
     yield [COMPLETE_ITEM]
 
@@ -273,6 +275,7 @@ def repo_upgrade(
         *,
         directory: str,
         repo_url: str,
+        online_user_agent: str,
         use_idle: bool,
 ) -> Generator[InfoItemSeq, None, None]:
     """
@@ -283,6 +286,7 @@ def repo_upgrade(
         "upgrade",
         "--local-dir", directory,
         "--repo-dir", repo_url,
+        "--online-user-agent", online_user_agent,
     ], use_idle=use_idle)
     yield [COMPLETE_ITEM]
 
@@ -328,6 +332,7 @@ def pkg_install(
         directory: str,
         repo_url: str,
         pkg_id_sequence: Sequence[str],
+        online_user_agent: str,
         use_cache: bool,
         use_idle: bool,
 ) -> Generator[InfoItemSeq, None, None]:
@@ -339,6 +344,7 @@ def pkg_install(
         "install", ",".join(pkg_id_sequence),
         "--local-dir", directory,
         "--repo-dir", repo_url,
+        "--online-user-agent", online_user_agent,
         "--local-cache", str(int(use_cache)),
     ], use_idle=use_idle)
     yield [COMPLETE_ITEM]

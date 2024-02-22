@@ -113,9 +113,6 @@ RE_MANIFEST_SEMVER = re.compile(
 # 16kb to be responsive even on slow connections.
 CHUNK_SIZE_DEFAULT = 1 << 14
 
-# Default for JSON requests this allows top-level URL's to be used.
-URL_REQUEST_JSON_HEADERS = {"Accept": "application/json"}
-
 # Standard out may be communicating with a parent process,
 # arbitrary prints are NOT acceptable.
 
@@ -901,6 +898,18 @@ def pkg_manifest_is_valid_or_error_all(
 # Standalone Utilities
 
 
+def online_headers_create(*, json: bool, user_agent: str) -> Dict[str, str]:
+    headers = {}
+    if json:
+        # Default for JSON requests this allows top-level URL's to be used.
+        headers["Accept"] = "application/json"
+
+    if user_agent:
+        # Typically: `Blender/4.2.0 (Linux x84_64; cycle=alpha)`.
+        headers["User-Agent"] = user_agent
+    return headers
+
+
 def repo_json_is_valid_or_error(filepath: str) -> Optional[str]:
     if not os.path.exists(filepath):
         return "File missing: " + filepath
@@ -983,7 +992,14 @@ def repo_local_private_dir_ensure_with_subdir(*, local_dir: str, subdir: str) ->
     return local_private_subdir
 
 
-def repo_sync_from_remote(*, msg_fn: MessageFn, repo_dir: str, local_dir: str, timeout_in_seconds: float) -> bool:
+def repo_sync_from_remote(
+        *,
+        msg_fn: MessageFn,
+        repo_dir: str,
+        local_dir: str,
+        online_user_agent: str,
+        timeout_in_seconds: float,
+) -> bool:
     """
     Load package information into the local path.
     """
@@ -1019,7 +1035,7 @@ def repo_sync_from_remote(*, msg_fn: MessageFn, repo_dir: str, local_dir: str, t
                     remote_json_path,
                     local_json_path_temp,
                     is_filesystem=is_repo_filesystem,
-                    headers=URL_REQUEST_JSON_HEADERS,
+                    headers=online_headers_create(json=True, user_agent=online_user_agent),
                     chunk_size=CHUNK_SIZE_DEFAULT,
                     timeout_in_seconds=timeout_in_seconds,
             ):
@@ -1231,6 +1247,20 @@ def generic_arg_local_cache(subparse: argparse.ArgumentParser) -> None:
     )
 
 
+def generic_arg_online_user_agent(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "--online-user-agent",
+        dest="online_user_agent",
+        type=str,
+        help=(
+            "Use user-agent used for making web requests. "
+            "Some web sites will reject requests when unset."
+        ),
+        default="",
+        required=False,
+    )
+
+
 def generic_arg_timeout(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--timeout",
@@ -1328,6 +1358,7 @@ class subcmd_client:
     def list_packages(
             msg_fn: MessageFn,
             repo_dir: str,
+            online_user_agent: str,
             timeout_in_seconds: float,
     ) -> bool:
         is_repo_filesystem = repo_is_filesystem(repo_dir=repo_dir)
@@ -1350,7 +1381,7 @@ class subcmd_client:
             for block in url_retrieve_to_data_iter_or_filesystem(
                     filepath_repo_json,
                     is_filesystem=is_repo_filesystem,
-                    headers=URL_REQUEST_JSON_HEADERS,
+                    headers=online_headers_create(json=True, user_agent=online_user_agent),
                     chunk_size=CHUNK_SIZE_DEFAULT,
                     timeout_in_seconds=timeout_in_seconds,
             ):
@@ -1393,12 +1424,14 @@ class subcmd_client:
             *,
             repo_dir: str,
             local_dir: str,
+            online_user_agent: str,
             timeout_in_seconds: float,
     ) -> bool:
         success = repo_sync_from_remote(
             msg_fn=msg_fn,
             repo_dir=repo_dir,
             local_dir=local_dir,
+            online_user_agent=online_user_agent,
             timeout_in_seconds=timeout_in_seconds,
         )
         return success
@@ -1535,6 +1568,7 @@ class subcmd_client:
             local_dir: str,
             local_cache: bool,
             packages: Sequence[str],
+            online_user_agent: str,
             timeout_in_seconds: float,
     ) -> bool:
         # Extract...
@@ -1628,7 +1662,7 @@ class subcmd_client:
                         for block in url_retrieve_to_data_iter_or_filesystem(
                                 filepath_remote_archive,
                                 is_filesystem=is_pkg_filesystem,
-                                headers={},
+                                headers=online_headers_create(json=False, user_agent=online_user_agent),
                                 chunk_size=CHUNK_SIZE_DEFAULT,
                                 timeout_in_seconds=timeout_in_seconds,
                         ):
@@ -2006,6 +2040,8 @@ def argparse_create_client_list(subparsers: "argparse._SubParsersAction[argparse
 
     generic_arg_repo_dir(subparse)
     generic_arg_local_dir(subparse)
+    generic_arg_online_user_agent(subparse)
+
     generic_arg_output_type(subparse)
     generic_arg_timeout(subparse)
 
@@ -2013,6 +2049,7 @@ def argparse_create_client_list(subparsers: "argparse._SubParsersAction[argparse
         func=lambda args: subcmd_client.list_packages(
             msg_fn_from_args(args),
             args.repo_dir,
+            online_user_agent=args.online_user_agent,
             timeout_in_seconds=args.timeout,
         ),
     )
@@ -2031,6 +2068,8 @@ def argparse_create_client_sync(subparsers: "argparse._SubParsersAction[argparse
 
     generic_arg_repo_dir(subparse)
     generic_arg_local_dir(subparse)
+    generic_arg_online_user_agent(subparse)
+
     generic_arg_output_type(subparse)
     generic_arg_timeout(subparse)
 
@@ -2039,6 +2078,7 @@ def argparse_create_client_sync(subparsers: "argparse._SubParsersAction[argparse
             msg_fn_from_args(args),
             repo_dir=args.repo_dir,
             local_dir=args.local_dir,
+            online_user_agent=args.online_user_agent,
             timeout_in_seconds=args.timeout,
         ),
     )
@@ -2077,6 +2117,8 @@ def argparse_create_client_install(subparsers: "argparse._SubParsersAction[argpa
     generic_arg_repo_dir(subparse)
     generic_arg_local_dir(subparse)
     generic_arg_local_cache(subparse)
+    generic_arg_online_user_agent(subparse)
+
     generic_arg_output_type(subparse)
     generic_arg_timeout(subparse)
 
@@ -2087,6 +2129,7 @@ def argparse_create_client_install(subparsers: "argparse._SubParsersAction[argpa
             local_dir=args.local_dir,
             local_cache=args.local_cache,
             packages=args.packages.split(","),
+            online_user_agent=args.online_user_agent,
             timeout_in_seconds=args.timeout,
         ),
     )

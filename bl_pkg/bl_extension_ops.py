@@ -134,6 +134,18 @@ class CheckSIGINT_Context:
 # Internal Utilities
 #
 
+def online_user_agent_from_blender():
+    # NOTE: keep this brief and avoid `platform.platform()` which could identify individual users.
+    # Produces something like this: `Blender/4.2.0 (Linux x86_64; cycle=alpha)` or similar.
+    import platform
+    return "Blender/{:d}.{:d}.{:d} ({:s} {:s}; cycle={:s})".format(
+        *bpy.app.version,
+        platform.system(),
+        platform.machine(),
+        bpy.app.version_cycle,
+    )
+
+
 def lock_result_any_failed_with_report(op, lock_result, report_type='ERROR'):
     """
     Convert any locking errors from ``bl_extension_utils.RepoLock.acquire`` into reports.
@@ -658,6 +670,7 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
                     bl_extension_utils.repo_sync,
                     directory=directory,
                     repo_url=repo_item.repo_url,
+                    online_user_agent=online_user_agent_from_blender(),
                     use_idle=is_modal,
                 )
             )
@@ -717,6 +730,7 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
                     bl_extension_utils.repo_sync,
                     directory=repo_item.directory,
                     repo_url=repo_item.repo_url,
+                    online_user_agent=online_user_agent_from_blender(),
                     use_idle=is_modal,
                 ))
 
@@ -820,6 +834,7 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
                 directory=repo_item.directory,
                 repo_url=repo_item.repo_url,
                 pkg_id_sequence=pkg_id_sequence,
+                online_user_agent=online_user_agent_from_blender(),
                 use_cache=repo_item.use_cache,
                 use_idle=is_modal,
             ))
@@ -911,6 +926,7 @@ class BlPkgPkgInstallMarked(Operator, _BlPkgCmdMixIn):
                 directory=repo_item.directory,
                 repo_url=repo_item.repo_url,
                 pkg_id_sequence=pkg_id_sequence,
+                online_user_agent=online_user_agent_from_blender(),
                 use_cache=repo_item.use_cache,
                 use_idle=is_modal,
             ))
@@ -1294,6 +1310,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
                     directory=directory,
                     repo_url=repo_item.repo_url,
                     pkg_id_sequence=(pkg_id,),
+                    online_user_agent=online_user_agent_from_blender(),
                     use_cache=repo_item.use_cache,
                     use_idle=is_modal,
                 )
