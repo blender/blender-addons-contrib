@@ -403,12 +403,21 @@ def extensions_panel_draw_impl(
         # or cause a trace-back which breaks the UI.
         if (remote_ex is not None) or (local_ex is not None):
             repo = repos_all[repo_index]
+            # NOTE: `FileNotFoundError` occurs when a repository has been added but has not update with its remote.
+            # We may want a way for users to know a repository is missing from the view and they need to run update
+            # to access its extensions.
             if remote_ex is not None:
-                errors_on_draw.append("Remote of \"{:s}\": {:s}".format(repo.name, str(remote_ex)))
+                if isinstance(remote_ex, FileNotFoundError) and (remote_ex.filename == repo.directory):
+                    pass
+                else:
+                    errors_on_draw.append("Remote of \"{:s}\": {:s}".format(repo.name, str(remote_ex)))
                 remote_ex = None
 
             if local_ex is not None:
-                errors_on_draw.append("Local of \"{:s}\": {:s}".format(repo.name, str(remote_ex)))
+                if isinstance(local_ex, FileNotFoundError) and (local_ex.filename == repo.directory):
+                    pass
+                else:
+                    errors_on_draw.append("Local of \"{:s}\": {:s}".format(repo.name, str(local_ex)))
                 local_ex = None
             continue
 
