@@ -495,6 +495,21 @@ class CommandHandle:
             repo_status_text.running = False
             return {'FINISHED'}
 
+        # Forward new messages to reports.
+        msg_list_per_command = self.cmd_batch.calc_status_log_since_last_request_or_none()
+        if msg_list_per_command is not None:
+            for i, msg_list in enumerate(msg_list_per_command, 1):
+                for (ty, msg) in msg_list:
+                    if len(msg_list_per_command) > 1:
+                        # These reports are flattened, note the process number that fails so
+                        # whoever is reading the reports can make sense of the messages.
+                        msg = "{:s} (process {:d} of {:d})".format(msg, i, len(msg_list_per_command))
+                    if ty == 'STATUS':
+                        op.report({'INFO'}, msg)
+                    else:
+                        op.report({'WARNING'}, msg)
+        del msg_list_per_command
+
         # Avoid high CPU usage by only redrawing when there has been a change.
         msg_list = self.cmd_batch.calc_status_log_or_none()
         if msg_list is not None:

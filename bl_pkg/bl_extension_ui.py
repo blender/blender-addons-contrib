@@ -671,6 +671,8 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
         layout.prop(addon_prefs, "show_development")
 
         if addon_prefs.show_development:
+            layout.prop(addon_prefs, "show_development_reports")
+
             layout.separator()
 
             # We might want to expose this for all users, the purpose of this
@@ -700,6 +702,11 @@ def extensions_panel_draw(panel, context):
         blender_filter_by_type_map,
     )
 
+    addon_prefs = prefs.addons[__package__].preferences
+
+    show_development = addon_prefs.show_development
+    show_development_reports = show_development and addon_prefs.show_development_reports
+
     wm = context.window_manager
     layout = panel.layout
 
@@ -715,7 +722,18 @@ def extensions_panel_draw(panel, context):
     row_b.popover("USERPREF_PT_extensions_repos", text="", icon='PREFERENCES')
     del row, row_a, row_b
 
-    if repo_status_text.log:
+    if show_development_reports:
+        show_status = bool(repo_status_text.log)
+    else:
+        # Only show if running and there is progress to display.
+        show_status = bool(repo_status_text.log) and repo_status_text.running
+        if show_status:
+            show_status = False
+            for ty, msg in repo_status_text.log:
+                if ty == 'PROGRESS':
+                    show_status = True
+
+    if show_status:
         box = layout.box()
         # Don't clip longer names.
         row = box.split(factor=0.9, align=True)
@@ -723,9 +741,10 @@ def extensions_panel_draw(panel, context):
             row.label(text=repo_status_text.title + "...", icon='INFO')
         else:
             row.label(text=repo_status_text.title, icon='INFO')
-        rowsub = row.row(align=True)
-        rowsub.alignment = 'RIGHT'
-        rowsub.operator("bl_pkg.pkg_status_clear", text="", icon='X', emboss=False)
+        if show_development_reports:
+            rowsub = row.row(align=True)
+            rowsub.alignment = 'RIGHT'
+            rowsub.operator("bl_pkg.pkg_status_clear", text="", icon='X', emboss=False)
         boxsub = box.box()
         for ty, msg in repo_status_text.log:
             if ty == 'STATUS':
@@ -752,8 +771,6 @@ def extensions_panel_draw(panel, context):
         if repo_status_text.running:
             return
 
-    addon_prefs = prefs.addons[__package__].preferences
-
     extensions_panel_draw_impl(
         panel,
         context,
@@ -762,7 +779,7 @@ def extensions_panel_draw(panel, context):
         wm.extension_enabled_only,
         wm.extension_installed_only,
         wm.extension_show_legacy_addons,
-        addon_prefs.show_development,
+        show_development,
     )
 
 
