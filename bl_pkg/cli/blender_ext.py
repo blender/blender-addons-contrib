@@ -862,6 +862,10 @@ def pkg_manifest_is_valid_or_error_impl(
 
             value_extract[x_key] = x_val
 
+    if error_list:
+        assert all_errors
+        return error_list
+
     return None
 
 
