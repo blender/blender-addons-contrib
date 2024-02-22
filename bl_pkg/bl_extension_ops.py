@@ -690,16 +690,17 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
     def exec_command_finish(self):
         from . import repo_cache_store
 
-        # Unlock repositories.
-        lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
-        del self.repo_lock
-
         repo_cache_store_refresh_from_prefs()
         repo_cache_store.refresh_remote_from_directory(
             directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,
             force=True,
         )
+
+        # Unlock repositories.
+        lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
+        del self.repo_lock
+
         _preferences_ui_redraw()
 
 
@@ -756,10 +757,6 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
     def exec_command_finish(self):
         from . import repo_cache_store
 
-        # Unlock repositories.
-        lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
-        del self.repo_lock
-
         repo_cache_store_refresh_from_prefs()
 
         for repo_item in extension_repos_read():
@@ -768,6 +765,10 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
                 error_fn=self.error_fn_from_exception,
                 force=True,
             )
+
+        # Unlock repositories.
+        lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
+        del self.repo_lock
 
         _preferences_ui_redraw()
 
@@ -1188,10 +1189,6 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
 
     def exec_command_finish(self):
 
-        # Unlock repositories.
-        lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
-        del self.repo_lock
-
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
 
@@ -1201,6 +1198,11 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
             error_fn=self.error_fn_from_exception,
             force=True,
         )
+
+        # Unlock repositories.
+        lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
+        del self.repo_lock
+
         repo_cache_store.refresh_local_from_directory(
             directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,
@@ -1411,10 +1413,6 @@ class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):
 
     def exec_command_finish(self):
 
-        # Unlock repositories.
-        lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
-        del self.repo_lock
-
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
 
@@ -1429,6 +1427,10 @@ class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):
                 force=True,
             )
         del repo_item
+
+        # Unlock repositories.
+        lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
+        del self.repo_lock
 
         repo_cache_store.refresh_local_from_directory(
             directory=self.repo_directory,
