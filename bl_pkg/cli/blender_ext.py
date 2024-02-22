@@ -4,23 +4,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Sub-commands:
-
-Running a Repo
-   - `server-generate` generate repository from a list of packages.
-
-Developing a Package
-   - `pkg-build` build a package.
-   - `pkg-check` check the package state (warn of any issues).
-
-Using a Package
-   - `repo-add`
-   - `repo-remove`
-   - `install` takes a name, optionally repo+name.
-   - `uninstall`
-   - `update` (defaults to all local repo).
-   - `check` (defaults to all local repo).
-   - `list` list all known remote, both local & remote (defaults to all local repos).
+Command for managing Blender extensions.
 """
 
 
