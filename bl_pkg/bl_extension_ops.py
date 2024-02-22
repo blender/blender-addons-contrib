@@ -5,14 +5,6 @@
 """
 Blender, thin wrapper around ``blender_extension_utils``.
 Where the operator shows progress, any errors and supports canceling operations.
-
- /src/blender/blender.bin --factory-startup --python ./blender/bl_extension_ops.py
-
-bpy.ops.bl_pkg.demo('INVOKE_DEFAULT')
-
-/src/blender/blender.bin \
-    --factory-startup --python ./blender/bl_extension_ops.py -b \
-    --python-expr "__import__('bpy').ops.bl_pkg.demo()"
 """
 
 __all__ = (
