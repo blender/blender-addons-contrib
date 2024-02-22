@@ -1410,6 +1410,19 @@ class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):
 
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
+
+        repo_item = _extensions_repo_from_directory(self.repo_directory)
+        if repo_item.repo_url == "":
+            # Re-generate JSON meta-data from TOML files (needed for offline repository).
+            # NOTE: This could be slow with many local extensions,
+            # we could simply remove the package that was uninstalled.
+            repo_cache_store.refresh_remote_from_directory(
+                directory=self.repo_directory,
+                error_fn=self.error_fn_from_exception,
+                force=True,
+            )
+        del repo_item
+
         repo_cache_store.refresh_local_from_directory(
             directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,

@@ -601,7 +601,7 @@ def extensions_panel_draw_impl(
 
                 # Note that we could allow removing extensions from non-remote extension repos
                 # although this is destructive, so don't enable this right now.
-                if is_installed and has_remote:
+                if is_installed:
                     rowsub = col_b.row()
                     rowsub.alignment = 'RIGHT'
                     props = rowsub.operator("bl_pkg.pkg_uninstall", text="Remove")
