@@ -224,15 +224,16 @@ class PkgManifest(NamedTuple):
     tagline: str
     version: str
     type: str
-    tags: List[str]
     maintainer: str
     license: List[str]
     blender_version_min: str
 
-    # Optional.
-    blender_version_max: str = ""
-    website: str = ""
-    copyright: Optional[List[str]] = []
+    # Optional (set all defaults).
+    blender_version_max: Optional[str] = None
+    website: Optional[str] = None
+    copyright: Optional[List[str]] = None
+    permissions: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
 
 
 class PkgManifest_Archive(NamedTuple):
@@ -722,6 +723,13 @@ def pkg_manifest_validate_field_any_list_of_non_empty_strings(value: List[Any]) 
     return None
 
 
+def pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings(value: List[Any]) -> Optional[str]:
+    if not value:
+        return "list may not be empty"
+
+    return pkg_manifest_validate_field_any_list_of_non_empty_strings(value)
+
+
 def pkg_manifest_validate_field_any_version(value: str) -> Optional[str]:
     if not RE_MANIFEST_SEMVER.match(value):
         return "to be a semantic-version, found {!r}".format(value)
@@ -746,7 +754,8 @@ def pkg_manifest_validate_field_any_version_primitive_or_empty(value: str) -> Op
 
 
 def pkg_manifest_validate_field_type(value: str) -> Optional[str]:
-    value_expected = {"add-on", "theme", "keymap"}
+    # NOTE: add "keymap" in the future.
+    value_expected = {"add-on", "theme"}
     if value not in value_expected:
         return "Expected to be one of [{:s}], found {!r}".format(", ".join(value_expected), value)
     return None
@@ -779,18 +788,19 @@ def pkg_manifest_validate_field_archive_hash(value: str) -> Optional[str]:
 pkg_manifest_known_keys_and_types: Tuple[Tuple[str, type, Optional[Callable[[Any], Optional[str]]]], ...] = (
     ("schema_version", str, pkg_manifest_validate_field_any_version),
     ("name", str, pkg_manifest_validate_field_any_non_empty_string),
-    ("tagline", str, None),
+    ("tagline", str, pkg_manifest_validate_field_any_non_empty_string),
     ("version", str, pkg_manifest_validate_field_any_version),
     ("type", str, pkg_manifest_validate_field_type),
-    ("tags", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
     ("maintainer", str, pkg_manifest_validate_field_any_non_empty_string),
-    ("license", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
+    ("license", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
     ("blender_version_min", str, pkg_manifest_validate_field_any_version_primitive),
 
     # Optional.
-    ("website", str, None),
-    ("copyright", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
     ("blender_version_max", str, pkg_manifest_validate_field_any_version_primitive_or_empty),
+    ("website", str, pkg_manifest_validate_field_any_non_empty_string),
+    ("copyright", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
+    ("permissions", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
+    ("tags", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
 )
 
 # Keep in sync with `PkgManifest_Archive`.
@@ -826,6 +836,7 @@ def pkg_manifest_is_valid_or_error_impl(
             (pkg_manifest_known_keys_and_types, )
     ):
         for x_key, x_ty, x_check_fn in known_types:
+            is_default_value = False
             x_val = data.get(x_key, ...)
             if x_val is ...:
                 x_val = PkgManifest._field_defaults.get(x_key, ...)
@@ -836,29 +847,33 @@ def pkg_manifest_is_valid_or_error_impl(
                     error_list.append("missing \"{:s}\"".format(x_key))
                     if not all_errors:
                         return error_list
+                else:
+                    is_default_value = True
                 value_extract[x_key] = x_val
                 continue
 
-            if x_ty is None:
-                pass
-            elif isinstance(x_val, x_ty):
-                pass
-            else:
-                error_list.append("\"{:s}\" must be a {:s}, not a {:s}".format(
-                    x_key,
-                    x_ty.__name__,
-                    type(x_val).__name__,
-                ))
-                if not all_errors:
-                    return error_list
-                continue
-
-            if x_check_fn is not None:
-                if (error_msg := x_check_fn(x_val)) is not None:
-                    error_list.append("key \"{:s}\" invalid: {:s}".format(x_key, error_msg))
+            # When the default value is None, skip all type checks.
+            if is_default_value and x_val is None:
+                if x_ty is None:
+                    pass
+                elif isinstance(x_val, x_ty):
+                    pass
+                else:
+                    error_list.append("\"{:s}\" must be a {:s}, not a {:s}".format(
+                        x_key,
+                        x_ty.__name__,
+                        type(x_val).__name__,
+                    ))
                     if not all_errors:
                         return error_list
                     continue
+
+                if x_check_fn is not None:
+                    if (error_msg := x_check_fn(x_val)) is not None:
+                        error_list.append("key \"{:s}\" invalid: {:s}".format(x_key, error_msg))
+                        if not all_errors:
+                            return error_list
+                        continue
 
             value_extract[x_key] = x_val
 
@@ -1319,6 +1334,11 @@ class subcmd_server:
             manifest_dict = manifest._asdict()
             # TODO: we could have a method besides `_asdict` that excludes the ID.
             pkg_idname = manifest_dict.pop("id")
+
+            # Call all optional keys so the JSON never contains `null` items.
+            for key, value in list(manifest_dict.items()):
+                if value is None:
+                    del manifest_dict[key]
 
             # These are added, ensure they don't exist.
             has_key_error = False
