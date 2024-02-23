@@ -1935,7 +1935,7 @@ class subcmd_dummy:
                     fh.write("""name = "{:s}"\n""".format(pkg_name))
                     fh.write("""type = "add-on"\n""")
                     fh.write("""tags = []\n""")
-                    fh.write("""maintainer = "Maintainer Name"\n""")
+                    fh.write("""maintainer = "Maintainer Name <username@addr.com>"\n""")
                     fh.write("""license = ["SPDX:GPL-2.0-or-later"]\n""")
                     fh.write("""version = "1.0.0"\n""")
                     fh.write("""tagline = "This is a tagline"\n""")

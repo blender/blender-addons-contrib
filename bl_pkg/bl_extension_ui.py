@@ -260,7 +260,7 @@ def extensions_panel_draw_legacy_addons(
 
             if value := bl_info["author"]:
                 col_a.label(text="Author:")
-                col_b.label(text=value, translate=False)
+                col_b.label(text=value.split("<", 1)[0].rstrip(), translate=False)
             if value := bl_info["version"]:
                 col_a.label(text="Version:")
                 col_b.label(text=".".join(str(x) for x in value), translate=False)
@@ -583,8 +583,10 @@ def extensions_panel_draw_impl(
                     col_a.label(text="Path:")
                     col_b.label(text=os.path.join(repos_all[repo_index].directory, pkg_id), translate=False)
 
+                # Remove the maintainers email while it's not private, showing prominently
+                # could cause maintainers to get direct emails instead of issue tracking systems.
                 col_a.label(text="Maintainer:")
-                col_b.label(text=item_remote["maintainer"])
+                col_b.label(text=item_remote["maintainer"].split("<", 1)[0].rstrip(), translate=False)
 
                 col_a.label(text="License:")
                 col_b.label(text=license_info_to_text(item_remote["license"]))
