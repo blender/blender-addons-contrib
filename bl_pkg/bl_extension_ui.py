@@ -33,13 +33,13 @@ from . import repo_status_text
 # Generic Utilities
 
 
-def size_as_fmt_string(num: float) -> str:
-    for unit in ("b", "kb", "mb", "gb", "tb", "pb", "eb", "zb"):
+def size_as_fmt_string(num: float, *, precision: int = 1) -> str:
+    for unit in ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB"):
         if abs(num) < 1024.0:
-            return "{:3.1f}{:s}".format(num, unit)
+            return "{:3.{:d}f}{:s}".format(num, precision, unit)
         num /= 1024.0
     unit = "yb"
-    return "{:.1f}{:s}".format(num, unit)
+    return "{:.{:d}f}{:s}".format(num, precision, unit)
 
 
 def sizes_as_percentage_string(size_partial: int, size_final: int) -> str:
@@ -108,15 +108,15 @@ def extension_url_find_repo_index_and_pkg_id(url):
             # Calculate the absolute URL.
             archive_url_abs = pkg_manifest_archive_url_abs_from_repo_url(repo_url, archive_url)
             if archive_url_abs == url:
-                return repo_index, pkg_id, item_remote, pkg_manifest_local.get(pkg_id)
+                return repo_index, repo.name, pkg_id, item_remote, pkg_manifest_local.get(pkg_id)
 
-    return -1, "", None, None
+    return -1, "", "", None, None
 
 
 def extension_drop_url_popover(panel, context, url):
     layout = panel.layout
 
-    repo_index, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
+    repo_index, repo_name, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
 
     if repo_index == -1:
         layout.label(text="Extension: URL not found in remote repositories!", icon='ERROR')
@@ -128,15 +128,25 @@ def extension_drop_url_popover(panel, context, url):
         layout.label(text="Already installed!")
         return
 
-    layout.label(
-        text="Extension: {:s} ({:s})".format(
-            pkg_id,
-            size_as_fmt_string(item_remote["archive_size"])
-        ),
-        icon='QUESTION',
-    )
-    props = layout.operator("bl_pkg.pkg_install", text="Install & Enable")
+    layout.label(text="Install Extension")
+    layout.separator(type='LINE')
+    layout.label(text="Do you want to install the following {:s}?".format(item_remote["type"]))
 
+    col = layout.column(align=True)
+    col.label(text="Name: {:s}".format(item_remote["name"]))
+    col.label(text="Repository: {:s}".format(repo_name))
+    col.label(text="Size: {:s}".format(size_as_fmt_string(item_remote["archive_size"], precision=0)))
+    del col
+
+    layout.separator()
+
+    # if item_remote["type"] == "add-on":
+    #     # TODO: option to enable.
+    #     pass
+
+    row = layout.row()
+
+    props = row.operator("bl_pkg.pkg_install", text="Install & Enable")
     props.repo_index = repo_index
     props.pkg_id = pkg_id
 
@@ -149,6 +159,7 @@ def extension_drop_filepath_popover(panel, context, url):
     # The API may need to be extended to better support this use-case.
     layout.operator_context = 'EXEC_DEFAULT'
     layout.label(text="Install from Disk")
+    layout.separator(type='LINE')
     props = layout.operator_menu_enum("bl_pkg.pkg_install_files", "repo", text="Local Repository")
     props.filepath = url
 
