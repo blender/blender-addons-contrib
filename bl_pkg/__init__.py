@@ -15,6 +15,23 @@ bl_info = {
     "category": "System",
 }
 
+if "bpy" in locals():
+    import importlib
+    from . import (
+        bl_extension_ops,
+        bl_extension_ui,
+        bl_extension_utils,
+    )
+    importlib.reload(bl_extension_ops)
+    importlib.reload(bl_extension_ui)
+    importlib.reload(bl_extension_utils)
+    del (
+        bl_extension_ops,
+        bl_extension_ui,
+        bl_extension_utils,
+    )
+    del importlib
+
 import bpy
 
 from bpy.props import (

@@ -734,7 +734,7 @@ def pkg_manifest_validate_field_any_version_primitive_or_empty(value: str) -> Op
     return None
 
 # -----------------------------------------------------------------------------
-# Manifest Validation (Spesific Callbacks)
+# Manifest Validation (Specific Callbacks)
 
 
 def pkg_manifest_validate_field_type(value: str) -> Optional[str]:
