@@ -50,10 +50,6 @@ from .bl_extension_utils import (
     RepoLockContext,
 )
 
-# Enable extensions when they're installed.
-USE_ENABLE_ON_INSTALL = True
-
-
 rna_prop_url = StringProperty(name="URL", subtype='FILE_PATH', options={'HIDDEN'})
 rna_prop_directory = StringProperty(name="Repo Directory", subtype='FILE_PATH')
 rna_prop_repo_index = IntProperty(name="Repo Index", default=-1)
@@ -125,6 +121,13 @@ class CheckSIGINT_Context:
 # -----------------------------------------------------------------------------
 # Internal Utilities
 #
+
+def wm_close_popup_hack():
+    # Setting the workspace closes popup, we may want an API for this.
+    from bpy import context
+    window = context.window
+    window.workspace = window.workspace
+
 
 def online_user_agent_from_blender():
     # NOTE: keep this brief and avoid `platform.platform()` which could identify individual users.
@@ -1095,10 +1098,20 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
         description="The local repository to install extensions into",
     )
 
+    enable_on_install: BoolProperty(
+        name="Enable Add-on",
+        description="Enable add-ons after installing",
+        default=True,
+    )
+
     def exec_command_iter(self, is_modal):
         from .bl_extension_utils import (
             pkg_manifest_dict_from_file_or_error,
         )
+        from .bl_extension_ui import (
+            extension_drop_file_popover_close_as_needed,
+        )
+        extension_drop_file_popover_close_as_needed()
 
         self._addon_restore = []
 
@@ -1223,7 +1236,7 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
                 pkg_id_sequence_installed = pkg_id_sequence
 
         # Install.
-        if USE_ENABLE_ON_INSTALL:
+        if self.enable_on_install:
             import addon_utils
 
             # TODO: it would be nice to include this message in the banner.
@@ -1272,7 +1285,18 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
 
     pkg_id: rna_prop_pkg_id
 
+    enable_on_install: BoolProperty(
+        name="Enable Add-on",
+        description="Enable add-ons after installing",
+        default=True,
+    )
+
     def exec_command_iter(self, is_modal):
+        from .bl_extension_ui import (
+            extension_drop_url_popover_close_as_needed,
+        )
+        extension_drop_url_popover_close_as_needed()
+
         self._addon_restore = []
 
         directory = _repo_dir_and_index_get(self.repo_index, self.repo_directory, self.report)
@@ -1352,7 +1376,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
                 )
         else:
             # Install.
-            if USE_ENABLE_ON_INSTALL:
+            if self.enable_on_install:
                 import addon_utils
 
                 # TODO: it would be nice to include this message in the banner.
@@ -1678,6 +1702,16 @@ class BlPkgEnableNotInstalled(Operator):
         return {'CANCELLED'}
 
 
+class BlPkgPopupCancel(Operator):
+    """Close the popup"""
+    bl_idname = "bl_pkg.popup_cancel"
+    bl_label = "Cancel"
+
+    def execute(self, context):
+        wm_close_popup_hack()
+        return {'CANCELLED'}
+
+
 # -----------------------------------------------------------------------------
 # Register
 #
@@ -1709,6 +1743,7 @@ classes = (
 
     # Dummy, just shows a message.
     BlPkgEnableNotInstalled,
+    BlPkgPopupCancel,
 
     # Dummy commands (for testing).
     BlPkgDummyProgress,

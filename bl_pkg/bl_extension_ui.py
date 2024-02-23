@@ -9,8 +9,10 @@ Written to allow a UI without modifying Blender.
 
 __all__ = (
     "display_errors",
-    "extension_drop_filepath_popover",
+    "extension_drop_file_popover",
+    "extension_drop_file_popover_close_as_needed",
     "extension_drop_url_popover",
+    "extension_drop_url_popover_close_as_needed",
     "register",
     "unregister",
 )
@@ -113,55 +115,57 @@ def extension_url_find_repo_index_and_pkg_id(url):
     return -1, "", "", None, None
 
 
-def extension_drop_url_popover(panel, context, url):
-    layout = panel.layout
+def wm_error(title, body, *, icon):
+    def fn(panel, context):
+        layout = panel.layout
+        layout.label(text=title, icon=icon)
+        if body:
+            layout.label(text=body)
 
+    wm = bpy.context.window_manager
+    wm.popover(fn, ui_units_x=14)
+
+
+def extension_drop_url_popover(url):
     repo_index, repo_name, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
 
     if repo_index == -1:
-        layout.label(text="Extension: URL not found in remote repositories!", icon='ERROR')
-        layout.label(text=url)
+        wm_error("Extension: URL not found in remote repositories!", url, icon='ERROR')
         return
 
     if item_local is not None:
-        layout.label(text="Extension: {:s}".format(pkg_id), icon='INFO')
-        layout.label(text="Already installed!")
+        wm_error("Extension: {:s}".format(pkg_id), "Already installed!", icon='ERROR')
         return
 
-    layout.label(text="Install Extension")
-    layout.separator(type='LINE')
-    layout.label(text="Do you want to install the following {:s}?".format(item_remote["type"]))
-
-    col = layout.column(align=True)
-    col.label(text="Name: {:s}".format(item_remote["name"]))
-    col.label(text="Repository: {:s}".format(repo_name))
-    col.label(text="Size: {:s}".format(size_as_fmt_string(item_remote["archive_size"], precision=0)))
-    del col
-
-    layout.separator()
-
-    # if item_remote["type"] == "add-on":
-    #     # TODO: option to enable.
-    #     pass
-
-    row = layout.row()
-
-    props = row.operator("bl_pkg.pkg_install", text="Install & Enable")
-    props.repo_index = repo_index
-    props.pkg_id = pkg_id
+    USERPREF_PT_extensions_bl_pkg_drop_url.drop_variables = repo_index, repo_name, pkg_id, item_remote
+    bpy.ops.wm.call_panel(name="USERPREF_PT_extensions_bl_pkg_drop_url", keep_open=True)
 
 
-def extension_drop_filepath_popover(panel, context, url):
-    layout = panel.layout
+def extension_drop_url_popover_close_as_needed():
+    if USERPREF_PT_extensions_bl_pkg_drop_url.drop_variables is None:
+        return
+    USERPREF_PT_extensions_bl_pkg_drop_url.drop_variables = None
+    from .bl_extension_ops import wm_close_popup_hack
+    wm_close_popup_hack()
 
-    # TODO: this UI isn't so nice, ideally the repo can be selected with an OK button.
-    # This is more complicated than it might seem as calling `bpy.ops.*` doesn't forward errors to the window-manager.
-    # The API may need to be extended to better support this use-case.
-    layout.operator_context = 'EXEC_DEFAULT'
-    layout.label(text="Install from Disk")
-    layout.separator(type='LINE')
-    props = layout.operator_menu_enum("bl_pkg.pkg_install_files", "repo", text="Local Repository")
-    props.filepath = url
+
+def extension_drop_file_popover(url):
+    from .bl_extension_ops import repo_iter_valid_local_only
+
+    if not list(repo_iter_valid_local_only(bpy.context)):
+        wm_error("Error", "No Local Repositories", icon='ERROR')
+        return
+
+    USERPREF_PT_extensions_bl_pkg_drop_file.drop_variables = url
+    bpy.ops.wm.call_panel(name="USERPREF_PT_extensions_bl_pkg_drop_file", keep_open=True)
+
+
+def extension_drop_file_popover_close_as_needed():
+    if USERPREF_PT_extensions_bl_pkg_drop_file.drop_variables is None:
+        return
+    USERPREF_PT_extensions_bl_pkg_drop_file.drop_variables = None
+    from .bl_extension_ops import wm_close_popup_hack
+    wm_close_popup_hack()
 
 
 # -----------------------------------------------------------------------------
@@ -794,10 +798,101 @@ def extensions_panel_draw(panel, context):
     )
 
 
+class USERPREF_PT_extensions_bl_pkg_drop_url(Panel):
+    bl_label = "Drop URL"
+
+    bl_space_type = 'TOPBAR'  # dummy.
+    bl_region_type = 'HEADER'
+    bl_ui_units_x = 13
+
+    # WARNING: workaround for not being able to pass arguments to a popup.
+    drop_variables = None
+
+    def draw(self, context):
+        layout = self.layout
+
+        repo_index, repo_name, pkg_id, item_remote = USERPREF_PT_extensions_bl_pkg_drop_url.drop_variables
+
+        layout.label(text="Install Extension")
+        layout.separator(type='LINE')
+        layout.label(text="Do you want to install the following {:s}?".format(item_remote["type"]))
+
+        col = layout.column(align=True)
+        col.label(text="Name: {:s}".format(item_remote["name"]))
+        col.label(text="Repository: {:s}".format(repo_name))
+        col.label(text="Size: {:s}".format(size_as_fmt_string(item_remote["archive_size"], precision=0)))
+        del col
+
+        layout.separator()
+
+        if item_remote["type"] == "add-on":
+            wm = context.window_manager
+            layout.prop(wm, "extension_enable_on_install")
+            enable_on_install = wm.extension_enable_on_install
+        else:
+            enable_on_install = False
+
+        layout.separator()
+
+        row = layout.row()
+
+        row.operator("bl_pkg.popup_cancel", text="Cancel")
+
+        props = row.operator("bl_pkg.pkg_install", text="Install")
+        props.repo_index = repo_index
+        props.pkg_id = pkg_id
+        props.enable_on_install = enable_on_install
+
+
+class USERPREF_PT_extensions_bl_pkg_drop_file(Panel):
+    bl_label = "Drop File"
+
+    bl_space_type = 'TOPBAR'  # dummy.
+    bl_region_type = 'HEADER'
+    bl_ui_units_x = 13
+
+    # WARNING: workaround for not being able to pass arguments to a popup.
+    drop_variables = None
+
+    def draw(self, context):
+        layout = self.layout
+
+        url = USERPREF_PT_extensions_bl_pkg_drop_file.drop_variables
+
+        # TODO: this UI isn't so nice, ideally the repo can be selected with an OK button.
+        # This is more complicated than it might seem as calling `bpy.ops.*` doesn't forward errors to the window-manager.
+        # The API may need to be extended to better support this use-case.
+        layout.operator_context = 'EXEC_DEFAULT'
+        layout.label(text="Install from Disk")
+        layout.separator(type='LINE')
+
+        wm = context.window_manager
+        layout.label(text="Local Repository")
+        layout.prop(wm, "extension_local_repos", text="")
+
+        # TODO: inspect the ZIP and find if the type is an add-on.
+        if True:
+            wm = context.window_manager
+            layout.prop(wm, "extension_enable_on_install")
+            enable_on_install = wm.extension_enable_on_install
+
+        row = layout.row()
+
+        row.operator("bl_pkg.popup_cancel", text="Cancel")
+
+        props = row.operator("bl_pkg.pkg_install_files", text="Install")
+        props.repo = wm.extension_local_repos
+        props.filepath = url
+        props.enable_on_install = enable_on_install
+
+
 classes = (
     # Pop-overs.
     USERPREF_PT_extensions_bl_pkg_filter,
     USERPREF_MT_extensions_bl_pkg_settings,
+
+    USERPREF_PT_extensions_bl_pkg_drop_url,
+    USERPREF_PT_extensions_bl_pkg_drop_file,
 )
 
 

@@ -180,20 +180,13 @@ def extenion_repos_upgrade(*_):
 def extenion_url_drop(url):
     from .bl_extension_ui import (
         extension_drop_url_popover,
-        extension_drop_filepath_popover,
+        extension_drop_file_popover,
     )
 
-    wm = bpy.context.window_manager
     if url.startswith(("http://", "https://", "file://")):
-        wm.popover(
-            lambda panel, context: extension_drop_url_popover(panel, context, url),
-            ui_units_x=14,
-        )
+        extension_drop_url_popover(url)
     else:
-        wm.popover(
-            lambda panel, context: extension_drop_filepath_popover(panel, context, url),
-            ui_units_x=14,
-        )
+        extension_drop_file_popover(url)
 
 
 # -----------------------------------------------------------------------------
@@ -408,6 +401,19 @@ def register():
     WindowManager.extension_show_legacy_addons = BoolProperty(
         name="Show Legacy Add-Ons",
         description="Only show extensions, hiding legacy add-ons",
+        default=True,
+    )
+
+    # Use for drag & drop operators.
+    from .bl_extension_ops import rna_prop_repo_enum_local_only_itemf
+    WindowManager.extension_local_repos = EnumProperty(
+        name="Local Repository",
+        description="Local repository",
+        items=rna_prop_repo_enum_local_only_itemf,
+    )
+    WindowManager.extension_enable_on_install = BoolProperty(
+        name="Enable Add-on",
+        description="Enable on install",
         default=True,
     )
 
