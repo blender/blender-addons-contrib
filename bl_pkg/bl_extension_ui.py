@@ -120,6 +120,7 @@ def wm_error(title, body, *, icon):
         layout = panel.layout
         layout.label(text=title, icon=icon)
         if body:
+            layout.separator(type='LINE')
             layout.label(text=body)
 
     wm = bpy.context.window_manager
