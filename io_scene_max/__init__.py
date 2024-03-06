@@ -66,9 +66,9 @@ class Import_max(bpy.types.Operator, ImportHelper):
         default=False,
     )
 
-    @classmethod
-    def poll(cls, context):
-        return (context.area and context.area.type == "VIEW_3D")
+    # @classmethod
+    # def poll(cls, context):
+    #     return (context.area and context.area.type == "VIEW_3D")
 
     def execute(self, context):
         from . import import_max
@@ -81,11 +81,11 @@ class Import_max(bpy.types.Operator, ImportHelper):
 
         return import_max.load(self, context, **keywords)
 
-    def invoke(self, context, event):
-        if self.filepath:
-            return self.execute(context)
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+    # def invoke(self, context, event):
+    #     if self.filepath:
+    #         return self.execute(context)
+    #     context.window_manager.fileselect_add(self)
+    #     return {'RUNNING_MODAL'}
 
     def draw(self, context):
         pass
