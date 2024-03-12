@@ -152,10 +152,16 @@ def extension_drop_url_popover_close_as_needed():
 
 def extension_drop_file_popover(url):
     from .bl_extension_ops import repo_iter_valid_local_only
+    from .bl_extension_utils import pkg_manifest_dict_from_file_or_error
 
     if not list(repo_iter_valid_local_only(bpy.context)):
         wm_error("Error", "No Local Repositories", icon='ERROR')
         return
+
+    if isinstance(err := pkg_manifest_dict_from_file_or_error(url), str):
+        wm_error("Error", err, icon='ERROR')
+        return
+    del err
 
     USERPREF_PT_extensions_bl_pkg_drop_file.drop_variables = url
     bpy.ops.wm.call_panel(name="USERPREF_PT_extensions_bl_pkg_drop_file", keep_open=True)

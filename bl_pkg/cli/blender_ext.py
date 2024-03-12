@@ -475,7 +475,7 @@ def pkg_manifest_from_archive_and_validate(
     # TODO: handle errors.
     with zipfile.ZipFile(filepath, mode="r") as zip_fh:
         if (archive_subdir := pkg_zipfile_detect_subdir_or_none(zip_fh)) is None:
-            return "Archive has no manifest"
+            return "Archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML)
         return pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir)
 
 
