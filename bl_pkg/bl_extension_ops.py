@@ -59,15 +59,19 @@ rna_prop_pkg_id = StringProperty(name="Package ID")
 
 def rna_prop_repo_enum_local_only_itemf(_self, context):
     if context is None:
-        return []
-    return [
-        (
-            repo_item.module,
-            repo_item.name if repo_item.enabled else (repo_item.name + " (disabled)"),
-            "",
-        )
-        for repo_item in repo_iter_valid_local_only(context)
-    ]
+        result = []
+    else:
+        result = [
+            (
+                repo_item.module,
+                repo_item.name if repo_item.enabled else (repo_item.name + " (disabled)"),
+                "",
+            )
+            for repo_item in repo_iter_valid_local_only(context)
+        ]
+    # Prevent the strings from being freed.
+    rna_prop_repo_enum_local_only_itemf._result = result
+    return result
 
 
 is_background = bpy.app.background
