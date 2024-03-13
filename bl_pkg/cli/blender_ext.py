@@ -1186,19 +1186,19 @@ def generic_arg_local_dir(subparse: argparse.ArgumentParser) -> None:
 
 
 # Only for authoring.
-def generic_arg_source_dir(subparse: argparse.ArgumentParser) -> None:
+def generic_arg_package_source_dir(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--source-dir",
         dest="source_dir",
         type=str,
         help=(
-            "The package source directory."
+            "The package source directory containing a \"{:s}\" manifest.".format(PKG_MANIFEST_FILENAME_TOML)
         ),
         default=".",
     )
 
 
-def generic_arg_output_dir(subparse: argparse.ArgumentParser) -> None:
+def generic_arg_package_output_dir(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--output-dir",
         dest="output_dir",
@@ -1210,13 +1210,13 @@ def generic_arg_output_dir(subparse: argparse.ArgumentParser) -> None:
     )
 
 
-def generic_arg_output_filepath(subparse: argparse.ArgumentParser) -> None:
+def generic_arg_package_output_filepath(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--output-filepath",
         dest="output_filepath",
         type=str,
         help=(
-            "The package output filepath."
+            "The package output filepath (should include a \"{:s}\" extension).".format(PKG_EXT)
         ),
         default=".",
     )
@@ -2177,9 +2177,9 @@ def argparse_create_author_build(subparsers: "argparse._SubParsersAction[argpars
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    generic_arg_source_dir(subparse)
-    generic_arg_output_dir(subparse)
-    generic_arg_output_filepath(subparse)
+    generic_arg_package_source_dir(subparse)
+    generic_arg_package_output_dir(subparse)
+    generic_arg_package_output_filepath(subparse)
 
     generic_arg_output_type(subparse)
 
