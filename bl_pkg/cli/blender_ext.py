@@ -386,7 +386,9 @@ def pkg_manifest_archive_from_dict_and_validate(
     return PkgManifest_Archive(
         manifest=manifest,
         archive_size=data["archive_size"],
-        archive_hash=data["archive_hash"],
+        # Repositories that use their own hash generation may use capitals,
+        # ensure always lowercase for comparison (hashes generated here are always lowercase).
+        archive_hash=data["archive_hash"].lower(),
         archive_url=data["archive_url"],
     )
 
