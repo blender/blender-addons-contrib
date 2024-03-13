@@ -839,7 +839,7 @@ def pkg_manifest_is_valid_or_error_impl(
                 continue
 
             # When the default value is None, skip all type checks.
-            if is_default_value and x_val is None:
+            if not (is_default_value and x_val is None):
                 if x_ty is None:
                     pass
                 elif isinstance(x_val, x_ty):
