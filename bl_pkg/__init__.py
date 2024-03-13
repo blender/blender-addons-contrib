@@ -352,12 +352,19 @@ def theme_preset_draw(menu, context):
                 props.menu_idname = menu_idname
 
 
+def cli_extension(argv):
+    from . import bl_extension_cli
+    return bl_extension_cli.cli_extension_handler(argv)
+
+
 # -----------------------------------------------------------------------------
 # Registration
 
 classes = (
     BlExtPreferences,
 )
+
+cli_commands = []
 
 
 def register():
@@ -438,6 +445,8 @@ def register():
     handlers = bpy.app.handlers._extension_drop_url
     handlers.append(extenion_url_drop)
 
+    cli_commands.append(bpy.utils.register_cli_command("extension", cli_extension))
+
     monkeypatch_install()
 
 
@@ -483,5 +492,9 @@ def unregister():
     handlers = bpy.app.handlers._extension_drop_url
     if extenion_url_drop in handlers:
         handlers.remove(extenion_url_drop)
+
+    for cmd in cli_commands:
+        bpy.utils.unregister_cli_command(cmd)
+    cli_commands.clear()
 
     monkeypatch_uninstall()

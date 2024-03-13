@@ -39,6 +39,8 @@ from typing import (
     Union,
 )
 
+ArgsSubparseFn = Callable[["argparse._SubParsersAction[argparse.ArgumentParser]"], None]
+
 REQUEST_EXIT = False
 
 # Expect the remote URL to contain JSON (don't append the JSON name to the path).
@@ -2266,7 +2268,10 @@ def argparse_create_dummy_progress(subparsers: "argparse._SubParsersAction[argpa
     )
 
 
-def argparse_create() -> argparse.ArgumentParser:
+def argparse_create(
+        args_internal: bool = True,
+        args_extra_subcommands_fn: Optional[ArgsSubparseFn] = None,
+) -> argparse.ArgumentParser:
 
     usage_text = "blender_ext!\n" + __doc__
 
@@ -2284,21 +2289,25 @@ def argparse_create() -> argparse.ArgumentParser:
 
     argparse_create_server_generate(subparsers)
 
-    # Queries.
-    argparse_create_client_list(subparsers)
+    if args_internal:
+        # Queries.
+        argparse_create_client_list(subparsers)
 
-    # Manipulating Actions.
-    argparse_create_client_sync(subparsers)
-    argparse_create_client_install_files(subparsers)
-    argparse_create_client_install(subparsers)
-    argparse_create_client_uninstall(subparsers)
+        # Manipulating Actions.
+        argparse_create_client_sync(subparsers)
+        argparse_create_client_install_files(subparsers)
+        argparse_create_client_install(subparsers)
+        argparse_create_client_uninstall(subparsers)
+
+        # Dummy commands.
+        argparse_create_dummy_repo(subparsers)
+        argparse_create_dummy_progress(subparsers)
 
     # Authoring Commands.
     argparse_create_author_build(subparsers)
 
-    # Dummy commands.
-    argparse_create_dummy_repo(subparsers)
-    argparse_create_dummy_progress(subparsers)
+    if args_extra_subcommands_fn is not None:
+        args_extra_subcommands_fn(subparsers)
 
     return parser
 
@@ -2356,7 +2365,11 @@ def msg_fn_from_args(args: argparse.Namespace) -> MessageFn:
     raise Exception("Unknown output!")
 
 
-def main(argv: Optional[List[str]] = None) -> bool:
+def main(
+        argv: Optional[List[str]] = None,
+        args_internal: bool = True,
+        args_extra_subcommands_fn: Optional[ArgsSubparseFn] = None,
+) -> bool:
 
     # Needed on WIN32 which doesn't default to `utf-8`.
     for fh in (sys.stdout, sys.stderr):
@@ -2371,7 +2384,10 @@ def main(argv: Optional[List[str]] = None) -> bool:
         sys.stdout.write("{:s}\n".format(VERSION))
         return True
 
-    parser = argparse_create()
+    parser = argparse_create(
+        args_internal=args_internal,
+        args_extra_subcommands_fn=args_extra_subcommands_fn,
+    )
     args = parser.parse_args(argv)
     # Call sub-parser callback.
     if not hasattr(args, "func"):
