@@ -1885,6 +1885,33 @@ class subcmd_author:
         message_status(msg_fn, "created \"{:s}\", {:d}".format(outfile, os.path.getsize(outfile)))
         return True
 
+    @staticmethod
+    def validate(
+            msg_fn: MessageFn,
+            *,
+            pkg_source_dir: str,
+    ) -> bool:
+        if not os.path.isdir(pkg_source_dir):
+            message_error(msg_fn, "Missing local \"{:s}\"".format(pkg_source_dir))
+            return False
+
+        pkg_manifest_filepath = os.path.join(pkg_source_dir, PKG_MANIFEST_FILENAME_TOML)
+
+        if not os.path.exists(pkg_manifest_filepath):
+            message_error(msg_fn, "File \"{:s}\" not found!".format(pkg_manifest_filepath))
+            return False
+
+        # Demote errors to status as the function of this action is to check the manifest is stable.
+        manifest = pkg_manifest_from_toml_and_validate_all_errors(pkg_manifest_filepath)
+        if isinstance(manifest, list):
+            message_status(msg_fn, "Error parsing TOML \"{:s}\"".format(pkg_manifest_filepath))
+            for error_msg in manifest:
+                message_status(msg_fn, error_msg)
+            return False
+
+        message_status(msg_fn, "Success parsing TOML \"{:s}\"".format(pkg_manifest_filepath))
+        return True
+
 
 class subcmd_dummy:
 
@@ -2173,7 +2200,7 @@ def argparse_create_author_build(subparsers: "argparse._SubParsersAction[argpars
     subparse = subparsers.add_parser(
         "build",
         help="Build a package.",
-        description="Build a packaging in the current directory.",
+        description="Build a package in the current directory.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
@@ -2189,6 +2216,25 @@ def argparse_create_author_build(subparsers: "argparse._SubParsersAction[argpars
             pkg_source_dir=args.source_dir,
             pkg_output_dir=args.output_dir,
             pkg_output_filepath=args.output_filepath,
+        ),
+    )
+
+
+def argparse_create_author_validate(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
+    subparse = subparsers.add_parser(
+        "validate",
+        help="Validate a package.",
+        description="Validate a package in the current directory.",
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    generic_arg_package_source_dir(subparse)
+
+    generic_arg_output_type(subparse)
+
+    subparse.set_defaults(
+        func=lambda args: subcmd_author.validate(
+            msg_fn_from_args(args),
+            pkg_source_dir=args.source_dir,
         ),
     )
 
@@ -2305,6 +2351,7 @@ def argparse_create(
 
     # Authoring Commands.
     argparse_create_author_build(subparsers)
+    argparse_create_author_validate(subparsers)
 
     if args_extra_subcommands_fn is not None:
         args_extra_subcommands_fn(subparsers)
