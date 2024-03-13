@@ -1184,10 +1184,10 @@ def generic_arg_local_dir(subparse: argparse.ArgumentParser) -> None:
 
 
 # Only for authoring.
-def generic_arg_pkg_source_dir(subparse: argparse.ArgumentParser) -> None:
+def generic_arg_source_dir(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
-        "--pkg-source-dir",
-        dest="pkg_source_dir",
+        "--source-dir",
+        dest="source_dir",
         type=str,
         help=(
             "The package source directory."
@@ -1196,10 +1196,10 @@ def generic_arg_pkg_source_dir(subparse: argparse.ArgumentParser) -> None:
     )
 
 
-def generic_arg_pkg_output_dir(subparse: argparse.ArgumentParser) -> None:
+def generic_arg_output_dir(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
-        "--pkg-output-dir",
-        dest="pkg_output_dir",
+        "--output-dir",
+        dest="output_dir",
         type=str,
         help=(
             "The package output directory."
@@ -1208,10 +1208,10 @@ def generic_arg_pkg_output_dir(subparse: argparse.ArgumentParser) -> None:
     )
 
 
-def generic_arg_pkg_output_filepath(subparse: argparse.ArgumentParser) -> None:
+def generic_arg_output_filepath(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
-        "--pkg-output-filepath",
-        dest="pkg_output_filepath",
+        "--output-filepath",
+        dest="output_filepath",
         type=str,
         help=(
             "The package output filepath."
@@ -1807,7 +1807,7 @@ class subcmd_client:
 class subcmd_author:
 
     @staticmethod
-    def pkg_build(
+    def build(
             msg_fn: MessageFn,
             *,
             pkg_source_dir: str,
@@ -1963,8 +1963,8 @@ def unregister():
                 with open(os.path.join(docs, "readme.txt"), "w", encoding="utf-8") as fh:
                     fh.write("Example readme.")
 
-                # `{cmd} pkg-build --pkg-source-dir {pkg_src_dir} --pkg-output-dir {repo_dir}`.
-                if not subcmd_author.pkg_build(
+                # `{cmd} build --pkg-source-dir {pkg_src_dir} --pkg-output-dir {repo_dir}`.
+                if not subcmd_author.build(
                     msg_fn_no_done,
                     pkg_source_dir=pkg_src_dir,
                     pkg_output_dir=repo_dir,
@@ -2169,24 +2169,24 @@ def argparse_create_client_uninstall(subparsers: "argparse._SubParsersAction[arg
 
 def argparse_create_author_build(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     subparse = subparsers.add_parser(
-        "pkg-build",
+        "build",
         help="Build a package.",
         description="Build a packaging in the current directory.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    generic_arg_pkg_source_dir(subparse)
-    generic_arg_pkg_output_dir(subparse)
-    generic_arg_pkg_output_filepath(subparse)
+    generic_arg_source_dir(subparse)
+    generic_arg_output_dir(subparse)
+    generic_arg_output_filepath(subparse)
 
     generic_arg_output_type(subparse)
 
     subparse.set_defaults(
-        func=lambda args: subcmd_author.pkg_build(
+        func=lambda args: subcmd_author.build(
             msg_fn_from_args(args),
-            pkg_source_dir=args.pkg_source_dir,
-            pkg_output_dir=args.pkg_output_dir,
-            pkg_output_filepath=args.pkg_output_filepath,
+            pkg_source_dir=args.source_dir,
+            pkg_output_dir=args.output_dir,
+            pkg_output_filepath=args.output_filepath,
         ),
     )
 

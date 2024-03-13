@@ -91,14 +91,14 @@ First you need to create individual packages for the individual extension:
 
 - Go to the directory of the extension you want to package.
 - Create a ``bl_ext_pkg.toml`` file with your configuration.
-- Run the command ``blender_ext.py pkg-build``.
+- Run the command ``blender_ext.py build``.
 
 You can look at an example of a dummy extension in the ``example_extension`` directory.
 
 .. code-block::
 
    cd ./example_extension
-   ../blender_addon/bl_pkg/cli/blender_ext.py pkg-build
+   ../blender_addon/bl_pkg/cli/blender_ext.py build
 
 This will create a ``my_example_package.txz`` (as specified in the .toml file).
 
