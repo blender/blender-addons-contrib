@@ -216,6 +216,7 @@ def monkeypatch_extenions_repos_update_pre_impl():
 
 
 def monkeypatch_extenions_repos_update_post_impl():
+    import os
     from . import bl_extension_ops
 
     bl_extension_ops.repo_cache_store_refresh_from_prefs()
@@ -228,7 +229,9 @@ def monkeypatch_extenions_repos_update_post_impl():
         directory, _repo_path = repo_paths_or_none(repo_item)
         if directory is None:
             continue
-
+        # Happens for newly added extension directories.
+        if not os.path.exists(directory):
+            continue
         if directory in _monkeypatch_extenions_repos_update_dirs:
             continue
         # Ignore missing because the new repo might not have a JSON file.
