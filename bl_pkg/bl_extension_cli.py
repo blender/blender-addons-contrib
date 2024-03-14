@@ -62,11 +62,10 @@ def generic_arg_sync(subparse):
         "-s",
         "--sync",
         dest="sync",
-        metavar="BOOLEAN",
-        type=arg_handle_int_as_bool,
-        default=True,
+        action="store_true",
+        default=False,
         help=(
-            "Sync the remote directory before performing the action (default=1)."
+            "Sync the remote directory before performing the action."
         ),
     )
 
@@ -75,11 +74,10 @@ def generic_arg_enable_on_install(subparse):
     subparse.add_argument(
         "--enable",
         dest="enable",
-        metavar="BOOLEAN",
-        type=arg_handle_int_as_bool,
-        default=True,
+        action="store_true",
+        default=False,
         help=(
-            "Enable the extension after installation (default=1)"
+            "Enable the extension after installation."
         ),
     )
 
@@ -273,7 +271,7 @@ class subcmd_pkg:
     def __new__(cls):
         raise RuntimeError("{:s} should not be instantiated".format(cls))
 
-    def upgrade(sync):
+    def update(sync):
         if sync:
             if not subcmd_utils.sync():
                 return False
@@ -448,19 +446,19 @@ def cli_extension_args_sync(subparsers):
 
 
 def cli_extension_args_upgrade(subparsers):
-    # Implement "upgrade".
+    # Implement "update".
     subparse = subparsers.add_parser(
-        "upgrade",
+        "update",
         help="Upgrade any outdated packages.",
         description=(
-            "Download and upgrade any outdated packages."
+            "Download and update any outdated packages."
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     generic_arg_sync(subparse)
 
     subparse.set_defaults(
-        func=lambda args: subcmd_pkg.upgrade(sync=args.sync),
+        func=lambda args: subcmd_pkg.update(sync=args.sync),
     )
 
 
