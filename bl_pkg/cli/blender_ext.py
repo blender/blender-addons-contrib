@@ -2418,7 +2418,7 @@ def main(
         argv: Optional[List[str]] = None,
         args_internal: bool = True,
         args_extra_subcommands_fn: Optional[ArgsSubparseFn] = None,
-) -> bool:
+) -> int:
 
     # Needed on WIN32 which doesn't default to `utf-8`.
     for fh in (sys.stdout, sys.stderr):
@@ -2431,7 +2431,7 @@ def main(
 
     if "--version" in sys.argv:
         sys.stdout.write("{:s}\n".format(VERSION))
-        return True
+        return 0
 
     parser = argparse_create(
         args_internal=args_internal,
@@ -2441,11 +2441,11 @@ def main(
     # Call sub-parser callback.
     if not hasattr(args, "func"):
         parser.print_help()
-        return True
+        return 0
 
     result = args.func(args)
     assert isinstance(result, bool)
-    return result
+    return 0 if result else 1
 
 
 if __name__ == "__main__":
