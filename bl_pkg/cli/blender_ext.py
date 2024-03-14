@@ -1147,7 +1147,7 @@ def generic_arg_package_list_positional(subparse: argparse.ArgumentParser) -> No
         dest="packages",
         type=str,
         help=(
-            "The packages to operate on (separated by \",\" without spaces)."
+            "The packages to operate on (separated by ``,`` without spaces)."
         ),
     )
 
@@ -1194,7 +1194,7 @@ def generic_arg_package_source_dir(subparse: argparse.ArgumentParser) -> None:
         dest="source_dir",
         type=str,
         help=(
-            "The package source directory containing a \"{:s}\" manifest.".format(PKG_MANIFEST_FILENAME_TOML)
+            "The package source directory containing a ``{:s}`` manifest.".format(PKG_MANIFEST_FILENAME_TOML)
         ),
         default=".",
     )
@@ -1218,7 +1218,7 @@ def generic_arg_package_output_filepath(subparse: argparse.ArgumentParser) -> No
         dest="output_filepath",
         type=str,
         help=(
-            "The package output filepath (should include a \"{:s}\" extension).".format(PKG_EXT)
+            "The package output filepath (should include a ``{:s}`` extension).".format(PKG_EXT)
         ),
         default=".",
     )
@@ -1233,6 +1233,7 @@ def generic_arg_output_type(subparse: argparse.ArgumentParser) -> None:
         default='TEXT',
         help=(
             "The output type:\n"
+            "\n"
             "- TEXT: Plain text.\n"
             "- JSON: Separated by new-lines.\n"
             "- JSON_0: Separated null bytes.\n"
@@ -2047,16 +2048,23 @@ def unregister():
 # Server Manipulating Actions
 
 
-def argparse_create_server_generate(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
+def argparse_create_server_generate(
+        subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]",
+        args_internal: bool,
+) -> None:
     subparse = subparsers.add_parser(
         "server-generate",
         help="Create a listing from all packages.",
-        description="Test.",
+        description=(
+            "Generate a listing of all packages stored in a directory.\n"
+            "This can be used to host packages which only requires static-file hosting."
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
     generic_arg_repo_dir(subparse)
-    generic_arg_output_type(subparse)
+    if args_internal:
+        generic_arg_output_type(subparse)
 
     subparse.set_defaults(
         func=lambda args: subcmd_server.generate(
@@ -2198,7 +2206,10 @@ def argparse_create_client_uninstall(subparsers: "argparse._SubParsersAction[arg
 # -----------------------------------------------------------------------------
 # Authoring Actions
 
-def argparse_create_author_build(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
+def argparse_create_author_build(
+        subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]",
+        args_internal: bool,
+) -> None:
     subparse = subparsers.add_parser(
         "build",
         help="Build a package.",
@@ -2210,7 +2221,8 @@ def argparse_create_author_build(subparsers: "argparse._SubParsersAction[argpars
     generic_arg_package_output_dir(subparse)
     generic_arg_package_output_filepath(subparse)
 
-    generic_arg_output_type(subparse)
+    if args_internal:
+        generic_arg_output_type(subparse)
 
     subparse.set_defaults(
         func=lambda args: subcmd_author.build(
@@ -2222,7 +2234,10 @@ def argparse_create_author_build(subparsers: "argparse._SubParsersAction[argpars
     )
 
 
-def argparse_create_author_validate(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
+def argparse_create_author_validate(
+        subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]",
+        args_internal: bool,
+) -> None:
     subparse = subparsers.add_parser(
         "validate",
         help="Validate a package.",
@@ -2231,7 +2246,8 @@ def argparse_create_author_validate(subparsers: "argparse._SubParsersAction[argp
     )
     generic_arg_package_source_dir(subparse)
 
-    generic_arg_output_type(subparse)
+    if args_internal:
+        generic_arg_output_type(subparse)
 
     subparse.set_defaults(
         func=lambda args: subcmd_author.validate(
@@ -2319,23 +2335,22 @@ def argparse_create_dummy_progress(subparsers: "argparse._SubParsersAction[argpa
 def argparse_create(
         args_internal: bool = True,
         args_extra_subcommands_fn: Optional[ArgsSubparseFn] = None,
+        prog: Optional[str] = None,
 ) -> argparse.ArgumentParser:
 
-    usage_text = "blender_ext!\n" + __doc__
-
     parser = argparse.ArgumentParser(
-        prog="blender_ext",
-        description=usage_text,
+        prog=prog or "blender_ext",
+        description=__doc__,
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
     subparsers = parser.add_subparsers(
-        title='subcommands',
-        description='valid subcommands',
-        help='additional help',
+        title="subcommands",
+        description="",
+        help="",
     )
 
-    argparse_create_server_generate(subparsers)
+    argparse_create_server_generate(subparsers, args_internal)
 
     if args_internal:
         # Queries.
@@ -2352,8 +2367,8 @@ def argparse_create(
         argparse_create_dummy_progress(subparsers)
 
     # Authoring Commands.
-    argparse_create_author_build(subparsers)
-    argparse_create_author_validate(subparsers)
+    argparse_create_author_build(subparsers, args_internal)
+    argparse_create_author_validate(subparsers, args_internal)
 
     if args_extra_subcommands_fn is not None:
         args_extra_subcommands_fn(subparsers)
@@ -2403,7 +2418,10 @@ def msg_print_json_0(ty: str, data: PrimTypeOrSeq) -> bool:
 
 
 def msg_fn_from_args(args: argparse.Namespace) -> MessageFn:
-    match args.output_type:
+    # Will be None when running form Blender.
+    output_type = getattr(args, "output_type", 'TEXT')
+
+    match output_type:
         case 'JSON':
             return msg_print_json
         case 'JSON_0':
@@ -2418,6 +2436,7 @@ def main(
         argv: Optional[List[str]] = None,
         args_internal: bool = True,
         args_extra_subcommands_fn: Optional[ArgsSubparseFn] = None,
+        prog: Optional[str] = None,
 ) -> int:
 
     # Needed on WIN32 which doesn't default to `utf-8`.
@@ -2436,6 +2455,7 @@ def main(
     parser = argparse_create(
         args_internal=args_internal,
         args_extra_subcommands_fn=args_extra_subcommands_fn,
+        prog=prog,
     )
     args = parser.parse_args(argv)
     # Call sub-parser callback.

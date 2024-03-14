@@ -418,6 +418,9 @@ def cli_extension_args_list(subparsers):
     subparse = subparsers.add_parser(
         "list",
         help="List all packages.",
+        description=(
+            "List packages from all enabled repositories."
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     generic_arg_sync(subparse)
@@ -434,6 +437,9 @@ def cli_extension_args_sync(subparsers):
     subparse = subparsers.add_parser(
         "sync",
         help="Synchronize with remote repositories.",
+        description=(
+            "Download package information for remote repositories."
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     subparse.set_defaults(
@@ -445,7 +451,10 @@ def cli_extension_args_upgrade(subparsers):
     # Implement "upgrade".
     subparse = subparsers.add_parser(
         "upgrade",
-        help="Update any outdated packages.",
+        help="Upgrade any outdated packages.",
+        description=(
+            "Download and upgrade any outdated packages."
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     generic_arg_sync(subparse)
@@ -481,6 +490,9 @@ def cli_extension_args_install_file(subparsers):
     subparse = subparsers.add_parser(
         "install-file",
         help="Install package from file.",
+        description=(
+            "Install a package file into a local repository."
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
@@ -503,6 +515,9 @@ def cli_extension_args_remove(subparsers):
     subparse = subparsers.add_parser(
         "remove",
         help="Remove packages.",
+        description=(
+            "Disable & remove package(s)."
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     generic_arg_package_list_positional(subparse)
@@ -522,6 +537,9 @@ def cli_extension_args_repo_list(subparsers):
     subparse = subparsers.add_parser(
         "repo-list",
         help="List repositories.",
+        description=(
+            "List all repositories stored in Blender's preferences."
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     subparse.set_defaults(
@@ -534,6 +552,9 @@ def cli_extension_args_repo_add(subparsers):
     subparse = subparsers.add_parser(
         "repo-add",
         help="Add repository.",
+        description=(
+            "Add a new local or remote repository."
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     subparse.add_argument(
@@ -574,7 +595,8 @@ def cli_extension_args_repo_add(subparsers):
         metavar="URL",
         help=(
             "The URL, for remote repositories (optional).\n"
-            "When omitted the repository is considered \"local\" as it is not conntected to an external repostioriy,"
+            "When omitted the repository is considered \"local\"\n"
+            "as it is not connected to an external repository,\n"
             "where packages may be installed by file or managed manually."
         ),
     )
@@ -606,6 +628,9 @@ def cli_extension_args_repo_remove(subparsers):
     subparse = subparsers.add_parser(
         "repo-remove",
         help="Remove repository.",
+        description=(
+            "Remove a repository."
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     subparse.add_argument(
@@ -647,4 +672,5 @@ def cli_extension_handler(args):
         args,
         args_internal=False,
         args_extra_subcommands_fn=cli_extension_args_extra,
+        prog="blender --command extension",
     )
