@@ -89,7 +89,7 @@ def generic_arg_package_list_positional(subparse):
         dest="packages",
         type=str,
         help=(
-            "The packages to operate on (separated by \",\" without spaces)."
+            "The packages to operate on (separated by ``,`` without spaces)."
         ),
     )
 

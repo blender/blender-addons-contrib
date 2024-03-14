@@ -2241,7 +2241,7 @@ def argparse_create_author_validate(
     subparse = subparsers.add_parser(
         "validate",
         help="Validate a package.",
-        description="Validate a package in the current directory.",
+        description="Validate the package meta-data in the current directory.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
     generic_arg_package_source_dir(subparse)
