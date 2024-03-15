@@ -16,6 +16,15 @@ import argparse
 import os
 import sys
 
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
+
 show_color = (
     False if os.environ.get("NO_COLOR") else
     sys.stdout.isatty()
@@ -43,81 +52,39 @@ if show_color:
         'normal': '\033[0m',
     }
 
-    def colorize(text, color):
+    def colorize(text: str, color: str) -> str:
         return (color_codes[color] + text + color_codes["normal"])
 else:
-    def colorize(text, _color):
+    def colorize(text: str, color: str) -> str:
         return text
 
-
-def arg_handle_int_as_bool(value: str) -> bool:
-    result = int(value)
-    if result not in {0, 1}:
-        raise argparse.ArgumentTypeError("Expected a 0 or 1")
-    return bool(result)
+# -----------------------------------------------------------------------------
+# Wrap Operators
 
 
-def generic_arg_sync(subparse):
-    subparse.add_argument(
-        "-s",
-        "--sync",
-        dest="sync",
-        action="store_true",
-        default=False,
-        help=(
-            "Sync the remote directory before performing the action."
-        ),
-    )
+def blender_preferences_write() -> bool:
+    import bpy  # type: ignore
+    try:
+        ok = 'FINISHED' in bpy.ops.wm.save_userpref()
+    except RuntimeError as ex:
+        print("Failed to write preferences: {!r}".format(ex))
+        ok = False
+    return ok
 
 
-def generic_arg_enable_on_install(subparse):
-    subparse.add_argument(
-        "--enable",
-        dest="enable",
-        action="store_true",
-        default=False,
-        help=(
-            "Enable the extension after installation."
-        ),
-    )
-
-
-def generic_arg_package_list_positional(subparse):
-    subparse.add_argument(
-        dest="packages",
-        type=str,
-        help=(
-            "The packages to operate on (separated by ``,`` without spaces)."
-        ),
-    )
-
-
-def generic_arg_package_file_positional(subparse):
-    subparse.add_argument(
-        dest="file",
-        type=str,
-        help=(
-            "The packages file."
-        ),
-    )
-
-
-def generic_arg_repo_id(subparse):
-    subparse.add_argument(
-        "-r",
-        "--repo",
-        dest="repo",
-        type=str,
-        help=(
-            "The repository identifier."
-        ),
-        required=True,
-    )
-
+# -----------------------------------------------------------------------------
+# Argument Implementation (Utilities)
 
 class subcmd_utils:
 
-    def sync(show_done=True):
+    def __new__(cls) -> Any:
+        raise RuntimeError("{:s} should not be instantiated".format(cls))
+
+    @staticmethod
+    def sync(
+            *,
+            show_done: bool = True,
+    ) -> bool:
         import bpy
         try:
             bpy.ops.bl_pkg.repo_sync_all()
@@ -130,7 +97,12 @@ class subcmd_utils:
             return False
         return True
 
-    def _expand_package_ids(packages, *, use_local):
+    @staticmethod
+    def _expand_package_ids(
+            packages: List[str],
+            *,
+            use_local: bool,
+    ) -> Union[List[Tuple[int, str]], str]:
         # Takes a terse lists of package names and expands to repo index and name list,
         # returning an error string if any can't be resolved.
         from . import repo_cache_store
@@ -160,20 +132,20 @@ class subcmd_utils:
                 errors.append("Malformed package name \"{:s}\", expected \"repo_id.pkg_id\"!".format(pkg_id_full))
                 continue
             if repo_id:
-                repo_index, repo_packages = repo_map.get(repo_id, (None, None))
-                if repo_index is None:
+                repo_index, repo_packages = repo_map.get(repo_id, (-1, ()))
+                if repo_index == -1:
                     errors.append("Repository \"{:s}\" not found in [{:s}]!".format(
                         repo_id,
                         ", ".join(sorted("\"{:s}\"".format(x) for x in repo_map.keys()))
                     ))
                     continue
             else:
-                repo_index = None
+                repo_index = -1
                 for repo_id_iter, (repo_index_iter, repo_packages_iter) in repo_map.items():
                     if pkg_id in repo_packages_iter:
                         repo_index = repo_index_iter
                         break
-                if repo_index is None:
+                if repo_index == -1:
                     if use_local:
                         errors.append("Package \"{:s}\" not installed in local repositories!".format(pkg_id))
                     else:
@@ -186,21 +158,37 @@ class subcmd_utils:
 
         return repos_and_packages
 
-    def expand_package_ids_from_remote(packages):
+    @staticmethod
+    def expand_package_ids_from_remote(packages: List[str]) -> Union[List[Tuple[int, str]], str]:
         return subcmd_utils._expand_package_ids(packages, use_local=False)
 
-    def expand_package_ids_from_local(packages):
+    @staticmethod
+    def expand_package_ids_from_local(packages: List[str]) -> Union[List[Tuple[int, str]], str]:
         return subcmd_utils._expand_package_ids(packages, use_local=True)
 
 
+# -----------------------------------------------------------------------------
+# Argument Implementation (Queries)
+
 class subcmd_query:
 
-    def __new__(cls):
+    def __new__(cls) -> Any:
         raise RuntimeError("{:s} should not be instantiated".format(cls))
 
-    def list(sync):
+    @staticmethod
+    def list(
+            *,
+            sync: bool,
+    ) -> bool:
 
-        def list_item(pkg_id, item_remote, item_local):
+        def list_item(
+                pkg_id: str,
+                item_remote: Optional[Dict[str, Any]],
+                item_local: Optional[Dict[str, Any]],
+        ) -> None:
+            # Both can't be None.
+            assert item_remote is not None or item_local is not None
+
             if item_remote is not None:
                 item_version = item_remote["version"]
                 if item_local is None:
@@ -224,6 +212,7 @@ class subcmd_query:
             else:
                 # All local-only packages are installed.
                 status_info = " [{:s}]".format(colorize("installed", "green"))
+                assert isinstance(item_local, dict)
                 item = item_local
 
             print(
@@ -257,7 +246,10 @@ class subcmd_query:
             print("Repository: \"{:s}\" (id={:s})".format(repo.name, repo.module))
             if pkg_manifest_remote is not None:
                 for pkg_id, item_remote in pkg_manifest_remote.items():
-                    item_local = pkg_manifest_local is not None and pkg_manifest_local.get(pkg_id)
+                    if pkg_manifest_local is not None:
+                        item_local = pkg_manifest_local.get(pkg_id)
+                    else:
+                        item_local = None
                     list_item(pkg_id, item_remote, item_local)
             else:
                 for pkg_id, item_local in pkg_manifest_local.items():
@@ -266,12 +258,19 @@ class subcmd_query:
         return True
 
 
+# -----------------------------------------------------------------------------
+# Argument Implementation (Packages)
+
 class subcmd_pkg:
 
-    def __new__(cls):
+    def __new__(cls) -> Any:
         raise RuntimeError("{:s} should not be instantiated".format(cls))
 
-    def update(sync):
+    @staticmethod
+    def update(
+            *,
+            sync: bool,
+    ) -> bool:
         if sync:
             if not subcmd_utils.sync():
                 return False
@@ -283,7 +282,14 @@ class subcmd_pkg:
             return False  # The error will have been printed.
         return True
 
-    def install(*, sync, packages, enable_on_install):
+    @staticmethod
+    def install(
+            *,
+            sync: bool,
+            packages: List[str],
+            enable_on_install: bool,
+            no_prefs: bool,
+    ) -> bool:
         if sync:
             if not subcmd_utils.sync():
                 return False
@@ -307,12 +313,18 @@ class subcmd_pkg:
         except RuntimeError:
             return False  # The error will have been printed.
 
-        if enable_on_install:
-            bpy.ops.wm.save_userpref()
+        if not no_prefs:
+            if enable_on_install:
+                blender_preferences_write()
 
         return True
 
-    def remove(packages):
+    @staticmethod
+    def remove(
+            *,
+            packages: List[str],
+            no_prefs: bool,
+    ) -> bool:
         # Expand all package ID's.
         repos_and_packages = subcmd_utils.expand_package_ids_from_local(packages)
         if isinstance(repos_and_packages, str):
@@ -329,15 +341,19 @@ class subcmd_pkg:
         except RuntimeError:
             return False  # The error will have been printed.
 
-        bpy.ops.wm.save_userpref()
+        if not no_prefs:
+            blender_preferences_write()
+
         return True
 
+    @staticmethod
     def install_file(
             *,
-            filepath,
-            repo_id,
-            enable_on_install,
-    ):
+            filepath: str,
+            repo_id: str,
+            enable_on_install: bool,
+            no_prefs: bool,
+    ) -> bool:
         import bpy
         try:
             bpy.ops.bl_pkg.pkg_install_files(
@@ -351,18 +367,23 @@ class subcmd_pkg:
             sys.stderr.write(str(ex))
             sys.stderr.write("\n")
 
-        if enable_on_install:
-            bpy.ops.wm.save_userpref()
+        if not no_prefs:
+            if enable_on_install:
+                blender_preferences_write()
 
         return True
 
 
+# -----------------------------------------------------------------------------
+# Argument Implementation (Repositories)
+
 class subcmd_repo:
 
-    def __new__(cls):
+    def __new__(cls) -> Any:
         raise RuntimeError("{:s} should not be instantiated".format(cls))
 
-    def list():
+    @staticmethod
+    def list() -> bool:
         from .bl_extension_ops import extension_repos_read
         repos_all = extension_repos_read()
         for repo in repos_all:
@@ -374,7 +395,16 @@ class subcmd_repo:
 
         return True
 
-    def add(name, id, directory, url, cache):
+    @staticmethod
+    def add(
+            *,
+            name: str,
+            id: str,
+            directory: str,
+            url: str,
+            cache: bool,
+            no_prefs: bool,
+    ) -> bool:
         from bpy import context
         repo = context.preferences.filepaths.extension_repos.new(
             name=name,
@@ -384,12 +414,17 @@ class subcmd_repo:
         )
         repo.use_cache = cache
 
-        import bpy
-        bpy.ops.wm.save_userpref()
+        if not no_prefs:
+            blender_preferences_write()
 
         return True
 
-    def remove(id):
+    @staticmethod
+    def remove(
+            *,
+            id: str,
+            no_prefs: bool,
+    ) -> bool:
         from bpy import context
         extension_repos = context.preferences.filepaths.extension_repos
         extension_repos_module_map = {repo.module: repo for repo in extension_repos}
@@ -403,15 +438,99 @@ class subcmd_repo:
         extension_repos.remove(repo)
         print("Removed repo \"{:s}\"".format(id))
 
-        import bpy
-        bpy.ops.wm.save_userpref()
+        if not no_prefs:
+            blender_preferences_write()
+
         return True
+
+
+# -----------------------------------------------------------------------------
+# Command Line Argument Definitions
+
+def arg_handle_int_as_bool(value: str) -> bool:
+    result = int(value)
+    if result not in {0, 1}:
+        raise argparse.ArgumentTypeError("Expected a 0 or 1")
+    return bool(result)
+
+
+def generic_arg_sync(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "-s",
+        "--sync",
+        dest="sync",
+        action="store_true",
+        default=False,
+        help=(
+            "Sync the remote directory before performing the action."
+        ),
+    )
+
+
+def generic_arg_enable_on_install(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "-e",
+        "--enable",
+        dest="enable",
+        action="store_true",
+        default=False,
+        help=(
+            "Enable the extension after installation."
+        ),
+    )
+
+
+def generic_arg_no_prefs(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "--no-prefs",
+        dest="no_prefs",
+        action="store_true",
+        default=False,
+        help=(
+            "Treat the user-preferences as read-only,\n"
+            "preventing updates for operations that would otherwise modify them.\n"
+            "This means removing extensions or repositories for example, wont update the user-preferences."
+        ),
+    )
+
+
+def generic_arg_package_list_positional(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        dest="packages",
+        type=str,
+        help=(
+            "The packages to operate on (separated by ``,`` without spaces)."
+        ),
+    )
+
+
+def generic_arg_package_file_positional(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        dest="file",
+        type=str,
+        help=(
+            "The packages file."
+        ),
+    )
+
+
+def generic_arg_repo_id(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "-r",
+        "--repo",
+        dest="repo",
+        type=str,
+        help=(
+            "The repository identifier."
+        ),
+        required=True,
+    )
 
 
 # -----------------------------------------------------------------------------
 # Blender Package Manipulation
 
-def cli_extension_args_list(subparsers):
+def cli_extension_args_list(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     # Implement "list".
     subparse = subparsers.add_parser(
         "list",
@@ -430,7 +549,7 @@ def cli_extension_args_list(subparsers):
     )
 
 
-def cli_extension_args_sync(subparsers):
+def cli_extension_args_sync(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     # Implement "sync".
     subparse = subparsers.add_parser(
         "sync",
@@ -445,7 +564,7 @@ def cli_extension_args_sync(subparsers):
     )
 
 
-def cli_extension_args_upgrade(subparsers):
+def cli_extension_args_upgrade(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     # Implement "update".
     subparse = subparsers.add_parser(
         "update",
@@ -462,7 +581,7 @@ def cli_extension_args_upgrade(subparsers):
     )
 
 
-def cli_extension_args_install(subparsers):
+def cli_extension_args_install(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     # Implement "install".
     subparse = subparsers.add_parser(
         "install",
@@ -473,17 +592,19 @@ def cli_extension_args_install(subparsers):
     generic_arg_package_list_positional(subparse)
 
     generic_arg_enable_on_install(subparse)
+    generic_arg_no_prefs(subparse)
 
     subparse.set_defaults(
         func=lambda args: subcmd_pkg.install(
             sync=args.sync,
             packages=args.packages.split(","),
             enable_on_install=args.enable,
+            no_prefs=args.no_prefs,
         ),
     )
 
 
-def cli_extension_args_install_file(subparsers):
+def cli_extension_args_install_file(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     # Implement "install-file".
     subparse = subparsers.add_parser(
         "install-file",
@@ -498,17 +619,19 @@ def cli_extension_args_install_file(subparsers):
     generic_arg_repo_id(subparse)
 
     generic_arg_enable_on_install(subparse)
+    generic_arg_no_prefs(subparse)
 
     subparse.set_defaults(
         func=lambda args: subcmd_pkg.install_file(
             filepath=args.file,
             repo_id=args.repo,
             enable_on_install=args.enable,
+            no_prefs=args.no_prefs,
         ),
     )
 
 
-def cli_extension_args_remove(subparsers):
+def cli_extension_args_remove(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     # Implement "remove".
     subparse = subparsers.add_parser(
         "remove",
@@ -519,10 +642,12 @@ def cli_extension_args_remove(subparsers):
         formatter_class=argparse.RawTextHelpFormatter,
     )
     generic_arg_package_list_positional(subparse)
+    generic_arg_no_prefs(subparse)
 
     subparse.set_defaults(
         func=lambda args: subcmd_pkg.remove(
             packages=args.packages.split(","),
+            no_prefs=args.no_prefs,
         ),
     )
 
@@ -530,7 +655,7 @@ def cli_extension_args_remove(subparsers):
 # -----------------------------------------------------------------------------
 # Blender Repository Manipulation
 
-def cli_extension_args_repo_list(subparsers):
+def cli_extension_args_repo_list(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     # Implement "repo-list".
     subparse = subparsers.add_parser(
         "repo-list",
@@ -545,7 +670,7 @@ def cli_extension_args_repo_list(subparsers):
     )
 
 
-def cli_extension_args_repo_add(subparsers):
+def cli_extension_args_repo_add(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     # Implement "repo-add".
     subparse = subparsers.add_parser(
         "repo-add",
@@ -610,6 +735,8 @@ def cli_extension_args_repo_add(subparsers):
         ),
     )
 
+    generic_arg_no_prefs(subparse)
+
     subparse.set_defaults(
         func=lambda args: subcmd_repo.add(
             id=args.id,
@@ -617,11 +744,12 @@ def cli_extension_args_repo_add(subparsers):
             directory=args.directory,
             url=args.url,
             cache=args.cache,
+            no_prefs=args.no_prefs,
         ),
     )
 
 
-def cli_extension_args_repo_remove(subparsers):
+def cli_extension_args_repo_remove(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     # Implement "repo-remove".
     subparse = subparsers.add_parser(
         "repo-remove",
@@ -638,10 +766,12 @@ def cli_extension_args_repo_remove(subparsers):
             "The repository identifier."
         ),
     )
+    generic_arg_no_prefs(subparse)
 
     subparse.set_defaults(
         func=lambda args: subcmd_repo.remove(
             id=args.id,
+            no_prefs=args.no_prefs,
         ),
     )
 
@@ -649,7 +779,7 @@ def cli_extension_args_repo_remove(subparsers):
 # -----------------------------------------------------------------------------
 # Implement Additional Arguments
 
-def cli_extension_args_extra(subparsers):
+def cli_extension_args_extra(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
     # Package commands.
     cli_extension_args_list(subparsers)
     cli_extension_args_sync(subparsers)
@@ -664,11 +794,14 @@ def cli_extension_args_extra(subparsers):
     cli_extension_args_repo_remove(subparsers)
 
 
-def cli_extension_handler(args):
+def cli_extension_handler(args: List[str]) -> int:
     from .cli import blender_ext
-    return blender_ext.main(
+    result = blender_ext.main(
         args,
         args_internal=False,
         args_extra_subcommands_fn=cli_extension_args_extra,
         prog="blender --command extension",
     )
+    # Needed as the import isn't followed by `mypy`.
+    assert isinstance(result, int)
+    return result

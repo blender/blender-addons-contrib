@@ -20,6 +20,7 @@ PY_FILES_MYPY=$(filter-out \
 
 PY_FILES_MYPY_STANDALONE= \
 	./bl_extension_utils.py \
+	./bl_extension_cli.py
 
 EXTRA_WATCH_FILES=Makefile
 
