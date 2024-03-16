@@ -690,11 +690,9 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
         layout.operator("bl_pkg.pkg_install_files", icon='IMPORT', text="Install from Disk")
         layout.operator("preferences.addon_install", text="Install Legacy Add-on")
 
-        layout.separator()
+        if context.preferences.experimental.use_extension_utils:
+            layout.separator()
 
-        layout.prop(addon_prefs, "show_development")
-
-        if addon_prefs.show_development:
             layout.prop(addon_prefs, "show_development_reports")
 
             layout.separator()
@@ -728,7 +726,7 @@ def extensions_panel_draw(panel, context):
 
     addon_prefs = prefs.addons[__package__].preferences
 
-    show_development = addon_prefs.show_development
+    show_development = context.preferences.experimental.use_extension_utils
     show_development_reports = show_development and addon_prefs.show_development_reports
 
     wm = context.window_manager
