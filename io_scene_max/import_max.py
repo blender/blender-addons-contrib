@@ -1408,7 +1408,7 @@ def read(context, filename, mscale, usemat, uvmesh, transform):
         print("File seems to be no 3D Studio Max file!")
 
 
-def load(operator, context, filepath="", scale_objects=1.0, use_material=True,
+def load(operator, context, files=None, directory="", filepath="", scale_objects=1.0, use_material=True,
          use_uv_mesh=False, use_collection=False, use_apply_matrix=False, global_matrix=None):
     context.window.cursor_set('WAIT')
     mscale = mathutils.Matrix.Scale(scale_objects, 4)
