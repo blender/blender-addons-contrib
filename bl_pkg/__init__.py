@@ -52,11 +52,6 @@ class BlExtPreferences(AddonPreferences):
         name="Time Out",
         default=10,
     )
-    show_development: BoolProperty(
-        name="Show Development Utilities",
-        description="Show utilities intended for developing the extension",
-        default=False,
-    )
     show_development_reports: BoolProperty(
         name="Show Development Reports",
         description=(
