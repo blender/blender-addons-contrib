@@ -159,7 +159,7 @@ def extension_drop_file_popover(url):
         return
 
     if isinstance(err := pkg_manifest_dict_from_file_or_error(url), str):
-        wm_error("Error", err, icon='ERROR')
+        wm_error("Error in Manifest", err, icon='ERROR')
         return
     del err
 
