@@ -177,19 +177,6 @@ def extenion_repos_upgrade(*_):
         repo_status_text.from_message("Upgrade \"{:s}\"".format(active_repo.name), text)
 
 
-@bpy.app.handlers.persistent
-def extenion_url_drop(url):
-    from .bl_extension_ui import (
-        extension_drop_url_popover,
-        extension_drop_file_popover,
-    )
-
-    if url.startswith(("http://", "https://", "file://")):
-        extension_drop_url_popover(url)
-    else:
-        extension_drop_file_popover(url)
-
-
 # -----------------------------------------------------------------------------
 # Wrap Handlers
 
@@ -415,19 +402,6 @@ def register():
         default=True,
     )
 
-    # Use for drag & drop operators.
-    from .bl_extension_ops import rna_prop_repo_enum_local_only_itemf
-    WindowManager.extension_local_repos = EnumProperty(
-        name="Local Repository",
-        description="Local repository",
-        items=rna_prop_repo_enum_local_only_itemf,
-    )
-    WindowManager.extension_enable_on_install = BoolProperty(
-        name="Enable Add-on",
-        description="Enable on install",
-        default=True,
-    )
-
     from bl_ui.space_userpref import USERPREF_MT_interface_theme_presets
     USERPREF_MT_interface_theme_presets.append(theme_preset_draw)
 
@@ -436,9 +410,6 @@ def register():
 
     handlers = bpy.app.handlers._extension_repos_upgrade
     handlers.append(extenion_repos_upgrade)
-
-    handlers = bpy.app.handlers._extension_drop_url
-    handlers.append(extenion_url_drop)
 
     cli_commands.append(bpy.utils.register_cli_command("extension", cli_extension))
 
@@ -483,10 +454,6 @@ def unregister():
     handlers = bpy.app.handlers._extension_repos_upgrade
     if extenion_repos_upgrade in handlers:
         handlers.remove(extenion_repos_upgrade)
-
-    handlers = bpy.app.handlers._extension_drop_url
-    if extenion_url_drop in handlers:
-        handlers.remove(extenion_url_drop)
 
     for cmd in cli_commands:
         bpy.utils.unregister_cli_command(cmd)

@@ -126,11 +126,45 @@ class CheckSIGINT_Context:
 # Internal Utilities
 #
 
-def wm_close_popup_hack():
-    # Setting the workspace closes popup, we may want an API for this.
-    from bpy import context
-    window = context.window
-    window.workspace = window.workspace
+def extension_url_find_repo_index_and_pkg_id(url):
+    from .bl_extension_utils import (
+        pkg_manifest_archive_url_abs_from_repo_url,
+    )
+    from .bl_extension_ops import (
+        extension_repos_read,
+    )
+    # return repo_index, pkg_id
+    from . import repo_cache_store
+
+    # NOTE: we might want to use `urllib.parse.urlsplit` so it's possible to include variables in the URL.
+    url_basename = url.rpartition("/")[2]
+
+    repos_all = extension_repos_read()
+
+    for repo_index, (
+            pkg_manifest_remote,
+            pkg_manifest_local,
+    ) in enumerate(zip(
+        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
+        repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
+    )):
+        repo = repos_all[repo_index]
+        repo_url = repo.repo_url
+        if not repo_url:
+            continue
+        for pkg_id, item_remote in pkg_manifest_remote.items():
+            archive_url = item_remote["archive_url"]
+            archive_url_basename = archive_url.rpartition("/")[2]
+            # First compare the filenames, if this matches, check the full URL.
+            if url_basename != archive_url_basename:
+                continue
+
+            # Calculate the absolute URL.
+            archive_url_abs = pkg_manifest_archive_url_abs_from_repo_url(repo_url, archive_url)
+            if archive_url_abs == url:
+                return repo_index, repo.name, pkg_id, item_remote, pkg_manifest_local.get(pkg_id)
+
+    return -1, "", "", None, None
 
 
 def online_user_agent_from_blender():
@@ -1103,11 +1137,12 @@ class BlPkgPkgUninstallMarked(Operator, _BlPkgCmdMixIn):
 class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
     """Install an extension from a file into a locally managed repository"""
     bl_idname = "bl_pkg.pkg_install_files"
-    bl_label = "Install from Files"
+    bl_label = "Install from Disk"
     __slots__ = _BlPkgCmdMixIn.cls_slots + (
         "repo_directory",
         "pkg_id_sequence"
     )
+    _drop_variables = None
 
     filter_glob: StringProperty(default="*.zip", options={'HIDDEN'})
 
@@ -1138,14 +1173,13 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
         default=True,
     )
 
+    # Only used for code-path for dropping an extension.
+    url: rna_prop_url
+
     def exec_command_iter(self, is_modal):
         from .bl_extension_utils import (
             pkg_manifest_dict_from_file_or_error,
         )
-        from .bl_extension_ui import (
-            extension_drop_file_popover_close_as_needed,
-        )
-        extension_drop_file_popover_close_as_needed()
 
         self._addon_restore = []
 
@@ -1293,7 +1327,10 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
             return False
         return True
 
-    def invoke(self, context, _event):
+    def invoke(self, context, event):
+        if self.properties.is_property_set("url"):
+            return self._invoke_for_drop(context, event)
+
         # Ensure the value is marked as set (else an error is reported).
         self.repo = self.repo
 
@@ -1301,6 +1338,9 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
         return {'RUNNING_MODAL'}
 
     def draw(self, context):
+        if self._drop_variables is not None:
+            return self._draw_for_drop(context)
+
         # Override draw because the repository names may be over-long and not fit well in the UI.
         # Show the text & repository names in two separate rows.
         layout = self.layout
@@ -1308,11 +1348,54 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
         col.label(text="Local Repository:")
         col.prop(self, "repo", text="")
 
+    def _invoke_for_drop(self, context, event):
+        self._drop_variables = True
+        # Drop logic.
+        url = self.url
+        print("DROP FILE:", url)
+
+        from .bl_extension_ops import repo_iter_valid_local_only
+        from .bl_extension_utils import pkg_manifest_dict_from_file_or_error
+
+        if not list(repo_iter_valid_local_only(bpy.context)):
+            self.report({'ERROR'}, "No Local Repositories")
+            return {'CANCELLED'}
+
+        if isinstance(err := pkg_manifest_dict_from_file_or_error(url), str):
+            self.report({'ERROR'}, "Error in manifest {:s}".format(err))
+            return {'CANCELLED'}
+        del err
+
+        # Nothing needed here, it can't be None so the draw call uses drop logic.
+        self._drop_variables = True
+
+        # Set to it's self to the property is considered "set".
+        self.repo = self.repo
+        self.filepath = url
+
+        wm = context.window_manager
+        wm.invoke_props_dialog(self)
+
+        return {'RUNNING_MODAL'}
+
+    def _draw_for_drop(self, context):
+
+        layout = self.layout
+        layout.operator_context = 'EXEC_DEFAULT'
+
+        layout.label(text="Local Repository")
+        layout.prop(self, "repo", text="")
+
+        # TODO: inspect the ZIP and find if the type is an add-on.
+        layout.prop(self, "enable_on_install")
+
 
 class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
     bl_idname = "bl_pkg.pkg_install"
-    bl_label = "Ext Package Install"
+    bl_label = "Install Extension"
     __slots__ = _BlPkgCmdMixIn.cls_slots
+
+    _drop_variables = None
 
     repo_directory: rna_prop_directory
     repo_index: rna_prop_repo_index
@@ -1325,12 +1408,10 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
         default=True,
     )
 
-    def exec_command_iter(self, is_modal):
-        from .bl_extension_ui import (
-            extension_drop_url_popover_close_as_needed,
-        )
-        extension_drop_url_popover_close_as_needed()
+    # Only used for code-path for dropping an extension.
+    url: rna_prop_url
 
+    def exec_command_iter(self, is_modal):
         self._addon_restore = []
 
         directory = _repo_dir_and_index_get(self.repo_index, self.repo_directory, self.report)
@@ -1420,6 +1501,60 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
                 repo_item = _extensions_repo_from_directory(self.repo_directory)
                 addon_module_name = "bl_ext.{:s}.{:s}".format(repo_item.module, self.pkg_id)
                 addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
+
+    def invoke(self, context, event):
+        # Only for drop logic!
+        if self.properties.is_property_set("url"):
+            return self._invoke_for_drop(context, event)
+
+        return self.execute(context)
+
+    def _invoke_for_drop(self, context, event):
+        url = self.url
+        print("DROP URL:", url)
+
+        repo_index, repo_name, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
+
+        if repo_index == -1:
+            self.report({'ERROR'}, "Extension: URL not found in remote repositories!\n{:s}".format(url))
+            return {'CANCELLED'}
+
+        if item_local is not None:
+            self.report({'ERROR'}, "Extension: \"{:s}\" Already installed!".format(pkg_id))
+            return {'CANCELLED'}
+
+        self._drop_variables = repo_index, repo_name, pkg_id, item_remote
+
+        self.repo_index = repo_index
+        self.pkg_id = pkg_id
+
+        wm = context.window_manager
+        wm.invoke_props_dialog(self)
+        return {'RUNNING_MODAL'}
+
+    def draw(self, context):
+        if self._drop_variables is not None:
+            return self._draw_for_drop(context)
+
+    def _draw_for_drop(self, context):
+        from .bl_extension_ui import (
+            size_as_fmt_string,
+        )
+        layout = self.layout
+
+        repo_index, repo_name, pkg_id, item_remote = self._drop_variables
+
+        layout.label(text="Do you want to install the following {:s}?".format(item_remote["type"]))
+
+        col = layout.column(align=True)
+        col.label(text="Name: {:s}".format(item_remote["name"]))
+        col.label(text="Repository: {:s}".format(repo_name))
+        col.label(text="Size: {:s}".format(size_as_fmt_string(item_remote["archive_size"], precision=0)))
+        del col
+
+        layout.separator()
+
+        layout.prop(self, "enable_on_install")
 
 
 class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):
@@ -1736,16 +1871,6 @@ class BlPkgEnableNotInstalled(Operator):
         return {'CANCELLED'}
 
 
-class BlPkgPopupCancel(Operator):
-    """Close the popup"""
-    bl_idname = "bl_pkg.popup_cancel"
-    bl_label = "Cancel"
-
-    def execute(self, context):
-        wm_close_popup_hack()
-        return {'CANCELLED'}
-
-
 # -----------------------------------------------------------------------------
 # Register
 #
@@ -1777,7 +1902,6 @@ classes = (
 
     # Dummy, just shows a message.
     BlPkgEnableNotInstalled,
-    BlPkgPopupCancel,
 
     # Dummy commands (for testing).
     BlPkgDummyProgress,
