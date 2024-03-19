@@ -1415,12 +1415,18 @@ def load(operator, context, files=None, directory="", filepath="", scale_objects
     if global_matrix is not None:
         mscale = global_matrix @ mscale
 
+    default_layer = context.view_layer.active_layer_collection.collection
     for fl in files:
         if use_collection:
             collection = bpy.data.collections.new(fl.name.split(".")[0])
             context.scene.collection.children.link(collection)
             context.view_layer.active_layer_collection = context.view_layer.layer_collection.children[collection.name]
         read(context, os.path.join(directory, fl.name), mscale, usemat=use_material, uvmesh=use_uv_mesh, transform=use_apply_matrix)
+
+    active = context.view_layer.layer_collection.children.get(default_layer.name)
+    if active is not None:
+        context.view_layer.active_layer_collection = active
+
     context.window.cursor_set('DEFAULT')
 
     return {'FINISHED'}
