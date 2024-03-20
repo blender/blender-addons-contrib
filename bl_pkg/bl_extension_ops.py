@@ -839,6 +839,15 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
             self.report({'INFO'}, "No repositories to upgrade")
             return None
 
+        # NOTE: Unless we have a "clear-cache" operator - there isn't a great place to apply cache-clearing.
+        # So when cache is disabled simply clear all cache before performing an update.
+        # Further, individual install & remove operation will manage the cache
+        # for the individual packages being installed or removed.
+        for repo_item in repos_all:
+            if repo_item.use_cache:
+                continue
+            bl_extension_utils.pkg_repo_cache_clear(repo_item.directory)
+
         # Track add-ons to disable before uninstalling.
         handle_addons_info = []
 

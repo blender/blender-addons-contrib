@@ -79,6 +79,7 @@ REPO_LOCAL_PRIVATE_LOCK = "bl_ext_repo.lock"
 
 PKG_REPO_LIST_FILENAME = "bl_ext_repo.json"
 PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
+PKG_EXT = ".zip"
 
 # Add this to the local JSON file.
 REPO_LOCAL_JSON = os.path.join(REPO_LOCAL_PRIVATE_DIR, PKG_REPO_LIST_FILENAME)
@@ -158,6 +159,14 @@ def file_mtime_or_none(filepath: str) -> Optional[int]:
         return int(os.stat(filepath)[stat.ST_MTIME])
     except FileNotFoundError:
         return None
+
+
+def scandir_with_demoted_errors(path: str) -> Generator[os.DirEntry[str], None, None]:
+    try:
+        for entry in os.scandir(path):
+            yield entry
+    except BaseException as ex:
+        print("Error: scandir", ex)
 
 
 # -----------------------------------------------------------------------------
@@ -467,6 +476,24 @@ def pkg_manifest_archive_url_abs_from_repo_url(repo_url: str, archive_url: str) 
             # Handle as a regular path.
             archive_url = os.path.join(repo_url, archive_url[2:])
     return archive_url
+
+
+def pkg_repo_cache_clear(local_dir: str) -> None:
+    local_cache_dir = os.path.join(local_dir, ".blender_ext", "cache")
+    if not os.path.isdir(local_cache_dir):
+        return
+
+    for entry in scandir_with_demoted_errors(local_cache_dir):
+        if entry.is_dir(follow_symlinks=False):
+            continue
+        if not entry.name.endswith(PKG_EXT):
+            continue
+
+        # Should never fail unless the file-system has permissions issues or corruption.
+        try:
+            os.unlink(entry.path)
+        except BaseException as ex:
+            print("Error: unlink", ex)
 
 
 # -----------------------------------------------------------------------------
