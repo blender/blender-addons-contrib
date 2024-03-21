@@ -177,6 +177,39 @@ def extenion_repos_upgrade(*_):
         repo_status_text.from_message("Upgrade \"{:s}\"".format(active_repo.name), text)
 
 
+@bpy.app.handlers.persistent
+def extenion_repos_files_clear(directory, _):
+    # Perform a "safe" file deletion by only removing files known to be either
+    # packages or known extension meta-data.
+    #
+    # Safer because removing a repository which points to an arbitrary path
+    # has the potential to wipe user data #119481.
+    import shutil
+    import os
+    from .bl_extension_utils import scandir_with_demoted_errors
+    # Unlikely but possible a new repository is immediately removed before initializing,
+    # avoid errors in this case.
+    if not os.path.isdir(directory):
+        return
+
+    if os.path.isdir(path := os.path.join(directory, ".blender_ext")):
+        try:
+            shutil.rmtree(path)
+        except BaseException as ex:
+            print("Failed to remove files", ex)
+
+    for entry in scandir_with_demoted_errors(directory):
+        if not entry.is_dir():
+            continue
+        path = entry.path
+        if not os.path.exists(os.path.join(path, "blender_manifest.toml")):
+            continue
+        try:
+            shutil.rmtree(path)
+        except BaseException as ex:
+            print("Failed to remove files", ex)
+
+
 # -----------------------------------------------------------------------------
 # Wrap Handlers
 
@@ -411,6 +444,9 @@ def register():
     handlers = bpy.app.handlers._extension_repos_upgrade
     handlers.append(extenion_repos_upgrade)
 
+    handlers = bpy.app.handlers._extension_repos_files_clear
+    handlers.append(extenion_repos_files_clear)
+
     cli_commands.append(bpy.utils.register_cli_command("extension", cli_extension))
 
     monkeypatch_install()
@@ -454,6 +490,10 @@ def unregister():
     handlers = bpy.app.handlers._extension_repos_upgrade
     if extenion_repos_upgrade in handlers:
         handlers.remove(extenion_repos_upgrade)
+
+    handlers = bpy.app.handlers._extension_repos_files_clear
+    if extenion_repos_files_clear in handlers:
+        handlers.remove(extenion_repos_files_clear)
 
     for cmd in cli_commands:
         bpy.utils.unregister_cli_command(cmd)
