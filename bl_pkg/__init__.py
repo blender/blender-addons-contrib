@@ -363,7 +363,7 @@ def theme_preset_draw(menu, context):
             theme_files.sort()
             for filename in theme_files:
                 props = layout.operator(menu.preset_operator, text=bpy.path.display_name(filename))
-                props.filepath = os.path.join(theme_dir, os.path.join(theme_dir, filename))
+                props.filepath = os.path.join(theme_dir, filename)
                 props.menu_idname = menu_idname
 
 
