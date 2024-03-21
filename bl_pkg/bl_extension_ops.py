@@ -63,7 +63,7 @@ rna_prop_enable_on_install = BoolProperty(
 )
 rna_prop_enable_on_install_type_map = {
     "add-on": "Enable Add-on",
-    "theme": "Enable Theme",
+    "theme": "Set Current Theme",
 }
 
 
