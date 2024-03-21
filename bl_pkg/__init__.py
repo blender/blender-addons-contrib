@@ -335,6 +335,9 @@ repo_cache_store = None
 # Theme Integration
 
 def theme_preset_draw(menu, context):
+    from .bl_extension_utils import (
+        pkg_theme_file_list,
+    )
     layout = menu.layout
     repos_all = [
         repo_item for repo_item in context.preferences.filepaths.extension_repos
@@ -353,14 +356,7 @@ def theme_preset_draw(menu, context):
             if value["type"] != "theme":
                 continue
 
-            theme_dir = os.path.join(directory, pkg_idname)
-            theme_files = [
-                filename for entry in os.scandir(theme_dir)
-                if ((not entry.is_dir()) and
-                    (not (filename := entry.name).startswith(".")) and
-                    filename.lower().endswith(".xml"))
-            ]
-            theme_files.sort()
+            theme_dir, theme_files = pkg_theme_file_list(directory, pkg_idname)
             for filename in theme_files:
                 props = layout.operator(menu.preset_operator, text=bpy.path.display_name(filename))
                 props.filepath = os.path.join(theme_dir, filename)

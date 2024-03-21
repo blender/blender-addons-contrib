@@ -56,6 +56,16 @@ rna_prop_repo_index = IntProperty(name="Repo Index", default=-1)
 rna_prop_repo_url = StringProperty(name="Repo URL", subtype='FILE_PATH')
 rna_prop_pkg_id = StringProperty(name="Package ID")
 
+rna_prop_enable_on_install = BoolProperty(
+    name="Enable on Install",
+    description="Enable after installing",
+    default=True,
+)
+rna_prop_enable_on_install_type_map = {
+    "add-on": "Enable Add-on",
+    "theme": "Enable Theme",
+}
+
 
 def rna_prop_repo_enum_local_only_itemf(_self, context):
     if context is None:
@@ -204,6 +214,24 @@ def pkg_info_check_exclude_filter_ex(name, tagline, search_lower):
 
 def pkg_info_check_exclude_filter(item, search_lower):
     return pkg_info_check_exclude_filter_ex(item["name"], item["tagline"], search_lower)
+
+
+def extension_theme_enable(repo_directory, pkg_idname):
+    from .bl_extension_utils import (
+        pkg_theme_file_list,
+    )
+    # Enable the theme.
+    theme_dir, theme_files = pkg_theme_file_list(repo_directory, pkg_idname)
+
+    # NOTE: a theme package can contain multiple themes, in this case just use the first
+    # as the list is sorted and picking any theme is arbitrary if there are multiple.
+    if not theme_files:
+        return
+
+    bpy.ops.script.execute_preset(
+        filepath=os.path.join(theme_dir, theme_files[0]),
+        menu_idname="USERPREF_MT_interface_theme_presets",
+    )
 
 
 def repo_iter_valid_local_only(context):
@@ -956,11 +984,7 @@ class BlPkgPkgInstallMarked(Operator, _BlPkgCmdMixIn):
         "_repo_map_packages_addon_only",
     )
 
-    enable_on_install: BoolProperty(
-        name="Enable Add-on",
-        description="Enable add-ons after installing",
-        default=True,
-    )
+    enable_on_install: rna_prop_enable_on_install
 
     def exec_command_iter(self, is_modal):
         from . import repo_cache_store
@@ -1176,11 +1200,7 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
         description="The local repository to install extensions into",
     )
 
-    enable_on_install: BoolProperty(
-        name="Enable Add-on",
-        description="Enable add-ons after installing",
-        default=True,
-    )
+    enable_on_install: rna_prop_enable_on_install
 
     # Only used for code-path for dropping an extension.
     url: rna_prop_url
@@ -1293,41 +1313,48 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
         lock_result_any_failed_with_report(self, self.repo_lock.release(), report_type='WARNING')
         del self.repo_lock
 
-        repo_cache_store.refresh_local_from_directory(
+        pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
             directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,
         )
 
+        item_local = pkg_manifest_local.get(self.pkg_id)
+        if item_local is None:
+            pass  # Unlikely but possible, do nothing in this case.
+        elif item_local["type"] == "add-on":
+            pkg_id_sequence_installed = []
+            if self._addon_restore:
+                # Upgrade.
+                for repo_item, pkg_id_sequence, result in self._addon_restore:
+                    _preferences_ensure_enabled(
+                        repo_item=repo_item,
+                        pkg_id_sequence=pkg_id_sequence,
+                        result=result,
+                    )
+                    pkg_id_sequence_installed = pkg_id_sequence
+
+            # Install.
+            if self.enable_on_install:
+                import addon_utils
+
+                # TODO: it would be nice to include this message in the banner.
+                def handle_error(ex):
+                    self.report({'ERROR'}, str(ex))
+
+                repo_item = _extensions_repo_from_directory(self.repo_directory)
+                for pkg_id in self.pkg_id_sequence:
+                    # Check if the add-on will have been enabled from re-installing.
+                    if pkg_id in pkg_id_sequence_installed:
+                        continue
+                    addon_module_name = "bl_ext.{:s}.{:s}".format(repo_item.module, pkg_id)
+
+                    addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
+        elif item_local["type"] == "theme":
+            if self.enable_on_install:
+                extension_theme_enable(self.repo_directory, self.pkg_id)
+
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
-
-        pkg_id_sequence_installed = []
-        if self._addon_restore:
-            # Upgrade.
-            for repo_item, pkg_id_sequence, result in self._addon_restore:
-                _preferences_ensure_enabled(
-                    repo_item=repo_item,
-                    pkg_id_sequence=pkg_id_sequence,
-                    result=result,
-                )
-                pkg_id_sequence_installed = pkg_id_sequence
-
-        # Install.
-        if self.enable_on_install:
-            import addon_utils
-
-            # TODO: it would be nice to include this message in the banner.
-            def handle_error(ex):
-                self.report({'ERROR'}, str(ex))
-
-            repo_item = _extensions_repo_from_directory(self.repo_directory)
-            for pkg_id in self.pkg_id_sequence:
-                # Check if the add-on will have been enabled from re-installing.
-                if pkg_id in pkg_id_sequence_installed:
-                    continue
-                addon_module_name = "bl_ext.{:s}.{:s}".format(repo_item.module, pkg_id)
-
-                addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
 
     @classmethod
     def poll(cls, context):
@@ -1370,13 +1397,15 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
             self.report({'ERROR'}, "No Local Repositories")
             return {'CANCELLED'}
 
-        if isinstance(err := pkg_manifest_dict_from_file_or_error(url), str):
-            self.report({'ERROR'}, "Error in manifest {:s}".format(err))
+        if isinstance(result := pkg_manifest_dict_from_file_or_error(url), str):
+            self.report({'ERROR'}, "Error in manifest {:s}".format(result))
             return {'CANCELLED'}
-        del err
 
-        # Nothing needed here, it can't be None so the draw call uses drop logic.
-        self._drop_variables = True
+        pkg_id = result["id"]
+        pkg_type = result["type"]
+        del result
+
+        self._drop_variables = pkg_id, pkg_type
 
         # Set to it's self to the property is considered "set".
         self.repo = self.repo
@@ -1392,11 +1421,12 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
         layout = self.layout
         layout.operator_context = 'EXEC_DEFAULT'
 
+        pkg_id, pkg_type = self._drop_variables
+
         layout.label(text="Local Repository")
         layout.prop(self, "repo", text="")
 
-        # TODO: inspect the ZIP and find if the type is an add-on.
-        layout.prop(self, "enable_on_install")
+        layout.prop(self, "enable_on_install", text=rna_prop_enable_on_install_type_map[pkg_type])
 
 
 class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
@@ -1411,11 +1441,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
 
     pkg_id: rna_prop_pkg_id
 
-    enable_on_install: BoolProperty(
-        name="Enable Add-on",
-        description="Enable add-ons after installing",
-        default=True,
-    )
+    enable_on_install: rna_prop_enable_on_install
 
     # Only used for code-path for dropping an extension.
     url: rna_prop_url
@@ -1482,34 +1508,41 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
 
         # Refresh installed packages for repositories that were operated on.
         from . import repo_cache_store
-        repo_cache_store.refresh_local_from_directory(
+        pkg_manifest_local = repo_cache_store.refresh_local_from_directory(
             directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,
         )
 
+        item_local = pkg_manifest_local.get(self.pkg_id)
+        if item_local is None:
+            pass  # Unlikely but possible, do nothing in this case.
+        elif item_local["type"] == "add-on":
+            if self._addon_restore:
+                # Upgrade.
+                for repo_item, pkg_id_sequence, result in self._addon_restore:
+                    _preferences_ensure_enabled(
+                        repo_item=repo_item,
+                        pkg_id_sequence=pkg_id_sequence,
+                        result=result,
+                    )
+            else:
+                # Install.
+                if self.enable_on_install:
+                    import addon_utils
+
+                    # TODO: it would be nice to include this message in the banner.
+                    def handle_error(ex):
+                        self.report({'ERROR'}, str(ex))
+
+                    repo_item = _extensions_repo_from_directory(self.repo_directory)
+                    addon_module_name = "bl_ext.{:s}.{:s}".format(repo_item.module, self.pkg_id)
+                    addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
+        elif item_local["type"] == "theme":
+            if self.enable_on_install:
+                extension_theme_enable(self.repo_directory, self.pkg_id)
+
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
-
-        if self._addon_restore:
-            # Upgrade.
-            for repo_item, pkg_id_sequence, result in self._addon_restore:
-                _preferences_ensure_enabled(
-                    repo_item=repo_item,
-                    pkg_id_sequence=pkg_id_sequence,
-                    result=result,
-                )
-        else:
-            # Install.
-            if self.enable_on_install:
-                import addon_utils
-
-                # TODO: it would be nice to include this message in the banner.
-                def handle_error(ex):
-                    self.report({'ERROR'}, str(ex))
-
-                repo_item = _extensions_repo_from_directory(self.repo_directory)
-                addon_module_name = "bl_ext.{:s}.{:s}".format(repo_item.module, self.pkg_id)
-                addon_utils.enable(addon_module_name, default_set=True, handle_error=handle_error)
 
     def invoke(self, context, event):
         # Only for drop logic!
@@ -1563,7 +1596,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
 
         layout.separator()
 
-        layout.prop(self, "enable_on_install")
+        layout.prop(self, "enable_on_install", text=rna_prop_enable_on_install_type_map[item_remote["type"]])
 
 
 class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):

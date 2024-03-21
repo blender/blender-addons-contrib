@@ -23,6 +23,9 @@ __all__ = (
 
     "dummy_progress",
 
+    # Public Stand-Alone Utilities.
+    "pkg_theme_file_list",
+
     # Public API.
     "json_from_filepath",
     "toml_from_filepath",
@@ -254,6 +257,22 @@ def command_output_from_json_0(
 
 def repositories_validate_or_errors(repos: Sequence[str]) -> Optional[InfoItemSeq]:
     return None
+
+
+# -----------------------------------------------------------------------------
+# Public Stand-Alone Utilities
+#
+
+def pkg_theme_file_list(directory: str, pkg_idname: str) -> Tuple[str, List[str]]:
+    theme_dir = os.path.join(directory, pkg_idname)
+    theme_files = [
+        filename for entry in os.scandir(theme_dir)
+        if ((not entry.is_dir()) and
+            (not (filename := entry.name).startswith(".")) and
+            filename.lower().endswith(".xml"))
+    ]
+    theme_files.sort()
+    return theme_dir, theme_files
 
 
 # -----------------------------------------------------------------------------
