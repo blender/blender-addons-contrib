@@ -13,17 +13,20 @@ PY_FILES=$(shell find ./ -type f -name '*.py')
 PY_FILES_MYPY=$(filter-out \
 	./__init__.py \
 	./bl_extension_cli.py \
+	./bl_extension_local.py \
 	./bl_extension_monkeypatch.py \
 	./bl_extension_ops.py \
 	./bl_extension_ui.py \
 	./bl_extension_utils.py \
+	./wheel_manager.py \
 	./example_extension/__init__.py \
 	./example_extension/foo.py \
 	,$(PY_FILES))
 
 PY_FILES_MYPY_STANDALONE= \
 	./bl_extension_utils.py \
-	./bl_extension_cli.py
+	./bl_extension_cli.py \
+	./wheel_manager.py
 
 EXTRA_WATCH_FILES=Makefile
 
@@ -71,6 +74,19 @@ watch_test_blender: FORCE
 		inotifywait -q -e close_write $(EXTRA_WATCH_FILES) $(PY_FILES) ; \
 		tput clear; \
 	done
+
+test_cli_blender: FORCE
+	@env BLENDER_BIN=$(BLENDER_BIN) \
+	    $(PYTHON_BIN) ./tests/test_cli_blender.py
+
+watch_test_cli_blender: FORCE
+	@while true; do \
+		env BLENDER_BIN=$(BLENDER_BIN) \
+		    $(MAKE) test_cli_blender; \
+		inotifywait -q -e close_write $(EXTRA_WATCH_FILES) $(PY_FILES) ; \
+		tput clear; \
+	done
+
 
 # https://www.cyberciti.biz/faq/howto-create-linux-ram-disk-filesystem/
 # mkfs -q /dev/ram1 8192

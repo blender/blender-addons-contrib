@@ -223,6 +223,7 @@ class PkgManifest(NamedTuple):
     copyright: Optional[List[str]] = None
     permissions: Optional[List[str]] = None
     tags: Optional[List[str]] = None
+    wheels: Optional[List[str]] = None
 
 
 class PkgManifest_Archive(NamedTuple):
@@ -758,6 +759,29 @@ def pkg_manifest_validate_field_type(value: str) -> Optional[str]:
     return None
 
 
+def pkg_manifest_validate_field_wheels(value: List[Any]) -> Optional[str]:
+    if (error := pkg_manifest_validate_field_any_list_of_non_empty_strings(value)) is not None:
+        return error
+    # Enforce naming spec:
+    # https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention
+    # This also defines the name spec:
+    filename_spec = "{distribution}-{version}(-{build tag})?-{python tag}-{abi tag}-{platform tag}.whl"
+
+    for wheel in value:
+        if "\\" in wheel:
+            return "wheel paths must use forward slashes, found {!r}".format(wheel)
+
+        wheel_filename = os.path.basename(wheel)
+        if not wheel_filename.lower().endswith(".whl"):
+            return "wheel paths must end with \".whl\", found {!r}".format(wheel)
+
+        wheel_filename_split = wheel_filename.split("-")
+        if not (5 <= len(wheel_filename_split) <= 6):
+            return "wheel filename must follow the spec \"{:s}\", found {!r}".format(filename_spec, wheel_filename)
+
+    return None
+
+
 def pkg_manifest_validate_field_archive_size(value: int) -> Optional[str]:
     if value <= 0:
         return "to be a positive integer, found {!r}".format(value)
@@ -799,6 +823,7 @@ pkg_manifest_known_keys_and_types: Tuple[Tuple[str, type, Optional[Callable[[Any
     ("copyright", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
     ("permissions", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
     ("tags", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
+    ("wheels", list, pkg_manifest_validate_field_wheels),
 )
 
 # Keep in sync with `PkgManifest_Archive`.
