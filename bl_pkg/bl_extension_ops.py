@@ -158,6 +158,11 @@ def extension_url_find_repo_index_and_pkg_id(url):
         repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
         repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
     )):
+        # It's possible the remote repo could not be connected to when syncing.
+        # Allow it to be None without raising an exception.
+        if pkg_manifest_remote is None:
+            continue
+
         repo = repos_all[repo_index]
         repo_url = repo.repo_url
         if not repo_url:
@@ -420,6 +425,39 @@ def _preferences_ui_refresh_addons():
     import addon_utils
     # TODO: make a public method.
     addon_utils.modules._is_first = True
+
+
+def _preferences_ensure_sync():
+    # TODO: define when/where exactly sync should be ensured.
+    # This is a general issue:
+    from . import repo_cache_store
+    sync_required = False
+    for repo_index, (
+            pkg_manifest_remote,
+            pkg_manifest_local,
+    ) in enumerate(zip(
+        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
+        repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
+    )):
+        if pkg_manifest_remote is None:
+            sync_required = True
+            break
+        if pkg_manifest_local is None:
+            sync_required = True
+            break
+
+    if sync_required:
+        for wm in bpy.data.window_managers:
+            for win in wm.windows:
+                win.cursor_set('WAIT')
+        try:
+            bpy.ops.bl_pkg.repo_sync_all()
+        except BaseException as ex:
+            print("Sync failed:", ex)
+
+        for wm in bpy.data.window_managers:
+            for win in wm.windows:
+                win.cursor_set('DEFAULT')
 
 
 def extension_repos_read_index(index, *, include_disabled=False):
@@ -1588,6 +1626,8 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
     def _invoke_for_drop(self, context, event):
         url = self.url
         print("DROP URL:", url)
+
+        _preferences_ensure_sync()
 
         repo_index, repo_name, pkg_id, item_remote, item_local = extension_url_find_repo_index_and_pkg_id(url)
 
