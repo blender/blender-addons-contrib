@@ -1188,6 +1188,23 @@ def generic_arg_local_dir(subparse: argparse.ArgumentParser) -> None:
 
 
 # Only for authoring.
+def generic_arg_package_source_path_positional(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        dest="source_path",
+        type=str,
+        nargs="?",
+        default=".",
+        metavar="SOURCE_PATH",
+        help=(
+            "The package source path "
+            "(either directory containing package files or the package archive).\n"
+            "This path must containing a ``{:s}`` manifest.\n"
+            "\n"
+            "The current directory ``.`` is default.".format(PKG_MANIFEST_FILENAME_TOML)
+        ),
+    )
+
+
 def generic_arg_package_source_dir(subparse: argparse.ArgumentParser) -> None:
     subparse.add_argument(
         "--source-dir",
@@ -1908,15 +1925,11 @@ class subcmd_author:
         return True
 
     @staticmethod
-    def validate(
+    def _validate_directory(
             msg_fn: MessageFn,
             *,
             pkg_source_dir: str,
     ) -> bool:
-        if not os.path.isdir(pkg_source_dir):
-            message_error(msg_fn, "Missing local \"{:s}\"".format(pkg_source_dir))
-            return False
-
         pkg_manifest_filepath = os.path.join(pkg_source_dir, PKG_MANIFEST_FILENAME_TOML)
 
         if not os.path.exists(pkg_manifest_filepath):
@@ -1931,8 +1944,48 @@ class subcmd_author:
                 message_status(msg_fn, error_msg)
             return False
 
-        message_status(msg_fn, "Success parsing TOML \"{:s}\"".format(pkg_manifest_filepath))
+        message_status(msg_fn, "Success parsing TOML in \"{:s}\"".format(pkg_source_dir))
         return True
+
+    @staticmethod
+    def _validate_archive(
+            msg_fn: MessageFn,
+            *,
+            pkg_source_archive: str,
+    ) -> bool:
+        # NOTE(@ideasman42): having `_validate_directory` & `_validate_archive`
+        # use separate code-paths isn't ideal in some respects however currently the difference
+        # doesn't cause a lot of duplication.
+        #
+        # Operate on the archive directly because:
+        # - Validating the manifest *does* use shared logic.
+        # - It's faster for large archives or archives with a large number of files
+        #   which will litter the file-system.
+        # - There is already a validation function which is used before installing an archive.
+        #
+        # If it's ever causes too much code-duplication we can always
+        # extract the archive into a temporary directory and run validation there.
+
+        # Demote errors to status as the function of this action is to check the manifest is stable.
+        manifest = pkg_manifest_from_archive_and_validate(pkg_source_archive)
+        if isinstance(manifest, str):
+            message_status(msg_fn, "Archive validation failed {!r}, error: {:s}".format(pkg_source_archive, manifest))
+            return False
+
+        message_status(msg_fn, "Success parsing TOML in \"{:s}\"".format(pkg_source_archive))
+        return True
+
+    @staticmethod
+    def validate(
+            msg_fn: MessageFn,
+            *,
+            source_path: str,
+    ) -> bool:
+        if os.path.isdir(source_path):
+            result = subcmd_author._validate_directory(msg_fn, pkg_source_dir=source_path)
+        else:
+            result = subcmd_author._validate_archive(msg_fn, pkg_source_archive=source_path)
+        return result
 
 
 class subcmd_dummy:
@@ -2263,7 +2316,7 @@ def argparse_create_author_validate(
         description="Validate the package meta-data in the current directory.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    generic_arg_package_source_dir(subparse)
+    generic_arg_package_source_path_positional(subparse)
 
     if args_internal:
         generic_arg_output_type(subparse)
@@ -2271,7 +2324,7 @@ def argparse_create_author_validate(
     subparse.set_defaults(
         func=lambda args: subcmd_author.validate(
             msg_fn_from_args(args),
-            pkg_source_dir=args.source_dir,
+            source_path=args.source_path,
         ),
     )
 
