@@ -2488,5 +2488,4 @@ def main(
 
 
 if __name__ == "__main__":
-    # TODO: `sys.exit(..)` exit-code.
-    main()
+    sys.exit(main())
