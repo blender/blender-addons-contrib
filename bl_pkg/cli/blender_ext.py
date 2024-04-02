@@ -440,10 +440,11 @@ def pkg_zipfile_detect_subdir_or_none(
     return base_dir
 
 
-def pkg_manifest_from_zipfile_and_validate(
+def pkg_manifest_from_zipfile_and_validate_impl(
         zip_fh: zipfile.ZipFile,
         archive_subdir: str,
-) -> Union[PkgManifest, str]:
+        all_errors: bool,
+) -> Union[PkgManifest, List[str]]:
     """
     Validate the manifest and return all errors.
     """
@@ -459,18 +460,35 @@ def pkg_manifest_from_zipfile_and_validate(
         file_content = None
 
     if file_content is None:
-        return "Archive does not contain a manifest"
+        return ["Archive does not contain a manifest"]
 
     manifest_dict = toml_from_bytes(file_content)
     assert isinstance(manifest_dict, dict)
 
     # TODO: forward actual error.
     if manifest_dict is None:
-        return "Archive does not contain a manifest"
+        return ["Archive does not contain a manifest"]
     pkg_idname = manifest_dict.pop("id", None)
     if pkg_idname is None:
-        return "Archive does not contain an \"id\" field"
-    return pkg_manifest_from_dict_and_validate(pkg_idname, manifest_dict, from_repo=False)
+        return ["Archive does not contain an \"id\" field"]
+    return pkg_manifest_from_dict_and_validate_impl(pkg_idname, manifest_dict, from_repo=False, all_errors=all_errors)
+
+
+def pkg_manifest_from_zipfile_and_validate(
+        zip_fh: zipfile.ZipFile,
+        archive_subdir: str,
+) -> Union[PkgManifest, str]:
+    manifest = pkg_manifest_from_zipfile_and_validate_impl(zip_fh, archive_subdir, all_errors=False)
+    if isinstance(manifest, list):
+        return manifest[0]
+    return manifest
+
+
+def pkg_manifest_from_zipfile_and_validate_all_errors(
+        zip_fh: zipfile.ZipFile,
+        archive_subdir: str,
+) -> Union[PkgManifest, List[str]]:
+    return pkg_manifest_from_zipfile_and_validate_impl(zip_fh, archive_subdir, all_errors=True)
 
 
 def pkg_manifest_from_archive_and_validate(
@@ -1966,11 +1984,16 @@ class subcmd_author:
         # If it's ever causes too much code-duplication we can always
         # extract the archive into a temporary directory and run validation there.
 
-        # Demote errors to status as the function of this action is to check the manifest is stable.
-        manifest = pkg_manifest_from_archive_and_validate(pkg_source_archive)
-        if isinstance(manifest, str):
-            message_status(msg_fn, "Archive validation failed {!r}, error: {:s}".format(pkg_source_archive, manifest))
-            return False
+        with zipfile.ZipFile(pkg_source_archive, mode="r") as zip_fh:
+            if (archive_subdir := pkg_zipfile_detect_subdir_or_none(zip_fh)) is None:
+                message_status(msg_fn, "Archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML))
+            # Demote errors to status as the function of this action is to check the manifest is stable.
+            manifest = pkg_manifest_from_zipfile_and_validate_all_errors(zip_fh, archive_subdir)
+            if isinstance(manifest, list):
+                message_status(msg_fn, "Error parsing TOML in \"{:s}\"".format(pkg_source_archive))
+                for error_msg in manifest:
+                    message_status(msg_fn, error_msg)
+                return False
 
         message_status(msg_fn, "Success parsing TOML in \"{:s}\"".format(pkg_source_archive))
         return True
