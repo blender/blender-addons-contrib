@@ -1318,7 +1318,7 @@ class subcmd_server:
             filepath = os.path.join(repo_dir, filename)
             manifest = pkg_manifest_from_archive_and_validate(filepath)
             if isinstance(manifest, str):
-                message_warn(msg_fn, "unable to read manifest from {!r}, error: {:s}".format(filepath, manifest))
+                message_warn(msg_fn, "archive validation failed {!r}, error: {:s}".format(filepath, manifest))
                 continue
             manifest_dict = manifest._asdict()
             # TODO: we could have a method besides `_asdict` that excludes the ID.
