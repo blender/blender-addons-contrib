@@ -494,8 +494,12 @@ def pkg_manifest_from_zipfile_and_validate_all_errors(
 def pkg_manifest_from_archive_and_validate(
         filepath: str,
 ) -> Union[PkgManifest, str]:
-    # TODO: handle errors.
-    with zipfile.ZipFile(filepath, mode="r") as zip_fh:
+    try:
+        zip_fh_context = zipfile.ZipFile(filepath, mode="r")
+    except BaseException as ex:
+        return "Error extracting archive \"{:s}\"".format(str(ex))
+
+    with contextlib.closing(zip_fh_context) as zip_fh:
         if (archive_subdir := pkg_zipfile_detect_subdir_or_none(zip_fh)) is None:
             return "Archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML)
         return pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir)
@@ -1984,7 +1988,13 @@ class subcmd_author:
         # If it's ever causes too much code-duplication we can always
         # extract the archive into a temporary directory and run validation there.
 
-        with zipfile.ZipFile(pkg_source_archive, mode="r") as zip_fh:
+        try:
+            zip_fh_context = zipfile.ZipFile(pkg_source_archive, mode="r")
+        except BaseException as ex:
+            message_status(msg_fn, "Error extracting archive \"{:s}\"".format(str(ex)))
+            return False
+
+        with contextlib.closing(zip_fh_context) as zip_fh:
             if (archive_subdir := pkg_zipfile_detect_subdir_or_none(zip_fh)) is None:
                 message_status(msg_fn, "Archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML))
             # Demote errors to status as the function of this action is to check the manifest is stable.
