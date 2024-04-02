@@ -1972,7 +1972,7 @@ class subcmd_author:
         ok = True
         for filepath in expected_files:
             if not os.path.exists(os.path.join(pkg_source_dir, filepath)) is None:
-                message_status(msg_fn, "Error, expected path missing for {:s}: \"{:s}\"".format(
+                message_status(msg_fn, "Error, file missing from {:s}: \"{:s}\"".format(
                     manifest.type,
                     filepath,
                 ))
@@ -2032,7 +2032,7 @@ class subcmd_author:
             ok = True
             for filepath in expected_files:
                 if zip_fh.NameToInfo.get(filepath) is None:
-                    message_status(msg_fn, "Error, expected path missing for {:s}: \"{:s}\"".format(
+                    message_status(msg_fn, "Error, file missing from {:s}: \"{:s}\"".format(
                         manifest.type,
                         filepath,
                     ))
