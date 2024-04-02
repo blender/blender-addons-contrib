@@ -1955,7 +1955,7 @@ class subcmd_author:
         pkg_manifest_filepath = os.path.join(pkg_source_dir, PKG_MANIFEST_FILENAME_TOML)
 
         if not os.path.exists(pkg_manifest_filepath):
-            message_error(msg_fn, "File \"{:s}\" not found!".format(pkg_manifest_filepath))
+            message_error(msg_fn, "Error, file \"{:s}\" not found!".format(pkg_manifest_filepath))
             return False
 
         # Demote errors to status as the function of this action is to check the manifest is stable.
@@ -1964,6 +1964,20 @@ class subcmd_author:
             message_status(msg_fn, "Error parsing TOML \"{:s}\"".format(pkg_manifest_filepath))
             for error_msg in manifest:
                 message_status(msg_fn, error_msg)
+            return False
+
+        expected_files = []
+        if manifest.type == "add-on":
+            expected_files.append("__init__.py")
+        ok = True
+        for filepath in expected_files:
+            if not os.path.exists(os.path.join(pkg_source_dir, filepath)) is None:
+                message_status(msg_fn, "Error, expected path missing for {:s}: \"{:s}\"".format(
+                    manifest.type,
+                    filepath,
+                ))
+                ok = False
+        if not ok:
             return False
 
         message_status(msg_fn, "Success parsing TOML in \"{:s}\"".format(pkg_source_dir))
@@ -1996,13 +2010,34 @@ class subcmd_author:
 
         with contextlib.closing(zip_fh_context) as zip_fh:
             if (archive_subdir := pkg_zipfile_detect_subdir_or_none(zip_fh)) is None:
-                message_status(msg_fn, "Archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML))
+                message_status(msg_fn, "Error, archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML))
+                return False
             # Demote errors to status as the function of this action is to check the manifest is stable.
             manifest = pkg_manifest_from_zipfile_and_validate_all_errors(zip_fh, archive_subdir)
             if isinstance(manifest, list):
                 message_status(msg_fn, "Error parsing TOML in \"{:s}\"".format(pkg_source_archive))
                 for error_msg in manifest:
                     message_status(msg_fn, error_msg)
+                return False
+
+            # NOTE: this is arguably *not* manifest validation, the check could be refactored out.
+            # Currently we always want to check both and it's useful to do that while the informatio
+            expected_files = []
+            if manifest.type == "add-on":
+                if archive_subdir:
+                    assert archive_subdir.endswith("/")
+                    expected_files.append(archive_subdir + "__init__.py")
+                else:
+                    expected_files.append("__init__.py")
+            ok = True
+            for filepath in expected_files:
+                if zip_fh.NameToInfo.get(filepath) is None:
+                    message_status(msg_fn, "Error, expected path missing for {:s}: \"{:s}\"".format(
+                        manifest.type,
+                        filepath,
+                    ))
+                    ok = False
+            if not ok:
                 return False
 
         message_status(msg_fn, "Success parsing TOML in \"{:s}\"".format(pkg_source_archive))
