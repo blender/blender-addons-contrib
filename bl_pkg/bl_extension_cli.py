@@ -752,9 +752,7 @@ def cli_extension_args_repo_add(subparsers: "argparse._SubParsersAction[argparse
     subparse.add_argument(
         "--clear-all",
         dest="clear_all",
-        metavar="BOOLEAN",
-        type=arg_handle_int_as_bool,
-        default=False,
+        action="store_true",
         help=(
             "Clear all repositories before adding (default=0), simplifies test setup."
         ),
