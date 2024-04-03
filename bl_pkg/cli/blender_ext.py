@@ -1931,7 +1931,13 @@ class subcmd_author:
             return False
 
         with CleanupPathsContext(files=(outfile_temp,), directories=()):
-            with zipfile.ZipFile(outfile_temp, 'w', zipfile.ZIP_LZMA) as zip_fh:
+            try:
+                zip_fh_context = zipfile.ZipFile(outfile_temp, 'w', zipfile.ZIP_LZMA)
+            except BaseException as ex:
+                message_status(msg_fn, "Error creating archive \"{:s}\"".format(str(ex)))
+                return False
+
+            with contextlib.closing(zip_fh_context) as zip_fh:
                 for filepath_abs, filepath_rel in scandir_recursive(
                         pkg_source_dir,
                         # Be more advanced in the future, for now ignore dot-files (`.git`) .. etc.
@@ -1942,7 +1948,11 @@ class subcmd_author:
 
                     # Handy for testing that sub-directories:
                     # zip_fh.write(filepath_abs, manifest.id + "/" + filepath_rel)
-                    zip_fh.write(filepath_abs, filepath_rel)
+                    try:
+                        zip_fh.write(filepath_abs, filepath_rel)
+                    except BaseException as ex:
+                        message_status(msg_fn, "Error adding to archive \"{:s}\"".format(str(ex)))
+                        return False
 
                 request_exit |= message_status(msg_fn, "complete")
                 if request_exit:
