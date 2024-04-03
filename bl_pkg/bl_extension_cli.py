@@ -754,7 +754,7 @@ def cli_extension_args_repo_add(subparsers: "argparse._SubParsersAction[argparse
         dest="clear_all",
         action="store_true",
         help=(
-            "Clear all repositories before adding (default=0), simplifies test setup."
+            "Clear all repositories before adding, simplifies test setup."
         ),
     )
 
