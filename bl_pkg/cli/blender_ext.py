@@ -1502,7 +1502,16 @@ class subcmd_client:
         # Remove `filepath_local_pkg_temp` if this block exits.
         directories_to_clean: List[str] = []
         with CleanupPathsContext(files=(), directories=directories_to_clean):
-            with zipfile.ZipFile(filepath_archive, mode="r") as zip_fh:
+            try:
+                zip_fh_context = zipfile.ZipFile(filepath_archive, mode="r")
+            except BaseException as ex:
+                message_warn(
+                    msg_fn,
+                    "Error extracting archive: {:s}".format(str(ex)),
+                )
+                return False
+
+            with contextlib.closing(zip_fh_context) as zip_fh:
                 archive_subdir = pkg_zipfile_detect_subdir_or_none(zip_fh)
                 if archive_subdir is None:
                     message_warn(
