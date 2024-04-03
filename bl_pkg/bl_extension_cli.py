@@ -403,10 +403,17 @@ class subcmd_repo:
             directory: str,
             url: str,
             cache: bool,
+            clear_all: bool,
             no_prefs: bool,
     ) -> bool:
         from bpy import context
-        repo = context.preferences.filepaths.extension_repos.new(
+
+        extension_repos = context.preferences.filepaths.extension_repos
+        if clear_all:
+            while extension_repos:
+                extension_repos.remove(extension_repos[0])
+
+        repo = extension_repos.new(
             name=name,
             module=id,
             custom_directory=directory,
@@ -742,6 +749,17 @@ def cli_extension_args_repo_add(subparsers: "argparse._SubParsersAction[argparse
         ),
     )
 
+    subparse.add_argument(
+        "--clear-all",
+        dest="clear_all",
+        metavar="BOOLEAN",
+        type=arg_handle_int_as_bool,
+        default=False,
+        help=(
+            "Clear all repositories before adding (default=0), simplifies test setup."
+        ),
+    )
+
     generic_arg_no_prefs(subparse)
 
     subparse.set_defaults(
@@ -751,6 +769,7 @@ def cli_extension_args_repo_add(subparsers: "argparse._SubParsersAction[argparse
             directory=args.directory,
             url=args.url,
             cache=args.cache,
+            clear_all=args.clear_all,
             no_prefs=args.no_prefs,
         ),
     )
