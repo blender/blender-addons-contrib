@@ -1138,7 +1138,7 @@ def repo_pkginfo_from_local(*, local_dir: str) -> Optional[Dict[str, Any]]:
 
 def pkg_repo_dat_from_json(json_data: Dict[str, Any]) -> PkgRepoData:
     result_new = PkgRepoData(
-        version=json_data.get("version", "1"),
+        version=json_data.get("version", "v1"),
         blocklist=json_data.get("blocklist", []),
         data=json_data.get("data", []),
     )
