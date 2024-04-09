@@ -452,17 +452,16 @@ def pkg_make_obsolete_for_testing(local_dir: str, pkg_id: str) -> None:
 
 
 def pkg_manifest_dict_is_valid_or_error(
-        pkg_idname: str,
         data: Dict[str, Any],
         from_repo: bool,
 ) -> Optional[str]:
     # Exception! In in general `cli` shouldn't be considered a Python module,
     # it's validation function is handy to reuse.
     from .cli.blender_ext import pkg_manifest_from_dict_and_validate
-    assert "id" not in data
-    result = pkg_manifest_from_dict_and_validate(pkg_idname, data, from_repo=from_repo)
+    assert "id" in data
+    result = pkg_manifest_from_dict_and_validate(data, from_repo=from_repo)
     if isinstance(result, str):
-        return "{:s}: {:s}".format(pkg_idname, result)
+        return result
     return None
 
 
@@ -893,7 +892,7 @@ class _RepoCacheEntry:
                 if item_local is None:
                     continue
 
-                pkg_idname = item_local.pop("id")
+                pkg_idname = item_local["id"]
                 if has_remote:
                     # This should never happen, the user may have manually renamed a directory.
                     if pkg_idname != filename:
@@ -906,7 +905,7 @@ class _RepoCacheEntry:
                     pkg_idname = filename
 
                 # Validate so local-only packages with invalid manifests aren't used.
-                if (error_str := pkg_manifest_dict_is_valid_or_error(pkg_idname, item_local, from_repo=False)):
+                if (error_str := pkg_manifest_dict_is_valid_or_error(item_local, from_repo=False)):
                     error_fn(Exception(error_str))
                     continue
 
@@ -1019,9 +1018,15 @@ class RepoCacheStore:
                 yield None
             else:
                 pkg_manifest_remote = {}
-                for pkg_idname, item_remote in json_data.items():
-                    pkg_manifest_remote[pkg_idname] = item_remote
-                yield pkg_manifest_remote
+                # "data" should always exist, it's not the purpose of this function to fully validate though.
+                json_items = json_data.get("data")
+                if json_items is None:
+                    error_fn(ValueError("JSON was missing \"data\" key"))
+                    yield None
+                else:
+                    for item_remote in json_items:
+                        pkg_manifest_remote[item_remote.pop("id")] = item_remote
+                    yield pkg_manifest_remote
 
     def pkg_manifest_from_local_ensure(
             self,
