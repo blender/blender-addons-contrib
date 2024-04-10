@@ -1025,7 +1025,12 @@ class RepoCacheStore:
                     yield None
                 else:
                     for item_remote in json_items:
-                        pkg_manifest_remote[item_remote.pop("id")] = item_remote
+                        # TODO(@ideasman42): we may want to include the "id", as part of moving to a new format
+                        # the "id" used not to be part of each item so users of this API assume it's not.
+                        # The `item_remote` could be used in-place however that needs further testing.
+                        item_remove_copy = item_remote.copy()
+                        pkg_idname = item_remove_copy.pop("id")
+                        pkg_manifest_remote[pkg_idname] = item_remove_copy
                     yield pkg_manifest_remote
 
     def pkg_manifest_from_local_ensure(
