@@ -805,7 +805,24 @@ class _RepoCacheEntry:
 
         with open(filepath_json, "w", encoding="utf-8") as fh:
             # Indent because it can be useful to check this file if there are any issues.
-            fh.write(json.dumps(local_json_data, indent=2))
+
+            # Begin: transform to list with ID's in item.
+            # TODO: this transform can probably be removed and the internal format can change
+            # to use the same structure as the actual JSON.
+            local_json_data_as_list = []
+            local_json_data_compat = {
+                "version": "v1",
+                "blocklist": [],
+                "data": local_json_data_as_list,
+            }
+
+            local_json_data_as_list[:] = [
+                {"id": pkg_idname, **value}
+                for pkg_idname, value in local_json_data.items()
+            ]
+            # End: compatibility change.
+
+            fh.write(json.dumps(local_json_data_compat, indent=2))
 
     def _json_data_refresh(
             self,
