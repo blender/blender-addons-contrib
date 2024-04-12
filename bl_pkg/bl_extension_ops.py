@@ -603,6 +603,10 @@ def _preferences_theme_state_create():
     # It's possible the XML was renamed after upgrading, detect another.
     dirpath = os.path.dirname(filepath)
 
+    # Not essential, just avoids a demoted error from `scandir` which seems like it may be a bug.
+    if not os.path.exists(dirpath):
+        return None, None
+
     filepath = ""
     for entry in scandir_with_demoted_errors(dirpath):
         if entry.is_dir():
@@ -1822,6 +1826,39 @@ class BlPkgPkgDisable_TODO(Operator):
         return {'CANCELLED'}
 
 
+class BlPkgPkgThemeEnable(Operator):
+    """Turn off this theme"""
+    bl_idname = "bl_pkg.extension_theme_enable"
+    bl_label = "Enable theme extension"
+
+    pkg_id: rna_prop_pkg_id
+    repo_index: rna_prop_repo_index
+
+    def execute(self, context):
+        self.repo_index
+        repo_item = extension_repos_read_index(self.repo_index)
+        extension_theme_enable(repo_item.directory, self.pkg_id)
+        print(repo_item.directory, self.pkg_id)
+        return {'FINISHED'}
+
+
+class BlPkgPkgThemeDisable(Operator):
+    """Turn off this theme"""
+    bl_idname = "bl_pkg.extension_theme_disable"
+    bl_label = "Disable theme extension"
+
+    pkg_id: rna_prop_pkg_id
+    repo_index: rna_prop_repo_index
+
+    def execute(self, context):
+        import os
+        repo_item = extension_repos_read_index(self.repo_index)
+        dirpath = os.path.join(repo_item.directory, self.pkg_id)
+        if os.path.samefile(dirpath, os.path.dirname(context.preferences.themes[0].filepath)):
+            bpy.ops.preferences.reset_default_theme()
+        return {'FINISHED'}
+
+
 # -----------------------------------------------------------------------------
 # Non Wrapped Actions
 #
@@ -2060,6 +2097,9 @@ classes = (
     BlPkgPkgInstall,
     BlPkgPkgUninstall,
     BlPkgPkgDisable_TODO,
+
+    BlPkgPkgThemeEnable,
+    BlPkgPkgThemeDisable,
 
     BlPkgPkgUpgradeAll,
     BlPkgPkgInstallMarked,
