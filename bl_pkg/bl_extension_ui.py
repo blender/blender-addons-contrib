@@ -614,12 +614,16 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
 
         addon_prefs = context.preferences.addons[__package__].preferences
 
-        layout.operator("bl_pkg.repo_sync_all", text="Check for Updates", icon='FILE_REFRESH')
-        layout.operator("bl_pkg.pkg_upgrade_all", text="Update All", icon='IMPORT')
+        layout.popover("USERPREF_PT_extensions_repos", text="Repositories")
 
         layout.separator()
 
-        layout.operator("bl_pkg.pkg_install_files", icon='IMPORT', text="Install from Disk")
+        layout.operator("bl_pkg.repo_sync_all", text="Check for Updates", icon='FILE_REFRESH')
+
+        layout.separator()
+
+        layout.operator("bl_pkg.pkg_upgrade_all", text="Install Available Updates", icon='IMPORT')
+        layout.operator("bl_pkg.pkg_install_files", text="Install from Disk")
         layout.operator("preferences.addon_install", text="Install Legacy Add-on")
 
         if context.preferences.experimental.use_extension_utils:
@@ -673,7 +677,6 @@ def extensions_panel_draw(panel, context):
 
     row_b.separator()
     row_b.menu("USERPREF_MT_extensions_bl_pkg_settings", text="", icon='DOWNARROW_HLT')
-    row_b.popover("USERPREF_PT_extensions_repos", text="", icon='PREFERENCES')
     del row, row_a, row_b
 
     if show_development_reports:
