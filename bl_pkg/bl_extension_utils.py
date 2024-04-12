@@ -25,6 +25,7 @@ __all__ = (
 
     # Public Stand-Alone Utilities.
     "pkg_theme_file_list",
+    "file_mtime_or_none",
 
     # Public API.
     "json_from_filepath",

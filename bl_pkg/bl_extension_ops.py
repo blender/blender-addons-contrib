@@ -221,6 +221,13 @@ def pkg_info_check_exclude_filter(item, search_lower):
     return pkg_info_check_exclude_filter_ex(item["name"], item["tagline"], search_lower)
 
 
+def extension_theme_enable_filepath(filepath):
+    bpy.ops.script.execute_preset(
+        filepath=filepath,
+        menu_idname="USERPREF_MT_interface_theme_presets",
+    )
+
+
 def extension_theme_enable(repo_directory, pkg_idname):
     from .bl_extension_utils import (
         pkg_theme_file_list,
@@ -233,10 +240,7 @@ def extension_theme_enable(repo_directory, pkg_idname):
     if not theme_files:
         return
 
-    bpy.ops.script.execute_preset(
-        filepath=os.path.join(theme_dir, theme_files[0]),
-        menu_idname="USERPREF_MT_interface_theme_presets",
-    )
+    extension_theme_enable_filepath(os.path.join(theme_dir, theme_files[0]))
 
 
 def repo_iter_valid_local_only(context):
@@ -578,6 +582,53 @@ def _pkg_marked_by_repo(pkg_manifest_all):
             pkg_list = repo_pkg_map[repo_index] = []
         pkg_list.append(pkg_id)
     return repo_pkg_map
+
+
+# -----------------------------------------------------------------------------
+# Theme Handling
+#
+
+def _preferences_theme_state_create():
+    from .bl_extension_utils import (
+        file_mtime_or_none,
+        scandir_with_demoted_errors,
+    )
+    filepath = bpy.context.preferences.themes[0].filepath
+    if not filepath:
+        return None, None
+
+    if (result := file_mtime_or_none(filepath)) is not None:
+        return result, filepath
+
+    # It's possible the XML was renamed after upgrading, detect another.
+    dirpath = os.path.dirname(filepath)
+
+    filepath = ""
+    for entry in scandir_with_demoted_errors(dirpath):
+        if entry.is_dir():
+            continue
+        # There must only ever be one.
+        if entry.name.lower().endswith(".xml"):
+            if (result := file_mtime_or_none(entry.path)) is not None:
+                return result, filepath
+    return None, None
+
+
+def _preferences_theme_state_restore(state):
+    state_update = _preferences_theme_state_create()
+    # Unchanged, return.
+    if state == state_update:
+        return
+
+    # Uninstall:
+    # The current theme was an extension that was uninstalled.
+    if state[0] is not None and state_update[0] is None:
+        bpy.ops.preferences.reset_default_theme()
+        return
+
+    # Update:
+    if state_update[0] is not None:
+        extension_theme_enable_filepath(state_update[1])
 
 
 # -----------------------------------------------------------------------------
@@ -935,6 +986,7 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
         from . import repo_cache_store
         self._repo_directories = set()
         self._addon_restore = []
+        self._theme_restore = _preferences_theme_state_create()
 
         use_active_only = self.use_active_only
         repos_all = extension_repos_read(use_active_only=use_active_only)
@@ -1050,6 +1102,7 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
             addon_restore=self._addon_restore,
             handle_error=handle_error,
         )
+        _preferences_theme_state_restore(self._theme_restore)
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
@@ -1182,6 +1235,7 @@ class BlPkgPkgUninstallMarked(Operator, _BlPkgCmdMixIn):
         package_count = 0
 
         self._repo_directories = set()
+        self._theme_restore = _preferences_theme_state_create()
 
         # Track add-ons to disable before uninstalling.
         handle_addons_info = []
@@ -1248,6 +1302,7 @@ class BlPkgPkgUninstallMarked(Operator, _BlPkgCmdMixIn):
                 directory=directory,
                 error_fn=self.error_fn_from_exception,
             )
+        _preferences_theme_state_restore(self._theme_restore)
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
@@ -1297,6 +1352,7 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
         )
 
         self._addon_restore = []
+        self._theme_restore = _preferences_theme_state_create()
 
         # Happens when run from scripts and this argument isn't passed in.
         if not self.properties.is_property_set("repo"):
@@ -1413,6 +1469,7 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
             addon_restore=self._addon_restore,
             handle_error=handle_error,
         )
+        _preferences_theme_state_restore(self._theme_restore)
 
         if self._addon_restore:
             pkg_id_sequence_upgrade = self._addon_restore[0][1]
@@ -1525,6 +1582,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
 
     def exec_command_iter(self, is_modal):
         self._addon_restore = []
+        self._theme_restore = _preferences_theme_state_create()
 
         directory = _repo_dir_and_index_get(self.repo_index, self.repo_directory, self.report)
         if not directory:
@@ -1598,6 +1656,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
             addon_restore=self._addon_restore,
             handle_error=handle_error,
         )
+        _preferences_theme_state_restore(self._theme_restore)
 
         if self._addon_restore:
             pkg_id_sequence_upgrade = self._addon_restore[0][1]
@@ -1685,6 +1744,8 @@ class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):
 
     def exec_command_iter(self, is_modal):
 
+        self._theme_restore = _preferences_theme_state_create()
+
         directory = _repo_dir_and_index_get(self.repo_index, self.repo_directory, self.report)
         if not directory:
             return None
@@ -1745,6 +1806,7 @@ class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):
             directory=self.repo_directory,
             error_fn=self.error_fn_from_exception,
         )
+        _preferences_theme_state_restore(self._theme_restore)
 
         _preferences_ui_redraw()
         _preferences_ui_refresh_addons()
