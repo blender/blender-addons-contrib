@@ -2022,7 +2022,7 @@ class subcmd_author:
             expected_files.append("__init__.py")
         ok = True
         for filepath in expected_files:
-            if not os.path.exists(os.path.join(pkg_source_dir, filepath)) is None:
+            if not os.path.exists(os.path.join(pkg_source_dir, filepath)):
                 message_status(msg_fn, "Error, file missing from {:s}: \"{:s}\"".format(
                     manifest.type,
                     filepath,
