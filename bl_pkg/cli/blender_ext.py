@@ -310,6 +310,32 @@ def scandir_recursive(
     yield from scandir_recursive_impl(path, path, filter_fn=filter_fn)
 
 
+def filepath_skip_compress(filepath: str) -> bool:
+    """
+    Return true when this file shouldn't be compressed while archiving.
+    Speeds up archive creation, especially for large ``*.whl`` files.
+    """
+    # NOTE: for now use simple extension check, we could check the magic number too.
+    return filepath.lower().endswith((
+        # Python wheels.
+        ".whl",
+        # Archives (exclude historic formats: `*.arj`, `*.lha` ... etc).
+        ".bz2",
+        ".gz",
+        ".lz4",
+        ".lzma",
+        ".rar",
+        ".xz",
+        ".zip",
+        ".zst",
+        # TAR combinations.
+        ".tbz2",
+        ".tgz",
+        ".txz",
+        ".tzst",
+    ))
+
+
 def pkg_manifest_from_dict_and_validate_impl(
         data: Dict[Any, Any],
         *,
@@ -2008,8 +2034,9 @@ class subcmd_author:
 
                     # Handy for testing that sub-directories:
                     # zip_fh.write(filepath_abs, manifest.id + "/" + filepath_rel)
+                    compress_type = zipfile.ZIP_STORED if filepath_skip_compress(filepath_abs) else None
                     try:
-                        zip_fh.write(filepath_abs, filepath_rel)
+                        zip_fh.write(filepath_abs, filepath_rel, compress_type=compress_type)
                     except BaseException as ex:
                         message_status(msg_fn, "Error adding to archive \"{:s}\"".format(str(ex)))
                         return False
