@@ -1974,6 +1974,9 @@ class subcmd_author:
 
         filenames_root_exclude = {
             pkg_filename,
+            # It's possible a temporary file exists from a previous run which was not cleaned up.
+            # Although in general this should be cleaned up - power failure etc may mean it exists.
+            pkg_filename + "@",
             # This is added, converted from the TOML.
             PKG_REPO_LIST_FILENAME,
 
