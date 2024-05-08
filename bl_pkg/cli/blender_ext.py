@@ -1422,7 +1422,7 @@ class subcmd_server:
 
         with open(filepath_repo_json, "w", encoding="utf-8") as fh:
             json.dump(repo_gen_dict, fh, indent=2)
-        message_status(msg_fn, "found {:d} packages.".format(len(repo_gen_dict)))
+        message_status(msg_fn, "found {:d} packages.".format(len(repo_data)))
 
         return True
 
