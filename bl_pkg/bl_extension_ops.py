@@ -619,7 +619,18 @@ def _extensions_wheel_filter_for_platform(wheels):
         # TODO: Match Python & ABI tags.
         _python_tag, _abi_tag, platform_tag = wheel_filename_split[-3:]
 
-        if platform_tag not in {"any", platform_tag_current}:
+        if platform_tag in {"any", platform_tag_current}:
+            pass
+        elif platform_tag_current.startswith("linux_") and (
+                # May be `manylinux1` or `manylinux2010`.
+                platform_tag.startswith("manylinux") and
+                # Match against the architecture: `linux_x86_64` -> `_x86_64` (ensure the same suffix).
+                # The GLIBC version is ignored because it will often be older.
+                # Although we will probably want to detect incompatible GLIBC versions eventually.
+                platform_tag.endswith("_" + platform_tag_current.partition("_")[2])
+        ):
+            pass
+        else:
             # Useful to know, can quiet print in the future.
             print(
                 "Skipping wheel for other system",
