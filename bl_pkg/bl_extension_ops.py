@@ -621,6 +621,13 @@ def _extensions_wheel_filter_for_platform(wheels):
 
         if platform_tag in {"any", platform_tag_current}:
             pass
+        elif platform_tag_current.startswith("macosx_") and (
+                # FIXME: `macosx_11.00` should be `macosx_11_0`.
+                platform_tag.startswith("macosx_") and
+                # Ignore the MACOSX version, ensure `arm64` suffix.
+                platform_tag.endswith("_" + platform_tag_current.rpartition("_")[2])
+        ):
+            pass
         elif platform_tag_current.startswith("linux_") and (
                 # May be `manylinux1` or `manylinux2010`.
                 platform_tag.startswith("manylinux") and
