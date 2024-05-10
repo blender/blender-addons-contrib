@@ -536,7 +536,7 @@ class CommandBatchItem:
 
     STATUS_NOT_YET_STARTED = 0
     STATUS_RUNNING = 1
-    STATUS_COMPLETE = -1
+    STATUS_COMPLETE = 2
 
     def __init__(self, fn_with_args: InfoItemCallable):
         self.fn_with_args = fn_with_args
