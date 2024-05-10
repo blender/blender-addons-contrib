@@ -647,6 +647,7 @@ class CommandBatch:
             # First time initialization.
             if cmd.fn_iter is None:
                 cmd.fn_iter = cmd.invoke()
+                cmd.status = CommandBatchItem.STATUS_RUNNING
                 send_arg = None
 
             try:
