@@ -62,6 +62,7 @@ from typing import (
     List,
     Optional,
     Dict,
+    NamedTuple,
     Sequence,
     Set,
     Tuple,
@@ -286,6 +287,7 @@ def repo_sync(
         repo_url: str,
         online_user_agent: str,
         use_idle: bool,
+        force_exit_ok: bool = False,
 ) -> Generator[InfoItemSeq, None, None]:
     """
     Implementation:
@@ -296,6 +298,7 @@ def repo_sync(
         "--local-dir", directory,
         "--repo-dir", repo_url,
         "--online-user-agent", online_user_agent,
+        *(("--force-exit-ok",) if force_exit_ok else ()),
     ], use_idle=use_idle)
     yield [COMPLETE_ITEM]
 
@@ -527,6 +530,8 @@ class CommandBatchItem:
         "fn_with_args",
         "fn_iter",
         "status",
+        "has_error",
+        "has_warning",
         "msg_log",
         "msg_log_len_last",
 
@@ -542,6 +547,8 @@ class CommandBatchItem:
         self.fn_with_args = fn_with_args
         self.fn_iter: Optional[Generator[InfoItemSeq, bool, None]] = None
         self.status = CommandBatchItem.STATUS_NOT_YET_STARTED
+        self.has_error = False
+        self.has_warning = False
         self.msg_log: List[Tuple[str, Any]] = []
         self.msg_log_len_last = 0
         self.msg_type = ""
@@ -551,6 +558,12 @@ class CommandBatchItem:
         return self.fn_with_args()
 
 
+class CommandBatch_StatusFlag(NamedTuple):
+    flag: int
+    failure_count: int
+    count: int
+
+
 class CommandBatch:
     __slots__ = (
         "title",
@@ -558,6 +571,7 @@ class CommandBatch:
         "_batch",
         "_request_exit",
         "_log_added_since_accessed",
+        "_status_data_cache",
     )
 
     def __init__(
@@ -570,6 +584,7 @@ class CommandBatch:
         self._batch = [CommandBatchItem(fn_with_args) for fn_with_args in batch]
         self._request_exit = False
         self._log_added_since_accessed = True
+        self._status_data_cache: Optional[CommandBatch_StatusFlag] = None
 
     def _exec_blocking_single(
             self,
@@ -635,6 +650,8 @@ class CommandBatch:
         if request_exit:
             self._request_exit = True
 
+        reset_status_data_cache = False
+
         all_complete = True
         for cmd_index in reversed(range(len(self._batch))):
             cmd = self._batch[cmd_index]
@@ -648,6 +665,7 @@ class CommandBatch:
             if cmd.fn_iter is None:
                 cmd.fn_iter = cmd.invoke()
                 cmd.status = CommandBatchItem.STATUS_RUNNING
+                reset_status_data_cache = True
                 send_arg = None
 
             try:
@@ -655,6 +673,7 @@ class CommandBatch:
             except StopIteration:
                 # FIXME: This should not happen, we should get a "DONE" instead.
                 cmd.status = CommandBatchItem.STATUS_COMPLETE
+                reset_status_data_cache = True
                 continue
 
             if json_messages:
@@ -666,11 +685,23 @@ class CommandBatch:
                     if ty == 'DONE':
                         assert msg == ""
                         cmd.status = CommandBatchItem.STATUS_COMPLETE
+                        reset_status_data_cache = True
                         break
 
                     command_output[cmd_index].append((ty, msg))
                     if ty != 'PROGRESS':
+                        if ty == 'ERROR':
+                            if not cmd.has_error:
+                                cmd.has_error = True
+                                reset_status_data_cache = True
+                        elif ty == 'WARNING':
+                            if not cmd.has_warning:
+                                cmd.has_warning = True
+                                reset_status_data_cache = True
                         cmd.msg_log.append((ty, msg))
+
+        if reset_status_data_cache:
+            self._status_data_cache = None
 
         if all_complete:
             return None
@@ -682,6 +713,60 @@ class CommandBatch:
             "{:s}: {:s}".format(cmd.msg_type, cmd.msg_info)
             for cmd in self._batch if (cmd.msg_type or cmd.msg_info)
         ]
+
+    def _calc_status_data_no_cache(self) -> CommandBatch_StatusFlag:
+        status_flag = 0
+        failure_count = 0
+        for cmd in self._batch:
+            status_flag |= 1 << cmd.status
+            if cmd.has_error or cmd.has_warning:
+                failure_count += 1
+        return CommandBatch_StatusFlag(
+            flag=status_flag,
+            failure_count=failure_count,
+            count=len(self._batch),
+        )
+
+    def calc_status_data(self) -> CommandBatch_StatusFlag:
+        """
+        A single string for all commands
+        """
+        result = self._status_data_cache
+        if result is None:
+            result = self._status_data_cache = self._calc_status_data_no_cache()
+        else:
+            # Ensure the cache is properly reset.
+            assert result == self._calc_status_data_no_cache()
+        return result
+
+    @staticmethod
+    def calc_status_text_icon_from_data(status_data: CommandBatch_StatusFlag, update_count: int) -> Tuple[str, str]:
+        # Generate a nice UI string for a status-bar & splash screen (must be short).
+        #
+        # NOTE: this is (arguably) UI logic, it's just nice to have it here
+        # as it avoids using low-level flags externally.
+        #
+        # FIXME: this text assumed a "sync" operation.
+        if status_data.failure_count == 0:
+            fail_text = ""
+        elif status_data.failure_count == status_data.count:
+            fail_text = ", failed"
+        else:
+            fail_text = ", some actions failed"
+
+        if status_data.flag == 1 << CommandBatchItem.STATUS_NOT_YET_STARTED:
+            return "Starting Extension Updates{:s}".format(fail_text), 'SORTTIME'
+        if status_data.flag == 1 << CommandBatchItem.STATUS_COMPLETE:
+            if update_count > 0:
+                # NOTE: the UI design in #120612 has the number of extensions available in icon.
+                # Include in the text as this is not yet supported.
+                return "Extensions Updates Available ({:d}){:s}".format(update_count, fail_text), 'URL'
+            return "All Extensions Up-to-date{:s}".format(fail_text), 'CHECKMARK'
+        if status_data.flag & 1 << CommandBatchItem.STATUS_RUNNING:
+            return "Checking for Extension Updates{:s}".format(fail_text), 'SORTTIME'
+
+        # Should never reach this line!
+        return "Internal error, unknown state!{:s}".format(fail_text), 'ERROR'
 
     def calc_status_log_or_none(self) -> Optional[List[Tuple[str, str]]]:
         """

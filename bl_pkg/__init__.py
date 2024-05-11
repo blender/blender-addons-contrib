@@ -133,6 +133,36 @@ def print_debug(*args, **kw):
     print(*args, **kw)
 
 
+use_repos_to_notify = False
+
+
+def repos_to_notify():
+    repos_notify = []
+    if not bpy.app.background:
+        # To use notifications on startup requires:
+        # - The splash displayed.
+        # - The status bar displayed.
+        #
+        # Since it's not all that common to disable the status bar just run notifications
+        # if any repositories are marked to run notifications.
+
+        prefs = bpy.context.preferences
+        if prefs.experimental.use_extension_repos:
+            extension_repos = bpy.context.preferences.filepaths.extension_repos
+            for repo_item in extension_repos:
+                if not repo_item.enabled:
+                    continue
+                if not repo_item.use_sync_on_startup:
+                    continue
+                if not repo_item.use_remote_path:
+                    continue
+                # Invalid, if there is no remote path this can't update.
+                if not repo_item.remote_path:
+                    continue
+                repos_notify.append(repo_item)
+    return repos_notify
+
+
 # -----------------------------------------------------------------------------
 # Handlers
 
@@ -445,6 +475,13 @@ def register():
 
     cli_commands.append(bpy.utils.register_cli_command("extension", cli_extension))
 
+    global use_repos_to_notify
+    if (repos_notify := repos_to_notify()):
+        use_repos_to_notify = True
+        from . import bl_extension_notify
+        bl_extension_notify.register(repos_notify)
+    del repos_notify
+
     monkeypatch_install()
 
 
@@ -494,5 +531,11 @@ def unregister():
     for cmd in cli_commands:
         bpy.utils.unregister_cli_command(cmd)
     cli_commands.clear()
+
+    global use_repos_to_notify
+    if use_repos_to_notify:
+        use_repos_to_notify = False
+        from . import bl_extension_notify
+        bl_extension_notify.unregister()
 
     monkeypatch_uninstall()

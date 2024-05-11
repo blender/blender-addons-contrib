@@ -2197,6 +2197,24 @@ class BlPkgRepoUnlock(Operator):
         return {'FINISHED'}
 
 
+# NOTE: this is a modified version of `PREFERENCES_OT_addon_show`.
+# It would make most sense to extend this operator to support showing extensions to upgrade (eventually).
+class BlPkgShowUpgrade(Operator):
+    """Show add-on preferences"""
+    bl_idname = "bl_pkg.extensions_show_for_update"
+    bl_label = ""
+    bl_options = {'INTERNAL'}
+
+    def execute(self, context):
+
+        # TODO: support filtering only extensions to upgrade.
+        context.preferences.active_section = 'ADDONS'
+        context.preferences.view.show_addons_enabled_only = False
+        bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
+
+        return {'FINISHED'}
+
+
 class BlPkgEnableNotInstalled(Operator):
     """Turn on this extension"""
     bl_idname = "bl_pkg.extensions_enable_not_installed"
@@ -2244,6 +2262,8 @@ classes = (
     BlPkgObsoleteMarked,
     BlPkgRepoLock,
     BlPkgRepoUnlock,
+
+    BlPkgShowUpgrade,
 
     # Dummy, just shows a message.
     BlPkgEnableNotInstalled,
