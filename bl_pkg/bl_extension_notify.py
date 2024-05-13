@@ -204,28 +204,9 @@ TIME_WAIT_INIT = 0.05
 # The time between calling the timer.
 TIME_WAIT_STEP = 0.1
 
-
-# STATE_FLAG_CHECKING = 1 << 0
-# STATE_FLAG_ERROR = 1 << 1
-# STATE_FLAG_COMPLETE = 1 << 2
-
 state_text = (
     "Checking for updates...",
 )
-
-
-# def lock_result_any_failed_with_report(op, lock_result, report_type='ERROR'):
-#     """
-#     Convert any locking errors from ``bl_extension_utils.RepoLock.acquire`` into prints.
-#     Note that we might want to allow some repositories not to lock and still proceed (in the future).
-#     """
-#     any_errors = False
-#     for directory, lock_result_for_repo in lock_result.items():
-#         if lock_result_for_repo is None:
-#             continue
-#         print("Error \"{:s}\" locking \"{:s}\"".format(lock_result_for_repo, repr(directory)))
-#         any_errors = True
-#     return any_errors
 
 
 class NotifyHandle:
@@ -244,19 +225,6 @@ class NotifyHandle:
         self.sync_generator = iter(sync_status_generator(repos_notify))
         # TEXT/ICON_ID/COUNT
         self.sync_info = None
-
-    # def flag_as_text(self):
-    #     state = self.state
-    #     text = []
-    #     if state & STATE_FLAG_CHECKING:
-    #         text.append("Checking")
-    #     if state & STATE_FLAG_ERROR:
-    #         text.append("Error")
-    #     if state & STATE_FLAG_ERROR:
-    #         text.append("Complete")
-    #     if not text:
-    #         text.append("Initializing")
-    #     return ", ".join(text)
 
 
 # When non-null, the timer is running.
