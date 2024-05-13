@@ -120,7 +120,7 @@ def sync_status_generator(repos_notify):
         if USE_GRACEFUL_EXIT:
             import time
             # Force all commands to close.
-            while cmd_batch.exec_non_blocking(request_exit=True) is not None:
+            while not cmd_batch.exec_non_blocking(request_exit=True)[1]:
                 # Avoid high CPU usage on exit.
                 time.sleep(0.01)
 
@@ -145,7 +145,7 @@ def sync_status_generator(repos_notify):
     update_total = -1
 
     while True:
-        command_info = cmd_batch.exec_non_blocking(
+        command_info, command_complete = cmd_batch.exec_non_blocking(
             # TODO: if Blender requested an exit... this should request exit here.
             request_exit=False,
         )
@@ -167,19 +167,18 @@ def sync_status_generator(repos_notify):
                         else:
                             print(ty, msg)
 
-        if command_info is None:
-            update_total = sync_status_count_outdated_extensions(repos_notify)
-
         status_data = cmd_batch.calc_status_data()
         # TODO: more elegant way to detect changes.
         # Re-calculating the same information each time then checking if it's different isn't great.
-        if (status_data != status_data_prev) or (update_total != -1):
+        if status_data != status_data_prev:
+            if command_complete:
+                update_total = sync_status_count_outdated_extensions(repos_notify)
             status_data_prev = status_data
             yield (status_data, update_total)
         else:
             yield None
 
-        if command_info is None:
+        if command_complete:
             # Finished.
             break
 

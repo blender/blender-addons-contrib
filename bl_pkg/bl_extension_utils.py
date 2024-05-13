@@ -641,9 +641,15 @@ class CommandBatch:
             self,
             *,
             request_exit: bool,
-    ) -> Optional[Tuple[List[Tuple[str, str]], ...]]:
+    ) -> Tuple[
+        Tuple[List[Tuple[str, str]], ...],
+        bool,
+    ]:
         """
-        For each command, return a list of commands for each command.
+        For each command.
+        Return a tuple:
+        - list of commands for each command.
+        - all_complete: (true when every command has been completed).
         """
         command_output: Tuple[List[Tuple[str, str]], ...] = tuple([] for _ in range(len(self._batch)))
 
@@ -652,13 +658,13 @@ class CommandBatch:
 
         reset_status_data_cache = False
 
-        all_complete = True
+        complete_count = 0
         for cmd_index in reversed(range(len(self._batch))):
             cmd = self._batch[cmd_index]
             if cmd.status == CommandBatchItem.STATUS_COMPLETE:
+                complete_count += 1
                 continue
 
-            all_complete = False
             send_arg: Optional[bool] = self._request_exit
 
             # First time initialization.
@@ -673,6 +679,7 @@ class CommandBatch:
             except StopIteration:
                 # FIXME: This should not happen, we should get a "DONE" instead.
                 cmd.status = CommandBatchItem.STATUS_COMPLETE
+                complete_count += 1
                 reset_status_data_cache = True
                 continue
 
@@ -685,6 +692,7 @@ class CommandBatch:
                     if ty == 'DONE':
                         assert msg == ""
                         cmd.status = CommandBatchItem.STATUS_COMPLETE
+                        complete_count += 1
                         reset_status_data_cache = True
                         break
 
@@ -703,10 +711,10 @@ class CommandBatch:
         if reset_status_data_cache:
             self._status_data_cache = None
 
-        if all_complete:
-            return None
-
-        return command_output
+        # Check if all are complete.
+        assert complete_count == len([cmd for cmd in self._batch if cmd.status == CommandBatchItem.STATUS_COMPLETE])
+        all_complete = (complete_count == len(self._batch))
+        return command_output, all_complete
 
     def calc_status_string(self) -> List[str]:
         return [
