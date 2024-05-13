@@ -558,6 +558,15 @@ class CommandBatchItem:
         return self.fn_with_args()
 
 
+class CommandBatch_ExecNonBlockingResult(NamedTuple):
+    # A message list for each command, aligned to `CommandBatchItem._batch`.
+    messages: Tuple[List[Tuple[str, str]], ...]
+    # When true, the status of all commands is `CommandBatchItem.STATUS_COMPLETE`.
+    all_complete: bool
+    # When true, `calc_status_data` will return a different result.
+    status_data_changed: bool
+
+
 class CommandBatch_StatusFlag(NamedTuple):
     flag: int
     failure_count: int
@@ -571,7 +580,6 @@ class CommandBatch:
         "_batch",
         "_request_exit",
         "_log_added_since_accessed",
-        "_status_data_cache",
     )
 
     def __init__(
@@ -584,7 +592,6 @@ class CommandBatch:
         self._batch = [CommandBatchItem(fn_with_args) for fn_with_args in batch]
         self._request_exit = False
         self._log_added_since_accessed = True
-        self._status_data_cache: Optional[CommandBatch_StatusFlag] = None
 
     def _exec_blocking_single(
             self,
@@ -641,22 +648,16 @@ class CommandBatch:
             self,
             *,
             request_exit: bool,
-    ) -> Tuple[
-        Tuple[List[Tuple[str, str]], ...],
-        bool,
-    ]:
+    ) -> CommandBatch_ExecNonBlockingResult:
         """
-        For each command.
-        Return a tuple:
-        - list of commands for each command.
-        - all_complete: (true when every command has been completed).
+        Return the result of running multiple commands.
         """
         command_output: Tuple[List[Tuple[str, str]], ...] = tuple([] for _ in range(len(self._batch)))
 
         if request_exit:
             self._request_exit = True
 
-        reset_status_data_cache = False
+        status_data_changed = False
 
         complete_count = 0
         for cmd_index in reversed(range(len(self._batch))):
@@ -671,7 +672,7 @@ class CommandBatch:
             if cmd.fn_iter is None:
                 cmd.fn_iter = cmd.invoke()
                 cmd.status = CommandBatchItem.STATUS_RUNNING
-                reset_status_data_cache = True
+                status_data_changed = True
                 send_arg = None
 
             try:
@@ -680,7 +681,7 @@ class CommandBatch:
                 # FIXME: This should not happen, we should get a "DONE" instead.
                 cmd.status = CommandBatchItem.STATUS_COMPLETE
                 complete_count += 1
-                reset_status_data_cache = True
+                status_data_changed = True
                 continue
 
             if json_messages:
@@ -693,7 +694,7 @@ class CommandBatch:
                         assert msg == ""
                         cmd.status = CommandBatchItem.STATUS_COMPLETE
                         complete_count += 1
-                        reset_status_data_cache = True
+                        status_data_changed = True
                         break
 
                     command_output[cmd_index].append((ty, msg))
@@ -701,20 +702,21 @@ class CommandBatch:
                         if ty == 'ERROR':
                             if not cmd.has_error:
                                 cmd.has_error = True
-                                reset_status_data_cache = True
+                                status_data_changed = True
                         elif ty == 'WARNING':
                             if not cmd.has_warning:
                                 cmd.has_warning = True
-                                reset_status_data_cache = True
+                                status_data_changed = True
                         cmd.msg_log.append((ty, msg))
-
-        if reset_status_data_cache:
-            self._status_data_cache = None
 
         # Check if all are complete.
         assert complete_count == len([cmd for cmd in self._batch if cmd.status == CommandBatchItem.STATUS_COMPLETE])
         all_complete = (complete_count == len(self._batch))
-        return command_output, all_complete
+        return CommandBatch_ExecNonBlockingResult(
+            messages=command_output,
+            all_complete=all_complete,
+            status_data_changed=status_data_changed,
+        )
 
     def calc_status_string(self) -> List[str]:
         return [
@@ -722,7 +724,10 @@ class CommandBatch:
             for cmd in self._batch if (cmd.msg_type or cmd.msg_info)
         ]
 
-    def _calc_status_data_no_cache(self) -> CommandBatch_StatusFlag:
+    def calc_status_data(self) -> CommandBatch_StatusFlag:
+        """
+        A single string for all commands
+        """
         status_flag = 0
         failure_count = 0
         for cmd in self._batch:
@@ -734,18 +739,6 @@ class CommandBatch:
             failure_count=failure_count,
             count=len(self._batch),
         )
-
-    def calc_status_data(self) -> CommandBatch_StatusFlag:
-        """
-        A single string for all commands
-        """
-        result = self._status_data_cache
-        if result is None:
-            result = self._status_data_cache = self._calc_status_data_no_cache()
-        else:
-            # Ensure the cache is properly reset.
-            assert result == self._calc_status_data_no_cache()
-        return result
 
     @staticmethod
     def calc_status_text_icon_from_data(status_data: CommandBatch_StatusFlag, update_count: int) -> Tuple[str, str]:

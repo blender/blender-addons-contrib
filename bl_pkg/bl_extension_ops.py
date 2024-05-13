@@ -801,7 +801,7 @@ class CommandHandle:
         return {'RUNNING_MODAL'}
 
     def op_modal_step(self, op, context):
-        command_info, command_complete = self.cmd_batch.exec_non_blocking(
+        command_result = self.cmd_batch.exec_non_blocking(
             request_exit=self.request_exit,
         )
 
@@ -835,7 +835,7 @@ class CommandHandle:
             repo_status_text.running = True
             _preferences_ui_redraw()
 
-        if command_complete:
+        if command_result.all_complete:
             self.wm.event_timer_remove(self.modal_timer)
             del op._runtime_handle
             context.workspace.status_text_set(None)
