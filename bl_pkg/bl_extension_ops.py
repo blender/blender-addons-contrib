@@ -2207,10 +2207,16 @@ class BlPkgShowUpgrade(Operator):
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
+        wm = context.window_manager
+        prefs = context.preferences
 
-        # TODO: support filtering only extensions to upgrade.
-        context.preferences.active_section = 'ADDONS'
-        context.preferences.view.show_addons_enabled_only = False
+        prefs.active_section = 'ADDONS'
+        prefs.view.show_addons_enabled_only = False
+
+        # Show only extensions that will be updated.
+        wm.extension_installed_only = False
+        wm.extension_updates_only = True
+
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
 
         return {'FINISHED'}
