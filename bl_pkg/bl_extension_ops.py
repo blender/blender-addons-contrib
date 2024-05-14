@@ -2251,7 +2251,7 @@ class BlPkgOnlineAccess(Operator):
                 # While not expected, we want to know if this ever occurs, don't fail silently.
                 self.report({'WARNING'}, "Repository \"{:s}\" not found!".format(remote_url))
 
-        prefs.extensions.use_extension_online_access_handled = True
+        prefs.extensions.use_online_access_handled = True
 
         return {'FINISHED'}
 
