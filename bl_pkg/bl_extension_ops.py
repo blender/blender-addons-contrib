@@ -245,7 +245,7 @@ def extension_theme_enable(repo_directory, pkg_idname):
 
 def repo_iter_valid_local_only(context):
     from . import repo_paths_or_none
-    extension_repos = context.preferences.filepaths.extension_repos
+    extension_repos = context.preferences.extensions.repos
     for repo_item in extension_repos:
         if not repo_item.enabled:
             continue
@@ -269,7 +269,7 @@ class RepoItem(NamedTuple):
 def repo_cache_store_refresh_from_prefs(include_disabled=False):
     from . import repo_cache_store
     from . import repo_paths_or_none
-    extension_repos = bpy.context.preferences.filepaths.extension_repos
+    extension_repos = bpy.context.preferences.extensions.repos
     repos = []
     for repo_item in extension_repos:
         if not include_disabled:
@@ -466,7 +466,7 @@ def _preferences_ensure_sync():
 
 def extension_repos_read_index(index, *, include_disabled=False):
     from . import repo_paths_or_none
-    extension_repos = bpy.context.preferences.filepaths.extension_repos
+    extension_repos = bpy.context.preferences.extensions.repos
     index_test = 0
     for repo_item in extension_repos:
         if not include_disabled:
@@ -490,13 +490,13 @@ def extension_repos_read_index(index, *, include_disabled=False):
 
 def extension_repos_read(*, include_disabled=False, use_active_only=False):
     from . import repo_paths_or_none
-    paths = bpy.context.preferences.filepaths
-    extension_repos = paths.extension_repos
+    extensions = bpy.context.preferences.extensions
+    extension_repos = extensions.repos
     result = []
 
     if use_active_only:
         try:
-            extension_active = extension_repos[paths.active_extension_repo]
+            extension_active = extension_repos[extensions.active_repo]
         except IndexError:
             return result
 
@@ -2239,7 +2239,7 @@ class BlPkgOnlineAccess(Operator):
         remote_url = "https://extensions.blender.org/api/v1/extensions"
 
         if self.enable:
-            extension_repos = prefs.filepaths.extension_repos
+            extension_repos = prefs.extensions.repos
             repo_found = None
             for repo in extension_repos:
                 if repo.remote_url == remote_url:
@@ -2251,7 +2251,7 @@ class BlPkgOnlineAccess(Operator):
                 # While not expected, we want to know if this ever occurs, don't fail silently.
                 self.report({'WARNING'}, "Repository \"{:s}\" not found!".format(remote_url))
 
-        prefs.filepaths.use_extension_online_access_handled = True
+        prefs.extensions.use_extension_online_access_handled = True
 
         return {'FINISHED'}
 

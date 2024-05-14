@@ -129,7 +129,7 @@ def blender_test_run(temp_dir_local: str) -> None:
     # This is not supported by the test server so the file name needs to be added.
     repo_url = "http://localhost:{:d}/{:s}".format(HTTP_PORT, PKG_REPO_LIST_FILENAME)
 
-    repo = preferences.filepaths.extension_repos.new(
+    repo = preferences.extensions.repos.new(
         name="My Test",
         module="my_repo",
         custom_directory=temp_dir_local,
@@ -152,7 +152,7 @@ def blender_test_run(temp_dir_local: str) -> None:
         pkg_id="blue",
     )
 
-    preferences.filepaths.extension_repos.remove(repo)
+    preferences.extensions.repos.remove(repo)
 
     print("END*********************")
 

@@ -408,7 +408,7 @@ class subcmd_repo:
     ) -> bool:
         from bpy import context
 
-        extension_repos = context.preferences.filepaths.extension_repos
+        extension_repos = context.preferences.extensions.repos
         if clear_all:
             while extension_repos:
                 extension_repos.remove(extension_repos[0])
@@ -433,7 +433,7 @@ class subcmd_repo:
             no_prefs: bool,
     ) -> bool:
         from bpy import context
-        extension_repos = context.preferences.filepaths.extension_repos
+        extension_repos = context.preferences.extensions.repos
         extension_repos_module_map = {repo.module: repo for repo in extension_repos}
         repo = extension_repos_module_map.get(id)
         if repo is None:
