@@ -451,6 +451,10 @@ def register():
         name="Show Enabled Extensions",
         description="Only show enabled extensions",
     )
+    WindowManager.extension_updates_only = BoolProperty(
+        name="Show Updates Available",
+        description="Only show extensions with updates available",
+    )
     WindowManager.extension_installed_only = BoolProperty(
         name="Show Installed Extensions",
         description="Only show installed extensions",

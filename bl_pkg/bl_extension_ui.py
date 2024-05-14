@@ -272,6 +272,7 @@ def extensions_panel_draw_impl(
         search_lower,
         filter_by_type,
         enabled_only,
+        updates_only,
         installed_only,
         show_legacy_addons,
         show_development,
@@ -295,6 +296,10 @@ def extensions_panel_draw_impl(
         repo_cache_store_refresh_from_prefs()
 
     layout = self.layout
+
+    if updates_only:
+        installed_only = True
+        show_legacy_addons = False
 
     # Define a top-most column to place warnings (if-any).
     # Needed so the warnings aren't mixed in with other content.
@@ -418,6 +423,10 @@ def extensions_panel_draw_impl(
             else:
                 item_local_version = item_local["version"]
                 is_outdated = item_local_version != item_version
+
+            if updates_only:
+                if not is_outdated:
+                    continue
 
             key = (pkg_id, repo_index)
             if show_development:
@@ -597,16 +606,20 @@ class USERPREF_PT_extensions_bl_pkg_filter(Panel):
         layout = self.layout
 
         wm = context.window_manager
-        col = layout.column(heading="Show")
-        col.use_property_split = True
-        col.prop(wm, "extension_show_legacy_addons", text="Legacy Add-ons")
 
-        col = layout.column(heading="Only")
+        col = layout.column(heading="Show Only")
         col.use_property_split = True
         col.prop(wm, "extension_enabled_only", text="Enabled Extensions")
+        col.prop(wm, "extension_updates_only", text="Updates Available")
         sub = col.column()
-        sub.active = not wm.extension_enabled_only
+        sub.active = (not wm.extension_enabled_only) and (not wm.extension_updates_only)
         sub.prop(wm, "extension_installed_only", text="Installed Extensions")
+
+        col = layout.column(heading="Show")
+        col.use_property_split = True
+        sub = col.column()
+        sub.active = (not wm.extension_updates_only)
+        sub.prop(wm, "extension_show_legacy_addons", text="Legacy Add-ons")
 
 
 class USERPREF_MT_extensions_bl_pkg_settings(Menu):
@@ -736,6 +749,7 @@ def extensions_panel_draw(panel, context):
         wm.extension_search.lower(),
         blender_filter_by_type_map[wm.extension_type],
         wm.extension_enabled_only,
+        wm.extension_updates_only,
         wm.extension_installed_only,
         wm.extension_show_legacy_addons,
         show_development,
