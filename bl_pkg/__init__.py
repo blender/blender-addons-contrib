@@ -105,12 +105,12 @@ def cookie_from_session():
 def repo_paths_or_none(repo_item):
     if (directory := repo_item.directory) == "":
         return None, None
-    if repo_item.use_remote_path:
-        if not (remote_path := repo_item.remote_path):
+    if repo_item.use_remote_url:
+        if not (remote_url := repo_item.remote_url):
             return None, None
     else:
-        remote_path = ""
-    return directory, remote_path
+        remote_url = ""
+    return directory, remote_url
 
 
 def repo_active_or_none():
@@ -154,10 +154,10 @@ def repos_to_notify():
                     continue
                 if not repo_item.use_sync_on_startup:
                     continue
-                if not repo_item.use_remote_path:
+                if not repo_item.use_remote_url:
                     continue
                 # Invalid, if there is no remote path this can't update.
-                if not repo_item.remote_path:
+                if not repo_item.remote_url:
                     continue
                 repos_notify.append(repo_item)
     return repos_notify

@@ -87,11 +87,11 @@ def sync_status_generator(repos_notify):
     cmd_batch_partial = []
     for repo_item in repos_notify:
         # Local only repositories should still refresh, but not run the sync.
-        assert repo_item.remote_path
+        assert repo_item.remote_url
         cmd_batch_partial.append(partial(
             bl_extension_utils.repo_sync,
             directory=repo_item.directory,
-            repo_url=repo_item.remote_path,
+            repo_url=repo_item.remote_url,
             online_user_agent=bl_extension_ops.online_user_agent_from_blender(),
             # Never sleep while there is no input, as this blocks Blender.
             use_idle=False,

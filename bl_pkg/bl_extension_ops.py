@@ -250,10 +250,10 @@ def repo_iter_valid_local_only(context):
         if not repo_item.enabled:
             continue
         # Ignore repositories that have invalid settings.
-        directory, remote_path = repo_paths_or_none(repo_item)
+        directory, remote_url = repo_paths_or_none(repo_item)
         if directory is None:
             continue
-        if remote_path:
+        if remote_url:
             continue
         yield repo_item
 
@@ -275,10 +275,10 @@ def repo_cache_store_refresh_from_prefs(include_disabled=False):
         if not include_disabled:
             if not repo_item.enabled:
                 continue
-        directory, remote_path = repo_paths_or_none(repo_item)
+        directory, remote_url = repo_paths_or_none(repo_item)
         if directory is None:
             continue
-        repos.append((directory, remote_path))
+        repos.append((directory, remote_url))
 
     repo_cache_store.refresh_from_repos(repos=repos)
 
@@ -472,7 +472,7 @@ def extension_repos_read_index(index, *, include_disabled=False):
         if not include_disabled:
             if not repo_item.enabled:
                 continue
-        directory, remote_path = repo_paths_or_none(repo_item)
+        directory, remote_url = repo_paths_or_none(repo_item)
         if directory is None:
             continue
 
@@ -480,7 +480,7 @@ def extension_repos_read_index(index, *, include_disabled=False):
             return RepoItem(
                 name=repo_item.name,
                 directory=directory,
-                repo_url=remote_path,
+                repo_url=remote_url,
                 module=repo_item.module,
                 use_cache=repo_item.use_cache,
             )
@@ -509,14 +509,14 @@ def extension_repos_read(*, include_disabled=False, use_active_only=False):
                 continue
 
         # Ignore repositories that have invalid settings.
-        directory, remote_path = repo_paths_or_none(repo_item)
+        directory, remote_url = repo_paths_or_none(repo_item)
         if directory is None:
             continue
 
         result.append(RepoItem(
             name=repo_item.name,
             directory=directory,
-            repo_url=remote_path,
+            repo_url=remote_url,
             module=repo_item.module,
             use_cache=repo_item.use_cache,
         ))
