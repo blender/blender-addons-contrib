@@ -297,6 +297,8 @@ def extensions_panel_draw_impl(
 
     layout = self.layout
 
+    prefs = context.preferences
+
     if updates_only:
         installed_only = True
         show_legacy_addons = False
@@ -311,9 +313,9 @@ def extensions_panel_draw_impl(
     show_addons = filter_by_type in {"", "add-on"}
     show_themes = filter_by_type in {"", "theme"}
     if show_addons:
-        used_addon_module_name_map = {addon.module: addon for addon in context.preferences.addons}
+        used_addon_module_name_map = {addon.module: addon for addon in prefs.addons}
     if show_themes:
-        active_theme_info = pkg_repo_and_id_from_theme_path(repos_all, context.preferences.themes[0].filepath)
+        active_theme_info = pkg_repo_and_id_from_theme_path(repos_all, prefs.themes[0].filepath)
 
     # Collect exceptions accessing repositories, and optionally show them.
     errors_on_draw = []
@@ -628,7 +630,9 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
     def draw(self, context):
         layout = self.layout
 
-        addon_prefs = context.preferences.addons[__package__].preferences
+        prefs = context.preferences
+
+        addon_prefs = prefs.addons[__package__].preferences
 
         layout.operator("bl_pkg.repo_sync_all", text="Check for Updates", icon='FILE_REFRESH')
 
@@ -638,7 +642,7 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
         layout.operator("bl_pkg.pkg_install_files", text="Install from Disk")
         layout.operator("preferences.addon_install", text="Install Legacy Add-on")
 
-        if context.preferences.experimental.use_extension_utils:
+        if prefs.experimental.use_extension_utils:
             layout.separator()
 
             layout.prop(addon_prefs, "show_development_reports")
@@ -663,6 +667,7 @@ class USERPREF_MT_extensions_bl_pkg_settings(Menu):
 
 def extensions_panel_draw(panel, context):
     prefs = context.preferences
+
     if not prefs.experimental.use_extension_repos:
         # Unexpected, the extension is disabled but this add-on is.
         # In this case don't show the UI as it is confusing.
@@ -674,7 +679,7 @@ def extensions_panel_draw(panel, context):
 
     addon_prefs = prefs.addons[__package__].preferences
 
-    show_development = context.preferences.experimental.use_extension_utils
+    show_development = prefs.experimental.use_extension_utils
     show_development_reports = show_development and addon_prefs.show_development_reports
 
     wm = context.window_manager
