@@ -770,7 +770,7 @@ def extensions_panel_draw(panel, context):
         if repo_status_text.running:
             return
 
-    if not prefs.filepaths.use_online_access_handled:
+    if not prefs.extensions.use_online_access_handled:
         extensions_panel_draw_online_extensions_request_impl(panel, context)
 
     extensions_panel_draw_impl(
