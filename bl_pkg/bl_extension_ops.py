@@ -2222,6 +2222,40 @@ class BlPkgShowUpgrade(Operator):
         return {'FINISHED'}
 
 
+class BlPkgOnlineAccess(Operator):
+    """Handle online access"""
+    bl_idname = "bl_pkg.extension_online_access"
+    bl_label = ""
+    bl_options = {'INTERNAL'}
+
+    enable: BoolProperty(
+        name="Enable",
+        default=False,
+    )
+
+    def execute(self, context):
+        prefs = context.preferences
+
+        remote_url = "https://extensions.blender.org/api/v1/extensions"
+
+        if self.enable:
+            extension_repos = prefs.filepaths.extension_repos
+            repo_found = None
+            for repo in extension_repos:
+                if repo.remote_url == remote_url:
+                    repo_found = repo
+                    break
+            if repo_found:
+                repo_found.enabled = True
+            else:
+                # While not expected, we want to know if this ever occurs, don't fail silently.
+                self.report({'WARNING'}, "Repository \"{:s}\" not found!".format(remote_url))
+
+        prefs.filepaths.use_extension_online_access_handled = True
+
+        return {'FINISHED'}
+
+
 class BlPkgEnableNotInstalled(Operator):
     """Turn on this extension"""
     bl_idname = "bl_pkg.extensions_enable_not_installed"
@@ -2271,6 +2305,7 @@ classes = (
     BlPkgRepoUnlock,
 
     BlPkgShowUpgrade,
+    BlPkgOnlineAccess,
 
     # Dummy, just shows a message.
     BlPkgEnableNotInstalled,

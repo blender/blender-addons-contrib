@@ -266,6 +266,28 @@ class display_errors:
             box_contents.label(text=err)
 
 
+def extensions_panel_draw_online_extensions_request_impl(
+        self,
+        context,
+):
+    layout = self.layout
+    layout_header, layout_panel = layout.panel("advanced", default_closed=False)
+    layout_header.label(text="Online Extensions")
+    if layout_panel is not None:
+        # Text wrapping isn't supported, manually wrap.
+        for line in (
+                "Welcome! Access community-made add-ons and themes from the",
+                "extensions.blender.org repository.",
+                "",
+                "This requires internet access.",
+        ):
+            layout_panel.label(text=line)
+
+        row = layout.row()
+        row.operator("bl_pkg.extension_online_access", text="Dismiss", icon='X').enable = False
+        row.operator("bl_pkg.extension_online_access", text="Enable Repository", icon='CHECKMARK').enable = True
+
+
 def extensions_panel_draw_impl(
         self,
         context,
@@ -747,6 +769,10 @@ def extensions_panel_draw(panel, context):
         # Hide when running.
         if repo_status_text.running:
             return
+
+    if not prefs.filepaths.use_extension_online_access_handled:
+        extensions_panel_draw_online_extensions_request_impl(panel, context)
+        return
 
     extensions_panel_draw_impl(
         panel,
