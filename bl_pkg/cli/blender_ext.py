@@ -776,6 +776,14 @@ def pkg_idname_is_valid_or_error(pkg_idname: str) -> Optional[str]:
 #
 # However manifests from severs that don't adhere to strict rules are not prevented from loading.
 
+def pkg_manifest_validate_field_nop(
+        value: Any,
+        strict: bool,
+) -> Optional[str]:
+    _ = strict, value
+    return None
+
+
 def pkg_manifest_validate_field_any_non_empty_string(
     value: str,
     strict: bool,
@@ -950,7 +958,7 @@ def pkg_manifest_validate_field_archive_hash(
 # Keep in sync with `PkgManifest`.
 # key, type, check_fn.
 pkg_manifest_known_keys_and_types: Tuple[
-    Tuple[str, type, Optional[Callable[[Any, bool], Optional[str]]]],
+    Tuple[str, type, Callable[[Any, bool], Optional[str]]],
     ...,
 ] = (
     ("id", str, pkg_manifest_validate_field_idname),
@@ -974,12 +982,12 @@ pkg_manifest_known_keys_and_types: Tuple[
 
 # Keep in sync with `PkgManifest_Archive`.
 pkg_manifest_known_keys_and_types_from_repo: Tuple[
-    Tuple[str, type, Optional[Callable[[Any, bool], Optional[str]]]],
+    Tuple[str, type, Callable[[Any, bool], Optional[str]]],
     ...,
 ] = (
     ("archive_size", int, pkg_manifest_validate_field_archive_size),
     ("archive_hash", str, pkg_manifest_validate_field_archive_hash),
-    ("archive_url", str, None),
+    ("archive_url", str, pkg_manifest_validate_field_nop),
 )
 
 
@@ -1040,12 +1048,11 @@ def pkg_manifest_is_valid_or_error_impl(
                         return error_list
                     continue
 
-                if x_check_fn is not None:
-                    if (error_msg := x_check_fn(x_val, strict)) is not None:
-                        error_list.append("key \"{:s}\" invalid: {:s}".format(x_key, error_msg))
-                        if not all_errors:
-                            return error_list
-                        continue
+                if (error_msg := x_check_fn(x_val, strict)) is not None:
+                    error_list.append("key \"{:s}\" invalid: {:s}".format(x_key, error_msg))
+                    if not all_errors:
+                        return error_list
+                    continue
 
             value_extract[x_key] = x_val
 
