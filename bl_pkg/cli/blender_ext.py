@@ -816,7 +816,11 @@ def pkg_manifest_validate_field_tagline(value: str) -> Optional[str]:
     if len(value) > 64:
         return "a value no longer than 64 characters expected, found {:d}".format(len(value))
     # As we don't have a reliable (unicode aware) punctuation check, just check the last character is alpha/numeric.
-    if not value[-1].isalnum():
+    if value[-1].isalnum():
+        pass  # OK.
+    elif value[-1] in {")", "]", "}"}:
+        pass  # Allow closing brackets (sometimes used to mention formats).
+    else:
         return "alpha-numeric suffix expected, the string must not end with punctuation"
     return None
 
