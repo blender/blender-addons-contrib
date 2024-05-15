@@ -761,7 +761,7 @@ class CommandBatch:
             if update_count > 0:
                 # NOTE: the UI design in #120612 has the number of extensions available in icon.
                 # Include in the text as this is not yet supported.
-                return "Extensions Updates Available ({:d}){:s}".format(update_count, fail_text), 'URL'
+                return "Extensions Updates Available ({:d}){:s}".format(update_count, fail_text), 'INTERNET'
             return "All Extensions Up-to-date{:s}".format(fail_text), 'CHECKMARK'
         if status_data.flag & 1 << CommandBatchItem.STATUS_RUNNING:
             return "Checking for Extension Updates{:s}".format(fail_text), 'SORTTIME'
