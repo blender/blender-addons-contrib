@@ -2256,7 +2256,7 @@ class subcmd_dummy:
             )
             return False
 
-        if not repo_is_filesystem(repo_dir=repo_dir):
+        if not repo_is_filesystem(remote_url=repo_dir):
             message_error(msg_fn, "Generating a repository on a remote path is not supported")
             return False
 
@@ -2596,12 +2596,12 @@ def argparse_create_dummy_repo(subparsers: "argparse._SubParsersAction[argparse.
     )
 
     generic_arg_output_type(subparse)
-    generic_arg_remote_url(subparse)
+    generic_arg_repo_dir(subparse)
 
     subparse.set_defaults(
         func=lambda args: subcmd_dummy.repo(
             msg_fn_from_args(args),
-            remote_url=args.remote_url,
+            repo_dir=args.repo_dir,
             package_names=args.package_names,
         ),
     )

@@ -169,7 +169,7 @@ def main() -> None:
         # Populate repository from source.
         for msg in command_output_from_json_0([
                 "dummy-repo",
-                "--remote-url", temp_dir_remote,
+                "--repo-dir", temp_dir_remote,
                 "--package-names", ",".join(package_names)
         ]):
             print(msg)
