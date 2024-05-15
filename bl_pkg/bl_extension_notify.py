@@ -280,10 +280,9 @@ def splash_draw_status_fn(self, context):
         text, icon = bl_extension_utils.CommandBatch.calc_status_text_icon_from_data(status_data, update_count)
         row = self.layout.row(align=True)
         if update_count > 0:
-            row.operator("bl_pkg.extensions_show_for_update", text="", icon=icon)
+            row.operator("bl_pkg.extensions_show_for_update", text=text, icon=icon)
         else:
-            row.label(text="", icon=icon)
-        row.label(text=text)
+            row.label(text=text, icon=icon)
 
     self.layout.separator()
     self.layout.separator()
