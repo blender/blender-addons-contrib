@@ -1501,7 +1501,15 @@ class BlPkgPkgInstallFiles(Operator, _BlPkgCmdMixIn):
         if not (source_directory and source_files):
             source_directory, source_file = os.path.split(self.filepath)
             if not (source_directory and source_file):
-                self.report({'ERROR'}, "No source paths set")
+                # Be specific with this error as a vague message is confusing when files
+                # are passed via the command line.
+                if source_directory or source_file:
+                    if source_file:
+                        self.report({'ERROR'}, "Unable to install from relative path")
+                    else:
+                        self.report({'ERROR'}, "Unable to install a directory")
+                else:
+                    self.report({'ERROR'}, "Unable to install from disk, no paths were defined")
                 return None
             source_files = [source_file]
             del source_file

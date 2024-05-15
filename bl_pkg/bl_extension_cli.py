@@ -355,6 +355,10 @@ class subcmd_pkg:
             no_prefs: bool,
     ) -> bool:
         import bpy
+
+        # Blender's operator requires an absolute path.
+        filepath = os.path.abspath(filepath)
+
         try:
             bpy.ops.bl_pkg.pkg_install_files(
                 filepath=filepath,
