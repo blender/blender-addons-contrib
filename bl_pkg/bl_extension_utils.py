@@ -288,6 +288,7 @@ def repo_sync(
         online_user_agent: str,
         use_idle: bool,
         force_exit_ok: bool = False,
+        extension_override: str = "",
 ) -> Generator[InfoItemSeq, None, None]:
     """
     Implementation:
@@ -299,6 +300,7 @@ def repo_sync(
         "--remote-url", remote_url,
         "--online-user-agent", online_user_agent,
         *(("--force-exit-ok",) if force_exit_ok else ()),
+        *(("--extension-override", extension_override) if extension_override else ()),
     ], use_idle=use_idle)
     yield [COMPLETE_ITEM]
 

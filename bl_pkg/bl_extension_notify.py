@@ -12,6 +12,7 @@ __all__ = (
 )
 
 
+import os
 import bpy
 
 from . import bl_extension_ops
@@ -69,6 +70,55 @@ def sync_status_count_outdated_extensions(repos_notify):
 #
 # This is a black-box which handled running the updates, yielding status text.
 
+def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
+    """
+    Move files with a unique extension to their final location
+    with a locked repository to ensure multiple Blender instances never overwrite
+    repositories at the same time.
+
+    Lock the repositories for the shortest time reasonably possible.
+    If locking fails, this is OK as it's possible another Blender got here first.
+
+    Another reason this is needed is exiting Blender will close the sync sub-processes,
+    this is OK as long as the final location of the repositories JSON isn't being written
+    to the moment Blender and it's sub-processes exit.
+    """
+    # TODO: handle the case of cruft being left behind, perhaps detect previous
+    # files created with a `unique_ext` (`@{HEX}` extension) and removing them.
+    # Although this shouldn't happen on a regular basis. Only when exiting immediately after launching
+    # Blender and even then the user would need to be *lucky*.
+    from . import cookie_from_session
+
+    any_lock_errors = False
+    repo_directories = [repo_item.directory for repo_item in repos_notify]
+    with bl_extension_utils.RepoLockContext(
+            repo_directories=repo_directories,
+            cookie=cookie_from_session(),
+    ) as lock_result:
+        for directory, repo_files in zip(repo_directories, repos_notify_files):
+            repo_files = [os.path.join(directory, filepath_rel) for filepath_rel in repo_files]
+
+            if (lock_result_for_repo := lock_result[directory]) is not None:
+                print("Warning \"{:s}\" locking \"{:s}\"".format(lock_result_for_repo, repr(directory)))
+                any_lock_errors = True
+                for filepath in repo_files:
+                    try:
+                        os.remove(filepath)
+                    except Exception as ex:
+                        print("Failed to remove file:", ex)
+                continue
+
+            # Locking worked, rename the files.
+            for filepath in repo_files:
+                filepath_dst = filepath[:-len(unique_ext)]
+                try:
+                    os.remove(filepath_dst)
+                except Exception as ex:
+                    print("Failed to remove file before renaming:", ex)
+                    continue
+                os.rename(filepath, filepath_dst)
+    return any_lock_errors
+
 
 def sync_status_generator(repos_notify):
 
@@ -81,6 +131,9 @@ def sync_status_generator(repos_notify):
     # ################ #
 
     yield None
+
+    # An extension unique to this session.
+    unique_ext = "@{:x}".format(os.getpid())
 
     from functools import partial
 
@@ -99,6 +152,7 @@ def sync_status_generator(repos_notify):
             # TODO: write to a temporary location, once done:
             # There is no chance of corrupt data as the data isn't written directly to the target JSON.
             force_exit_ok=not USE_GRACEFUL_EXIT,
+            extension_override=unique_ext,
         ))
 
     yield None
@@ -141,7 +195,11 @@ def sync_status_generator(repos_notify):
 
     # The count is unknown.
     update_total = -1
+    any_lock_errors = False
 
+    repos_notify_files = [[] for _ in repos_notify]
+
+    is_debug = bpy.app.debug
     while True:
         command_result = cmd_batch.exec_non_blocking(
             # TODO: if Blender requested an exit... this should request exit here.
@@ -149,26 +207,35 @@ def sync_status_generator(repos_notify):
         )
         # Forward new messages to reports.
         msg_list_per_command = cmd_batch.calc_status_log_since_last_request_or_none()
-        if bpy.app.debug:
-            if msg_list_per_command is not None:
-                for i, msg_list in enumerate(msg_list_per_command, 1):
-                    for (ty, msg) in msg_list:
-                        # TODO: output this information to a place for users, if they want to debug.
-                        if len(msg_list_per_command) > 1:
-                            # These reports are flattened, note the process number that fails so
-                            # whoever is reading the reports can make sense of the messages.
-                            msg = "{:s} (process {:d} of {:d})".format(msg, i, len(msg_list_per_command))
-                        if ty == 'STATUS':
-                            print('INFO', msg)
-                        else:
-                            print(ty, msg)
+        if msg_list_per_command is not None:
+            for i, msg_list in enumerate(msg_list_per_command):
+                for (ty, msg) in msg_list:
+                    if ty == 'PATH':
+                        if not msg.endswith(unique_ext):
+                            print("Unexpected path:", msg)
+                        repos_notify_files[i].append(msg)
+                        continue
+
+                    if not is_debug:
+                        continue
+
+                    # TODO: output this information to a place for users, if they want to debug.
+                    if len(msg_list_per_command) > 1:
+                        # These reports are flattened, note the process number that fails so
+                        # whoever is reading the reports can make sense of the messages.
+                        msg = "{:s} (process {:d} of {:d})".format(msg, i + 1, len(msg_list_per_command))
+                    if ty == 'STATUS':
+                        print('INFO', msg)
+                    else:
+                        print(ty, msg)
 
         # TODO: more elegant way to detect changes.
         # Re-calculating the same information each time then checking if it's different isn't great.
         if command_result.status_data_changed:
             if command_result.all_complete:
+                any_lock_errors = sync_apply_locked(repos_notify, repos_notify_files, unique_ext)
                 update_total = sync_status_count_outdated_extensions(repos_notify)
-            yield (cmd_batch.calc_status_data(), update_total)
+            yield (cmd_batch.calc_status_data(), update_total, any_lock_errors)
         else:
             yield None
 
@@ -252,7 +319,7 @@ def _ui_refresh_timer():
 
     # Re-display.
     assert isinstance(sync_info, tuple)
-    assert len(sync_info) == 2
+    assert len(sync_info) == 3
 
     _notify.sync_info = sync_info
 
@@ -276,8 +343,10 @@ def splash_draw_status_fn(self, context):
     if _notify.sync_info is None:
         self.layout.label(text="Updates starting...")
     else:
-        status_data, update_count = _notify.sync_info
+        status_data, update_count, any_lock_errors = _notify.sync_info
         text, icon = bl_extension_utils.CommandBatch.calc_status_text_icon_from_data(status_data, update_count)
+        if any_lock_errors:
+            text = text + " - failed to acquire lock!"
         row = self.layout.row(align=True)
         if update_count > 0:
             row.operator("bl_pkg.extensions_show_for_update", text=text, icon=icon)

@@ -80,7 +80,7 @@ PKG_MANIFEST_FILENAME_TOML = "blender_manifest.toml"
 # This directory is in the local repository.
 REPO_LOCAL_PRIVATE_DIR = ".blender_ext"
 
-MESSAGE_TYPES = {'STATUS', 'PROGRESS', 'WARN', 'ERROR', 'DONE'}
+MESSAGE_TYPES = {'STATUS', 'PROGRESS', 'WARN', 'ERROR', 'PATH', 'DONE'}
 
 RE_MANIFEST_SEMVER = re.compile(
     r'^'
@@ -153,6 +153,13 @@ def message_status(msg_fn: MessageFn, s: str) -> bool:
     Print a status message.
     """
     return msg_fn("STATUS", s)
+
+
+def message_path(msg_fn: MessageFn, s: str) -> bool:
+    """
+    Print a path.
+    """
+    return msg_fn("PATH", s)
 
 
 def message_progress(msg_fn: MessageFn, s: str, progress: int, progress_range: int, unit: str) -> bool:
@@ -1223,6 +1230,7 @@ def repo_sync_from_remote(
         local_dir: str,
         online_user_agent: str,
         timeout_in_seconds: float,
+        extension_override: str,
 ) -> bool:
     """
     Load package information into the local path.
@@ -1241,6 +1249,10 @@ def repo_sync_from_remote(
     local_private_dir = repo_local_private_dir_ensure(local_dir=local_dir)
     local_json_path = os.path.join(local_private_dir, PKG_REPO_LIST_FILENAME)
     local_json_path_temp = local_json_path + "@"
+
+    assert extension_override != "@"
+    if extension_override:
+        local_json_path = local_json_path + extension_override
 
     if os.path.exists(local_json_path_temp):
         os.unlink(local_json_path_temp)
@@ -1300,6 +1312,9 @@ def repo_sync_from_remote(
 
         # If this is a valid JSON, overwrite the existing file.
         os.rename(local_json_path_temp, local_json_path)
+
+        if extension_override:
+            request_exit |= message_path(msg_fn, os.path.relpath(local_json_path, local_dir))
 
     return True
 
@@ -1545,6 +1560,22 @@ def generic_arg_ignore_broken_pipe(subparse: argparse.ArgumentParser) -> None:
     )
 
 
+def generic_arg_extension_override(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "--extension-override",
+        dest="extension_override",
+        type=str,
+        help=(
+            "Use a non-standard extension. "
+            "When a non-empty string, this extension is appended to paths written to. "
+            "This allows the actual repository file to be left untouched so it can be replaced "
+            "by the caller which can handle locking the repository."
+        ),
+        default="",
+        required=False,
+    )
+
+
 class subcmd_server:
 
     def __new__(cls) -> Any:
@@ -1714,6 +1745,7 @@ class subcmd_client:
             online_user_agent: str,
             timeout_in_seconds: float,
             force_exit_ok: bool,
+            extension_override: str,
     ) -> bool:
         if force_exit_ok:
             force_exit_ok_enable()
@@ -1724,6 +1756,7 @@ class subcmd_client:
             local_dir=local_dir,
             online_user_agent=online_user_agent,
             timeout_in_seconds=timeout_in_seconds,
+            extension_override=extension_override,
         )
         return success
 
@@ -2527,6 +2560,7 @@ def argparse_create_client_sync(subparsers: "argparse._SubParsersAction[argparse
     generic_arg_output_type(subparse)
     generic_arg_timeout(subparse)
     generic_arg_ignore_broken_pipe(subparse)
+    generic_arg_extension_override(subparse)
 
     subparse.set_defaults(
         func=lambda args: subcmd_client.sync(
@@ -2536,6 +2570,7 @@ def argparse_create_client_sync(subparsers: "argparse._SubParsersAction[argparse
             online_user_agent=args.online_user_agent,
             timeout_in_seconds=args.timeout,
             force_exit_ok=args.force_exit_ok,
+            extension_override=args.extension_override,
         ),
     )
 
