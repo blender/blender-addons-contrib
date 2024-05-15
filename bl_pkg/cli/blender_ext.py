@@ -91,6 +91,9 @@ RE_MANIFEST_SEMVER = re.compile(
     r'(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
 )
 
+# Ensure names (for example), don't contain control characters.
+RE_CONTROL_CHARS = re.compile(r'[\x00-\x1f\x7f-\x9f]')
+
 # Progress updates are displayed after each chunk of this size is downloaded.
 # Small values add unnecessary overhead showing progress, large values will make
 # progress not update often enough.
@@ -748,6 +751,17 @@ def pkg_manifest_validate_field_any_non_empty_string(value: str) -> Optional[str
     return None
 
 
+def pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(value: str) -> Optional[str]:
+    value_strip = value.strip()
+    if not value_strip:
+        return "a non-empty string expected"
+    if value != value_strip:
+        return "text without leading/trailing white space expected"
+    for _ in RE_CONTROL_CHARS.finditer(value):
+        return "text without any control characters expected"
+    return None
+
+
 def pkg_manifest_validate_field_any_list_of_non_empty_strings(value: List[Any]) -> Optional[str]:
     for i, tag in enumerate(value):
         if not isinstance(tag, str):
@@ -792,6 +806,18 @@ def pkg_manifest_validate_field_type(value: str) -> Optional[str]:
     value_expected = {"add-on", "theme"}
     if value not in value_expected:
         return "Expected to be one of [{:s}], found {!r}".format(", ".join(value_expected), value)
+    return None
+
+
+def pkg_manifest_validate_field_tagline(value: str) -> Optional[str]:
+    if (error := pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(value)) is not None:
+        return error
+    # Additional requirements.
+    if len(value) > 64:
+        return "a value no longer than 64 characters expected, found {:d}".format(len(value))
+    # As we don't have a reliable (unicode aware) punctuation check, just check the last character is alpha/numeric.
+    if not value[-1].isalnum():
+        return "alpha-numeric suffix expected, the string must not end with punctuation"
     return None
 
 
@@ -845,17 +871,17 @@ def pkg_manifest_validate_field_archive_hash(value: str) -> Optional[str]:
 pkg_manifest_known_keys_and_types: Tuple[Tuple[str, type, Optional[Callable[[Any], Optional[str]]]], ...] = (
     ("id", str, pkg_idname_is_valid_or_error),
     ("schema_version", str, pkg_manifest_validate_field_any_version),
-    ("name", str, pkg_manifest_validate_field_any_non_empty_string),
-    ("tagline", str, pkg_manifest_validate_field_any_non_empty_string),
+    ("name", str, pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars),
+    ("tagline", str, pkg_manifest_validate_field_tagline),
     ("version", str, pkg_manifest_validate_field_any_version),
     ("type", str, pkg_manifest_validate_field_type),
-    ("maintainer", str, pkg_manifest_validate_field_any_non_empty_string),
+    ("maintainer", str, pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars),
     ("license", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
     ("blender_version_min", str, pkg_manifest_validate_field_any_version_primitive),
 
     # Optional.
     ("blender_version_max", str, pkg_manifest_validate_field_any_version_primitive_or_empty),
-    ("website", str, pkg_manifest_validate_field_any_non_empty_string),
+    ("website", str, pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars),
     ("copyright", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),
     ("permissions", list, pkg_manifest_validate_field_any_list_of_non_empty_strings),
     ("tags", list, pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings),

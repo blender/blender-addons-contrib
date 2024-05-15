@@ -175,7 +175,7 @@ def my_generate_repo(
                 "schema_version": "1.0.0",
                 "id": template.idname,
                 "name": template.name,
-                "tagline": """This package has a tagline.""",
+                "tagline": """This package has a tagline""",
                 "version": template.version,
                 "type": "add-on",
                 "tags": ["UV", "Modeling"],
