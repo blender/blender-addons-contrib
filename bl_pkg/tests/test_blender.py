@@ -127,13 +127,13 @@ def blender_test_run(temp_dir_local: str) -> None:
     # NOTE: it's assumed the URL will expand to JSON, example:
     # http://extensions.local:8111/add-ons/?format=json
     # This is not supported by the test server so the file name needs to be added.
-    repo_url = "http://localhost:{:d}/{:s}".format(HTTP_PORT, PKG_REPO_LIST_FILENAME)
+    remote_url = "http://localhost:{:d}/{:s}".format(HTTP_PORT, PKG_REPO_LIST_FILENAME)
 
     repo = preferences.extensions.repos.new(
         name="My Test",
         module="my_repo",
         custom_directory=temp_dir_local,
-        remote_url=repo_url,
+        remote_url=remote_url,
     )
 
     bpy.ops.bl_pkg.dummy_progress()

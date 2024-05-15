@@ -394,7 +394,7 @@ class subcmd_repo:
             print("{:s}:".format(repo.module))
             print("    name: \"{:s}\"".format(repo.name))
             print("    directory: \"{:s}\"".format(repo.directory))
-            if url := repo.repo_url:
+            if url := repo.remote_url:
                 print("    url: \"{:s}\"".format(url))
 
         return True

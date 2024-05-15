@@ -532,7 +532,7 @@ def pkg_manifest_from_archive_and_validate(
         return pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir)
 
 
-def remote_url_from_repo_url(url: str) -> str:
+def remote_url_get(url: str) -> str:
     if REMOTE_REPO_HAS_JSON_IMPLIED:
         return url
     return urllib.parse.urljoin(url, PKG_REPO_LIST_FILENAME)
@@ -1143,7 +1143,7 @@ def repo_sync_from_remote(
     if is_repo_filesystem:
         remote_json_path = os.path.join(repo_dir, PKG_REPO_LIST_FILENAME)
     else:
-        remote_json_path = remote_url_from_repo_url(repo_dir)
+        remote_json_path = remote_url_get(repo_dir)
 
     local_private_dir = repo_local_private_dir_ensure(local_dir=local_dir)
     local_json_path = os.path.join(local_private_dir, PKG_REPO_LIST_FILENAME)
@@ -1554,7 +1554,7 @@ class subcmd_client:
                 message_error(msg_fn, "File: {!r} not found!".format(filepath_repo_json))
                 return False
         else:
-            filepath_repo_json = remote_url_from_repo_url(repo_dir)
+            filepath_repo_json = remote_url_get(repo_dir)
 
         # TODO: validate JSON content.
         try:

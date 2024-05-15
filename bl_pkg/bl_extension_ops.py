@@ -53,7 +53,7 @@ from .bl_extension_utils import (
 rna_prop_url = StringProperty(name="URL", subtype='FILE_PATH', options={'HIDDEN'})
 rna_prop_directory = StringProperty(name="Repo Directory", subtype='FILE_PATH')
 rna_prop_repo_index = IntProperty(name="Repo Index", default=-1)
-rna_prop_repo_url = StringProperty(name="Repo URL", subtype='FILE_PATH')
+rna_prop_remote_url = StringProperty(name="Repo URL", subtype='FILE_PATH')
 rna_prop_pkg_id = StringProperty(name="Package ID")
 
 rna_prop_enable_on_install = BoolProperty(
@@ -138,7 +138,7 @@ class CheckSIGINT_Context:
 
 def extension_url_find_repo_index_and_pkg_id(url):
     from .bl_extension_utils import (
-        pkg_manifest_archive_url_abs_from_repo_url,
+        pkg_manifest_archive_url_abs_from_remote_url,
     )
     from .bl_extension_ops import (
         extension_repos_read,
@@ -164,8 +164,8 @@ def extension_url_find_repo_index_and_pkg_id(url):
             continue
 
         repo = repos_all[repo_index]
-        repo_url = repo.repo_url
-        if not repo_url:
+        remote_url = repo.remote_url
+        if not remote_url:
             continue
         for pkg_id, item_remote in pkg_manifest_remote.items():
             archive_url = item_remote["archive_url"]
@@ -175,7 +175,7 @@ def extension_url_find_repo_index_and_pkg_id(url):
                 continue
 
             # Calculate the absolute URL.
-            archive_url_abs = pkg_manifest_archive_url_abs_from_repo_url(repo_url, archive_url)
+            archive_url_abs = pkg_manifest_archive_url_abs_from_remote_url(remote_url, archive_url)
             if archive_url_abs == url:
                 return repo_index, repo.name, pkg_id, item_remote, pkg_manifest_local.get(pkg_id)
 
@@ -261,7 +261,7 @@ def repo_iter_valid_local_only(context):
 class RepoItem(NamedTuple):
     name: str
     directory: str
-    repo_url: str
+    remote_url: str
     module: str
     use_cache: bool
 
@@ -480,7 +480,7 @@ def extension_repos_read_index(index, *, include_disabled=False):
             return RepoItem(
                 name=repo_item.name,
                 directory=directory,
-                repo_url=remote_url,
+                remote_url=remote_url,
                 module=repo_item.module,
                 use_cache=repo_item.use_cache,
             )
@@ -516,7 +516,7 @@ def extension_repos_read(*, include_disabled=False, use_active_only=False):
         result.append(RepoItem(
             name=repo_item.name,
             directory=directory,
-            repo_url=remote_url,
+            remote_url=remote_url,
             module=repo_item.module,
             use_cache=repo_item.use_cache,
         ))
@@ -988,12 +988,12 @@ class BlPkgRepoSync(Operator, _BlPkgCmdMixIn):
             return None
 
         cmd_batch = []
-        if repo_item.repo_url:
+        if repo_item.remote_url:
             cmd_batch.append(
                 partial(
                     bl_extension_utils.repo_sync,
                     directory=directory,
-                    repo_url=repo_item.repo_url,
+                    remote_url=repo_item.remote_url,
                     online_user_agent=online_user_agent_from_blender(),
                     use_idle=is_modal,
                 )
@@ -1050,11 +1050,11 @@ class BlPkgRepoSyncAll(Operator, _BlPkgCmdMixIn):
         cmd_batch = []
         for repo_item in repos_all:
             # Local only repositories should still refresh, but not run the sync.
-            if repo_item.repo_url:
+            if repo_item.remote_url:
                 cmd_batch.append(partial(
                     bl_extension_utils.repo_sync,
                     directory=repo_item.directory,
-                    repo_url=repo_item.repo_url,
+                    remote_url=repo_item.remote_url,
                     online_user_agent=online_user_agent_from_blender(),
                     use_idle=is_modal,
                 ))
@@ -1167,7 +1167,7 @@ class BlPkgPkgUpgradeAll(Operator, _BlPkgCmdMixIn):
             cmd_batch.append(partial(
                 bl_extension_utils.pkg_install,
                 directory=repo_item.directory,
-                repo_url=repo_item.repo_url,
+                remote_url=repo_item.remote_url,
                 pkg_id_sequence=pkg_id_sequence,
                 online_user_agent=online_user_agent_from_blender(),
                 use_cache=repo_item.use_cache,
@@ -1266,7 +1266,7 @@ class BlPkgPkgInstallMarked(Operator, _BlPkgCmdMixIn):
             cmd_batch.append(partial(
                 bl_extension_utils.pkg_install,
                 directory=repo_item.directory,
-                repo_url=repo_item.repo_url,
+                remote_url=repo_item.remote_url,
                 pkg_id_sequence=pkg_id_sequence,
                 online_user_agent=online_user_agent_from_blender(),
                 use_cache=repo_item.use_cache,
@@ -1761,7 +1761,7 @@ class BlPkgPkgInstall(Operator, _BlPkgCmdMixIn):
                 partial(
                     bl_extension_utils.pkg_install,
                     directory=directory,
-                    repo_url=repo_item.repo_url,
+                    remote_url=repo_item.remote_url,
                     pkg_id_sequence=(pkg_id,),
                     online_user_agent=online_user_agent_from_blender(),
                     use_cache=repo_item.use_cache,
@@ -1924,7 +1924,7 @@ class BlPkgPkgUninstall(Operator, _BlPkgCmdMixIn):
         from . import repo_cache_store
 
         repo_item = _extensions_repo_from_directory(self.repo_directory)
-        if repo_item.repo_url == "":
+        if repo_item.remote_url == "":
             # Re-generate JSON meta-data from TOML files (needed for offline repository).
             # NOTE: This could be slow with many local extensions,
             # we could simply remove the package that was uninstalled.

@@ -387,7 +387,7 @@ def extensions_panel_draw_impl(
 
         if pkg_manifest_remote is None:
             repo = repos_all[repo_index]
-            has_remote = (repo.repo_url != "")
+            has_remote = (repo.remote_url != "")
             if has_remote:
                 # NOTE: it would be nice to detect when the repository ran sync and it failed.
                 # This isn't such an important distinction though, the main thing users should be aware of
@@ -397,7 +397,7 @@ def extensions_panel_draw_impl(
             continue
         else:
             repo = repos_all[repo_index]
-            has_remote = (repo.repo_url != "")
+            has_remote = (repo.remote_url != "")
             del repo
 
         for pkg_id, item_remote in pkg_manifest_remote.items():
