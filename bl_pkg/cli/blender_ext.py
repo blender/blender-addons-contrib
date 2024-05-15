@@ -1126,7 +1126,7 @@ def repo_local_private_dir_ensure_with_subdir(*, local_dir: str, subdir: str) ->
 def repo_sync_from_remote(
         *,
         msg_fn: MessageFn,
-        repo_dir: str,
+        remote_url: str,
         local_dir: str,
         online_user_agent: str,
         timeout_in_seconds: float,
@@ -1135,15 +1135,15 @@ def repo_sync_from_remote(
     Load package information into the local path.
     """
     request_exit = False
-    request_exit |= message_status(msg_fn, "Sync repo: {:s}".format(repo_dir))
+    request_exit |= message_status(msg_fn, "Sync repo: {:s}".format(remote_url))
     if request_exit:
         return False
 
-    is_repo_filesystem = repo_is_filesystem(repo_dir=repo_dir)
+    is_repo_filesystem = repo_is_filesystem(remote_url=remote_url)
     if is_repo_filesystem:
-        remote_json_path = os.path.join(repo_dir, PKG_REPO_LIST_FILENAME)
+        remote_json_path = os.path.join(remote_url, PKG_REPO_LIST_FILENAME)
     else:
-        remote_json_path = remote_url_get(repo_dir)
+        remote_json_path = remote_url_get(remote_url)
 
     local_private_dir = repo_local_private_dir_ensure(local_dir=local_dir)
     local_json_path = os.path.join(local_private_dir, PKG_REPO_LIST_FILENAME)
@@ -1177,16 +1177,16 @@ def repo_sync_from_remote(
             del read_total
 
         except FileNotFoundError as ex:
-            message_error(msg_fn, "sync: file-not-found ({:s}) reading {!r}!".format(str(ex), repo_dir))
+            message_error(msg_fn, "sync: file-not-found ({:s}) reading {!r}!".format(str(ex), remote_url))
             return False
         except TimeoutError as ex:
-            message_error(msg_fn, "sync: timeout ({:s}) reading {!r}!".format(str(ex), repo_dir))
+            message_error(msg_fn, "sync: timeout ({:s}) reading {!r}!".format(str(ex), remote_url))
             return False
         except urllib.error.URLError as ex:
-            message_error(msg_fn, "sync: URL error ({:s}) reading {!r}!".format(str(ex), repo_dir))
+            message_error(msg_fn, "sync: URL error ({:s}) reading {!r}!".format(str(ex), remote_url))
             return False
         except BaseException as ex:
-            message_error(msg_fn, "sync: unexpected error ({:s}) reading {!r}!".format(str(ex), repo_dir))
+            message_error(msg_fn, "sync: unexpected error ({:s}) reading {!r}!".format(str(ex), remote_url))
             return False
 
         if request_exit:
@@ -1194,11 +1194,11 @@ def repo_sync_from_remote(
 
         error_msg = repo_json_is_valid_or_error(local_json_path_temp)
         if error_msg is not None:
-            message_error(msg_fn, "sync: invalid manifest ({:s}) reading {!r}!".format(error_msg, repo_dir))
+            message_error(msg_fn, "sync: invalid manifest ({:s}) reading {!r}!".format(error_msg, remote_url))
             return False
         del error_msg
 
-        request_exit |= message_status(msg_fn, "Sync complete: {:s}".format(repo_dir))
+        request_exit |= message_status(msg_fn, "Sync complete: {:s}".format(remote_url))
         if request_exit:
             return False
 
@@ -1243,8 +1243,8 @@ def repo_pkginfo_from_local_with_idname_as_key(*, local_dir: str) -> Optional[Pk
     return pkg_repo_dat_from_json(result)
 
 
-def repo_is_filesystem(*, repo_dir: str) -> bool:
-    if repo_dir.startswith(("https://", "http://")):
+def repo_is_filesystem(*, remote_url: str) -> bool:
+    if remote_url.startswith(("https://", "http://")):
         return False
     return True
 
@@ -1299,6 +1299,18 @@ def generic_arg_repo_dir(subparse: argparse.ArgumentParser) -> None:
         type=str,
         help=(
             "The remote repository directory."
+        ),
+        required=True,
+    )
+
+
+def generic_arg_remote_url(subparse: argparse.ArgumentParser) -> None:
+    subparse.add_argument(
+        "--remote-url",
+        dest="remote_url",
+        type=str,
+        help=(
+            "The remote repository URL."
         ),
         required=True,
     )
@@ -1452,7 +1464,7 @@ class subcmd_server:
             repo_dir: str,
     ) -> bool:
 
-        is_repo_filesystem = repo_is_filesystem(repo_dir=repo_dir)
+        is_repo_filesystem = repo_is_filesystem(remote_url=repo_dir)
         if not is_repo_filesystem:
             message_error(msg_fn, "Directory: {!r} must be local!".format(repo_dir))
             return False
@@ -1538,23 +1550,23 @@ class subcmd_client:
     @staticmethod
     def list_packages(
             msg_fn: MessageFn,
-            repo_dir: str,
+            remote_url: str,
             online_user_agent: str,
             timeout_in_seconds: float,
     ) -> bool:
-        is_repo_filesystem = repo_is_filesystem(repo_dir=repo_dir)
+        is_repo_filesystem = repo_is_filesystem(remote_url=remote_url)
         if is_repo_filesystem:
-            if not os.path.isdir(repo_dir):
-                message_error(msg_fn, "Directory: {!r} not found!".format(repo_dir))
+            if not os.path.isdir(remote_url):
+                message_error(msg_fn, "Directory: {!r} not found!".format(remote_url))
                 return False
 
         if is_repo_filesystem:
-            filepath_repo_json = os.path.join(repo_dir, PKG_REPO_LIST_FILENAME)
+            filepath_repo_json = os.path.join(remote_url, PKG_REPO_LIST_FILENAME)
             if not os.path.exists(filepath_repo_json):
                 message_error(msg_fn, "File: {!r} not found!".format(filepath_repo_json))
                 return False
         else:
-            filepath_repo_json = remote_url_get(repo_dir)
+            filepath_repo_json = remote_url_get(remote_url)
 
         # TODO: validate JSON content.
         try:
@@ -1569,16 +1581,16 @@ class subcmd_client:
                 result.write(block)
 
         except FileNotFoundError as ex:
-            message_error(msg_fn, "list: file-not-found ({:s}) reading {!r}!".format(str(ex), repo_dir))
+            message_error(msg_fn, "list: file-not-found ({:s}) reading {!r}!".format(str(ex), remote_url))
             return False
         except TimeoutError as ex:
-            message_error(msg_fn, "list: timeout ({:s}) reading {!r}!".format(str(ex), repo_dir))
+            message_error(msg_fn, "list: timeout ({:s}) reading {!r}!".format(str(ex), remote_url))
             return False
         except urllib.error.URLError as ex:
-            message_error(msg_fn, "list: URL error ({:s}) reading {!r}!".format(str(ex), repo_dir))
+            message_error(msg_fn, "list: URL error ({:s}) reading {!r}!".format(str(ex), remote_url))
             return False
         except BaseException as ex:
-            message_error(msg_fn, "list: unexpected error ({:s}) reading {!r}!".format(str(ex), repo_dir))
+            message_error(msg_fn, "list: unexpected error ({:s}) reading {!r}!".format(str(ex), remote_url))
             return False
 
         result_str = result.getvalue().decode("utf-8")
@@ -1604,7 +1616,7 @@ class subcmd_client:
     def sync(
             msg_fn: MessageFn,
             *,
-            repo_dir: str,
+            remote_url: str,
             local_dir: str,
             online_user_agent: str,
             timeout_in_seconds: float,
@@ -1615,7 +1627,7 @@ class subcmd_client:
 
         success = repo_sync_from_remote(
             msg_fn=msg_fn,
-            repo_dir=repo_dir,
+            remote_url=remote_url,
             local_dir=local_dir,
             online_user_agent=online_user_agent,
             timeout_in_seconds=timeout_in_seconds,
@@ -1759,7 +1771,7 @@ class subcmd_client:
     def install_packages(
             msg_fn: MessageFn,
             *,
-            repo_dir: str,
+            remote_url: str,
             local_dir: str,
             local_cache: bool,
             packages: Sequence[str],
@@ -1767,7 +1779,7 @@ class subcmd_client:
             timeout_in_seconds: float,
     ) -> bool:
         # Extract...
-        is_repo_filesystem = repo_is_filesystem(repo_dir=repo_dir)
+        is_repo_filesystem = repo_is_filesystem(remote_url=remote_url)
         pkg_repo_data = repo_pkginfo_from_local_with_idname_as_key(local_dir=local_dir)
         if pkg_repo_data is None:
             # TODO: raise warning.
@@ -1829,22 +1841,22 @@ class subcmd_client:
                 # Remote path.
                 if pkg_archive_url.startswith("./"):
                     if is_repo_filesystem:
-                        filepath_remote_archive = os.path.join(repo_dir, pkg_archive_url[2:])
+                        filepath_remote_archive = os.path.join(remote_url, pkg_archive_url[2:])
                     else:
                         if REMOTE_REPO_HAS_JSON_IMPLIED:
                             # TODO: use `urllib.parse.urlsplit(..)`.
                             # NOTE: strip the path until the directory.
                             # Convert: `https://foo.bar/bl_ext_repo.json` -> https://foo.bar/ARCHIVE_NAME
                             filepath_remote_archive = urllib.parse.urljoin(
-                                repo_dir.rpartition("/")[0],
+                                remote_url.rpartition("/")[0],
                                 pkg_archive_url[2:],
                             )
                         else:
-                            filepath_remote_archive = urllib.parse.urljoin(repo_dir, pkg_archive_url[2:])
+                            filepath_remote_archive = urllib.parse.urljoin(remote_url, pkg_archive_url[2:])
                     is_pkg_filesystem = is_repo_filesystem
                 else:
                     filepath_remote_archive = pkg_archive_url
-                    is_pkg_filesystem = repo_is_filesystem(repo_dir=pkg_archive_url)
+                    is_pkg_filesystem = repo_is_filesystem(remote_url=pkg_archive_url)
 
                 # Check if the cache should be used.
                 found = False
@@ -2387,7 +2399,7 @@ def argparse_create_client_list(subparsers: "argparse._SubParsersAction[argparse
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    generic_arg_repo_dir(subparse)
+    generic_arg_remote_url(subparse)
     generic_arg_local_dir(subparse)
     generic_arg_online_user_agent(subparse)
 
@@ -2397,7 +2409,7 @@ def argparse_create_client_list(subparsers: "argparse._SubParsersAction[argparse
     subparse.set_defaults(
         func=lambda args: subcmd_client.list_packages(
             msg_fn_from_args(args),
-            args.repo_dir,
+            args.remote_url,
             online_user_agent=args.online_user_agent,
             timeout_in_seconds=args.timeout,
         ),
@@ -2415,7 +2427,7 @@ def argparse_create_client_sync(subparsers: "argparse._SubParsersAction[argparse
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    generic_arg_repo_dir(subparse)
+    generic_arg_remote_url(subparse)
     generic_arg_local_dir(subparse)
     generic_arg_online_user_agent(subparse)
 
@@ -2426,7 +2438,7 @@ def argparse_create_client_sync(subparsers: "argparse._SubParsersAction[argparse
     subparse.set_defaults(
         func=lambda args: subcmd_client.sync(
             msg_fn_from_args(args),
-            repo_dir=args.repo_dir,
+            remote_url=args.remote_url,
             local_dir=args.local_dir,
             online_user_agent=args.online_user_agent,
             timeout_in_seconds=args.timeout,
@@ -2465,7 +2477,7 @@ def argparse_create_client_install(subparsers: "argparse._SubParsersAction[argpa
     )
     generic_arg_package_list_positional(subparse)
 
-    generic_arg_repo_dir(subparse)
+    generic_arg_remote_url(subparse)
     generic_arg_local_dir(subparse)
     generic_arg_local_cache(subparse)
     generic_arg_online_user_agent(subparse)
@@ -2476,7 +2488,7 @@ def argparse_create_client_install(subparsers: "argparse._SubParsersAction[argpa
     subparse.set_defaults(
         func=lambda args: subcmd_client.install_packages(
             msg_fn_from_args(args),
-            repo_dir=args.repo_dir,
+            remote_url=args.remote_url,
             local_dir=args.local_dir,
             local_cache=args.local_cache,
             packages=args.packages.split(","),
@@ -2584,12 +2596,12 @@ def argparse_create_dummy_repo(subparsers: "argparse._SubParsersAction[argparse.
     )
 
     generic_arg_output_type(subparse)
-    generic_arg_repo_dir(subparse)
+    generic_arg_remote_url(subparse)
 
     subparse.set_defaults(
         func=lambda args: subcmd_dummy.repo(
             msg_fn_from_args(args),
-            repo_dir=args.repo_dir,
+            remote_url=args.remote_url,
             package_names=args.package_names,
         ),
     )

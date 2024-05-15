@@ -312,7 +312,7 @@ class TestCLI_WithRepo(unittest.TestCase):
         # TODO: only run once.
         self.test_server_generate()
 
-        output = command_output(["list", "--repo-dir", self.dirpath_url, "--local-dir", ""])
+        output = command_output(["list", "--remote-url", self.dirpath_url, "--local-dir", ""])
         self.assertEqual(
             output, (
                 "another_package(1.5.2): Another Package\n"
@@ -324,7 +324,7 @@ class TestCLI_WithRepo(unittest.TestCase):
 
         # TODO, figure out how to split JSON & TEXT output tests, this test just checks JSON is working at all.
         output_json = command_output_from_json_0(
-            ["list", "--repo-dir", self.dirpath_url, "--local-dir", ""],
+            ["list", "--remote-url", self.dirpath_url, "--local-dir", ""],
             exclude_types={"PROGRESS"},
         )
         self.assertEqual(
@@ -342,7 +342,7 @@ class TestCLI_WithRepo(unittest.TestCase):
 
             output_json = command_output_from_json_0([
                 "sync",
-                "--repo-dir", self.dirpath_url,
+                "--remote-url", self.dirpath_url,
                 "--local-dir", temp_dir_local,
             ], exclude_types={"PROGRESS"})
             self.assertEqual(
@@ -357,7 +357,7 @@ class TestCLI_WithRepo(unittest.TestCase):
             output_json = command_output_from_json_0(
                 [
                     "install", "another_package",
-                    "--repo-dir", self.dirpath_url,
+                    "--remote-url", self.dirpath_url,
                     "--local-dir", temp_dir_local,
                 ],
                 exclude_types={"PROGRESS"},
@@ -373,7 +373,7 @@ class TestCLI_WithRepo(unittest.TestCase):
             output_json = command_output_from_json_0(
                 [
                     "install", "another_package",
-                    "--repo-dir", self.dirpath_url,
+                    "--remote-url", self.dirpath_url,
                     "--local-dir", temp_dir_local,
                 ],
                 exclude_types={"PROGRESS"},

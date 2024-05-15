@@ -296,7 +296,7 @@ def repo_sync(
     yield from command_output_from_json_0([
         "sync",
         "--local-dir", directory,
-        "--repo-dir", remote_url,
+        "--remote-url", remote_url,
         "--online-user-agent", online_user_agent,
         *(("--force-exit-ok",) if force_exit_ok else ()),
     ], use_idle=use_idle)
@@ -317,7 +317,7 @@ def repo_upgrade(
     yield from command_output_from_json_0([
         "upgrade",
         "--local-dir", directory,
-        "--repo-dir", remote_url,
+        "--remote-url", remote_url,
         "--online-user-agent", online_user_agent,
     ], use_idle=use_idle)
     yield [COMPLETE_ITEM]
@@ -375,7 +375,7 @@ def pkg_install(
     yield from command_output_from_json_0([
         "install", ",".join(pkg_id_sequence),
         "--local-dir", directory,
-        "--repo-dir", remote_url,
+        "--remote-url", remote_url,
         "--online-user-agent", online_user_agent,
         "--local-cache", str(int(use_cache)),
     ], use_idle=use_idle)
