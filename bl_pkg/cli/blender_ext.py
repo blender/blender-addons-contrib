@@ -354,14 +354,15 @@ def pkg_manifest_from_dict_and_validate_impl(
         *,
         from_repo: bool,
         all_errors: bool,
+        strict: bool,
 ) -> Union[PkgManifest, List[str]]:
     error_list = []
     # Validate the dictionary.
     if all_errors:
-        if (x := pkg_manifest_is_valid_or_error_all(data, from_repo=from_repo)) is not None:
+        if (x := pkg_manifest_is_valid_or_error_all(data, from_repo=from_repo, strict=strict)) is not None:
             error_list.extend(x)
     else:
-        if (error_msg := pkg_manifest_is_valid_or_error(data, from_repo=from_repo)) is not None:
+        if (error_msg := pkg_manifest_is_valid_or_error(data, from_repo=from_repo, strict=strict)) is not None:
             error_list.append(error_msg)
             if not all_errors:
                 return error_list
@@ -389,8 +390,9 @@ def pkg_manifest_from_dict_and_validate_impl(
 def pkg_manifest_from_dict_and_validate(
         data: Dict[Any, Any],
         from_repo: bool,
+        strict: bool,
 ) -> Union[PkgManifest, str]:
-    manifest = pkg_manifest_from_dict_and_validate_impl(data, from_repo=from_repo, all_errors=False)
+    manifest = pkg_manifest_from_dict_and_validate_impl(data, from_repo=from_repo, all_errors=False, strict=strict)
     if isinstance(manifest, list):
         return manifest[0]
     return manifest
@@ -399,17 +401,19 @@ def pkg_manifest_from_dict_and_validate(
 def pkg_manifest_from_dict_and_validate_all_errros(
         data: Dict[Any, Any],
         from_repo: bool,
+        strict: bool,
 ) -> Union[PkgManifest, List[str]]:
     """
     Validate the manifest and return all errors.
     """
-    return pkg_manifest_from_dict_and_validate_impl(data, from_repo=from_repo, all_errors=True)
+    return pkg_manifest_from_dict_and_validate_impl(data, from_repo=from_repo, all_errors=True, strict=strict)
 
 
 def pkg_manifest_archive_from_dict_and_validate(
         data: Dict[Any, Any],
+        strict: bool,
 ) -> Union[PkgManifest_Archive, str]:
-    manifest = pkg_manifest_from_dict_and_validate(data, from_repo=True)
+    manifest = pkg_manifest_from_dict_and_validate(data, from_repo=True, strict=strict)
     if isinstance(manifest, str):
         return manifest
 
@@ -424,7 +428,10 @@ def pkg_manifest_archive_from_dict_and_validate(
     )
 
 
-def pkg_manifest_from_toml_and_validate_all_errors(filepath: str) -> Union[PkgManifest, List[str]]:
+def pkg_manifest_from_toml_and_validate_all_errors(
+        filepath: str,
+        strict: bool,
+) -> Union[PkgManifest, List[str]]:
     """
     This function is responsible for not letting invalid manifest from creating packages with ID names
     or versions that would not properly install.
@@ -437,7 +444,7 @@ def pkg_manifest_from_toml_and_validate_all_errors(filepath: str) -> Union[PkgMa
     except Exception as ex:
         return [str(ex)]
 
-    return pkg_manifest_from_dict_and_validate_all_errros(data, from_repo=False)
+    return pkg_manifest_from_dict_and_validate_all_errros(data, from_repo=False, strict=strict)
 
 
 def pkg_zipfile_detect_subdir_or_none(
@@ -474,6 +481,7 @@ def pkg_manifest_from_zipfile_and_validate_impl(
         zip_fh: zipfile.ZipFile,
         archive_subdir: str,
         all_errors: bool,
+        strict: bool,
 ) -> Union[PkgManifest, List[str]]:
     """
     Validate the manifest and return all errors.
@@ -498,14 +506,25 @@ def pkg_manifest_from_zipfile_and_validate_impl(
     # TODO: forward actual error.
     if manifest_dict is None:
         return ["Archive does not contain a manifest"]
-    return pkg_manifest_from_dict_and_validate_impl(manifest_dict, from_repo=False, all_errors=all_errors)
+    return pkg_manifest_from_dict_and_validate_impl(
+        manifest_dict,
+        from_repo=False,
+        all_errors=all_errors,
+        strict=strict,
+    )
 
 
 def pkg_manifest_from_zipfile_and_validate(
         zip_fh: zipfile.ZipFile,
         archive_subdir: str,
+        strict: bool,
 ) -> Union[PkgManifest, str]:
-    manifest = pkg_manifest_from_zipfile_and_validate_impl(zip_fh, archive_subdir, all_errors=False)
+    manifest = pkg_manifest_from_zipfile_and_validate_impl(
+        zip_fh,
+        archive_subdir,
+        all_errors=False,
+        strict=strict,
+    )
     if isinstance(manifest, list):
         return manifest[0]
     return manifest
@@ -514,12 +533,19 @@ def pkg_manifest_from_zipfile_and_validate(
 def pkg_manifest_from_zipfile_and_validate_all_errors(
         zip_fh: zipfile.ZipFile,
         archive_subdir: str,
+        strict: bool,
 ) -> Union[PkgManifest, List[str]]:
-    return pkg_manifest_from_zipfile_and_validate_impl(zip_fh, archive_subdir, all_errors=True)
+    return pkg_manifest_from_zipfile_and_validate_impl(
+        zip_fh,
+        archive_subdir,
+        all_errors=True,
+        strict=strict,
+    )
 
 
 def pkg_manifest_from_archive_and_validate(
         filepath: str,
+        strict: bool,
 ) -> Union[PkgManifest, str]:
     try:
         zip_fh_context = zipfile.ZipFile(filepath, mode="r")
@@ -529,7 +555,7 @@ def pkg_manifest_from_archive_and_validate(
     with contextlib.closing(zip_fh_context) as zip_fh:
         if (archive_subdir := pkg_zipfile_detect_subdir_or_none(zip_fh)) is None:
             return "Archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML)
-        return pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir)
+        return pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir, strict=strict)
 
 
 def remote_url_get(url: str) -> str:
@@ -726,10 +752,6 @@ def url_retrieve_to_filepath_iter_or_filesystem(
             yield (read, size)
 
 
-# -----------------------------------------------------------------------------
-# Manifest Validation
-
-
 def pkg_idname_is_valid_or_error(pkg_idname: str) -> Optional[str]:
     if not pkg_idname.isidentifier():
         return "Not a valid identifier"
@@ -744,14 +766,31 @@ def pkg_idname_is_valid_or_error(pkg_idname: str) -> Optional[str]:
 
 # -----------------------------------------------------------------------------
 # Manifest Validation (Generic Callbacks)
+#
+# NOTE: regarding the `strict` argument, this was added because we may want to tighten
+# guidelines without causing existing repositories to fail.
+#
+# Strict is used:
+# - When building packages.
+# - When validating packages from the command line.
+#
+# However manifests from severs that don't adhere to strict rules are not prevented from loading.
 
-def pkg_manifest_validate_field_any_non_empty_string(value: str) -> Optional[str]:
+def pkg_manifest_validate_field_any_non_empty_string(
+    value: str,
+    strict: bool,
+) -> Optional[str]:
+    _ = strict
     if not value.strip():
         return "A non-empty string expected"
     return None
 
 
-def pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(value: str) -> Optional[str]:
+def pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(
+        value: str,
+        strict: bool,
+) -> Optional[str]:
+    _ = strict
     value_strip = value.strip()
     if not value_strip:
         return "a non-empty string expected"
@@ -762,7 +801,8 @@ def pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(v
     return None
 
 
-def pkg_manifest_validate_field_any_list_of_non_empty_strings(value: List[Any]) -> Optional[str]:
+def pkg_manifest_validate_field_any_list_of_non_empty_strings(value: List[Any], strict: bool) -> Optional[str]:
+    _ = strict
     for i, tag in enumerate(value):
         if not isinstance(tag, str):
             return "at index {:d} must be a string not a {:s}".format(i, str(type(tag)))
@@ -771,20 +811,31 @@ def pkg_manifest_validate_field_any_list_of_non_empty_strings(value: List[Any]) 
     return None
 
 
-def pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings(value: List[Any]) -> Optional[str]:
+def pkg_manifest_validate_field_any_non_empty_list_of_non_empty_strings(
+        value: List[Any],
+        strict: bool,
+) -> Optional[str]:
     if not value:
         return "list may not be empty"
 
-    return pkg_manifest_validate_field_any_list_of_non_empty_strings(value)
+    return pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict)
 
 
-def pkg_manifest_validate_field_any_version(value: str) -> Optional[str]:
+def pkg_manifest_validate_field_any_version(
+        value: str,
+        strict: bool,
+) -> Optional[str]:
+    _ = strict
     if not RE_MANIFEST_SEMVER.match(value):
         return "to be a semantic-version, found {!r}".format(value)
     return None
 
 
-def pkg_manifest_validate_field_any_version_primitive(value: str) -> Optional[str]:
+def pkg_manifest_validate_field_any_version_primitive(
+        value: str,
+        strict: bool,
+) -> Optional[str]:
+    _ = strict
     # Parse simple `1.2.3`, `1.2` & `1` numbers.
     for number in value.split("."):
         if not number.isdigit():
@@ -792,16 +843,25 @@ def pkg_manifest_validate_field_any_version_primitive(value: str) -> Optional[st
     return None
 
 
-def pkg_manifest_validate_field_any_version_primitive_or_empty(value: str) -> Optional[str]:
+def pkg_manifest_validate_field_any_version_primitive_or_empty(
+        value: str,
+        strict: bool,
+) -> Optional[str]:
     if value:
-        return pkg_manifest_validate_field_any_version_primitive(value)
+        return pkg_manifest_validate_field_any_version_primitive(value, strict)
     return None
 
 # -----------------------------------------------------------------------------
 # Manifest Validation (Specific Callbacks)
 
 
-def pkg_manifest_validate_field_type(value: str) -> Optional[str]:
+def pkg_manifest_validate_field_idname(value: str, strict: bool) -> Optional[str]:
+    _ = strict
+    return pkg_idname_is_valid_or_error(value)
+
+
+def pkg_manifest_validate_field_type(value: str, strict: bool) -> Optional[str]:
+    _ = strict
     # NOTE: add "keymap" in the future.
     value_expected = {"add-on", "theme"}
     if value not in value_expected:
@@ -809,24 +869,33 @@ def pkg_manifest_validate_field_type(value: str) -> Optional[str]:
     return None
 
 
-def pkg_manifest_validate_field_tagline(value: str) -> Optional[str]:
-    if (error := pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(value)) is not None:
-        return error
-    # Additional requirements.
-    if len(value) > 64:
-        return "a value no longer than 64 characters expected, found {:d}".format(len(value))
-    # As we don't have a reliable (unicode aware) punctuation check, just check the last character is alpha/numeric.
-    if value[-1].isalnum():
-        pass  # OK.
-    elif value[-1] in {")", "]", "}"}:
-        pass  # Allow closing brackets (sometimes used to mention formats).
+def pkg_manifest_validate_field_tagline(value: str, strict: bool) -> Optional[str]:
+    if strict:
+        if (error := pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(value, strict)) is not None:
+            return error
+
+        # Additional requirements.
+        if len(value) > 64:
+            return "a value no longer than 64 characters expected, found {:d}".format(len(value))
+        # As we don't have a reliable (unicode aware) punctuation check, just check the last character is alpha/numeric.
+        if value[-1].isalnum():
+            pass  # OK.
+        elif value[-1] in {")", "]", "}"}:
+            pass  # Allow closing brackets (sometimes used to mention formats).
+        else:
+            return "alpha-numeric suffix expected, the string must not end with punctuation"
     else:
-        return "alpha-numeric suffix expected, the string must not end with punctuation"
+        if (error := pkg_manifest_validate_field_any_non_empty_string(value, strict)) is not None:
+            return error
+
     return None
 
 
-def pkg_manifest_validate_field_wheels(value: List[Any]) -> Optional[str]:
-    if (error := pkg_manifest_validate_field_any_list_of_non_empty_strings(value)) is not None:
+def pkg_manifest_validate_field_wheels(
+        value: List[Any],
+        strict: bool,
+) -> Optional[str]:
+    if (error := pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict)) is not None:
         return error
     # Enforce naming spec:
     # https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention
@@ -848,13 +917,21 @@ def pkg_manifest_validate_field_wheels(value: List[Any]) -> Optional[str]:
     return None
 
 
-def pkg_manifest_validate_field_archive_size(value: int) -> Optional[str]:
+def pkg_manifest_validate_field_archive_size(
+    value: int,
+    strict: bool,
+) -> Optional[str]:
+    _ = strict
     if value <= 0:
         return "to be a positive integer, found {!r}".format(value)
     return None
 
 
-def pkg_manifest_validate_field_archive_hash(value: str) -> Optional[str]:
+def pkg_manifest_validate_field_archive_hash(
+        value: str,
+        strict: bool,
+) -> Optional[str]:
+    _ = strict
     import string
     # Expect: `sha256:{HASH}`.
     # In the future we may support multiple hash types.
@@ -872,8 +949,11 @@ def pkg_manifest_validate_field_archive_hash(value: str) -> Optional[str]:
 
 # Keep in sync with `PkgManifest`.
 # key, type, check_fn.
-pkg_manifest_known_keys_and_types: Tuple[Tuple[str, type, Optional[Callable[[Any], Optional[str]]]], ...] = (
-    ("id", str, pkg_idname_is_valid_or_error),
+pkg_manifest_known_keys_and_types: Tuple[
+    Tuple[str, type, Optional[Callable[[Any, bool], Optional[str]]]],
+    ...,
+] = (
+    ("id", str, pkg_manifest_validate_field_idname),
     ("schema_version", str, pkg_manifest_validate_field_any_version),
     ("name", str, pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars),
     ("tagline", str, pkg_manifest_validate_field_tagline),
@@ -893,7 +973,10 @@ pkg_manifest_known_keys_and_types: Tuple[Tuple[str, type, Optional[Callable[[Any
 )
 
 # Keep in sync with `PkgManifest_Archive`.
-pkg_manifest_known_keys_and_types_from_repo: Tuple[Tuple[str, type, Optional[Callable[[Any], Optional[str]]]], ...] = (
+pkg_manifest_known_keys_and_types_from_repo: Tuple[
+    Tuple[str, type, Optional[Callable[[Any, bool], Optional[str]]]],
+    ...,
+] = (
     ("archive_size", int, pkg_manifest_validate_field_archive_size),
     ("archive_hash", str, pkg_manifest_validate_field_archive_hash),
     ("archive_url", str, None),
@@ -908,6 +991,7 @@ def pkg_manifest_is_valid_or_error_impl(
         *,
         from_repo: bool,
         all_errors: bool,
+        strict: bool,
 ) -> Optional[List[str]]:
     if not isinstance(data, dict):
         return ["Expected value to be a dict, not a {!r}".format(type(data))]
@@ -957,7 +1041,7 @@ def pkg_manifest_is_valid_or_error_impl(
                     continue
 
                 if x_check_fn is not None:
-                    if (error_msg := x_check_fn(x_val)) is not None:
+                    if (error_msg := x_check_fn(x_val, strict)) is not None:
                         error_list.append("key \"{:s}\" invalid: {:s}".format(x_key, error_msg))
                         if not all_errors:
                             return error_list
@@ -976,13 +1060,13 @@ def pkg_manifest_is_valid_or_error(
         data: Dict[str, Any],
         *,
         from_repo: bool,
-
-
+        strict: bool,
 ) -> Optional[str]:
     error_list = pkg_manifest_is_valid_or_error_impl(
         data,
         from_repo=from_repo,
         all_errors=False,
+        strict=strict,
     )
     if isinstance(error_list, list):
         return error_list[0]
@@ -993,11 +1077,13 @@ def pkg_manifest_is_valid_or_error_all(
         data: Dict[str, Any],
         *,
         from_repo: bool,
+        strict: bool,
 ) -> Optional[List[str]]:
     return pkg_manifest_is_valid_or_error_impl(
         data,
         from_repo=from_repo,
         all_errors=True,
+        strict=strict,
     )
 
 
@@ -1061,13 +1147,13 @@ def repo_json_is_valid_or_error(filepath: str) -> Optional[str]:
                 i, pkg_idname, error_msg,
             )
 
-        if (error_msg := pkg_manifest_is_valid_or_error(item, from_repo=True)) is not None:
+        if (error_msg := pkg_manifest_is_valid_or_error(item, from_repo=True, strict=False)) is not None:
             return "Error at index {:d}: {:s}".format(i, error_msg)
 
     return None
 
 
-def pkg_manifest_toml_is_valid_or_error(filepath: str) -> Tuple[Optional[str], Dict[str, Any]]:
+def pkg_manifest_toml_is_valid_or_error(filepath: str, strict: bool) -> Tuple[Optional[str], Dict[str, Any]]:
     if not os.path.exists(filepath):
         return "File missing: " + filepath, {}
 
@@ -1077,7 +1163,7 @@ def pkg_manifest_toml_is_valid_or_error(filepath: str) -> Tuple[Optional[str], D
     except BaseException as ex:
         return str(ex), {}
 
-    error = pkg_manifest_is_valid_or_error(result, from_repo=False)
+    error = pkg_manifest_is_valid_or_error(result, from_repo=False, strict=strict)
     if error is not None:
         return error, {}
     return None, result
@@ -1492,7 +1578,7 @@ class subcmd_server:
 
             filename = entry.name
             filepath = os.path.join(repo_dir, filename)
-            manifest = pkg_manifest_from_archive_and_validate(filepath)
+            manifest = pkg_manifest_from_archive_and_validate(filepath, strict=False)
             if isinstance(manifest, str):
                 message_warn(msg_fn, "archive validation failed {!r}, error: {:s}".format(filepath, manifest))
                 continue
@@ -1666,7 +1752,7 @@ class subcmd_client:
                     )
                     return False
 
-                manifest = pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir)
+                manifest = pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir, strict=False)
                 if isinstance(manifest, str):
                     message_warn(
                         msg_fn,
@@ -1805,7 +1891,7 @@ class subcmd_client:
                 message_error(msg_fn, "Package \"{:s}\", not found".format(pkg_idname))
                 has_error = True
                 continue
-            manifest_archive = pkg_manifest_archive_from_dict_and_validate(pkg_info)
+            manifest_archive = pkg_manifest_archive_from_dict_and_validate(pkg_info, strict=False)
             if isinstance(manifest_archive, str):
                 message_error(msg_fn, "Package malformed meta-data for \"{:s}\", error: {:s}".format(
                     pkg_idname,
@@ -2051,7 +2137,7 @@ class subcmd_author:
             message_error(msg_fn, "File \"{:s}\" not found!".format(pkg_manifest_filepath))
             return False
 
-        manifest = pkg_manifest_from_toml_and_validate_all_errors(pkg_manifest_filepath)
+        manifest = pkg_manifest_from_toml_and_validate_all_errors(pkg_manifest_filepath, strict=True)
         if isinstance(manifest, list):
             for error_msg in manifest:
                 message_error(msg_fn, "Error parsing TOML \"{:s}\" {:s}".format(pkg_manifest_filepath, error_msg))
@@ -2133,7 +2219,7 @@ class subcmd_author:
             return False
 
         # Demote errors to status as the function of this action is to check the manifest is stable.
-        manifest = pkg_manifest_from_toml_and_validate_all_errors(pkg_manifest_filepath)
+        manifest = pkg_manifest_from_toml_and_validate_all_errors(pkg_manifest_filepath, strict=True)
         if isinstance(manifest, list):
             message_status(msg_fn, "Error parsing TOML \"{:s}\"".format(pkg_manifest_filepath))
             for error_msg in manifest:
@@ -2187,7 +2273,7 @@ class subcmd_author:
                 message_status(msg_fn, "Error, archive has no manifest: \"{:s}\"".format(PKG_MANIFEST_FILENAME_TOML))
                 return False
             # Demote errors to status as the function of this action is to check the manifest is stable.
-            manifest = pkg_manifest_from_zipfile_and_validate_all_errors(zip_fh, archive_subdir)
+            manifest = pkg_manifest_from_zipfile_and_validate_all_errors(zip_fh, archive_subdir, strict=True)
             if isinstance(manifest, list):
                 message_status(msg_fn, "Error parsing TOML in \"{:s}\"".format(pkg_source_archive))
                 for error_msg in manifest:
